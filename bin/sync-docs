@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Re-syncs docs/ from the project documentation (Dropbox). Run it, then commit "docs: sync YYYY-MM-DD".
+exec "/Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/install.sh" api "$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)" --docs-only

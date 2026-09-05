@@ -1,0 +1,370 @@
+{
+ "mobil": [
+  {
+   "num": "01",
+   "title": "Accés",
+   "file": "mobil/01-acces.html",
+   "bytes": 56875,
+   "png": "mobil/01-acces.png"
+  },
+  {
+   "num": "02",
+   "title": "Primer accés / «Ja hi ets» — contrasenya opcional",
+   "file": "mobil/02-primer-acces-ja-hi-ets-contrasenya-opcional.html",
+   "bytes": 57218,
+   "png": "mobil/02-primer-acces-ja-hi-ets-contrasenya-opcional.png"
+  },
+  {
+   "num": "03",
+   "title": "Inici (abonat)",
+   "file": "mobil/03-inici-abonat.html",
+   "bytes": 60072,
+   "png": "mobil/03-inici-abonat.png"
+  },
+  {
+   "num": "03b",
+   "title": "Tria de perfil (nova)",
+   "file": "mobil/03b-tria-de-perfil-nova.html",
+   "bytes": 57832,
+   "png": "mobil/03b-tria-de-perfil-nova.png"
+  },
+  {
+   "num": "04",
+   "title": "Reservar — activitats i classes",
+   "file": "mobil/04-reservar-activitats-i-classes.html",
+   "bytes": 21936,
+   "png": "mobil/04-reservar-activitats-i-classes.png"
+  },
+  {
+   "num": "05",
+   "title": "Fusionada amb la 04",
+   "file": "mobil/05-fusionada-amb-la-04.html",
+   "bytes": 15964,
+   "png": "mobil/05-fusionada-amb-la-04.png"
+  },
+  {
+   "num": "06",
+   "title": "Confirmar reserva — bloqueig i canvi de classe",
+   "file": "mobil/06-confirmar-reserva-bloqueig-i-canvi-de-classe.html",
+   "bytes": 19510,
+   "png": "mobil/06-confirmar-reserva-bloqueig-i-canvi-de-classe.png"
+  },
+  {
+   "num": "07",
+   "title": "Detall d'una reserva — anul·lació",
+   "file": "mobil/07-detall-d-una-reserva-anullacio.html",
+   "bytes": 18123,
+   "png": "mobil/07-detall-d-una-reserva-anullacio.png"
+  },
+  {
+   "num": "08",
+   "title": "Entrenaments — reservar entrenament lliure",
+   "file": "mobil/08-entrenaments-reservar-entrenament-lliure.html",
+   "bytes": 19676,
+   "png": "mobil/08-entrenaments-reservar-entrenament-lliure.png"
+  },
+  {
+   "num": "09",
+   "title": "Descartada — es tria el quadre",
+   "file": "mobil/09-descartada-es-tria-el-quadre.html",
+   "bytes": 16003,
+   "png": "mobil/09-descartada-es-tria-el-quadre.png"
+  },
+  {
+   "num": "10",
+   "title": "Avui — classes del dia (quadre)",
+   "file": "mobil/10-avui-classes-del-dia-quadre.html",
+   "bytes": 20196,
+   "png": "mobil/10-avui-classes-del-dia-quadre.png"
+  },
+  {
+   "num": "11",
+   "title": "Notificacions",
+   "file": "mobil/11-notificacions.html",
+   "bytes": 21592,
+   "png": "mobil/11-notificacions.png"
+  },
+  {
+   "num": "12",
+   "title": "Perfil i preferències",
+   "file": "mobil/12-perfil-i-preferencies.html",
+   "bytes": 22378,
+   "png": "mobil/12-perfil-i-preferencies.png"
+  },
+  {
+   "num": "13",
+   "title": "Els meus gossos",
+   "file": "mobil/13-els-meus-gossos.html",
+   "bytes": 21683,
+   "png": "mobil/13-els-meus-gossos.png"
+  },
+  {
+   "num": "14",
+   "title": "Sol·licitar període d'inactivitat",
+   "file": "mobil/14-sollicitar-periode-d-inactivitat.html",
+   "bytes": 18299,
+   "png": "mobil/14-sollicitar-periode-d-inactivitat.png"
+  },
+  {
+   "num": "15",
+   "title": "Sol·licitar la baixa",
+   "file": "mobil/15-sollicitar-la-baixa.html",
+   "bytes": 18020,
+   "png": "mobil/15-sollicitar-la-baixa.png"
+  },
+  {
+   "num": "16",
+   "title": "Alta — pas 1 · la persona",
+   "file": "mobil/16-alta-pas-1-la-persona.html",
+   "bytes": 58905,
+   "png": "mobil/16-alta-pas-1-la-persona.png"
+  },
+  {
+   "num": "17",
+   "title": "Alta — pas 2 · el gos i la modalitat",
+   "file": "mobil/17-alta-pas-2-el-gos-i-la-modalitat.html",
+   "bytes": 59885,
+   "png": "mobil/17-alta-pas-2-el-gos-i-la-modalitat.png"
+  },
+  {
+   "num": "18",
+   "title": "Alta — segon gos i grup familiar",
+   "file": "mobil/18-alta-segon-gos-i-grup-familiar.html",
+   "bytes": 18474,
+   "png": "mobil/18-alta-segon-gos-i-grup-familiar.png"
+  },
+  {
+   "num": "19",
+   "title": "Alta — pagament, consentiments i enviament",
+   "file": "mobil/19-alta-pagament-consentiments-i-enviament.html",
+   "bytes": 62315,
+   "png": "mobil/19-alta-pagament-consentiments-i-enviament.png"
+  },
+  {
+   "num": "20",
+   "title": "Instructor — grups del dia",
+   "file": "mobil/20-instructor-grups-del-dia.html",
+   "bytes": 19026,
+   "png": "mobil/20-instructor-grups-del-dia.png"
+  },
+  {
+   "num": "21",
+   "title": "Instructor — detall de classe i passar llista",
+   "file": "mobil/21-instructor-detall-de-classe-i-passar-llista.html",
+   "bytes": 20938,
+   "png": "mobil/21-instructor-detall-de-classe-i-passar-llista.png"
+  },
+  {
+   "num": "22",
+   "title": "Instructor — fitxa d'alumne",
+   "file": "mobil/22-instructor-fitxa-d-alumne.html",
+   "bytes": 20932,
+   "png": "mobil/22-instructor-fitxa-d-alumne.png"
+  },
+  {
+   "num": "23",
+   "title": "Instructor — visió global (quadre del dia)",
+   "file": "mobil/23-instructor-visio-global-quadre-del-dia.html",
+   "bytes": 19007,
+   "png": "mobil/23-instructor-visio-global-quadre-del-dia.png"
+  },
+  {
+   "num": "24",
+   "title": "Instructor — reservar o bloquejar pista",
+   "file": "mobil/24-instructor-reservar-o-bloquejar-pista.html",
+   "bytes": 18089,
+   "png": "mobil/24-instructor-reservar-o-bloquejar-pista.png"
+  },
+  {
+   "num": "25",
+   "title": "Històric — classes, entrenaments i activitats",
+   "file": "mobil/25-historic-classes-entrenaments-i-activitats.html",
+   "bytes": 19662,
+   "png": "mobil/25-historic-classes-entrenaments-i-activitats.png"
+  },
+  {
+   "num": "26",
+   "title": "Instructor — tasques i notes de l'alumne",
+   "file": "mobil/26-instructor-tasques-i-notes-de-l-alumne.html",
+   "bytes": 20078,
+   "png": "mobil/26-instructor-tasques-i-notes-de-l-alumne.png"
+  },
+  {
+   "num": "27",
+   "title": "Estadístiques i lliga (proposta)",
+   "file": "mobil/27-estadistiques-i-lliga-proposta.html",
+   "bytes": 22863,
+   "png": "mobil/27-estadistiques-i-lliga-proposta.png"
+  },
+  {
+   "num": "27b",
+   "title": "Competició — resum de proves (proposta)",
+   "file": "mobil/27b-competicio-resum-de-proves-proposta.html",
+   "bytes": 20898,
+   "png": "mobil/27b-competicio-resum-de-proves-proposta.png"
+  },
+  {
+   "num": "28",
+   "title": "Modificar les meves dades",
+   "file": "mobil/28-modificar-les-meves-dades.html",
+   "bytes": 18123,
+   "png": "mobil/28-modificar-les-meves-dades.png"
+  },
+  {
+   "num": "29",
+   "title": "Confirmar reserva — estats",
+   "file": "mobil/29-confirmar-reserva-estats.html",
+   "bytes": 18304,
+   "png": "mobil/29-confirmar-reserva-estats.png"
+  },
+  {
+   "num": "30",
+   "title": "Info — preguntes freqüents",
+   "file": "mobil/30-info-preguntes-frequents.html",
+   "bytes": 19340,
+   "png": "mobil/30-info-preguntes-frequents.png"
+  }
+ ],
+ "escriptori": [
+  {
+   "num": "D1",
+   "title": "Tauler de control",
+   "file": "escriptori/D1-tauler-de-control.html",
+   "bytes": 63048,
+   "png": "escriptori/D1-tauler-de-control.png"
+  },
+  {
+   "num": "D2",
+   "title": "Validació d'una preinscripció",
+   "file": "escriptori/D2-validacio-d-una-preinscripcio.html",
+   "bytes": 62411,
+   "png": "escriptori/D2-validacio-d-una-preinscripcio.png"
+  },
+  {
+   "num": "D3",
+   "title": "Plantilles — quadre setmanal i creació de classes",
+   "file": "escriptori/D3-plantilles-quadre-setmanal-i-creacio-de-classes.html",
+   "bytes": 69974,
+   "png": "escriptori/D3-plantilles-quadre-setmanal-i-creacio-de-classes.png"
+  },
+  {
+   "num": "D3b",
+   "title": "Plantilles — visió del dia per pista / per instructor",
+   "file": "escriptori/D3b-plantilles-visio-del-dia-per-pista-per-instructor.html",
+   "bytes": 60625,
+   "png": "escriptori/D3b-plantilles-visio-del-dia-per-pista-per-instructor.png"
+  },
+  {
+   "num": "D4",
+   "title": "Calendari de classes — setmana activa",
+   "file": "escriptori/D4-calendari-de-classes-setmana-activa.html",
+   "bytes": 64326,
+   "png": "escriptori/D4-calendari-de-classes-setmana-activa.png"
+  },
+  {
+   "num": "D4b",
+   "title": "Calendari de classes — setmana en esborrany i validació",
+   "file": "escriptori/D4b-calendari-de-classes-setmana-en-esborrany-i-validacio.html",
+   "bytes": 62910,
+   "png": "escriptori/D4b-calendari-de-classes-setmana-en-esborrany-i-validacio.png"
+  },
+  {
+   "num": "D4c",
+   "title": "Calendari de classes — anul·lar una classe amb inscrits",
+   "file": "escriptori/D4c-calendari-de-classes-anullar-una-classe-amb-inscrits.html",
+   "bytes": 64763,
+   "png": "escriptori/D4c-calendari-de-classes-anullar-una-classe-amb-inscrits.png"
+  },
+  {
+   "num": "D5",
+   "title": "Llistat d'abonats (patró de llistat universal)",
+   "file": "escriptori/D5-llistat-d-abonats-patro-de-llistat-universal.html",
+   "bytes": 60857,
+   "png": "escriptori/D5-llistat-d-abonats-patro-de-llistat-universal.png"
+  },
+  {
+   "num": "D6",
+   "title": "Facturació — simulació, rebuts i remesa SEPA",
+   "file": "escriptori/D6-facturacio-simulacio-rebuts-i-remesa-sepa.html",
+   "bytes": 61000,
+   "png": "escriptori/D6-facturacio-simulacio-rebuts-i-remesa-sepa.png"
+  },
+  {
+   "num": "D7",
+   "title": "Activitats — llistat i manteniment",
+   "file": "escriptori/D7-activitats-llistat-i-manteniment.html",
+   "bytes": 60408,
+   "png": "escriptori/D7-activitats-llistat-i-manteniment.png"
+  },
+  {
+   "num": "D8",
+   "title": "Modalitats i tarifes",
+   "file": "escriptori/D8-modalitats-i-tarifes.html",
+   "bytes": 60246,
+   "png": "escriptori/D8-modalitats-i-tarifes.png"
+  },
+  {
+   "num": "D9",
+   "title": "Comunicats i plantilles d'avís",
+   "file": "escriptori/D9-comunicats-i-plantilles-d-avis.html",
+   "bytes": 62337,
+   "png": "escriptori/D9-comunicats-i-plantilles-d-avis.png"
+  },
+  {
+   "num": "D10",
+   "title": "Fitxa d'abonat",
+   "file": "escriptori/D10-fitxa-d-abonat.html",
+   "bytes": 63520,
+   "png": "escriptori/D10-fitxa-d-abonat.png"
+  },
+  {
+   "num": "D11",
+   "title": "Paràmetres del club",
+   "file": "escriptori/D11-parametres-del-club.html",
+   "bytes": 64506,
+   "png": "escriptori/D11-parametres-del-club.png"
+  },
+  {
+   "num": "D12",
+   "title": "Instructor — agenda setmanal (navegador)",
+   "file": "escriptori/D12-instructor-agenda-setmanal-navegador.html",
+   "bytes": 63299,
+   "png": "escriptori/D12-instructor-agenda-setmanal-navegador.png"
+  },
+  {
+   "num": "D13",
+   "title": "Instructor — fitxa d'alumne (navegador)",
+   "file": "escriptori/D13-instructor-fitxa-d-alumne-navegador.html",
+   "bytes": 59857,
+   "png": "escriptori/D13-instructor-fitxa-d-alumne-navegador.png"
+  },
+  {
+   "num": "D14",
+   "title": "Seguiment alumnes",
+   "file": "escriptori/D14-seguiment-alumnes.html",
+   "bytes": 58958,
+   "png": "escriptori/D14-seguiment-alumnes.png"
+  },
+  {
+   "num": "D15",
+   "title": "Llistat de gossos",
+   "file": "escriptori/D15-llistat-de-gossos.html",
+   "bytes": 59475,
+   "png": "escriptori/D15-llistat-de-gossos.png"
+  },
+  {
+   "num": "D16",
+   "title": "Configuració — Pistes",
+   "file": "escriptori/D16-configuracio-pistes.html",
+   "bytes": 58502,
+   "png": "escriptori/D16-configuracio-pistes.png"
+  },
+  {
+   "num": "D17",
+   "title": "Configuració — Instructors i administradors",
+   "file": "escriptori/D17-configuracio-instructors-i-administradors.html",
+   "bytes": 59868,
+   "png": "escriptori/D17-configuracio-instructors-i-administradors.png"
+  }
+ ]
+}
