@@ -23,7 +23,10 @@ class EventCatalogContractTest {
             var matcher = pattern.matcher(row.split("\\|", -1)[1]);
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
-        Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(ClubConfigChanged.class, () -> new ClubConfigChanged(
+        Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.platform.domain.events.ParameterChanged.class, () -> new com.agilityhub.core.platform.domain.events.ParameterChanged(
+                        "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("key", "signup.enabled", "before", true, "after", false),
+                        "account-a", null, DomainEvent.Origin.BACKOFFICE), ClubConfigChanged.class, () -> new ClubConfigChanged(
                 "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("diff", Map.of("name", "Example")),
                 "account-a", null, DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
@@ -38,9 +41,15 @@ class EventCatalogContractTest {
         samples.values().forEach(factory -> {
             DomainEvent event = factory.get();
             assertThat(catalog).contains(event.type());
-            assertThat(event.aggregateType()).isEqualTo("Club");
-            assertThat(event.aggregateId()).isEqualTo(event.clubId());
-            assertThat(event.payload()).containsKey("diff");
+            if (event instanceof ClubConfigChanged) {
+                assertThat(event.aggregateType()).isEqualTo("Club");
+                assertThat(event.aggregateId()).isEqualTo(event.clubId());
+                assertThat(event.payload()).containsKey("diff");
+            } else {
+                assertThat(event.aggregateType()).isEqualTo("Parameter");
+                assertThat(event.aggregateId()).isEqualTo("signup.enabled");
+                assertThat(event.payload()).containsKeys("key", "before", "after");
+            }
             assertThat(event.actorAccountId()).isEqualTo("account-a");
             assertThat(event.impersonatedMemberId()).isNull();
             assertThat(event.origin()).isEqualTo(DomainEvent.Origin.BACKOFFICE);

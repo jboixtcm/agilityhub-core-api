@@ -9,6 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("idempotency_records")
 public record IdempotencyRecord(@Id String id, String clubId, String accountId, String key,
                                 String requestHash, Status status, int responseStatus, byte[] responseBody,
-                                Map<String, List<String>> responseHeaders, Instant createdAt) {
+                                Map<String, List<String>> responseHeaders, Instant createdAt) implements com.agilityhub.core.shared.domain.TenantEntity {
     public enum Status { IN_PROGRESS, DONE }
 }

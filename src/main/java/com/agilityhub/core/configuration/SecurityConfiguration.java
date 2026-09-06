@@ -22,7 +22,7 @@ public class SecurityConfiguration {
             @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping routes,
             ApiExceptionHandler errors, ObjectMapper mapper) throws Exception {
         http.authorizeHttpRequests(authorize -> {
-            authorize.requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll();
+            authorize.requestMatchers(HttpMethod.GET, "/api/v1/health", "/api/v1/branding", "/api/v1/manifest.webmanifest").permitAll();
             if (environment.acceptsProfiles(Profiles.of("local"))) {
                 authorize.requestMatchers(HttpMethod.GET, "/v3/api-docs").permitAll();
             }

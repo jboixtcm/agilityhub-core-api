@@ -52,6 +52,7 @@ final class ArchitectureRules {
             contextOf(source).ifPresent(sourceContext -> source.getDirectDependenciesFromSelf()
                     .forEach(dependency -> contextOf(dependency.getTargetClass()).ifPresent(targetContext -> {
                         if (!sourceContext.equals(targetContext)
+                                && !sharedContract(dependency.getTargetClass())
                                 && !inPackage(dependency.getTargetClass(),
                                         BASE_PACKAGE + targetContext + ".application")) {
                             events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
@@ -68,6 +69,12 @@ final class ArchitectureRules {
                     return contextOf(javaClass).filter(context -> !context.equals("shared")).isPresent();
                 }
             });
+
+    private static boolean sharedContract(JavaClass type) {
+        return inPackage(type, BASE_PACKAGE + "shared.domain")
+                || type.getName().equals(BASE_PACKAGE + "shared.persistence.TenantRepository")
+                || type.getName().equals(BASE_PACKAGE + "shared.persistence.GlobalRepository");
+    }
 
     private ArchitectureRules() {
     }

@@ -1,0 +1,1911 @@
+# Transcribed from CATALEG_PARAMETRES.md, including Annex A amendments.
+# null defaults are unspecified by the source; see E0-T05 assumptions.
+parameters:
+  - key: "auth.sessionDays"
+    type: "int"
+    default: 30
+    block: "system"
+    labelKey: "admin-settings:param.auth.sessionDays.label"
+    helpKey: "admin-settings:param.auth.sessionDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "auth.magicLinkMinutes"
+    type: "int"
+    default: 15
+    block: "system"
+    labelKey: "admin-settings:param.auth.magicLinkMinutes.label"
+    helpKey: "admin-settings:param.auth.magicLinkMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "15"
+  - key: "auth.impersonationMinutes"
+    type: "int"
+    default: 60
+    block: "system"
+    labelKey: "admin-settings:param.auth.impersonationMinutes.label"
+    helpKey: "admin-settings:param.auth.impersonationMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "60"
+  - key: "auth.passwordMinLength"
+    type: "int"
+    default: 8
+    block: "system"
+    labelKey: "admin-settings:param.auth.passwordMinLength.label"
+    helpKey: "admin-settings:param.auth.passwordMinLength.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "8"
+  - key: "signup.enabled"
+    type: "bool"
+    default: true
+    block: "signup"
+    labelKey: "admin-settings:param.signup.enabled.label"
+    helpKey: "admin-settings:param.signup.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "signup.pendingExpiryDays"
+    type: "int"
+    default: 30
+    block: "signup"
+    labelKey: "admin-settings:param.signup.pendingExpiryDays.label"
+    helpKey: "admin-settings:param.signup.pendingExpiryDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "signup.requireDogDocumentAtSignup"
+    type: "bool"
+    default: false
+    block: "signup"
+    labelKey: "admin-settings:param.signup.requireDogDocumentAtSignup.label"
+    helpKey: "admin-settings:param.signup.requireDogDocumentAtSignup.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "false"
+  - key: "signup.firstMonthSplitDay"
+    type: "int"
+    default: 16
+    block: "signup"
+    labelKey: "admin-settings:param.signup.firstMonthSplitDay.label"
+    helpKey: "admin-settings:param.signup.firstMonthSplitDay.help"
+    constraints: {"min": 0, "max": 31}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "16"
+  - key: "signup.allowFamilyGroupPending"
+    type: "bool"
+    default: true
+    block: "signup"
+    labelKey: "admin-settings:param.signup.allowFamilyGroupPending.label"
+    helpKey: "admin-settings:param.signup.allowFamilyGroupPending.help"
+    constraints: {}
+    modules: ["FAMILY_GROUP"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "signup.text.paymentDay"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.paymentDay.label"
+    helpKey: "admin-settings:param.signup.text.paymentDay.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "«El rebut es passa el dia 25…» (literal del Josep)"
+  - key: "signup.text.cashConditions"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.cashConditions.label"
+    helpKey: "admin-settings:param.signup.text.cashConditions.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "semestres naturals complets, «posa't en contacte»"
+  - key: "signup.text.freeTrainingConditions"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.freeTrainingConditions.label"
+    helpKey: "admin-settings:param.signup.text.freeTrainingConditions.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "condicions d'entrenament lliure"
+  - key: "signup.text.imageConsent"
+    type: "localizedText"
+    default: {"ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"}
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.imageConsent.label"
+    helpKey: "admin-settings:param.signup.text.imageConsent.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "«Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club»"
+  - key: "signup.text.closed"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.closed.label"
+    helpKey: "admin-settings:param.signup.text.closed.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "—"
+  - key: "bookings.maxCurrentWeek"
+    type: "int"
+    default: 2
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.maxCurrentWeek.label"
+    helpKey: "admin-settings:param.bookings.maxCurrentWeek.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
+  - key: "bookings.maxNextWeek"
+    type: "int"
+    default: 1
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.maxNextWeek.label"
+    helpKey: "admin-settings:param.bookings.maxNextWeek.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "bookings.limitUnit"
+    type: "enum"
+    default: "DOG"
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.limitUnit.label"
+    helpKey: "admin-settings:param.bookings.limitUnit.help"
+    constraints: {"enum": ["DOG", "MEMBER"]}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum `DOG`/`MEMBER`"
+    documentDefault: "DOG"
+  - key: "bookings.weekOpensAt"
+    type: "json"
+    default: {"dayOfWeek": "SUNDAY", "time": "20:00"}
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.weekOpensAt.label"
+    helpKey: "admin-settings:param.bookings.weekOpensAt.help"
+    constraints: {"validator": "weekOpensAt"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "json `{dayOfWeek, time}`"
+    documentDefault: "`{SUNDAY, 20:00}`"
+  - key: "bookings.lateCancelThresholdMinutes"
+    type: "duration"
+    default: 240
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.lateCancelThresholdMinutes.label"
+    helpKey: "admin-settings:param.bookings.lateCancelThresholdMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "duration"
+    documentDefault: "240"
+  - key: "bookings.seatHoldSeconds"
+    type: "int"
+    default: 30
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.seatHoldSeconds.label"
+    helpKey: "admin-settings:param.bookings.seatHoldSeconds.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "bookings.showInstructorHoursBefore"
+    type: "int"
+    default: 24
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.showInstructorHoursBefore.label"
+    helpKey: "admin-settings:param.bookings.showInstructorHoursBefore.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "24"
+  - key: "bookings.instructorLastMinuteNotice"
+    type: "bool"
+    default: true
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.instructorLastMinuteNotice.label"
+    helpKey: "admin-settings:param.bookings.instructorLastMinuteNotice.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "classes.defaultCapacity"
+    type: "int"
+    default: 5
+    block: "classes"
+    labelKey: "admin-settings:param.classes.defaultCapacity.label"
+    helpKey: "admin-settings:param.classes.defaultCapacity.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "5"
+  - key: "classes.minDogs"
+    type: "int"
+    default: 2
+    block: "classes"
+    labelKey: "admin-settings:param.classes.minDogs.label"
+    helpKey: "admin-settings:param.classes.minDogs.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
+  - key: "classes.riskReviewTime"
+    type: "time"
+    default: "07:30"
+    block: "classes"
+    labelKey: "admin-settings:param.classes.riskReviewTime.label"
+    helpKey: "admin-settings:param.classes.riskReviewTime.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "07:30"
+  - key: "classes.riskLookaheadDays"
+    type: "int"
+    default: 2
+    block: "classes"
+    labelKey: "admin-settings:param.classes.riskLookaheadDays.label"
+    helpKey: "admin-settings:param.classes.riskLookaheadDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
+  - key: "classes.riskAutoCancelSameDay"
+    type: "bool"
+    default: true
+    block: "classes"
+    labelKey: "admin-settings:param.classes.riskAutoCancelSameDay.label"
+    helpKey: "admin-settings:param.classes.riskAutoCancelSameDay.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "classes.maxInstructorsPerClass"
+    type: "int"
+    default: 1
+    block: "classes"
+    labelKey: "admin-settings:param.classes.maxInstructorsPerClass.label"
+    helpKey: "admin-settings:param.classes.maxInstructorsPerClass.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "classes.slotMinutes"
+    type: "int"
+    default: 10
+    block: "classes"
+    labelKey: "admin-settings:param.classes.slotMinutes.label"
+    helpKey: "admin-settings:param.classes.slotMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "10"
+  - key: "levels.enabled"
+    type: "bool"
+    default: true
+    block: "classes"
+    labelKey: "admin-settings:param.levels.enabled.label"
+    helpKey: "admin-settings:param.levels.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "coverage.thresholds"
+    type: "json"
+    default: {"ok": 240, "tight": 190, "short": 150}
+    block: "classes"
+    labelKey: "admin-settings:param.coverage.thresholds.label"
+    helpKey: "admin-settings:param.coverage.thresholds.help"
+    constraints: {"validator": "coverageThresholds"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "json `{ok, tight, short}` %"
+    documentDefault: "`{240, 190, 150}`"
+  - key: "coverage.activeDogWeeks"
+    type: "int"
+    default: 2
+    block: "classes"
+    labelKey: "admin-settings:param.coverage.activeDogWeeks.label"
+    helpKey: "admin-settings:param.coverage.activeDogWeeks.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
+  - key: "waitlist.mode"
+    type: "enum"
+    default: "ALL_AT_ONCE"
+    block: "waitlist"
+    labelKey: "admin-settings:param.waitlist.mode.label"
+    helpKey: "admin-settings:param.waitlist.mode.help"
+    constraints: {"enum": ["ALL_AT_ONCE", "FIFO"]}
+    modules: ["WAITLIST"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum `ALL_AT_ONCE`/`FIFO`"
+    documentDefault: "ALL_AT_ONCE"
+  - key: "waitlist.fifoConfirmMinutes"
+    type: "int"
+    default: 30
+    block: "waitlist"
+    labelKey: "admin-settings:param.waitlist.fifoConfirmMinutes.label"
+    helpKey: "admin-settings:param.waitlist.fifoConfirmMinutes.help"
+    constraints: {"min": 0}
+    modules: ["WAITLIST"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "waitlist.maxPerClass"
+    type: "int"
+    default: 3
+    block: "waitlist"
+    labelKey: "admin-settings:param.waitlist.maxPerClass.label"
+    helpKey: "admin-settings:param.waitlist.maxPerClass.help"
+    constraints: {"min": 0}
+    modules: ["WAITLIST"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "3"
+  - key: "waitlist.maxPerDogPerWeek"
+    type: "int"
+    default: 2
+    block: "waitlist"
+    labelKey: "admin-settings:param.waitlist.maxPerDogPerWeek.label"
+    helpKey: "admin-settings:param.waitlist.maxPerDogPerWeek.help"
+    constraints: {"min": 0}
+    modules: ["WAITLIST"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
+  - key: "waitlist.maxPerDogPerWeekIfAttended"
+    type: "int"
+    default: 1
+    block: "waitlist"
+    labelKey: "admin-settings:param.waitlist.maxPerDogPerWeekIfAttended.label"
+    helpKey: "admin-settings:param.waitlist.maxPerDogPerWeekIfAttended.help"
+    constraints: {"min": 0}
+    modules: ["WAITLIST"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "waitlist.notifyThresholdMinutes"
+    type: "duration"
+    default: 30
+    block: "waitlist"
+    labelKey: "admin-settings:param.waitlist.notifyThresholdMinutes.label"
+    helpKey: "admin-settings:param.waitlist.notifyThresholdMinutes.help"
+    constraints: {"min": 0}
+    modules: ["WAITLIST"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "duration"
+    documentDefault: "30"
+  - key: "training.slotMinutes"
+    type: "int"
+    default: 30
+    block: "training"
+    labelKey: "admin-settings:param.training.slotMinutes.label"
+    helpKey: "admin-settings:param.training.slotMinutes.help"
+    constraints: {"min": 0}
+    modules: ["FREE_TRAINING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "training.bookingWindowDays"
+    type: "int"
+    default: 3
+    block: "training"
+    labelKey: "admin-settings:param.training.bookingWindowDays.label"
+    helpKey: "admin-settings:param.training.bookingWindowDays.help"
+    constraints: {"min": 0}
+    modules: ["FREE_TRAINING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "3"
+  - key: "training.maxPerWeek"
+    type: "int"
+    default: 3
+    block: "training"
+    labelKey: "admin-settings:param.training.maxPerWeek.label"
+    helpKey: "admin-settings:param.training.maxPerWeek.help"
+    constraints: {"min": 0}
+    modules: ["FREE_TRAINING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "3"
+  - key: "training.cancelThresholdMinutes"
+    type: "duration"
+    default: 120
+    block: "training"
+    labelKey: "admin-settings:param.training.cancelThresholdMinutes.label"
+    helpKey: "admin-settings:param.training.cancelThresholdMinutes.help"
+    constraints: {"min": 0}
+    modules: ["FREE_TRAINING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "duration"
+    documentDefault: "120"
+  - key: "training.capacityPerRingSlot"
+    type: "int"
+    default: 1
+    block: "training"
+    labelKey: "admin-settings:param.training.capacityPerRingSlot.label"
+    helpKey: "admin-settings:param.training.capacityPerRingSlot.help"
+    constraints: {"min": 0}
+    modules: ["FREE_TRAINING"]
+    scope: "ring"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int (àmbit `ring`)"
+    documentDefault: "1"
+  - key: "training.freeTrainingRequiresLicense"
+    type: "bool"
+    default: false
+    block: "training"
+    labelKey: "admin-settings:param.training.freeTrainingRequiresLicense.label"
+    helpKey: "admin-settings:param.training.freeTrainingRequiresLicense.help"
+    constraints: {}
+    modules: ["FREE_TRAINING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "false"
+  - key: "club.openingHours"
+    type: "json"
+    default: {"MONDAY": {"open": "07:00", "close": "22:00"}, "TUESDAY": {"open": "07:00", "close": "22:00"}, "WEDNESDAY": {"open": "07:00", "close": "22:00"}, "THURSDAY": {"open": "07:00", "close": "22:00"}, "FRIDAY": {"open": "07:00", "close": "22:00"}, "SATURDAY": {"open": "07:00", "close": "22:00"}, "SUNDAY": {"open": "07:00", "close": "22:00"}}
+    block: "club"
+    labelKey: "admin-settings:param.club.openingHours.label"
+    helpKey: "admin-settings:param.club.openingHours.help"
+    constraints: {"validator": "openingHours"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "json per dia `{open, close}`"
+    documentDefault: "dl–dg 07:00–22:00"
+  - key: "club.holidays"
+    type: "list"
+    default: []
+    block: "club"
+    labelKey: "admin-settings:param.club.holidays.label"
+    helpKey: "admin-settings:param.club.holidays.help"
+    constraints: {"validator": "holidays"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "list de dates"
+    documentDefault: "—"
+  - key: "billing.entryFeePerDog"
+    type: "money"
+    default: {"amountMinor": 10000, "currency": "EUR"}
+    block: "billing"
+    labelKey: "admin-settings:param.billing.entryFeePerDog.label"
+    helpKey: "admin-settings:param.billing.entryFeePerDog.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "money"
+    documentDefault: "100,00 €"
+  - key: "billing.nextInvoiceDayOfMonth"
+    type: "int"
+    default: 1
+    block: "billing"
+    labelKey: "admin-settings:param.billing.nextInvoiceDayOfMonth.label"
+    helpKey: "admin-settings:param.billing.nextInvoiceDayOfMonth.help"
+    constraints: {"min": 0, "max": 31}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "billing.familyDiscountPercentFromSecondDog"
+    type: "int"
+    default: 50
+    block: "billing"
+    labelKey: "admin-settings:param.billing.familyDiscountPercentFromSecondDog.label"
+    helpKey: "admin-settings:param.billing.familyDiscountPercentFromSecondDog.help"
+    constraints: {"min": 0, "max": 100}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "50"
+  - key: "billing.cashPeriodMonths"
+    type: "int"
+    default: 6
+    block: "billing"
+    labelKey: "admin-settings:param.billing.cashPeriodMonths.label"
+    helpKey: "admin-settings:param.billing.cashPeriodMonths.help"
+    constraints: {"min": 0}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "6"
+  - key: "billing.inactivityFeeFirstMonth"
+    type: "money"
+    default: {"amountMinor": 2000, "currency": "EUR"}
+    block: "billing"
+    labelKey: "admin-settings:param.billing.inactivityFeeFirstMonth.label"
+    helpKey: "admin-settings:param.billing.inactivityFeeFirstMonth.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "money"
+    documentDefault: "20,00 €"
+  - key: "billing.inactivityFeeFollowingMonths"
+    type: "money"
+    default: {"amountMinor": 1000, "currency": "EUR"}
+    block: "billing"
+    labelKey: "admin-settings:param.billing.inactivityFeeFollowingMonths.label"
+    helpKey: "admin-settings:param.billing.inactivityFeeFollowingMonths.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "money"
+    documentDefault: "10,00 €"
+  - key: "billing.packLowBalanceSessions"
+    type: "int"
+    default: 1
+    block: "billing"
+    labelKey: "admin-settings:param.billing.packLowBalanceSessions.label"
+    helpKey: "admin-settings:param.billing.packLowBalanceSessions.help"
+    constraints: {"min": 0}
+    modules: ["PACKS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "billing.packExpiryWarningDays"
+    type: "int"
+    default: 14
+    block: "billing"
+    labelKey: "admin-settings:param.billing.packExpiryWarningDays.label"
+    helpKey: "admin-settings:param.billing.packExpiryWarningDays.help"
+    constraints: {"min": 0}
+    modules: ["PACKS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "14"
+  - key: "billing.singleClassCancelPolicy"
+    type: "enum"
+    default: "REFUND"
+    block: "billing"
+    labelKey: "admin-settings:param.billing.singleClassCancelPolicy.label"
+    helpKey: "admin-settings:param.billing.singleClassCancelPolicy.help"
+    constraints: {"enum": ["REFUND", "CREDIT", "NONE"]}
+    modules: ["SINGLE_CLASS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum `REFUND`/`CREDIT`/`NONE`"
+    documentDefault: "REFUND"
+  - key: "billing.stripeReceiptEmail"
+    type: "bool"
+    default: true
+    block: "billing"
+    labelKey: "admin-settings:param.billing.stripeReceiptEmail.label"
+    helpKey: "admin-settings:param.billing.stripeReceiptEmail.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "billing.accountingExportFormat"
+    type: "enum"
+    default: "CSV"
+    block: "billing"
+    labelKey: "admin-settings:param.billing.accountingExportFormat.label"
+    helpKey: "admin-settings:param.billing.accountingExportFormat.help"
+    constraints: {"enum": ["CSV", "XLSX"]}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum `CSV`/`XLSX`"
+    documentDefault: "CSV"
+  - key: "inactivity.requestDeadlineDay"
+    type: "int"
+    default: 25
+    block: "billing"
+    labelKey: "admin-settings:param.inactivity.requestDeadlineDay.label"
+    helpKey: "admin-settings:param.inactivity.requestDeadlineDay.help"
+    constraints: {"min": 0, "max": 31}
+    modules: ["INACTIVITY"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "25"
+  - key: "inactivity.cancelBookingsOnApproval"
+    type: "bool"
+    default: true
+    block: "billing"
+    labelKey: "admin-settings:param.inactivity.cancelBookingsOnApproval.label"
+    helpKey: "admin-settings:param.inactivity.cancelBookingsOnApproval.help"
+    constraints: {}
+    modules: ["INACTIVITY"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "leave.reasons"
+    type: "json"
+    default: null
+    block: "billing"
+    labelKey: "admin-settings:param.leave.reasons.label"
+    helpKey: "admin-settings:param.leave.reasons.help"
+    constraints: {"validator": "labeledKeys"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "json `[{key, label: localizedText}]`"
+    documentDefault: "LEARNED_ENOUGH · NO_TIME · NOT_EXPECTED · EXTERNAL · OTHER (+ CLUB_DECISION admin · PACK_EXPIRED sistema)"
+  - key: "leave.npsEnabled"
+    type: "bool"
+    default: true
+    block: "billing"
+    labelKey: "admin-settings:param.leave.npsEnabled.label"
+    helpKey: "admin-settings:param.leave.npsEnabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "leave.fullMonthIfLater"
+    type: "bool"
+    default: true
+    block: "billing"
+    labelKey: "admin-settings:param.leave.fullMonthIfLater.label"
+    helpKey: "admin-settings:param.leave.fullMonthIfLater.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "messaging.noShowNoticeTime"
+    type: "time"
+    default: "08:00"
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.noShowNoticeTime.label"
+    helpKey: "admin-settings:param.messaging.noShowNoticeTime.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "08:00"
+  - key: "messaging.reminderOptionsMinutes"
+    type: "list"
+    default: [60, 120, 240, 360, 720, 1440]
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.reminderOptionsMinutes.label"
+    helpKey: "admin-settings:param.messaging.reminderOptionsMinutes.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "list"
+    documentDefault: "60,120,240,360,720,1440"
+  - key: "messaging.email.fromName"
+    type: "string"
+    default: "Club Agility Cànic"
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.email.fromName.label"
+    helpKey: "admin-settings:param.messaging.email.fromName.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "Club Agility Cànic / …"
+  - key: "messaging.email.fromAddress"
+    type: "string"
+    default: null
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.email.fromAddress.label"
+    helpKey: "admin-settings:param.messaging.email.fromAddress.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "Club Agility Cànic / …"
+  - key: "messaging.email.replyTo"
+    type: "string"
+    default: null
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.email.replyTo.label"
+    helpKey: "admin-settings:param.messaging.email.replyTo.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "Club Agility Cànic / …"
+  - key: "messaging.sms.senderId"
+    type: "string"
+    default: null
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.senderId.label"
+    helpKey: "admin-settings:param.messaging.sms.senderId.help"
+    constraints: {}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "—"
+  - key: "messaging.sms.monthlyCap"
+    type: "int"
+    default: 1000
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.monthlyCap.label"
+    helpKey: "admin-settings:param.messaging.sms.monthlyCap.help"
+    constraints: {"min": 0}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1000"
+  - key: "messaging.notifyWeekOpening"
+    type: "bool"
+    default: false
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.notifyWeekOpening.label"
+    helpKey: "admin-settings:param.messaging.notifyWeekOpening.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "false"
+  - key: "messaging.notifyNewRingSetup"
+    type: "bool"
+    default: false
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.notifyNewRingSetup.label"
+    helpKey: "admin-settings:param.messaging.notifyNewRingSetup.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "false"
+  - key: "messaging.documentReminderDays"
+    type: "int"
+    default: 0
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.documentReminderDays.label"
+    helpKey: "admin-settings:param.messaging.documentReminderDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "0"
+  - key: "files.maxSizeMb"
+    type: "int"
+    default: 25
+    block: "system"
+    labelKey: "admin-settings:param.files.maxSizeMb.label"
+    helpKey: "admin-settings:param.files.maxSizeMb.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "25"
+  - key: "files.allowedTypes"
+    type: "list"
+    default: ["image/*", "video/mp4", "video/quicktime", "application/pdf", "text/plain"]
+    block: "system"
+    labelKey: "admin-settings:param.files.allowedTypes.label"
+    helpKey: "admin-settings:param.files.allowedTypes.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "list"
+    documentDefault: "image/*, video/mp4, video/quicktime, application/pdf + text/plain"
+  - key: "files.dogPhotoMaxMb"
+    type: "int"
+    default: 8
+    block: "system"
+    labelKey: "admin-settings:param.files.dogPhotoMaxMb.label"
+    helpKey: "admin-settings:param.files.dogPhotoMaxMb.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "8"
+  - key: "history.monthsVisible"
+    type: "int"
+    default: 2
+    block: "system"
+    labelKey: "admin-settings:param.history.monthsVisible.label"
+    helpKey: "admin-settings:param.history.monthsVisible.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "2"
+  - key: "dashboard.pendingSignupAgeWarnDays"
+    type: "int"
+    default: 7
+    block: "system"
+    labelKey: "admin-settings:param.dashboard.pendingSignupAgeWarnDays.label"
+    helpKey: "admin-settings:param.dashboard.pendingSignupAgeWarnDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "7"
+  - key: "courses.setupAutoExpireDays"
+    type: "int"
+    default: 7
+    block: "courses"
+    labelKey: "admin-settings:param.courses.setupAutoExpireDays.label"
+    helpKey: "admin-settings:param.courses.setupAutoExpireDays.help"
+    constraints: {"min": 0}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "7"
+  - key: "courses.placementMarginMeters"
+    type: "json"
+    default: 1.5
+    block: "courses"
+    labelKey: "admin-settings:param.courses.placementMarginMeters.label"
+    helpKey: "admin-settings:param.courses.placementMarginMeters.help"
+    constraints: {"min": 0, "validator": "decimal"}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "json decimal"
+    documentDefault: "1.5"
+  - key: "courses.showSetupToMembers"
+    type: "bool"
+    default: true
+    block: "courses"
+    labelKey: "admin-settings:param.courses.showSetupToMembers.label"
+    helpKey: "admin-settings:param.courses.showSetupToMembers.help"
+    constraints: {}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "courses.allowInstructorPublish"
+    type: "bool"
+    default: true
+    block: "courses"
+    labelKey: "admin-settings:param.courses.allowInstructorPublish.label"
+    helpKey: "admin-settings:param.courses.allowInstructorPublish.help"
+    constraints: {}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "auth.welcomeLinkDays"
+    type: "int"
+    default: 7
+    block: "system"
+    labelKey: "admin-settings:param.auth.welcomeLinkDays.label"
+    helpKey: "admin-settings:param.auth.welcomeLinkDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "7"
+  - key: "auth.maxSessions"
+    type: "int"
+    default: 10
+    block: "system"
+    labelKey: "admin-settings:param.auth.maxSessions.label"
+    helpKey: "admin-settings:param.auth.maxSessions.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "10"
+  - key: "auth.lockoutMinutes"
+    type: "int"
+    default: 15
+    block: "system"
+    labelKey: "admin-settings:param.auth.lockoutMinutes.label"
+    helpKey: "admin-settings:param.auth.lockoutMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "15"
+  - key: "auth.lockoutMaxAttempts"
+    type: "int"
+    default: 5
+    block: "system"
+    labelKey: "admin-settings:param.auth.lockoutMaxAttempts.label"
+    helpKey: "admin-settings:param.auth.lockoutMaxAttempts.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "5"
+  - key: "auth.checkCompromisedPasswords"
+    type: "bool"
+    default: true
+    block: "system"
+    labelKey: "admin-settings:param.auth.checkCompromisedPasswords.label"
+    helpKey: "admin-settings:param.auth.checkCompromisedPasswords.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "census.dogDocumentTypes"
+    type: "json"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.census.dogDocumentTypes.label"
+    helpKey: "admin-settings:param.census.dogDocumentTypes.help"
+    constraints: {"validator": "documentTypes"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "json `[{key, label: localizedText, required}]`"
+    documentDefault: "cartilla (obligatòria) · assegurança · altres"
+  - key: "census.bookingBlockReasons"
+    type: "list"
+    default: [{"ca": "rebut impagat"}, {"ca": "cartilla pendent"}, {"ca": "decisió del club"}]
+    block: "club"
+    labelKey: "admin-settings:param.census.bookingBlockReasons.label"
+    helpKey: "admin-settings:param.census.bookingBlockReasons.help"
+    constraints: {"validator": "localizedList"}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "list localizedText"
+    documentDefault: "rebut impagat · cartilla pendent · decisió del club"
+  - key: "signup.text.monthlyPaymentIntro"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.monthlyPaymentIntro.label"
+    helpKey: "admin-settings:param.signup.text.monthlyPaymentIntro.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "textos del Cànic (17/18/19)"
+  - key: "signup.text.therapyIntro"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.therapyIntro.label"
+    helpKey: "admin-settings:param.signup.text.therapyIntro.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "textos del Cànic (17/18/19)"
+  - key: "signup.text.familyGroupIntro"
+    type: "localizedText"
+    default: null
+    block: "signup"
+    labelKey: "admin-settings:param.signup.text.familyGroupIntro.label"
+    helpKey: "admin-settings:param.signup.text.familyGroupIntro.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "textos del Cànic (17/18/19)"
+  - key: "signup.rateLimit"
+    type: "json"
+    default: null
+    block: "system"
+    labelKey: "admin-settings:param.signup.rateLimit.label"
+    helpKey: "admin-settings:param.signup.rateLimit.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "json"
+    documentDefault: "límits de S04 R-04-20"
+  - key: "activities.cancelDeadline"
+    type: "enum"
+    default: "REGISTRATION_CLOSE"
+    block: "classes"
+    labelKey: "admin-settings:param.activities.cancelDeadline.label"
+    helpKey: "admin-settings:param.activities.cancelDeadline.help"
+    constraints: {"enum": ["REGISTRATION_CLOSE", "EVENT_START"]}
+    modules: ["ACTIVITIES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum `REGISTRATION_CLOSE · EVENT_START`"
+    documentDefault: "REGISTRATION_CLOSE"
+  - key: "activities.publicUrlTemplate"
+    type: "string"
+    default: "{websiteUrl}/activitat/{slug}"
+    block: "club"
+    labelKey: "admin-settings:param.activities.publicUrlTemplate.label"
+    helpKey: "admin-settings:param.activities.publicUrlTemplate.help"
+    constraints: {}
+    modules: ["ACTIVITIES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "`{websiteUrl}/activitat/{slug}`"
+  - key: "bookings.paymentPendingMinutes"
+    type: "int"
+    default: 30
+    block: "classes"
+    labelKey: "admin-settings:param.bookings.paymentPendingMinutes.label"
+    helpKey: "admin-settings:param.bookings.paymentPendingMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "ringBlocks.maxHorizonDays"
+    type: "int"
+    default: 60
+    block: "training"
+    labelKey: "admin-settings:param.ringBlocks.maxHorizonDays.label"
+    helpKey: "admin-settings:param.ringBlocks.maxHorizonDays.help"
+    constraints: {"min": 0}
+    modules: ["FREE_TRAINING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "60"
+  - key: "attendance.editDays"
+    type: "int"
+    default: 1
+    block: "classes"
+    labelKey: "admin-settings:param.attendance.editDays.label"
+    helpKey: "admin-settings:param.attendance.editDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "files.maxAttachmentsPerEntity"
+    type: "int"
+    default: 10
+    block: "system"
+    labelKey: "admin-settings:param.files.maxAttachmentsPerEntity.label"
+    helpKey: "admin-settings:param.files.maxAttachmentsPerEntity.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "10"
+  - key: "messaging.sms.transliterateToGsm7"
+    type: "bool"
+    default: true
+    block: "messaging"
+    labelKey: "admin-settings:param.messaging.sms.transliterateToGsm7.label"
+    helpKey: "admin-settings:param.messaging.sms.transliterateToGsm7.help"
+    constraints: {}
+    modules: ["SMS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "messaging.push.ttlMinutes"
+    type: "int"
+    default: 1440
+    block: "system"
+    labelKey: "admin-settings:param.messaging.push.ttlMinutes.label"
+    helpKey: "admin-settings:param.messaging.push.ttlMinutes.help"
+    constraints: {"min": 0}
+    modules: ["PUSH"]
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1440"
+  - key: "billing.invoiceSeriesPattern"
+    type: "string"
+    default: "{YYYY}"
+    block: "billing"
+    labelKey: "admin-settings:param.billing.invoiceSeriesPattern.label"
+    helpKey: "admin-settings:param.billing.invoiceSeriesPattern.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "`{YYYY}`"
+  - key: "billing.invoiceResetYearly"
+    type: "bool"
+    default: true
+    block: "billing"
+    labelKey: "admin-settings:param.billing.invoiceResetYearly.label"
+    helpKey: "admin-settings:param.billing.invoiceResetYearly.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "billing.cashInvoicing"
+    type: "enum"
+    default: "MONTHLY"
+    block: "billing"
+    labelKey: "admin-settings:param.billing.cashInvoicing.label"
+    helpKey: "admin-settings:param.billing.cashInvoicing.help"
+    constraints: {"enum": ["MONTHLY", "SEMESTER"]}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum `MONTHLY · SEMESTER`"
+    documentDefault: "MONTHLY (confirmat Jordi 05-09)"
+  - key: "billing.taxIncluded"
+    type: "bool"
+    default: true
+    block: "billing"
+    labelKey: "admin-settings:param.billing.taxIncluded.label"
+    helpKey: "admin-settings:param.billing.taxIncluded.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "billing.sepa.useFrst"
+    type: "bool"
+    default: false
+    block: "billing"
+    labelKey: "admin-settings:param.billing.sepa.useFrst.label"
+    helpKey: "admin-settings:param.billing.sepa.useFrst.help"
+    constraints: {}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "false"
+  - key: "billing.sepa.schema"
+    type: "enum"
+    default: "pain.008.001.02"
+    block: "billing"
+    labelKey: "admin-settings:param.billing.sepa.schema.label"
+    helpKey: "admin-settings:param.billing.sepa.schema.help"
+    constraints: {"enum": ["pain.008.001.02"]}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "enum"
+    documentDefault: "`pain.008.001.02`"
+  - key: "billing.sepa.collectionDayOfMonth"
+    type: "int"
+    default: 0
+    block: "billing"
+    labelKey: "admin-settings:param.billing.sepa.collectionDayOfMonth.label"
+    helpKey: "admin-settings:param.billing.sepa.collectionDayOfMonth.help"
+    constraints: {"min": 0, "max": 28}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int (1–28 o `0` = últim dia del mes)"
+    documentDefault: "**0** (últim dia del mes, Jordi 05-09)"
+  - key: "billing.stripeMaxAttempts"
+    type: "int"
+    default: 3
+    block: "billing"
+    labelKey: "admin-settings:param.billing.stripeMaxAttempts.label"
+    helpKey: "admin-settings:param.billing.stripeMaxAttempts.help"
+    constraints: {"min": 0}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "3"
+  - key: "billing.remittanceReminderDay"
+    type: "int"
+    default: 22
+    block: "billing"
+    labelKey: "admin-settings:param.billing.remittanceReminderDay.label"
+    helpKey: "admin-settings:param.billing.remittanceReminderDay.help"
+    constraints: {"min": 0, "max": 31}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int (0 = mai)"
+    documentDefault: "22"
+  - key: "inactivity.maxStartMonthsAhead"
+    type: "int"
+    default: 12
+    block: "billing"
+    labelKey: "admin-settings:param.inactivity.maxStartMonthsAhead.label"
+    helpKey: "admin-settings:param.inactivity.maxStartMonthsAhead.help"
+    constraints: {"min": 0}
+    modules: ["INACTIVITY"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "12"
+  - key: "leave.packExpiryGraceDays"
+    type: "int"
+    default: 30
+    block: "billing"
+    labelKey: "admin-settings:param.leave.packExpiryGraceDays.label"
+    helpKey: "admin-settings:param.leave.packExpiryGraceDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "audit.retentionYears"
+    type: "int"
+    default: 6
+    block: "privacy"
+    labelKey: "admin-settings:param.audit.retentionYears.label"
+    helpKey: "admin-settings:param.audit.retentionYears.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "6"
+  - key: "rgpd.erasureMinDaysAfterLeave"
+    type: "int"
+    default: 30
+    block: "privacy"
+    labelKey: "admin-settings:param.rgpd.erasureMinDaysAfterLeave.label"
+    helpKey: "admin-settings:param.rgpd.erasureMinDaysAfterLeave.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "rgpd.retentionYearsAfterLeave"
+    type: "int"
+    default: 5
+    block: "privacy"
+    labelKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.label"
+    helpKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "5"
+  - key: "rgpd.rejectedSignupRetentionDays"
+    type: "int"
+    default: 365
+    block: "privacy"
+    labelKey: "admin-settings:param.rgpd.rejectedSignupRetentionDays.label"
+    helpKey: "admin-settings:param.rgpd.rejectedSignupRetentionDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "365"
+  - key: "security.eventRetentionDays"
+    type: "int"
+    default: 90
+    block: "system"
+    labelKey: "admin-settings:param.security.eventRetentionDays.label"
+    helpKey: "admin-settings:param.security.eventRetentionDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "90"
+  - key: "jobs.weekOpening.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.weekOpening.enabled.label"
+    helpKey: "admin-settings:param.jobs.weekOpening.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.riskReview.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.riskReview.enabled.label"
+    helpKey: "admin-settings:param.jobs.riskReview.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.noShowNotices.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.noShowNotices.enabled.label"
+    helpKey: "admin-settings:param.jobs.noShowNotices.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.reminders.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.reminders.enabled.label"
+    helpKey: "admin-settings:param.jobs.reminders.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.expirations.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.expirations.enabled.label"
+    helpKey: "admin-settings:param.jobs.expirations.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.waitlistFifo.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.waitlistFifo.enabled.label"
+    helpKey: "admin-settings:param.jobs.waitlistFifo.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.paymentTimeouts.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.paymentTimeouts.enabled.label"
+    helpKey: "admin-settings:param.jobs.paymentTimeouts.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.classFinishing.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.classFinishing.enabled.label"
+    helpKey: "admin-settings:param.jobs.classFinishing.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.cleanup.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.cleanup.enabled.label"
+    helpKey: "admin-settings:param.jobs.cleanup.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.billingReminder.enabled"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.billingReminder.enabled.label"
+    helpKey: "admin-settings:param.jobs.billingReminder.enabled.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.dailyTime"
+    type: "time"
+    default: "06:00"
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.dailyTime.label"
+    helpKey: "admin-settings:param.jobs.dailyTime.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "time"
+    documentDefault: "06:00"
+  - key: "jobs.alertAdminsOnFailure"
+    type: "bool"
+    default: true
+    block: "jobs"
+    labelKey: "admin-settings:param.jobs.alertAdminsOnFailure.label"
+    helpKey: "admin-settings:param.jobs.alertAdminsOnFailure.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "bool"
+    documentDefault: "true"
+  - key: "jobs.retention.domainEventsDays"
+    type: "int"
+    default: 90
+    block: "system"
+    labelKey: "admin-settings:param.jobs.retention.domainEventsDays.label"
+    helpKey: "admin-settings:param.jobs.retention.domainEventsDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "90"
+  - key: "jobs.retention.jobRunsDays"
+    type: "int"
+    default: 90
+    block: "system"
+    labelKey: "admin-settings:param.jobs.retention.jobRunsDays.label"
+    helpKey: "admin-settings:param.jobs.retention.jobRunsDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "90"
+  - key: "jobs.retention.stripeEventsDays"
+    type: "int"
+    default: 400
+    block: "system"
+    labelKey: "admin-settings:param.jobs.retention.stripeEventsDays.label"
+    helpKey: "admin-settings:param.jobs.retention.stripeEventsDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "400"
+  - key: "jobs.retention.exportFilesDays"
+    type: "int"
+    default: 7
+    block: "system"
+    labelKey: "admin-settings:param.jobs.retention.exportFilesDays.label"
+    helpKey: "admin-settings:param.jobs.retention.exportFilesDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "7"
+  - key: "jobs.retention.orphanUploadsHours"
+    type: "int"
+    default: 48
+    block: "system"
+    labelKey: "admin-settings:param.jobs.retention.orphanUploadsHours.label"
+    helpKey: "admin-settings:param.jobs.retention.orphanUploadsHours.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "48"
+  - key: "classes.finishGraceMinutes"
+    type: "int"
+    default: 15
+    block: "classes"
+    labelKey: "admin-settings:param.classes.finishGraceMinutes.label"
+    helpKey: "admin-settings:param.classes.finishGraceMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "15"
+  - key: "courses.buildSessionMaxHours"
+    type: "int"
+    default: 12
+    block: "courses"
+    labelKey: "admin-settings:param.courses.buildSessionMaxHours.label"
+    helpKey: "admin-settings:param.courses.buildSessionMaxHours.help"
+    constraints: {"min": 0}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "12"
+  - key: "courses.gateClearanceMeters"
+    type: "decimal"
+    default: 1.5
+    block: "courses"
+    labelKey: "admin-settings:param.courses.gateClearanceMeters.label"
+    helpKey: "admin-settings:param.courses.gateClearanceMeters.help"
+    constraints: {"min": 0}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "decimal"
+    documentDefault: "1.5"
+  - key: "courses.obstacleClearanceMeters"
+    type: "decimal"
+    default: 0.5
+    block: "courses"
+    labelKey: "admin-settings:param.courses.obstacleClearanceMeters.label"
+    helpKey: "admin-settings:param.courses.obstacleClearanceMeters.help"
+    constraints: {"min": 0}
+    modules: ["COURSES"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "decimal"
+    documentDefault: "0.5"
+  - key: "platform.domainRecheckDays"
+    type: "int"
+    default: 7
+    block: "system"
+    labelKey: "admin-settings:param.platform.domainRecheckDays.label"
+    helpKey: "admin-settings:param.platform.domainRecheckDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "7"
+  - key: "platform.supportAccessMinutes"
+    type: "int"
+    default: 60
+    block: "system"
+    labelKey: "admin-settings:param.platform.supportAccessMinutes.label"
+    helpKey: "admin-settings:param.platform.supportAccessMinutes.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "60"
+  - key: "migration.exportRetentionDays"
+    type: "int"
+    default: 30
+    block: "system"
+    labelKey: "admin-settings:param.migration.exportRetentionDays.label"
+    helpKey: "admin-settings:param.migration.exportRetentionDays.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "30"
+  - key: "migration.leftMaxYears"
+    type: "int"
+    default: 5
+    block: "system"
+    labelKey: "admin-settings:param.migration.leftMaxYears.label"
+    helpKey: "admin-settings:param.migration.leftMaxYears.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "5"
+  - key: "migration.reconciliationTolerancePct"
+    type: "int"
+    default: 1
+    block: "system"
+    labelKey: "admin-settings:param.migration.reconciliationTolerancePct.label"
+    helpKey: "admin-settings:param.migration.reconciliationTolerancePct.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "1"
+  - key: "migration.playoffReadOnlyMonths"
+    type: "int"
+    default: 3
+    block: "system"
+    labelKey: "admin-settings:param.migration.playoffReadOnlyMonths.label"
+    helpKey: "admin-settings:param.migration.playoffReadOnlyMonths.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "3"
+  - key: "learn.linkText"
+    type: "localizedText"
+    default: {"ca": "Aprèn amb AgilityHub"}
+    block: "club"
+    labelKey: "admin-settings:param.learn.linkText.label"
+    helpKey: "admin-settings:param.learn.linkText.help"
+    constraints: {}
+    modules: ["LEARN_LINK"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "localizedText"
+    documentDefault: "«Aprèn amb AgilityHub»"
+  - key: "learn.recommendationsTtlMinutes"
+    type: "int"
+    default: 60
+    block: "club"
+    labelKey: "admin-settings:param.learn.recommendationsTtlMinutes.label"
+    helpKey: "admin-settings:param.learn.recommendationsTtlMinutes.help"
+    constraints: {"min": 0}
+    modules: ["LEARN_LINK"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "60"
+  - key: "learn.baseUrl"
+    type: "string"
+    default: null
+    block: "club"
+    labelKey: "admin-settings:param.learn.baseUrl.label"
+    helpKey: "admin-settings:param.learn.baseUrl.help"
+    constraints: {}
+    modules: ["LEARN_LINK"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "string"
+    documentDefault: "plataforma"
+clubBindings:
+  - keys: "`club.privacyPolicyUrl`"
+    type: "(CLUB.legal)"
+    default: "agilitycanic.cat/ca/politica-de-privacidad/"
+  - keys: "`club.timeZone`, `club.locales`, `club.defaultLocale`, `club.currency`, `club.countryProfile`"
+    type: "(CLUB)"
+    default: "Europe/Madrid · ca,es · ca · EUR · ES"
+  - keys: "`billing.sepa.creditor*`, `billing.sepa.invoiceSeries`"
+    type: "(CLUB.paymentProviders)"
+    default: "—"

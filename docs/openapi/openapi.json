@@ -1,6 +1,119 @@
 {
   "components": {
     "schemas": {
+      "BrandingResponse": {
+        "properties": {
+          "club": {
+            "$ref": "#/components/schemas/ClubSummary"
+          },
+          "countryProfile": {
+            "$ref": "#/components/schemas/Country"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "defaultLocale": {
+            "type": "string"
+          },
+          "legal": {
+            "$ref": "#/components/schemas/Legal"
+          },
+          "locales": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "modules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "signup": {
+            "$ref": "#/components/schemas/Signup"
+          },
+          "status": {
+            "type": "string"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ClubSummary": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Colors": {
+        "properties": {
+          "background": {
+            "type": "string"
+          },
+          "border": {
+            "type": "string"
+          },
+          "danger": {
+            "type": "string"
+          },
+          "info": {
+            "type": "string"
+          },
+          "onPrimary": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "string"
+          },
+          "success": {
+            "type": "string"
+          },
+          "surface": {
+            "type": "string"
+          },
+          "surfaceAlt": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "textMuted": {
+            "type": "string"
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Country": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "idDocumentTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "phonePrefix": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "HealthResponse": {
         "properties": {
           "builtAt": {
@@ -15,6 +128,105 @@
           }
         },
         "type": "object"
+      },
+      "Icon": {
+        "properties": {
+          "purpose": {
+            "type": "string"
+          },
+          "sizes": {
+            "type": "string"
+          },
+          "src": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Legal": {
+        "properties": {
+          "privacyPolicyUrl": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Manifest": {
+        "properties": {
+          "background_color": {
+            "type": "string"
+          },
+          "display": {
+            "type": "string"
+          },
+          "icons": {
+            "items": {
+              "$ref": "#/components/schemas/Icon"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "short_name": {
+            "type": "string"
+          },
+          "start_url": {
+            "type": "string"
+          },
+          "theme_color": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Signup": {
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "Theme": {
+        "properties": {
+          "colors": {
+            "$ref": "#/components/schemas/Colors"
+          },
+          "fontFamily": {
+            "type": "string"
+          },
+          "logoDarkUrl": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "markUrl": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "auto",
+              "light",
+              "dark"
+            ],
+            "type": "string"
+          },
+          "radius": {
+            "type": "string"
+          },
+          "ringPalette": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
       }
     }
   },
@@ -24,6 +236,26 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/branding": {
+      "get": {
+        "operationId": "branding",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "branding-controller"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "health",
@@ -41,6 +273,26 @@
         },
         "tags": [
           "health-controller"
+        ]
+      }
+    },
+    "/api/v1/manifest.webmanifest": {
+      "get": {
+        "operationId": "manifest",
+        "responses": {
+          "200": {
+            "content": {
+              "application/manifest+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Manifest"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "branding-controller"
         ]
       }
     }

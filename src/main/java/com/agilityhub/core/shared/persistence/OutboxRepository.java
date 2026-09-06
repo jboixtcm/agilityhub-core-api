@@ -15,10 +15,10 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class OutboxRepository extends TenantRepository<DomainEventRecord> {
+public class OutboxRepository extends GlobalRepository<DomainEventRecord> {
     public static final Duration LEASE = Duration.ofMinutes(5);
 
-    public OutboxRepository(MongoTemplate mongo) { super(mongo); }
+    public OutboxRepository(MongoTemplate mongo) { super(mongo, DomainEventRecord.class); }
 
     public void ensureIndexes() {
         var indexes = mongo.indexOps(DomainEventRecord.class);
@@ -71,7 +71,7 @@ public class OutboxRepository extends TenantRepository<DomainEventRecord> {
     }
 
     private void requireOwnedUpdate(DomainEventRecord record, Update update) {
-        Query owned = tenantQuery(record.clubId()).addCriteria(Criteria.where("_id").is(record.id())
+        Query owned = Query.query(Criteria.where("clubId").is(record.clubId())).addCriteria(Criteria.where("_id").is(record.id())
                 .and("claimToken").is(record.claimToken()).and("status").is(DomainEventRecord.Status.PENDING));
         if (mongo.updateFirst(owned, update, DomainEventRecord.class).getMatchedCount() != 1) {
             throw new IllegalStateException("Outbox claim no longer owned");

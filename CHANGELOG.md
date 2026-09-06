@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T05: Club and scoped parameter persistence with startup indexes, the complete
+  146-key parameter catalog and Markdown contract, typed validation, immutable
+  cached club configuration, and outbox-driven cache invalidation.
+- Tenant context/filter with JWT/verified-host resolution, local host override,
+  request cleanup, and repository isolation for reads, inserts, replacements and
+  deletes; public branding and PWA manifest with ETags and secret-free responses.
+- ES/GENERIC country profiles, DNI/NIE and IBAN checks, E.164 normalization,
+  attributed full GeoNames Spanish postal data, and S02 unit/integration tests.
+
 - E0-T04: Shared Money arithmetic and ICU formatting, localized text fallback,
   all 240 catalog error codes, consistent API errors with request trace IDs,
   and injectable club-local clocks.

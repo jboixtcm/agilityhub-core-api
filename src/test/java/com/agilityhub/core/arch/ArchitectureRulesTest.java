@@ -96,6 +96,24 @@ class ArchitectureRulesTest {
         ArchitectureRules.DOMAIN_INDEPENDENCE.check(classes);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"domain.Money", "persistence.TenantRepository", "persistence.GlobalRepository"})
+    void T_02_06_boundaryAllowsSharedValueAndRepositoryContracts(String contract) throws IOException {
+        JavaClasses classes = compile(Map.of(
+                "platform.application.Client", ArchitectureRules.BASE_PACKAGE + "shared." + contract,
+                "shared." + contract, "java.lang.String"));
+        ArchitectureRules.CONTEXT_BOUNDARIES.check(classes);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"api.Internal", "persistence.OutboxRepository"})
+    void T_02_06_boundaryStillRejectsSharedImplementationDetails(String internal) throws IOException {
+        JavaClasses classes = compile(Map.of(
+                "platform.application.Client", ArchitectureRules.BASE_PACKAGE + "shared." + internal,
+                "shared." + internal, "java.lang.String"));
+        assertThat(ArchitectureRules.CONTEXT_BOUNDARIES.evaluate(classes).hasViolation()).isTrue();
+    }
+
     // Compile small, deliberately invalid architectures outside src/main so the
     // production scan stays clean while these tests prove the rules can fail.
     private JavaClasses compile(Map<String, String> dependencies) throws IOException {

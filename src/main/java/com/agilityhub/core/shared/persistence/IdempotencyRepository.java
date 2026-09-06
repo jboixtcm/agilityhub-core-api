@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class IdempotencyRepository extends TenantRepository<IdempotencyRecord> {
-    public IdempotencyRepository(MongoTemplate mongo) { super(mongo); }
+    public IdempotencyRepository(MongoTemplate mongo) { super(mongo, IdempotencyRecord.class); }
 
     public void ensureIndexes() {
         mongo.indexOps(IdempotencyRecord.class).ensureIndex(new Index().on("clubId", Direction.ASC)

@@ -1,0 +1,113 @@
+{
+  "id": "club-a",
+  "slug": "example",
+  "name": "Example Agility Club",
+  "legalName": "Example Club Association",
+  "taxId": null,
+  "address": {
+    "street": "1 Example Street",
+    "postalCode": "08349",
+    "city": "Cabrera de Mar",
+    "region": "Barcelona",
+    "country": "ES"
+  },
+  "contactEmail": "club@example.test",
+  "contactPhone": "+34612345678",
+  "websiteUrl": "https://www.example.test",
+  "locales": [
+    "ca",
+    "es",
+    "en"
+  ],
+  "defaultLocale": "ca",
+  "timeZone": "Europe/Madrid",
+  "currency": "EUR",
+  "countryProfile": "ES",
+  "domains": [
+    {
+      "host": "app.example.test",
+      "app": "clubs",
+      "status": "VERIFIED",
+      "verifiedAt": "2030-01-01T00:00:00Z",
+      "primary": true
+    },
+    {
+      "host": "pending.example.test",
+      "app": "clubs-admin",
+      "status": "PENDING",
+      "verifiedAt": null,
+      "primary": false
+    }
+  ],
+  "theme": {
+    "logoUrl": "https://assets.example.test/logo.svg",
+    "logoDarkUrl": "https://assets.example.test/logo-dark.svg",
+    "markUrl": "https://assets.example.test/mark.svg",
+    "colors": {
+      "primary": "#3155A4",
+      "onPrimary": "#FFFFFF",
+      "background": "#FFFFFF",
+      "surface": "#F4F5F7",
+      "surfaceAlt": "#E5E7EB",
+      "text": "#111827",
+      "textMuted": "#4B5563",
+      "border": "#D1D5DB",
+      "success": "#047857",
+      "warning": "#92400E",
+      "danger": "#B91C1C",
+      "info": "#1D4ED8"
+    },
+    "fontFamily": "system-ui",
+    "radius": "4px",
+    "ringPalette": [
+      "#3155A4"
+    ],
+    "mode": "auto"
+  },
+  "pwa": {
+    "name": "Example Agility Club",
+    "shortName": "Example",
+    "icons": [
+      {
+        "src": "https://assets.example.test/icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      }
+    ]
+  },
+  "modules": [
+    "WAITLIST",
+    "FAQ",
+    "PUSH",
+    "FREE_TRAINING",
+    "BILLING"
+  ],
+  "paymentProviders": {
+    "STRIPE": {
+      "secretKeyEnc": "PRIVATE_FIXTURE",
+      "webhookSecretEnc": "PRIVATE_FIXTURE"
+    },
+    "SEPA_XML": {
+      "iban": "PRIVATE_FIXTURE"
+    }
+  },
+  "legal": {
+    "privacyPolicyUrl": "https://www.example.test/privacy",
+    "imageConsentText": {
+      "ca": "Example consent"
+    },
+    "legalTextsVersion": "v1"
+  },
+  "status": "ACTIVE",
+  "onboardingChecklist": {
+    "dns": true
+  },
+  "usage": {
+    "smsSentMonth": 0,
+    "storageBytes": 0
+  },
+  "version": null,
+  "createdAt": "2030-01-01T00:00:00Z",
+  "updatedAt": "2030-01-01T00:00:00Z"
+}

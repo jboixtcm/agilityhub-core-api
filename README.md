@@ -60,8 +60,12 @@ so the host does not need to resolve the replica member's Compose hostname.
 
 Activate one profile with `SPRING_PROFILES_ACTIVE`. Virtual threads are enabled
 in every profile. Configure `SERVER_PORT` if port 8080 is occupied.
-Only GET health is public outside local; authentication is implemented in a
-later roadmap task. Other routes are denied and generated default users are disabled.
+GET health is global and public. GET `/api/v1/branding` and
+`/api/v1/manifest.webmanifest` are public per verified club host. Authentication
+is implemented in a later roadmap task; other mapped routes are denied and
+generated default users are disabled. The `local` profile alone accepts
+`X-Club-Host` to override `Host`. Tenant context comes from an authenticated JWT
+claim when present; a different known host returns `TENANT_MISMATCH`.
 
 ## Packages and checks
 
@@ -73,7 +77,11 @@ Each of the 15 bounded contexts has `api`, `application`, `domain`, and
 
 ArchUnit checks domain independence from web/data/security/servlet APIs,
 context cycles (including individual `clubs.*` contexts), access to other
-contexts only through `application`, and independence of `shared`.
+contexts through `application`, and independence of `shared`. Shared domain
+values and the `TenantRepository` / `GlobalRepository` base classes are also
+explicit cross-context contracts; other shared persistence/API internals remain
+private. Mongo-mapped records live in `persistence`, keeping domain classes free
+of Spring Data dependencies.
 
 ## Run tests
 
@@ -123,7 +131,7 @@ Dependency versions are fixed by the Spring Boot 3.5.16 parent or explicit
 properties in `pom.xml`; the Maven wrapper also checks its distribution SHA-256.
 
 `bin/openapi-snapshot` requires the local API running on port 8080 and Python 3;
-it writes the generated health contract to `docs/openapi/openapi.json`. The CI
+it writes the generated API contract to `docs/openapi/openapi.json`. The CI
 diff hook runs when the snapshot exists; automatic contract generation before
 that hook and full OpenAPI conventions belong to E0-T12.
 
@@ -157,3 +165,43 @@ rule for `main` in **Settings → Branches** (see
 The executor does not change repository settings. The current publish script
 pushes directly to `main`; Jordi must reconcile its access with this protection
 rule (PR publishing or an explicitly managed bypass).
+
+## Club configuration and country data
+
+`ParameterCatalog` loads `src/main/resources/parameters/catalog.yaml`. Its 146
+parameter keys include the expanded grouped rows and ten named jobs from Annex A.
+The document's three Club-backed display rows are retained as `clubBindings`;
+`leave.reasons` and `files.allowedTypes` Annex amendments replace/extend their
+original entries. `T_02_03` independently parses the Markdown and compares the
+keys, types, source defaults, and resolved typed defaults. Unspecified prose
+references have `null` defaults pending catalog clarification (E0-T05 report).
+
+`ClubConfigService` returns deeply immutable values and a Club view containing no
+payment secrets. Configuration and host caches expire after five minutes and
+are invalidated by outbox handlers for `ClubUpdated`, `ClubCreated`,
+`ClubStatusChanged`, `ClubModulesChanged`, and `ParameterChanged`. Invalid stored
+parameter overrides are ignored and logged as `ParameterInvalidOverride`, without
+logging their potentially private values. Public branding/manifest responses
+have a content ETag and a 60-second HTTP cache lifetime.
+
+Tenant repositories require `TenantContext`, including reads/writes by ID.
+Trusted background work opens a scope with `try (var scope =
+TenantContext.open(clubId))`. The outbox dispatcher/publisher use global
+infrastructure access because they handle records across tenants (and global
+events). Parameter uniqueness is `(clubId, key, scopeRef)`: a null scope is the
+club override, while ring/level overrides can coexist. Club slug and domain host
+indexes are globally unique and created at startup.
+
+The Spanish postal lookup uses the complete [GeoNames ES postal-code dataset](https://download.geonames.org/export/zip/ES.zip),
+provided by [GeoNames](https://www.geonames.org/) under
+[Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).
+Downloaded 2026-09-06; source archive SHA-256:
+`90f4771d26e5956834e9eb49bf48acad2302d4a44a2a32c6eda23d9d3b826b35`.
+`src/main/resources/country/es/postal-codes.csv` retains postal code, town and
+region, sorted and deduplicated (37,867 rows); coordinates and other fields are
+omitted. Display converts interior `De`/`Del` particles to `de`/`del`, including
+`08349` → `Cabrera de Mar`. Source spelling is otherwise preserved. `GENERIC`
+has no postal lookup or national document/IBAN validation; phones must be E.164.
+The ES profile uses Apache Commons Validator 1.11.0 for country-specific IBAN
+length/pattern and mod-97 checks, based on the SWIFT registry; see its
+[IBANValidator documentation](https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/IBANValidator.html).

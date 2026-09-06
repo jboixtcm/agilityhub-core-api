@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
-public class MongoEventPublisher extends TenantRepository<DomainEventRecord> implements EventPublisher {
+public class MongoEventPublisher extends GlobalRepository<DomainEventRecord> implements EventPublisher {
     private final ObjectMapper mapper;
     private final MongoDatabaseFactory factory;
     private final Clock clock;
 
     public MongoEventPublisher(MongoTemplate mongo, ObjectMapper mapper, MongoDatabaseFactory factory, Clock clock) {
-        super(mongo);
+        super(mongo, DomainEventRecord.class);
         this.mapper = mapper;
         this.factory = factory;
         this.clock = clock;
