@@ -96,6 +96,11 @@ integration results in `target/failsafe-reports`, and combined JaCoCo HTML in
 `target/site/jacoco/index.html`. Each domain/application package needs
 85% line and 80% branch coverage; each API package needs 70% line coverage.
 Empty domain/application packages do not yet contribute executable code.
+The gates include nested packages and fail `verify` below either threshold.
+Persistence coverage is reported without a minimum. Report and gate analysis
+exclude `*Config`, `*Configuration`, `*Application` (including nested classes),
+and generated code under a `generated` package. Put generated DTOs there;
+handwritten DTOs remain included.
 Mutation testing is opt-in and does not run during normal verification.
 
 Extend `com.agilityhub.core.support.AbstractIntegrationTest` for full Spring
@@ -118,5 +123,37 @@ Dependency versions are fixed by the Spring Boot 3.5.16 parent or explicit
 properties in `pom.xml`; the Maven wrapper also checks its distribution SHA-256.
 
 `bin/openapi-snapshot` requires the local API running on port 8080 and Python 3;
-it writes the generated health contract to `docs/openapi/openapi.json`. Full
-OpenAPI conventions and CI diff enforcement are subsequent roadmap work.
+it writes the generated health contract to `docs/openapi/openapi.json`. The CI
+diff hook runs when the snapshot exists; automatic contract generation before
+that hook and full OpenAPI conventions belong to E0-T12.
+
+## Continuous integration and branch protection
+
+`.github/workflows/ci.yml` runs on every push to `main`, pull request targeting
+`main`, and manual dispatch. **Build and tests** uses Ubuntu, Temurin 21,
+Maven caching, and the runner's Docker engine for Testcontainers. It runs
+`./mvnw -B verify`, including architecture checks and coverage gates, and
+uploads `jacoco-report` for 14 days whenever HTML exists, including on coverage
+failure. **Secret scan** checks Git history with Gitleaks independently of the
+build. Actions are pinned to commit SHAs; Dependabot checks Maven dependencies
+and GitHub Actions weekly.
+
+To reproduce the secret scan locally, install Gitleaks 8.30.1 and run
+`gitleaks detect --redact` from the repository root. Add
+`gitleaks detect --no-git --redact` to scan uncommitted working-tree files.
+The action receives GitHub's automatic `GITHUB_TOKEN` with read-only repository
+permissions and has PR comments disabled. For an organization-owned repository,
+Jordi must add the `GITLEAKS_LICENSE` Actions secret; personal repositories do
+not require it. See the [Gitleaks Action configuration](https://github.com/gitleaks/gitleaks-action#environment-variables).
+
+After the first published CI run, Jordi must configure a branch protection
+rule for `main` in **Settings → Branches** (see
+[GitHub's branch protection instructions](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/managing-a-branch-protection-rule)):
+
+1. Require a pull request before merging and **1 approving review**.
+2. Require status checks to pass before merging; select **Build and tests**
+   and **Secret scan** from the CI workflow.
+
+The executor does not change repository settings. The current publish script
+pushes directly to `main`; Jordi must reconcile its access with this protection
+rule (PR publishing or an explicitly managed bypass).

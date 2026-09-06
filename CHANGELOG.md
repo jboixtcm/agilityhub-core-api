@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T03: GitHub Actions build, Testcontainers and architecture checks, JaCoCo
+  artifact upload, independent Gitleaks scanning, and a conditional OpenAPI diff hook.
+- Weekly Maven and GitHub Actions Dependabot updates and documented `main`
+  branch protection requiring one review and both CI checks.
+- Corrected JaCoCo package matching so domain/application line and branch gates
+  and API line gates are enforced, including nested packages; excluded wiring,
+  application entry points, and generated code from coverage analysis.
 - E0-T02: Local Docker Compose stack with a persistent MongoDB 7 replica set,
   PRIMARY readiness, and a multi-stage Java 21 API image running as a non-root user.
 - Shared Testcontainers integration-test base, mutable test clock, JSON fixture

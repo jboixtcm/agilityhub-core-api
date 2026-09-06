@@ -165,20 +165,39 @@
                         <phase>verify</phase>
                         <goals><goal>report</goal><goal>check</goal></goals>
                         <configuration>
+                            <excludes>
+                                <exclude>**/*Config.class</exclude>
+                                <exclude>**/*Config$*.class</exclude>
+                                <exclude>**/*Configuration.class</exclude>
+                                <exclude>**/*Configuration$*.class</exclude>
+                                <exclude>**/*Application.class</exclude>
+                                <exclude>**/*Application$*.class</exclude>
+                                <exclude>**/generated/**</exclude>
+                            </excludes>
+                            <haltOnFailure>true</haltOnFailure>
                             <rules>
                                 <rule>
                                     <element>PACKAGE</element>
-                                    <includes><include>**/domain*</include><include>**/application*</include></includes>
+                                    <!-- Check rules match Java package names, not class-file paths. -->
+                                    <includes>
+                                        <include>*.domain</include>
+                                        <include>*.domain.*</include>
+                                        <include>*.application</include>
+                                        <include>*.application.*</include>
+                                    </includes>
                                     <limits>
-                                        <limit><counter>LINE</counter><minimum>0.85</minimum></limit>
-                                        <limit><counter>BRANCH</counter><minimum>0.80</minimum></limit>
+                                        <limit><counter>LINE</counter><value>COVEREDRATIO</value><minimum>0.85</minimum></limit>
+                                        <limit><counter>BRANCH</counter><value>COVEREDRATIO</value><minimum>0.80</minimum></limit>
                                     </limits>
                                 </rule>
                                 <rule>
                                     <element>PACKAGE</element>
-                                    <includes><include>**/api*</include></includes>
+                                    <includes>
+                                        <include>*.api</include>
+                                        <include>*.api.*</include>
+                                    </includes>
                                     <limits>
-                                        <limit><counter>LINE</counter><minimum>0.70</minimum></limit>
+                                        <limit><counter>LINE</counter><value>COVEREDRATIO</value><minimum>0.70</minimum></limit>
                                     </limits>
                                 </rule>
                             </rules>
