@@ -1,0 +1,73 @@
+# Product defaults equal the Cànic catalog values; no parameter overrides are needed.
+# Theme tokens: docs/pantalles/mobil/01-acces.html :root.
+apiVersion: "agilityhub.club/v1"
+club:
+  slug: "canic"
+  name: "Club Agility Cànic"
+  locales:
+    - "ca"
+    - "es"
+  defaultLocale: "ca"
+  timeZone: "Europe/Madrid"
+  currency: "EUR"
+  countryProfile: "ES"
+  status: "ONBOARDING"
+  template: false
+  contactEmail: "canic@example.test"
+domains:
+  -
+    host: "app.agilitycanic.cat"
+    app: "clubs"
+    primary: true
+  -
+    host: "admin.agilitycanic.cat"
+    app: "clubs-admin"
+    primary: false
+theme:
+  colors:
+    primary: "#E26A2A"
+    onPrimary: "#FFFFFF"
+    background: "#0B0B0B"
+    surface: "#161616"
+    surfaceAlt: "#1E1E1E"
+    text: "#FFFFFF"
+    textMuted: "#B5B5B5"
+    border: "#2B2B2B"
+    success: "#4CAF7D"
+    warning: "#E5B93C"
+    danger: "#E05B5B"
+    info: "#85B8E8"
+  fontFamily: "Montserrat"
+  radius: "4px"
+  ringPalette:
+    - "#F2B58C"
+    - "#8FCE8F"
+    - "#C9CDD3"
+    - "#F5D67A"
+    - "#85B8E8"
+  mode: "dark"
+preset: "CANIC"
+paymentProviders:
+  - "SEPA_XML"
+  - "MANUAL"
+parameters: {}
+admins:
+  -
+    email: "canic.admin@example.test"
+    name: "Example Administrator"
+    locale: "ca"
+catalogs:
+  levels: []
+  rings: []
+  instructors: []
+  plans: []
+  prices: []
+  faq: []
+messageTemplates: []
+legal:
+  privacyPolicyUrl: "https://agilitycanic.cat/ca/politica-de-privacidad/"
+  imageConsentText:
+    ca: "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"
+    es: "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club"
+    en: "I authorize publication of photos of me and my dog within club activities"
+  legalTextsVersion: "1"

@@ -1,5 +1,5 @@
 # Transcribed from CATALEG_PARAMETRES.md, including Annex A amendments.
-# null defaults are unspecified by the source; see E0-T05 assumptions.
+# E0-T10 supplies the organizer-approved defaults in all three locales.
 parameters:
   - key: "auth.sessionDays"
     type: "int"
@@ -120,7 +120,7 @@ parameters:
     documentDefault: "true"
   - key: "signup.text.paymentDay"
     type: "localizedText"
-    default: null
+    default: {"ca": "El rebut es carrega normalment l'últim dia de cada mes. Tens fins al dia {deadlineDay} per modificar l'emissió de rebuts del mes següent, des de la teva fitxa o posant-te en contacte amb el club.", "es": "El recibo se carga normalmente el último día de cada mes. Tienes hasta el día {deadlineDay} para modificar la emisión de recibos del mes siguiente, desde tu ficha o poniéndote en contacto con el club.", "en": "Payment is normally collected on the last day of each month. You have until day {deadlineDay} to change billing for the following month, from your profile or by contacting the club."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.paymentDay.label"
     helpKey: "admin-settings:param.signup.text.paymentDay.help"
@@ -130,10 +130,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "«El rebut es passa el dia 25…» (literal del Josep)"
+    documentDefault: "`{\"ca\": \"El rebut es carrega normalment l'últim dia de cada mes. Tens fins al dia {deadlineDay} per modificar l'emissió de rebuts del mes següent, des de la teva fitxa o posant-te en contacte amb el club.\", \"es\": \"El recibo se carga normalmente el último día de cada mes. Tienes hasta el día {deadlineDay} para modificar la emisión de recibos del mes siguiente, desde tu ficha o poniéndote en contacto con el club.\", \"en\": \"Payment is normally collected on the last day of each month. You have until day {deadlineDay} to change billing for the following month, from your profile or by contacting the club.\"}`"
   - key: "signup.text.cashConditions"
     type: "localizedText"
-    default: null
+    default: {"ca": "Pagament en efectiu: la quota es paga mensualment al club. Posa't en contacte amb el club per coordinar-ho.", "es": "Pago en efectivo: la cuota se paga mensualmente en el club. Ponte en contacto con el club para coordinarlo.", "en": "Cash payment: the fee is paid monthly at the club. Contact the club to arrange this."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.cashConditions.label"
     helpKey: "admin-settings:param.signup.text.cashConditions.help"
@@ -143,10 +143,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "semestres naturals complets, «posa't en contacte»"
+    documentDefault: "`{\"ca\": \"Pagament en efectiu: la quota es paga mensualment al club. Posa't en contacte amb el club per coordinar-ho.\", \"es\": \"Pago en efectivo: la cuota se paga mensualmente en el club. Ponte en contacto con el club para coordinarlo.\", \"en\": \"Cash payment: the fee is paid monthly at the club. Contact the club to arrange this.\"}`"
   - key: "signup.text.freeTrainingConditions"
     type: "localizedText"
-    default: null
+    default: {"ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.", "es": "Las clases son siempre con instructor y se pueden hacer hasta dos por semana. Además, existe la posibilidad de entrenamiento libre fuera del horario de clases a partir del nivel D con licencia deportiva.", "en": "Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.freeTrainingConditions.label"
     helpKey: "admin-settings:param.signup.text.freeTrainingConditions.help"
@@ -156,7 +156,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "condicions d'entrenament lliure"
+    documentDefault: "`{\"ca\": \"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.\", \"es\": \"Las clases son siempre con instructor y se pueden hacer hasta dos por semana. Además, existe la posibilidad de entrenamiento libre fuera del horario de clases a partir del nivel D con licencia deportiva.\", \"en\": \"Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence.\"}`"
   - key: "signup.text.imageConsent"
     type: "localizedText"
     default: {"ca": "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"}
@@ -172,7 +172,7 @@ parameters:
     documentDefault: "«Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club»"
   - key: "signup.text.closed"
     type: "localizedText"
-    default: null
+    default: {"ca": "Les inscripcions estan tancades temporalment. Torna-ho a provar més endavant o posa't en contacte amb el club.", "es": "Las inscripciones están cerradas temporalmente. Vuelve a intentarlo más adelante o ponte en contacto con el club.", "en": "Registration is temporarily closed. Please try again later or contact the club."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.closed.label"
     helpKey: "admin-settings:param.signup.text.closed.help"
@@ -182,7 +182,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "—"
+    documentDefault: "`{\"ca\": \"Les inscripcions estan tancades temporalment. Torna-ho a provar més endavant o posa't en contacte amb el club.\", \"es\": \"Las inscripciones están cerradas temporalmente. Vuelve a intentarlo más adelante o ponte en contacto con el club.\", \"en\": \"Registration is temporarily closed. Please try again later or contact the club.\"}`"
   - key: "bookings.maxCurrentWeek"
     type: "int"
     default: 2
@@ -770,7 +770,7 @@ parameters:
     documentDefault: "true"
   - key: "leave.reasons"
     type: "json"
-    default: null
+    default: [{"key": "LEARNED_ENOUGH", "label": {"ca": "He après el que volia", "es": "He aprendido lo que quería", "en": "I have learned what I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps", "es": "No encuentro tiempo", "en": "I cannot find the time"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants aliens", "es": "Circunstancias ajenas", "en": "External circumstances"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]
     block: "billing"
     labelKey: "admin-settings:param.leave.reasons.label"
     helpKey: "admin-settings:param.leave.reasons.help"
@@ -779,8 +779,8 @@ parameters:
     scope: "club"
     editableBy: "CLUB"
     restartRequired: false
-    documentType: "json `[{key, label: localizedText}]`"
-    documentDefault: "LEARNED_ENOUGH · NO_TIME · NOT_EXPECTED · EXTERNAL · OTHER (+ CLUB_DECISION admin · PACK_EXPIRED sistema)"
+    documentType: "json `[{key, label: localizedText, audience}]`"
+    documentDefault: "`[{\"key\": \"LEARNED_ENOUGH\", \"label\": {\"ca\": \"He après el que volia\", \"es\": \"He aprendido lo que quería\", \"en\": \"I have learned what I wanted\"}, \"audience\": \"MEMBER\"}, {\"key\": \"NO_TIME\", \"label\": {\"ca\": \"No trobo temps\", \"es\": \"No encuentro tiempo\", \"en\": \"I cannot find the time\"}, \"audience\": \"MEMBER\"}, {\"key\": \"NOT_EXPECTED\", \"label\": {\"ca\": \"No és el que esperava\", \"es\": \"No es lo que esperaba\", \"en\": \"It is not what I expected\"}, \"audience\": \"MEMBER\"}, {\"key\": \"EXTERNAL\", \"label\": {\"ca\": \"Condicionants aliens\", \"es\": \"Circunstancias ajenas\", \"en\": \"External circumstances\"}, \"audience\": \"MEMBER\"}, {\"key\": \"OTHER\", \"label\": {\"ca\": \"Altres\", \"es\": \"Otros\", \"en\": \"Other\"}, \"audience\": \"MEMBER\"}, {\"key\": \"CLUB_DECISION\", \"label\": {\"ca\": \"Decisió del club\", \"es\": \"Decisión del club\", \"en\": \"Club decision\"}, \"audience\": \"ADMIN\"}, {\"key\": \"PACK_EXPIRED\", \"label\": {\"ca\": \"Pack caducat\", \"es\": \"Pack caducado\", \"en\": \"Expired pack\"}, \"audience\": \"SYSTEM\"}]`"
   - key: "leave.npsEnabled"
     type: "bool"
     default: true
@@ -845,10 +845,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "string"
-    documentDefault: "Club Agility Cànic / …"
+    documentDefault: "Club Agility Cànic"
   - key: "messaging.email.fromAddress"
     type: "string"
-    default: null
+    default: "no-reply@agilitydoghub.com"
     block: "messaging"
     labelKey: "admin-settings:param.messaging.email.fromAddress.label"
     helpKey: "admin-settings:param.messaging.email.fromAddress.help"
@@ -858,10 +858,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "string"
-    documentDefault: "Club Agility Cànic / …"
+    documentDefault: "`\"no-reply@agilitydoghub.com\"`"
   - key: "messaging.email.replyTo"
     type: "string"
-    default: null
+    default: ""
     block: "messaging"
     labelKey: "admin-settings:param.messaging.email.replyTo.label"
     helpKey: "admin-settings:param.messaging.email.replyTo.help"
@@ -871,10 +871,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "string"
-    documentDefault: "Club Agility Cànic / …"
+    documentDefault: "`\"\"`"
   - key: "messaging.sms.senderId"
     type: "string"
-    default: null
+    default: "AgilityHub"
     block: "messaging"
     labelKey: "admin-settings:param.messaging.sms.senderId.label"
     helpKey: "admin-settings:param.messaging.sms.senderId.help"
@@ -884,7 +884,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "string"
-    documentDefault: "—"
+    documentDefault: "`\"AgilityHub\"`"
   - key: "messaging.sms.monthlyCap"
     type: "int"
     default: 1000
@@ -1121,7 +1121,7 @@ parameters:
     documentDefault: "true"
   - key: "census.dogDocumentTypes"
     type: "json"
-    default: null
+    default: [{"key": "VACCINATION_CARD", "label": {"ca": "Cartilla de vacunes", "es": "Cartilla de vacunas", "en": "Vaccination card"}, "required": true}, {"key": "INSURANCE", "label": {"ca": "Assegurança", "es": "Seguro", "en": "Insurance"}, "required": false}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "required": false}]
     block: "signup"
     labelKey: "admin-settings:param.census.dogDocumentTypes.label"
     helpKey: "admin-settings:param.census.dogDocumentTypes.help"
@@ -1131,7 +1131,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "json `[{key, label: localizedText, required}]`"
-    documentDefault: "cartilla (obligatòria) · assegurança · altres"
+    documentDefault: "`[{\"key\": \"VACCINATION_CARD\", \"label\": {\"ca\": \"Cartilla de vacunes\", \"es\": \"Cartilla de vacunas\", \"en\": \"Vaccination card\"}, \"required\": true}, {\"key\": \"INSURANCE\", \"label\": {\"ca\": \"Assegurança\", \"es\": \"Seguro\", \"en\": \"Insurance\"}, \"required\": false}, {\"key\": \"OTHER\", \"label\": {\"ca\": \"Altres\", \"es\": \"Otros\", \"en\": \"Other\"}, \"required\": false}]`"
   - key: "census.bookingBlockReasons"
     type: "list"
     default: [{"ca": "rebut impagat"}, {"ca": "cartilla pendent"}, {"ca": "decisió del club"}]
@@ -1147,7 +1147,7 @@ parameters:
     documentDefault: "rebut impagat · cartilla pendent · decisió del club"
   - key: "signup.text.monthlyPaymentIntro"
     type: "localizedText"
-    default: null
+    default: {"ca": "La quota mensual per abonats es cobrarà normalment l'últim dia de cada mes. En el cas de packs no es genera cap càrrec mensual.", "es": "La cuota mensual para abonados se cobrará normalmente el último día de cada mes. En el caso de packs no se genera ningún cargo mensual.", "en": "The monthly membership fee is normally collected on the last day of each month. Packs do not generate a monthly charge."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.monthlyPaymentIntro.label"
     helpKey: "admin-settings:param.signup.text.monthlyPaymentIntro.help"
@@ -1157,10 +1157,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "textos del Cànic (17/18/19)"
+    documentDefault: "`{\"ca\": \"La quota mensual per abonats es cobrarà normalment l'últim dia de cada mes. En el cas de packs no es genera cap càrrec mensual.\", \"es\": \"La cuota mensual para abonados se cobrará normalmente el último día de cada mes. En el caso de packs no se genera ningún cargo mensual.\", \"en\": \"The monthly membership fee is normally collected on the last day of each month. Packs do not generate a monthly charge.\"}`"
   - key: "signup.text.therapyIntro"
     type: "localizedText"
-    default: null
+    default: {"ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.", "es": "También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.", "en": "Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.therapyIntro.label"
     helpKey: "admin-settings:param.signup.text.therapyIntro.help"
@@ -1170,10 +1170,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "textos del Cànic (17/18/19)"
+    documentDefault: "`{\"ca\": \"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.\", \"es\": \"También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.\", \"en\": \"Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy.\"}`"
   - key: "signup.text.familyGroupIntro"
     type: "localizedText"
-    default: null
+    default: {"ca": "Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de {twoDogsMonthlyFee}. L'entrada sí que és per cada gos.", "es": "Si en casa ya hay alguien abonado, podéis formar un grupo familiar con un único responsable del pago: la cuota mensual se reduce a partir del segundo perro. Así, para dos perros la cuota mensual sería de {twoDogsMonthlyFee}. La matrícula sí es por cada perro.", "en": "If someone in your household is already a member, you can form a family group with one person responsible for payment: the monthly fee is reduced from the second dog. For two dogs, the monthly fee would be {twoDogsMonthlyFee}. The joining fee still applies to each dog."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.familyGroupIntro.label"
     helpKey: "admin-settings:param.signup.text.familyGroupIntro.help"
@@ -1183,10 +1183,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "textos del Cànic (17/18/19)"
+    documentDefault: "`{\"ca\": \"Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de {twoDogsMonthlyFee}. L'entrada sí que és per cada gos.\", \"es\": \"Si en casa ya hay alguien abonado, podéis formar un grupo familiar con un único responsable del pago: la cuota mensual se reduce a partir del segundo perro. Así, para dos perros la cuota mensual sería de {twoDogsMonthlyFee}. La matrícula sí es por cada perro.\", \"en\": \"If someone in your household is already a member, you can form a family group with one person responsible for payment: the monthly fee is reduced from the second dog. For two dogs, the monthly fee would be {twoDogsMonthlyFee}. The joining fee still applies to each dog.\"}`"
   - key: "signup.rateLimit"
     type: "json"
-    default: null
+    default: {"identityChecksPerHour": 10, "familyGroupLookupsPerHour": 20, "uploadUrlsPerHour": 30, "signupPerHour": 5, "signupPerDay": 20, "checkoutSessionsAnonymousPerHour": 10, "townsPerHour": 60}
     block: "system"
     labelKey: "admin-settings:param.signup.rateLimit.label"
     helpKey: "admin-settings:param.signup.rateLimit.help"
@@ -1196,7 +1196,7 @@ parameters:
     editableBy: "PLATFORM"
     restartRequired: false
     documentType: "json"
-    documentDefault: "límits de S04 R-04-20"
+    documentDefault: "`{\"identityChecksPerHour\": 10, \"familyGroupLookupsPerHour\": 20, \"uploadUrlsPerHour\": 30, \"signupPerHour\": 5, \"signupPerDay\": 20, \"checkoutSessionsAnonymousPerHour\": 10, \"townsPerHour\": 60}`"
   - key: "activities.cancelDeadline"
     type: "enum"
     default: "REGISTRATION_CLOSE"
@@ -1888,7 +1888,7 @@ parameters:
     documentDefault: "60"
   - key: "learn.baseUrl"
     type: "string"
-    default: null
+    default: "https://learn.agilitydoghub.com"
     block: "club"
     labelKey: "admin-settings:param.learn.baseUrl.label"
     helpKey: "admin-settings:param.learn.baseUrl.help"
@@ -1898,7 +1898,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "string"
-    documentDefault: "plataforma"
+    documentDefault: "`\"https://learn.agilitydoghub.com\"`"
 clubBindings:
   - keys: "`club.privacyPolicyUrl`"
     type: "(CLUB.legal)"

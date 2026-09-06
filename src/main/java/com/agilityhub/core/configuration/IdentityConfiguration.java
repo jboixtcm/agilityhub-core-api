@@ -45,6 +45,7 @@ public class IdentityConfiguration {
                 .authorizationGrantType(new AuthorizationGrantType("password"))
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN).build();
     }
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type = org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
     @Bean @Order(1)
     SecurityFilterChain oauthEndpoints(HttpSecurity http, TokenService tokens, RegisteredClientRepository clients,
             JWKSource<SecurityContext> keys, FilterRegistrationBean<TenantFilter> tenants,

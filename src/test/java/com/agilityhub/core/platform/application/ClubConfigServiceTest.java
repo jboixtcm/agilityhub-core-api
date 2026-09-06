@@ -47,7 +47,7 @@ class ClubConfigServiceTest {
         assertThat(config.get("signup.enabled", "ring-small", Boolean.class)).isTrue();
         assertThat(config.get("bookings.lateCancelThresholdMinutes", Integer.class)).isEqualTo(240);
         assertThat(config.get("billing.entryFeePerDog", Money.class)).isEqualTo(new Money(10000, "EUR"));
-        assertThat(config.get("signup.rateLimit", Map.class)).isNull();
+        assertThat(config.get("signup.rateLimit", Map.class)).containsEntry("identityChecksPerHour", 10).containsEntry("signupPerDay", 20);
         assertThatThrownBy(() -> config.get("invented.key", String.class)).isInstanceOf(ApiException.class);
         assertThat(output).contains("ParameterInvalidOverride", "club-a", "training.capacityPerRingSlot").doesNotContain("PRIVATE_INVALID_VALUE");
         assertThat(TenantContext.current()).isNull();

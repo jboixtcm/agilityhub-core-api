@@ -1,0 +1,138 @@
+package com.agilityhub.core.platform.application.definition;
+
+import com.agilityhub.core.platform.application.ClubAdminProvisioner;
+import com.agilityhub.core.platform.application.ParameterCatalog;
+import com.agilityhub.core.platform.application.audit.AuditAction;
+import com.agilityhub.core.platform.application.audit.Audited;
+import com.agilityhub.core.platform.domain.ParameterValidator;
+import com.agilityhub.core.platform.domain.events.ParameterChanged;
+import com.agilityhub.core.platform.persistence.Club;
+import com.agilityhub.core.platform.persistence.ClubRepository;
+import com.agilityhub.core.platform.persistence.Parameter;
+import com.agilityhub.core.platform.persistence.ParameterRepository;
+import com.agilityhub.core.shared.application.EventPublisher;
+import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.DomainEvent;
+import com.agilityhub.core.shared.domain.ErrorCode;
+import com.agilityhub.core.shared.domain.audit.AuditField;
+import com.agilityhub.core.shared.domain.events.ClubConfigChanged;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.time.Clock;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class ClubDefinitionWriter {
+    private final ClubRepository clubs;
+    private final ParameterRepository parameters;
+    private final ParameterCatalog catalog;
+    private final ClubAdminProvisioner admins;
+    private final EventPublisher events;
+    private final ObjectMapper mapper;
+    private final ClubDefinitionMapper definitions;
+    private final Clock clock;
+    private final boolean trustedDomains;
+    public ClubDefinitionWriter(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog,
+                                ClubAdminProvisioner admins, EventPublisher events, ObjectMapper mapper,
+                                ClubDefinitionMapper definitions, Clock clock, Environment environment) {
+        this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.admins = admins;
+        this.events = events; this.mapper = mapper; this.definitions = definitions; this.clock = clock;
+        trustedDomains = environment.acceptsProfiles(Profiles.of("local", "test")) && !environment.acceptsProfiles(Profiles.of("staging", "prod"));
+    }
+    public record Result(String id, List<String> lines, @AuditField Map<String, Object> summary) {
+        public int changes() { return summary.size(); }
+        public String render(boolean dryRun) {
+            return String.join("\n", lines) + "\n" + changes() + " changes" + (dryRun ? " (dry run)" : " (applied)");
+        }
+    }
+    private record Plan(Club club, List<Parameter> parameters, List<ClubAdminProvisioner.Admin> admins, Result result) { }
+
+    public Result preview(ObjectNode definition) { return plan(definition).result(); }
+
+    @Transactional
+    @Audited(action = AuditAction.CLUB_UPDATED, entityType = "'Club'", entity = "#result.id",
+            reason = "#result.changes() == 0 ? null : 'source: APPLY'")
+    public Result apply(ObjectNode definition) {
+        Plan plan = plan(definition);
+        if (plan.result().changes() == 0) { return plan.result(); }
+        // Saving the club also serializes concurrent parameter/admin changes through its version.
+        clubs.save(plan.club());
+        for (var parameter : plan.parameters()) {
+            if (parameter.version() == null) { parameters.insert(parameter); } else { parameters.replace(parameter); }
+            var payload = new LinkedHashMap<String, Object>();
+            payload.put("key", parameter.key()); payload.put("after", parameter.value());
+            payload.put("before", parameter.history().getLast().value()); payload.put("reason", "source: APPLY");
+            events.publish(new ParameterChanged(plan.club().id(), clock.instant(), payload, null, null, DomainEvent.Origin.SYSTEM));
+        }
+        plan.admins().forEach(admins::provision);
+        events.publish(new ClubConfigChanged(plan.club().id(), clock.instant(), Map.of("diff", plan.result().summary()),
+                null, null, DomainEvent.Origin.SYSTEM));
+        return plan.result();
+    }
+    private Plan plan(ObjectNode definition) {
+        String id = TenantContext.require();
+        Club old = clubs.findBySlug(definition.path("club").path("slug").asText()).orElse(null);
+        if (old != null && !old.id().equals(id)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+        Club next = definitions.merge(definition, old, id, clock.instant(), trustedDomains);
+        for (var domain : next.domains()) {
+            clubs.findByAnyHost(domain.host()).filter(owner -> !owner.id().equals(id)).ifPresent(owner -> {
+                throw new ApiException(ErrorCode.HOST_ALREADY_USED, Map.of("host", domain.host()));
+            });
+        }
+        var lines = new ArrayList<String>(); var summary = new LinkedHashMap<String, Object>();
+        ObjectNode before = old == null ? mapper.createObjectNode() : definitions.export(old);
+        ObjectNode after = definitions.export(next);
+        for (String section : List.of("club", "domains", "theme", "modules", "paymentProviders", "legal", "pwa")) {
+            diff(section, before.get(section), after.get(section), lines, summary);
+        }
+        Map<String, Parameter> stored = parameters.findAll().stream().filter(parameter -> parameter.scopeRef() == null)
+                .collect(Collectors.toMap(Parameter::key, parameter -> parameter));
+        var changed = new ArrayList<Parameter>();
+        definition.path("parameters").fields().forEachRemaining(entry -> {
+            var parameterDefinition = catalog.get(entry.getKey()); Object value = mapper.convertValue(entry.getValue(), Object.class);
+            new ParameterValidator().validate(parameterDefinition, value, next.defaultLocale(), next.currency());
+            var previous = stored.get(entry.getKey());
+            if (previous == null || !mapper.valueToTree(previous.value()).equals(entry.getValue())) {
+                var history = previous == null ? new ArrayList<Parameter.History>() : new ArrayList<>(previous.history());
+                history.add(new Parameter.History(previous == null ? null : previous.value(), clock.instant(), null, "source: APPLY"));
+                changed.add(new Parameter(previous == null ? UUID.randomUUID().toString() : previous.id(), id, entry.getKey(), value,
+                        parameterDefinition.type(), "club", null, history, previous == null ? null : previous.version() + 1, clock.instant()));
+                diff("parameters." + entry.getKey(), previous == null ? null : mapper.valueToTree(previous.value()), entry.getValue(), lines, summary);
+            } else { lines.add("= parameters." + entry.getKey() + " unchanged"); }
+        });
+        if (definition.path("parameters").isEmpty()) { lines.add((old == null ? "+" : "=") + " parameters: no declared overrides"); }
+        var newAdmins = new ArrayList<ClubAdminProvisioner.Admin>();
+        for (var entry : definition.path("admins")) {
+            var admin = mapper.convertValue(entry, ClubAdminProvisioner.Admin.class);
+            if (admins.needsProvision(admin)) { newAdmins.add(admin); }
+        }
+        lines.add((newAdmins.isEmpty() ? old == null ? "+" : "=" : "+") + " admins: " + newAdmins.size() + " to provision");
+        if (!newAdmins.isEmpty()) { summary.put("admins", newAdmins.size()); }
+        lines.add((old == null ? "+" : "=") + " catalogs: schema accepted; application deferred to E2");
+        lines.add((old == null ? "+" : "=") + " messageTemplates: schema accepted; application deferred to E7");
+        return new Plan(next, changed, newAdmins, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+    }
+    private void diff(String path, JsonNode before, JsonNode after, List<String> lines, Map<String, Object> summary) {
+        if (Objects.equals(before, after)) { lines.add("= " + path + " unchanged"); return; }
+        summary.put(path.replace('.', '/'), before == null ? "added" : "changed");
+        lines.add((before == null ? "+ " : "~ ") + path + " " + (before == null ? "added" : "changed"));
+        if (before != null && before.isObject() && after.isObject()) {
+            var keys = new java.util.TreeSet<String>(); before.fieldNames().forEachRemaining(keys::add); after.fieldNames().forEachRemaining(keys::add);
+            for (String key : keys) {
+                if (!Objects.equals(before.get(key), after.get(key))) { lines.add("  " + path + "." + key + ": " + before.get(key) + " -> " + after.get(key)); }
+            }
+        } else { lines.add("  " + before + " -> " + after); }
+    }
+}

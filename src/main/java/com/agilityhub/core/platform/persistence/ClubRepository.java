@@ -16,6 +16,9 @@ public class ClubRepository extends GlobalRepository<Club> {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("domains").elemMatch(
                 Criteria.where("host").is(host).and("status").is(Club.DomainStatus.VERIFIED))), Club.class));
     }
+    public Optional<Club> findByAnyHost(String host) {
+        return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("domains.host").is(host)), Club.class));
+    }
     public Optional<Club> findBySlug(String slug) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("slug").is(slug)), Club.class));
     }

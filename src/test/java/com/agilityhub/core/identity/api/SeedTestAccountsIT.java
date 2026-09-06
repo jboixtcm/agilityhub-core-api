@@ -16,7 +16,7 @@ class SeedTestAccountsIT extends IdentityIntegrationSupport {
     @Test void T_01_02_seedCreatesThreeFictionalAccountsAndIsRepeatableWithoutResettingCredentials() {
         var seed = command("Seed-example-password");
         var args = new DefaultApplicationArguments("identity:seed-test-accounts", "--club=club-b");
-        seed.run(args); seed.run(args);
+        seed.run(args); seed.run(new DefaultApplicationArguments("--core.command=identity:seed-test-accounts", "--club=club-b"));
         assertThat(mongo.findAll(Account.class)).hasSize(3);
         assertThat(mongo.findAll(Membership.class)).hasSize(4);
         try (var scope = TenantContext.open("club-b")) {

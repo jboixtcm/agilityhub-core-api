@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T10: Non-web CLI dispatcher with club apply/export and the local/test identity seed command;
+  JSON Schema 2020-12 validation, per-section diffs, dry runs, and transactional idempotent applies.
+- Cànic, minimal, and template club seeds, admin provisioning, host uniqueness, parameter history,
+  catalog-only outbox events, audit summaries, and branding/parameter fixture regression tests.
+- Organizer-approved defaults for all 14 previously unspecified parameters, including three-language
+  signup texts, leave reasons, dog documents, and signup rate limits; synchronized catalog contract.
+
 - E0-T09: Global accounts, tenant-scoped memberships, Learn bcrypt verification,
   argon2id password creation, SAS password/refresh grants and RSA JWT/JWKS.
 - Protected bearer-token routes, host-scoped `/me`, hashed refresh rotation with

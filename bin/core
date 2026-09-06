@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+if [ "$#" -eq 0 ]; then
+  echo 'Usage: bin/core <command> [arguments]' >&2
+  exit 1
+fi
+command_name="$1"
+shift
+shopt -s nullglob
+jars=(target/agilityhub-core-api-*.jar)
+if [ "${#jars[@]}" -eq 0 ]; then
+  ./mvnw -q -DskipTests package >&2
+  jars=(target/agilityhub-core-api-*.jar)
+fi
+if [ "${#jars[@]}" -ne 1 ]; then
+  echo 'Expected exactly one target/agilityhub-core-api-*.jar; rebuild with ./mvnw clean package' >&2
+  exit 1
+fi
+exec java -jar "${jars[0]}" "--core.command=$command_name" "$@"

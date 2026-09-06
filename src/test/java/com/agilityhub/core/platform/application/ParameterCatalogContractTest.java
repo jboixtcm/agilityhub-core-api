@@ -15,10 +15,6 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class ParameterCatalogContractTest {
-    private static final Set<String> UNSPECIFIED = Set.of("signup.text.paymentDay", "signup.text.cashConditions",
-            "signup.text.freeTrainingConditions", "signup.text.closed", "leave.reasons", "messaging.email.fromAddress",
-            "messaging.email.replyTo", "messaging.sms.senderId", "census.dogDocumentTypes", "signup.text.monthlyPaymentIntro",
-            "signup.text.therapyIntro", "signup.text.familyGroupIntro", "signup.rateLimit", "learn.baseUrl");
     @Test void T_02_03_catalogMatchesDocumentKeysTypesAndActualDefaults() throws Exception {
         var catalog = new ParameterCatalog(new ObjectMapper());
         var document = document();
@@ -43,7 +39,7 @@ class ParameterCatalogContractTest {
         assertThatThrownBy(() -> catalog.entries().clear()).isInstanceOf(UnsupportedOperationException.class);
         System.out.println("catalog.yaml parameter keys: " + catalog.entries().size());
         System.out.println("CATALEG_PARAMETRES.md expanded effective parameter keys: " + document.size());
-        System.out.println("Markdown raw key rows: 120 (grouped keys/jobs expanded; 3 Club binding rows excluded; 2 Annex amendments folded)");
+        System.out.println("Markdown grouped keys/jobs expanded; Club binding rows excluded; Annex amendments folded");
     }
     static Map<String, Expected> document() throws Exception {
         Map<String, Expected> entries = new LinkedHashMap<>();
@@ -76,7 +72,10 @@ class ParameterCatalogContractTest {
         return entries;
     }
     private static Object defaultValue(String key, String type, String source) {
-        if (UNSPECIFIED.contains(key)) { return null; }
+        if (source.startsWith("`{\"") || source.startsWith("`[") || source.startsWith("`\"")) {
+            try { return new ObjectMapper().readValue(source.substring(1, source.length() - 1), Object.class); }
+            catch (java.io.IOException invalid) { throw new AssertionError("Invalid documented JSON: " + key, invalid); }
+        }
         String text = source.replace("`", "").replace("**", "");
         String kind = type.split(" ")[0];
         if (Set.of("int", "duration").contains(kind)) { return Integer.valueOf(text.split(" ")[0]); }

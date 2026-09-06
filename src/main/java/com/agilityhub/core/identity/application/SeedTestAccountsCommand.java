@@ -13,17 +13,17 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import com.agilityhub.core.shared.application.CoreCommand;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Temporary runner until E0-T10 supplies the CLI dispatcher. Existing accounts are never reset. */
+/** Local/test command registered with the CLI dispatcher. Existing accounts are never reset. */
 @Component
 @Profile("(local | test) & !staging & !prod")
 @Order(100)
-public class SeedTestAccountsCommand implements ApplicationRunner {
+public class SeedTestAccountsCommand implements CoreCommand {
     private final AccountRepository accounts;
     private final MembershipRepository memberships;
     private final PasswordHasher passwords;
@@ -35,9 +35,10 @@ public class SeedTestAccountsCommand implements ApplicationRunner {
         this.accounts = accounts; this.memberships = memberships; this.passwords = passwords;
         this.clubs = clubs; this.clock = clock; this.password = password;
     }
+    @Override public String name() { return "identity:seed-test-accounts"; }
     @Override @Transactional
     public void run(ApplicationArguments args) {
-        if (!args.getNonOptionArgs().contains("identity:seed-test-accounts")) { return; }
+        if (!args.getNonOptionArgs().contains(name()) && !java.util.Objects.equals(args.getOptionValues("core.command"), java.util.List.of(name()))) { return; }
         var slugs = args.getOptionValues("club");
         if (slugs == null || slugs.size() != 1 || password.isBlank()) {
             throw new IllegalArgumentException("identity:seed-test-accounts requires --club=<slug> and SEED_PASSWORD");

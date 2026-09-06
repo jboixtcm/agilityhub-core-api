@@ -71,3 +71,7 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E0-T09
 @executor **Answer — model vs task fields** — Correct call: the model wins (`Membership` club-scoped, `security.failedLogins`, terminal states). Task texts are illustrative where the model is explicit; keep applying that precedence and just note it in the report as you did.
+
+## 2026-09-06 · executor → organizer · E0-T10
+@organizer **E0 definition assumptions** — To satisfy the task's immediate branding checks, local/test `club:apply` trusts declared domains; staging/prod stores new domains as `PENDING` for the later verification vertical. The task's provider-name arrays become configuration slots in the model's provider map; configured values are preserved and never exported. Catalog/message-template sections are schema-validated, explicitly reported as deferred, and not persisted until E2/E7. The generic seed uses a neutral blue/light AgilityHub theme because the loaded context supplies only the Cànic tokens. Please carry these boundaries into the later tasks or supply canonical generic theme tokens. Audit uses the already-confirmed `CLUB_UPDATED` with `source: APPLY`; no catalog additions.
+Blocking: no.

@@ -1,0 +1,48 @@
+# Fictional club definition. Provider configuration is supplied in later stages.
+apiVersion: "agilityhub.club/v1"
+club:
+  slug: "club-template-default"
+  name: "AgilityHub template"
+  locales:
+    - "ca"
+    - "es"
+    - "en"
+  defaultLocale: "en"
+  timeZone: "UTC"
+  currency: "EUR"
+  countryProfile: "GENERIC"
+  status: "ONBOARDING"
+  template: true
+  contactEmail: "template@example.test"
+domains: []
+theme:
+  colors:
+    primary: "#2563EB"
+    onPrimary: "#FFFFFF"
+    background: "#F8FAFC"
+    surface: "#FFFFFF"
+    surfaceAlt: "#F1F5F9"
+    text: "#0F172A"
+    textMuted: "#475569"
+    border: "#CBD5E1"
+    success: "#15803D"
+    warning: "#A16207"
+    danger: "#B91C1C"
+    info: "#0369A1"
+  fontFamily: "system-ui"
+  radius: "8px"
+  ringPalette: []
+  mode: "light"
+preset: "MINIM"
+paymentProviders: []
+parameters:
+  messaging.email.fromName: "AgilityHub"
+admins: []
+catalogs:
+  levels: []
+  rings: []
+  instructors: []
+  plans: []
+  prices: []
+  faq: []
+messageTemplates: []

@@ -20,11 +20,11 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `signup.requireDogDocumentAtSignup` | bool | false | la cartilla no bloqueja l'alta (R24-08) |
 | `signup.firstMonthSplitDay` | int | 16 | quota inicial: de l'1 al 15 «mes sencer / des del 16 mig mes» (R18-08) |
 | `signup.allowFamilyGroupPending` | bool | true | «Deixa-ho pendent i continua» |
-| `signup.text.paymentDay` | localizedText | «El rebut es passa el dia 25…» (literal del Josep) | pantalla 19 |
-| `signup.text.cashConditions` | localizedText | semestres naturals complets, «posa't en contacte» | 19 |
-| `signup.text.freeTrainingConditions` | localizedText | condicions d'entrenament lliure | 17 (contingut de D8 si és per modalitat) |
+| `signup.text.paymentDay` | localizedText | `{"ca": "El rebut es carrega normalment l'últim dia de cada mes. Tens fins al dia {deadlineDay} per modificar l'emissió de rebuts del mes següent, des de la teva fitxa o posant-te en contacte amb el club.", "es": "El recibo se carga normalmente el último día de cada mes. Tienes hasta el día {deadlineDay} para modificar la emisión de recibos del mes siguiente, desde tu ficha o poniéndote en contacto con el club.", "en": "Payment is normally collected on the last day of each month. You have until day {deadlineDay} to change billing for the following month, from your profile or by contacting the club."}` | pantalla 19 |
+| `signup.text.cashConditions` | localizedText | `{"ca": "Pagament en efectiu: la quota es paga mensualment al club. Posa't en contacte amb el club per coordinar-ho.", "es": "Pago en efectivo: la cuota se paga mensualmente en el club. Ponte en contacto con el club para coordinarlo.", "en": "Cash payment: the fee is paid monthly at the club. Contact the club to arrange this."}` | 19 |
+| `signup.text.freeTrainingConditions` | localizedText | `{"ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.", "es": "Las clases son siempre con instructor y se pueden hacer hasta dos por semana. Además, existe la posibilidad de entrenamiento libre fuera del horario de clases a partir del nivel D con licencia deportiva.", "en": "Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence."}` | 17 (contingut de D8 si és per modalitat) |
 | `signup.text.imageConsent` | localizedText | «Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club» | aclariment emergent |
-| `signup.text.closed` | localizedText | — | |
+| `signup.text.closed` | localizedText | `{"ca": "Les inscripcions estan tancades temporalment. Torna-ho a provar més endavant o posa't en contacte amb el club.", "es": "Las inscripciones están cerradas temporalmente. Vuelve a intentarlo más adelante o ponte en contacto con el club.", "en": "Registration is temporarily closed. Please try again later or contact the club."}` | |
 | `club.privacyPolicyUrl` | (CLUB.legal) | agilitycanic.cat/ca/politica-de-privacidad/ | «Pots consultar-la aquí» — viu a CLUB, es mostra aquí |
 
 ## Classes i reserves (`bookings.*`, `classes.*`) — bloc Classes
@@ -97,7 +97,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 |---|---|---|---|
 | `inactivity.requestDeadlineDay` | int | 25 | sol·licitud i canvis fins al dia 25 del mes anterior |
 | `inactivity.cancelBookingsOnApproval` | bool | true | BR-16 |
-| `leave.reasons` | list localizedText | he après el que volia · no trobo temps · no és el que esperava · condicionants aliens · altres | pantalla 15 |
+| `leave.reasons` | json `[{key, label: localizedText, audience}]` | `[{"key": "LEARNED_ENOUGH", "label": {"ca": "He après el que volia", "es": "He aprendido lo que quería", "en": "I have learned what I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps", "es": "No encuentro tiempo", "en": "I cannot find the time"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants aliens", "es": "Circunstancias ajenas", "en": "External circumstances"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]` | pantalla 15 |
 | `leave.npsEnabled` | bool | true | |
 | `leave.fullMonthIfLater` | bool | true | mes posterior = mes sencer cobrat |
 
@@ -106,8 +106,10 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 |---|---|---|---|
 | `messaging.noShowNoticeTime` | time | 08:00 | lot de l'endemà |
 | `messaging.reminderOptionsMinutes` | list | 60,120,240,360,720,1440 | opcions de 12; «mai» sempre disponible |
-| `messaging.email.fromName` / `fromAddress` / `replyTo` | string | Club Agility Cànic / … | remitent per club (domini verificat al proveïdor) |
-| `messaging.sms.senderId` | string | — | Twilio (pendent §3) |
+| `messaging.email.fromName` | string | Club Agility Cànic | remitent per club (domini verificat al proveïdor) |
+| `messaging.email.fromAddress` | string | `"no-reply@agilitydoghub.com"` | domini verificat al proveïdor (E1-T03) |
+| `messaging.email.replyTo` | string | `""` | buit = correu de contacte del club en enviar |
+| `messaging.sms.senderId` | string | `"AgilityHub"` | Twilio (pendent §3) |
 | `messaging.sms.monthlyCap` | int | 1000 | límit de seguretat; en arribar-hi, avís a l'admin i el canal cau a correu |
 | `messaging.notifyWeekOpening` | bool | false | «Ja pots reservar la setmana vinent» (N-33) |
 | `messaging.notifyNewRingSetup` | bool | false | N-31 |
@@ -152,10 +154,12 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `auth.maxSessions` | int | 10 | sistema | S01 |
 | `auth.lockoutMinutes` · `auth.lockoutMaxAttempts` | int | 15 · 5 | sistema | S01 |
 | `auth.checkCompromisedPasswords` | bool | true | sistema | S01 |
-| `census.dogDocumentTypes` | json `[{key, label: localizedText, required}]` | cartilla (obligatòria) · assegurança · altres | Alta i consentiments | S03 |
+| `census.dogDocumentTypes` | json `[{key, label: localizedText, required}]` | `[{"key": "VACCINATION_CARD", "label": {"ca": "Cartilla de vacunes", "es": "Cartilla de vacunas", "en": "Vaccination card"}, "required": true}, {"key": "INSURANCE", "label": {"ca": "Assegurança", "es": "Seguro", "en": "Insurance"}, "required": false}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "required": false}]` | Alta i consentiments | S03 |
 | `census.bookingBlockReasons` | list localizedText | rebut impagat · cartilla pendent · decisió del club | Club i pistes | S03 |
-| `signup.text.monthlyPaymentIntro` · `signup.text.therapyIntro` · `signup.text.familyGroupIntro` | localizedText | textos del Cànic (17/18/19) | Alta i consentiments | S04 |
-| `signup.rateLimit` | json | límits de S04 R-04-20 | sistema | S04 |
+| `signup.text.monthlyPaymentIntro` | localizedText | `{"ca": "La quota mensual per abonats es cobrarà normalment l'últim dia de cada mes. En el cas de packs no es genera cap càrrec mensual.", "es": "La cuota mensual para abonados se cobrará normalmente el último día de cada mes. En el caso de packs no se genera ningún cargo mensual.", "en": "The monthly membership fee is normally collected on the last day of each month. Packs do not generate a monthly charge."}` | Alta i consentiments | S04 |
+| `signup.text.therapyIntro` | localizedText | `{"ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.", "es": "También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.", "en": "Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy."}` | Alta i consentiments | S04 |
+| `signup.text.familyGroupIntro` | localizedText | `{"ca": "Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de {twoDogsMonthlyFee}. L'entrada sí que és per cada gos.", "es": "Si en casa ya hay alguien abonado, podéis formar un grupo familiar con un único responsable del pago: la cuota mensual se reduce a partir del segundo perro. Así, para dos perros la cuota mensual sería de {twoDogsMonthlyFee}. La matrícula sí es por cada perro.", "en": "If someone in your household is already a member, you can form a family group with one person responsible for payment: the monthly fee is reduced from the second dog. For two dogs, the monthly fee would be {twoDogsMonthlyFee}. The joining fee still applies to each dog."}` | Alta i consentiments | S04 |
+| `signup.rateLimit` | json | `{"identityChecksPerHour": 10, "familyGroupLookupsPerHour": 20, "uploadUrlsPerHour": 30, "signupPerHour": 5, "signupPerDay": 20, "checkoutSessionsAnonymousPerHour": 10, "townsPerHour": 60}` | sistema | S04 |
 | `activities.cancelDeadline` | enum `REGISTRATION_CLOSE · EVENT_START` | REGISTRATION_CLOSE | Classes | S07 |
 | `activities.publicUrlTemplate` | string | `{websiteUrl}/activitat/{slug}` | Club i pistes | S07 |
 | `bookings.paymentPendingMinutes` | int | 30 | Classes | S08 |
@@ -172,7 +176,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `billing.remittanceReminderDay` | int (0 = mai) | 22 | Quotes i remesa | S12/S15 |
 | `inactivity.maxStartMonthsAhead` | int | 12 | Quotes i remesa | S13 |
 | `leave.packExpiryGraceDays` | int | 30 | Quotes i remesa | S13 |
-| `leave.reasons` (canvi de tipus) | json `[{key, label: localizedText}]` | LEARNED_ENOUGH · NO_TIME · NOT_EXPECTED · EXTERNAL · OTHER (+ CLUB_DECISION admin · PACK_EXPIRED sistema) | Quotes i remesa | S13 |
+| `leave.reasons` (canvi de tipus) | json `[{key, label: localizedText, audience}]` | `[{"key": "LEARNED_ENOUGH", "label": {"ca": "He après el que volia", "es": "He aprendido lo que quería", "en": "I have learned what I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps", "es": "No encuentro tiempo", "en": "I cannot find the time"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants aliens", "es": "Circunstancias ajenas", "en": "External circumstances"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]` | Quotes i remesa | S13 |
 | `audit.retentionYears` | int | 6 | Privacitat i auditoria | S14 |
 | `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 5 · 365 | Privacitat i auditoria | S14 |
 | `security.eventRetentionDays` | int | 90 | sistema | S14 |
@@ -185,6 +189,8 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `files.allowedTypes` (+ `text/plain` per a Smarter) | list | — | sistema | S16 |
 | `platform.domainRecheckDays` · `platform.supportAccessMinutes` | int | 7 · 60 | sistema (consola) | S17 |
 | `migration.exportRetentionDays` · `migration.leftMaxYears` · `migration.reconciliationTolerancePct` · `migration.playoffReadOnlyMonths` | int | 30 · 5 · 1 · 3 | sistema | S18 |
-| `learn.linkText` · `learn.recommendationsTtlMinutes` · `learn.baseUrl` | localizedText · int · string | «Aprèn amb AgilityHub» · 60 · plataforma | Club i pistes / sistema | S19 |
+| `learn.linkText` | localizedText | «Aprèn amb AgilityHub» | Club i pistes | S19 |
+| `learn.recommendationsTtlMinutes` | int | 60 | sistema | S19 |
+| `learn.baseUrl` | string | `"https://learn.agilitydoghub.com"` | sistema | S19 |
 
 Bloc nou a D11: **«Privacitat i auditoria»** (S14) i **«Processos automàtics»** (S15).
