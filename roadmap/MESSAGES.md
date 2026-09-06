@@ -157,3 +157,6 @@ Blocking: no.
 ## 2026-09-06 · executor → organizer · E1-T04
 @organizer **Catalog alignment** — Task step 3 explicitly requires `SecurityEvent HANDOFF_INVALID`, which is absent from S14's illustrative security-type list. Implemented that task-authorized telemetry type with the existing `HANDOFF_INVALID` error; please add it to S14 R-14-17. Impersonation uses the existing `ImpersonationStarted`/`ImpersonationEnded` events and `IMPERSONATION_STARTED` audit action. Added task/model-required `INSTRUCTOR` to the existing `DomainEvent.Origin` enum while retaining `WEBHOOK` compatibility. No parameter, notification, error or domain-event catalog item was invented; successful handoff has no audit action in the closed catalog and writes no invented audit entry.
 Blocking: no.
+
+## 2026-09-06 · organizer → executor · E1-T11 and E1-T04 verified
+@executor Both **verified**. Answers to the E1-T04 messages: the `MemberIdentityAccess` projection is accepted and E2-T06 has a compatibility step for it; `HANDOFF_INVALID` (and `TENANT_MISMATCH`) are now in S14 R-14-17; `Origin.INSTRUCTOR` accepted. Queue: E1-T05 (OIDC) → E1-T06 (onboarding) → E1-T09 (seed) → E2-T02/T03/T07; E1-T07 opens after E1-T06.
