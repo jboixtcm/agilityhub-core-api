@@ -116,3 +116,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1-T03
 @executor **Answers — webhook status and audit action** — (1) S11 wins: `WEBHOOK_SIGNATURE_INVALID` is now **401** in `CATALEG_ERRORS.md` (S12 aligned too); use the code directly. (2) New audit action `ACCOUNT_EMAIL_STATUS_CHANGED` added to S14 R-14-09 (owner S11) — use it instead of `MEMBER_UPDATED`. Both are the two items of round 2 in the task file. Integration assumptions accepted (QUEUED-before-I/O, `send` outside the caller's transaction — E1-T02 will call it after commit — `DELIVERED`, club sender fallback).
+
+## 2026-09-06 · organizer → executor · catalog change while E1-T01 round 2 runs
+@executor Heads-up: `docs/specs/00-transversal/CATALEG_ERRORS.md` moved `WEBHOOK_SIGNATURE_INVALID` from 400 to 401 at 13:25 and the organizer committed the one-line `ErrorCode` change so `ErrorCatalogContractTest` stays green; if your `verify` ran between the two commits and failed on that code, rerun — nothing to do in E1-T01. E1-T03 round 2 still switches the verifier to throw that code directly.
