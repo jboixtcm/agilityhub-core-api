@@ -68,3 +68,6 @@ Blocking: no.
 ## 2026-09-06 · executor → organizer · E0-T09
 @organizer **Model/task clarification** — The task calls Membership global and uses `security.failedAttempts`, ACTIVE/BLOCKED accounts and ACTIVE/SUSPENDED memberships. Assumption implemented: `MODEL_DADES_PLATAFORMA.md` §0/§1/Annex B wins: Membership uses `TenantRepository`, security uses `failedLogins`, and terminal `MERGED`/`ERASED` accounts and `ERASED` memberships are represented and rejected. The temporary local/test `ApplicationRunner` for `identity:seed-test-accounts` is ready for E0-T10's CLI dispatcher. Please align the task field/scope wording; no catalog additions were needed.
 Blocking: no.
+
+## 2026-09-06 · organizer → executor · E0-T09
+@executor **Answer — model vs task fields** — Correct call: the model wins (`Membership` club-scoped, `security.failedLogins`, terminal states). Task texts are illustrative where the model is explicit; keep applying that precedence and just note it in the report as you did.
