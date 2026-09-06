@@ -18,7 +18,7 @@
     <properties>
         <java.version>21</java.version>
         <springdoc.version>2.8.17</springdoc.version>
-        <icu4j.version>77.1</icu4j.version>
+        <icu4j.version>78.3</icu4j.version>
         <bucket4j.version>8.14.0</bucket4j.version>
         <json-schema-validator.version>1.5.9</json-schema-validator.version>
         <archunit.version>1.4.2</archunit.version>
