@@ -63,15 +63,20 @@ class ProfileConfigurationTest {
     }
 
     @Test
-    void E0_T01_defaultLocalProfileExcludesMongo() {
+    void E0_T02_defaultLocalProfileEnablesTheDevelopmentReplicaSet() {
         runner.run(context -> {
             assertThat(context).hasNotFailed();
             assertThat(context.getEnvironment().getDefaultProfiles()).containsExactly("local");
             assertThat(Binder.get(context.getEnvironment())
                     .bind("spring.autoconfigure.exclude", Bindable.listOf(String.class)).get())
-                    .contains("org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration",
-                            "org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration",
-                            "org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration");
+                    .noneMatch(exclusion -> exclusion.contains("Mongo"));
+            var connection = new PropertiesMongoConnectionDetails(
+                    context.getBean(MongoProperties.class), null).getConnectionString();
+            assertThat(connection.getHosts()).containsExactly("localhost:27017");
+            assertThat(connection.getDatabase()).isEqualTo("agilityhub");
+            assertThat(connection.getRequiredReplicaSetName()).isEqualTo("rs0");
+            assertThat(connection.isDirectConnection()).isTrue();
+            assertThat(connection.getCredential()).isNull();
         });
     }
 

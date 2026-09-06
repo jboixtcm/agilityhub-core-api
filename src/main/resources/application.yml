@@ -25,13 +25,10 @@ spring:
   config:
     activate:
       on-profile: local
-  # The skeleton's local health endpoint does not require MongoDB yet.
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
-      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+  data:
+    mongodb:
+      # Direct connection also works from the host, where Compose's mongo DNS is unavailable.
+      uri: mongodb://${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:agilityhub}?replicaSet=${MONGODB_REPLICA_SET:rs0}&directConnection=true
 
 springdoc:
   api-docs:
@@ -44,7 +41,7 @@ spring:
       on-profile: test
   data:
     mongodb:
-      uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/agilityhub_test?replicaSet=rs0}
+      uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/agilityhub_test?replicaSet=rs0&directConnection=true}
 
 ---
 spring:

@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T02: Local Docker Compose stack with a persistent MongoDB 7 replica set,
+  PRIMARY readiness, and a multi-stage Java 21 API image running as a non-root user.
+- Shared Testcontainers integration-test base, mutable test clock, JSON fixture
+  loader, and Mongo transaction commit/rollback smoke tests executed by Maven Failsafe.
+- Mongo transaction manager and UTC clock configuration; local Mongo connectivity
+  and Docker/test instructions with documented environment defaults.
 - E0-T01: Java 21 / Spring Boot 3.5 Maven skeleton with pinned dependencies,
   Maven wrapper, build metadata, coverage checks, and an optional mutation profile.
 - All 15 bounded contexts and four layers, protected by ArchUnit architecture rules.

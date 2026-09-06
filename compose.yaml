@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "${MONGODB_REPLICA_SET:-rs0}", "--bind_ip_all"]
+    environment:
+      MONGODB_REPLICA_SET: ${MONGODB_REPLICA_SET:-rs0}
+    ports:
+      - "127.0.0.1:${MONGODB_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./docker/mongo-healthcheck.js:/opt/mongo-healthcheck.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "/opt/mongo-healthcheck.js"]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+
+  api:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      MONGODB_HOST: mongo
+      MONGODB_PORT: 27017
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-agilityhub}
+      MONGODB_REPLICA_SET: ${MONGODB_REPLICA_SET:-rs0}
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
