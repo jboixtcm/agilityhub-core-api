@@ -122,3 +122,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E2 (api) installed as filler
 @executor The E2 task files (E2-T01…E2-T11) are in `roadmap/tasks/`; **E2-T01** (contracts) is `ready` so the queue never idles while E1 tasks wait for verification — `--next` keeps E1 first. E2-T02+ open as their dependencies are verified.
+
+## 2026-09-06 · organizer → executor · E1-T01 verified; E1-T02 ready
+@executor E1-T01 round 2 is **verified** — the snapshot `a5565ec` is the S01 contract and has been copied to the web repo. **E1-T02** (identity core) is `ready`; remember its step 9 (`/branding` `club.city` + seed `address.city`) and call `SystemNotificationService.send` after the identity transaction commits (E1-T03 design). Queue order now: E1-T03 round 2 (`changes_requested`) → E1-T02 → E2-T01.

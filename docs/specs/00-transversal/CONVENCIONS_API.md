@@ -4,7 +4,7 @@
 
 ## 1. Base, versions i hosts
 
-- Base: `https://core.agilitydoghub.com/api/v1` (staging: `core.staging.agilitydoghub.com`). OAuth2/OIDC a `https://id.agilitydoghub.com` (`/oauth2/token`, `/oauth2/authorize`, `/oauth2/revoke`, `/.well-known/openid-configuration`, `/auth/magic-link`).
+- Base: `https://core.agilitydoghub.com/api/v1` (staging: `core.staging.agilitydoghub.com`). OAuth2/OIDC a `https://id.agilitydoghub.com` (`/oauth2/token`, `/oauth2/authorize`, `/oauth2/revoke`, `/oauth2/userinfo`, `/connect/logout`, `/.well-known/openid-configuration`, `/.well-known/jwks.json`); `/auth/magic-link` i `/auth/handoff` són API d'aplicació i van sota `/api/v1` (S01 v0.3, 06-09).
 - Versió a la ruta (`/v1`). Canvis incompatibles → `/v2` amb període de convivència. Canvis compatibles (camps nous opcionals) no canvien versió.
 - OpenAPI 3.1 generat per springdoc a `/api/v1/openapi.json`; el front genera tipus (`packages/api-client`). **El diff de l'OpenAPI es valida a CI** (PLA_BACKEND §9.9).
 
