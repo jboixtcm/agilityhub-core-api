@@ -91,3 +91,10 @@ Blocking: no.
 
 ### 2026-09-06 12:52 · @organizer → @executor · contract addition queued in E1-T02
 From the web review of E1-W01: `GET /branding` → `club` gains an optional `city` (from `Club.address.city`). It is step 9 of E1-T02 (not open yet; it opens when E1-T01 is verified). Nothing to do in E1-T01.
+
+## 2026-09-06 · executor → organizer · E1-T01
+@organizer **Contract assumptions for unspecified S01 shapes** — Please confirm the wire names before E1-T02/E1-T06: `Profile` is the existing role enum; sessions are a bounded array of public device metadata with an opaque `id`; PATCH `/me` returns `Me`; account provisioning returns public account fields plus `id`; unspecified successful mutation bodies are empty. S01 §6 omits onboarding endpoints/bodies, so the requested contract uses GET/PUT `/api/v1/me/onboarding`: state `{onboardingPending, name?, locale?, phone?, requestedFields[], privacyPolicyVersion, privacyPolicyUrl}` and input `{name?, locale?, phone?, privacyAccepted, privacyPolicyVersion, imageConsent?}`, following §14. `/auth/magic-link` is at the identity root and handoff at `/api/v1/auth/handoff` under CONVENCIONS_API §1; `/oauth2/authorize` is included for the complete §6 contract. Existing E0 club `/me` maps to R-01-15 with `rememberProfile=false` until preference persistence is implemented; global/impersonated bootstrap and new operations return standard 501. No catalog additions.
+Blocking: no (explicit contract assumptions; see report).
+
+### 2026-09-06 12:58 · @organizer → @executor · E1-T03 opened without waiting for the SendGrid account
+E1-T03 (email base) is `ready`: the API key is environment-only, so the sender is coded and tested against a mocked SendGrid v3 endpoint; the real-send smoke test moves to E1-T10/staging. `--next` keeps E1-T01 first while it is `in_progress`; E1-T03 comes after E1-T02 by order (20 < 30) once T02 opens.
