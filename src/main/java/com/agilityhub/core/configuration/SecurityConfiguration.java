@@ -49,7 +49,8 @@ public class SecurityConfiguration {
                 .requestCache(cache -> cache.disable());
         http.authorizeHttpRequests(authorize -> {
             authorize.requestMatchers(HttpMethod.GET, "/api/v1/health", "/api/v1/branding", "/api/v1/manifest.webmanifest",
-                    "/api/v1/public/**").permitAll();
+                    "/api/v1/public/**", "/.well-known/openid-configuration", "/oauth2/authorize", "/connect/logout").permitAll();
+            authorize.requestMatchers(HttpMethod.POST, "/auth/magic-link", "/oauth2/token").permitAll();
             if (environment.acceptsProfiles(Profiles.of("local", "test"))
                     && !environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
                 authorize.requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll();
@@ -59,7 +60,16 @@ public class SecurityConfiguration {
         });
         var authorities = new JwtGrantedAuthoritiesConverter();
         authorities.setAuthoritiesClaimName("roles"); authorities.setAuthorityPrefix("ROLE_");
-        var converter = new JwtAuthenticationConverter(); converter.setJwtGrantedAuthoritiesConverter(authorities);
+        var platformAuthorities = new JwtGrantedAuthoritiesConverter();
+        platformAuthorities.setAuthoritiesClaimName("platformRoles"); platformAuthorities.setAuthorityPrefix("ROLE_");
+        var scopes = new JwtGrantedAuthoritiesConverter();
+        var converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            var combined = new java.util.HashSet<org.springframework.security.core.GrantedAuthority>(authorities.convert(jwt));
+            combined.addAll(platformAuthorities.convert(jwt));
+            combined.addAll(scopes.convert(jwt));
+            return combined;
+        });
         http.oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
                 .authenticationEntryPoint((request, response, exception) -> writeError(request, response, ErrorCode.UNAUTHENTICATED, errors, mapper))
                 .accessDeniedHandler((request, response, exception) -> writeError(request, response, ErrorCode.FORBIDDEN, errors, mapper)));

@@ -64,7 +64,14 @@ public class IdentityConfiguration {
             }
             SecurityConfiguration.writeError(request, response, catalog, errors, mapper);
         });
-        http.securityMatcher("/oauth2/token", "/oauth2/jwks", "/.well-known/jwks.json")
+        // Pending E1 grants reach the typed MVC contract and its standard 501 response.
+        http.securityMatcher(request -> {
+            String path = request.getServletPath().isEmpty() ? request.getRequestURI() : request.getServletPath();
+            String grant = request.getParameter("grant_type");
+            return path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json")
+                    || (path.equals("/oauth2/token") && !"urn:agilityhub:grant:magic-link".equals(grant)
+                    && !"urn:agilityhub:grant:handoff".equals(grant) && !"authorization_code".equals(grant));
+        })
                 .csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable()).authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         var oauthJwks = new NimbusJwkSetEndpointFilter(keys);

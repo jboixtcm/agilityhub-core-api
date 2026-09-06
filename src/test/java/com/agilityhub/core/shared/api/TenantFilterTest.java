@@ -38,7 +38,7 @@ class TenantFilterTest {
         SecurityContextHolder.getContext().getAuthentication().setAuthenticated(true);
     }
     @Test void T_02_06_hostAndLocalOverrideAreTrustedOnlyInLocal() throws Exception {
-        for (String path : new String[]{"/api/v1/branding", "/api/v1/manifest.webmanifest", "/api/v1/public/info", "/oauth2/authorize"}) {
+        for (String path : new String[]{"/api/v1/branding", "/api/v1/manifest.webmanifest", "/api/v1/public/info"}) {
             var observed = new AtomicReference<String>(); var response = new MockHttpServletResponse();
             filter(true).doFilter(request(path, "b.example.test", "a.example.test"), response,
                     (req, res) -> observed.set(TenantContext.require()));

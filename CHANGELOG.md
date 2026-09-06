@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T01: Complete S01 identity OpenAPI contract with typed request/response schemas,
+  five documented token grants, OIDC routes, account/profile/session/onboarding APIs,
+  handoff, impersonation and Learn account synchronization endpoints.
+- Standard localized 501 responses for pending identity implementations, tested account,
+  scope, role and tenant boundaries, and the R-01-15 `Me` bootstrap shape with profiles
+  and features. Existing club password/refresh grants and public JWKS remain active.
+
 - E0-T14: Five source-linked playbooks for entities, endpoints, schedulers, event
   consumers and task reports, with E0 examples and explicit boundaries for S15 jobs.
 

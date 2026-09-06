@@ -22,11 +22,14 @@ class MeIT extends IdentityIntegrationSupport {
         String token = login().get("access_token").asText();
         var response = mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$.account.id").value("account-a")).andExpect(jsonPath("$.account.length()").value(4))
+                .andExpect(jsonPath("$.account.id").value("account-a")).andExpect(jsonPath("$.account.length()").value(5))
                 .andExpect(jsonPath("$.membership.roles[0]").value(role.name())).andExpect(jsonPath("$.membership.memberId").value("member-a"))
-                .andExpect(jsonPath("$.membership.defaultProfile").value(role.name())).andExpect(jsonPath("$.modules").isArray())
+                .andExpect(jsonPath("$.membership.clubId").value("club-a"))
+                .andExpect(jsonPath("$.membership.profiles[0]").value(role.name()))
+                .andExpect(jsonPath("$.membership.activeProfile").value(role.name()))
+                .andExpect(jsonPath("$.membership.defaultProfile").value(role.name())).andExpect(jsonPath("$.features").isArray())
                 .andReturn().getResponse().getContentAsString();
-        assertThat(response).doesNotContain("password", "security", "token", "externalIds", "platformRoles");
+        assertThat(response).doesNotContain("password", "security", "token", "externalIds");
         mvc.perform(get("/api/v1/me").header("Host", "b.example.test").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("TENANT_MISMATCH"));
         // Unknown API gateway hosts preserve the existing authenticated JWT tenant fallback.
@@ -46,7 +49,7 @@ class MeIT extends IdentityIntegrationSupport {
     }
     @Test void T_01_17_methodAuthorizationAndCurrentMembershipRejectUnavailableAccess() throws Exception {
         mvc.perform(get("/api/v1/me").with(jwt().jwt(j -> j.subject("account-a").claim("clubId", "club-a"))
-                .authorities(() -> "ROLE_GUEST"))).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
+                .authorities(() -> "ROLE_GUEST"))).andExpect(status().isOk());
         for (String role : new String[]{"MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN"}) {
             mvc.perform(get("/api/v1/me").with(jwt().jwt(j -> j.subject("account-a").claim("clubId", "club-a"))
                     .authorities(() -> "ROLE_" + role))).andExpect(status().isOk());

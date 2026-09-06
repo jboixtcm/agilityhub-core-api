@@ -34,6 +34,16 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(exception.code().httpStatus()).body(body(exception, request));
     }
 
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<ApiError> notImplemented(HttpServletRequest request) {
+        return handle(new ApiException(ErrorCode.NOT_IMPLEMENTED), request);
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> missingParameter(HttpServletRequest request) {
+        return handle(new ApiException(ErrorCode.VALIDATION_ERROR), request);
+    }
+
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ApiError> validation(BindException exception, HttpServletRequest request) {
         var errors = exception.getBindingResult().getFieldErrors().stream()
