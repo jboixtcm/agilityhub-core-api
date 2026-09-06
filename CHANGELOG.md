@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T06: One public module enum with catalog-checked dependencies, self-service
+  flags and MINIM/CANIC presets; dependency validation with missing/dependent details.
+- Tenant-aware module guards for services and schedulers, plus controller/method
+  interception before request body validation using the standard MODULE_DISABLED error.
+- S02 module catalog, dependency and integration tests covering module toggles,
+  tenant/role checks, cumulative annotations and unaffected endpoints.
+
 - E0-T05: Club and scoped parameter persistence with startup indexes, the complete
   146-key parameter catalog and Markdown contract, typed validation, immutable
   cached club configuration, and outbox-driven cache invalidation.

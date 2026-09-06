@@ -1,6 +1,5 @@
 package com.agilityhub.core.platform.application;
 
-import com.agilityhub.core.platform.domain.ClubModule;
 import com.agilityhub.core.platform.domain.CountryProfile;
 import com.agilityhub.core.platform.domain.ImmutableValues;
 import com.agilityhub.core.platform.domain.Pwa;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<ClubModule> modules,
+public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Module> modules,
                          CountryProfile countryProfile, Map<String, Map<String, Object>> scopedParameters) {
     public ClubConfig {
         parameters = ImmutableValues.map(parameters); modules = Set.copyOf(modules);

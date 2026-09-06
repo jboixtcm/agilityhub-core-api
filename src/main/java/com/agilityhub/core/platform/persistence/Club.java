@@ -1,6 +1,6 @@
 package com.agilityhub.core.platform.persistence;
 
-import com.agilityhub.core.platform.domain.ClubModule;
+import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.domain.ImmutableValues;
 import com.agilityhub.core.platform.domain.Pwa;
 import com.agilityhub.core.platform.domain.Theme;
@@ -20,7 +20,7 @@ public record Club(@Id String id, String slug, String name, String legalName, St
                    Address address, String contactEmail, String contactPhone, String websiteUrl,
                    List<String> locales, String defaultLocale, String timeZone, String currency,
                    String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
-                   Set<ClubModule> modules, Map<String, Object> paymentProviders, Legal legal,
+                   Set<Module> modules, Map<String, Object> paymentProviders, Legal legal,
                    Status status, Map<String, Boolean> onboardingChecklist, Map<String, Long> usage,
                    @Version Long version, Instant createdAt, Instant updatedAt) {
     public Club {
