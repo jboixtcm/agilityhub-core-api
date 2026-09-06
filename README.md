@@ -61,9 +61,7 @@ so the host does not need to resolve the replica member's Compose hostname.
 Activate one profile with `SPRING_PROFILES_ACTIVE`. Virtual threads are enabled
 in every profile. Configure `SERVER_PORT` if port 8080 is occupied.
 GET health is global and public. GET `/api/v1/branding` and
-`/api/v1/manifest.webmanifest` are public per verified club host. Authentication
-is implemented in a later roadmap task; other mapped routes are denied and
-generated default users are disabled. The `local` profile alone accepts
+`/api/v1/manifest.webmanifest` are public per verified club host. Other routes require a validated bearer JWT; generated default users are disabled. The `local` profile alone accepts
 `X-Club-Host` to override `Host`. Tenant context comes from an authenticated JWT
 claim when present; a different known host returns `TENANT_MISMATCH`.
 
@@ -205,3 +203,72 @@ has no postal lookup or national document/IBAN validation; phones must be E.164.
 The ES profile uses Apache Commons Validator 1.11.0 for country-specific IBAN
 length/pattern and mod-97 checks, based on the SWIFT registry; see its
 [IBANValidator documentation](https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/IBANValidator.html).
+
+## Auth for local development
+
+E0 supports `POST /oauth2/token` with `password` and `refresh_token`, public
+`GET /oauth2/jwks` (also `/.well-known/jwks.json`), and authenticated
+`GET /api/v1/me`. Spring Authorization Server supplies the token endpoint,
+grant converter/provider integration, response handler, and JWKS filters.
+The first-party public clients are `clubs-app` and `clubs-admin`; omitted
+`client_id` defaults to `clubs-app` for the local/task curl contract. Other
+clients and scopes are rejected until the E1 client-registration/OIDC work.
+
+First create a club with a verified host (club-as-code arrives in E0-T10).
+Then seed accounts for its slug; the temporary ApplicationRunner runs during
+startup and leaves the local API running:
+
+```sh
+export SEED_PASSWORD='<choose a local test password>'
+./mvnw -q spring-boot:run -Dspring-boot.run.arguments='identity:seed-test-accounts --club=<existing-slug>'
+```
+
+Only `local`/`test` expose this command. It creates `admin@example.test`,
+`instructor@example.test`, and `member@example.test` with argon2id passwords;
+repeat runs preserve existing credentials and memberships. Admin/instructor
+memberships also have `MEMBER`. Member IDs remain empty pending census setup.
+`SEED_PASSWORD` has no default and is never printed. The CLI dispatcher will
+replace this temporary runner in E0-T10.
+
+```sh
+curl -s localhost:8080/oauth2/token \
+  -H 'X-Club-Host: app.example.test' \
+  -d grant_type=password -d client_id=clubs-app \
+  -d username=admin@example.test --data-urlencode "password=$SEED_PASSWORD"
+curl -s localhost:8080/api/v1/me \
+  -H 'X-Club-Host: app.example.test' -H "Authorization: Bearer $ACCESS_TOKEN"
+curl -s localhost:8080/oauth2/token \
+  -H 'X-Club-Host: app.example.test' \
+  -d grant_type=refresh_token -d client_id=clubs-app \
+  --data-urlencode "refresh_token=$REFRESH_TOKEN"
+```
+
+Set `ACCESS_TOKEN` and `REFRESH_TOKEN` from the sign-in response. Access JWTs
+expire after 15 minutes, use RS256 with a public-key thumbprint `kid`, and
+carry account/tenant/role/profile/locale claims. `/me` selects explicit public
+fields and rechecks the current account and membership. A known different
+host returns `TENANT_MISMATCH`; an unknown gateway host retains the existing
+JWT tenant fallback. `X-Club-Host` is accepted only under `local`.
+
+Refresh tokens contain 32 random bytes; Mongo stores only SHA-256 hashes.
+Each use atomically consumes and replaces the token within a Mongo transaction.
+Reusing a rotated token revokes its family. The initial expiry uses the catalog
+parameter `auth.sessionDays`; rotations retain that expiry. Sliding sessions,
+lockout policy, full OIDC and impersonation remain E1 work.
+
+`AUTH_JWK_PEM` supplies the RSA private key through the deployment environment.
+The key must be at least 2048 bits; production/staging startup fails without it.
+Local/test generate an ephemeral key when unset, so restarting invalidates old
+access JWTs. `AUTH_ISSUER` defaults to the S01 issuer. JWKS exposes public fields
+only. OAuth failures use the same localized `{code,message,details,traceId}`
+contract as API errors. Missing/invalid access tokens return 401.
+
+Password verification accepts Learn bcrypt `$2y$`, `$2a$`, `$2b$` hashes.
+New hashes use the [OWASP argon2id minimum](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+(19 MiB, two iterations, one lane, 16-byte salt). Missing/passwordless accounts
+perform a dummy argon2id verification; legacy bcrypt and argon2id costs differ,
+so this removes the missing-account fast path without promising identical
+wall-clock timing across algorithms. The PHP fixture was generated with
+`password_hash("Learn-fixture-password", PASSWORD_BCRYPT, ["cost" => 12])`
+using the local `laravelsail/php83-composer` PHP runtime; it contains fictional
+test credentials only.

@@ -25,6 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class HealthControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
+
     @Autowired
     MockMvc mvc;
 
@@ -63,12 +66,12 @@ class HealthControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"/actuator/health", "/v3/api-docs"})
     void E0_T01_otherPathsAreNotPublic(String path) throws Exception {
-        mvc.perform(get(path)).andExpect(status().isForbidden());
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
     }
 
     @Test
     void E0_T04_unknownApiRouteUsesErrorContract() throws Exception {
-        mvc.perform(get("/api/v1/private"))
+        mvc.perform(get("/api/v1/private").with(user("member@example.test").roles("MEMBER")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("No s'ha trobat el recurs."))
@@ -78,14 +81,14 @@ class HealthControllerTest {
 
     @Test
     void E0_T01_postHealthIsNotPermitted() throws Exception {
-        mvc.perform(post("/api/v1/health").with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/health").with(csrf())).andExpect(status().isUnauthorized());
     }
 
     @Test void E0_T08_controllerAndSecurityErrorsAreLocalizedInSpanish() throws Exception {
-        mvc.perform(get("/api/v1/missing").header("Accept-Language", "es"))
+        mvc.perform(get("/api/v1/missing").with(user("member@example.test").roles("MEMBER")).header("Accept-Language", "es"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.message").value("No se ha encontrado el recurso."));
         mvc.perform(get("/actuator/health").header("Accept-Language", "es"))
-                .andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("No tienes permiso para realizar esta acción."));
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         mvc.perform(get("/actuator/health").with(user("member@example.test").roles("MEMBER"))
                 .header("Accept-Language", "es"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("No tienes permiso para realizar esta acción."));

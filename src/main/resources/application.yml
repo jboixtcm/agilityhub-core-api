@@ -1,3 +1,8 @@
+identity:
+  issuer: ${AUTH_ISSUER:https://id.agilitydoghub.com}
+  jwk-pem: ${AUTH_JWK_PEM:}
+  seed-password: ${SEED_PASSWORD:}
+
 spring:
   application:
     name: agilityhub-core-api

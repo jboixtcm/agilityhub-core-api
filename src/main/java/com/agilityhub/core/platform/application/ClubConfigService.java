@@ -30,6 +30,7 @@ public class ClubConfigService implements TimeZoneProvider {
     public ClubConfigService(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog, CountryProfileRegistry countries) {
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.countries = countries;
     }
+    public java.util.Optional<String> findClubIdBySlug(String slug) { return clubs.findBySlug(slug).map(club -> club.id()); }
     public ClubConfig get(String clubId) {
         try (var scope = TenantContext.open(clubId)) { return cache.get(clubId, this::load); }
     }

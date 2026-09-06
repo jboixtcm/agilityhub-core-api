@@ -28,7 +28,7 @@ public class TenantFilter extends OncePerRequestFilter {
         TenantContext.clear();
         try {
             String path = request.getRequestURI().substring(request.getContextPath().length());
-            boolean global = path.equals("/api/v1/health") || path.equals("/api/v1/platform") || path.startsWith("/api/v1/platform/");
+            boolean global = path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json") || path.startsWith("/v3/api-docs") || path.startsWith("/actuator/") || path.equals("/api/v1/health") || path.equals("/api/v1/platform") || path.startsWith("/api/v1/platform/");
             boolean publicRoute = path.equals("/api/v1/branding") || path.equals("/api/v1/manifest.webmanifest")
                     || path.startsWith("/api/v1/public/") || path.startsWith("/oauth2/");
             if (!global) {

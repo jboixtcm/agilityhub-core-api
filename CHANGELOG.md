@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T09: Global accounts, tenant-scoped memberships, Learn bcrypt verification,
+  argon2id password creation, SAS password/refresh grants and RSA JWT/JWKS.
+- Protected bearer-token routes, host-scoped `/me`, hashed refresh rotation with
+  family reuse revocation, and local/test-only account seeding with explicit passwords.
+- Identity normalization, credential, tenant/role, JWT/key, refresh, and seed tests;
+  local authentication documentation and the updated OpenAPI snapshot.
+
 - E0-T08: UTF-8 ICU message source with all 241 catalog errors in Catalan,
   Spanish and English; account/club-aware response locales and scoped recipient locales.
 - Club time-zone date/time, exact money and localized duration formatting, plus

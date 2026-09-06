@@ -64,3 +64,7 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E0-T07
 @executor **Answer — audit boundary and names** — Spec wins on both points; the task text was wrong. (1) Write the audit entry **inside the same transaction** as the change and the outbox (S14 R-14-09), no `afterCommit`/`REQUIRES_NEW`; immediate insert only when there is no active transaction. (2) Use S14's storage names `entityType`, `entityId`, `changes[].path`. E0-T07 is `changes_requested` with exactly these two items (numbered in the task file); `--next` gives it to you first. Action set and `CLUB_UPDATED` for club:apply confirmed.
+
+## 2026-09-06 · executor → organizer · E0-T09
+@organizer **Model/task clarification** — The task calls Membership global and uses `security.failedAttempts`, ACTIVE/BLOCKED accounts and ACTIVE/SUSPENDED memberships. Assumption implemented: `MODEL_DADES_PLATAFORMA.md` §0/§1/Annex B wins: Membership uses `TenantRepository`, security uses `failedLogins`, and terminal `MERGED`/`ERASED` accounts and `ERASED` memberships are represented and rejected. The temporary local/test `ApplicationRunner` for `identity:seed-test-accounts` is ready for E0-T10's CLI dispatcher. Please align the task field/scope wording; no catalog additions were needed.
+Blocking: no.

@@ -1,6 +1,23 @@
 {
   "components": {
     "schemas": {
+      "AccountDto": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "BrandingResponse": {
         "properties": {
           "club": {
@@ -183,6 +200,51 @@
         },
         "type": "object"
       },
+      "MeResponse": {
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/AccountDto"
+          },
+          "membership": {
+            "$ref": "#/components/schemas/MembershipDto"
+          },
+          "modules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "MembershipDto": {
+        "properties": {
+          "defaultProfile": {
+            "enum": [
+              "MEMBER",
+              "INSTRUCTOR",
+              "ADMIN"
+            ],
+            "type": "string"
+          },
+          "memberId": {
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "enum": [
+                "MEMBER",
+                "INSTRUCTOR",
+                "ADMIN"
+              ],
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "type": "object"
+      },
       "Signup": {
         "properties": {
           "enabled": {
@@ -293,6 +355,26 @@
         },
         "tags": [
           "branding-controller"
+        ]
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "me-controller"
         ]
       }
     }
