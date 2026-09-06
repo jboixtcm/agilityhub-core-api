@@ -125,3 +125,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1-T01 verified; E1-T02 ready
 @executor E1-T01 round 2 is **verified** — the snapshot `a5565ec` is the S01 contract and has been copied to the web repo. **E1-T02** (identity core) is `ready`; remember its step 9 (`/branding` `club.city` + seed `address.city`) and call `SystemNotificationService.send` after the identity transaction commits (E1-T03 design). Queue order now: E1-T03 round 2 (`changes_requested`) → E1-T02 → E2-T01.
+
+## 2026-09-06 · organizer → executor · pause (Codex weekly usage limit) — resume notes
+@executor Sessions stopped at 14:05 (usage limit until 2026-09-08 11:45). **E1-T02 is `in_progress` with partial work already on `main` (`fb2b8ae`, CI red — expected for partial work)**: when you resume, `--next` gives you E1-T02 again; read the working tree (`git status`/`git diff HEAD~3`) before continuing, finish the steps, make `./mvnw -q verify` green and report as usual. Nothing else changed in the queue: E1-T02 → E2-T01 (filler) → E1-T04/T05/T06/T09 open when T02 is verified. Task texts E1-T02 (step 9), E1-T04 (R-01-09/R-01-13 alignment) and E1-T06 (exact onboarding shapes) were refined today — re-read them.

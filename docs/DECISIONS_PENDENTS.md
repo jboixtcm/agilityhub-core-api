@@ -1,6 +1,6 @@
 # Registre de decisions pendents — per a Jordi (i preguntes per al Josep)
 
-**v1.1 · 05-09-2026** (v1.0 + respostes inline de Jordi a `PENDENTS_DESENVOLUPAMENT.md` §3–4: 4 h, efectiu mensual, sense IVA, cobrament l'últim dia del mes, gamificació R2 OK, DNS al deploy) · Consolida els §13 de les 20 specs, `PENDENTS_DESENVOLUPAMENT.md` i les revisions de codi (Learn, web-planner). Cada punt diu **on hi ha el conflicte o el dubte**, **què recomano** (i per què) i **què canvia si tries una altra cosa**. El desenvolupament **ja pot avançar** amb la recomanació aplicada: totes les specs la tenen incorporada com a assumpció.
+**v1.2 · 06-09-2026** (v1.1 + Part E: decisions de contracte preses per l'organitzador durant el primer dia de desenvolupament, per revisar) · v1.1 · 05-09-2026 (v1.0 + respostes inline de Jordi a `PENDENTS_DESENVOLUPAMENT.md` §3–4: 4 h, efectiu mensual, sense IVA, cobrament l'últim dia del mes, gamificació R2 OK, DNS al deploy) · Consolida els §13 de les 20 specs, `PENDENTS_DESENVOLUPAMENT.md` i les revisions de codi (Learn, web-planner). Cada punt diu **on hi ha el conflicte o el dubte**, **què recomano** (i per què) i **què canvia si tries una altra cosa**. El desenvolupament **ja pot avançar** amb la recomanació aplicada: totes les specs la tenen incorporada com a assumpció.
 
 **Com respondre**: edita aquest fitxer i escriu a la línia `Decisió Jordi:` un `OK` o el canvi que vulguis (una frase). Els punts de la part B són per al Josep: si ja saps la resposta, escriu-la; si no, deixa `→ Josep` i els agruparé en un correu. En la propera sessió llegeixo aquest fitxer i actualitzo specs i catàlegs.
 
@@ -184,6 +184,34 @@ Tècniques o d'UI menor; cadascuna és al §13 de la spec indicada amb el seu ra
 - S15: N-17 també amb 0 inscrits · no es reactiva una classe anul·lada per la revisió (es crea de nou) · baixa efectiva l'endemà de la data · comptador d'SMS per mes local.
 - S16: «Registra què hi ha muntat» accessible amb una icona a la capçalera de pista (20/23/24) · l'alumne veu el recorregut sencer si el club ho permet.
 - S17: club plantilla `club-template-default` mantingut al seed.
+- S01 (06-09, `apps/id`): els literals de les pantalles sense mockup (`packages/i18n/src/locales/ca/id.json`: login, enllaç, contrasenya, compte, productes) són una proposta per al Josep; les etiquetes de rol «Alumnat / Instrucció / Administració» es substituiran pels perfils amb gènere quan arribi `membership.gender`.
+- S01 (06-09): `/products` mostra enllaços estàtics a Learn i Clubs a R1 (spec §2) fins que `userinfo.memberships[]` porti `clubName`/`appUrl` (E1-T05).
+- S03 (06-09, D5/D15): la vista desada per defecte es guarda com a preferència del navegador fins que el contracte d'E2-T01 exposi `isDefault`; la columna de nivell sempre visible al Cànic (`levels.enabled`); les columnes de facturació/grup familiar/entrenament/packs depenen del mòdul.
+- S17/S02 (06-09): el **tema genèric AgilityHub** (club mínim, `apps/id`) usa una paleta neutra blava/clara provisional (`#2563EB` sobre fons clar) fins que Jordi doni la paleta de marca; el tema del Cànic surt dels mockups (fosc + taronja `#E26A2A`, Montserrat).
+
+---
+
+## Part E — Decisions de contracte preses per l'organitzador el 06-09 (dia 1 de desenvolupament) — revisa-les amb calma
+
+Cadascuna ja és aplicada a la spec/catàleg (Dropbox i `docs/` dels dos repos) i al codi verificat. Marca `✗` davant de la que vulguis canviar: la desfaré amb una tasca de correcció.
+
+| # | Decisió | On | Per què |
+|---|---|---|---|
+| E1 | Codis d'error sense estat explícit: `_EXISTS/_TAKEN/_IN_USE/_LOCKED/_OVERLAP/_CONFLICT/ALREADY_*` → 409, la resta → 422; nou codi transversal `IDEMPOTENCY_KEY_REUSED` (409, `details.reason = DIFFERENT_REQUEST · IN_PROGRESS`) | `CATALEG_ERRORS.md` §3 regla 0, §transversals | l'executora ho va demanar a E0-T04; sense regla, cada spec triava un estat diferent |
+| E2 | Auditoria **dins la mateixa transacció** que el canvi (S14 R-14-09), noms `entityType/entityId/changes[].path`; `SecurityEvent` a `platform`; retenció `security.eventRetentionDays = 90` (catàleg) | E0-T07, E0-T11 | el text de la tasca (afterCommit, 365 dies) contradeia la spec/catàleg: mana la spec |
+| E3 | 14 valors per defecte nous al catàleg (textos d'alta, `leave.reasons`, `census.dogDocumentTypes`, `messaging.email.fromAddress = no-reply@agilitydoghub.com`, `replyTo = ""`, `sms.senderId = AgilityHub`, `signup.rateLimit`, `learn.baseUrl`) | `CATALEG_PARAMETRES.md` | claus que les specs citaven sense valor |
+| E4 | Contracte `/branding`: instantània pública `{club {slug, name, city?}, theme {colors…, fontFamily, radius, ringPalette, logoUrl, logoDarkUrl, markUrl, mode}, locales, defaultLocale, …}` sense id de club; `club.city` afegit el 06-09 (peu de la pantalla 01) | E0-T05, E1-T02 pas 9, web E1-W05 | el front no ha de conèixer ids; el peu «{club} · {població}» ha de ser del contracte, no un literal |
+| E5 | **White-label estricte**: cap literal del club al codi ni als fitxers d'idioma (nom, població, «CÀNIC AGILITY / escola canina», «Club Agility …»); la marca és **imatge** (`theme.logoUrl/logoDarkUrl/markUrl`); s'ha generat `03-disseny/marca/logo_complet_fons_fosc.png` | web `AGENTS.md` §2, E1-W05 | els mockups són la instància del Cànic d'un producte genèric |
+| E6 | Rutes del front: `/entrar`, `/activacio`, `/perfil-acces` (pantalles 01/02/03b); `apps/id`: `/login`, `/magic-link` (+ àlies `/magic`), `/set-password`, `/account`, `/products`, `/logout` | S01 §2 | segons spec (el text de la tasca deia `/acces`) |
+| E7 | Hosts: només OAuth2/OIDC (`/.well-known/*`, `/oauth2/*`, `/connect/logout`) a `id.agilitydoghub.com`; `/auth/magic-link` i `/auth/handoff` sota `core.*/api/v1` | S01 §6 v0.3, `CONVENCIONS_API` §1 | són API d'aplicació, no OAuth2 |
+| E8 | `GET /me` (R-01-15) afegeix `account.hasPassword`, `account.emailVerifiedAt?`, `account.onboardingPending` i `membership.gender?` (`MALE·FEMALE·OTHER`, de `Member.gender`) | S01 v0.3 | 02 (bloc de contrasenya opcional, badge «Compte activat»), R-01-05 (`current` condicional) i l'ICU de gènere de 02/03b ho necessiten |
+| E9 | Contracte d'onboarding (§14, A12): `GET /me/onboarding → OnboardingState {pending, postponeRemaining, requiredConsent {policy PLATFORM·CLUB, version, url} \| null, fields[] {key, value, required}}`; `PUT {consentAccepted, consentVersion, fields?, imageConsent?}`; `POST /me/onboarding/postpone`; paràmetres `signup.onboardingFields` (json) i `legal.maxPostpones = 3` | S01 §6 v0.3, catàleg | la spec no tenia la forma; l'executora n'havia inventat una altra |
+| E10 | Detalls S01 confirmats tal com els va implementar l'executora: `Profile` = enum de rols; `/me/sessions` = array acotat amb `id` opac; `PATCH /me` → `Me`; `POST /platform/accounts` → `AccountSummary`; cossos buits a la resta de mutacions; `REFRESH_EXPIRED` = 400 (catàleg) tot i l'exemple 401 de R-01-06; `/oauth2/authorize` inclòs; l'enllaç màgic comparteix la quota per IP de `/oauth2/token` | E1-T01 | forats de la spec resolts amb el criteri més simple |
+| E11 | `WEBHOOK_SIGNATURE_INVALID` passa de 400 a **401** (S11 tenia raó; S12 alineada) | `CATALEG_ERRORS.md`, S12 R-12-21 | una signatura invàlida és una petició no autenticada |
+| E12 | Nova acció d'auditoria `ACCOUNT_EMAIL_STATUS_CHANGED` (S11 → `Account.emailStatus` BOUNCED/COMPLAINED); `Notification.recipientEmail` es pseudonimitza a la supressió (R-14-15) | S14 R-14-09, R-14-15 | l'executora feia servir `MEMBER_UPDATED` sobre un `Account` |
+| E13 | Correu: `SystemNotificationService.send` es crida **després** del commit de la transacció de qui l'invoca (grava QUEUED + outbox abans de la I/O); `LogEmailSender` a `local`, arrencada fallida a `staging/prod` sense `SENDGRID_API_KEY`; l'enviament real es prova a staging | E1-T03 | sense compte SendGrid no s'atura el desenvolupament |
+| E14 | Web: els tipus es generen de l'**snapshot OpenAPI real** copiat de l'api (`packages/api-client/openapi/openapi.json`, mai editat a mà) fusionat amb `pending.json` (contractes encara no publicats per l'api, mocks-first); test de fixtures contra esquemes | E1-W06 | acaba amb l'stub i la cerca del repo germà (no existeix a CI) |
+| E15 | Tema genèric AgilityHub provisional (blau neutre/clar) fins que donis la paleta de marca | Part C | — |
 
 ---
 
