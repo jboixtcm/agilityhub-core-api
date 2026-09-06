@@ -10,6 +10,7 @@ import java.util.Map;
 import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class CatalogResponses {
@@ -24,8 +25,8 @@ public final class CatalogResponses {
     public enum CancelPolicy { REFUND, CREDIT, NONE }
     public record EntryFee(
             @Schema(requiredMode = REQUIRED) EntryFeeMode mode,
-            Money amount,
-            Integer percent) { }
+            @Schema(requiredMode = NOT_REQUIRED) Money amount,
+            @Schema(requiredMode = NOT_REQUIRED) Integer percent) { }
     public record PackSettings(
             @Schema(requiredMode = REQUIRED) int sessions,
             @Schema(requiredMode = REQUIRED) int validityMonths) { }
@@ -33,12 +34,12 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) ChargeMode chargeMode,
             @Schema(requiredMode = REQUIRED) CancelPolicy cancelPolicy) { }
     public record PlanTexts(
-            String description,
-            Map<String, String> descriptionI18n,
-            String offerLabel,
-            Map<String, String> offerLabelI18n,
-            String priceLabel,
-            Map<String, String> priceLabelI18n) { }
+            @Schema(requiredMode = NOT_REQUIRED) String description,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> descriptionI18n,
+            @Schema(requiredMode = NOT_REQUIRED) String offerLabel,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> offerLabelI18n,
+            @Schema(requiredMode = NOT_REQUIRED) String priceLabel,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> priceLabelI18n) { }
     public record LevelUsage(
             @Schema(requiredMode = REQUIRED) int activeDogs,
             @Schema(requiredMode = REQUIRED) int futureClassSessions,
@@ -60,16 +61,16 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
-            Map<String, String> nameI18n,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> nameI18n,
             @Schema(requiredMode = REQUIRED) int order,
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) boolean grantsFreeTraining,
-            AgilityHubLevel agilityhubLevel,
+            @Schema(requiredMode = NOT_REQUIRED) AgilityHubLevel agilityhubLevel,
             @Schema(requiredMode = REQUIRED) boolean active,
-            LevelUsage usage,
-            List<String> warnings,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) LevelUsage usage,
+            @Schema(requiredMode = NOT_REQUIRED) List<String> warnings,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record LevelReaderView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -79,7 +80,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) boolean grantsFreeTraining,
-            AgilityHubLevel agilityhubLevel,
+            @Schema(requiredMode = NOT_REQUIRED) AgilityHubLevel agilityhubLevel,
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record Ring(
@@ -88,12 +89,12 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) boolean allowsFreeTraining,
-            Integer trainingCapacity,
+            @Schema(requiredMode = NOT_REQUIRED) Integer trainingCapacity,
             @Schema(requiredMode = REQUIRED) int effectiveTrainingCapacity,
             @Schema(requiredMode = REQUIRED) int order,
             @Schema(requiredMode = REQUIRED) boolean active,
-            RingUsage usage,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) RingUsage usage,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record RingReaderView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -111,8 +112,8 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) boolean active,
-            InstructorUsage usage,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) InstructorUsage usage,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     @Schema(description = "Reduced reader projection has no memberId or usage.")
     public record InstructorReaderView(
@@ -128,7 +129,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) LocalDate since,
             @Schema(requiredMode = REQUIRED) boolean active,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record Price(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -137,37 +138,37 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) Money amount,
             @Schema(requiredMode = REQUIRED) java.math.BigDecimal taxPercent,
             @Schema(requiredMode = REQUIRED) LocalDate validFrom,
-            LocalDate validTo,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate validTo,
             @Schema(requiredMode = REQUIRED) PriceStatus status,
             @Schema(requiredMode = REQUIRED) boolean locked,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record PriceCreated(
             @Schema(requiredMode = REQUIRED) Price price,
-            @Schema(format = "uuid") String closedPriceId) { }
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String closedPriceId) { }
     public record Plan(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
-            Map<String, String> nameI18n,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> nameI18n,
             @Schema(requiredMode = REQUIRED) PlanType type,
             @Schema(requiredMode = REQUIRED) int dogsIncluded,
             @Schema(requiredMode = REQUIRED) EntryFee entryFee,
-            PackSettings pack,
-            SingleClassSettings singleClass,
-            String conditions,
-            Map<String, String> conditionsI18n,
-            PlanTexts texts,
+            @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
+            @Schema(requiredMode = NOT_REQUIRED) SingleClassSettings singleClass,
+            @Schema(requiredMode = NOT_REQUIRED) String conditions,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> conditionsI18n,
+            @Schema(requiredMode = NOT_REQUIRED) PlanTexts texts,
             @Schema(requiredMode = REQUIRED) boolean showOnSignup,
             @Schema(requiredMode = REQUIRED) boolean showOnWeb,
             @Schema(requiredMode = REQUIRED) int order,
             @Schema(requiredMode = REQUIRED) boolean active,
-            List<Price> currentPrices,
-            List<Price> prices,
-            PlanUsage usage,
-            Money entryFeeAmount,
-            List<String> warnings,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) List<Price> currentPrices,
+            @Schema(requiredMode = NOT_REQUIRED) List<Price> prices,
+            @Schema(requiredMode = NOT_REQUIRED) PlanUsage usage,
+            @Schema(requiredMode = NOT_REQUIRED) Money entryFeeAmount,
+            @Schema(requiredMode = NOT_REQUIRED) List<String> warnings,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record PlanReaderView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -176,23 +177,23 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) PlanType type,
             @Schema(requiredMode = REQUIRED) int dogsIncluded,
             @Schema(requiredMode = REQUIRED) EntryFee entryFee,
-            PackSettings pack,
-            SingleClassSettings singleClass,
-            String conditions,
-            PublicPlanTexts texts,
+            @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
+            @Schema(requiredMode = NOT_REQUIRED) SingleClassSettings singleClass,
+            @Schema(requiredMode = NOT_REQUIRED) String conditions,
+            @Schema(requiredMode = NOT_REQUIRED) PublicPlanTexts texts,
             @Schema(requiredMode = REQUIRED) boolean showOnSignup,
             @Schema(requiredMode = REQUIRED) boolean showOnWeb,
             @Schema(requiredMode = REQUIRED) int order,
             @Schema(requiredMode = REQUIRED) boolean active,
-            List<PublicPrice> currentPrices,
+            @Schema(requiredMode = NOT_REQUIRED) List<PublicPrice> currentPrices,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record PublicPrice(
             @Schema(requiredMode = REQUIRED) PriceConcept concept,
             @Schema(requiredMode = REQUIRED) Money amount) { }
     public record PublicPlanTexts(
-            String description,
-            String offerLabel,
-            String priceLabel) { }
+            @Schema(requiredMode = NOT_REQUIRED) String description,
+            @Schema(requiredMode = NOT_REQUIRED) String offerLabel,
+            @Schema(requiredMode = NOT_REQUIRED) String priceLabel) { }
     @Schema(description = "Only active showOnWeb plans; prices omitted when BILLING is disabled.")
     public record PublicPlan(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -200,10 +201,10 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED) PlanType type,
             @Schema(requiredMode = REQUIRED) int dogsIncluded,
-            String conditions,
-            PublicPlanTexts texts,
-            List<PublicPrice> currentPrices,
-            Money entryFeeAmount,
+            @Schema(requiredMode = NOT_REQUIRED) String conditions,
+            @Schema(requiredMode = NOT_REQUIRED) PublicPlanTexts texts,
+            @Schema(requiredMode = NOT_REQUIRED) List<PublicPrice> currentPrices,
+            @Schema(requiredMode = NOT_REQUIRED) Money entryFeeAmount,
             @Schema(requiredMode = REQUIRED) int order) { }
     public record PublicPlansClub(
             @Schema(requiredMode = REQUIRED) String slug,
@@ -215,14 +216,14 @@ public final class CatalogResponses {
     public record FaqEntry(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String category,
-            Map<String, String> categoryI18n,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> categoryI18n,
             @Schema(requiredMode = REQUIRED) String question,
-            Map<String, String> questionI18n,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> questionI18n,
             @Schema(requiredMode = REQUIRED) String answer,
-            Map<String, String> answerI18n,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> answerI18n,
             @Schema(requiredMode = REQUIRED) int order,
             @Schema(requiredMode = REQUIRED) boolean active,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record FaqReaderView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,

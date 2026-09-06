@@ -52,7 +52,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 .noneMatch(path -> path.startsWith("/actuator") || path.contains("openapi") || path.contains("api-docs"));
         var error = document.at("/components/schemas/ApiError");
         assertThat(names(error.path("properties"))).containsExactlyInAnyOrder("code", "message", "details", "traceId");
-        assertThat(strings(error.path("required"))).containsExactlyInAnyOrder("code", "message", "details", "traceId");
+        assertThat(strings(error.path("required"))).containsExactlyInAnyOrder("code", "message", "traceId");
         assertThat(error.at("/properties/details/additionalProperties").asBoolean()).isTrue();
         document.path("paths").forEach(path -> path.forEach(operation -> {
             assertThat(strings(operation.path("tags"))).hasSize(1).noneMatch(tag -> tag.endsWith("-controller"));
@@ -92,6 +92,10 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(snapshot).doesNotContain("localhost:" + port, "Generated server url", "x-generated-at");
         Files.createDirectories(Path.of("target"));
         Files.writeString(Path.of("target/openapi.json"), snapshot);
+        if (!Boolean.getBoolean("openapi.snapshot.update")) {
+            assertThat(snapshot).as("Regenerate the committed contract with bin/openapi-snapshot")
+                    .isEqualTo(Files.readString(Path.of("docs/openapi/openapi.json")));
+        }
     }
 
     @ParameterizedTest
@@ -184,7 +188,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(names(document.at("/components/schemas/OnboardingState/properties")))
                 .containsExactlyInAnyOrder("pending", "postponeRemaining", "requiredConsent", "fields");
         assertThat(strings(document.at("/components/schemas/OnboardingState/required")))
-                .containsExactlyInAnyOrder("pending", "postponeRemaining", "requiredConsent", "fields");
+                .containsExactlyInAnyOrder("pending", "postponeRemaining", "fields");
         assertThat(document.at("/components/schemas/OnboardingState/properties/pending/type").asText()).isEqualTo("boolean");
         assertThat(document.at("/components/schemas/OnboardingState/properties/postponeRemaining/type").asText()).isEqualTo("integer");
         assertThat(document.at("/components/schemas/OnboardingState/properties/fields/items/$ref").asText())
@@ -196,7 +200,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(names(document.at("/components/schemas/OnboardingField/properties")))
                 .containsExactlyInAnyOrder("key", "value", "required");
         assertThat(strings(document.at("/components/schemas/OnboardingField/required")))
-                .containsExactlyInAnyOrder("key", "value", "required");
+                .containsExactlyInAnyOrder("key", "required");
         assertThat(strings(document.at("/components/schemas/OnboardingField/properties/value/type")))
                 .containsExactlyInAnyOrder("string", "null");
         assertThat(names(document.at("/components/schemas/RequiredConsent/properties")))

@@ -10,6 +10,7 @@ import java.util.Map;
 import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class SettingsContracts {
@@ -23,24 +24,24 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) String help,
             @Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) boolean isOverride,
-            String scopeRef,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) String scopeRef,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) ParameterEditor editableBy,
             @Schema(requiredMode = REQUIRED) Map<String, Object> constraints,
-            String module,
+            @Schema(requiredMode = NOT_REQUIRED) String module,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record ParameterHistoryEntry(
             @Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) Instant changedAt,
             @Schema(requiredMode = REQUIRED, format = "uuid") String changedByAccountId,
-            String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED) String reason) { }
     public record ParameterBlock(
             @Schema(requiredMode = REQUIRED) String key,
             @Schema(requiredMode = REQUIRED) String title,
             @Schema(requiredMode = REQUIRED) List<Parameter> rows) { }
     public record Parameters(
             @Schema(requiredMode = REQUIRED) List<ParameterBlock> blocks,
-            LastChange lastChange) { }
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange) { }
     public record ParameterDefinition(
             @Schema(requiredMode = REQUIRED) String key,
             @Schema(requiredMode = REQUIRED) String type,
@@ -54,20 +55,20 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) ParameterEditor editableBy,
             @Schema(requiredMode = REQUIRED) boolean restartRequired) { }
     public record ClubAddress(
-            String street,
-            String postalCode,
-            String city,
-            String region,
-            String country) { }
+            @Schema(requiredMode = NOT_REQUIRED) String street,
+            @Schema(requiredMode = NOT_REQUIRED) String postalCode,
+            @Schema(requiredMode = NOT_REQUIRED) String city,
+            @Schema(requiredMode = NOT_REQUIRED) String region,
+            @Schema(requiredMode = NOT_REQUIRED) String country) { }
     public record ClubDomain(
             @Schema(requiredMode = REQUIRED) String host,
             @Schema(requiredMode = REQUIRED) String app,
-            Instant verifiedAt,
+            @Schema(requiredMode = NOT_REQUIRED) Instant verifiedAt,
             @Schema(requiredMode = REQUIRED) boolean primary) { }
     public record ClubLegal(
             @Schema(requiredMode = REQUIRED) String privacyPolicyUrl,
-            String imageConsentText,
-            Map<String, String> imageConsentTextI18n,
+            @Schema(requiredMode = NOT_REQUIRED) String imageConsentText,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> imageConsentTextI18n,
             @Schema(requiredMode = REQUIRED) String legalTextsVersion) { }
     @Schema(description = "Configuration status only; provider credentials and API key hashes are never exposed.")
     public record PaymentProviderSummary(
@@ -77,12 +78,12 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String slug,
             @Schema(requiredMode = REQUIRED) String name,
-            String legalName,
-            @Schema(format = "uuid") String taxId,
-            ClubAddress address,
-            String contactEmail,
-            String contactPhone,
-            String websiteUrl,
+            @Schema(requiredMode = NOT_REQUIRED) String legalName,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String taxId,
+            @Schema(requiredMode = NOT_REQUIRED) ClubAddress address,
+            @Schema(requiredMode = NOT_REQUIRED) String contactEmail,
+            @Schema(requiredMode = NOT_REQUIRED) String contactPhone,
+            @Schema(requiredMode = NOT_REQUIRED) String websiteUrl,
             @Schema(requiredMode = REQUIRED) List<String> locales,
             @Schema(requiredMode = REQUIRED) String defaultLocale,
             @Schema(requiredMode = REQUIRED) String timeZone,
@@ -90,23 +91,23 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) String countryProfile,
             @Schema(requiredMode = REQUIRED) List<ClubDomain> domains,
             @Schema(requiredMode = REQUIRED) com.agilityhub.core.platform.domain.Theme theme,
-            ClubPwa pwa,
+            @Schema(requiredMode = NOT_REQUIRED) ClubPwa pwa,
             @Schema(requiredMode = REQUIRED) List<String> modules,
-            Map<String, PaymentProviderSummary> paymentProviders,
-            ClubLegal legal,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, PaymentProviderSummary> paymentProviders,
+            @Schema(requiredMode = NOT_REQUIRED) ClubLegal legal,
             @Schema(requiredMode = REQUIRED) String status,
-            LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record ModuleSettings(
             @Schema(requiredMode = REQUIRED) List<String> modules) { }
-    public record ClubPwa(String name, String shortName, Map<String, String> iconUrls) { }
+    public record ClubPwa(@Schema(requiredMode = NOT_REQUIRED) String name, @Schema(requiredMode = NOT_REQUIRED) String shortName, @Schema(requiredMode = NOT_REQUIRED) Map<String, String> iconUrls) { }
     public record PostalTown(
             @Schema(requiredMode = REQUIRED) String town,
             @Schema(requiredMode = REQUIRED) String region) { }
     public record ParameterUpdate(
             @Schema(requiredMode = REQUIRED) Object value,
-            String reason,
-            String scopeRef,
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
+            @Schema(requiredMode = NOT_REQUIRED) String scopeRef,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record ModuleUpdate(
             @Schema(requiredMode = REQUIRED) @NotNull Boolean enabled) { }
@@ -116,12 +117,12 @@ public final class SettingsContracts {
     @Schema(description = "Alias of club.openingHours: day keys and intervals use the parameter catalog value.")
     public record OpeningHoursUpdate(
             @Schema(requiredMode = REQUIRED) @NotNull Map<String, LocalTimeRange> value,
-            String reason,
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     @Schema(description = "Alias of club.holidays.")
     public record HolidaysUpdate(
             @Schema(requiredMode = REQUIRED) @NotNull List<LocalDate> value,
-            String reason,
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
 
 }

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E1-T11: Make OpenAPI model properties required by default, with explicit optional
+  fields across existing contracts, preserved empty required arrays, and regression
+  checks for model annotations and byte-identical snapshot regeneration.
+
 - E1-T03 Round 2: Return the approved `WEBHOOK_SIGNATURE_INVALID` error with HTTP 401
   and record signature failures as security events. Audit account email suppression
   as `ACCOUNT_EMAIL_STATUS_CHANGED`, with webhook regression tests and the updated OpenAPI contract.

@@ -2,6 +2,18 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-06 · E1-T11 · Required properties by default
+
+All Java model properties are required unless explicitly optional (`Optional`, Spring/JSpecify
+`@Nullable`, or `@Schema` with `NOT_REQUIRED`/`nullable=true`). Branding, theme colors,
+manifest, health, money, discovery and user-info membership schemas now declare their
+required fields. Existing conditional/PATCH fields retain their optional status through
+explicit annotations, including module-dependent E2 projections. `ApiError.details`,
+`OnboardingState.requiredConsent` and `OnboardingField.value` are optional; onboarding
+null types remain unchanged. `ApiError.traceId` stays required; validation field errors
+remain nested in `details`. SYSTEM webhook callbacks may omit `clubId`. Schemas with
+only optional properties publish `required: []`. Routes and runtime serialization are unchanged.
+
 
 ## 2026-09-06 · E2-T01 · S02/S03/S05/S14 contracts
 

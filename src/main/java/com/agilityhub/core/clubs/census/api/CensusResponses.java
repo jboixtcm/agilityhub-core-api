@@ -10,6 +10,7 @@ import java.util.Map;
 import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class CensusResponses {
@@ -25,8 +26,8 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String street,
             @Schema(requiredMode = REQUIRED) String postalCode,
             @Schema(requiredMode = REQUIRED) String city,
-            String province,
-            String country) { }
+            @Schema(requiredMode = NOT_REQUIRED) String province,
+            @Schema(requiredMode = NOT_REQUIRED) String country) { }
     public record IdDocument(
             @Schema(requiredMode = REQUIRED) String type,
             @Schema(requiredMode = REQUIRED) String number) { }
@@ -36,27 +37,27 @@ public final class CensusResponses {
     public record Phone(
             @Schema(requiredMode = REQUIRED) String prefix,
             @Schema(requiredMode = REQUIRED) String number,
-            String label) { }
+            @Schema(requiredMode = NOT_REQUIRED) String label) { }
     @Schema(description = "No full IBAN, card credentials or setup intent IDs.")
     public record PaymentMethodView(
             @Schema(requiredMode = REQUIRED) PaymentMethodType type,
-            String maskedAccount,
-            String holderName,
-            String channel) { }
+            @Schema(requiredMode = NOT_REQUIRED) String maskedAccount,
+            @Schema(requiredMode = NOT_REQUIRED) String holderName,
+            @Schema(requiredMode = NOT_REQUIRED) String channel) { }
     @Schema(description = "Derived presentation status; includes ERASED under S14.")
     public record DisplayStatus(
             @Schema(requiredMode = REQUIRED) String kind,
             @Schema(requiredMode = REQUIRED) String label) { }
     public record BookingBlock(
             @Schema(requiredMode = REQUIRED) boolean active,
-            String reason,
-            Instant since,
-            @Schema(format = "uuid") String byAccountId) { }
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
+            @Schema(requiredMode = NOT_REQUIRED) Instant since,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String byAccountId) { }
     public record ImageRights(
             @Schema(requiredMode = REQUIRED) boolean granted,
-            Instant at,
-            String version,
-            @Schema(format = "uuid") String byAccountId) { }
+            @Schema(requiredMode = NOT_REQUIRED) Instant at,
+            @Schema(requiredMode = NOT_REQUIRED) String version,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String byAccountId) { }
     public record PrivacyPolicyConsent(
             @Schema(requiredMode = REQUIRED) Instant acceptedAt,
             @Schema(requiredMode = REQUIRED) String version) { }
@@ -66,57 +67,57 @@ public final class CensusResponses {
     @Schema(description = "ADMIN projection. Payment details are masked. accountMissing means SEPA_DD without an IBAN.")
     public record Member(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            @Schema(format = "uuid") String accountId,
-            Integer memberNumber,
-            IdDocument idDocument,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String accountId,
+            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED) IdDocument idDocument,
             @Schema(requiredMode = REQUIRED) String firstName,
             @Schema(requiredMode = REQUIRED) String lastName1,
-            String lastName2,
+            @Schema(requiredMode = NOT_REQUIRED) String lastName2,
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = REQUIRED) Gender gender,
             @Schema(requiredMode = REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = REQUIRED) List<ContactEmail> contactEmails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones,
             @Schema(requiredMode = REQUIRED) Address address,
-            PaymentMethodView paymentMethod,
-            String maskedAccount,
-            @Schema(format = "uuid") String planId,
-            @Schema(format = "uuid") String priceId,
-            LocalDate nextInvoiceDate,
-            MemberConsents consents,
-            String remarks,
-            String internalNotes,
+            @Schema(requiredMode = NOT_REQUIRED) PaymentMethodView paymentMethod,
+            @Schema(requiredMode = NOT_REQUIRED) String maskedAccount,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String planId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String priceId,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
+            @Schema(requiredMode = NOT_REQUIRED) MemberConsents consents,
+            @Schema(requiredMode = NOT_REQUIRED) String remarks,
+            @Schema(requiredMode = NOT_REQUIRED) String internalNotes,
             @Schema(requiredMode = REQUIRED) MemberStatus status,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
-            Instant joinedAt,
-            LocalDate leaveDate,
+            @Schema(requiredMode = NOT_REQUIRED) Instant joinedAt,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate leaveDate,
             @Schema(requiredMode = REQUIRED) BookingBlock bookingBlock,
-            @Schema(format = "uuid") String familyGroupId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String familyGroupId,
             @Schema(requiredMode = REQUIRED) List<MemberRole> roles,
             @Schema(requiredMode = REQUIRED) long version,
-            boolean accountMissing,
-            Instant erasedAt,
-            @Schema(format = "uuid") String erasureRequestId) { }
+            @Schema(requiredMode = NOT_REQUIRED) boolean accountMissing,
+            @Schema(requiredMode = NOT_REQUIRED) Instant erasedAt,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String erasureRequestId) { }
     public record LevelSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
-            String color) { }
+            @Schema(requiredMode = NOT_REQUIRED) String color) { }
     public record DogSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
-            LevelSummary level) { }
+            @Schema(requiredMode = NOT_REQUIRED) LevelSummary level) { }
     @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
     public record MemberInstructorView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            Integer memberNumber,
-            String firstName,
-            String lastName1,
-            String lastName2,
+            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED) String firstName,
+            @Schema(requiredMode = NOT_REQUIRED) String lastName1,
+            @Schema(requiredMode = NOT_REQUIRED) String lastName2,
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = REQUIRED) List<ContactEmail> contactEmails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones,
-            Address address,
+            @Schema(requiredMode = NOT_REQUIRED) Address address,
             @Schema(requiredMode = REQUIRED) MemberStatus status,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
             @Schema(requiredMode = REQUIRED) List<DogSummary> dogs,
@@ -131,32 +132,32 @@ public final class CensusResponses {
     @Schema(description = "ADMIN list projection; idDocument and account data are masked. INSTRUCTOR uses MemberInstructorView.")
     public record MemberListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = REQUIRED) List<DogSummary> dogs,
-            NamedReference plan,
+            @Schema(requiredMode = NOT_REQUIRED) NamedReference plan,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
-            ContactSummary contact,
-            PaymentMethodView paymentMethod,
-            LocalDate nextInvoiceDate,
-            NamedReference familyGroup,
-            Instant joinedAt,
-            LocalDate leaveDate,
+            @Schema(requiredMode = NOT_REQUIRED) ContactSummary contact,
+            @Schema(requiredMode = NOT_REQUIRED) PaymentMethodView paymentMethod,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
+            @Schema(requiredMode = NOT_REQUIRED) NamedReference familyGroup,
+            @Schema(requiredMode = NOT_REQUIRED) Instant joinedAt,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate leaveDate,
             @Schema(requiredMode = REQUIRED) boolean bookingBlocked,
-            ImageRights imageRights,
-            List<MemberRole> roles,
-            String city,
-            String postalCode,
-            List<String> pendingDocuments,
-            Boolean freeTraining,
-            LocalDate birthDate,
-            Gender gender,
-            String idDocument,
+            @Schema(requiredMode = NOT_REQUIRED) ImageRights imageRights,
+            @Schema(requiredMode = NOT_REQUIRED) List<MemberRole> roles,
+            @Schema(requiredMode = NOT_REQUIRED) String city,
+            @Schema(requiredMode = NOT_REQUIRED) String postalCode,
+            @Schema(requiredMode = NOT_REQUIRED) List<String> pendingDocuments,
+            @Schema(requiredMode = NOT_REQUIRED) Boolean freeTraining,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
+            @Schema(requiredMode = NOT_REQUIRED) Gender gender,
+            @Schema(requiredMode = NOT_REQUIRED) String idDocument,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record License(
             @Schema(requiredMode = REQUIRED) String organisation,
             @Schema(requiredMode = REQUIRED) String number,
-            String grade) { }
+            @Schema(requiredMode = NOT_REQUIRED) String grade) { }
     public record InstructorNote(
             @Schema(requiredMode = REQUIRED) String text,
             @Schema(requiredMode = REQUIRED) Instant updatedAt) { }
@@ -164,7 +165,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) int remaining,
             @Schema(requiredMode = REQUIRED) int total,
-            LocalDate expiresOn) { }
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate expiresOn) { }
     public record DocumentFile(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
@@ -177,7 +178,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String typeLabel,
             @Schema(requiredMode = REQUIRED) DocumentState state,
             @Schema(requiredMode = REQUIRED) List<DocumentFile> files,
-            Instant lastReminderAt) { }
+            @Schema(requiredMode = NOT_REQUIRED) Instant lastReminderAt) { }
     @Schema(description = "Backoffice only. Never use this schema for /me dog responses.")
     public record Dog(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -187,27 +188,27 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) Sex sex,
             @Schema(requiredMode = REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = REQUIRED) String chip,
-            String photoUrl,
-            @Schema(format = "uuid") String levelId,
-            Instant levelAssignedAt,
-            Boolean freeTrainingOverride,
-            InstructorNote instructorNote,
+            @Schema(requiredMode = NOT_REQUIRED) String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId,
+            @Schema(requiredMode = NOT_REQUIRED) Instant levelAssignedAt,
+            @Schema(requiredMode = NOT_REQUIRED) Boolean freeTrainingOverride,
+            @Schema(requiredMode = NOT_REQUIRED) InstructorNote instructorNote,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
             @Schema(requiredMode = REQUIRED) DogStatus status,
             @Schema(requiredMode = REQUIRED) Instant registeredAt,
-            Instant deactivatedAt,
-            String deactivationReason,
+            @Schema(requiredMode = NOT_REQUIRED) Instant deactivatedAt,
+            @Schema(requiredMode = NOT_REQUIRED) String deactivationReason,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record OwnerSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String fullName,
-            Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
             @Schema(requiredMode = REQUIRED) MemberStatus status) { }
     public record LevelHistoryEntry(
             @Schema(requiredMode = REQUIRED, format = "uuid") String levelId,
             @Schema(requiredMode = REQUIRED) Instant from,
-            Instant to,
-            @Schema(format = "uuid") String byAccountId) { }
+            @Schema(requiredMode = NOT_REQUIRED) Instant to,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String byAccountId) { }
     public enum FreeTrainingSource { LEVEL, OVERRIDE }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
     public record FreeTraining(
@@ -220,39 +221,39 @@ public final class CensusResponses {
     public record DogDetail(
             @Schema(requiredMode = REQUIRED) Dog dog,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
-            LevelSummary level,
+            @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) List<LevelHistoryEntry> levelHistory,
             @Schema(requiredMode = REQUIRED) FreeTraining freeTraining,
             @Schema(requiredMode = REQUIRED) List<DogDocument> documents,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
-            PackSummary pack,
+            @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,
             @Schema(requiredMode = REQUIRED) TasksSummary tasksSummary,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record DogListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED) String breed,
-            LevelSummary level,
+            @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
-            FreeTraining freeTraining,
+            @Schema(requiredMode = NOT_REQUIRED) FreeTraining freeTraining,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
             @Schema(requiredMode = REQUIRED) Sex sex,
             @Schema(requiredMode = REQUIRED) double age,
-            String chip,
+            @Schema(requiredMode = NOT_REQUIRED) String chip,
             @Schema(requiredMode = REQUIRED) List<String> pendingDocuments,
-            Instant levelAssignedAt,
-            PackSummary pack,
+            @Schema(requiredMode = NOT_REQUIRED) Instant levelAssignedAt,
+            @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,
             @Schema(requiredMode = REQUIRED) Instant registeredAt,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record FamilyDog(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
-            String levelCode) { }
+            @Schema(requiredMode = NOT_REQUIRED) String levelCode) { }
     public record FamilyMember(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String fullName,
-            Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
             @Schema(requiredMode = REQUIRED) List<FamilyDog> dogs) { }
     public enum FamilyGroupStatus { ACTIVE, DISSOLVED }
     public record FamilyGroup(
@@ -273,14 +274,14 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = REQUIRED) Sex sex,
             @Schema(requiredMode = REQUIRED) double ageYears,
-            String photoUrl,
-            LevelSummary level,
-            InstructorNote instructorNote,
-            TasksSummary tasks,
+            @Schema(requiredMode = NOT_REQUIRED) String photoUrl,
+            @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
+            @Schema(requiredMode = NOT_REQUIRED) InstructorNote instructorNote,
+            @Schema(requiredMode = NOT_REQUIRED) TasksSummary tasks,
             @Schema(requiredMode = REQUIRED) List<DogDocument> documents,
             @Schema(requiredMode = REQUIRED) boolean freeTrainingAllowed,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
-            PackSummary pack) { }
+            @Schema(requiredMode = NOT_REQUIRED) PackSummary pack) { }
     public record MeDogs(
             @Schema(requiredMode = REQUIRED) List<MeDog> dogs,
             @Schema(requiredMode = REQUIRED) boolean canAddDog) { }
@@ -288,19 +289,19 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String idDocumentMasked,
             @Schema(requiredMode = REQUIRED) String firstName,
             @Schema(requiredMode = REQUIRED) String lastName1,
-            String lastName2,
+            @Schema(requiredMode = NOT_REQUIRED) String lastName2,
             @Schema(requiredMode = REQUIRED) List<ContactEmail> contactEmails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones,
             @Schema(requiredMode = REQUIRED) Address address,
-            PaymentMethodView paymentMethod,
+            @Schema(requiredMode = NOT_REQUIRED) PaymentMethodView paymentMethod,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record OverviewDog(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED) String breed,
-            LevelSummary level,
+            @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) boolean freeTrainingAllowed,
-            PackSummary pack,
+            @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,
             @Schema(requiredMode = REQUIRED) List<String> pendingDocuments) { }
     public record InvoiceSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -312,20 +313,20 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) Instant at,
             @Schema(requiredMode = REQUIRED) String action,
             @Schema(requiredMode = REQUIRED) String actorRole,
-            String actorName) { }
+            @Schema(requiredMode = NOT_REQUIRED) String actorName) { }
     public record NextInvoice(
             @Schema(requiredMode = REQUIRED) LocalDate date,
             @Schema(requiredMode = REQUIRED) Money amount) { }
     @Schema(description = "Cross-vertical notification preference payload remains owned by S11.")
     public record MemberOverview(
             @Schema(requiredMode = REQUIRED) Member member,
-            FamilyGroup familyGroup,
+            @Schema(requiredMode = NOT_REQUIRED) FamilyGroup familyGroup,
             @Schema(requiredMode = REQUIRED) List<OverviewDog> dogs,
             @Schema(requiredMode = REQUIRED) Map<String, Object> notificationPreferences,
             @Schema(requiredMode = REQUIRED) @Size(max = 2) List<InvoiceSummary> recentInvoices,
             @Schema(requiredMode = REQUIRED) long invoicesCount,
             @Schema(requiredMode = REQUIRED) @Size(max = 2) List<AuditSummary> recentAudit,
-            NextInvoice nextInvoice) { }
+            @Schema(requiredMode = NOT_REQUIRED) NextInvoice nextInvoice) { }
     public record LevelChangeResult(
             @Schema(requiredMode = REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) Instant levelAssignedAt,

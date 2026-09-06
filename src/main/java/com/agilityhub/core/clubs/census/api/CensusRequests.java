@@ -11,26 +11,27 @@ import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static com.agilityhub.core.clubs.census.api.CensusResponses.*;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class CensusRequests {
     private CensusRequests() { }
 
     public record MemberPatch(
-            IdDocument idDocument,
-            @Size(max = 60) String firstName,
-            @Size(max = 60) String lastName1,
-            @Size(max = 60) String lastName2,
-            Gender gender,
-            LocalDate birthDate,
-            List<ContactEmailInput> contactEmails,
-            List<Phone> phones,
-            Address address,
-            @Size(max = 2000) String remarks,
-            @Size(max = 2000) String internalNotes,
-            ConsentPatch consents,
+            @Schema(requiredMode = NOT_REQUIRED) IdDocument idDocument,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String firstName,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String lastName1,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String lastName2,
+            @Schema(requiredMode = NOT_REQUIRED) Gender gender,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
+            @Schema(requiredMode = NOT_REQUIRED) List<ContactEmailInput> contactEmails,
+            @Schema(requiredMode = NOT_REQUIRED) List<Phone> phones,
+            @Schema(requiredMode = NOT_REQUIRED) Address address,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 2000) String remarks,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 2000) String internalNotes,
+            @Schema(requiredMode = NOT_REQUIRED) ConsentPatch consents,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record ConsentPatch(
-            ImageRightsPatch imageRights) { }
+            @Schema(requiredMode = NOT_REQUIRED) ImageRightsPatch imageRights) { }
     public record ImageRightsPatch(
             @Schema(requiredMode = REQUIRED) @NotNull Boolean granted) { }
     public record ContactEmailInput(
@@ -42,14 +43,14 @@ public final class CensusRequests {
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record PaymentMethodPatch(
             @Schema(requiredMode = REQUIRED) @NotNull PaymentMethodType type,
-            @Valid SepaInput sepa,
-            @Valid CardInput card,
-            @Valid ManualInput manual) { }
+            @Schema(requiredMode = NOT_REQUIRED) @Valid SepaInput sepa,
+            @Schema(requiredMode = NOT_REQUIRED) @Valid CardInput card,
+            @Schema(requiredMode = NOT_REQUIRED) @Valid ManualInput manual) { }
     public record SepaInput(
             @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
-            @Schema(accessMode = Schema.AccessMode.WRITE_ONLY) String iban,
-            String holderName,
-            String holderTaxId) { }
+            @Schema(requiredMode = NOT_REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY) String iban,
+            @Schema(requiredMode = NOT_REQUIRED) String holderName,
+            @Schema(requiredMode = NOT_REQUIRED) String holderTaxId) { }
     public record CardInput(
             @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
             @Schema(requiredMode = REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY) @NotBlank String stripeSetupIntentId) { }
@@ -58,16 +59,16 @@ public final class CensusRequests {
     public record BookingBlockRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank @Size(max = 200) String reason) { }
     public record ReasonRequest(
-            @Size(max = 500) String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record RolesRequest(
             @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1) List<MemberRole> roles) { }
     public record DogPatch(
-            @Size(max = 40) String name,
-            @Size(max = 60) String breed,
-            Sex sex,
-            LocalDate birthDate,
-            @Size(max = 20) String chip,
-            List<License> licenses,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) String name,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String breed,
+            @Schema(requiredMode = NOT_REQUIRED) Sex sex,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 20) String chip,
+            @Schema(requiredMode = NOT_REQUIRED) List<License> licenses,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record DogLevelRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String levelId) { }
@@ -75,7 +76,7 @@ public final class CensusRequests {
             @Schema(requiredMode = REQUIRED, types = {"boolean", "null"}) Boolean override) { }
     public record DogTransferRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String toMemberId,
-            @Size(max = 500) String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record FileKeyRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String fileKey) { }
     public record DogDocumentRequest(

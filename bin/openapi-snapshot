@@ -13,7 +13,7 @@ root = Path(__file__).resolve().parents[1]
 source = root / "target/openapi.json"
 if not args.from_build:
     source.unlink(missing_ok=True)
-    subprocess.run([str(root / "mvnw"), "-q", "-Dtest=OpenApiSnapshotTest", "test"], cwd=root, check=True)
+    subprocess.run([str(root / "mvnw"), "-q", "-Dtest=OpenApiSnapshotTest", "-Dopenapi.snapshot.update=true", "test"], cwd=root, check=True)
 if not source.is_file():
     parser.error("target/openapi.json is missing; run bin/openapi-snapshot to generate it")
 

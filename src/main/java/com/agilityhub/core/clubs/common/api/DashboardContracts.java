@@ -10,6 +10,7 @@ import java.util.Map;
 import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class DashboardContracts {
@@ -21,9 +22,9 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) LocalDate today,
             @Schema(requiredMode = REQUIRED) DashboardWeek week,
             @Schema(requiredMode = REQUIRED) DashboardKpis kpis,
-            RiskReview riskReview,
-            PendingSignups pendingSignups,
-            DogsByLevel dogsByLevel) { }
+            @Schema(requiredMode = NOT_REQUIRED) RiskReview riskReview,
+            @Schema(requiredMode = NOT_REQUIRED) PendingSignups pendingSignups,
+            @Schema(requiredMode = NOT_REQUIRED) DogsByLevel dogsByLevel) { }
     public record DashboardWeek(
             @Schema(requiredMode = REQUIRED) LocalDate start,
             @Schema(requiredMode = REQUIRED) LocalDate end) { }
@@ -32,10 +33,10 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) int pendingRequests,
             @Schema(requiredMode = REQUIRED) int followUpUnread) { }
     public record DashboardKpis(
-            ActiveMembersKpi activeMembers,
-            ClassOccupancyKpi classOccupancy,
-            TrainingBookingsKpi trainingBookings,
-            PendingSignupsKpi pendingSignups) { }
+            @Schema(requiredMode = NOT_REQUIRED) ActiveMembersKpi activeMembers,
+            @Schema(requiredMode = NOT_REQUIRED) ClassOccupancyKpi classOccupancy,
+            @Schema(requiredMode = NOT_REQUIRED) TrainingBookingsKpi trainingBookings,
+            @Schema(requiredMode = NOT_REQUIRED) PendingSignupsKpi pendingSignups) { }
     public record ActiveMembersKpi(
             @Schema(requiredMode = REQUIRED) int value,
             @Schema(requiredMode = REQUIRED) int deltaThisMonth) { }
@@ -79,7 +80,7 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) List<PendingSignupDog> dogs,
             @Schema(requiredMode = REQUIRED) String planName,
-            String paymentMethodType,
+            @Schema(requiredMode = NOT_REQUIRED) String paymentMethodType,
             @Schema(requiredMode = REQUIRED) List<String> warnings,
             @Schema(requiredMode = REQUIRED) Instant submittedAt,
             @Schema(requiredMode = REQUIRED) int pendingDays) { }

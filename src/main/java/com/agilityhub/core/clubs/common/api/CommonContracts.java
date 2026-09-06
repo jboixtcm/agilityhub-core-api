@@ -10,6 +10,7 @@ import java.util.Map;
 import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class CommonContracts {
@@ -25,16 +26,16 @@ public final class CommonContracts {
     public record ExportJob(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) ExportKind kind,
-            String listKey,
+            @Schema(requiredMode = NOT_REQUIRED) String listKey,
             @Schema(requiredMode = REQUIRED) ExportFormat format,
             @Schema(requiredMode = REQUIRED) ExportStatus status,
-            Long rows,
-            Integer progressPct,
-            String fileName,
-            String downloadUrl,
+            @Schema(requiredMode = NOT_REQUIRED) Long rows,
+            @Schema(requiredMode = NOT_REQUIRED) Integer progressPct,
+            @Schema(requiredMode = NOT_REQUIRED) String fileName,
+            @Schema(requiredMode = NOT_REQUIRED) String downloadUrl,
             @Schema(requiredMode = REQUIRED) Instant createdAt,
-            Instant expiresAt,
-            ExportError error) { }
+            @Schema(requiredMode = NOT_REQUIRED) Instant expiresAt,
+            @Schema(requiredMode = NOT_REQUIRED) ExportError error) { }
     public record DataExportInput(
             @Schema(requiredMode = REQUIRED) @NotNull Boolean deliverToMember) { }
     public record SavedView(

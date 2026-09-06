@@ -54,5 +54,6 @@ public class SendGridWebhookController {
         }
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record SendGridEvent(@JsonProperty("sg_event_id") String id, String event, String notificationId, String clubId, String email) { }
+    public record SendGridEvent(@JsonProperty("sg_event_id") String id, String event, String notificationId,
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED) String clubId, String email) { }
 }

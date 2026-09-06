@@ -10,6 +10,7 @@ import java.util.Map;
 import com.agilityhub.core.shared.domain.Money;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** E2 public contracts. Implementations map explicit allowlists into these DTOs. */
 public final class AuditContracts {
@@ -87,41 +88,41 @@ public final class AuditContracts {
             @Schema(requiredMode = REQUIRED) Object after) { }
     public record AuditEntryListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            @Schema(format = "uuid") String clubId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,
             @Schema(requiredMode = REQUIRED) Instant at,
-            @Schema(format = "uuid") String actorAccountId,
-            String actorName,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String actorAccountId,
+            @Schema(requiredMode = NOT_REQUIRED) String actorName,
             @Schema(requiredMode = REQUIRED) AuditActorRole actorRole,
-            @Schema(format = "uuid") String impersonatedMemberId,
-            String impersonatedName,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String impersonatedMemberId,
+            @Schema(requiredMode = NOT_REQUIRED) String impersonatedName,
             @Schema(requiredMode = REQUIRED) AuditOrigin origin,
             @Schema(requiredMode = REQUIRED) String entityType,
             @Schema(requiredMode = REQUIRED, format = "uuid") String entityId,
-            String entityLabel,
-            @Schema(format = "uuid") String memberId,
+            @Schema(requiredMode = NOT_REQUIRED) String entityLabel,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String memberId,
             @Schema(requiredMode = REQUIRED) AuditActionName action,
             @Schema(requiredMode = REQUIRED) List<AuditChange> changes,
-            String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED) String reason) { }
     public record AuditEntry(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            @Schema(format = "uuid") String clubId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,
             @Schema(requiredMode = REQUIRED) Instant at,
-            @Schema(format = "uuid") String actorAccountId,
-            String actorName,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String actorAccountId,
+            @Schema(requiredMode = NOT_REQUIRED) String actorName,
             @Schema(requiredMode = REQUIRED) AuditActorRole actorRole,
-            @Schema(format = "uuid") String impersonatedMemberId,
-            String impersonatedName,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String impersonatedMemberId,
+            @Schema(requiredMode = NOT_REQUIRED) String impersonatedName,
             @Schema(requiredMode = REQUIRED) AuditOrigin origin,
             @Schema(requiredMode = REQUIRED) String entityType,
             @Schema(requiredMode = REQUIRED, format = "uuid") String entityId,
-            String entityLabel,
-            @Schema(format = "uuid") String memberId,
+            @Schema(requiredMode = NOT_REQUIRED) String entityLabel,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String memberId,
             @Schema(requiredMode = REQUIRED) AuditActionName action,
             @Schema(requiredMode = REQUIRED) List<AuditChange> changes,
-            String reason,
-            Map<String, Object> details,
-            String ip,
-            String userAgent,
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, Object> details,
+            @Schema(requiredMode = NOT_REQUIRED) String ip,
+            @Schema(requiredMode = NOT_REQUIRED) String userAgent,
             @Schema(requiredMode = REQUIRED, format = "uuid") String traceId,
             @Schema(requiredMode = REQUIRED) List<String> eventIds) { }
     public record ConsentHistoryEntry(
@@ -130,40 +131,40 @@ public final class AuditContracts {
             @Schema(requiredMode = REQUIRED) String version,
             @Schema(requiredMode = REQUIRED) Instant at,
             @Schema(requiredMode = REQUIRED) String locale,
-            String ipHash,
+            @Schema(requiredMode = NOT_REQUIRED) String ipHash,
             @Schema(requiredMode = REQUIRED) String source) { }
     public enum ErasureScope { MEMBER, ACCOUNT }
     public enum ErasureSource { ADMIN, PLATFORM, RETENTION }
     public enum ErasureStatus { SCHEDULED, BLOCKED, ERASING, ERASED, CANCELLED }
     public record ErasureRequest(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            @Schema(format = "uuid") String clubId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,
             @Schema(requiredMode = REQUIRED) ErasureScope scope,
-            @Schema(format = "uuid") String accountId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String accountId,
             @Schema(requiredMode = REQUIRED) List<String> memberIds,
             @Schema(requiredMode = REQUIRED) List<String> clubIds,
             @Schema(requiredMode = REQUIRED) ErasureSource source,
-            @Schema(format = "uuid") String requestedByAccountId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String requestedByAccountId,
             @Schema(requiredMode = REQUIRED) Instant requestedAt,
-            String reason,
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
             @Schema(requiredMode = REQUIRED) ErasureStatus status,
             @Schema(requiredMode = REQUIRED) Instant executeAt,
             @Schema(requiredMode = REQUIRED) List<String> blockReasons,
-            Instant erasedAt,
-            Instant cancelledAt,
-            @Schema(format = "uuid") String cancelledByAccountId,
+            @Schema(requiredMode = NOT_REQUIRED) Instant erasedAt,
+            @Schema(requiredMode = NOT_REQUIRED) Instant cancelledAt,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String cancelledByAccountId,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record ErasureInput(
-            @Size(max = 500) String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record SecurityEventView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) com.agilityhub.core.shared.application.SecurityEvents.Type type,
-            @Schema(format = "uuid") String accountId,
-            @Schema(format = "uuid") String clubId,
-            String ip,
-            String userAgent,
-            String route,
-            Map<String, Object> details,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String accountId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,
+            @Schema(requiredMode = NOT_REQUIRED) String ip,
+            @Schema(requiredMode = NOT_REQUIRED) String userAgent,
+            @Schema(requiredMode = NOT_REQUIRED) String route,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, Object> details,
             @Schema(requiredMode = REQUIRED) Instant at) { }
 
 }

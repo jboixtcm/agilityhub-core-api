@@ -18,13 +18,51 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springdoc.core.converters.ModelConverterRegistrar;
+import org.springdoc.core.providers.ObjectMapperProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true", matchIfMissing = true)
 public class OpenApiConfiguration {
-    @Bean OpenAPI coreOpenApi() {
+    @Bean RequiredPropertiesModelConverter requiredProperties(ObjectMapperProvider provider) {
+        provider.jsonMapper().registerModule(requiredArraysModule());
+        provider.yamlMapper().registerModule(requiredArraysModule());
+        return new RequiredPropertiesModelConverter(provider.jsonMapper());
+    }
+
+    /** Keep empty required arrays for models with only explicitly optional properties. */
+    static com.fasterxml.jackson.databind.Module requiredArraysModule() {
+        return new com.fasterxml.jackson.databind.module.SimpleModule("openapi-required-arrays")
+                .setSerializerModifier(new com.fasterxml.jackson.databind.ser.BeanSerializerModifier() {
+                    @Override public List<com.fasterxml.jackson.databind.ser.BeanPropertyWriter> changeProperties(
+                            com.fasterxml.jackson.databind.SerializationConfig config,
+                            com.fasterxml.jackson.databind.BeanDescription bean,
+                            List<com.fasterxml.jackson.databind.ser.BeanPropertyWriter> properties) {
+                        if (Schema.class.isAssignableFrom(bean.getBeanClass())) {
+                            properties.replaceAll(property -> property.getName().equals("required")
+                                    ? new com.fasterxml.jackson.databind.ser.BeanPropertyWriter(property) {
+                                        @Override public void serializeAsField(Object value, com.fasterxml.jackson.core.JsonGenerator generator,
+                                                com.fasterxml.jackson.databind.SerializerProvider provider) throws Exception {
+                                            var schema = (Schema<?>) value;
+                                            if ((schema.getRequired() == null || schema.getRequired().isEmpty()) && schema.getProperties() != null) {
+                                                generator.writeArrayFieldStart("required");
+                                                generator.writeEndArray();
+                                            } else { super.serializeAsField(value, generator, provider); }
+                                        }
+                                    } : property);
+                        }
+                        return properties;
+                    }
+                });
+    }
+
+    @Bean OpenAPI coreOpenApi(ModelConverterRegistrar converters) {
         var components = new Components().schemas(ModelConverters.getInstance(true).read(ApiError.class))
                 .addSecuritySchemes("bearer", new SecurityScheme().type(SecurityScheme.Type.HTTP)
                         .scheme("bearer").bearerFormat("JWT"));

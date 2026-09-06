@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
 /** Reusable wire contracts; no persistence objects cross the API boundary. */
 public final class ApiContracts {
@@ -26,7 +27,7 @@ public final class ApiContracts {
     public record FilterValue(@Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) String label, @Schema(requiredMode = REQUIRED) long count) { }
     public record LastChange(@Schema(requiredMode = REQUIRED) Instant at,
-            String actorName, @Schema(requiredMode = REQUIRED) String action) { }
+            @Schema(requiredMode = NOT_REQUIRED) String actorName, @Schema(requiredMode = REQUIRED) String action) { }
     public record ExportAccepted(@Schema(requiredMode = REQUIRED, format = "uuid") String jobId,
             @Schema(requiredMode = REQUIRED, format = "uri") String statusUrl) { }
 }

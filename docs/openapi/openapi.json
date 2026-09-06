@@ -31,6 +31,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "AccountSummary" : {
@@ -186,7 +187,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "code", "details", "message", "traceId" ],
+        "required" : [ "code", "message", "traceId" ],
         "type" : "object"
       },
       "AuditAction" : {
@@ -453,6 +454,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "club", "countryProfile", "currency", "defaultLocale", "legal", "locales", "modules", "signup", "status", "theme", "timeZone" ],
         "type" : "object"
       },
       "CardInput" : {
@@ -650,6 +652,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "ClubDomain" : {
@@ -707,6 +710,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "ClubSettings" : {
@@ -811,6 +815,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "name", "slug" ],
         "type" : "object"
       },
       "Colors" : {
@@ -852,6 +857,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "background", "border", "danger", "info", "onPrimary", "primary", "success", "surface", "surfaceAlt", "text", "textMuted", "warning" ],
         "type" : "object"
       },
       "ConsentHistoryEntry" : {
@@ -888,6 +894,7 @@
             "$ref" : "#/components/schemas/ImageRightsPatch"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "ContactEmail" : {
@@ -946,6 +953,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "code", "idDocumentTypes", "phonePrefix" ],
         "type" : "object"
       },
       "Dashboard" : {
@@ -1011,6 +1019,7 @@
             "$ref" : "#/components/schemas/TrainingBookingsKpi"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "DashboardLevel" : {
@@ -1470,6 +1479,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "ErasureRequest" : {
@@ -2018,6 +2028,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "builtAt", "status", "version" ],
         "type" : "object"
       },
       "HolidaysUpdate" : {
@@ -2056,6 +2067,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "purpose", "sizes", "src", "type" ],
         "type" : "object"
       },
       "IdDocument" : {
@@ -2114,6 +2126,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "ImpersonationTokenResponse" : {
@@ -2325,6 +2338,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "privacyPolicyUrl" ],
         "type" : "object"
       },
       "Level" : {
@@ -2927,6 +2941,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "background_color", "display", "icons", "name", "short_name", "start_url", "theme_color" ],
         "type" : "object"
       },
       "ManualInput" : {
@@ -3640,6 +3655,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "amountMinor", "currency" ],
         "type" : "object"
       },
       "NamedReference" : {
@@ -3680,7 +3696,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "key", "required", "value" ],
+        "required" : [ "key", "required" ],
         "type" : "object"
       },
       "OnboardingFields" : {
@@ -3697,6 +3713,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "OnboardingRequest" : {
@@ -3740,7 +3757,7 @@
             "$ref" : "#/components/schemas/RequiredConsent"
           }
         },
-        "required" : [ "fields", "pending", "postponeRemaining", "requiredConsent" ],
+        "required" : [ "fields", "pending", "postponeRemaining" ],
         "type" : "object"
       },
       "OpenIdConfiguration" : {
@@ -3809,6 +3826,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "authorization_endpoint", "code_challenge_methods_supported", "end_session_endpoint", "grant_types_supported", "id_token_signing_alg_values_supported", "issuer", "jwks_uri", "response_types_supported", "revocation_endpoint", "scopes_supported", "subject_types_supported", "token_endpoint", "token_endpoint_auth_methods_supported", "userinfo_endpoint" ],
         "type" : "object"
       },
       "OpeningHoursUpdate" : {
@@ -4582,6 +4600,7 @@
             "type" : "object"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "PlanTextsInput" : {
@@ -4605,6 +4624,7 @@
             "type" : "object"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "PlanUsage" : {
@@ -4900,6 +4920,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "PublicPlans" : {
@@ -4953,6 +4974,7 @@
             "type" : "string"
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "RequiredConsent" : {
@@ -5468,6 +5490,7 @@
             "type" : "string"
           }
         },
+        "required" : [ "email", "event", "notificationId", "sg_event_id" ],
         "type" : "object"
       },
       "SepaInput" : {
@@ -5483,6 +5506,7 @@
             "writeOnly" : true
           }
         },
+        "required" : [ ],
         "type" : "object"
       },
       "Session" : {
@@ -5527,6 +5551,7 @@
             "type" : "boolean"
           }
         },
+        "required" : [ "enabled" ],
         "type" : "object"
       },
       "SingleClassSettings" : {
@@ -5588,6 +5613,7 @@
             "type" : "array"
           }
         },
+        "required" : [ "colors", "fontFamily", "mode", "radius", "ringPalette" ],
         "type" : "object"
       },
       "TokenRequest" : {
@@ -5725,6 +5751,7 @@
             "uniqueItems" : true
           }
         },
+        "required" : [ "clubId", "clubName", "roles" ],
         "type" : "object"
       }
     },

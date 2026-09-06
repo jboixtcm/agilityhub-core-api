@@ -15,7 +15,9 @@ public record BrandingResponse(ClubSummary club, Theme theme, List<String> local
                 config.modules().stream().map(Enum::name).sorted().toList(), new Signup(Boolean.TRUE.equals(config.get("signup.enabled", Boolean.class))),
                 club.status(), new Legal(club.privacyPolicyUrl()));
     }
-    public record ClubSummary(String slug, String name, @io.swagger.v3.oas.annotations.media.Schema(types = {"string", "null"}) String city) { }
+    public record ClubSummary(String slug, String name,
+            @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED,
+                    types = {"string", "null"}) String city) { }
     public record Country(String code, List<String> idDocumentTypes, String phonePrefix) { }
     public record Signup(boolean enabled) { }
     public record Legal(String privacyPolicyUrl) { }
