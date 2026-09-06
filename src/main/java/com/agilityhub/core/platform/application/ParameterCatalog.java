@@ -30,6 +30,7 @@ public class ParameterCatalog {
             definitions = Collections.unmodifiableMap(entries);
         } catch (IOException failure) { throw new UncheckedIOException(failure); }
     }
+    public int defaultInteger(String key) { return ((Number) get(key).defaultValue()).intValue(); }
     public Map<String, ParameterDefinition> entries() { return definitions; }
     public ParameterDefinition get(String key) {
         var entry = definitions.get(key);

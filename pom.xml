@@ -32,6 +32,10 @@
          Spring Security, Caffeine, Testcontainers and their dependencies. -->
     <dependencies>
         <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.85.2</version>

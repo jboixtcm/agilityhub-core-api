@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T03: SendGrid transactional email with local/test sinks, fixed N-25/N-26/N-27
+  copy in Catalan, Spanish and English, Thymeleaf club branding, and a SYSTEM
+  notification log with transactional outbox state events.
+- Signed SendGrid callbacks with atomic event deduplication, delivery tracking,
+  account email suppression and audit; environment-only provider configuration,
+  startup guards, mocked-provider tests, and the webhook OpenAPI contract.
+- Synchronized the executable parameter catalog with the organizer-approved
+  `signup.onboardingFields` and `legal.maxPostpones` entries already in the catalog document.
+
 - E1-T01: Complete S01 identity OpenAPI contract with typed request/response schemas,
   five documented token grants, OIDC routes, account/profile/session/onboarding APIs,
   handoff, impersonation and Learn account synchronization endpoints.

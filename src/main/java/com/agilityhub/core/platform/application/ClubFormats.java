@@ -18,7 +18,11 @@ public final class ClubFormats {
     private final IcuMessageSource messages;
 
     public ClubFormats(ClubConfig clubConfig, IcuMessageSource messages) {
-        this.timeZone = ZoneId.of(clubConfig.club().timeZone()); this.messages = messages;
+        this(ZoneId.of(clubConfig.club().timeZone()), messages);
+    }
+
+    public ClubFormats(ZoneId timeZone, IcuMessageSource messages) {
+        this.timeZone = timeZone; this.messages = messages;
     }
 
     public String formatDate(Instant instant) { return formatDate(instant, LocaleContext.current()); }

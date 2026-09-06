@@ -1,3 +1,9 @@
+email:
+  platform-from: ${MAIL_FROM_PLATFORM:}
+  sendgrid:
+    api-key: ${SENDGRID_API_KEY:}
+    webhook-public-key: ${SENDGRID_WEBHOOK_PUBLIC_KEY:}
+
 identity:
   issuer: ${AUTH_ISSUER:https://id.agilitydoghub.com}
   jwk-pem: ${AUTH_JWK_PEM:}

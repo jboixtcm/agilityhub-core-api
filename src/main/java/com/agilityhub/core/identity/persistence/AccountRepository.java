@@ -22,6 +22,11 @@ public class AccountRepository extends GlobalRepository<Account> {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),
                 new Update().set("lastLoginAt", now).set("lastLoginClientId", clientId), Account.class);
     }
+    public void markEmailStatus(String id, String email, com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus status) {
+        var query = Query.query(Criteria.where("_id").is(id).and("email").is(email)
+                .and("emailStatus").ne(com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus.COMPLAINED));
+        mongo.updateFirst(query, new Update().set("emailStatus", status), Account.class);
+    }
     public void ensureIndexes() {
         mongo.indexOps(Account.class).ensureIndex(new Index().on("email", Direction.ASC).unique().named("account_email"));
     }

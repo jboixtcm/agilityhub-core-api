@@ -24,6 +24,8 @@ class EventCatalogContractTest {
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
         Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.clubs.messaging.domain.NotificationEvent.class, () -> new com.agilityhub.core.clubs.messaging.domain.NotificationEvent(
+                        com.agilityhub.core.clubs.messaging.domain.NotificationEvent.Kind.NotificationQueued, "club-a", "notification-a", Instant.parse("2030-01-01T00:00:00Z")),
                 com.agilityhub.core.platform.domain.events.ParameterChanged.class, () -> new com.agilityhub.core.platform.domain.events.ParameterChanged(
                         "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("key", "signup.enabled", "before", true, "after", false),
                         "account-a", null, DomainEvent.Origin.BACKOFFICE), ClubConfigChanged.class, () -> new ClubConfigChanged(
@@ -41,6 +43,13 @@ class EventCatalogContractTest {
         samples.values().forEach(factory -> {
             DomainEvent event = factory.get();
             assertThat(catalog).contains(event.type());
+            if (event instanceof com.agilityhub.core.clubs.messaging.domain.NotificationEvent notification) {
+                for (var kind : com.agilityhub.core.clubs.messaging.domain.NotificationEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(notification.aggregateType()).isEqualTo("Notification");
+                assertThat(notification.payload()).containsEntry("notificationId", "notification-a").containsEntry("channel", "EMAIL");
+                assertThat(notification.actorAccountId()).isNull(); assertThat(notification.impersonatedMemberId()).isNull();
+                assertThat(notification.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
+            }
             if (event instanceof ClubConfigChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());

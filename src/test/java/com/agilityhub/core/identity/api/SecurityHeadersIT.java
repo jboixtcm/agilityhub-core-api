@@ -16,6 +16,13 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
         String pem = "-----BEGIN PRIVATE KEY-----\n" + Base64.getMimeEncoder(64, new byte[]{10})
                 .encodeToString(key.getEncoded()) + "\n-----END PRIVATE KEY-----";
         registry.add("identity.jwk-pem", () -> pem);
+        var emailKeys = java.security.KeyPairGenerator.getInstance("EC");
+        emailKeys.initialize(256);
+        String webhookKey = Base64.getEncoder().encodeToString(emailKeys.generateKeyPair().getPublic().getEncoded());
+        String emailKey = java.util.UUID.randomUUID().toString();
+        registry.add("email.sendgrid.webhook-public-key", () -> webhookKey);
+        registry.add("email.sendgrid.api-key", () -> emailKey);
+        registry.add("email.platform-from", () -> "sender@example.test");
         registry.add("spring.data.mongodb.host", () -> "localhost");
         registry.add("spring.data.mongodb.database", () -> "agilityhub_test");
         registry.add("spring.data.mongodb.username", () -> "fixture");

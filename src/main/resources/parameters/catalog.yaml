@@ -1899,6 +1899,34 @@ parameters:
     restartRequired: false
     documentType: "string"
     documentDefault: "`\"https://learn.agilitydoghub.com\"`"
+  - key: "signup.onboardingFields"
+    type: "json"
+    default: [{"key": "name", "required": true}, {"key": "locale", "required": true}, {"key": "phone", "required": false}]
+    block: "system"
+    labelKey: "admin-settings:param.signup.onboardingFields.label"
+    helpKey: "admin-settings:param.signup.onboardingFields.help"
+    constraints: {}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "json `[{key, required}]`"
+    documentDefault: "`[{\"key\": \"name\", \"required\": true}, {\"key\": \"locale\", \"required\": true}, {\"key\": \"phone\", \"required\": false}]`"
+
+  - key: "legal.maxPostpones"
+    type: "int"
+    default: 3
+    block: "system"
+    labelKey: "admin-settings:param.legal.maxPostpones.label"
+    helpKey: "admin-settings:param.legal.maxPostpones.help"
+    constraints: {"min": 0}
+    modules: []
+    scope: "club"
+    editableBy: "PLATFORM"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "3"
+
 clubBindings:
   - keys: "`club.privacyPolicyUrl`"
     type: "(CLUB.legal)"

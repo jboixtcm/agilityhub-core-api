@@ -344,5 +344,20 @@
     "ca": "Aprèn amb AgilityHub"
   },
   "learn.recommendationsTtlMinutes": 60,
-  "learn.baseUrl": "https://learn.agilitydoghub.com"
+  "learn.baseUrl": "https://learn.agilitydoghub.com",
+  "signup.onboardingFields": [
+    {
+      "key": "name",
+      "required": true
+    },
+    {
+      "key": "locale",
+      "required": true
+    },
+    {
+      "key": "phone",
+      "required": false
+    }
+  ],
+  "legal.maxPostpones": 3
 }
