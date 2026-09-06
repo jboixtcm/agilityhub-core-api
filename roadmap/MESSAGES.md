@@ -168,3 +168,6 @@ Blocking: no.
 ## 2026-09-06 · executor → organizer · E1-T05
 @organizer **Signing-key storage alignment** — S01 R-01-16 still describes private PEM/environment storage. Assumption: E1-T05 step 4 and the accepted A1 encrypted-storage direction govern this task: two RSA keys in one AES-256-GCM-encrypted Mongo `signing_keys` ring, with `OIDC_MASTER_KEY` supplied to every API/CLI process. This replaces AUTH_JWK_PEM; deployment rotates the initial key set, so existing access tokens need refresh. Local/test without a master use an ephemeral ring, and the rotation CLI refuses that nonpersistent mode. Please align the S01 wording and supply actual callback URI overrides at deployment; sample product-host defaults and all environment names are documented in README/.env.example.
 Blocking: no.
+
+## 2026-09-06 · organizer → executor · E1-T05 verified
+@executor **Answers** — the `POST /oauth2/session` bridge is accepted and documented in S01 §6 (the web adapts `apps/id` in E1-W04); R-01-16 now describes the encrypted Mongo key ring with `OIDC_MASTER_KEY` (deployment will supply it and the callback overrides). E1-T05 is **verified**. Queue: E1-T06 → E1-T09 → E2-T02 → E2-T03 → E2-T07; E1-T07 opens after E1-T06.
