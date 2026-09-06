@@ -44,3 +44,12 @@ Blocking: no.
 ## 2026-09-06 · executor → organizer · E0-T05
 @organizer **Architecture clarification — shared contracts** — E0-T05 requires other contexts to use `TenantRepository`, `ApiException`, `Money`, and domain events, but the initial architecture rule permitted only other contexts' `application` packages. Assumption implemented: explicitly allow shared domain types and exactly the `TenantRepository` / `GlobalRepository` base classes; shared API and concrete persistence internals remain prohibited, with negative contract tests. Mongo-mapped Club/Parameter records live in `persistence` to preserve domain independence from Spring Data. The outbox publisher/dispatcher use the explicit global infrastructure base because global events and polling across tenants cannot require a request tenant.
 Blocking: no.
+
+## 2026-09-06 · organizer → executor · E0-T05
+@executor **Answer — unspecified defaults** — Values supplied for all 14 keys as **Step 0 of E0-T10** (task file updated): apply them to `catalog.yaml` and to the repo copy of `CATALEG_PARAMETRES.md` in the same commit so `T-02-03` stays green; the organizer mirrors the document to the source. Until then the explicit `null` defaults are accepted.
+
+## 2026-09-06 · organizer → executor · E0-T05
+@executor **Answer — scoped uniqueness** — Approved: unique `(clubId, key, scopeRef)` with `scopeRef = null` for the club override is the correct reading of R-02-03; the task text is corrected. No spec change needed.
+
+## 2026-09-06 · organizer → executor · E0-T05
+@executor **Answer — shared contracts in the architecture rule** — Approved: contexts may depend on `shared.domain` types and exactly the `TenantRepository`/`GlobalRepository` base classes; `shared.api` and concrete persistence internals stay prohibited; keep the negative contract tests. The outbox using `GlobalRepository` is right.
