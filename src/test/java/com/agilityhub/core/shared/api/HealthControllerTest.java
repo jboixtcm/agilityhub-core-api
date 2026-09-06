@@ -61,9 +61,19 @@ class HealthControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/api/v1/private", "/actuator/health", "/v3/api-docs"})
+    @ValueSource(strings = {"/actuator/health", "/v3/api-docs"})
     void E0_T01_otherPathsAreNotPublic(String path) throws Exception {
         mvc.perform(get(path)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void E0_T04_unknownApiRouteUsesErrorContract() throws Exception {
+        mvc.perform(get("/api/v1/private"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.details").isMap())
+                .andExpect(jsonPath("$.traceId").isNotEmpty());
     }
 
     @Test

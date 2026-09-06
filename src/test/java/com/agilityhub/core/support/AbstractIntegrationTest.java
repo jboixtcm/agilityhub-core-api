@@ -10,7 +10,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
+@SpringBootTest(properties = "shared.scheduling.enabled=false")
 @Testcontainers
 @ActiveProfiles("test")
 @Import(IntegrationTestConfiguration.class)

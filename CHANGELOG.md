@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T04: Shared Money arithmetic and ICU formatting, localized text fallback,
+  all 240 catalog error codes, consistent API errors with request trace IDs,
+  and injectable club-local clocks.
+- Tenant/account-scoped Mongo idempotency with transactional response replay,
+  conflict detection, and 24-hour retention; transactional outbox with consumer
+  checkpoints, fenced claims, exponential retries, 90-day retention, and metrics.
+- Error/event catalog contracts and unit/Mongo integration tests for shared
+  primitives, authorization/isolation, rollback, concurrency, and retries.
+
 - E0-T03: GitHub Actions build, Testcontainers and architecture checks, JaCoCo
   artifact upload, independent Gitleaks scanning, and a conditional OpenAPI diff hook.
 - Weekly Maven and GitHub Actions Dependabot updates and documented `main`
