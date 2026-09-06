@@ -2,6 +2,152 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+
+## 2026-09-06 · E2-T01 · S02/S03/S05/S14 contracts
+
+All new operations return the localized `501 NOT_IMPLEMENTED` envelope after authentication,
+role, tenant, module and request-shape checks. Implementations belong to the later E2 tasks.
+Existing branding, manifest and S01 routes remain active. `/members/{id}/impersonation-token`
+retains its S01 controller; its response gains optional `launchUrl` for S03.
+
+Desktop lists use `ListPage<T>` (`items`, `page`, `size`, `totalItems`, `totalPages`,
+`appliedFilters`). Catalogs keep S05's unpaginated `{items, totalItems}` shape.
+`x-filterable` and `x-sortable` are ordered field-key arrays; `x-filter-operators` records
+explicit `contains`/`between` restrictions. `x-columns` contains ordered
+`{key, defaultVisible, module?, parameter?}` objects, preserving S03 defaults and gates.
+Bounded lists publish empty capability arrays where the spec provides no universal filters.
+Only the three E2 desktop lists advertise `x-exportable=true`; the three future-vertical
+export routes have empty field allowlists pending their contracts. Role-specific list items
+use `anyOf` because the reduced projection structurally overlaps the admin projection.
+
+Audit responses publish all 59 action names from S14 R-14-09 without expanding the
+implemented audit-writer action set.
+
+Canonical `ErrorCode` statuses win over narrative examples: `MEMBER_NOT_ACTIVE`,
+`EXPORT_EXPIRED`, `EXPORT_LIMIT`, `ORDER_INCOMPLETE` and `DATA_EXPORT_TOO_SOON` are 422;
+`INVALID_API_KEY` is 403. No error enum or catalog additions were necessary.
+`FAMILY_GROUP_MEMBER_TAKEN` maps to `FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP`;
+uncatalogued `MEMBER_ERASED` maps to `INVALID_STATE` (see roadmap/MESSAGES.md).
+The S05 `/rings/{id}/geometry` row is explicitly a link to S16 and is outside this contract.
+
+`GET /public/{clubSlug}/plans` uses an `X-Api-Key` security scheme and slug-based context,
+including requests from an external host. Postal lookup supports anonymous club-host context.
+Global account-erasure and platform routes do not require a club claim. All admin-only
+contracts deny impersonated tokens; future ownership checks remain necessary in services.
+
+- `GET /api/v1/members`: E2 contract; protected.
+- `GET /api/v1/members/filter-values`: E2 contract; protected.
+- `GET /api/v1/members/{id}`: E2 contract; protected.
+- `GET /api/v1/members/{id}/overview`: E2 contract; protected.
+- `PATCH /api/v1/members/{id}`: E2 contract; protected.
+- `PATCH /api/v1/members/{id}/payment-method`: E2 contract; protected.
+- `POST /api/v1/members/{id}/booking-block`: E2 contract; protected.
+- `DELETE /api/v1/members/{id}/booking-block`: E2 contract; protected.
+- `POST /api/v1/members/{id}/access-resend`: E2 contract; protected.
+- `PUT /api/v1/members/{id}/roles`: E2 contract; protected.
+- `GET /api/v1/dogs`: E2 contract; protected.
+- `GET /api/v1/dogs/filter-values`: E2 contract; protected.
+- `GET /api/v1/dogs/{id}`: E2 contract; protected.
+- `PATCH /api/v1/dogs/{id}`: E2 contract; protected.
+- `PATCH /api/v1/dogs/{id}/level`: E2 contract; protected.
+- `PATCH /api/v1/dogs/{id}/free-training`: E2 contract; protected.
+- `POST /api/v1/dogs/{id}/transfer`: E2 contract; protected.
+- `POST /api/v1/dogs/{id}/deactivation`: E2 contract; protected.
+- `POST /api/v1/dogs/{id}/reactivation`: E2 contract; protected.
+- `PUT /api/v1/dogs/{id}/photo`: E2 contract; protected.
+- `GET /api/v1/dogs/{id}/documents`: E2 contract; protected.
+- `POST /api/v1/dogs/{id}/documents`: E2 contract; protected.
+- `DELETE /api/v1/dogs/{id}/documents/{docId}/files/{fileId}`: E2 contract; protected.
+- `POST /api/v1/dogs/{id}/documents/reminder`: E2 contract; protected.
+- `POST /api/v1/family-groups`: E2 contract; protected.
+- `GET /api/v1/family-groups/{id}`: E2 contract; protected.
+- `PUT /api/v1/family-groups/{id}`: E2 contract; protected.
+- `DELETE /api/v1/family-groups/{id}`: E2 contract; protected.
+- `GET /api/v1/me/family-group`: E2 contract; protected.
+- `GET /api/v1/me/dogs`: E2 contract; protected.
+- `PUT /api/v1/me/dogs/{id}/photo`: E2 contract; protected.
+- `POST /api/v1/me/dogs/{id}/documents`: E2 contract; protected.
+- `PUT /api/v1/me/dogs/{id}/instructor-note`: E2 contract; protected.
+- `GET /api/v1/me/profile`: E2 contract; protected.
+- `PATCH /api/v1/me/profile`: E2 contract; protected.
+- `GET /api/v1/levels`: E2 contract; protected.
+- `POST /api/v1/levels`: E2 contract; protected.
+- `GET /api/v1/levels/{id}`: E2 contract; protected.
+- `PATCH /api/v1/levels/{id}`: E2 contract; protected.
+- `DELETE /api/v1/levels/{id}`: E2 contract; protected.
+- `PUT /api/v1/levels/order`: E2 contract; protected.
+- `GET /api/v1/rings`: E2 contract; protected.
+- `POST /api/v1/rings`: E2 contract; protected.
+- `GET /api/v1/rings/{id}`: E2 contract; protected.
+- `PATCH /api/v1/rings/{id}`: E2 contract; protected.
+- `DELETE /api/v1/rings/{id}`: E2 contract; protected.
+- `PUT /api/v1/rings/order`: E2 contract; protected.
+- `GET /api/v1/plans`: E2 contract; protected.
+- `POST /api/v1/plans`: E2 contract; protected.
+- `GET /api/v1/plans/{id}`: E2 contract; protected.
+- `PATCH /api/v1/plans/{id}`: E2 contract; protected.
+- `DELETE /api/v1/plans/{id}`: E2 contract; protected.
+- `PUT /api/v1/plans/order`: E2 contract; protected.
+- `GET /api/v1/faq-entries`: E2 contract; protected.
+- `POST /api/v1/faq-entries`: E2 contract; protected.
+- `PATCH /api/v1/faq-entries/{id}`: E2 contract; protected.
+- `DELETE /api/v1/faq-entries/{id}`: E2 contract; protected.
+- `PUT /api/v1/faq-entries/order`: E2 contract; protected.
+- `GET /api/v1/faq-entries/filter-values`: E2 contract; protected.
+- `GET /api/v1/instructors`: E2 contract; protected.
+- `POST /api/v1/instructors`: E2 contract; protected.
+- `PATCH /api/v1/instructors/{id}`: E2 contract; protected.
+- `DELETE /api/v1/instructors/{id}`: E2 contract; protected.
+- `GET /api/v1/administrators`: E2 contract; protected.
+- `POST /api/v1/administrators`: E2 contract; protected.
+- `PATCH /api/v1/administrators/{membershipId}`: E2 contract; protected.
+- `DELETE /api/v1/administrators/{membershipId}`: E2 contract; protected.
+- `GET /api/v1/prices`: E2 contract; protected.
+- `POST /api/v1/prices`: E2 contract; protected.
+- `PATCH /api/v1/prices/{id}`: E2 contract; protected.
+- `DELETE /api/v1/prices/{id}`: E2 contract; protected.
+- `GET /api/v1/public/{clubSlug}/plans`: E2 contract; anonymous.
+- `GET /api/v1/club`: E2 contract; protected.
+- `GET /api/v1/parameters`: E2 contract; protected.
+- `GET /api/v1/parameters/{key}`: E2 contract; protected.
+- `GET /api/v1/parameters/{key}/history`: E2 contract; protected.
+- `PUT /api/v1/parameters/{key}`: E2 contract; protected.
+- `DELETE /api/v1/parameters/{key}`: E2 contract; protected.
+- `PUT /api/v1/club/modules/{module}`: E2 contract; protected.
+- `PUT /api/v1/club/opening-hours`: E2 contract; protected.
+- `PUT /api/v1/club/holidays`: E2 contract; protected.
+- `GET /api/v1/country-profile/postal-codes/{code}`: E2 contract; anonymous.
+- `GET /api/v1/platform/parameter-catalog`: E2 contract; protected.
+- `GET /api/v1/audit-entries`: E2 contract; protected.
+- `GET /api/v1/audit-entries/filter-values`: E2 contract; protected.
+- `GET /api/v1/audit-entries/{id}`: E2 contract; protected.
+- `GET /api/v1/members/{id}/audit-entries`: E2 contract; protected.
+- `GET /api/v1/members/{id}/consents`: E2 contract; protected.
+- `POST /api/v1/members/{id}/erasure`: E2 contract; protected.
+- `GET /api/v1/members/{id}/erasure`: E2 contract; protected.
+- `DELETE /api/v1/members/{id}/erasure`: E2 contract; protected.
+- `POST /api/v1/accounts/{id}/erasure`: E2 contract; protected.
+- `GET /api/v1/platform/audit-entries`: E2 contract; protected.
+- `GET /api/v1/platform/erasure-requests`: E2 contract; protected.
+- `GET /api/v1/platform/security-events`: E2 contract; protected.
+- `GET /api/v1/saved-views`: E2 contract; protected.
+- `GET /api/v1/saved-views/{id}`: E2 contract; protected.
+- `POST /api/v1/saved-views`: E2 contract; protected.
+- `PUT /api/v1/saved-views/{id}`: E2 contract; protected.
+- `DELETE /api/v1/saved-views/{id}`: E2 contract; protected.
+- `GET /api/v1/exports`: E2 contract; protected.
+- `GET /api/v1/exports/{id}`: E2 contract; protected.
+- `POST /api/v1/members/{id}/data-export`: E2 contract; protected.
+- `POST /api/v1/me/data-export`: E2 contract; protected.
+- `GET /api/v1/members/export`: E2 contract; protected.
+- `GET /api/v1/dogs/export`: E2 contract; protected.
+- `GET /api/v1/audit-entries/export`: E2 contract; protected.
+- `GET /api/v1/invoices/export`: E2 contract; protected.
+- `GET /api/v1/activity-registrations/export`: E2 contract; protected.
+- `GET /api/v1/notifications/export`: E2 contract; protected.
+- `GET /api/v1/dashboard`: E2 contract; protected.
+- `GET /api/v1/dashboard/counters`: E2 contract; protected.
+
 ## 2026-09-06 · E1-T03 Round 2 · webhook signature error
 
 - `POST /webhooks/email/sendgrid`: missing or invalid signatures now return HTTP 401 with `code = WEBHOOK_SIGNATURE_INVALID` and empty `details`, superseding the initial `UNAUTHENTICATED` workaround below. Signature failures are recorded using the existing `WEBHOOK_SIGNATURE_INVALID` security event.

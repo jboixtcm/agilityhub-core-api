@@ -41,7 +41,8 @@ public class ApiExceptionHandler {
         return handle(new ApiException(ErrorCode.NOT_IMPLEMENTED), request);
     }
 
-    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    @ExceptionHandler({org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.bind.MissingRequestHeaderException.class})
     public ResponseEntity<ApiError> missingParameter(HttpServletRequest request) {
         return handle(new ApiException(ErrorCode.VALIDATION_ERROR), request);
     }

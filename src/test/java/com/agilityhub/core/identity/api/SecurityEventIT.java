@@ -55,7 +55,7 @@ class SecurityEventIT extends IdentityIntegrationSupport {
             assertThat(event.clubId()).isEqualTo("club-a");
         });
         mvc.perform(get("/api/v1/platform/security-events").with(jwt().jwt(token -> token.subject("account-a"))))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 
     @Test void T_01_15_refreshReuseEventSurvivesCommittedFamilyRevocationAndTestProfileDisablesLimits() throws Exception {

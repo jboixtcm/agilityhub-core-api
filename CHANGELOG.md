@@ -19,6 +19,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E2-T01: S02/S03/S05/S14 API contracts for settings, census, catalogs, saved views,
+  audit, exports, privacy requests and dashboard schemas, with standard 501 stubs.
+- Universal list metadata, role-specific response projections, canonical catalog errors,
+  explicit binary/queued export responses, and public postal-code/API-key contracts.
+- Contract and response fixtures covering every new operation's role/tenant boundaries,
+  module guards, wire formats and sensitive-field allowlists; updated OpenAPI snapshot.
+
+
 - E1-T02: Idempotent account creation, tenant membership services, single-use magic
   links through SYSTEM email, sliding refresh rotation, device sessions, progressive
   login lockout, and per-email/IP magic-link quotas.

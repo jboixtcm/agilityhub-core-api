@@ -24,7 +24,8 @@ public final class IdentityResponses {
     public record HandoffResponse(@Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED, format = "uri") String url) { }
     public record ImpersonationTokenResponse(@Schema(requiredMode = REQUIRED) String token,
-            @Schema(requiredMode = REQUIRED) Instant expiresAt) { }
+            @Schema(requiredMode = REQUIRED) Instant expiresAt,
+            @Schema(format = "uri", description = "S03 member-app launch URL") String launchUrl) { }
 
     public record AccountSummary(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED, format = "email") String email,

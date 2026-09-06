@@ -1,0 +1,1457 @@
+{
+  "clubs.census.api.CensusResponses$Member": {
+    "id": "member-a",
+    "accountId": "account-a",
+    "memberNumber": 1,
+    "idDocument": {
+      "type": "PASSPORT",
+      "number": "fictional-document"
+    },
+    "firstName": "Example",
+    "lastName1": "Member",
+    "fullName": "Example Member",
+    "gender": "OTHER",
+    "birthDate": "2000-01-01",
+    "contactEmails": [
+      {
+        "email": "member@example.test",
+        "bounced": false
+      }
+    ],
+    "phones": [
+      {
+        "prefix": "+34",
+        "number": "900000000",
+        "label": "Home"
+      }
+    ],
+    "address": {
+      "street": "Example street",
+      "postalCode": "08001",
+      "city": "Example",
+      "province": "Example",
+      "country": "ES"
+    },
+    "paymentMethod": {
+      "type": "SEPA_DD",
+      "maskedAccount": "••••1234",
+      "holderName": "Example Member"
+    },
+    "maskedAccount": "••••1234",
+    "consents": {
+      "privacyPolicy": {
+        "acceptedAt": "2026-09-06T10:00:00Z",
+        "version": "v1"
+      },
+      "imageRights": {
+        "granted": true,
+        "at": "2026-09-06T10:00:00Z",
+        "version": "v1",
+        "byAccountId": "account-a"
+      }
+    },
+    "status": "ACTIVE",
+    "displayStatus": {
+      "kind": "ACTIVE",
+      "label": "Active"
+    },
+    "bookingBlock": {
+      "active": false
+    },
+    "roles": [
+      "MEMBER"
+    ],
+    "version": 1,
+    "accountMissing": false
+  },
+  "clubs.census.api.CensusResponses$MemberListItem": {
+    "id": "member-a",
+    "memberNumber": 1,
+    "fullName": "Example Member",
+    "dogs": [
+      {
+        "id": "dog-a",
+        "name": "Example dog",
+        "level": {
+          "id": "level-a",
+          "code": "A",
+          "name": "Level A",
+          "color": "#123456"
+        }
+      }
+    ],
+    "plan": {
+      "id": "plan-a",
+      "name": "Monthly"
+    },
+    "displayStatus": {
+      "kind": "ACTIVE",
+      "label": "Active"
+    },
+    "contact": {
+      "emails": [
+        {
+          "email": "member@example.test",
+          "bounced": false
+        }
+      ],
+      "phones": [
+        {
+          "prefix": "+34",
+          "number": "900000000",
+          "label": "Home"
+        }
+      ]
+    },
+    "paymentMethod": {
+      "type": "SEPA_DD",
+      "maskedAccount": "••••1234",
+      "holderName": "Example Member"
+    },
+    "nextInvoiceDate": "2026-10-01",
+    "familyGroup": {
+      "id": "group-a",
+      "name": "Example family"
+    },
+    "bookingBlocked": false,
+    "imageRights": {
+      "granted": true,
+      "at": "2026-09-06T10:00:00Z",
+      "version": "v1",
+      "byAccountId": "account-a"
+    },
+    "roles": [
+      "MEMBER"
+    ],
+    "pendingDocuments": [],
+    "version": 1
+  },
+  "clubs.census.api.CensusResponses$MemberInstructorView": {
+    "id": "member-a",
+    "memberNumber": 1,
+    "firstName": "Example",
+    "lastName1": "Member",
+    "fullName": "Example Member",
+    "contactEmails": [
+      {
+        "email": "member@example.test",
+        "bounced": false
+      }
+    ],
+    "phones": [
+      {
+        "prefix": "+34",
+        "number": "900000000",
+        "label": "Home"
+      }
+    ],
+    "address": {
+      "street": "Example street",
+      "postalCode": "08001",
+      "city": "Example",
+      "province": "Example",
+      "country": "ES"
+    },
+    "status": "ACTIVE",
+    "displayStatus": {
+      "kind": "ACTIVE",
+      "label": "Active"
+    },
+    "version": 1,
+    "dogs": [
+      {
+        "id": "dog-a",
+        "name": "Example dog",
+        "level": {
+          "id": "level-a",
+          "code": "A",
+          "name": "Level A",
+          "color": "#123456"
+        }
+      }
+    ],
+    "bookingBlocked": false
+  },
+  "clubs.census.api.CensusResponses$Dog": {
+    "id": "dog-a",
+    "memberId": "member-a",
+    "name": "Example dog",
+    "breed": "Mixed",
+    "sex": "FEMALE",
+    "birthDate": "2024-01-01",
+    "chip": "fictional-chip",
+    "levelId": "level-a",
+    "levelAssignedAt": "2026-09-06T10:00:00Z",
+    "licenses": [
+      {
+        "organisation": "Example",
+        "number": "fictional",
+        "grade": "A"
+      }
+    ],
+    "status": "ACTIVE",
+    "registeredAt": "2026-09-06T10:00:00Z",
+    "version": 1
+  },
+  "clubs.census.api.CensusResponses$DogListItem": {
+    "id": "dog-a",
+    "name": "Example dog",
+    "breed": "Mixed",
+    "level": {
+      "id": "level-a",
+      "code": "A",
+      "name": "Level A",
+      "color": "#123456"
+    },
+    "owner": {
+      "id": "member-a",
+      "fullName": "Example Member",
+      "memberNumber": 1,
+      "status": "ACTIVE"
+    },
+    "freeTraining": {
+      "allowed": true,
+      "source": "LEVEL",
+      "override": null
+    },
+    "licenses": [
+      {
+        "organisation": "Example",
+        "number": "fictional",
+        "grade": "A"
+      }
+    ],
+    "displayStatus": {
+      "kind": "ACTIVE",
+      "label": "Active"
+    },
+    "sex": "FEMALE",
+    "age": 2.0,
+    "pendingDocuments": [],
+    "pack": {
+      "id": "pack-a",
+      "remaining": 4,
+      "total": 6,
+      "expiresOn": "2026-12-01"
+    },
+    "registeredAt": "2026-09-06T10:00:00Z",
+    "version": 1
+  },
+  "clubs.census.api.CensusResponses$FamilyGroup": {
+    "id": "group-a",
+    "holderMemberId": "member-a",
+    "memberIds": [
+      "member-a",
+      "member-b"
+    ],
+    "members": [
+      {
+        "id": "member-a",
+        "fullName": "Example Member",
+        "memberNumber": 1,
+        "dogs": [
+          {
+            "id": "dog-a",
+            "name": "Example dog",
+            "levelCode": "A"
+          }
+        ]
+      }
+    ],
+    "status": "ACTIVE",
+    "version": 1
+  },
+  "clubs.census.api.CensusResponses$MeFamilyGroup": {
+    "id": "group-a",
+    "holder": {
+      "id": "member-a",
+      "fullName": "Example Member",
+      "memberNumber": 1,
+      "dogs": [
+        {
+          "id": "dog-a",
+          "name": "Example dog",
+          "levelCode": "A"
+        }
+      ]
+    },
+    "members": [
+      {
+        "id": "member-a",
+        "fullName": "Example Member",
+        "memberNumber": 1,
+        "dogs": [
+          {
+            "id": "dog-a",
+            "name": "Example dog",
+            "levelCode": "A"
+          }
+        ]
+      }
+    ]
+  },
+  "clubs.census.api.CensusResponses$DogDetail": {
+    "dog": {
+      "id": "dog-a",
+      "memberId": "member-a",
+      "name": "Example dog",
+      "breed": "Mixed",
+      "sex": "FEMALE",
+      "birthDate": "2024-01-01",
+      "chip": "fictional-chip",
+      "levelId": "level-a",
+      "levelAssignedAt": "2026-09-06T10:00:00Z",
+      "licenses": [
+        {
+          "organisation": "Example",
+          "number": "fictional",
+          "grade": "A"
+        }
+      ],
+      "status": "ACTIVE",
+      "registeredAt": "2026-09-06T10:00:00Z",
+      "version": 1
+    },
+    "owner": {
+      "id": "member-a",
+      "fullName": "Example Member",
+      "memberNumber": 1,
+      "status": "ACTIVE"
+    },
+    "level": {
+      "id": "level-a",
+      "code": "A",
+      "name": "Level A",
+      "color": "#123456"
+    },
+    "levelHistory": [
+      {
+        "levelId": "level-a",
+        "from": "2026-09-06T10:00:00Z",
+        "byAccountId": "account-a"
+      }
+    ],
+    "freeTraining": {
+      "allowed": true,
+      "source": "LEVEL",
+      "override": null
+    },
+    "documents": [
+      {
+        "id": "doc-a",
+        "type": "VACCINATION",
+        "typeLabel": "Vaccination",
+        "state": "RECEIVED",
+        "files": [
+          {
+            "id": "file-a",
+            "name": "vaccination.pdf",
+            "url": "https://files.example.test/fixture",
+            "uploadedAt": "2026-09-06T10:00:00Z"
+          }
+        ]
+      }
+    ],
+    "licenses": [
+      {
+        "organisation": "Example",
+        "number": "fictional",
+        "grade": "A"
+      }
+    ],
+    "pack": {
+      "id": "pack-a",
+      "remaining": 4,
+      "total": 6,
+      "expiresOn": "2026-12-01"
+    },
+    "tasksSummary": {
+      "open": 1,
+      "completed": 2
+    },
+    "version": 1
+  },
+  "clubs.census.api.CensusResponses$MeDogs": {
+    "dogs": [
+      {
+        "id": "dog-a",
+        "name": "Example dog",
+        "breed": "Mixed",
+        "sex": "FEMALE",
+        "ageYears": 2.0,
+        "level": {
+          "id": "level-a",
+          "code": "A",
+          "name": "Level A",
+          "color": "#123456"
+        },
+        "instructorNote": {
+          "text": "Example note",
+          "updatedAt": "2026-09-06T10:00:00Z"
+        },
+        "tasks": {
+          "open": 1,
+          "completed": 2
+        },
+        "documents": [
+          {
+            "id": "doc-a",
+            "type": "VACCINATION",
+            "typeLabel": "Vaccination",
+            "state": "RECEIVED",
+            "files": [
+              {
+                "id": "file-a",
+                "name": "vaccination.pdf",
+                "url": "https://files.example.test/fixture",
+                "uploadedAt": "2026-09-06T10:00:00Z"
+              }
+            ]
+          }
+        ],
+        "freeTrainingAllowed": true,
+        "licenses": [
+          {
+            "organisation": "Example",
+            "number": "fictional",
+            "grade": "A"
+          }
+        ],
+        "pack": {
+          "id": "pack-a",
+          "remaining": 4,
+          "total": 6,
+          "expiresOn": "2026-12-01"
+        }
+      }
+    ],
+    "canAddDog": true
+  },
+  "clubs.census.api.CensusResponses$MeProfile": {
+    "idDocumentMasked": "••••1234",
+    "firstName": "Example",
+    "lastName1": "Member",
+    "contactEmails": [
+      {
+        "email": "member@example.test",
+        "bounced": false
+      }
+    ],
+    "phones": [
+      {
+        "prefix": "+34",
+        "number": "900000000",
+        "label": "Home"
+      }
+    ],
+    "address": {
+      "street": "Example street",
+      "postalCode": "08001",
+      "city": "Example",
+      "province": "Example",
+      "country": "ES"
+    },
+    "paymentMethod": {
+      "type": "SEPA_DD",
+      "maskedAccount": "••••1234",
+      "holderName": "Example Member"
+    },
+    "version": 1
+  },
+  "clubs.census.api.CensusResponses$MemberOverview": {
+    "member": {
+      "id": "member-a",
+      "accountId": "account-a",
+      "memberNumber": 1,
+      "idDocument": {
+        "type": "PASSPORT",
+        "number": "fictional-document"
+      },
+      "firstName": "Example",
+      "lastName1": "Member",
+      "fullName": "Example Member",
+      "gender": "OTHER",
+      "birthDate": "2000-01-01",
+      "contactEmails": [
+        {
+          "email": "member@example.test",
+          "bounced": false
+        }
+      ],
+      "phones": [
+        {
+          "prefix": "+34",
+          "number": "900000000",
+          "label": "Home"
+        }
+      ],
+      "address": {
+        "street": "Example street",
+        "postalCode": "08001",
+        "city": "Example",
+        "province": "Example",
+        "country": "ES"
+      },
+      "paymentMethod": {
+        "type": "SEPA_DD",
+        "maskedAccount": "••••1234",
+        "holderName": "Example Member"
+      },
+      "maskedAccount": "••••1234",
+      "consents": {
+        "privacyPolicy": {
+          "acceptedAt": "2026-09-06T10:00:00Z",
+          "version": "v1"
+        },
+        "imageRights": {
+          "granted": true,
+          "at": "2026-09-06T10:00:00Z",
+          "version": "v1",
+          "byAccountId": "account-a"
+        }
+      },
+      "status": "ACTIVE",
+      "displayStatus": {
+        "kind": "ACTIVE",
+        "label": "Active"
+      },
+      "bookingBlock": {
+        "active": false
+      },
+      "roles": [
+        "MEMBER"
+      ],
+      "version": 1,
+      "accountMissing": false
+    },
+    "familyGroup": {
+      "id": "group-a",
+      "holderMemberId": "member-a",
+      "memberIds": [
+        "member-a",
+        "member-b"
+      ],
+      "members": [
+        {
+          "id": "member-a",
+          "fullName": "Example Member",
+          "memberNumber": 1,
+          "dogs": [
+            {
+              "id": "dog-a",
+              "name": "Example dog",
+              "levelCode": "A"
+            }
+          ]
+        }
+      ],
+      "status": "ACTIVE",
+      "version": 1
+    },
+    "dogs": [
+      {
+        "id": "dog-a",
+        "name": "Example dog",
+        "breed": "Mixed",
+        "level": {
+          "id": "level-a",
+          "code": "A",
+          "name": "Level A",
+          "color": "#123456"
+        },
+        "freeTrainingAllowed": true,
+        "pack": {
+          "id": "pack-a",
+          "remaining": 4,
+          "total": 6,
+          "expiresOn": "2026-12-01"
+        },
+        "pendingDocuments": []
+      }
+    ],
+    "notificationPreferences": {},
+    "recentInvoices": [
+      {
+        "id": "invoice-a",
+        "date": "2026-09-01",
+        "amount": {
+          "amountMinor": 1000,
+          "currency": "EUR"
+        },
+        "status": "PAID"
+      }
+    ],
+    "invoicesCount": 1,
+    "recentAudit": [
+      {
+        "id": "audit-a",
+        "at": "2026-09-06T10:00:00Z",
+        "action": "MEMBER_UPDATED",
+        "actorRole": "ADMIN",
+        "actorName": "Example Admin"
+      }
+    ],
+    "nextInvoice": {
+      "date": "2026-10-01",
+      "amount": {
+        "amountMinor": 1000,
+        "currency": "EUR"
+      }
+    }
+  },
+  "clubs.census.api.CensusResponses$LevelChangeResult": {
+    "level": {
+      "id": "level-a",
+      "code": "A",
+      "name": "Level A",
+      "color": "#123456"
+    },
+    "levelAssignedAt": "2026-09-06T10:00:00Z",
+    "warnings": {
+      "futureBookingsOutsideLevel": 2
+    }
+  },
+  "clubs.census.api.CensusResponses$PhotoResponse": {
+    "photoUrl": "https://files.example.test/photo"
+  },
+  "clubs.census.api.CensusResponses$AccessResendResponse": {
+    "sentTo": "member@example.test"
+  },
+  "clubs.census.api.CensusResponses$RolesResponse": {
+    "roles": [
+      "MEMBER"
+    ]
+  },
+  "clubs.catalogs.api.CatalogResponses$Level": {
+    "id": "level-a",
+    "code": "A",
+    "name": "Level A",
+    "color": "#123456",
+    "nameI18n": {
+      "en": "Level A"
+    },
+    "order": 0,
+    "capacity": 6,
+    "grantsFreeTraining": true,
+    "agilityhubLevel": "EASY",
+    "active": true,
+    "usage": {
+      "activeDogs": 1,
+      "futureClassSessions": 0,
+      "templateClasses": 0
+    },
+    "warnings": [],
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$Ring": {
+    "id": "ring-a",
+    "name": "Example ring",
+    "shortName": "ER",
+    "color": "#123456",
+    "allowsFreeTraining": true,
+    "trainingCapacity": 2,
+    "effectiveTrainingCapacity": 2,
+    "order": 0,
+    "active": true,
+    "usage": {
+      "futureClassSessions": 0,
+      "futureTrainingBookings": 0,
+      "templateClasses": 0,
+      "ringBlocks": 0
+    },
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$Instructor": {
+    "id": "instructor-a",
+    "memberId": "member-a",
+    "shortName": "Example",
+    "color": "#123456",
+    "active": true,
+    "usage": {
+      "futureClassSessions": 0,
+      "templateClasses": 0
+    },
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$Administrator": {
+    "membershipId": "membership-a",
+    "memberId": "member-a",
+    "shortName": "Example",
+    "since": "2026-01-01",
+    "active": true,
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$Plan": {
+    "id": "plan-a",
+    "code": "MONTHLY",
+    "name": "Monthly",
+    "nameI18n": {
+      "ca": "Mensual",
+      "es": "Mensual",
+      "en": "Monthly"
+    },
+    "type": "MONTHLY",
+    "dogsIncluded": 1,
+    "entryFee": {
+      "mode": "AMOUNT",
+      "amount": {
+        "amountMinor": 1000,
+        "currency": "EUR"
+      }
+    },
+    "pack": {
+      "sessions": 6,
+      "validityMonths": 3
+    },
+    "singleClass": {
+      "chargeMode": "PAY_TO_BOOK",
+      "cancelPolicy": "REFUND"
+    },
+    "conditions": "Example conditions",
+    "conditionsI18n": {
+      "en": "Example conditions"
+    },
+    "texts": {
+      "description": "Example plan",
+      "descriptionI18n": {
+        "en": "Example plan"
+      },
+      "offerLabel": "Offer",
+      "offerLabelI18n": {
+        "en": "Offer"
+      },
+      "priceLabel": "Price",
+      "priceLabelI18n": {
+        "en": "Price"
+      }
+    },
+    "showOnSignup": true,
+    "showOnWeb": true,
+    "order": 0,
+    "active": true,
+    "currentPrices": [
+      {
+        "id": "price-a",
+        "planId": "plan-a",
+        "concept": "MONTHLY_FEE",
+        "amount": {
+          "amountMinor": 1000,
+          "currency": "EUR"
+        },
+        "taxPercent": 0,
+        "validFrom": "2026-01-01",
+        "status": "CURRENT",
+        "locked": true,
+        "lastChange": {
+          "at": "2026-09-06T10:00:00Z",
+          "actorName": "Example Admin",
+          "action": "PARAMETER_CHANGED"
+        },
+        "version": 1
+      }
+    ],
+    "prices": [
+      {
+        "id": "price-a",
+        "planId": "plan-a",
+        "concept": "MONTHLY_FEE",
+        "amount": {
+          "amountMinor": 1000,
+          "currency": "EUR"
+        },
+        "taxPercent": 0,
+        "validFrom": "2026-01-01",
+        "status": "CURRENT",
+        "locked": true,
+        "lastChange": {
+          "at": "2026-09-06T10:00:00Z",
+          "actorName": "Example Admin",
+          "action": "PARAMETER_CHANGED"
+        },
+        "version": 1
+      }
+    ],
+    "usage": {
+      "members": 1,
+      "packBalances": 0,
+      "invoiceLines": 1
+    },
+    "entryFeeAmount": {
+      "amountMinor": 1000,
+      "currency": "EUR"
+    },
+    "warnings": [],
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$PriceCreated": {
+    "price": {
+      "id": "price-a",
+      "planId": "plan-a",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 1000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "status": "CURRENT",
+      "locked": true,
+      "lastChange": {
+        "at": "2026-09-06T10:00:00Z",
+        "actorName": "Example Admin",
+        "action": "PARAMETER_CHANGED"
+      },
+      "version": 1
+    },
+    "closedPriceId": "price-old"
+  },
+  "clubs.catalogs.api.CatalogResponses$PublicPlans": {
+    "club": {
+      "slug": "example",
+      "name": "Example Club",
+      "currency": "EUR"
+    },
+    "plans": [
+      {
+        "id": "plan-a",
+        "code": "MONTHLY",
+        "name": "Monthly",
+        "type": "MONTHLY",
+        "dogsIncluded": 1,
+        "conditions": "Example",
+        "texts": {
+          "description": "Example plan",
+          "offerLabel": "Offer",
+          "priceLabel": "Price"
+        },
+        "currentPrices": [
+          {
+            "concept": "MONTHLY_FEE",
+            "amount": {
+              "amountMinor": 1000,
+              "currency": "EUR"
+            }
+          }
+        ],
+        "entryFeeAmount": {
+          "amountMinor": 1000,
+          "currency": "EUR"
+        },
+        "order": 0
+      }
+    ]
+  },
+  "clubs.catalogs.api.CatalogResponses$FaqEntry": {
+    "id": "faq-a",
+    "category": "General",
+    "categoryI18n": {
+      "en": "General"
+    },
+    "question": "When?",
+    "questionI18n": {
+      "en": "When?"
+    },
+    "answer": "Today",
+    "answerI18n": {
+      "en": "Today"
+    },
+    "order": 0,
+    "active": true,
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$LevelReaderView": {
+    "id": "level-a",
+    "code": "A",
+    "name": "Level A",
+    "color": "#123456",
+    "order": 0,
+    "capacity": 6,
+    "grantsFreeTraining": true,
+    "agilityhubLevel": "EASY",
+    "active": true,
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$RingReaderView": {
+    "id": "ring-a",
+    "name": "Example ring",
+    "shortName": "ER",
+    "color": "#123456",
+    "allowsFreeTraining": true,
+    "effectiveTrainingCapacity": 2,
+    "order": 0,
+    "active": true,
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$InstructorReaderView": {
+    "id": "instructor-a",
+    "shortName": "Example",
+    "color": "#123456",
+    "active": true,
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$FaqReaderView": {
+    "id": "faq-a",
+    "category": "General",
+    "question": "When?",
+    "answer": "Today",
+    "order": 0,
+    "active": true,
+    "version": 1
+  },
+  "clubs.catalogs.api.CatalogResponses$PlanReaderView": {
+    "id": "plan-a",
+    "code": "MONTHLY",
+    "name": "Monthly",
+    "type": "MONTHLY",
+    "dogsIncluded": 1,
+    "entryFee": {
+      "mode": "AMOUNT",
+      "amount": {
+        "amountMinor": 1000,
+        "currency": "EUR"
+      }
+    },
+    "pack": {
+      "sessions": 6,
+      "validityMonths": 3
+    },
+    "singleClass": {
+      "chargeMode": "PAY_TO_BOOK",
+      "cancelPolicy": "REFUND"
+    },
+    "conditions": "Example conditions",
+    "texts": {
+      "description": "Example plan",
+      "offerLabel": "Offer",
+      "priceLabel": "Price"
+    },
+    "showOnSignup": true,
+    "showOnWeb": true,
+    "order": 0,
+    "active": true,
+    "currentPrices": [
+      {
+        "concept": "MONTHLY_FEE",
+        "amount": {
+          "amountMinor": 1000,
+          "currency": "EUR"
+        }
+      }
+    ],
+    "version": 1
+  },
+  "platform.api.SettingsContracts$Parameters": {
+    "blocks": [
+      {
+        "key": "club",
+        "title": "Club",
+        "rows": [
+          {
+            "key": "club.holidays",
+            "type": "list",
+            "label": "Holidays",
+            "help": "Closed dates",
+            "value": [
+              "2026-12-25"
+            ],
+            "isOverride": true,
+            "lastChange": {
+              "at": "2026-09-06T10:00:00Z",
+              "actorName": "Example Admin",
+              "action": "PARAMETER_CHANGED"
+            },
+            "editableBy": "CLUB",
+            "constraints": {},
+            "version": 1
+          }
+        ]
+      }
+    ],
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    }
+  },
+  "platform.api.SettingsContracts$ParameterHistoryEntry": {
+    "value": [
+      "2026-12-25"
+    ],
+    "changedAt": "2026-09-06T10:00:00Z",
+    "changedByAccountId": "account-a",
+    "reason": "Example"
+  },
+  "platform.api.SettingsContracts$ParameterDefinition": {
+    "key": "club.holidays",
+    "type": "list",
+    "default": [],
+    "block": "club",
+    "label": "Holidays",
+    "help": "Dates",
+    "constraints": {},
+    "modules": [],
+    "scope": "club",
+    "editableBy": "CLUB",
+    "restartRequired": false
+  },
+  "platform.api.SettingsContracts$ModuleSettings": {
+    "modules": [
+      "FAQ"
+    ]
+  },
+  "platform.api.SettingsContracts$PostalTown": {
+    "town": "Example",
+    "region": "Example"
+  },
+  "platform.api.SettingsContracts$ClubSettings": {
+    "id": "club-a",
+    "slug": "example",
+    "name": "Example Club",
+    "address": {
+      "street": "Example",
+      "postalCode": "08001",
+      "city": "Example",
+      "region": "Example",
+      "country": "ES"
+    },
+    "locales": [
+      "en"
+    ],
+    "defaultLocale": "en",
+    "timeZone": "Europe/Madrid",
+    "currency": "EUR",
+    "countryProfile": "ES",
+    "domains": [
+      {
+        "host": "example.test",
+        "app": "clubs",
+        "primary": true,
+        "verifiedAt": "2026-09-06T10:00:00Z"
+      }
+    ],
+    "modules": [
+      "FAQ"
+    ],
+    "paymentProviders": {
+      "MANUAL": {
+        "configured": true,
+        "enabled": true
+      }
+    },
+    "legal": {
+      "privacyPolicyUrl": "https://example.test/privacy",
+      "imageConsentText": "Example consent",
+      "imageConsentTextI18n": {
+        "en": "Example consent"
+      },
+      "legalTextsVersion": "v1"
+    },
+    "status": "ACTIVE",
+    "lastChange": {
+      "at": "2026-09-06T10:00:00Z",
+      "actorName": "Example Admin",
+      "action": "PARAMETER_CHANGED"
+    },
+    "version": 1,
+    "pwa": {
+      "name": "Example Club",
+      "shortName": "Example",
+      "iconUrls": {
+        "192": "https://files.example.test/icon.png"
+      }
+    },
+    "theme": {
+      "logoUrl": "https://assets.example.test/logo.svg",
+      "logoDarkUrl": "https://assets.example.test/logo-dark.svg",
+      "markUrl": "https://assets.example.test/mark.svg",
+      "colors": {
+        "primary": "#3155A4",
+        "onPrimary": "#FFFFFF",
+        "background": "#FFFFFF",
+        "surface": "#F4F5F7",
+        "surfaceAlt": "#E5E7EB",
+        "text": "#111827",
+        "textMuted": "#4B5563",
+        "border": "#D1D5DB",
+        "success": "#047857",
+        "warning": "#92400E",
+        "danger": "#B91C1C",
+        "info": "#1D4ED8"
+      },
+      "fontFamily": "system-ui",
+      "radius": "4px",
+      "ringPalette": [
+        "#3155A4"
+      ],
+      "mode": "auto"
+    }
+  },
+  "platform.api.AuditContracts$AuditEntryListItem": {
+    "id": "audit-a",
+    "clubId": "club-a",
+    "at": "2026-09-06T10:00:00Z",
+    "actorAccountId": "account-a",
+    "actorName": "Example Admin",
+    "actorRole": "ADMIN",
+    "origin": "BACKOFFICE",
+    "entityType": "Parameter",
+    "entityId": "club.holidays",
+    "entityLabel": "Holidays",
+    "action": "PARAMETER_CHANGED",
+    "changes": [
+      {
+        "path": "value",
+        "before": [],
+        "after": [
+          "2026-12-25"
+        ]
+      }
+    ],
+    "reason": "Example"
+  },
+  "platform.api.AuditContracts$AuditEntry": {
+    "id": "audit-a",
+    "clubId": "club-a",
+    "at": "2026-09-06T10:00:00Z",
+    "actorAccountId": "account-a",
+    "actorName": "Example Admin",
+    "actorRole": "ADMIN",
+    "origin": "BACKOFFICE",
+    "entityType": "Parameter",
+    "entityId": "club.holidays",
+    "entityLabel": "Holidays",
+    "action": "PARAMETER_CHANGED",
+    "changes": [
+      {
+        "path": "value",
+        "before": [],
+        "after": [
+          "2026-12-25"
+        ]
+      }
+    ],
+    "reason": "Example",
+    "details": {},
+    "traceId": "fixture-trace",
+    "eventIds": []
+  },
+  "platform.api.AuditContracts$ConsentHistoryEntry": {
+    "type": "PRIVACY_POLICY",
+    "granted": true,
+    "version": "v1",
+    "at": "2026-09-06T10:00:00Z",
+    "locale": "en",
+    "source": "APP"
+  },
+  "platform.api.AuditContracts$ErasureRequest": {
+    "id": "erasure-a",
+    "scope": "MEMBER",
+    "memberIds": [
+      "member-a"
+    ],
+    "clubIds": [
+      "club-a"
+    ],
+    "source": "ADMIN",
+    "requestedAt": "2026-09-06T10:00:00Z",
+    "status": "SCHEDULED",
+    "executeAt": "2026-10-06T10:00:00Z",
+    "blockReasons": [],
+    "version": 1
+  },
+  "platform.api.AuditContracts$SecurityEventView": {
+    "id": "security-a",
+    "type": "LOGIN_FAILED",
+    "accountId": "account-a",
+    "clubId": "club-a",
+    "ip": "192.0.2.1",
+    "route": "/oauth2/token",
+    "details": {},
+    "at": "2026-09-06T10:00:00Z"
+  },
+  "clubs.common.api.CommonContracts$ExportJob": {
+    "id": "export-a",
+    "kind": "LIST",
+    "listKey": "members",
+    "format": "XLSX",
+    "status": "READY",
+    "rows": 1,
+    "progressPct": 100,
+    "fileName": "example.xlsx",
+    "downloadUrl": "https://files.example.test/export",
+    "createdAt": "2026-09-06T10:00:00Z",
+    "expiresAt": "2026-09-07T10:00:00Z",
+    "error": {
+      "code": "EXPORT_EXPIRED",
+      "message": "Example error contract"
+    }
+  },
+  "clubs.common.api.CommonContracts$SavedView": {
+    "id": "view-a",
+    "ownerAccountId": "account-a",
+    "listKey": "members",
+    "name": "Active",
+    "columns": [
+      "fullName"
+    ],
+    "filters": [
+      {
+        "field": "status",
+        "op": "eq",
+        "value": "ACTIVE"
+      }
+    ],
+    "sort": [
+      "lastName,asc"
+    ],
+    "shared": false,
+    "version": 1
+  },
+  "shared.application.contract.ApiContracts$ListPage": {
+    "items": [
+      {
+        "id": "member-a",
+        "memberNumber": 1,
+        "fullName": "Example Member",
+        "dogs": [
+          {
+            "id": "dog-a",
+            "name": "Example dog",
+            "level": {
+              "id": "level-a",
+              "code": "A",
+              "name": "Level A",
+              "color": "#123456"
+            }
+          }
+        ],
+        "plan": {
+          "id": "plan-a",
+          "name": "Monthly"
+        },
+        "displayStatus": {
+          "kind": "ACTIVE",
+          "label": "Active"
+        },
+        "contact": {
+          "emails": [
+            {
+              "email": "member@example.test",
+              "bounced": false
+            }
+          ],
+          "phones": [
+            {
+              "prefix": "+34",
+              "number": "900000000",
+              "label": "Home"
+            }
+          ]
+        },
+        "paymentMethod": {
+          "type": "SEPA_DD",
+          "maskedAccount": "••••1234",
+          "holderName": "Example Member"
+        },
+        "nextInvoiceDate": "2026-10-01",
+        "familyGroup": {
+          "id": "group-a",
+          "name": "Example family"
+        },
+        "bookingBlocked": false,
+        "imageRights": {
+          "granted": true,
+          "at": "2026-09-06T10:00:00Z",
+          "version": "v1",
+          "byAccountId": "account-a"
+        },
+        "roles": [
+          "MEMBER"
+        ],
+        "pendingDocuments": [],
+        "version": 1
+      }
+    ],
+    "page": 0,
+    "size": 50,
+    "totalItems": 1,
+    "totalPages": 1,
+    "appliedFilters": [
+      {
+        "field": "status",
+        "op": "eq",
+        "value": "ACTIVE"
+      }
+    ]
+  },
+  "shared.application.contract.ApiContracts$CatalogItems": {
+    "items": [
+      {
+        "id": "level-a",
+        "code": "A",
+        "name": "Level A",
+        "color": "#123456",
+        "nameI18n": {
+          "en": "Level A"
+        },
+        "order": 0,
+        "capacity": 6,
+        "grantsFreeTraining": true,
+        "agilityhubLevel": "EASY",
+        "active": true,
+        "usage": {
+          "activeDogs": 1,
+          "futureClassSessions": 0,
+          "templateClasses": 0
+        },
+        "warnings": [],
+        "lastChange": {
+          "at": "2026-09-06T10:00:00Z",
+          "actorName": "Example Admin",
+          "action": "PARAMETER_CHANGED"
+        },
+        "version": 1
+      }
+    ],
+    "totalItems": 1
+  },
+  "shared.application.contract.ApiContracts$FilterValues": {
+    "field": "status",
+    "values": [
+      {
+        "value": "ACTIVE",
+        "label": "Active",
+        "count": 1
+      }
+    ]
+  },
+  "shared.application.contract.ApiContracts$ExportAccepted": {
+    "jobId": "export-a",
+    "statusUrl": "/api/v1/exports/export-a"
+  },
+  "clubs.common.api.DashboardContracts$DashboardCounters": {
+    "pendingSignups": 1,
+    "pendingRequests": 0,
+    "followUpUnread": 0
+  },
+  "clubs.common.api.DashboardContracts$Dashboard": {
+    "generatedAt": "2026-09-06T10:00:00Z",
+    "today": "2026-09-06",
+    "week": {
+      "start": "2026-08-31",
+      "end": "2026-09-06"
+    },
+    "kpis": {
+      "activeMembers": {
+        "value": 1,
+        "deltaThisMonth": 1
+      },
+      "classOccupancy": {
+        "percent": 50,
+        "booked": 1,
+        "capacity": 2,
+        "waitingTotal": 0
+      },
+      "trainingBookings": {
+        "value": 1,
+        "distinctMembers": 1
+      },
+      "pendingSignups": {
+        "value": 1,
+        "olderThanWarn": 0,
+        "warnDays": 7
+      }
+    },
+    "riskReview": {
+      "reviewTime": "07:30",
+      "lookaheadDays": 2,
+      "autoCancelSameDay": true,
+      "count": 1,
+      "items": [
+        {
+          "classSessionId": "class-a",
+          "date": "2026-09-06",
+          "startTime": "09:30",
+          "displayDescription": "Level A",
+          "ringName": "Example ring",
+          "booked": 1,
+          "status": "AT_RISK",
+          "notified": [
+            {
+              "memberFirstName": "Example",
+              "gender": "OTHER",
+              "dogName": "Example dog"
+            }
+          ],
+          "reviewAt": "2026-09-06T10:00:00Z"
+        }
+      ]
+    },
+    "pendingSignups": {
+      "count": 1,
+      "items": [
+        {
+          "memberId": "member-a",
+          "shortName": "Example",
+          "dogs": [
+            {
+              "name": "Example dog",
+              "breed": "Mixed",
+              "isAddDog": false
+            }
+          ],
+          "planName": "Monthly",
+          "paymentMethodType": "MANUAL",
+          "warnings": [],
+          "submittedAt": "2026-09-06T10:00:00Z",
+          "pendingDays": 1
+        }
+      ]
+    },
+    "dogsByLevel": {
+      "totalActiveDogs": 1,
+      "activeDogWeeks": 2,
+      "levels": [
+        {
+          "levelId": "level-a",
+          "code": "A",
+          "name": "Level A",
+          "color": "#123456",
+          "total": 1,
+          "withRecentBooking": 1
+        }
+      ],
+      "others": 0
+    }
+  }
+}

@@ -127,7 +127,8 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         var publicPaths = java.util.Set.of("/oauth2/token", "/.well-known/openid-configuration",
                 "/.well-known/jwks.json", "/oauth2/authorize", "/connect/logout", "/api/v1/auth/magic-link");
         expected.forEach((path, methods) -> {
-            assertThat(names(document.path("paths").path(path))).as(path).containsExactlyInAnyOrderElementsOf(methods);
+            assertThat(names(document.path("paths").path(path))).as(path).containsExactlyInAnyOrderElementsOf(
+                    path.equals("/api/v1/me/profile") ? List.of("get", "put", "patch") : methods);
             methods.forEach(method -> {
                 var operation = document.path("paths").path(path).path(method);
                 assertThat(operation.path("summary").asText()).isNotBlank();

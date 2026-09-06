@@ -138,3 +138,11 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1-T11 added (OpenAPI required-by-default)
 @executor New small task **E1-T11** (`ready`, order 35): the branding/shared schemas of the snapshot have no `required` arrays (only identity DTOs were annotated), so the web gets everything optional. A springdoc customizer makes properties required unless `Optional`/`@Nullable`/explicit `NOT_REQUIRED`; the optional fields to mark explicitly are listed in the task; contract test + snapshot regeneration. Queue by order: E2-T01 (in progress) → E1-T11 → E1-T04 → E1-T05 → E1-T06 → E1-T09.
+
+## 2026-09-06 · executor → organizer · E2-T01
+@organizer **Catalog and contract alignment** — E2-T01's illustrative `FAMILY_GROUP_MEMBER_TAKEN` is absent from the catalog; the contract uses `FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP`. S14 §6's `MEMBER_ERASED` is also absent; assumption: use `INVALID_STATE` for an already-erased target. Canonical catalog statuses are preserved, including `EXPORT_EXPIRED`, `EXPORT_LIMIT`, `DATA_EXPORT_TOO_SOON`, `ORDER_INCOMPLETE` and `MEMBER_NOT_ACTIVE` at 422, and `INVALID_API_KEY` at 403. Please align the narrative examples or approve catalog changes before implementation. No new catalog items were added.
+Blocking: no.
+
+## 2026-09-06 · executor → organizer · E2-T01
+@organizer **Wire assumptions for mocks** — List metadata uses ordered `x-filterable`/`x-sortable` key arrays, `x-filter-operators` for explicit contains/between restrictions, and `x-columns[{key, defaultVisible, module?, parameter?}]`. S05 catalogs remain unpaginated; other bounded lists retain their specified arrays/aggregates and empty universal capabilities. Unspecified nested aggregate fields use minimal typed summaries (pack, invoices, tasks, display status); S11 notification preferences remain a JSON object. Opening-hours/holiday aliases use `{value, reason?, version}` with catalog-shaped values. Saved-view item GET and versioned PUT are included; audit columns map the seven S14 UI labels to wire keys. The S05 geometry row explicitly delegates to S16 and is excluded; S14's six exportable routes are reserved, with future-vertical filter fields left empty. Please confirm these wire choices for front mocks; see docs/openapi/CHANGELOG.md and the response fixtures.
+Blocking: no.

@@ -1,0 +1,1681 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/members",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/filter-values",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "field": "status"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/{id}/overview",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/members/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "firstName": "Example",
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/members/{id}/payment-method",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "BILLING",
+    "body": {
+      "type": "MANUAL",
+      "manual": {
+        "channel": "CASH"
+      }
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/booking-block",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "reason": "Example reason"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/members/{id}/booking-block",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/access-resend",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/members/{id}/roles",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "roles": [
+        "MEMBER"
+      ]
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dogs",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dogs/filter-values",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "field": "status"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dogs/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dogs/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "name": "Example dog",
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dogs/{id}/level",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "levelId": "level-a"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dogs/{id}/free-training",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FREE_TRAINING",
+    "body": {
+      "override": null
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dogs/{id}/transfer",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "toMemberId": "member-b"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dogs/{id}/deactivation",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {},
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dogs/{id}/reactivation",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {},
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dogs/{id}/photo",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "fileKey": "fixture/file"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dogs/{id}/documents",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dogs/{id}/documents",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "type": "VACCINATION",
+      "name": "vaccination.pdf",
+      "fileKey": "fixture/file"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dogs/{id}/documents/{docId}/files/{fileId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dogs/{id}/documents/reminder",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "type": "VACCINATION"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/family-groups",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAMILY_GROUP",
+    "body": {
+      "holderMemberId": "member-a",
+      "memberIds": [
+        "member-a",
+        "member-b"
+      ]
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/family-groups/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": "FAMILY_GROUP",
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/family-groups/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAMILY_GROUP",
+    "body": {
+      "holderMemberId": "member-a",
+      "memberIds": [
+        "member-a",
+        "member-b"
+      ],
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/family-groups/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAMILY_GROUP",
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/family-group",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": "FAMILY_GROUP",
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/dogs",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me/dogs/{id}/photo",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "fileKey": "fixture/file"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/dogs/{id}/documents",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "type": "VACCINATION",
+      "name": "vaccination.pdf",
+      "fileKey": "fixture/file"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/me/dogs/{id}/instructor-note",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": "TASKS",
+    "body": {
+      "text": "Example note"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/profile",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/me/profile",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "contactEmails": [
+        {
+          "email": "member@example.test"
+        }
+      ],
+      "phones": [
+        {
+          "prefix": "+34",
+          "number": "900000000",
+          "label": "Home"
+        }
+      ],
+      "address": {
+        "street": "Example street",
+        "postalCode": "08001",
+        "city": "Example"
+      },
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/levels",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/levels",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "code": "A",
+      "name": {
+        "en": "Level A"
+      }
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/levels/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/levels/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/levels/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/levels/order",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "levelIds": []
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/rings",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/rings",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "name": "Example ring",
+      "shortName": "ER"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/rings/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/rings/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/rings/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/rings/order",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "ringIds": []
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/plans",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/plans",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "code": "MONTHLY",
+      "name": {
+        "en": "Monthly"
+      },
+      "type": "MONTHLY"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/plans/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/plans/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/plans/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/plans/order",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "planIds": []
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/faq-entries",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "global": false,
+    "module": "FAQ",
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/faq-entries",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAQ",
+    "body": {
+      "category": {
+        "en": "General"
+      },
+      "question": {
+        "en": "When?"
+      },
+      "answer": {
+        "en": "Today"
+      }
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/faq-entries/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAQ",
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/faq-entries/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAQ",
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/faq-entries/order",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAQ",
+    "body": {
+      "faqEntryIds": []
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/faq-entries/filter-values",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "FAQ",
+    "body": null,
+    "params": {
+      "field": "category"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/instructors",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/instructors",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "memberId": "member-a",
+      "shortName": "Example",
+      "color": "#123456"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/instructors/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/instructors/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/administrators",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/administrators",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "memberId": "member-a",
+      "shortName": "Example",
+      "since": "2026-01-01"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/administrators/{membershipId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/administrators/{membershipId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/prices",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "BILLING",
+    "body": null,
+    "params": {
+      "planId": "plan-a"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/prices",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "BILLING",
+    "body": {
+      "planId": "plan-a",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 1000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01"
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/prices/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "BILLING",
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/prices/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "BILLING",
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/{clubSlug}/plans",
+    "roles": [],
+    "global": true,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {
+      "X-Api-Key": "fictional-api-key"
+    },
+    "rejectImpersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/club",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/parameters",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/parameters/{key}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/parameters/{key}/history",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/parameters/{key}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "value": 1,
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/parameters/{key}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/club/modules/{module}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "enabled": true
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/club/opening-hours",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "value": {
+        "MONDAY": {
+          "open": "07:00",
+          "close": "22:00"
+        }
+      },
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/club/holidays",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "value": [
+        "2026-12-25"
+      ],
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/country-profile/postal-codes/{code}",
+    "roles": [],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/parameter-catalog",
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "global": true,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/audit-entries",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/audit-entries/filter-values",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "field": "status"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/audit-entries/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/{id}/audit-entries",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/{id}/consents",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/erasure",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {},
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/{id}/erasure",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/members/{id}/erasure",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/accounts/{id}/erasure",
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "global": true,
+    "module": null,
+    "body": {},
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/audit-entries",
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "global": true,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/erasure-requests",
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "global": true,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/platform/security-events",
+    "roles": [
+      "AGILITYHUB_ADMIN"
+    ],
+    "global": true,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/saved-views",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "listKey": "members"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/saved-views/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/saved-views",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "listKey": "members",
+      "name": "Active",
+      "columns": [
+        "fullName"
+      ],
+      "filters": [],
+      "sort": [
+        "lastName,asc"
+      ],
+      "shared": false
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/saved-views/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "listKey": "members",
+      "name": "Active",
+      "columns": [
+        "fullName"
+      ],
+      "filters": [],
+      "sort": [
+        "lastName,asc"
+      ],
+      "shared": false,
+      "version": 1
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/saved-views/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/exports",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/exports/{id}",
+    "roles": [
+      "ADMIN",
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/data-export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": {
+      "deliverToMember": true
+    },
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/data-export",
+    "roles": [
+      "MEMBER"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dogs/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/audit-entries/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/invoices/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "BILLING",
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity-registrations/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": "ACTIVITIES",
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/counters",
+    "roles": [
+      "ADMIN"
+    ],
+    "global": false,
+    "module": null,
+    "body": null,
+    "params": {},
+    "headers": {},
+    "rejectImpersonation": true
+  }
+]
