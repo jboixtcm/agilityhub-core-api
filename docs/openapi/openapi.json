@@ -346,7 +346,7 @@
         "description" : "R-01-15 app bootstrap. Membership is absent without club context; features are branding.modules.",
         "properties" : {
           "account" : {
-            "$ref" : "#/components/schemas/AccountSummary"
+            "$ref" : "#/components/schemas/MeAccount"
           },
           "features" : {
             "items" : {
@@ -364,6 +364,45 @@
         "required" : [ "account", "features" ],
         "type" : "object"
       },
+      "MeAccount" : {
+        "properties" : {
+          "email" : {
+            "format" : "email",
+            "type" : "string"
+          },
+          "emailVerifiedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "hasPassword" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "locale" : {
+            "enum" : [ "ca", "es", "en" ],
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "onboardingPending" : {
+            "type" : "boolean"
+          },
+          "platformRoles" : {
+            "items" : {
+              "enum" : [ "AGILITYHUB_ADMIN" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "email", "hasPassword", "id", "locale", "name", "onboardingPending", "platformRoles" ],
+        "type" : "object"
+      },
       "MembershipSummary" : {
         "properties" : {
           "activeProfile" : {
@@ -375,6 +414,11 @@
           },
           "defaultProfile" : {
             "$ref" : "#/components/schemas/Profile"
+          },
+          "gender" : {
+            "description" : "Member.gender; absent when there is no member",
+            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "type" : "string"
           },
           "instructorId" : {
             "format" : "uuid",
@@ -404,11 +448,23 @@
         "required" : [ "clubId", "profiles", "rememberProfile", "roles" ],
         "type" : "object"
       },
-      "OnboardingRequest" : {
+      "OnboardingField" : {
         "properties" : {
-          "imageConsent" : {
+          "key" : {
+            "type" : "string"
+          },
+          "required" : {
             "type" : "boolean"
           },
+          "value" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "key", "required", "value" ],
+        "type" : "object"
+      },
+      "OnboardingFields" : {
+        "properties" : {
           "locale" : {
             "enum" : [ "ca", "es", "en" ],
             "type" : "string"
@@ -419,49 +475,52 @@
           "phone" : {
             "description" : "Requested only when configured by the club",
             "type" : "string"
-          },
-          "privacyAccepted" : {
-            "type" : "boolean"
-          },
-          "privacyPolicyVersion" : {
-            "minLength" : 1,
-            "type" : "string"
           }
         },
-        "required" : [ "privacyAccepted", "privacyPolicyVersion" ],
+        "type" : "object"
+      },
+      "OnboardingRequest" : {
+        "properties" : {
+          "consentAccepted" : {
+            "type" : "boolean"
+          },
+          "consentVersion" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "fields" : {
+            "$ref" : "#/components/schemas/OnboardingFields"
+          },
+          "imageConsent" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "consentAccepted", "consentVersion" ],
         "type" : "object"
       },
       "OnboardingState" : {
-        "description" : "Pending onboarding, requested data fields and the current privacy policy; S01 §14",
+        "description" : "Pending onboarding, remaining postponements and current consent; S01 §14",
         "properties" : {
-          "locale" : {
-            "enum" : [ "ca", "es", "en" ],
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "onboardingPending" : {
-            "type" : "boolean"
-          },
-          "phone" : {
-            "type" : "string"
-          },
-          "privacyPolicyUrl" : {
-            "format" : "uri",
-            "type" : "string"
-          },
-          "privacyPolicyVersion" : {
-            "type" : "string"
-          },
-          "requestedFields" : {
+          "fields" : {
+            "description" : "Keys and required flags from signup.onboardingFields",
             "items" : {
-              "type" : "string"
+              "$ref" : "#/components/schemas/OnboardingField"
             },
             "type" : "array"
+          },
+          "pending" : {
+            "type" : "boolean"
+          },
+          "postponeRemaining" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "requiredConsent" : {
+            "$ref" : "#/components/schemas/RequiredConsent"
           }
         },
-        "required" : [ "onboardingPending", "privacyPolicyUrl", "privacyPolicyVersion", "requestedFields" ],
+        "required" : [ "fields", "pending", "postponeRemaining", "requiredConsent" ],
         "type" : "object"
       },
       "OpenIdConfiguration" : {
@@ -629,6 +688,23 @@
         },
         "required" : [ "e", "kid", "kty", "n" ],
         "type" : "object"
+      },
+      "RequiredConsent" : {
+        "properties" : {
+          "policy" : {
+            "enum" : [ "PLATFORM", "CLUB" ],
+            "type" : "string"
+          },
+          "url" : {
+            "format" : "uri",
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "policy", "url", "version" ],
+        "type" : [ "object", "null" ]
       },
       "RevokeRequest" : {
         "properties" : {
@@ -1452,6 +1528,149 @@
           }
         },
         "summary" : "Create a one-use code for switching apps",
+        "tags" : [ "identity" ]
+      }
+    },
+    "/api/v1/auth/magic-link" : {
+      "post" : {
+        "description" : "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. Shares the configured authentication IP quota with /oauth2/token.",
+        "operationId" : "magicLink",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MagicLinkRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Request accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED; Retry-After in seconds",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Request a login or password-reset magic link",
         "tags" : [ "identity" ]
       }
     },
@@ -2300,7 +2519,7 @@
         "tags" : [ "identity" ]
       },
       "put" : {
-        "description" : "Any valid account token. S01 §14, T-01-26: privacyAccepted must be true for the current policy version. Profile data may be deferred; imageConsent is optional. Implemented in E1-T06.",
+        "description" : "Any valid account token. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. Profile data may be deferred; imageConsent is optional. Implemented in E1-T06.",
         "operationId" : "completeOnboarding",
         "requestBody" : {
           "content" : {
@@ -2312,6 +2531,145 @@
           },
           "required" : true
         },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingState"
+                }
+              }
+            },
+            "description" : "Updated onboarding state"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR if consent is not accepted; LOCALE_NOT_SUPPORTED"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CONSENT_VERSION_OUTDATED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Complete first-access privacy consent and optional profile fields",
+        "tags" : [ "identity" ]
+      }
+    },
+    "/api/v1/me/onboarding/postpone" : {
+      "post" : {
+        "description" : "Any valid account token. S01 §6, §14: decrements postponeRemaining, bounded by legal.maxPostpones. At zero returns the unchanged state without an error. Implemented in E1-T06.",
+        "operationId" : "postponeOnboarding",
         "responses" : {
           "200" : {
             "content" : {
@@ -2443,7 +2801,7 @@
             "description" : "Server error"
           }
         },
-        "summary" : "Complete first-access privacy consent and optional profile fields",
+        "summary" : "Postpone the current consent prompt",
         "tags" : [ "identity" ]
       }
     },
@@ -3323,149 +3681,6 @@
           }
         },
         "summary" : "Provision a global account",
-        "tags" : [ "identity" ]
-      }
-    },
-    "/auth/magic-link" : {
-      "post" : {
-        "description" : "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration.",
-        "operationId" : "magicLink",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/MagicLinkRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "202" : {
-            "description" : "Request accepted"
-          },
-          "400" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Bad Request"
-          },
-          "401" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unauthorized"
-          },
-          "403" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Forbidden"
-          },
-          "404" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Not Found"
-          },
-          "409" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Conflict"
-          },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
-          "429" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "RATE_LIMITED; Retry-After in seconds",
-            "headers" : {
-              "Retry-After" : {
-                "description" : "Seconds before retrying",
-                "schema" : {
-                  "format" : "int32",
-                  "type" : "integer"
-                }
-              }
-            }
-          },
-          "4XX" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Client error"
-          },
-          "500" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Internal Server Error"
-          },
-          "501" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Not Implemented"
-          },
-          "5XX" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Server error"
-          }
-        },
-        "security" : [ ],
-        "summary" : "Request a login or password-reset magic link",
         "tags" : [ "identity" ]
       }
     },

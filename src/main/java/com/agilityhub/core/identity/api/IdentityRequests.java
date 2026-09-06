@@ -3,6 +3,7 @@ package com.agilityhub.core.identity.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -39,7 +40,8 @@ public final class IdentityRequests {
             @Schema(description = "Existing Learn bcrypt hash, preserved on import", accessMode = Schema.AccessMode.WRITE_ONLY)
             String passwordHash) { }
     public record AccountPasswordRequest(@NotBlank @Schema(accessMode = Schema.AccessMode.WRITE_ONLY) String passwordHash) { }
-    public record OnboardingRequest(String name, @Schema(allowableValues = {"ca", "es", "en"}) String locale,
-            @Schema(description = "Requested only when configured by the club") String phone,
-            @NotNull Boolean privacyAccepted, @NotBlank String privacyPolicyVersion, Boolean imageConsent) { }
+    public record OnboardingRequest(@NotNull @AssertTrue Boolean consentAccepted, @NotBlank String consentVersion,
+            OnboardingFields fields, Boolean imageConsent) { }
+    public record OnboardingFields(String name, @Schema(allowableValues = {"ca", "es", "en"}) String locale,
+            @Schema(description = "Requested only when configured by the club") String phone) { }
 }

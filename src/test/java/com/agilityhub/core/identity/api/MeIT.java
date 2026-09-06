@@ -4,6 +4,7 @@ import com.agilityhub.core.identity.domain.Role;
 import com.agilityhub.core.identity.persistence.Account;
 import com.agilityhub.core.identity.persistence.Membership;
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,18 +23,50 @@ class MeIT extends IdentityIntegrationSupport {
         String token = login().get("access_token").asText();
         var response = mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$.account.id").value("account-a")).andExpect(jsonPath("$.account.length()").value(5))
+                .andExpect(jsonPath("$.account.id").value("account-a")).andExpect(jsonPath("$.account.length()").value(7))
+                .andExpect(jsonPath("$.account.hasPassword").value(true))
+                .andExpect(jsonPath("$.account.onboardingPending").value(false))
+                .andExpect(jsonPath("$.account.emailVerifiedAt").doesNotExist())
                 .andExpect(jsonPath("$.membership.roles[0]").value(role.name())).andExpect(jsonPath("$.membership.memberId").value("member-a"))
                 .andExpect(jsonPath("$.membership.clubId").value("club-a"))
                 .andExpect(jsonPath("$.membership.profiles[0]").value(role.name()))
                 .andExpect(jsonPath("$.membership.activeProfile").value(role.name()))
                 .andExpect(jsonPath("$.membership.defaultProfile").value(role.name())).andExpect(jsonPath("$.features").isArray())
                 .andReturn().getResponse().getContentAsString();
-        assertThat(response).doesNotContain("password", "security", "token", "externalIds");
+        assertThat(response).doesNotContain("passwordHash", "security", "token", "externalIds");
         mvc.perform(get("/api/v1/me").header("Host", "b.example.test").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("TENANT_MISMATCH"));
         // Unknown API gateway hosts preserve the existing authenticated JWT tenant fallback.
         mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+    }
+    @Test void T_01_25_passwordlessAccountHasRequiredFalseFlagsAndNoMemberGender() throws Exception {
+        membership("club-a", Set.of(Role.ADMIN), Role.ADMIN, null);
+        mongo.updateFirst(new Query(), new Update().unset("passwordHash").set("onboardingPending", true), Account.class);
+        var response = mvc.perform(get("/api/v1/me").header("Host", HOST)
+                        .with(jwt().jwt(j -> j.subject("account-a").claim("clubId", "club-a"))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.account.hasPassword").value(false))
+                .andExpect(jsonPath("$.account.onboardingPending").value(false))
+                .andExpect(jsonPath("$.membership.memberId").doesNotExist())
+                .andExpect(jsonPath("$.membership.gender").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(response).doesNotContain("passwordHash", "security", "token", "externalIds");
+    }
+    @ParameterizedTest @EnumSource(MeResponse.Gender.class)
+    void T_01_25_bootstrapSerializesOptionalVerifiedTimeAndMemberGenderWithoutCredentials(MeResponse.Gender gender) throws Exception {
+        var account = new MeResponse.MeAccount("account-a", "admin@example.test", "Example", "en",
+                Set.of(), true, clock.instant(), false);
+        var membership = new MeResponse.MembershipSummary("club-a", Set.of(IdentityResponses.Profile.MEMBER),
+                IdentityResponses.Profile.MEMBER, List.of(IdentityResponses.Profile.MEMBER), "member-a", null,
+                IdentityResponses.Profile.MEMBER, false, gender);
+        String response = mapper.writeValueAsString(new MeResponse(account, membership, null, List.of()));
+        var json = mapper.readTree(response);
+        assertThat(json.at("/account").fieldNames()).toIterable().containsExactlyInAnyOrder(
+                "id", "email", "name", "locale", "platformRoles", "hasPassword", "emailVerifiedAt", "onboardingPending");
+        assertThat(json.at("/account/emailVerifiedAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(json.at("/account/hasPassword").asBoolean()).isTrue();
+        assertThat(json.at("/account/onboardingPending").asBoolean()).isFalse();
+        assertThat(json.at("/membership/gender").asText()).isEqualTo(gender.name());
+        assertThat(response).doesNotContain("passwordHash", "security", "token", "externalIds");
     }
     @Test void T_01_17_tokensAreRequiredAndValidatedIncludingSignatureExpiryIssuerAndAudience() throws Exception {
         mvc.perform(get("/api/v1/me")).andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));

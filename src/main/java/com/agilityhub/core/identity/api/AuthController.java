@@ -14,11 +14,12 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 
 @RestController
 public class AuthController {
-    @PostMapping("/auth/magic-link")
+    @PostMapping("/api/v1/auth/magic-link")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @SecurityRequirements
     @Operation(summary = "Request a login or password-reset magic link",
-            description = "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration.",
+            description = "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. "
+                    + "Shares the configured authentication IP quota with /oauth2/token.",
             responses = {@ApiResponse(responseCode = "202", description = "Request accepted", content = @Content),
                     @ApiResponse(responseCode = "429", description = "RATE_LIMITED; Retry-After in seconds")})
     public ResponseEntity<Void> magicLink(@Valid @RequestBody MagicLinkRequest request) { throw new UnsupportedOperationException(); }

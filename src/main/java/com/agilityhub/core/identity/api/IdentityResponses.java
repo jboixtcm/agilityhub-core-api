@@ -42,13 +42,22 @@ public final class IdentityResponses {
             @Schema(requiredMode = REQUIRED) Instant createdAt,
             @Schema(requiredMode = REQUIRED) Instant expiresAt, Instant lastUsedAt) { }
 
-    @Schema(description = "Pending onboarding, requested data fields and the current privacy policy; S01 §14")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record OnboardingState(@Schema(requiredMode = REQUIRED) boolean onboardingPending,
-            String name, @Schema(allowableValues = {"ca", "es", "en"}) String locale, String phone,
-            @Schema(requiredMode = REQUIRED) List<String> requestedFields,
-            @Schema(requiredMode = REQUIRED) String privacyPolicyVersion,
-            @Schema(requiredMode = REQUIRED, format = "uri") String privacyPolicyUrl) { }
+    @Schema(description = "Pending onboarding, remaining postponements and current consent; S01 §14")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    public record OnboardingState(@Schema(requiredMode = REQUIRED) boolean pending,
+            @Schema(requiredMode = REQUIRED, minimum = "0") int postponeRemaining,
+            @Schema(requiredMode = REQUIRED) RequiredConsent requiredConsent,
+            @Schema(requiredMode = REQUIRED, description = "Keys and required flags from signup.onboardingFields")
+            List<OnboardingField> fields) { }
+    public enum ConsentPolicy { PLATFORM, CLUB }
+    @Schema(types = {"object", "null"})
+    public record RequiredConsent(@Schema(requiredMode = REQUIRED) ConsentPolicy policy,
+            @Schema(requiredMode = REQUIRED) String version,
+            @Schema(requiredMode = REQUIRED, format = "uri") String url) { }
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    public record OnboardingField(@Schema(requiredMode = REQUIRED) String key,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}) String value,
+            @Schema(requiredMode = REQUIRED) boolean required) { }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record UserInfo(@Schema(requiredMode = REQUIRED) String sub, String email, Boolean email_verified,

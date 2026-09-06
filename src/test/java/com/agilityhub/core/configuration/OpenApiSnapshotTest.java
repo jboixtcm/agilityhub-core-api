@@ -112,7 +112,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 java.util.Map.entry("/oauth2/revoke", List.of("post")),
                 java.util.Map.entry("/oauth2/userinfo", List.of("get")),
                 java.util.Map.entry("/connect/logout", List.of("get")),
-                java.util.Map.entry("/auth/magic-link", List.of("post")),
+                java.util.Map.entry("/api/v1/auth/magic-link", List.of("post")),
                 java.util.Map.entry("/api/v1/auth/handoff", List.of("post")),
                 java.util.Map.entry("/api/v1/me", List.of("get", "patch")),
                 java.util.Map.entry("/api/v1/me/password", List.of("put")),
@@ -120,11 +120,12 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 java.util.Map.entry("/api/v1/me/sessions", List.of("get")),
                 java.util.Map.entry("/api/v1/me/sessions/{id}", List.of("delete")),
                 java.util.Map.entry("/api/v1/me/onboarding", List.of("get", "put")),
+                java.util.Map.entry("/api/v1/me/onboarding/postpone", List.of("post")),
                 java.util.Map.entry("/api/v1/members/{id}/impersonation-token", List.of("post")),
                 java.util.Map.entry("/api/v1/platform/accounts", List.of("post")),
                 java.util.Map.entry("/api/v1/accounts/{id}/password", List.of("put")));
         var publicPaths = java.util.Set.of("/oauth2/token", "/.well-known/openid-configuration",
-                "/.well-known/jwks.json", "/oauth2/authorize", "/connect/logout", "/auth/magic-link");
+                "/.well-known/jwks.json", "/oauth2/authorize", "/connect/logout", "/api/v1/auth/magic-link");
         expected.forEach((path, methods) -> {
             assertThat(names(document.path("paths").path(path))).as(path).containsExactlyInAnyOrderElementsOf(methods);
             methods.forEach(method -> {
@@ -140,11 +141,25 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
             });
         });
         assertThat(names(document.at("/components/schemas"))).contains("Me", "TokenResponse", "Profile", "Session",
-                "OnboardingState", "HandoffResponse", "ImpersonationTokenResponse", "PlatformAccountRequest");
+                "OnboardingState", "OnboardingField", "RequiredConsent", "HandoffResponse", "ImpersonationTokenResponse", "PlatformAccountRequest");
+        assertThat(document.path("paths").has("/auth/magic-link")).isFalse();
         assertThat(names(document.at("/components/schemas/Me/properties")))
                 .containsExactlyInAnyOrder("account", "membership", "impersonation", "features");
+        assertThat(document.at("/components/schemas/Me/properties/account/$ref").asText()).isEqualTo("#/components/schemas/MeAccount");
+        assertThat(names(document.at("/components/schemas/MeAccount/properties")))
+                .containsExactlyInAnyOrder("id", "email", "name", "locale", "platformRoles", "hasPassword", "emailVerifiedAt", "onboardingPending");
+        assertThat(strings(document.at("/components/schemas/MeAccount/required")))
+                .containsExactlyInAnyOrder("id", "email", "name", "locale", "platformRoles", "hasPassword", "onboardingPending");
+        assertThat(document.at("/components/schemas/MeAccount/properties/hasPassword/type").asText()).isEqualTo("boolean");
+        assertThat(document.at("/components/schemas/MeAccount/properties/onboardingPending/type").asText()).isEqualTo("boolean");
+        assertThat(document.at("/components/schemas/MeAccount/properties/emailVerifiedAt/format").asText()).isEqualTo("date-time");
+        assertThat(names(document.at("/components/schemas/AccountSummary/properties")))
+                .containsExactlyInAnyOrder("id", "email", "name", "locale", "platformRoles");
         assertThat(names(document.at("/components/schemas/MembershipSummary/properties")))
-                .containsExactlyInAnyOrder("clubId", "roles", "activeProfile", "profiles", "memberId", "instructorId", "defaultProfile", "rememberProfile");
+                .containsExactlyInAnyOrder("clubId", "roles", "activeProfile", "profiles", "memberId", "instructorId", "defaultProfile", "rememberProfile", "gender");
+        assertThat(strings(document.at("/components/schemas/MembershipSummary/required"))).doesNotContain("gender");
+        assertThat(strings(document.at("/components/schemas/MembershipSummary/properties/gender/enum")))
+                .containsExactly("MALE", "FEMALE", "OTHER");
         assertThat(strings(document.at("/components/schemas/Profile/enum"))).containsExactly("MEMBER", "INSTRUCTOR", "ADMIN");
         var requestFields = java.util.Map.ofEntries(
                 java.util.Map.entry("MagicLinkRequest", List.of("email", "purpose", "client_id", "redirect_uri")),
@@ -155,15 +170,60 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                 java.util.Map.entry("HandoffRequest", List.of("targetClientId")),
                 java.util.Map.entry("ImpersonationRequest", List.of("reason")),
                 java.util.Map.entry("PlatformAccountRequest", List.of("email", "name", "locale", "passwordHash")),
-                java.util.Map.entry("AccountPasswordRequest", List.of("passwordHash")));
+                java.util.Map.entry("AccountPasswordRequest", List.of("passwordHash")),
+                java.util.Map.entry("OnboardingRequest", List.of("consentAccepted", "consentVersion", "fields", "imageConsent")),
+                java.util.Map.entry("OnboardingFields", List.of("name", "locale", "phone")));
         requestFields.forEach((schema, fields) -> assertThat(names(document.path("components").path("schemas").path(schema).path("properties")))
                 .as(schema).containsExactlyInAnyOrderElementsOf(fields));
+        assertThat(strings(document.at("/components/schemas/OnboardingRequest/required")))
+                .containsExactlyInAnyOrder("consentAccepted", "consentVersion");
+        assertThat(document.at("/components/schemas/OnboardingRequest/properties/fields/$ref").asText())
+                .isEqualTo("#/components/schemas/OnboardingFields");
+        assertThat(document.at("/components/schemas/OnboardingFields/required")).isEmpty();
+        assertThat(names(document.at("/components/schemas/OnboardingState/properties")))
+                .containsExactlyInAnyOrder("pending", "postponeRemaining", "requiredConsent", "fields");
+        assertThat(strings(document.at("/components/schemas/OnboardingState/required")))
+                .containsExactlyInAnyOrder("pending", "postponeRemaining", "requiredConsent", "fields");
+        assertThat(document.at("/components/schemas/OnboardingState/properties/pending/type").asText()).isEqualTo("boolean");
+        assertThat(document.at("/components/schemas/OnboardingState/properties/postponeRemaining/type").asText()).isEqualTo("integer");
+        assertThat(document.at("/components/schemas/OnboardingState/properties/fields/items/$ref").asText())
+                .isEqualTo("#/components/schemas/OnboardingField");
+        assertThat(document.at("/components/schemas/OnboardingState/properties/requiredConsent/$ref").asText())
+                .isEqualTo("#/components/schemas/RequiredConsent");
+        assertThat(document.at("/components/schemas/OnboardingState/properties/requiredConsent").has("type")).isFalse();
+        assertThat(strings(document.at("/components/schemas/RequiredConsent/type"))).containsExactlyInAnyOrder("object", "null");
+        assertThat(names(document.at("/components/schemas/OnboardingField/properties")))
+                .containsExactlyInAnyOrder("key", "value", "required");
+        assertThat(strings(document.at("/components/schemas/OnboardingField/required")))
+                .containsExactlyInAnyOrder("key", "value", "required");
+        assertThat(strings(document.at("/components/schemas/OnboardingField/properties/value/type")))
+                .containsExactlyInAnyOrder("string", "null");
+        assertThat(names(document.at("/components/schemas/RequiredConsent/properties")))
+                .containsExactlyInAnyOrder("policy", "version", "url");
+        assertThat(strings(document.at("/components/schemas/RequiredConsent/required")))
+                .containsExactlyInAnyOrder("policy", "version", "url");
+        assertThat(strings(document.at("/components/schemas/RequiredConsent/properties/policy/enum")))
+                .containsExactly("PLATFORM", "CLUB");
+        assertThat(document.at("/components/schemas/RequiredConsent/properties/url/format").asText()).isEqualTo("uri");
+        for (var route : java.util.Map.of("/api/v1/me/onboarding", List.of("get", "put"),
+                "/api/v1/me/onboarding/postpone", List.of("post")).entrySet()) {
+            for (String method : route.getValue()) {
+                assertThat(document.path("paths").path(route.getKey()).path(method)
+                        .at("/responses/200/content/application~1json/schema/$ref").asText())
+                        .isEqualTo("#/components/schemas/OnboardingState");
+            }
+        }
+        var onboarding = document.path("paths").path("/api/v1/me/onboarding").path("put");
+        assertThat(onboarding.at("/responses/400/description").asText()).contains("VALIDATION_ERROR", "LOCALE_NOT_SUPPORTED");
+        assertThat(onboarding.at("/responses/422/description").asText()).contains("CONSENT_VERSION_OUTDATED");
+        assertThat(document.path("paths").path("/api/v1/me/onboarding/postpone").path("post").has("requestBody")).isFalse();
         var token = document.path("paths").path("/oauth2/token").path("post");
         assertThat(names(token.path("x-grants"))).containsExactlyInAnyOrder("password", "urn:agilityhub:grant:magic-link",
                 "urn:agilityhub:grant:handoff", "authorization_code", "refresh_token");
         assertThat(strings(token.at("/x-grants/urn:agilityhub:grant:handoff/required"))).contains("client_id", "token");
         assertThat(token.at("/responses/429/headers/Retry-After")).isNotEmpty();
-        assertThat(document.path("paths").path("/auth/magic-link").at("/post/responses/202/content")).isEmpty();
+        assertThat(document.path("paths").path("/api/v1/auth/magic-link").at("/post/responses/202/content")).isEmpty();
+        assertThat(document.path("paths").path("/api/v1/auth/magic-link").at("/post/responses/429/headers/Retry-After")).isNotEmpty();
         assertThat(document.path("paths").path("/connect/logout").at("/get/responses/302/content")).isEmpty();
         assertThat(document.path("paths").path("/api/v1/me/sessions").at("/get/responses/200/content/application~1json/schema/type").asText()).isEqualTo("array");
     }

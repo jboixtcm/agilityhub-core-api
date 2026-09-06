@@ -11,6 +11,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = "core.security.rate-limits.enabled=true")
 class RateLimitIT extends IdentityIntegrationSupport {
+    @Test void T_01_15_magicLinkUsesTheAuthenticationIpQuotaBeforeTenantResolution() throws Exception {
+        String body = "{\"email\":\"member@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}";
+        for (int index = 0; index < 30; index++) {
+            mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body)
+                    .with(request -> { request.setRemoteAddr("203.0.113.41"); return request; }))
+                    .andExpect(status().isNotImplemented());
+        }
+        for (String path : new String[]{"/api/v1/auth/magic-link", "/oauth2/token"}) {
+            mvc.perform(post(path).header("Host", "unknown.example.test").contentType("application/json").content(body)
+                            .with(request -> { request.setRemoteAddr("203.0.113.41"); return request; }))
+                    .andExpect(status().isTooManyRequests()).andExpect(header().string("Retry-After", "60"))
+                    .andExpect(header().string("Cache-Control", "no-store"))
+                    .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        }
+        assertThat(mongo.findAll(SecurityEvent.class)).anySatisfy(event -> {
+            assertThat(event.type().name()).isEqualTo("RATE_LIMITED");
+            assertThat(event.ip()).isEqualTo("203.0.113.41");
+        });
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", "id.example.test").contentType("application/json").content(body)
+                        .with(request -> { request.setRemoteAddr("203.0.113.42"); return request; }))
+                .andExpect(status().isNotImplemented());
+        clock.advance(Duration.ofMinutes(1));
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body)
+                        .with(request -> { request.setRemoteAddr("203.0.113.41"); return request; }))
+                .andExpect(status().isNotImplemented());
+    }
+
     @Test void T_01_15_thirtyFirstTokenRequestIsLimitedBeforeTenantResolutionWithRetryAfterAndEvent() throws Exception {
         for (int index = 0; index < 30; index++) {
             mvc.perform(post("/oauth2/token").header("Host", HOST).with(request -> {

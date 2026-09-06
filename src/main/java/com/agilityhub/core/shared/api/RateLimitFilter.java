@@ -50,7 +50,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
 
     private Route route(String method, String path, boolean authenticated) {
         if (method.equals("OPTIONS")) { return null; }
-        if (method.equals("POST") && path.equals("/oauth2/token")) { return Route.TOKEN; }
+        if (method.equals("POST") && (path.equals("/oauth2/token") || path.equals("/api/v1/auth/magic-link"))) { return Route.TOKEN; }
         if (method.equals("GET") && path.equals("/api/v1/branding")) { return Route.BRANDING; }
         if (path.equals("/api/v1/public") || path.startsWith("/api/v1/public/")) { return Route.PUBLIC; }
         if (authenticated && (path.equals("/api/v1/me") || path.startsWith("/api/v1/me/"))) { return Route.ME; }

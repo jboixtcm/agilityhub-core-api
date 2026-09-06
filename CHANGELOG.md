@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- E1-T01 Round 2: Align onboarding schemas and the postpone route with S01 v0.3;
+  move public magic-link requests to `/api/v1/auth/magic-link` with the existing
+  authentication IP quota; add password, verification, onboarding and gender fields
+  to `Me`, with contract, serialization and tenant/role tests.
+
 ### Added
 
 - E1-T03: SendGrid transactional email with local/test sinks, fixed N-25/N-26/N-27

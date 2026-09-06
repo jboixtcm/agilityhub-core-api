@@ -39,10 +39,11 @@ public class MeController {
         var defaultProfile = membership.defaultProfile() == null ? null : Profile.valueOf(membership.defaultProfile().name());
         String activeClaim = jwt.getClaimAsString("activeProfile");
         var activeProfile = activeClaim == null ? defaultProfile : Profile.valueOf(activeClaim);
-        return new MeResponse(new AccountSummary(account.id(), account.email(), account.name(), account.locale(),
-                    account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet())),
+        return new MeResponse(new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(),
+                    account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet()),
+                    account.passwordHash() != null, null, false),
                 new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.copyOf(profiles), activeProfile, profiles,
-                        membership.memberId(), jwt.getClaimAsString("instructorId"), defaultProfile, false), null,
+                        membership.memberId(), jwt.getClaimAsString("instructorId"), defaultProfile, false, null), null,
                 clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
     }
 
@@ -91,8 +92,18 @@ public class MeController {
     @PutMapping("/api/v1/me/onboarding")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Complete first-access privacy consent and optional profile fields",
-            description = "Any valid account token. S01 §14, T-01-26: privacyAccepted must be true for the current policy version. "
+            description = "Any valid account token. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. "
                     + "Profile data may be deferred; imageConsent is optional. Implemented in E1-T06.",
-            responses = @ApiResponse(responseCode = "200", description = "Updated onboarding state"))
+            responses = {@ApiResponse(responseCode = "200", description = "Updated onboarding state"),
+                    @ApiResponse(responseCode = "400", description = "VALIDATION_ERROR if consent is not accepted; LOCALE_NOT_SUPPORTED"),
+                    @ApiResponse(responseCode = "422", description = "CONSENT_VERSION_OUTDATED")})
     public OnboardingState completeOnboarding(@Valid @RequestBody OnboardingRequest request) { throw new UnsupportedOperationException(); }
+
+    @PostMapping("/api/v1/me/onboarding/postpone")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Postpone the current consent prompt",
+            description = "Any valid account token. S01 §6, §14: decrements postponeRemaining, bounded by legal.maxPostpones. "
+                    + "At zero returns the unchanged state without an error. Implemented in E1-T06.",
+            responses = @ApiResponse(responseCode = "200", description = "Updated onboarding state"))
+    public OnboardingState postponeOnboarding() { throw new UnsupportedOperationException(); }
 }

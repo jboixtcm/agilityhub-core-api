@@ -29,7 +29,8 @@ class IdentityContractIT extends IdentityIntegrationSupport {
                 new Endpoint("GET", "/api/v1/me/sessions", null, "ROLE_MEMBER", false),
                 new Endpoint("DELETE", "/api/v1/me/sessions/session-a", null, "ROLE_MEMBER", false),
                 new Endpoint("GET", "/api/v1/me/onboarding", null, "ROLE_MEMBER", false),
-                new Endpoint("PUT", "/api/v1/me/onboarding", "{\"privacyAccepted\":true,\"privacyPolicyVersion\":\"v1\"}", "ROLE_MEMBER", false),
+                new Endpoint("PUT", "/api/v1/me/onboarding", "{\"consentAccepted\":true,\"consentVersion\":\"v1\"}", "ROLE_MEMBER", false),
+                new Endpoint("POST", "/api/v1/me/onboarding/postpone", null, "ROLE_MEMBER", false),
                 new Endpoint("POST", "/api/v1/members/member-a/impersonation-token", "{}", "ROLE_ADMIN", true),
                 new Endpoint("POST", "/api/v1/platform/accounts", "{\"email\":\"new@example.test\",\"name\":\"Example\",\"locale\":\"en\"}", "ROLE_AGILITYHUB_ADMIN", false),
                 new Endpoint("PUT", "/api/v1/accounts/account-a/password", "{\"passwordHash\":\"fictional-hash\"}", "ROLE_AGILITYHUB_ADMIN", false));
@@ -64,11 +65,11 @@ class IdentityContractIT extends IdentityIntegrationSupport {
 
     @Test void T_01_08_magicLinkContractIsPublicAndBindsTheSpecifiedSnakeCaseFields() throws Exception {
         for (String host : List.of(HOST, "id.example.test")) {
-            mvc.perform(post("/auth/magic-link").header("Host", host).contentType("application/json")
+            mvc.perform(post("/api/v1/auth/magic-link").header("Host", host).contentType("application/json")
                             .content("{\"email\":\"member@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\",\"redirect_uri\":\"https://app.example.test/activacio\"}"))
                     .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
         }
-        mvc.perform(post("/auth/magic-link").contentType("application/json").content("{}"))
+        mvc.perform(post("/api/v1/auth/magic-link").contentType("application/json").content("{}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
@@ -79,6 +80,47 @@ class IdentityContractIT extends IdentityIntegrationSupport {
                             .param("grant_type", grant).param("client_id", "id-web").param("token", "fictional")
                             .param("code", "fictional").param("code_verifier", "fictional").param("redirect_uri", "https://id.example.test/callback"))
                     .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
+        }
+    }
+
+    @Test void T_01_26_onboardingUsesNestedFieldsAndRequiresAcceptedVersionedConsent() throws Exception {
+        String body = """
+                {"consentAccepted":true,"consentVersion":"v1","fields":{"name":"Example","locale":"es","phone":"+34900000000"},"imageConsent":false}
+                """;
+        var request = mapper.readValue(body, IdentityRequests.OnboardingRequest.class);
+        assertThat(request.fields()).isEqualTo(new IdentityRequests.OnboardingFields("Example", "es", "+34900000000"));
+        assertThat(request.imageConsent()).isFalse();
+        for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
+            for (var endpoint : accountEndpoints().filter(e -> e.path().startsWith("/api/v1/me/onboarding")).toList()) {
+                var call = request(endpoint);
+                if (endpoint.method().equals("PUT")) { call.content(body); }
+                mvc.perform(call.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_" + role))))
+                        .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
+            }
+        }
+        for (String invalid : List.of("{}", "{\"consentAccepted\":false,\"consentVersion\":\"v1\"}",
+                "{\"consentAccepted\":true,\"consentVersion\":\" \"}",
+                "{\"privacyAccepted\":true,\"privacyPolicyVersion\":\"v1\"}")) {
+            mvc.perform(put("/api/v1/me/onboarding").with(jwt()).contentType("application/json").content(invalid))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        }
+    }
+
+    @Test void T_01_26_onboardingSerializationRetainsExplicitNullConsentAndFieldValues() throws Exception {
+        var state = new IdentityResponses.OnboardingState(false, 0, null,
+                List.of(new IdentityResponses.OnboardingField("phone", null, false)));
+        assertThat(mapper.readTree(mapper.writeValueAsString(state))).isEqualTo(mapper.readTree("""
+                {"pending":false,"postponeRemaining":0,"requiredConsent":null,"fields":[{"key":"phone","value":null,"required":false}]}
+                """));
+        for (var policy : IdentityResponses.ConsentPolicy.values()) {
+            var consent = new IdentityResponses.RequiredConsent(policy, "v1", "https://example.test/privacy");
+            var pending = new IdentityResponses.OnboardingState(true, 3, consent,
+                    List.of(new IdentityResponses.OnboardingField("name", "Example", true)));
+            var json = mapper.readTree(mapper.writeValueAsString(pending));
+            assertThat(json.at("/requiredConsent/policy").asText()).isEqualTo(policy.name());
+            assertThat(json.at("/requiredConsent/version").asText()).isEqualTo("v1");
+            assertThat(json.at("/requiredConsent/url").asText()).isEqualTo("https://example.test/privacy");
+            assertThat(mapper.treeToValue(json, IdentityResponses.OnboardingState.class)).isEqualTo(pending);
         }
     }
 

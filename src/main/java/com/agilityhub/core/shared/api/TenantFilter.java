@@ -35,8 +35,9 @@ public class TenantFilter extends OncePerRequestFilter {
                     || path.equals("/connect/logout") || path.matches("/api/v1/accounts/[^/]+/password");
             boolean accountRoute = path.equals("/api/v1/me") || path.equals("/api/v1/me/password")
                     || path.equals("/api/v1/me/sessions") || path.matches("/api/v1/me/sessions/[^/]+")
-                    || path.equals("/api/v1/me/onboarding") || path.equals("/oauth2/revoke") || path.equals("/oauth2/userinfo");
-            boolean optionalHost = path.equals("/auth/magic-link") || (path.equals("/oauth2/token")
+                    || path.equals("/api/v1/me/onboarding") || path.equals("/api/v1/me/onboarding/postpone")
+                    || path.equals("/oauth2/revoke") || path.equals("/oauth2/userinfo");
+            boolean optionalHost = path.equals("/api/v1/auth/magic-link") || (path.equals("/oauth2/token")
                     && ("urn:agilityhub:grant:magic-link".equals(request.getParameter("grant_type"))
                     || "urn:agilityhub:grant:handoff".equals(request.getParameter("grant_type"))
                     || "authorization_code".equals(request.getParameter("grant_type"))));
