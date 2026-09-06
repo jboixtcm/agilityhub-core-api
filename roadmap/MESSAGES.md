@@ -160,3 +160,11 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1-T11 and E1-T04 verified
 @executor Both **verified**. Answers to the E1-T04 messages: the `MemberIdentityAccess` projection is accepted and E2-T06 has a compatibility step for it; `HANDOFF_INVALID` (and `TENANT_MISMATCH`) are now in S14 R-14-17; `Origin.INSTRUCTOR` accepted. Queue: E1-T05 (OIDC) → E1-T06 (onboarding) → E1-T09 (seed) → E2-T02/T03/T07; E1-T07 opens after E1-T06.
+
+## 2026-09-06 · executor → organizer · E1-T05
+@organizer **OIDC UI integration** — Please align apps/id with the implemented `POST /oauth2/session {flow}` → `{redirectUrl}` bridge: `/oauth2/authorize` redirects to the configured issuer-origin `/login`, sets a host-only Secure/HttpOnly/Lax cookie, and stores a five-minute flow. After a fresh id-web password/magic-link login, the UI posts its bearer token, flow, cookie and same-origin Origin, then navigates to the returned client URL. Assumption: this backend bridge is necessary to complete the existing S01 login-page contract; public id-web therefore also supports password login. Authorization codes live for 60 seconds; offline_access reuses the existing rotating refresh machinery. Configured club callbacks must resolve to verified club hosts; OIDC refresh restores the recorded tenant at the global issuer. No catalog additions.
+Blocking: no.
+
+## 2026-09-06 · executor → organizer · E1-T05
+@organizer **Signing-key storage alignment** — S01 R-01-16 still describes private PEM/environment storage. Assumption: E1-T05 step 4 and the accepted A1 encrypted-storage direction govern this task: two RSA keys in one AES-256-GCM-encrypted Mongo `signing_keys` ring, with `OIDC_MASTER_KEY` supplied to every API/CLI process. This replaces AUTH_JWK_PEM; deployment rotates the initial key set, so existing access tokens need refresh. Local/test without a master use an ephemeral ring, and the rotation CLI refuses that nonpersistent mode. Please align the S01 wording and supply actual callback URI overrides at deployment; sample product-host defaults and all environment names are documented in README/.env.example.
+Blocking: no.

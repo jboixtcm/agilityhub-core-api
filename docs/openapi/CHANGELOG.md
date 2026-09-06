@@ -2,6 +2,20 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-06 · E1-T05 · OIDC implementation
+
+- `GET /.well-known/openid-configuration`: active discovery metadata and public 60-second cache policy.
+- `GET /.well-known/jwks.json`, `GET /oauth2/jwks`: two public RSA keys with `kid`, `use`, `alg`; same cache policy.
+- `GET /oauth2/authorize`: active cookie-bound login/code flow; optional `nonce` and `max_age`, conditional S256 PKCE for public clients, prompt and UI hints.
+- `POST /oauth2/session`: new apps/id continuation contract `{flow}` → `{redirectUrl}`, requiring the flow cookie, same-origin Origin, and a fresh global id-web bearer login. Rotates the host-only Secure/HttpOnly/Lax session cookie.
+- `POST /oauth2/token`: authorization-code and confidential-client grants are active; ID tokens follow `openid`, exposed refresh tokens follow `offline_access`; refresh may preserve or narrow scopes.
+- `GET /oauth2/userinfo`: active openid-scoped account claims, with profile/email/memberships scope filtering.
+- `GET /connect/logout`: active signed ID-token hint validation, exact registered post-logout URI, optional `state`, and browser-cookie revocation.
+
+The existing catalog envelope is retained; protocol validation reasons use
+`VALIDATION_ERROR.details.oauth2Error`. See README for apps/id integration and
+configuration, including the migration from environment PEM to encrypted Mongo keys.
+
 ## 2026-09-06 · E1-T11 · Required properties by default
 
 All Java model properties are required unless explicitly optional (`Optional`, Spring/JSpecify

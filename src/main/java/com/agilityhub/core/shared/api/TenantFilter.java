@@ -37,14 +37,14 @@ public class TenantFilter extends OncePerRequestFilter {
             String path = request.getRequestURI().substring(request.getContextPath().length());
             boolean global = path.equals("/webhooks/email/sendgrid") || path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json") || path.equals("/api/v1/openapi.json") || path.startsWith("/actuator/") || path.equals("/api/v1/health") || path.equals("/api/v1/platform") || path.startsWith("/api/v1/platform/");
             global = global || path.equals("/.well-known/openid-configuration") || path.equals("/oauth2/authorize")
-                    || path.equals("/connect/logout") || path.matches("/api/v1/accounts/[^/]+/(password|erasure)")
+                    || path.equals("/connect/logout") || path.equals("/oauth2/session") || path.matches("/api/v1/accounts/[^/]+/(password|erasure)")
                     || path.matches("/api/v1/public/[^/]+/plans");
             boolean accountRoute = path.equals("/api/v1/me") || path.equals("/api/v1/me/password")
                     || path.equals("/api/v1/me/sessions") || path.matches("/api/v1/me/sessions/[^/]+")
                     || path.equals("/api/v1/me/onboarding") || path.equals("/api/v1/me/onboarding/postpone")
                     || path.equals("/oauth2/revoke") || path.equals("/oauth2/userinfo");
-            boolean globalRefresh = path.equals("/oauth2/token") && "refresh_token".equals(request.getParameter("grant_type"))
-                    && "id-web".equals(request.getParameter("client_id")) && identityHost != null && identityHost.equalsIgnoreCase(request.getHeader("Host"));
+            boolean globalRefresh = path.equals("/oauth2/token") && ("refresh_token".equals(request.getParameter("grant_type")) || java.util.Set.of("id-web", "learn", "ar-app").contains(java.util.Objects.toString(request.getParameter("client_id"), ""))
+                        || java.util.Objects.toString(request.getHeader("Authorization"), "").startsWith("Basic ")) && identityHost != null && identityHost.equalsIgnoreCase(request.getHeader("Host"));
             boolean optionalHost = globalRefresh || path.equals("/api/v1/auth/magic-link") || (path.equals("/oauth2/token")
                     && ("urn:agilityhub:grant:magic-link".equals(request.getParameter("grant_type"))
                     || "urn:agilityhub:grant:handoff".equals(request.getParameter("grant_type"))

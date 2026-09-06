@@ -3684,6 +3684,25 @@
         "required" : [ "amount", "date" ],
         "type" : "object"
       },
+      "OidcSessionRequest" : {
+        "properties" : {
+          "flow" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "flow" ],
+        "type" : "object"
+      },
+      "OidcSessionResponse" : {
+        "properties" : {
+          "redirectUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "redirectUrl" ],
+        "type" : "object"
+      },
       "OnboardingField" : {
         "properties" : {
           "key" : {
@@ -5916,7 +5935,7 @@
     },
     "/.well-known/openid-configuration" : {
       "get" : {
-        "description" : "ANON. R-01-11; implemented in E1-T05.",
+        "description" : "ANON. Global OIDC provider metadata. R-01-11.",
         "operationId" : "discovery",
         "responses" : {
           "200" : {
@@ -27011,6 +27030,13 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "in" : "query",
+          "name" : "state",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "302" : {
@@ -27148,7 +27174,7 @@
         "parameters" : [ {
           "in" : "query",
           "name" : "response_type",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "enum" : [ "code" ],
             "type" : "string"
@@ -27156,42 +27182,42 @@
         }, {
           "in" : "query",
           "name" : "client_id",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
           "in" : "query",
           "name" : "redirect_uri",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
           "in" : "query",
           "name" : "scope",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
           "in" : "query",
           "name" : "state",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
           "in" : "query",
           "name" : "code_challenge",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "type" : "string"
           }
         }, {
           "in" : "query",
           "name" : "code_challenge_method",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "enum" : [ "S256" ],
             "type" : "string"
@@ -27216,6 +27242,21 @@
           "required" : false,
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "nonce",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "max_age",
+          "required" : false,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
           }
         } ],
         "responses" : {
@@ -27629,9 +27670,158 @@
         "tags" : [ "identity" ]
       }
     },
+    "/oauth2/session" : {
+      "post" : {
+        "description" : "Global id-web bearer token, matching flow cookie and same-origin Origin required. The UI navigates to redirectUrl after this POST; no bearer token is put in a URL.",
+        "operationId" : "session",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OidcSessionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OidcSessionResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Resume a browser authorization after apps/id login",
+        "tags" : [ "identity" ]
+      }
+    },
     "/oauth2/token" : {
       "post" : {
-        "description" : "ANON with client authentication. Club context comes from the host, never request data. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants and confidential clients follow in E1-T05. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
+        "description" : "ANON with client authentication. Club context comes from the host, never request data. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
         "operationId" : "token",
         "requestBody" : {
           "content" : {

@@ -21,6 +21,20 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: local
       SERVER_PORT: ${SERVER_PORT:-8080}
+      AUTH_ISSUER: ${AUTH_ISSUER:-https://id.agilitydoghub.com}
+      OIDC_MASTER_KEY: ${OIDC_MASTER_KEY:-}
+      OIDC_LEARN_CLIENT_SECRET: ${OIDC_LEARN_CLIENT_SECRET:-}
+      OIDC_LOGIN_URL: ${OIDC_LOGIN_URL:-https://id.agilitydoghub.com/login}
+      OIDC_CLUBS_APP_REDIRECT_URI: ${OIDC_CLUBS_APP_REDIRECT_URI:-https://clubs.agilitydoghub.com/oidc/callback}
+      OIDC_CLUBS_APP_LOGOUT_URI: ${OIDC_CLUBS_APP_LOGOUT_URI:-https://clubs.agilitydoghub.com/}
+      OIDC_CLUBS_ADMIN_REDIRECT_URI: ${OIDC_CLUBS_ADMIN_REDIRECT_URI:-https://clubsadmin.agilitydoghub.com/oidc/callback}
+      OIDC_CLUBS_ADMIN_LOGOUT_URI: ${OIDC_CLUBS_ADMIN_LOGOUT_URI:-https://clubsadmin.agilitydoghub.com/}
+      OIDC_ID_WEB_REDIRECT_URI: ${OIDC_ID_WEB_REDIRECT_URI:-https://id.agilitydoghub.com/oidc/callback}
+      OIDC_ID_WEB_LOGOUT_URI: ${OIDC_ID_WEB_LOGOUT_URI:-https://id.agilitydoghub.com/}
+      OIDC_AR_APP_REDIRECT_URI: ${OIDC_AR_APP_REDIRECT_URI:-https://ar.agilitydoghub.com/oidc/callback}
+      OIDC_AR_APP_LOGOUT_URI: ${OIDC_AR_APP_LOGOUT_URI:-https://ar.agilitydoghub.com/}
+      OIDC_LEARN_REDIRECT_URI: ${OIDC_LEARN_REDIRECT_URI:-https://learn.agilitydoghub.com/oidc/callback}
+      OIDC_LEARN_LOGOUT_URI: ${OIDC_LEARN_LOGOUT_URI:-https://learn.agilitydoghub.com/}
       MONGODB_HOST: mongo
       MONGODB_PORT: 27017
       MONGODB_DATABASE: ${MONGODB_DATABASE:-agilityhub}

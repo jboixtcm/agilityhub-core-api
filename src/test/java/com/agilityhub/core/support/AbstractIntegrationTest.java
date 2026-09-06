@@ -18,6 +18,7 @@ public abstract class AbstractIntegrationTest {
 
     // Singleton lifecycle: no @Container, which would stop Mongo after each subclass.
     // Testcontainers' Ryuk cleans up when the test JVM exits.
+    protected static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
     protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
 
     static {
@@ -32,6 +33,7 @@ public abstract class AbstractIntegrationTest {
 
     @DynamicPropertySource
     static void mongoProperties(DynamicPropertyRegistry registry) {
+        registry.add("core.oidc.master-key", () -> OIDC_MASTER);
         registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("agilityhub_test"));
     }
 

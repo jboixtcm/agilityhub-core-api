@@ -18,6 +18,10 @@ public class AccountSessionRepository extends GlobalRepository<RefreshToken> {
         return mongo.find(Query.query(RefreshTokenRepository.active(accountId, now).and("tokenFamilyVersion").is(version))
                 .with(Sort.by(Sort.Direction.ASC, "createdAt", "_id")), RefreshToken.class);
     }
+    public java.util.Optional<RefreshToken> oidcRefresh(String tokenHash, String clientId) {
+        return java.util.Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("tokenHash").is(tokenHash)
+                .and("clientId").is(clientId).and("oidc").is(true)), RefreshToken.class));
+    }
     public void revokeFamily(String accountId, String familyId, Instant now) {
         mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("familyId").is(familyId)),
                 RefreshTokenRepository.revoked(now), RefreshToken.class);

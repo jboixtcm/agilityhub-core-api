@@ -12,10 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"test", "prod"})
 class SecurityHeadersIT extends IdentityIntegrationSupport {
     @DynamicPropertySource static void productionProperties(DynamicPropertyRegistry registry) throws Exception {
-        var key = new RSAKeyGenerator(2048).generate().toPrivateKey();
-        String pem = "-----BEGIN PRIVATE KEY-----\n" + Base64.getMimeEncoder(64, new byte[]{10})
-                .encodeToString(key.getEncoded()) + "\n-----END PRIVATE KEY-----";
-        registry.add("identity.jwk-pem", () -> pem);
+        registry.add("OIDC_LEARN_CLIENT_SECRET", () -> java.util.UUID.randomUUID().toString());
         var emailKeys = java.security.KeyPairGenerator.getInstance("EC");
         emailKeys.initialize(256);
         String webhookKey = Base64.getEncoder().encodeToString(emailKeys.generateKeyPair().getPublic().getEncoded());

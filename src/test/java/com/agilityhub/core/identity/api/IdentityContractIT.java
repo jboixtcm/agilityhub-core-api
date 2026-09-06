@@ -20,7 +20,6 @@ class IdentityContractIT extends IdentityIntegrationSupport {
     record Endpoint(String method, String path, String body, String authority, boolean clubRequired) { }
     static Stream<Endpoint> accountEndpoints() {
         return Stream.of(
-                new Endpoint("GET", "/oauth2/userinfo", null, "SCOPE_openid", false),
                 new Endpoint("GET", "/api/v1/me/onboarding", null, "ROLE_MEMBER", false),
                 new Endpoint("PUT", "/api/v1/me/onboarding", "{\"consentAccepted\":true,\"consentVersion\":\"v1\"}", "ROLE_MEMBER", false),
                 new Endpoint("POST", "/api/v1/me/onboarding/postpone", null, "ROLE_MEMBER", false),
@@ -66,12 +65,12 @@ class IdentityContractIT extends IdentityIntegrationSupport {
     }
 
     @ParameterizedTest @ValueSource(strings = {"authorization_code"})
-    void T_01_24_pendingGrantsReachThe501ContractWithoutChangingExistingGrants(String grant) throws Exception {
+    void T_01_13_invalidAuthorizationCodeIsRejectedWithoutChangingExistingGrants(String grant) throws Exception {
         for (String host : List.of(HOST, "id.example.test")) {
             mvc.perform(post("/oauth2/token").header("Host", host).contentType("application/x-www-form-urlencoded")
                             .param("grant_type", grant).param("client_id", "id-web").param("token", "fictional")
                             .param("code", "fictional").param("code_verifier", "fictional").param("redirect_uri", "https://id.example.test/callback"))
-                    .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         }
     }
 
@@ -117,13 +116,12 @@ class IdentityContractIT extends IdentityIntegrationSupport {
     }
 
     @Test void T_01_13_oidcContractsAreGlobalAndUserInfoRequiresOpenIdScope() throws Exception {
-        for (var request : List.of(get("/.well-known/openid-configuration"),
-                get("/connect/logout").param("id_token_hint", "fictional").param("post_logout_redirect_uri", "https://id.example.test"),
+        for (var request : List.of(get("/connect/logout").param("id_token_hint", "fictional").param("post_logout_redirect_uri", "https://id.example.test"),
                 get("/oauth2/authorize").param("response_type", "code").param("client_id", "id-web")
                         .param("redirect_uri", "https://id.example.test/callback").param("scope", "openid")
                         .param("state", "fictional").param("code_challenge", "fictional").param("code_challenge_method", "S256"))) {
             mvc.perform(request.header("Host", "id.example.test"))
-                    .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         }
         mvc.perform(get("/oauth2/authorize")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         mvc.perform(get("/oauth2/userinfo").with(jwt().authorities(new SimpleGrantedAuthority("ROLE_MEMBER"))))
@@ -180,6 +178,6 @@ class IdentityContractIT extends IdentityIntegrationSupport {
                         .contentType("application/json").content("{\"email\":\"new@example.test\",\"name\":\"Example\",\"locale\":\"en\"}"))
                 .andExpect(status().isNotImplemented());
         mvc.perform(get("/oauth2/userinfo").header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isOk()).andExpect(jsonPath("$.sub").value("account-a"));
     }
 }

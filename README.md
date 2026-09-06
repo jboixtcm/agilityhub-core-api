@@ -206,29 +206,26 @@ length/pattern and mod-97 checks, based on the SWIFT registry; see its
 
 ## Auth for local development
 
-E0 supports `POST /oauth2/token` with `password` and `refresh_token`, public
-`GET /oauth2/jwks` (also `/.well-known/jwks.json`), and authenticated
-`GET /api/v1/me`. Spring Authorization Server supplies the token endpoint,
-grant converter/provider integration, response handler, and JWKS filters.
-The first-party public clients are `clubs-app` and `clubs-admin`; omitted
-`client_id` defaults to `clubs-app` for the local/task curl contract. Other
-clients and scopes are rejected until the E1 client-registration/OIDC work.
+`POST /oauth2/token` supports password, magic-link, handoff, authorization-code
+and rotating refresh grants through Spring Authorization Server's token filter
+and custom grant provider. OAuth failures use the localized
+`{code,message,details,traceId}` contract; standard OAuth error reasons are exposed
+as `details.oauth2Error` under the existing `VALIDATION_ERROR` catalog code.
+Omitted `client_id` retains the development compatibility default `clubs-app`.
 
-First create a club with a verified host (club-as-code arrives in E0-T10).
-Then seed accounts for its slug; the temporary ApplicationRunner runs during
-startup and leaves the local API running:
+First create a club with a verified host using `bin/core club:apply`.
+Then seed fictional accounts for its slug:
 
 ```sh
 export SEED_PASSWORD='<choose a local test password>'
-./mvnw -q spring-boot:run -Dspring-boot.run.arguments='identity:seed-test-accounts --club=<existing-slug>'
+bin/core identity:seed-test-accounts --club=<existing-slug>
 ```
 
 Only `local`/`test` expose this command. It creates `admin@example.test`,
 `instructor@example.test`, and `member@example.test` with argon2id passwords;
 repeat runs preserve existing credentials and memberships. Admin/instructor
 memberships also have `MEMBER`. Member IDs remain empty pending census setup.
-`SEED_PASSWORD` has no default and is never printed. The CLI dispatcher will
-replace this temporary runner in E0-T10.
+`SEED_PASSWORD` has no default and is never printed.
 
 ```sh
 curl -s localhost:8080/oauth2/token \
@@ -244,7 +241,7 @@ curl -s localhost:8080/oauth2/token \
 ```
 
 Set `ACCESS_TOKEN` and `REFRESH_TOKEN` from the sign-in response. Access JWTs
-expire after 15 minutes, use RS256 with a public-key thumbprint `kid`, and
+expire after 15 minutes, use RS256 with a rotating `kid`, and
 carry account/tenant/role/profile/locale claims. `/me` selects explicit public
 fields and rechecks the current account and membership. A known different
 host returns `TENANT_MISMATCH`; an unknown gateway host retains the existing
@@ -252,16 +249,86 @@ JWT tenant fallback. `X-Club-Host` is accepted only under `local`.
 
 Refresh tokens contain 32 random bytes; Mongo stores only SHA-256 hashes.
 Each use atomically consumes and replaces the token within a Mongo transaction.
-Reusing a rotated token revokes its family. The initial expiry uses the catalog
-parameter `auth.sessionDays`; rotations retain that expiry. Sliding sessions,
-lockout policy, full OIDC and impersonation remain E1 work.
+Reusing a rotated token revokes its family. The sliding expiry uses the catalog
+parameter `auth.sessionDays`. Refresh preserves authorized scopes, or narrows them when `scope` is supplied;
+it never elevates them. OIDC refresh tokens restore their recorded club at the
+global issuer endpoint; an explicit mismatching tenant is still rejected. Missing/invalid access tokens return 401.
 
-`AUTH_JWK_PEM` supplies the RSA private key through the deployment environment.
-The key must be at least 2048 bits; production/staging startup fails without it.
-Local/test generate an ephemeral key when unset, so restarting invalidates old
-access JWTs. `AUTH_ISSUER` defaults to the S01 issuer. JWKS exposes public fields
-only. OAuth failures use the same localized `{code,message,details,traceId}`
-contract as API errors. Missing/invalid access tokens return 401.
+## OIDC provider (E1-T05)
+
+Discovery is `/.well-known/openid-configuration`; JWKS is
+`/.well-known/jwks.json` (`/oauth2/jwks` is an alias). Both are global and return
+`Cache-Control: max-age=60, public`. The issuer defaults to
+`https://id.agilitydoghub.com`. This implementation extends the existing
+[Spring Authorization Server token endpoint](https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html)
+with the repository's Mongo transactions, session rotation and error envelope.
+
+`core.oidc.clients[]` in `application.yml` is the authoritative registration list:
+
+| Client | Authentication | Scopes | Grants |
+|---|---|---|---|
+| `clubs-app`, `clubs-admin` | Public; S256 PKCE required | `openid profile email memberships offline_access` | code, password, magic-link, handoff, refresh |
+| `id-web` | Public; S256 PKCE required | same | code, password, magic-link, refresh |
+| `ar-app` | Public; S256 PKCE required | same | code, refresh |
+| `learn` | bcrypt-verified secret, form or HTTP Basic | same plus `accounts:write` | code, password, refresh |
+
+Secrets come from `OIDC_LEARN_CLIENT_SECRET`. Missing local/test Learn secrets
+produce an inaccessible random credential; staging/prod refuse startup.
+Redirect and logout URI placeholders are listed in `.env.example`. Multiple
+exact URLs can be configured in each client's arrays; no wildcards are accepted.
+For a club client, the registered callback host must resolve to a verified club
+domain; membership is checked before issuing its tenant token. Product clients
+use global identity tokens. No dynamic client-registration endpoint is exposed.
+
+The `apps/id` UI integration is:
+
+1. Navigate to `/oauth2/authorize` with `response_type=code`, `client_id`, exact
+   `redirect_uri`, `scope` containing `openid`, `state`, optional `nonce`, and an
+   S256 challenge (required for public clients). `prompt`, `max_age`, `login_hint`
+   and `ui_locales` are supported. First-party consent is skipped.
+2. If login is needed, the server stores a five-minute request and redirects to
+   `OIDC_LOGIN_URL?flow=…&client_id=…`, preserving UI hints. The flow is bound to
+   the `__Host-agilityhub-id` cookie (`Secure; HttpOnly; SameSite=Lax; Path=/`, no
+   Domain). The login page must be served on the issuer's HTTPS origin.
+3. Login with the `id-web` password or magic-link grant. POST `/oauth2/session`
+   with `{flow}`, that global bearer token, the flow cookie and the issuer
+   `Origin`. The token must represent a login at least as recent as the request;
+   refresh alone does not count as reauthentication. The response rotates the
+   cookie and returns `{redirectUrl}` for the UI to navigate to the client.
+4. Exchange the returned code at `/oauth2/token` with the same client/URI and
+   `code_verifier`. Codes are single-use, expire after 60 seconds, and Mongo
+   stores their hashes. The transaction issues `access_token` and `id_token`;
+   `offline_access` additionally returns the existing rotating refresh token.
+   ID tokens include issuer, audience, subject, nonce, auth_time and at_hash;
+   they cannot be used as API bearer tokens.
+5. `/oauth2/userinfo` requires `openid`; `profile`, `email` and `memberships`
+   release only their corresponding claims. Memberships are restricted to the
+   authenticated account's ACTIVE memberships. `GET /connect/logout` validates
+   the signed ID-token hint and exact registered post-logout URI, removes the
+   browser session and expires its cookie; optional `state` is returned.
+
+Set `OIDC_MASTER_KEY` to base64-encoded 32 random bytes for AES-256-GCM encryption
+of the two RSA private keys in Mongo `signing_keys`. All API and CLI processes
+must share it. Without it, local/test use an ephemeral ring and do not persist
+keys; staging/prod refuse startup. Back up the master key independently of Mongo.
+`AUTH_JWK_PEM` is replaced by this persisted key ring; deploying this task changes
+the signing keys once and requires existing sessions to refresh their access JWTs.
+
+```sh
+bin/core identity:rotate-keys
+bin/oidc-smoke
+```
+
+The rotation command requires a persistent ring (`OIDC_MASTER_KEY`).
+Rotation atomically publishes a new signing key, retains the previous verification
+key, and refuses another rotation for 15 minutes so existing tokens can expire.
+API processes read the shared ring when signing and verifying; no restart is needed.
+The smoke script uses `OIDC_SMOKE_PASSWORD` (or `SEED_PASSWORD`) and a fictional
+local account, defaults to `http://127.0.0.1:8080`, and never prints credentials,
+codes, cookies or tokens. It simulates the HTTPS issuer Host over the local socket;
+browsers require real HTTPS for the Secure cookie. The script prints discovery,
+checks PKCE rejection, login/code exchange, userinfo, replay rejection and logout.
+
 
 Password verification accepts Learn bcrypt `$2y$`, `$2a$`, `$2b$` hashes.
 New hashes use the [OWASP argon2id minimum](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)

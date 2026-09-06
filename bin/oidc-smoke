@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""Exercise OIDC on a local API using a fictional account; never print capabilities."""
+import base64
+import hashlib
+import http.cookies
+import json
+import os
+import secrets
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+base = os.environ.get("OIDC_SMOKE_BASE_URL", "http://127.0.0.1:8080").rstrip("/")
+parsed_base = urllib.parse.urlsplit(base)
+if parsed_base.hostname not in ("127.0.0.1", "localhost", "::1"):
+    sys.exit("oidc-smoke requires a loopback local API URL")
+password = os.environ.get("OIDC_SMOKE_PASSWORD") or os.environ.get("SEED_PASSWORD")
+email = os.environ.get("OIDC_SMOKE_EMAIL", "admin@example.test")
+if not password or not email.endswith("@example.test"):
+    sys.exit("Set OIDC_SMOKE_PASSWORD (or SEED_PASSWORD) and a fictional @example.test account")
+opener = urllib.request.build_opener(NoRedirect)
+cookie = None
+issuer = None
+
+def call(path, expected, *, form=None, body=None, access=None, use_cookie=False, origin=False):
+    global cookie
+    headers = {}
+    if issuer:
+        headers["Host"] = urllib.parse.urlsplit(issuer).netloc
+    if origin:
+        headers["Origin"] = issuer
+    if access:
+        headers["Authorization"] = "Bearer " + access
+    if use_cookie and cookie:
+        headers["Cookie"] = cookie
+    data = None
+    if form is not None:
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+        data = urllib.parse.urlencode(form).encode()
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+        data = json.dumps(body).encode()
+    request = urllib.request.Request(base + path, data=data, headers=headers)
+    try:
+        response = opener.open(request, timeout=15)
+    except urllib.error.HTTPError as error:
+        response = error
+    if response.status != expected:
+        # Response bodies can contain bearer material; report only status and path.
+        raise AssertionError(f"{path.split('?')[0]}: expected {expected}, got {response.status}")
+    value = response.headers.get("Set-Cookie")
+    if value:
+        cookies = http.cookies.SimpleCookie(value)
+        item = cookies.get("__Host-agilityhub-id")
+        if item:
+            cookie = f"{item.key}={item.value}"
+    raw = response.read()
+    return (json.loads(raw) if raw else None), response.headers
+
+def query(path, params):
+    return path + "?" + urllib.parse.urlencode(params)
+
+def jwt_payload(value):
+    part = value.split(".")[1]
+    return json.loads(base64.urlsafe_b64decode(part + "=" * (-len(part) % 4)))
+
+try:
+    discovery, _ = call("/.well-known/openid-configuration", 200)
+    issuer = discovery["issuer"]
+    assert discovery["code_challenge_methods_supported"] == ["S256"]
+    print("Discovery document:")
+    print(json.dumps(discovery, indent=2, sort_keys=True))
+    print("PASS discovery metadata")
+    redirect = os.environ.get("OIDC_ID_WEB_REDIRECT_URI", issuer + "/oidc/callback")
+    verifier = secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+    nonce, state = secrets.token_urlsafe(16), secrets.token_urlsafe(16)
+    params = dict(response_type="code", client_id="id-web", redirect_uri=redirect,
+                  scope="openid profile email memberships offline_access", state=state, nonce=nonce)
+    invalid, _ = call(query("/oauth2/authorize", params), 400)
+    assert invalid["code"] == "VALIDATION_ERROR"
+    print("PASS public authorization rejects missing PKCE")
+    params.update(code_challenge=challenge, code_challenge_method="S256", ui_locales="en", login_hint=email)
+    _, headers = call(query("/oauth2/authorize", params), 302)
+    assert all(flag in headers["Set-Cookie"] for flag in ["Secure", "HttpOnly", "SameSite=Lax"])
+    flow = urllib.parse.parse_qs(urllib.parse.urlsplit(headers["Location"]).query)["flow"][0]
+    login, _ = call("/oauth2/token", 200, form=dict(grant_type="password", client_id="id-web", username=email, password=password))
+    continuation, _ = call("/oauth2/session", 200, body={"flow": flow}, access=login["access_token"], use_cookie=True, origin=True)
+    callback = urllib.parse.parse_qs(urllib.parse.urlsplit(continuation["redirectUrl"]).query)
+    assert callback["state"] == [state]
+    code = callback["code"][0]
+    print("PASS cookie-bound login continuation and state")
+    form = dict(grant_type="authorization_code", client_id="id-web", redirect_uri=redirect, code=code, code_verifier=verifier)
+    result, _ = call("/oauth2/token", 200, form=form)
+    claims = jwt_payload(result["id_token"])
+    assert claims["nonce"] == nonce and claims["iss"] == issuer and claims["aud"] in ("id-web", ["id-web"])
+    info, _ = call("/oauth2/userinfo", 200, access=result["access_token"])
+    assert info["sub"] == claims["sub"] and info["email"] == email and "memberships" in info
+    print("PASS code exchange, ID-token claims and scoped userinfo")
+    call("/oauth2/token", 400, form=form)
+    print("PASS authorization code replay rejected")
+    logout_uri = os.environ.get("OIDC_ID_WEB_LOGOUT_URI", issuer + "/")
+    _, headers = call(query("/connect/logout", dict(id_token_hint=result["id_token"], post_logout_redirect_uri=logout_uri)), 302, use_cookie=True)
+    assert headers["Location"] == logout_uri and "Max-Age=0" in headers["Set-Cookie"]
+    params["prompt"] = "none"
+    _, headers = call(query("/oauth2/authorize", params), 302, use_cookie=True)
+    assert "error=login_required" in headers["Location"]
+    print("PASS RP logout removes browser SSO session")
+    print("OIDC smoke passed (no credentials, codes, cookies or tokens printed).")
+except (AssertionError, KeyError, ValueError, urllib.error.URLError) as error:
+    print(f"OIDC smoke failed: {error if isinstance(error, AssertionError) else type(error).__name__}", file=sys.stderr)
+    sys.exit(1)

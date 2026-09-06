@@ -23,6 +23,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T05: OIDC discovery, S256 authorization-code flow, scoped userinfo and RP logout,
+  with cookie-bound apps/id login continuation and five configurable first-party clients.
+- AES-256-GCM encrypted Mongo signing-key ring and `identity:rotate-keys`, retaining
+  the previous RSA verification key; code/session/rotation tests and `bin/oidc-smoke`.
+
 - E1-T04: Tenant-bound impersonation grants with member-only JWTs, no refresh tokens,
   live grant validation, revocation events, and admin/member attribution on audited writes.
 - Single-use 60-second app handoff codes, stored as hashes and bound to the account,

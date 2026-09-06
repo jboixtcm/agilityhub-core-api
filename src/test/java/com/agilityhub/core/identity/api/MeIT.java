@@ -100,7 +100,7 @@ class MeIT extends IdentityIntegrationSupport {
                     .andExpect(jsonPath("$.keys[0].kid").isNotEmpty()).andExpect(jsonPath("$.keys[0].n").isNotEmpty())
                     .andExpect(jsonPath("$.keys[0].d").doesNotExist()).andExpect(jsonPath("$.keys[0].p").doesNotExist())
                     .andReturn().getResponse().getContentAsString();
-            assertThat(mapper.readTree(response).get("keys").get(0).fieldNames()).toIterable().containsExactlyInAnyOrder("kty", "kid", "n", "e");
+            assertThat(mapper.readTree(response).get("keys").get(0).fieldNames()).toIterable().containsExactlyInAnyOrder("kty", "kid", "n", "e", "use", "alg");
         }
     }
 }

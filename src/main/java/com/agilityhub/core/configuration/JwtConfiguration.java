@@ -1,53 +1,44 @@
 package com.agilityhub.core.configuration;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.agilityhub.core.identity.application.SigningKeys;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 
 @Configuration(proxyBeanMethods = false)
 public class JwtConfiguration {
-    @Bean RSAKey signingKey(@Value("${identity.jwk-pem:}") String pem, Environment environment) throws Exception {
-        RSAKey key;
-        if (pem.isBlank()) {
-            if (!environment.acceptsProfiles(Profiles.of("local", "test"))
-                    || environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
-                throw new IllegalStateException("AUTH_JWK_PEM is required outside local/test");
-            }
-            key = new RSAKeyGenerator(2048).generate();
-        } else {
-            JWK parsed = JWK.parseFromPEMEncodedObjects(pem);
-            if (!(parsed instanceof RSAKey rsa) || !rsa.isPrivate() || rsa.size() < 2048) {
-                throw new IllegalStateException("AUTH_JWK_PEM must contain an RSA private key of at least 2048 bits");
-            }
-            key = rsa;
-        }
-        return new RSAKey.Builder(key).keyID(key.computeThumbprint().toString()).build();
+    @Bean JWKSource<SecurityContext> jwkSource(SigningKeys keys) {
+        return (selector, context) -> selector.select(keys.publicKeys());
     }
-    @Bean JWKSource<SecurityContext> jwkSource(RSAKey key) { return new ImmutableJWKSet<>(new JWKSet(key)); }
-    @Bean JwtEncoder jwtEncoder(JWKSource<SecurityContext> keys) { return new NimbusJwtEncoder(keys); }
-    @Bean JwtDecoder jwtDecoder(RSAKey key, Clock clock, @Value("${identity.issuer}") String issuer) throws Exception {
-        var decoder = NimbusJwtDecoder.withPublicKey(key.toRSAPublicKey()).build();
+    @Bean JwtEncoder jwtEncoder(SigningKeys keys) {
+        return parameters -> {
+            var key = keys.current();
+            var encoder = new NimbusJwtEncoder(new com.nimbusds.jose.jwk.source.ImmutableJWKSet<>(new com.nimbusds.jose.jwk.JWKSet(key)));
+            var header = parameters.getJwsHeader() == null
+                    ? JwsHeader.with(org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256)
+                    : JwsHeader.from(parameters.getJwsHeader());
+            return encoder.encode(JwtEncoderParameters.from(header.keyId(key.getKeyID()).build(), parameters.getClaims()));
+        };
+    }
+    @Bean JwtDecoder jwtDecoder(JWKSource<SecurityContext> keys, Clock clock, RegisteredClientRepository clients,
+                                 @Value("${identity.issuer}") String issuer) {
+        var processor = new com.nimbusds.jwt.proc.DefaultJWTProcessor<SecurityContext>();
+        processor.setJWSKeySelector(new com.nimbusds.jose.proc.JWSVerificationKeySelector<>(com.nimbusds.jose.JWSAlgorithm.RS256, keys));
+        // The injected Clock, issuer and audience validator below own claim validation.
+        processor.setJWTClaimsSetVerifier((claims, context) -> { });
+        var decoder = new NimbusJwtDecoder(processor);
         var timestamps = new JwtTimestampValidator(Duration.ZERO);
         timestamps.setClock(clock);
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(timestamps, new JwtIssuerValidator(issuer), jwt -> {
-            boolean valid = jwt.getExpiresAt() != null && jwt.getExpiresAt().isAfter(clock.instant()) && jwt.getSubject() != null
-                    && jwt.getAudience().stream().anyMatch(Set.of("clubs-app", "clubs-admin", "id-web")::contains);
+            boolean valid = !"id".equals(jwt.getClaimAsString("token_use")) && jwt.getExpiresAt() != null && jwt.getExpiresAt().isAfter(clock.instant()) && jwt.getSubject() != null
+                    && jwt.getAudience().stream().anyMatch(id -> clients.findByClientId(id) != null);
             return valid ? OAuth2TokenValidatorResult.success()
                     : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token"));
         }));

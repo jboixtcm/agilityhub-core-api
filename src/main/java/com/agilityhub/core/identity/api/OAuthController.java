@@ -18,15 +18,19 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 public class OAuthController {
     private final com.agilityhub.core.identity.application.TokenService tokens;
     private final com.agilityhub.core.identity.application.ImpersonationService impersonations;
-    public OAuthController(com.agilityhub.core.identity.application.TokenService tokens, com.agilityhub.core.identity.application.ImpersonationService impersonations) {
-        this.tokens = tokens; this.impersonations = impersonations;
+    private final com.agilityhub.core.identity.application.OidcService oidc;
+    private final com.agilityhub.core.identity.application.SigningKeys keys;
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    public OAuthController(com.agilityhub.core.identity.application.TokenService tokens, com.agilityhub.core.identity.application.ImpersonationService impersonations,
+            com.agilityhub.core.identity.application.OidcService oidc, com.agilityhub.core.identity.application.SigningKeys keys, com.fasterxml.jackson.databind.ObjectMapper mapper) {
+        this.oidc = oidc; this.keys = keys; this.mapper = mapper; this.tokens = tokens; this.impersonations = impersonations;
     }
     @PostMapping(value = "/oauth2/token", consumes = "application/x-www-form-urlencoded")
     @SecurityRequirements
     @Operation(operationId = "token", summary = "Issue tokens using an OAuth2 or AgilityHub grant",
             description = "ANON with client authentication. Club context comes from the host, never request data. "
                     + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
-                    + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants and confidential clients follow in E1-T05. "
+                    + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. "
                     + "client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(mediaType = "application/x-www-form-urlencoded", schema = @Schema(implementation = TokenRequest.class))),
@@ -48,9 +52,18 @@ public class OAuthController {
 
     @GetMapping("/.well-known/openid-configuration")
     @SecurityRequirements
-    @Operation(summary = "Discover the global OpenID provider", description = "ANON. R-01-11; implemented in E1-T05.",
+    @Operation(summary = "Discover the global OpenID provider", description = "ANON. Global OIDC provider metadata. R-01-11.",
             responses = @ApiResponse(responseCode = "200", description = "OIDC discovery metadata"))
-    public OpenIdConfiguration discovery() { throw new UnsupportedOperationException(); }
+    public ResponseEntity<OpenIdConfiguration> discovery() {
+        String issuer = oidc.issuer();
+        return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.maxAge(java.time.Duration.ofSeconds(60)).cachePublic())
+                .body(new OpenIdConfiguration(issuer, issuer + "/oauth2/authorize", issuer + "/oauth2/token",
+                issuer + "/oauth2/userinfo", issuer + "/.well-known/jwks.json", issuer + "/oauth2/revoke", issuer + "/connect/logout",
+                java.util.List.of("openid", "profile", "email", "memberships", "offline_access", "accounts:write"),
+                java.util.List.of("code"), java.util.List.of("authorization_code", "password", "refresh_token",
+                    "urn:agilityhub:grant:magic-link", "urn:agilityhub:grant:handoff"),
+                java.util.List.of("public"), java.util.List.of("RS256"), java.util.List.of("none", "client_secret_post", "client_secret_basic"), java.util.List.of("S256")));
+    }
 
     // Security filters serve these routes; MVC signatures provide the same typed public contract.
     @GetMapping("/.well-known/jwks.json")
@@ -58,14 +71,20 @@ public class OAuthController {
     @Operation(operationId = "wellKnownJwks", summary = "Get public JWT verification keys",
             description = "ANON, global. RSA public keys only; no private key material.",
             responses = @ApiResponse(responseCode = "200", description = "Public JWK set"))
-    public JwkSet wellKnownJwks() { throw new UnsupportedOperationException(); }
+    public ResponseEntity<JwkSet> wellKnownJwks() {
+        var publicKeys = keys.publicKeys().getKeys().stream().map(key -> {
+            var rsa = (com.nimbusds.jose.jwk.RSAKey) key;
+            return new PublicJwk("RSA", rsa.getKeyID(), "sig", "RS256", rsa.getModulus().toString(), rsa.getPublicExponent().toString());
+        }).toList();
+        return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.maxAge(java.time.Duration.ofSeconds(60)).cachePublic()).body(new JwkSet(publicKeys));
+    }
 
     @GetMapping("/oauth2/jwks")
     @SecurityRequirements
     @Operation(operationId = "jwks", summary = "Get public JWT verification keys",
             description = "ANON, global. Compatibility alias for /.well-known/jwks.json.",
             responses = @ApiResponse(responseCode = "200", description = "Public JWK set"))
-    public JwkSet jwks() { throw new UnsupportedOperationException(); }
+    public ResponseEntity<JwkSet> jwks() { return wellKnownJwks(); }
 
     @GetMapping("/oauth2/authorize")
     @SecurityRequirements
@@ -73,13 +92,48 @@ public class OAuthController {
             responses = {@ApiResponse(responseCode = "302", description = "Redirect to apps/id login or registered redirect_uri with code", content = @Content),
                     @ApiResponse(responseCode = "400", description = "Invalid request (VALIDATION_ERROR in the shared error envelope)")})
     public ResponseEntity<Void> authorize(
-            @RequestParam @Parameter(schema = @Schema(allowableValues = "code")) String response_type,
-            @RequestParam String client_id, @RequestParam String redirect_uri,
-            @RequestParam String scope, @RequestParam String state,
-            @RequestParam String code_challenge,
-            @RequestParam @Parameter(schema = @Schema(allowableValues = "S256")) String code_challenge_method,
+            @RequestParam(required = false) @Parameter(schema = @Schema(allowableValues = "code")) String response_type,
+            @RequestParam(required = false) String client_id, @RequestParam(required = false) String redirect_uri,
+            @RequestParam(required = false) String scope, @RequestParam(required = false) String state,
+            @RequestParam(required = false) String code_challenge,
+            @RequestParam(required = false) @Parameter(schema = @Schema(allowableValues = "S256")) String code_challenge_method,
             @RequestParam(required = false) String login_hint, @RequestParam(required = false) String ui_locales,
-            @RequestParam(required = false) String prompt) { throw new UnsupportedOperationException(); }
+            @RequestParam(required = false) String prompt, @RequestParam(required = false) String nonce,
+            @RequestParam(required = false) Long max_age, jakarta.servlet.http.HttpServletRequest request) {
+        java.util.Map<String, String> params = new java.util.HashMap<>();
+        request.getParameterMap().forEach((key, values) -> {
+            if (values.length != 1 || values[0].length() > 2048) { throw com.agilityhub.core.identity.application.OidcService.invalid("invalid_request"); }
+            params.put(key, values[0]);
+        });
+        var result = oidc.authorize(oidc.request(params), cookie(request));
+        var response = ResponseEntity.status(302).location(java.net.URI.create(result.url())).cacheControl(org.springframework.http.CacheControl.noStore());
+        if (result.cookie() != null) { response.header("Set-Cookie", sessionCookie(result.cookie(), oidc.sessionSeconds())); }
+        return response.build();
+    }
+
+    public record OidcSessionRequest(@jakarta.validation.constraints.NotBlank String flow) { }
+    public record OidcSessionResponse(String redirectUrl) { }
+    @PostMapping("/oauth2/session")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Resume a browser authorization after apps/id login",
+            description = "Global id-web bearer token, matching flow cookie and same-origin Origin required. "
+                    + "The UI navigates to redirectUrl after this POST; no bearer token is put in a URL.")
+    public ResponseEntity<OidcSessionResponse> session(@jakarta.validation.Valid @RequestBody OidcSessionRequest body,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt,
+            jakarta.servlet.http.HttpServletRequest request) {
+        var result = oidc.complete(body.flow(), cookie(request), jwt, request.getHeader("Origin"));
+        return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore())
+                .header("Set-Cookie", sessionCookie(result.cookie(), oidc.sessionSeconds())).body(new OidcSessionResponse(result.url()));
+    }
+    private static String cookie(jakarta.servlet.http.HttpServletRequest request) {
+        if (request.getCookies() == null) { return null; }
+        return java.util.Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals(com.agilityhub.core.identity.application.OidcService.COOKIE))
+                .map(jakarta.servlet.http.Cookie::getValue).findFirst().orElse(null);
+    }
+    private static String sessionCookie(String value, long seconds) {
+        return org.springframework.http.ResponseCookie.from(com.agilityhub.core.identity.application.OidcService.COOKIE, value)
+                .secure(true).httpOnly(true).sameSite("Lax").path("/").maxAge(seconds).build().toString();
+    }
 
     @PostMapping("/oauth2/revoke")
     @PreAuthorize("isAuthenticated()")
@@ -100,13 +154,20 @@ public class OAuthController {
     @Operation(summary = "Get account claims permitted by the token scopes",
             description = "Account token with openid scope; profile/email/memberships control the corresponding claims. R-01-11.",
             responses = @ApiResponse(responseCode = "200", description = "Scoped OIDC user claims"))
-    public UserInfo userinfo() { throw new UnsupportedOperationException(); }
+    public ResponseEntity<UserInfo> userinfo(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+        var scopes = java.util.Set.copyOf(java.util.Arrays.asList(java.util.Objects.toString(jwt.getClaimAsString("scope"), "").split(" +")));
+        return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore())
+                .body(mapper.convertValue(oidc.claims(jwt.getSubject(), scopes), UserInfo.class));
+    }
 
     @GetMapping("/connect/logout")
     @SecurityRequirements
     @Operation(summary = "End the OpenID provider session", description = "RP-initiated logout; validates the ID token hint and registered post-logout URI. R-01-11.",
             responses = @ApiResponse(responseCode = "302", description = "Redirect to registered post_logout_redirect_uri", content = @Content))
-    public ResponseEntity<Void> logout(@RequestParam String id_token_hint, @RequestParam String post_logout_redirect_uri) {
-        throw new UnsupportedOperationException();
+    public ResponseEntity<Void> logout(@RequestParam String id_token_hint, @RequestParam String post_logout_redirect_uri,
+            @RequestParam(required = false) String state, jakarta.servlet.http.HttpServletRequest request) {
+        String destination = oidc.logout(id_token_hint, post_logout_redirect_uri, state, cookie(request));
+        return ResponseEntity.status(302).location(java.net.URI.create(destination)).cacheControl(org.springframework.http.CacheControl.noStore())
+                .header("Set-Cookie", sessionCookie("", 0)).build();
     }
 }

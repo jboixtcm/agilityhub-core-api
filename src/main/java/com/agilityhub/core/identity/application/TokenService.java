@@ -54,6 +54,9 @@ public class TokenService {
     }
     public Tokens password(String email, String password, String clientId) { return password(email, password, clientId, null); }
     public Tokens password(String email, String password, String clientId, String userAgent) {
+        return password(email, password, clientId, userAgent, java.util.Set.of());
+    }
+    public Tokens password(String email, String password, String clientId, String userAgent, java.util.Set<String> scopes) {
         var authenticated = identities.authenticate(email, password);
         return transactions.run(() -> {
             var session = identities.current(authenticated.account().id());
@@ -61,7 +64,7 @@ public class TokenService {
             if (!java.util.Objects.equals(session.account().passwordHash(), authenticated.account().passwordHash())) {
                 throw new ApiException(ErrorCode.INVALID_CREDENTIALS);
             }
-            return login(session, clientId, userAgent);
+            return login(session, clientId, userAgent, scopes, false, null, clock.instant());
         });
     }
     public Tokens magicLink(String value, String clientId, String userAgent) {
@@ -86,6 +89,12 @@ public class TokenService {
     /** Called inside the handoff consumption transaction. */
     Tokens handoff(IdentityService.Session session, String clientId, String userAgent) { return login(session, clientId, userAgent); }
     private Tokens login(IdentityService.Session session, String clientId, String userAgent) {
+        return login(session, clientId, userAgent, java.util.Set.of(), false, null, clock.instant());
+    }
+    Tokens authorizationCode(IdentityService.Session session, String clientId, String userAgent, java.util.Set<String> scopes, String nonce, Instant authTime) {
+        return login(session, clientId, userAgent, scopes, true, nonce, authTime);
+    }
+    private Tokens login(IdentityService.Session session, String clientId, String userAgent, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime) {
         accounts.touchSessions(session.account().id());
         Instant now = clock.instant();
         var live = accountSessions.active(session.account().id(), session.account().familyVersion(), now);
@@ -95,12 +104,13 @@ public class TokenService {
             accountSessions.revokeFamily(session.account().id(), old.familyId(), now);
             revoked(session.account().id(), old.familyId(), old.clubId(), "LIMIT");
         }
-        Tokens tokens = issue(session, clientId, UUID.randomUUID().toString(), opaque(), null, device(userAgent), now, now);
+        Tokens tokens = issue(session, clientId, UUID.randomUUID().toString(), opaque(), null, device(userAgent), now, now, scopes, oidc, nonce, authTime);
         accounts.recordLogin(session.account().id(), clientId, now);
         if (session.membership() != null) { memberships.accessed(session.account().id(), now); }
         return tokens;
     }
-    public Tokens refresh(String value, String clientId) {
+    public Tokens refresh(String value, String clientId) { return refresh(value, clientId, null); }
+    public Tokens refresh(String value, String clientId, java.util.Set<String> requestedScopes) {
         Outcome outcome = transactions.run(() -> {
             Instant now = clock.instant();
             var old = refreshTokens.find(digest(value), clientId).orElseThrow(() -> new ApiException(ErrorCode.REFRESH_EXPIRED));
@@ -112,12 +122,13 @@ public class TokenService {
             var session = identities.current(old.accountId());
             if (old.revokedAt() != null || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             if (session.account().familyVersion() != old.tokenFamilyVersion()) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
+            if (requestedScopes != null && !old.scopes().containsAll(requestedScopes)) { throw OidcService.invalid("invalid_scope"); }
             String next = opaque();
             if (!refreshTokens.rotate(old.id(), digest(next), now)) {
                 refreshTokens.revokeFamily(old.familyId(), now);
                 return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
             }
-            return new Outcome(issue(session, clientId, old.familyId(), next, old.activeProfile(), old.deviceLabel(), old.createdAt(), now), null, old.accountId());
+            return new Outcome(issue(session, clientId, old.familyId(), next, old.activeProfile(), old.deviceLabel(), old.createdAt(), now, requestedScopes == null ? old.scopes() : requestedScopes, old.oidc(), old.nonce(), old.authTime()), null, old.accountId());
         });
         if (outcome.error() != null) {
             securityEvents.record(SecurityEvents.Type.REFRESH_TOKEN_REUSED, outcome.accountId(), TenantContext.current());
@@ -129,11 +140,11 @@ public class TokenService {
         return transactions.run(() -> {
             var session = identities.current(accountId);
             if (session.membership() == null || !session.membership().roles().contains(profile)) { throw new ApiException(ErrorCode.PROFILE_NOT_AVAILABLE); }
-            requireFamily(accountId, clientId, familyId, session.account().familyVersion());
+            var family = requireFamily(accountId, clientId, familyId, session.account().familyVersion());
             accounts.touchSessions(accountId);
             memberships.profile(accountId, profile, remember);
             refreshTokens.profile(accountId, familyId, profile);
-            return access(session, clientId, familyId, profile, clock.instant());
+            return access(session, clientId, familyId, profile, clock.instant(), family.scopes(), family.authTime());
         });
     }
     public RefreshToken requireFamily(String accountId, String clientId, String familyId, long version) {
@@ -180,22 +191,23 @@ public class TokenService {
                 Map.of("accountId", accountId, "familyId", familyId, "reason", reason)));
     }
     private Tokens issue(IdentityService.Session session, String clientId, String familyId, String refresh, Role requested,
-                         String device, Instant createdAt, Instant now) {
+                         String device, Instant createdAt, Instant now, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime) {
         Role profile = session.membership() == null ? null : session.membership().activeProfile(requested);
-        Jwt jwt = access(session, clientId, familyId, profile, now);
+        Jwt jwt = access(session, clientId, familyId, profile, now, scopes, authTime);
         Instant expiry = now.plus(Duration.ofDays(settings.integer("auth.sessionDays")));
         refreshTokens.extendFamilyRetention(familyId, expiry);
         refreshTokens.insert(new RefreshToken(UUID.randomUUID().toString(), digest(refresh), session.account().id(), TenantContext.current(),
-                clientId, familyId, session.account().familyVersion(), createdAt, expiry, now, null, null, profile, device, RefreshToken.Status.ACTIVE));
-        return new Tokens(jwt, new OAuth2RefreshToken(refresh, now, expiry));
+                clientId, familyId, session.account().familyVersion(), createdAt, expiry, now, null, null, profile, device, RefreshToken.Status.ACTIVE, scopes, oidc, nonce, authTime));
+        return new Tokens(jwt, new OAuth2RefreshToken(refresh, now, expiry), scopes, oidc, nonce, authTime);
     }
-    private Jwt access(IdentityService.Session session, String clientId, String familyId, Role profile, Instant now) {
+    private Jwt access(IdentityService.Session session, String clientId, String familyId, Role profile, Instant now, java.util.Set<String> scopes, Instant authTime) {
         var account = session.account();
         var membership = session.membership();
         var claims = JwtClaimsSet.builder().issuer(issuer).subject(account.id()).audience(List.of(clientId))
                 .issuedAt(now).expiresAt(now.plus(ACCESS_TTL)).id(UUID.randomUUID().toString()).claim("sid", familyId)
                 .claim("azp", clientId).claim("email", account.email()).claim("name", account.name())
                 .claim("locale", account.locale()).claim("platformRoles", account.platformRoles().stream().map(Enum::name).sorted().toList());
+        claims.claim("scope", String.join(" ", scopes.stream().sorted().toList())).claim("auth_time", authTime.getEpochSecond());
         if (membership != null) {
             claims.claim("clubId", membership.clubId()).claim("roles", membership.roles().stream().map(Enum::name).sorted().toList())
                     .claim("activeProfile", profile.name());
@@ -222,7 +234,8 @@ public class TokenService {
                 .digest(value.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
-    public record Tokens(Jwt access, OAuth2RefreshToken refresh) {
+    public record Tokens(Jwt access, OAuth2RefreshToken refresh, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime) {
+        public Tokens(Jwt access, OAuth2RefreshToken refresh) { this(access, refresh, java.util.Set.of(), false, null, access.getIssuedAt()); }
         @Override public String toString() { return "Tokens[redacted]"; }
     }
     private record Outcome(Tokens tokens, ErrorCode error, String accountId) { }
