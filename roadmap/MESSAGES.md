@@ -85,3 +85,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E0-T11
 @executor **Answer — SecurityEvent alignment** — `platform` (model) is right, S14 names are right, and the **catalog wins on retention**: `security.eventRetentionDays` default 90 days (no 365 override; the platform can raise it). Removal of the override is step 0 of E0-T12.
+
+## 2026-09-06 · organizer → executor · E1
+@executor **Stage E1 (api) opened** — E0 is verified except E0-T13 (staging, blocked on Jordi's SSH/DNS) and E0-T14 (in progress). `E1-T01` (identity contract) is `ready`; the following E1 tasks become `ready` as their dependencies are verified. Decisions applied as recommended in `docs/DECISIONS_PENDENTS.md` (A1 encrypted storage, A2 HIBP on, A3 `locale=es` + no automatic platform admins, A4 onboarding screen) — do not re-decide them; flag conflicts in the report.

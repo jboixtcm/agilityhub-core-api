@@ -35,7 +35,7 @@ Order: T01 → T02 → T03 → T04 → T05 → T06 → T07 → T08 → T09 → T
 - [ ] Staging answers (`/health`) and one backup has been restored (or explicitly deferred by Jordi).
 - [ ] Playbooks written.
 
-## E1 · AgilityHub ID (thread C) — opens after gate E0
+## E1 · AgilityHub ID (thread C) — OPENED 2026-09-06 (E1-T01 ready; the rest open in order as their dependencies are verified; E0-T13 staging deferred until Jordi provides SSH/DNS)
 Decisions needed first: A1 (applied), A2, A3, A4 of `docs/DECISIONS_PENDENTS.md`; SendGrid account.
 Planned tasks: E1-T01 contract S01 · E1-T02 identity core (magic link, sliding refresh + rotation, lockout, `/me/*`, SecurityEvent) · E1-T03 email base with SendGrid (S11 WP-11-B0: N-25/26/27) · E1-T04 impersonation + handoff · E1-T05 OIDC provider (discovery, PKCE, userinfo, JWKS rotation, seed clients) · E1-T07 onboarding «Completa el teu perfil» (`Account.onboardingPending`) · E1-T08 Learn import CLI (dry-run, bcrypt hashes untouched) · E1-T09 Learn adapter PR (Laravel repo, not deployed) · E1-T10 integration + gate. (Front counterparts live in the web repo.)
 
