@@ -26,6 +26,8 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `signup.text.imageConsent` | localizedText | «Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club» | aclariment emergent |
 | `signup.text.closed` | localizedText | `{"ca": "Les inscripcions estan tancades temporalment. Torna-ho a provar més endavant o posa't en contacte amb el club.", "es": "Las inscripciones están cerradas temporalmente. Vuelve a intentarlo más adelante o ponte en contacto con el club.", "en": "Registration is temporarily closed. Please try again later or contact the club."}` | |
 | `club.privacyPolicyUrl` | (CLUB.legal) | agilitycanic.cat/ca/politica-de-privacidad/ | «Pots consultar-la aquí» — viu a CLUB, es mostra aquí |
+| `signup.onboardingFields` | json `[{key, required}]` | `[{"key": "name", "required": true}, {"key": "locale", "required": true}, {"key": "phone", "required": false}]` | pantalla «Completa el teu perfil» (S01 §14): camps demanats al primer accés dels comptes importats/migrats; claus admeses `name`, `locale`, `phone` (afegit 06-09, organitzador) |
+| `legal.maxPostpones` | int | 3 | A12: vegades que es pot posposar l'acceptació d'una versió nova de la política (pop-up «Més tard»); a 0 el front bloqueja (afegit 06-09, organitzador) |
 
 ## Classes i reserves (`bookings.*`, `classes.*`) — bloc Classes
 | Clau | Tipus | Cànic | Notes |
