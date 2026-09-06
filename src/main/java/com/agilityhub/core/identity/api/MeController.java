@@ -24,9 +24,13 @@ public class MeController {
     private final com.agilityhub.core.identity.application.AccountService accounts;
     private final com.agilityhub.core.identity.application.PasswordService passwords;
     private final com.agilityhub.core.identity.application.TokenService tokens;
+    private final com.agilityhub.core.identity.application.OnboardingService onboarding;
+    private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
     public MeController(IdentityService identities, ClubConfigService clubs, com.agilityhub.core.identity.application.AccountService accounts,
-            com.agilityhub.core.identity.application.PasswordService passwords, com.agilityhub.core.identity.application.TokenService tokens) {
+            com.agilityhub.core.identity.application.PasswordService passwords, com.agilityhub.core.identity.application.TokenService tokens,
+            com.agilityhub.core.identity.application.OnboardingService onboarding, com.agilityhub.core.identity.application.IdentityTransactions transactions) {
         this.identities = identities; this.clubs = clubs; this.accounts = accounts; this.passwords = passwords; this.tokens = tokens;
+        this.onboarding = onboarding; this.transactions = transactions;
     }
     @GetMapping("/api/v1/me")
     @PreAuthorize("isAuthenticated()")
@@ -116,25 +120,37 @@ public class MeController {
 
     @GetMapping("/api/v1/me/onboarding")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Get required first-access profile and privacy steps", description = "Any valid account token. S01 §14, T-01-26. Implemented in E1-T06.",
+    @Operation(summary = "Get required first-access profile and privacy steps", description = "Any valid account token. S01 §14, T-01-26. Platform consent first, then the current club policy.",
             responses = @ApiResponse(responseCode = "200", description = "Pending onboarding and current privacy policy"))
-    public OnboardingState onboarding() { throw new UnsupportedOperationException(); }
+    public OnboardingState onboarding(@AuthenticationPrincipal Jwt jwt) { return onboardingState(onboarding.state(jwt.getSubject())); }
 
     @PutMapping("/api/v1/me/onboarding")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Complete first-access privacy consent and optional profile fields",
-            description = "Any valid account token. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. "
-                    + "Profile data may be deferred; imageConsent is optional. Implemented in E1-T06.",
+            description = "Account token, never impersonated. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. "
+                    + "Profile data may be deferred; imageConsent is optional.",
             responses = {@ApiResponse(responseCode = "200", description = "Updated onboarding state"),
                     @ApiResponse(responseCode = "400", description = "VALIDATION_ERROR if consent is not accepted; LOCALE_NOT_SUPPORTED"),
                     @ApiResponse(responseCode = "422", description = "CONSENT_VERSION_OUTDATED")})
-    public OnboardingState completeOnboarding(@Valid @RequestBody OnboardingRequest request) { throw new UnsupportedOperationException(); }
+    public OnboardingState completeOnboarding(@Valid @RequestBody OnboardingRequest request, @AuthenticationPrincipal Jwt jwt) {
+        var fields = request.fields();
+        return onboardingState(transactions.run(() -> onboarding.complete(jwt.getSubject(), request.consentAccepted(), request.consentVersion(),
+                fields == null ? null : fields.name(), fields == null ? null : fields.locale(), fields == null ? null : fields.phone(), request.imageConsent())));
+    }
 
     @PostMapping("/api/v1/me/onboarding/postpone")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Postpone the current consent prompt",
-            description = "Any valid account token. S01 §6, §14: decrements postponeRemaining, bounded by legal.maxPostpones. "
-                    + "At zero returns the unchanged state without an error. Implemented in E1-T06.",
+            description = "Account token, never impersonated. S01 §6, §14: policy renewals may be postponed, bounded by legal.maxPostpones. "
+                    + "First acceptance is mandatory. At zero returns the unchanged state without an error.",
             responses = @ApiResponse(responseCode = "200", description = "Updated onboarding state"))
-    public OnboardingState postponeOnboarding() { throw new UnsupportedOperationException(); }
+    public OnboardingState postponeOnboarding(@AuthenticationPrincipal Jwt jwt) {
+        return onboardingState(transactions.run(() -> onboarding.postpone(jwt.getSubject())));
+    }
+    private OnboardingState onboardingState(com.agilityhub.core.identity.application.OnboardingService.State state) {
+        var consent = state.requiredConsent();
+        return new OnboardingState(state.pending(), state.postponeRemaining(), consent == null ? null
+                : new RequiredConsent(ConsentPolicy.valueOf(consent.policy().name()), consent.version(), consent.url()),
+                state.fields().stream().map(field -> new OnboardingField(field.key(), field.value(), field.required())).toList());
+    }
 }

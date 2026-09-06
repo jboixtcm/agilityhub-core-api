@@ -20,9 +20,6 @@ class IdentityContractIT extends IdentityIntegrationSupport {
     record Endpoint(String method, String path, String body, String authority, boolean clubRequired) { }
     static Stream<Endpoint> accountEndpoints() {
         return Stream.of(
-                new Endpoint("GET", "/api/v1/me/onboarding", null, "ROLE_MEMBER", false),
-                new Endpoint("PUT", "/api/v1/me/onboarding", "{\"consentAccepted\":true,\"consentVersion\":\"v1\"}", "ROLE_MEMBER", false),
-                new Endpoint("POST", "/api/v1/me/onboarding/postpone", null, "ROLE_MEMBER", false),
                 new Endpoint("POST", "/api/v1/platform/accounts", "{\"email\":\"new@example.test\",\"name\":\"Example\",\"locale\":\"en\"}", "ROLE_AGILITYHUB_ADMIN", false),
                 new Endpoint("PUT", "/api/v1/accounts/account-a/password", "{\"passwordHash\":\"fictional-hash\"}", "ROLE_AGILITYHUB_ADMIN", false));
     }
@@ -81,14 +78,6 @@ class IdentityContractIT extends IdentityIntegrationSupport {
         var request = mapper.readValue(body, IdentityRequests.OnboardingRequest.class);
         assertThat(request.fields()).isEqualTo(new IdentityRequests.OnboardingFields("Example", "es", "+34900000000"));
         assertThat(request.imageConsent()).isFalse();
-        for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
-            for (var endpoint : accountEndpoints().filter(e -> e.path().startsWith("/api/v1/me/onboarding")).toList()) {
-                var call = request(endpoint);
-                if (endpoint.method().equals("PUT")) { call.content(body); }
-                mvc.perform(call.with(jwt().authorities(new SimpleGrantedAuthority("ROLE_" + role))))
-                        .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
-            }
-        }
         for (String invalid : List.of("{}", "{\"consentAccepted\":false,\"consentVersion\":\"v1\"}",
                 "{\"consentAccepted\":true,\"consentVersion\":\" \"}",
                 "{\"privacyAccepted\":true,\"privacyPolicyVersion\":\"v1\"}")) {

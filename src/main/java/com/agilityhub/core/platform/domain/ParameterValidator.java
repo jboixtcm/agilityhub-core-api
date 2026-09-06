@@ -63,6 +63,14 @@ public class ParameterValidator {
                     }
                 }
                 case "localizedList" -> ((List<?>) value).forEach(item -> localized(item, defaultLocale));
+                case "onboardingFields" -> {
+                    var keys = new java.util.HashSet<String>();
+                    for (Object item : (List<?>) value) {
+                        Map<?, ?> entry = (Map<?, ?>) item;
+                        require(java.util.Set.of("name", "locale", "phone").contains(entry.get("key")));
+                        require(keys.add((String) entry.get("key")) && entry.get("required") instanceof Boolean);
+                    }
+                }
                 case "labeledKeys", "documentTypes" -> {
                     var keys = new java.util.HashSet<String>();
                     for (Object item : (List<?>) value) {

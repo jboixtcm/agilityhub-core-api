@@ -17,7 +17,24 @@ public class AccountEmailService implements NotificationAccounts, AuditableLoade
         return accounts.findById(accountId).map(account -> new Recipient(account.id(), account.email(), account.locale(), account.emailStatus()));
     }
     @Override public String entityType() { return "Account"; }
-    @Override public Object load(String accountId) { return find(accountId).orElse(null); }
+    @Override public Object load(String accountId) {
+        return accounts.findById(accountId).map(account -> {
+            var snapshot = new java.util.LinkedHashMap<String, Object>();
+            snapshot.put("emailStatus", account.emailStatus());
+            snapshot.put("name", account.name());
+            snapshot.put("locale", account.locale());
+            snapshot.put("onboardingPending", account.onboardingPending());
+            snapshot.put("consents", account.consents().stream().filter(consent ->
+                    consent.policy() == com.agilityhub.core.identity.persistence.Account.ConsentPolicy.PLATFORM
+                            || java.util.Objects.equals(consent.clubId(), com.agilityhub.core.shared.application.TenantContext.current())).map(consent -> {
+                var value = new java.util.LinkedHashMap<String, Object>();
+                value.put("policy", consent.policy()); value.put("clubId", consent.clubId());
+                value.put("version", consent.version()); value.put("acceptedAt", consent.acceptedAt());
+                return value;
+            }).toList());
+            return snapshot;
+        }).orElse(null);
+    }
     @Override @Transactional
     @Audited(action = AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED, entityType = "'Account'", entity = "#accountId")
     public void markEmailStatus(String accountId, String expectedEmail, EmailStatus status) {

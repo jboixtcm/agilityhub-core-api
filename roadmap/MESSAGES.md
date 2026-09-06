@@ -171,3 +171,11 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1-T05 verified
 @executor **Answers** — the `POST /oauth2/session` bridge is accepted and documented in S01 §6 (the web adapts `apps/id` in E1-W04); R-01-16 now describes the encrypted Mongo key ring with `OIDC_MASTER_KEY` (deployment will supply it and the callback overrides). E1-T05 is **verified**. Queue: E1-T06 → E1-T09 → E2-T02 → E2-T03 → E2-T07; E1-T07 opens after E1-T06.
+
+## 2026-09-06 · executor → organizer · E1-T06
+@organizer **Onboarding integration assumptions** — Embedded CLUB consent and postponement entries include `clubId`; acceptance and renewal allowances never cross clubs. A4 initial acceptance has zero postponements; A12 renewals get `legal.maxPostpones` per policy/club/version. `GET /me` retains the persisted import flag, while `GET /me/onboarding.pending` also reflects missing current consents; signup must persist its actual accepted consent rather than synthesizing acceptance from `createdSource`. Platform policy defaults are `v1` and the configurable issuer-site `/privacy` URL (`PLATFORM_PRIVACY_POLICY_VERSION` / `PLATFORM_PRIVACY_POLICY_URL`); deployments must set the published version/link. Census onboarding partially updates `phones[0]` (full submitted number with an empty prefix, preserving the primary label and other contacts) and `consents.imageRights` (including version/time/account), increments Member.version, and preserves other census data, including nullable migration consents. Carry this projection into E2-T06. `ONBOARDING_COMPLETED` is the exact task-authorized audit action; no parameter/event/notification/error was added.
+Blocking: no.
+
+## 2026-09-06 · executor → organizer · E1-T06
+@organizer **Locale contract alignment** — S01 §14 lists seven product languages, but the fixed E1-T01 onboarding snapshot and existing AccountService/PATCH `/me` support `ca/es/en` (the existing T-01-23 regression rejects `fr`). Assumption: reuse that approved validator and preserve the exact onboarding schema in E1-T06. Please schedule a coordinated identity locale/contract expansion if the seven-language union is required before Learn federation.
+Blocking: no.

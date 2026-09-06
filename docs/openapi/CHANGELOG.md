@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-06 · E1-T06 · Onboarding implementation
+
+- `GET /api/v1/me/onboarding`: active platform-first consent selection, club-scoped policy renewal, and configured prefilled profile fields; existing response shape retained.
+- `PUT /api/v1/me/onboarding`: accepts the current required consent and optional profile/image fields; rejects impersonated tokens and preserves the existing validation errors.
+- `POST /api/v1/me/onboarding/postpone`: decrements the renewal allowance per policy, club and version; initial acceptance and exhausted allowances return the state unchanged. Rejects impersonated tokens.
+
 ## 2026-09-06 · E1-T05 · OIDC implementation
 
 - `GET /.well-known/openid-configuration`: active discovery metadata and public 60-second cache policy.

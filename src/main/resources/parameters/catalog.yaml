@@ -1905,7 +1905,7 @@ parameters:
     block: "system"
     labelKey: "admin-settings:param.signup.onboardingFields.label"
     helpKey: "admin-settings:param.signup.onboardingFields.help"
-    constraints: {}
+    constraints: {"validator": "onboardingFields"}
     modules: []
     scope: "club"
     editableBy: "PLATFORM"

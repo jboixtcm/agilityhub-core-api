@@ -35,6 +35,12 @@ public class ClubConfigService implements TimeZoneProvider {
         try (var scope = TenantContext.open(clubId)) { return cache.get(clubId, this::load); }
     }
     public void invalidate(String clubId) { cache.invalidate(clubId); }
+    /** Consent writes must check the current version, independently of the branding cache. */
+    public PrivacyPolicy privacyPolicy(String clubId) {
+        var legal = clubs.findById(clubId).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND)).legal();
+        return new PrivacyPolicy(legal.legalTextsVersion(), legal.privacyPolicyUrl());
+    }
+    public record PrivacyPolicy(String version, String url) { }
     @Override public ZoneId timeZone(String clubId) { return ZoneId.of(get(clubId).club().timeZone()); }
     private ClubConfig load(String clubId) {
         var club = clubs.findById(clubId).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));

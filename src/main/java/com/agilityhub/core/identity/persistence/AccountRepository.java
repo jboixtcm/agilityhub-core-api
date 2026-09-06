@@ -33,6 +33,7 @@ public class AccountRepository extends GlobalRepository<Account> {
                 .setOnInsert("platformRoles", account.platformRoles()).setOnInsert("status", account.status())
                 .setOnInsert("security", account.security()).setOnInsert("externalIds", account.externalIds())
                 .setOnInsert("onboardingPending", account.onboardingPending()).setOnInsert("createdAt", account.createdAt())
+                .setOnInsert("consents", account.consents()).setOnInsert("consentPostponements", account.consentPostponements())
                 .setOnInsert("createdSource", account.createdSource());
         return mongo.upsert(Query.query(Criteria.where("email").is(account.email())), update, Account.class).getUpsertedId() != null;
     }
@@ -54,6 +55,15 @@ public class AccountRepository extends GlobalRepository<Account> {
         if (locale != null) { update.set("locale", locale); }
         if (name != null) { update.set("name", name); }
         if (!update.getUpdateObject().isEmpty()) { mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), update, Account.class); }
+    }
+    public void completeOnboarding(String id, Account.Consent consent) {
+        var update = new Update().set("onboardingPending", false);
+        if (consent != null) { update.push("consents", consent); }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), update, Account.class);
+    }
+    public void postponeConsent(String id, java.util.List<Account.ConsentPostponement> postponements) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),
+                new Update().set("consentPostponements", postponements), Account.class);
     }
     public void password(String id, String hash, Instant now) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("passwordHash", hash)

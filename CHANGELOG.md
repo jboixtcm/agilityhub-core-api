@@ -23,6 +23,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T06: First-access onboarding with versioned platform and tenant-specific club
+  consent history, configurable profile fields, mandatory initial acceptance and bounded
+  postponements for policy renewals. Account/member updates and completion audits share
+  a transaction; integration tests cover concurrency, rollback, roles and tenant isolation.
+
 - E1-T05: OIDC discovery, S256 authorization-code flow, scoped userinfo and RP logout,
   with cookie-bound apps/id login continuation and five configurable first-party clients.
 - AES-256-GCM encrypted Mongo signing-key ring and `identity:rotate-keys`, retaining

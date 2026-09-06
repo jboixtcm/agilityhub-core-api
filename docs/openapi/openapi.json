@@ -17194,7 +17194,7 @@
     },
     "/api/v1/me/onboarding" : {
       "get" : {
-        "description" : "Any valid account token. S01 §14, T-01-26. Implemented in E1-T06.",
+        "description" : "Any valid account token. S01 §14, T-01-26. Platform consent first, then the current club policy.",
         "operationId" : "onboarding",
         "responses" : {
           "200" : {
@@ -17331,7 +17331,7 @@
         "tags" : [ "identity" ]
       },
       "put" : {
-        "description" : "Any valid account token. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. Profile data may be deferred; imageConsent is optional. Implemented in E1-T06.",
+        "description" : "Account token, never impersonated. S01 §14, T-01-26: consentAccepted must be true for the current consentVersion. Profile data may be deferred; imageConsent is optional.",
         "operationId" : "completeOnboarding",
         "requestBody" : {
           "content" : {
@@ -17480,7 +17480,7 @@
     },
     "/api/v1/me/onboarding/postpone" : {
       "post" : {
-        "description" : "Any valid account token. S01 §6, §14: decrements postponeRemaining, bounded by legal.maxPostpones. At zero returns the unchanged state without an error. Implemented in E1-T06.",
+        "description" : "Account token, never impersonated. S01 §6, §14: policy renewals may be postponed, bounded by legal.maxPostpones. First acceptance is mandatory. At zero returns the unchanged state without an error.",
         "operationId" : "postponeOnboarding",
         "responses" : {
           "200" : {

@@ -8,6 +8,11 @@ identity:
   issuer: ${AUTH_ISSUER:https://id.agilitydoghub.com}
   seed-password: ${SEED_PASSWORD:}
 
+agilityhub:
+  legal:
+    privacyPolicyVersion: ${PLATFORM_PRIVACY_POLICY_VERSION:v1}
+    privacyPolicyUrl: ${PLATFORM_PRIVACY_POLICY_URL:https://id.agilitydoghub.com/privacy}
+
 spring:
   application:
     name: agilityhub-core-api

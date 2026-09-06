@@ -46,6 +46,17 @@ class ParameterValidatorTest {
         valid("census.dogDocumentTypes", List.of(Map.of("key", "OTHER", "label", Map.of("ca", "Other"), "required", false)));
         invalid("census.dogDocumentTypes", List.of(entry));
     }
+    @Test void T_01_26_onboardingFieldsUseOnlyUniqueCatalogKeysAndBooleanRequiredFlags() {
+        valid("signup.onboardingFields", catalog.defaultValue("signup.onboardingFields"));
+        valid("signup.onboardingFields", List.of());
+        invalid("signup.onboardingFields", Map.of());
+        invalid("signup.onboardingFields", List.of("name"));
+        invalid("signup.onboardingFields", List.of(Map.of("required", true)));
+        invalid("signup.onboardingFields", List.of(Map.of("key", "email", "required", true)));
+        invalid("signup.onboardingFields", List.of(Map.of("key", "name", "required", "true")));
+        var entry = Map.of("key", "phone", "required", false);
+        invalid("signup.onboardingFields", List.of(entry, entry));
+    }
     @Test void T_02_02_weekAndCoverageValidators() {
         invalid("bookings.weekOpensAt", Map.of("dayOfWeek", "INVALID", "time", "20:00"));
         invalid("bookings.weekOpensAt", Map.of("dayOfWeek", "SUNDAY", "time", "24:00"));
