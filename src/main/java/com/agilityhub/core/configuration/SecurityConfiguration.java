@@ -2,6 +2,7 @@ package com.agilityhub.core.configuration;
 
 import com.agilityhub.core.shared.api.ApiExceptionHandler;
 import com.agilityhub.core.shared.api.TenantFilter;
+import com.agilityhub.core.shared.api.RateLimitFilter;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,10 +26,25 @@ import org.springframework.security.web.SecurityFilterChain;
 @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type = org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
 @EnableMethodSecurity
 public class SecurityConfiguration {
+    @Bean @org.springframework.core.annotation.Order(0)
+    SecurityFilterChain managementSecurity(HttpSecurity http, Environment environment) throws Exception {
+        http.securityMatcher(request -> request.getLocalPort() == environment.getProperty("local.management.port", Integer.class,
+                        environment.getProperty("management.server.port", Integer.class, 8081)))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .requestCache(cache -> cache.disable())
+                .authorizeHttpRequests(auth -> auth.requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.HEAD, "/actuator/health").permitAll()
+                        .anyRequest().denyAll());
+        return http.build();
+    }
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, Environment environment, JwtDecoder decoder,
             ObjectProvider<FilterRegistrationBean<TenantFilter>> tenants,
+            FilterRegistrationBean<RateLimitFilter> rateLimits, org.springframework.web.cors.CorsConfigurationSource clubCors,
             ApiExceptionHandler errors, ObjectMapper mapper) throws Exception {
+        SecurityBaselineConfiguration.headersAndCors(http, environment, clubCors);
         http.csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable());
         http.authorizeHttpRequests(authorize -> {
@@ -48,7 +64,8 @@ public class SecurityConfiguration {
                 .authenticationEntryPoint((request, response, exception) -> writeError(request, response, ErrorCode.UNAUTHENTICATED, errors, mapper))
                 .accessDeniedHandler((request, response, exception) -> writeError(request, response, ErrorCode.FORBIDDEN, errors, mapper)));
         var tenant = tenants.getIfAvailable();
-        if (tenant != null) { http.addFilterAfter(tenant.getFilter(), BearerTokenAuthenticationFilter.class); }
+        http.addFilterAfter(rateLimits.getFilter(), BearerTokenAuthenticationFilter.class);
+        if (tenant != null) { http.addFilterAfter(tenant.getFilter(), RateLimitFilter.class); }
         return http.build();
     }
     static void writeError(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response,

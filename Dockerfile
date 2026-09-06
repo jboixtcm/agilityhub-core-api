@@ -6,6 +6,7 @@ WORKDIR /workspace
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 COPY src/ src/
+COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
 # Integration tests run on the host with Docker, not inside the image build.
 RUN ./mvnw -B -q -DskipTests package
 

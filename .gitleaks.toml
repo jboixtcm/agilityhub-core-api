@@ -2,9 +2,16 @@
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
 description = "Roadmap reports are prose and command outputs with truncated tokens (organizer-reviewed); the generic-api-key rule matches test descriptions there. Code and resources stay fully scanned."
 paths = [
   '''roadmap/tasks/.*\.md$''',
   '''roadmap/MESSAGES\.md$''',
 ]
+
+[[allowlists]]
+description = "These two tests construct an ephemeral RSA PEM from a generated key; no key material is checked in."
+condition = "AND"
+paths = ['''src/test/java/com/agilityhub/core/(identity/api/SecurityHeadersIT|configuration/JwtConfigurationTest)\.java$''']
+regexTarget = "line"
+regexes = ['''String pem = "-----BEGIN PRIVATE KEY-----\\n" \+ Base64\.getMimeEncoder''']

@@ -2,6 +2,7 @@ package com.agilityhub.core.shared.api;
 
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.application.TenantHostResolver;
+import com.agilityhub.core.shared.application.SecurityEvents;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +21,9 @@ public class TenantFilter extends OncePerRequestFilter {
     private final boolean local;
     private final ApiExceptionHandler errors;
     private final ObjectMapper mapper;
-    public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper) {
-        this.hosts = hosts; this.local = local; this.errors = errors; this.mapper = mapper;
+    private final SecurityEvents events;
+    public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper, SecurityEvents events) {
+        this.hosts = hosts; this.local = local; this.errors = errors; this.mapper = mapper; this.events = events;
     }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -42,7 +44,10 @@ public class TenantFilter extends OncePerRequestFilter {
                     if (authenticatedJwt) {
                         clubId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("clubId");
                         if (clubId == null || clubId.isBlank()) { throw new ApiException(ErrorCode.NO_MEMBERSHIP); }
-                        if (hostClub.isPresent() && !hostClub.get().equals(clubId)) { throw new ApiException(ErrorCode.TENANT_MISMATCH); }
+                        if (hostClub.isPresent() && !hostClub.get().equals(clubId)) {
+                            events.record(SecurityEvents.Type.TENANT_MISMATCH, authentication.getName(), clubId);
+                            throw new ApiException(ErrorCode.TENANT_MISMATCH);
+                        }
                     } else { clubId = hostClub.orElseThrow(() -> new ApiException(ErrorCode.UNKNOWN_HOST)); }
                     try (var scope = TenantContext.open(clubId)) { chain.doFilter(request, response); }
                     return;

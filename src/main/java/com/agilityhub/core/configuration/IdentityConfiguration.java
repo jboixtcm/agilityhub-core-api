@@ -49,7 +49,10 @@ public class IdentityConfiguration {
     @Bean @Order(1)
     SecurityFilterChain oauthEndpoints(HttpSecurity http, TokenService tokens, RegisteredClientRepository clients,
             JWKSource<SecurityContext> keys, FilterRegistrationBean<TenantFilter> tenants,
+            FilterRegistrationBean<com.agilityhub.core.shared.api.RateLimitFilter> rateLimits,
+            org.springframework.core.env.Environment environment, org.springframework.web.cors.CorsConfigurationSource clubCors,
             ApiExceptionHandler errors, ObjectMapper mapper) throws Exception {
+        SecurityBaselineConfiguration.headersAndCors(http, environment, clubCors);
         var token = new OAuth2TokenEndpointFilter(new ProviderManager(new PasswordGrantProvider(tokens, clients)));
         token.setAuthenticationConverter(new PasswordGrantConverter());
         token.setAuthenticationFailureHandler((request, response, exception) -> {
@@ -70,7 +73,8 @@ public class IdentityConfiguration {
         wellKnownJwks.setBeanName("wellKnownJwks");
         http.addFilterBefore(oauthJwks, AnonymousAuthenticationFilter.class);
         http.addFilterBefore(wellKnownJwks, AnonymousAuthenticationFilter.class);
-        http.addFilterBefore(tenants.getFilter(), AnonymousAuthenticationFilter.class);
+        http.addFilterBefore(rateLimits.getFilter(), AnonymousAuthenticationFilter.class);
+        http.addFilterAfter(tenants.getFilter(), com.agilityhub.core.shared.api.RateLimitFilter.class);
         http.addFilterAfter(token, TenantFilter.class);
         return http.build();
     }

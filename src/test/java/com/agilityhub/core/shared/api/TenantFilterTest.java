@@ -22,7 +22,8 @@ class TenantFilterTest {
     TenantFilter filter(boolean local) throws java.io.IOException {
         var messages = new com.agilityhub.core.shared.application.IcuMessageSource();
         var locales = new RequestLocaleResolver(messages, ignored -> java.util.Optional.empty());
-        return new TenantFilter(hosts, local, new ApiExceptionHandler(messages, locales), new ObjectMapper());
+        return new TenantFilter(hosts, local, new ApiExceptionHandler(messages, locales), new ObjectMapper(),
+                org.mockito.Mockito.mock(com.agilityhub.core.shared.application.SecurityEvents.class));
     }
     MockHttpServletRequest request(String path, String host, String override) {
         var request = new MockHttpServletRequest("GET", path);

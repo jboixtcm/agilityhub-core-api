@@ -21,9 +21,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(HealthController.class)
-@Import({SecurityConfiguration.class, ProjectInfoAutoConfiguration.class, com.agilityhub.core.configuration.I18nConfiguration.class})
+@Import({SecurityConfiguration.class, ProjectInfoAutoConfiguration.class, com.agilityhub.core.configuration.I18nConfiguration.class,
+        HealthControllerTest.SecurityTestConfiguration.class})
 @ActiveProfiles("test")
 class HealthControllerTest {
+    @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)
+    static class SecurityTestConfiguration {
+        @org.springframework.context.annotation.Bean
+        org.springframework.boot.web.servlet.FilterRegistrationBean<RateLimitFilter> rateLimitFilter() {
+            var registration = new org.springframework.boot.web.servlet.FilterRegistrationBean<>(new RateLimitFilter(
+                    org.mockito.Mockito.mock(com.agilityhub.core.shared.application.RateLimits.class),
+                    org.mockito.Mockito.mock(com.agilityhub.core.shared.application.SecurityEvents.class), null, null));
+            registration.setEnabled(false);
+            return registration;
+        }
+        @org.springframework.context.annotation.Bean
+        org.springframework.web.cors.CorsConfigurationSource clubCors() {
+            return request -> new org.springframework.web.cors.CorsConfiguration();
+        }
+    }
 
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;

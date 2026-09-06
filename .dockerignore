@@ -5,3 +5,5 @@
 !pom.xml
 !src/
 !src/**
+!seeds/
+!seeds/club-definition.schema.json

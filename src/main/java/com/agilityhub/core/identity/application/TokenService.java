@@ -39,13 +39,15 @@ public class TokenService {
     private final Clock clock;
     private final TransactionTemplate transactions;
     private final String issuer;
+    private final com.agilityhub.core.shared.application.SecurityEvents events;
     private final SecureRandom random = new SecureRandom();
 
     public TokenService(IdentityService identities, AccountRepository accounts, RefreshTokenRepository refreshTokens,
                         ClubConfigService clubs, JwtEncoder encoder, Clock clock, org.springframework.data.mongodb.MongoTransactionManager transactions,
-                        @Value("${identity.issuer}") String issuer) {
+                        @Value("${identity.issuer}") String issuer, com.agilityhub.core.shared.application.SecurityEvents events) {
         this.identities = identities; this.accounts = accounts; this.refreshTokens = refreshTokens;
         this.clubs = clubs; this.encoder = encoder; this.clock = clock; this.transactions = new TransactionTemplate(transactions); this.issuer = issuer;
+        this.events = events;
     }
     public Tokens password(String email, String password, String clientId) {
         var session = identities.authenticate(email, password);
@@ -64,16 +66,20 @@ public class TokenService {
             var old = refreshTokens.find(digest(value), clientId).orElseThrow(() -> new ApiException(ErrorCode.REFRESH_EXPIRED));
             if (old.replacedByHash() != null) {
                 refreshTokens.revokeFamily(old.familyId(), now);
-                return new Outcome(null, ErrorCode.REFRESH_REUSED);
+                return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
             }
             if (old.revokedAt() != null || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             var session = identities.current(old.accountId());
             if (version(session) != old.tokenFamilyVersion()) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             String next = opaque();
             if (!refreshTokens.rotate(old.id(), digest(next), now)) { throw new ApiException(ErrorCode.REFRESH_REUSED); }
-            return new Outcome(issue(session, clientId, old.familyId(), next, now, old.expiresAt()), null);
+            return new Outcome(issue(session, clientId, old.familyId(), next, now, old.expiresAt()), null, old.accountId());
         });
-        if (outcome.error() != null) { throw new ApiException(outcome.error()); }
+        if (outcome.error() != null) {
+            events.record(com.agilityhub.core.shared.application.SecurityEvents.Type.REFRESH_TOKEN_REUSED,
+                    outcome.accountId(), TenantContext.require());
+            throw new ApiException(outcome.error());
+        }
         return outcome.tokens();
     }
     private Tokens issue(IdentityService.Session session, String clientId, String familyId, String refresh,
@@ -108,5 +114,5 @@ public class TokenService {
     public record Tokens(Jwt access, OAuth2RefreshToken refresh) {
         @Override public String toString() { return "Tokens[redacted]"; }
     }
-    private record Outcome(Tokens tokens, ErrorCode error) { }
+    private record Outcome(Tokens tokens, ErrorCode error, String accountId) { }
 }

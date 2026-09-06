@@ -17,6 +17,37 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      # Empty trusts no proxy. Deployments must explicitly identify their Caddy peers.
+      internal-proxies: ${TRUSTED_PROXY_PATTERN:}
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+
+core:
+  security:
+    rateLimits:
+      enabled: true
+      token: {capacity: 30, period: 1m}
+      branding: {capacity: 120, period: 1m}
+      public-routes: {capacity: 60, period: 1m}
+      me: {capacity: 600, period: 1m}
+    cors:
+      platform-hosts: ${CORS_PLATFORM_HOSTS:id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
+
+# Existing system parameter; E0-T11 explicitly requires one year instead of the catalog's 90-day default.
+security:
+  eventRetentionDays: 365
 
 springdoc:
   api-docs:
@@ -47,6 +78,11 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/agilityhub_test?replicaSet=rs0&directConnection=true}
+
+core:
+  security:
+    rateLimits:
+      enabled: false
 
 ---
 spring:
