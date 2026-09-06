@@ -30,10 +30,11 @@ public class CompromisedPasswords {
         String hash;
         try { hash = HexFormat.of().withUpperCase().formatHex(MessageDigest.getInstance("SHA-1").digest(password.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
-        var request = HttpRequest.newBuilder(endpoint.resolve(hash.substring(0, 5))).timeout(timeout)
-                .header("Add-Padding", "true").header("User-Agent", "AgilityHub-ID").GET().build();
-        var pending = client.sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        java.util.concurrent.CompletableFuture<HttpResponse<String>> pending = null;
         try {
+            var request = HttpRequest.newBuilder(endpoint.resolve(hash.substring(0, 5))).timeout(timeout)
+                    .header("Add-Padding", "true").header("User-Agent", "AgilityHub-ID").GET().build();
+            pending = client.sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             var response = pending.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             if (response.statusCode() != 200) { throw new IllegalStateException("HIBP unavailable"); }
             return response.body().lines().anyMatch(line -> {
@@ -46,7 +47,7 @@ public class CompromisedPasswords {
             warn(); return false;
         } catch (java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException | RuntimeException unavailable) {
             warn(); return false;
-        } finally { if (!pending.isDone()) { pending.cancel(true); } }
+        } finally { if (pending != null && !pending.isDone()) { pending.cancel(true); } }
     }
     private void warn() { LoggerFactory.getLogger(CompromisedPasswords.class).warn("Compromised password check unavailable; continuing per A2"); }
 }

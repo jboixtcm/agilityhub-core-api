@@ -362,4 +362,45 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
         refresh(global.path("refresh_token").asText(), host, "id-web").andExpect(status().isOk());
     }
+
+    @Test void T_01_16_suspensionRevokesOnlyThatClubsSessionsAndResumeRequiresNewLogin() throws Exception {
+        membership("club-b", Set.of(Role.MEMBER), null, "member-b");
+        var first = login();
+        var other = mapper.readTree(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        try (var scope = TenantContext.open("club-a")) { membershipService.suspend("account-a"); }
+        refresh(first.path("refresh_token").asText(), HOST, "clubs-app")
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("MEMBERSHIP_SUSPENDED"));
+        refresh(other.path("refresh_token").asText(), "b.example.test", "clubs-app").andExpect(status().isOk());
+        try (var scope = TenantContext.open("club-a")) { membershipService.resume("account-a"); }
+        refresh(first.path("refresh_token").asText(), HOST, "clubs-app")
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+        login();
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(Role.class)
+    void T_01_17_accountMutationsAndSessionRevocationAreAvailableToEveryClubRole(Role role) throws Exception {
+        membership("club-a", Set.of(role), null, "member-a");
+        var first = login();
+        var other = login();
+        mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json")
+                .content("{\"name\":\"Role Example\",\"locale\":\"es\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.account.name").value("Role Example"));
+        mvc.perform(put("/api/v1/me/profile").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("activeProfile", role.name(), "remember", true))))
+                .andExpect(status().isOk());
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", "Fictional role password", "repeat", "Fictional role password"))))
+                .andExpect(status().isOk());
+        var renewed = mapper.readTree(refresh(first.path("refresh_token").asText(), HOST, "clubs-app")
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(SignedJWT.parse(renewed.path("access_token").asText()).getJWTClaimsSet().getStringClaim("locale")).isEqualTo("es");
+        mvc.perform(post("/oauth2/revoke").header("Host", HOST).header("Authorization", bearer(renewed)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("token", other.path("refresh_token").asText())))).andExpect(status().isOk());
+        String family = SignedJWT.parse(renewed.path("access_token").asText()).getJWTClaimsSet().getStringClaim("sid");
+        mvc.perform(delete("/api/v1/me/sessions/" + family).header("Host", HOST).header("Authorization", bearer(renewed)))
+                .andExpect(status().isOk());
+        refresh(renewed.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest());
+    }
 }

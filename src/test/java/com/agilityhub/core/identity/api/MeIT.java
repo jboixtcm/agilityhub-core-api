@@ -45,7 +45,7 @@ class MeIT extends IdentityIntegrationSupport {
         var response = mvc.perform(get("/api/v1/me").header("Host", HOST)
                         .with(jwt().jwt(j -> j.subject("account-a").claim("clubId", "club-a"))))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.account.hasPassword").value(false))
-                .andExpect(jsonPath("$.account.onboardingPending").value(false))
+                .andExpect(jsonPath("$.account.onboardingPending").value(true))
                 .andExpect(jsonPath("$.membership.memberId").doesNotExist())
                 .andExpect(jsonPath("$.membership.gender").doesNotExist())
                 .andReturn().getResponse().getContentAsString();

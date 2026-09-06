@@ -11,6 +11,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = "core.security.rate-limits.enabled=true")
 class RateLimitIT extends IdentityIntegrationSupport {
+    @Test void T_01_15_eleventhMagicLinkForNormalizedEmailIsLimitedAcrossIpsAndHosts() throws Exception {
+        String body = "{\"email\":\"rate-email@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}";
+        for (int n = 0; n < 10; n++) {
+            mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body)
+                    .with(request -> { request.setRemoteAddr("203.0.113.71"); return request; })).andExpect(status().isAccepted());
+        }
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", "b.example.test").contentType("application/json")
+                .content(body.replace("rate-email@", "RATE-EMAIL@"))
+                .with(request -> { request.setRemoteAddr("203.0.113.72"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(header().string("Retry-After", "3600"))
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json")
+                .content(body.replace("rate-email@", "another-email@"))
+                .with(request -> { request.setRemoteAddr("203.0.113.72"); return request; })).andExpect(status().isAccepted());
+        clock.advance(Duration.ofHours(1));
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body)
+                .with(request -> { request.setRemoteAddr("203.0.113.72"); return request; })).andExpect(status().isAccepted());
+    }
+
+    @Test void T_01_15_sixtyFirstMagicLinkPerIpIsLimitedEvenWithDistinctEmails() throws Exception {
+        for (int n = 0; n < 60; n++) {
+            if (n > 0 && n % 20 == 0) { clock.advance(Duration.ofMinutes(1)); }
+            mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json")
+                    .content("{\"email\":\"ip-quota-" + n + "@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}")
+                    .with(request -> { request.setRemoteAddr("203.0.113.73"); return request; })).andExpect(status().isAccepted());
+        }
+        mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json")
+                .content("{\"email\":\"ip-quota-final@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}")
+                .with(request -> { request.setRemoteAddr("203.0.113.73"); return request; }))
+                .andExpect(status().isTooManyRequests()).andExpect(header().string("Retry-After", "3480"));
+    }
+
     @Test void T_01_15_magicLinkUsesTheAuthenticationIpQuotaBeforeTenantResolution() throws Exception {
         String body = "{\"email\":\"member@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}";
         for (int index = 0; index < 30; index++) {

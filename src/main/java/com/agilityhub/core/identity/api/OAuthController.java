@@ -22,8 +22,8 @@ public class OAuthController {
     @SecurityRequirements
     @Operation(operationId = "token", summary = "Issue tokens using an OAuth2 or AgilityHub grant",
             description = "ANON with client authentication. Club context comes from the host, never request data. "
-                    + "Password/refresh for clubs-app and clubs-admin remain implemented by the E0 security filter; "
-                    + "other grants and confidential clients are contracts for E1. Refresh tokens rotate on use. "
+                    + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
+                    + "Handoff, authorization-code grants and confidential clients are completed by later E1 tasks. "
                     + "client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(mediaType = "application/x-www-form-urlencoded", schema = @Schema(implementation = TokenRequest.class))),

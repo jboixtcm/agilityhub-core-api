@@ -13,6 +13,6 @@ public class AuthSettings {
     public int integer(String key) { return ((Number) value(key)).intValue(); }
     public boolean enabled(String key) { return Boolean.TRUE.equals(value(key)); }
     private Object value(String key) {
-        return TenantContext.current() == null ? catalog.get(key).defaultValue() : clubs.get(TenantContext.require()).get(key, Object.class);
+        return TenantContext.current() == null ? catalog.defaultValue(key) : clubs.get(TenantContext.require()).get(key, Object.class);
     }
 }

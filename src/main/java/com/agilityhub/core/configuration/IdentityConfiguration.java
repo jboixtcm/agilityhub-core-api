@@ -31,7 +31,7 @@ import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenE
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
-/** E0 exposes only SAS token/JWKS filters; full OIDC endpoints and client registration are E1. */
+/** Identity token/JWKS filters; full OIDC and persistent client registration follow in E1-T05. */
 @Configuration(proxyBeanMethods = false)
 public class IdentityConfiguration {
     @Bean @Order(0) ApplicationRunner identityIndexes(AccountRepository accounts, MembershipRepository memberships, RefreshTokenRepository refresh, com.agilityhub.core.identity.persistence.MagicLinkTokenRepository magic) {

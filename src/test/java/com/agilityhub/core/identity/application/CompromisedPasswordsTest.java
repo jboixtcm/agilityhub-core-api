@@ -13,6 +13,15 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CompromisedPasswordsTest {
+    @Test void T_01_09_hibpSynchronousTransportFailureAlsoFailsOpen() {
+        var client = org.mockito.Mockito.mock(HttpClient.class);
+        org.mockito.Mockito.when(client.sendAsync(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.<java.net.http.HttpResponse.BodyHandler<String>>any()))
+                .thenThrow(new java.util.concurrent.RejectedExecutionException("transport closed"));
+        assertThat(new CompromisedPasswords(client, URI.create("https://example.test/"), Duration.ofSeconds(2))
+                .contains("Fictional password")).isFalse();
+    }
+
     @Test void T_01_09_hibpSendsOnlyFiveHashCharactersWithPaddingAndRejectsPositiveCounts() throws Exception {
         String password = "Fictional password for HIBP test";
         String digest = HexFormat.of().withUpperCase().formatHex(MessageDigest.getInstance("SHA-1").digest(password.getBytes(StandardCharsets.UTF_8)));

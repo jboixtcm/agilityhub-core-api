@@ -20,6 +20,10 @@ class SeedProfileTest {
                 .withBean(AccountRepository.class, () -> mock(AccountRepository.class))
                 .withBean(MembershipRepository.class, () -> mock(MembershipRepository.class))
                 .withBean(PasswordHasher.class, () -> mock(PasswordHasher.class))
+                .withBean(com.agilityhub.core.identity.application.AccountService.class,
+                        () -> mock(com.agilityhub.core.identity.application.AccountService.class))
+                .withBean(com.agilityhub.core.identity.application.MembershipService.class,
+                        () -> mock(com.agilityhub.core.identity.application.MembershipService.class))
                 .withBean(ClubConfigService.class, () -> mock(ClubConfigService.class))
                 .withBean(Clock.class, Clock::systemUTC)
                 .run(context -> {

@@ -44,6 +44,9 @@ class HealthControllerTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    com.agilityhub.core.shared.application.AccountAccess accountAccess;
+
     @Autowired
     MockMvc mvc;
 

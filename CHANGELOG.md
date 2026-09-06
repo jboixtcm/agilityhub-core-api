@@ -19,6 +19,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T02: Idempotent account creation, tenant membership services, single-use magic
+  links through SYSTEM email, sliding refresh rotation, device sessions, progressive
+  login lockout, and per-email/IP magic-link quotas.
+- Optional password changes with HIBP checks, remembered profiles, account updates,
+  and account-wide or club-specific session revocation with transactional events.
+  Added identity integration tests, a curl/mailbox smoke test, and Cànic branding city.
+
 - E1-T03: SendGrid transactional email with local/test sinks, fixed N-25/N-26/N-27
   copy in Catalan, Spanish and English, Thymeleaf club branding, and a SYSTEM
   notification log with transactional outbox state events.

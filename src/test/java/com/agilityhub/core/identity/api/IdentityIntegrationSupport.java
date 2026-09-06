@@ -46,9 +46,12 @@ abstract class IdentityIntegrationSupport extends AbstractIntegrationTest {
     @org.junit.jupiter.api.AfterEach void drainMail() throws Exception { awaitMail(); }
     @BeforeEach void prepareIdentity() throws Exception {
         awaitMail();
-        ((com.agilityhub.core.clubs.messaging.application.FakeEmailSender) emailSender).clear();
+        if (emailSender instanceof com.agilityhub.core.clubs.messaging.application.FakeEmailSender fake) { fake.clear(); }
         TenantContext.clear();
-        for (Class<?> type : new Class<?>[]{Account.class, Membership.class, RefreshToken.class, MagicLinkToken.class, Club.class}) {
+        for (Class<?> type : new Class<?>[]{Account.class, Membership.class, RefreshToken.class, MagicLinkToken.class, Club.class,
+                com.agilityhub.core.platform.persistence.Parameter.class, com.agilityhub.core.platform.persistence.SecurityEvent.class,
+                com.agilityhub.core.shared.persistence.DomainEventRecord.class,
+                com.agilityhub.core.clubs.messaging.persistence.Notification.class}) {
             mongo.remove(new Query(), type);
         }
         clubs.save(PlatformFixtures.club("club-a", HOST));

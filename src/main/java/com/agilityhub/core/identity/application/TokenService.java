@@ -107,8 +107,8 @@ public class TokenService {
                 refreshTokens.revokeFamily(old.familyId(), now);
                 return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
             }
-            if (old.revokedAt() != null || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             var session = identities.current(old.accountId());
+            if (old.revokedAt() != null || !old.expiresAt().isAfter(now)) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             if (session.account().familyVersion() != old.tokenFamilyVersion()) { throw new ApiException(ErrorCode.REFRESH_EXPIRED); }
             String next = opaque();
             if (!refreshTokens.rotate(old.id(), digest(next), now)) {

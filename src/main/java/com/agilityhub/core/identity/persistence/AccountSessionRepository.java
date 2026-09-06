@@ -25,6 +25,10 @@ public class AccountSessionRepository extends GlobalRepository<RefreshToken> {
     public void revokeAll(String accountId, Instant now) {
         mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId)), RefreshTokenRepository.revoked(now), RefreshToken.class);
     }
+    public void revokeClub(String accountId, String clubId, Instant now) {
+        mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("clubId").is(clubId)),
+                RefreshTokenRepository.revoked(now), RefreshToken.class);
+    }
     public void preserveFamily(String accountId, String familyId, long version) {
         mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("familyId").is(familyId)
                         .and("revokedAt").is(null)), new Update().set("tokenFamilyVersion", version), RefreshToken.class);

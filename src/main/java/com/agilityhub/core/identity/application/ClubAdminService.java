@@ -33,7 +33,8 @@ public class ClubAdminService implements ClubAdminProvisioner {
         String clubId = TenantContext.require();
         var account = accountService.getOrCreate(admin.email(), admin.name(), admin.locale(), Account.Source.CONSOLE);
         var membership = memberships.findByAccountId(account.id());
-        var roles = membership.map(value -> EnumSet.copyOf(value.roles())).orElseGet(() -> EnumSet.noneOf(Role.class));
+        var roles = EnumSet.noneOf(Role.class);
+        membership.ifPresent(value -> roles.addAll(value.roles()));
         roles.add(Role.ADMIN);
         membershipService.setRoles(account.id(), roles);
     }

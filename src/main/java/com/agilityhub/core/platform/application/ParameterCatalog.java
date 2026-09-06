@@ -31,6 +31,7 @@ public class ParameterCatalog {
         } catch (IOException failure) { throw new UncheckedIOException(failure); }
     }
     public int defaultInteger(String key) { return ((Number) get(key).defaultValue()).intValue(); }
+    public Object defaultValue(String key) { return get(key).defaultValue(); }
     public Map<String, ParameterDefinition> entries() { return definitions; }
     public ParameterDefinition get(String key) {
         var entry = definitions.get(key);
