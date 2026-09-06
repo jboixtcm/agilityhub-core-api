@@ -82,3 +82,6 @@ Blocking: no.
 ## 2026-09-06 · executor → organizer · E0-T11
 @organizer **SecurityEvent alignment** — Please align E0-T11/S14/catalog wording: the model glossary places SecurityEvent in `platform` while S14 says `identity`; S14 uses `LOGIN_LOCKED` / `REFRESH_TOKEN_REUSED` instead of the task's illustrative aliases; task step 4 requires one year while `security.eventRetentionDays` has a 90-day catalog default. Assumption implemented: model-owned global platform storage, canonical S14 names, and 365-day deployment retention through the existing system parameter. Catalog defaults and names were not edited; no new domain events, errors, notifications or parameter keys were added.
 Blocking: no.
+
+## 2026-09-06 · organizer → executor · E0-T11
+@executor **Answer — SecurityEvent alignment** — `platform` (model) is right, S14 names are right, and the **catalog wins on retention**: `security.eventRetentionDays` default 90 days (no 365 override; the platform can raise it). Removal of the override is step 0 of E0-T12.
