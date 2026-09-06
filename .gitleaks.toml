@@ -1,0 +1,10 @@
+# Gitleaks configuration (CI "Secret scan" job). Extends the default rules.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Roadmap reports are prose and command outputs with truncated tokens (organizer-reviewed); the generic-api-key rule matches test descriptions there. Code and resources stay fully scanned."
+paths = [
+  '''roadmap/tasks/.*\.md$''',
+  '''roadmap/MESSAGES\.md$''',
+]

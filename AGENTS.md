@@ -24,7 +24,7 @@ Bounded contexts (one Java package each, layers `api / application / domain / pe
 3. **No club literals in code**: anything specific to the Cànic is a parameter, a catalog entry or a seed (`seeds/*.yaml`). Every rule has a parameter with the Cànic value as product default.
 4. **Multi-tenant always**: every club-scoped document carries `clubId`; use `TenantRepository`; every endpoint has a tenant/role test.
 5. **Tests in the same task**, named after the spec ids (`T-02-03_catalogMatchesDocument`). Coverage thresholds (domain+application ≥ 85 % lines / 80 % branches, api ≥ 70 %) are enforced by `./mvnw verify`.
-6. **Secrets**: only environment variables (`${VAR}` in `application.yml`, listed in `.env.example`). Never commit keys, tokens, `.env`, dumps or personal data. Fixtures and seeds use fictional people (`@example.test`).
+6. **Secrets**: only environment variables (`${VAR}` in `application.yml`, listed in `.env.example`). Never commit keys, tokens, `.env`, dumps or personal data. Fixtures and seeds use fictional people (`@example.test`). In reports, truncate every token/hash you paste (`eyJ…[truncated]`); reports are excluded from the secret scanner because they are prose, so the responsibility is yours.
 7. **Money and time**: `Money{amountMinor, currency}`; store instants in UTC; club-local dates via `ClubClock` and the club's `timeZone`; `Clock` is injected, never `Instant.now()` in domain code.
 8. **Audit and events**: state changes that the specs mark as audited use `@Audited`; domain events go through the outbox (`EventPublisher`) inside the same Mongo transaction.
 9. **Errors**: throw `ApiException(ErrorCode.X)`; never return ad-hoc JSON.
