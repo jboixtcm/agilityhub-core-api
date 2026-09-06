@@ -40,9 +40,11 @@ Decisions d'unificació (03-09): `IMPERSONATION_NOT_ALLOWED` (S03/S13) **→ `IM
 | S17 | `SLUG_TAKEN`, `HOST_ALREADY_USED`, `HOST_RESERVED`, `HOST_NOT_VERIFIED`, `THEME_CONTRAST`, `PROVIDER_CONFIG_INVALID`, `PROVIDER_IN_USE`, `STRIPE_CONNECTION_FAILED`, `CATALOG_NOT_EMPTY`, `TEMPLATE_CLUB_NOT_FOUND`, `LAST_PLATFORM_ADMIN`, `SUPPORT_RESTRICTED`, `SECRET_IN_FILE` (CLI) |
 | S18 (CLI) | `MAPPING_INVALID`, `INPUT_SCHEMA_MISMATCH`, `MIGRATION_ALREADY_APPLIED`, `PRODUCTION_REQUIRES_CONFIRMATION`, `CLUB_NOT_EMPTY` |
 
-Transversals: `VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `UNAUTHENTICATED`, `STALE_VERSION`, `INVALID_STATE`, `MODULE_DISABLED`, `RATE_LIMITED`, `INVALID_FILTER`, `FILE_*`.
+Transversals: `VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `UNAUTHENTICATED`, `STALE_VERSION`, `INVALID_STATE`, `MODULE_DISABLED`, `RATE_LIMITED`, `INVALID_FILTER`, `IDEMPOTENCY_KEY_REUSED` (409: mateixa `Idempotency-Key` amb un cos diferent o petició encara en curs; `details.reason = DIFFERENT_REQUEST | IN_PROGRESS`; afegit 06-09 a proposta d'E0-T04), `FILE_*`.
 
 ## 3. Regles
+
+0. **Estat HTTP dels codis sense estat explícit a §1** (regla afegida 06-09, E0-T04): mana sempre l'estat explícit de §1; per a la resta, els codis que acaben en `_EXISTS`, `_TAKEN`, `_IN_USE`, `_LOCKED`, `_OVERLAP`, `_CONFLICT` o que comencen per `ALREADY_` són **409**; qualsevol altre codi de §2 sense estat explícit és **422** (precondició de negoci). L'`ErrorCode` del core aplica exactament aquesta regla; si una spec necessita un estat diferent, l'afegeix a §1.
 
 1. Un codi = un significat; el mateix codi a dues specs ha de voler dir el mateix (els reutilitzats es marquen a la spec que els reutilitza).
 2. `details` porta el que la UI necessita per decidir (p. ex. `BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], nextBookableAt}`).
