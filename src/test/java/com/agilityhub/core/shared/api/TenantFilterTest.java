@@ -71,7 +71,7 @@ class TenantFilterTest {
     }
     @Test void T_02_06_globalPathsAndExceptionalExitsHaveNoTenantLeak() throws Exception {
         jwt("club-a");
-        for (String path : new String[]{"/api/v1/health", "/api/v1/platform", "/api/v1/platform/clubs"}) {
+        for (String path : new String[]{"/api/v1/health", "/api/v1/openapi.json", "/api/v1/platform", "/api/v1/platform/clubs"}) {
             filter(false).doFilter(request(path, "b.example.test", null), new MockHttpServletResponse(),
                     (req, res) -> assertThat(TenantContext.current()).isNull());
         }
@@ -79,7 +79,7 @@ class TenantFilterTest {
                 (req, res) -> { throw new IllegalStateException("Controller failed"); })).isInstanceOf(IllegalStateException.class);
         assertThat(TenantContext.current()).isNull();
         SecurityContextHolder.clearContext();
-        filter(false).doFilter(request("/v3/api-docs", null, null), new MockHttpServletResponse(),
+        filter(false).doFilter(request("/api/v1/openapi.json", null, null), new MockHttpServletResponse(),
                 (req, res) -> assertThat(TenantContext.current()).isNull());
     }
 }

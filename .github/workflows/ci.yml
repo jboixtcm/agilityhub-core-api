@@ -38,10 +38,14 @@ jobs:
           path: target/site/jacoco/
           if-no-files-found: error
           retention-days: 14
-      # E0-T12 will add contract generation before this diff hook.
+      - name: Regenerate OpenAPI snapshot
+        run: bin/openapi-snapshot --from-build
       - name: Check OpenAPI snapshot diff
-        if: hashFiles('docs/openapi/openapi.json') != ''
-        run: git diff --exit-code docs/openapi/openapi.json
+        run: |
+          git diff --exit-code docs/openapi/openapi.json || {
+            echo 'run bin/openapi-snapshot and review the diff'
+            exit 1
+          }
 
   secrets:
     name: Secret scan

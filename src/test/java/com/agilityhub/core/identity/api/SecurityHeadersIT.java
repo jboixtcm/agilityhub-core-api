@@ -22,6 +22,15 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
         registry.add("spring.data.mongodb.password", () -> "fixture");
     }
 
+    @Test void E0_T12_productionDocumentationIsDeniedEvenWithAnAuthenticatedPlatformRole() throws Exception {
+        for (String path : new String[]{"/api/v1/openapi.json", "/v3/api-docs"}) {
+            mvc.perform(get(path)).andExpect(status().isUnauthorized());
+            mvc.perform(get(path).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt()
+                            .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_AGILITYHUB_ADMIN"))))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
     @Test void T_01_25_productionHttpsHeadersCoverPublicOAuthProtectedAndRejectedRequests() throws Exception {
         for (String path : new String[]{"/api/v1/health", "/api/v1/me", "/oauth2/jwks", "/oauth2/token"}) {
             mvc.perform((path.equals("/oauth2/token") ? post(path) : get(path)).secure(true).header("Host", HOST))

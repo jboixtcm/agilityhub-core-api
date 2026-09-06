@@ -1,388 +1,1296 @@
 {
-  "components": {
-    "schemas": {
-      "AccountDto": {
-        "properties": {
-          "email": {
-            "type": "string"
+  "components" : {
+    "schemas" : {
+      "AccountDto" : {
+        "properties" : {
+          "email" : {
+            "type" : "string"
           },
-          "id": {
-            "type": "string"
+          "id" : {
+            "type" : "string"
           },
-          "locale": {
-            "type": "string"
+          "locale" : {
+            "type" : "string"
           },
-          "name": {
-            "type": "string"
+          "name" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "BrandingResponse": {
-        "properties": {
-          "club": {
-            "$ref": "#/components/schemas/ClubSummary"
+      "ApiError" : {
+        "properties" : {
+          "code" : {
+            "type" : "string"
           },
-          "countryProfile": {
-            "$ref": "#/components/schemas/Country"
+          "details" : {
+            "additionalProperties" : true,
+            "type" : "object"
           },
-          "currency": {
-            "type": "string"
+          "message" : {
+            "type" : "string"
           },
-          "defaultLocale": {
-            "type": "string"
+          "traceId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "details", "message", "traceId" ],
+        "type" : "object"
+      },
+      "BrandingResponse" : {
+        "properties" : {
+          "club" : {
+            "$ref" : "#/components/schemas/ClubSummary"
           },
-          "legal": {
-            "$ref": "#/components/schemas/Legal"
+          "countryProfile" : {
+            "$ref" : "#/components/schemas/Country"
           },
-          "locales": {
-            "items": {
-              "type": "string"
+          "currency" : {
+            "type" : "string"
+          },
+          "defaultLocale" : {
+            "type" : "string"
+          },
+          "legal" : {
+            "$ref" : "#/components/schemas/Legal"
+          },
+          "locales" : {
+            "items" : {
+              "type" : "string"
             },
-            "type": "array"
+            "type" : "array"
           },
-          "modules": {
-            "items": {
-              "type": "string"
+          "modules" : {
+            "items" : {
+              "type" : "string"
             },
-            "type": "array"
+            "type" : "array"
           },
-          "signup": {
-            "$ref": "#/components/schemas/Signup"
+          "signup" : {
+            "$ref" : "#/components/schemas/Signup"
           },
-          "status": {
-            "type": "string"
+          "status" : {
+            "type" : "string"
           },
-          "theme": {
-            "$ref": "#/components/schemas/Theme"
+          "theme" : {
+            "$ref" : "#/components/schemas/Theme"
           },
-          "timeZone": {
-            "type": "string"
+          "timeZone" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "ClubSummary": {
-        "properties": {
-          "name": {
-            "type": "string"
+      "ClubSummary" : {
+        "properties" : {
+          "name" : {
+            "type" : "string"
           },
-          "slug": {
-            "type": "string"
+          "slug" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Colors": {
-        "properties": {
-          "background": {
-            "type": "string"
+      "Colors" : {
+        "properties" : {
+          "background" : {
+            "type" : "string"
           },
-          "border": {
-            "type": "string"
+          "border" : {
+            "type" : "string"
           },
-          "danger": {
-            "type": "string"
+          "danger" : {
+            "type" : "string"
           },
-          "info": {
-            "type": "string"
+          "info" : {
+            "type" : "string"
           },
-          "onPrimary": {
-            "type": "string"
+          "onPrimary" : {
+            "type" : "string"
           },
-          "primary": {
-            "type": "string"
+          "primary" : {
+            "type" : "string"
           },
-          "success": {
-            "type": "string"
+          "success" : {
+            "type" : "string"
           },
-          "surface": {
-            "type": "string"
+          "surface" : {
+            "type" : "string"
           },
-          "surfaceAlt": {
-            "type": "string"
+          "surfaceAlt" : {
+            "type" : "string"
           },
-          "text": {
-            "type": "string"
+          "text" : {
+            "type" : "string"
           },
-          "textMuted": {
-            "type": "string"
+          "textMuted" : {
+            "type" : "string"
           },
-          "warning": {
-            "type": "string"
+          "warning" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Country": {
-        "properties": {
-          "code": {
-            "type": "string"
+      "Country" : {
+        "properties" : {
+          "code" : {
+            "type" : "string"
           },
-          "idDocumentTypes": {
-            "items": {
-              "type": "string"
+          "idDocumentTypes" : {
+            "items" : {
+              "type" : "string"
             },
-            "type": "array"
+            "type" : "array"
           },
-          "phonePrefix": {
-            "type": "string"
+          "phonePrefix" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "HealthResponse": {
-        "properties": {
-          "builtAt": {
-            "format": "date-time",
-            "type": "string"
+      "HealthResponse" : {
+        "properties" : {
+          "builtAt" : {
+            "format" : "date-time",
+            "type" : "string"
           },
-          "status": {
-            "type": "string"
+          "status" : {
+            "type" : "string"
           },
-          "version": {
-            "type": "string"
+          "version" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Icon": {
-        "properties": {
-          "purpose": {
-            "type": "string"
+      "Icon" : {
+        "properties" : {
+          "purpose" : {
+            "type" : "string"
           },
-          "sizes": {
-            "type": "string"
+          "sizes" : {
+            "type" : "string"
           },
-          "src": {
-            "type": "string"
+          "src" : {
+            "type" : "string"
           },
-          "type": {
-            "type": "string"
+          "type" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Legal": {
-        "properties": {
-          "privacyPolicyUrl": {
-            "type": "string"
+      "Legal" : {
+        "properties" : {
+          "privacyPolicyUrl" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Manifest": {
-        "properties": {
-          "background_color": {
-            "type": "string"
+      "Manifest" : {
+        "properties" : {
+          "background_color" : {
+            "type" : "string"
           },
-          "display": {
-            "type": "string"
+          "display" : {
+            "type" : "string"
           },
-          "icons": {
-            "items": {
-              "$ref": "#/components/schemas/Icon"
+          "icons" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Icon"
             },
-            "type": "array"
+            "type" : "array"
           },
-          "name": {
-            "type": "string"
+          "name" : {
+            "type" : "string"
           },
-          "short_name": {
-            "type": "string"
+          "short_name" : {
+            "type" : "string"
           },
-          "start_url": {
-            "type": "string"
+          "start_url" : {
+            "type" : "string"
           },
-          "theme_color": {
-            "type": "string"
+          "theme_color" : {
+            "type" : "string"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "MeResponse": {
-        "properties": {
-          "account": {
-            "$ref": "#/components/schemas/AccountDto"
+      "MeResponse" : {
+        "properties" : {
+          "account" : {
+            "$ref" : "#/components/schemas/AccountDto"
           },
-          "membership": {
-            "$ref": "#/components/schemas/MembershipDto"
+          "membership" : {
+            "$ref" : "#/components/schemas/MembershipDto"
           },
-          "modules": {
-            "items": {
-              "type": "string"
+          "modules" : {
+            "items" : {
+              "type" : "string"
             },
-            "type": "array"
+            "type" : "array"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "MembershipDto": {
-        "properties": {
-          "defaultProfile": {
-            "enum": [
-              "MEMBER",
-              "INSTRUCTOR",
-              "ADMIN"
-            ],
-            "type": "string"
+      "MembershipDto" : {
+        "properties" : {
+          "defaultProfile" : {
+            "enum" : [ "MEMBER", "INSTRUCTOR", "ADMIN" ],
+            "type" : "string"
           },
-          "memberId": {
-            "type": "string"
+          "memberId" : {
+            "type" : "string"
           },
-          "roles": {
-            "items": {
-              "enum": [
-                "MEMBER",
-                "INSTRUCTOR",
-                "ADMIN"
-              ],
-              "type": "string"
+          "roles" : {
+            "items" : {
+              "enum" : [ "MEMBER", "INSTRUCTOR", "ADMIN" ],
+              "type" : "string"
             },
-            "type": "array",
-            "uniqueItems": true
+            "type" : "array",
+            "uniqueItems" : true
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Signup": {
-        "properties": {
-          "enabled": {
-            "type": "boolean"
+      "Signup" : {
+        "properties" : {
+          "enabled" : {
+            "type" : "boolean"
           }
         },
-        "type": "object"
+        "type" : "object"
       },
-      "Theme": {
-        "properties": {
-          "colors": {
-            "$ref": "#/components/schemas/Colors"
+      "Theme" : {
+        "properties" : {
+          "colors" : {
+            "$ref" : "#/components/schemas/Colors"
           },
-          "fontFamily": {
-            "type": "string"
+          "fontFamily" : {
+            "type" : "string"
           },
-          "logoDarkUrl": {
-            "type": "string"
+          "logoDarkUrl" : {
+            "type" : "string"
           },
-          "logoUrl": {
-            "type": "string"
+          "logoUrl" : {
+            "type" : "string"
           },
-          "markUrl": {
-            "type": "string"
+          "markUrl" : {
+            "type" : "string"
           },
-          "mode": {
-            "enum": [
-              "auto",
-              "light",
-              "dark"
-            ],
-            "type": "string"
+          "mode" : {
+            "enum" : [ "auto", "light", "dark" ],
+            "type" : "string"
           },
-          "radius": {
-            "type": "string"
+          "radius" : {
+            "type" : "string"
           },
-          "ringPalette": {
-            "items": {
-              "type": "string"
+          "ringPalette" : {
+            "items" : {
+              "type" : "string"
             },
-            "type": "array"
+            "type" : "array"
           }
         },
-        "type": "object"
+        "type" : "object"
+      }
+    },
+    "securitySchemes" : {
+      "bearer" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
       }
     }
   },
-  "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
+  "info" : {
+    "title" : "AgilityHub Core API",
+    "version" : "v1"
   },
-  "openapi": "3.1.0",
-  "paths": {
-    "/api/v1/branding": {
-      "get": {
-        "operationId": "branding",
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/BrandingResponse"
+  "openapi" : "3.1.0",
+  "paths" : {
+    "/.well-known/jwks.json" : {
+      "get" : {
+        "operationId" : "wellKnownJwks",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "properties" : {
+                    "keys" : {
+                      "items" : {
+                        "properties" : {
+                          "alg" : {
+                            "type" : "string"
+                          },
+                          "e" : {
+                            "type" : "string"
+                          },
+                          "kid" : {
+                            "type" : "string"
+                          },
+                          "kty" : {
+                            "enum" : [ "RSA" ],
+                            "type" : "string"
+                          },
+                          "n" : {
+                            "type" : "string"
+                          },
+                          "use" : {
+                            "type" : "string"
+                          }
+                        },
+                        "required" : [ "e", "kid", "kty", "n" ],
+                        "type" : "object"
+                      },
+                      "type" : "array"
+                    }
+                  },
+                  "required" : [ "keys" ],
+                  "type" : "object"
                 }
               }
             },
-            "description": "OK"
+            "description" : "Public JWK set"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
           }
         },
-        "tags": [
-          "branding-controller"
-        ]
+        "security" : [ ],
+        "summary" : "Get public JWT verification keys",
+        "tags" : [ "identity" ]
       }
     },
-    "/api/v1/health": {
-      "get": {
-        "operationId": "health",
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
+    "/api/v1/branding" : {
+      "get" : {
+        "operationId" : "branding",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrandingResponse"
                 }
               }
             },
-            "description": "OK"
+            "description" : "OK"
+          },
+          "304" : {
+            "description" : "Not modified"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
           }
         },
-        "tags": [
-          "health-controller"
-        ]
+        "security" : [ ],
+        "tags" : [ "platform" ]
       }
     },
-    "/api/v1/manifest.webmanifest": {
-      "get": {
-        "operationId": "manifest",
-        "responses": {
-          "200": {
-            "content": {
-              "application/manifest+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Manifest"
+    "/api/v1/health" : {
+      "get" : {
+        "operationId" : "health",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/HealthResponse"
                 }
               }
             },
-            "description": "OK"
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
           }
         },
-        "tags": [
-          "branding-controller"
-        ]
+        "security" : [ ],
+        "tags" : [ "shared" ]
       }
     },
-    "/api/v1/me": {
-      "get": {
-        "operationId": "me",
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/MeResponse"
+    "/api/v1/manifest.webmanifest" : {
+      "get" : {
+        "operationId" : "manifest",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/manifest+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Manifest"
                 }
               }
             },
-            "description": "OK"
+            "description" : "OK"
+          },
+          "304" : {
+            "description" : "Not modified"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
           }
         },
-        "tags": [
-          "me-controller"
-        ]
+        "security" : [ ],
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/me" : {
+      "get" : {
+        "operationId" : "me",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "tags" : [ "identity" ]
+      }
+    },
+    "/oauth2/jwks" : {
+      "get" : {
+        "operationId" : "jwks",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "properties" : {
+                    "keys" : {
+                      "items" : {
+                        "properties" : {
+                          "alg" : {
+                            "type" : "string"
+                          },
+                          "e" : {
+                            "type" : "string"
+                          },
+                          "kid" : {
+                            "type" : "string"
+                          },
+                          "kty" : {
+                            "enum" : [ "RSA" ],
+                            "type" : "string"
+                          },
+                          "n" : {
+                            "type" : "string"
+                          },
+                          "use" : {
+                            "type" : "string"
+                          }
+                        },
+                        "required" : [ "e", "kid", "kty", "n" ],
+                        "type" : "object"
+                      },
+                      "type" : "array"
+                    }
+                  },
+                  "required" : [ "keys" ],
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "Public JWK set"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Get public JWT verification keys",
+        "tags" : [ "identity" ]
+      }
+    },
+    "/oauth2/token" : {
+      "post" : {
+        "description" : "The request host selects the club. Password and refresh grants accept public clients; Authorization, client_secret and scope are rejected. Refresh tokens rotate on use.",
+        "operationId" : "token",
+        "requestBody" : {
+          "content" : {
+            "application/x-www-form-urlencoded" : {
+              "schema" : {
+                "oneOf" : [ {
+                  "properties" : {
+                    "client_id" : {
+                      "default" : "clubs-app",
+                      "enum" : [ "clubs-app", "clubs-admin" ],
+                      "type" : "string"
+                    },
+                    "grant_type" : {
+                      "enum" : [ "password" ],
+                      "type" : "string"
+                    },
+                    "password" : {
+                      "format" : "password",
+                      "type" : "string",
+                      "writeOnly" : true
+                    },
+                    "username" : {
+                      "format" : "email",
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "grant_type", "password", "username" ],
+                  "type" : "object"
+                }, {
+                  "properties" : {
+                    "client_id" : {
+                      "default" : "clubs-app",
+                      "enum" : [ "clubs-app", "clubs-admin" ],
+                      "type" : "string"
+                    },
+                    "grant_type" : {
+                      "enum" : [ "refresh_token" ],
+                      "type" : "string"
+                    },
+                    "refresh_token" : {
+                      "type" : "string",
+                      "writeOnly" : true
+                    }
+                  },
+                  "required" : [ "grant_type", "refresh_token" ],
+                  "type" : "object"
+                } ]
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "properties" : {
+                    "access_token" : {
+                      "type" : "string"
+                    },
+                    "expires_in" : {
+                      "format" : "int64",
+                      "type" : "integer"
+                    },
+                    "refresh_token" : {
+                      "type" : "string"
+                    },
+                    "token_type" : {
+                      "enum" : [ "Bearer" ],
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [ "access_token", "expires_in", "refresh_token", "token_type" ],
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "Token issued"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests"
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Issue or refresh a tenant-scoped access token",
+        "tags" : [ "identity" ]
       }
     }
   },
-  "servers": [
-    {
-      "description": "Generated server url",
-      "url": "http://localhost:8080"
-    }
-  ]
+  "security" : [ {
+    "bearer" : [ ]
+  } ],
+  "servers" : [ {
+    "url" : "https://core.agilitydoghub.com"
+  }, {
+    "url" : "http://localhost:8080"
+  } ]
 }

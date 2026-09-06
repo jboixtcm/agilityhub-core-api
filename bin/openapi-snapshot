@@ -1,14 +1,23 @@
 #!/usr/bin/env python3
-"""Capture the initial contract from the running local development API."""
+"""Generate the contract with an isolated test server, then update the reviewed snapshot."""
 
-import json
+import argparse
 from pathlib import Path
-from urllib.request import urlopen
+import shutil
+import subprocess
 
-with urlopen("http://localhost:8080/v3/api-docs", timeout=30) as response:
-    document = json.load(response)
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--from-build", action="store_true", help="copy target/openapi.json after a successful mvnw verify")
+args = parser.parse_args()
+root = Path(__file__).resolve().parents[1]
+source = root / "target/openapi.json"
+if not args.from_build:
+    source.unlink(missing_ok=True)
+    subprocess.run([str(root / "mvnw"), "-q", "-Dtest=OpenApiSnapshotTest", "test"], cwd=root, check=True)
+if not source.is_file():
+    parser.error("target/openapi.json is missing; run bin/openapi-snapshot to generate it")
 
-destination = Path(__file__).resolve().parents[1] / "docs/openapi/openapi.json"
+destination = root / "docs/openapi/openapi.json"
 destination.parent.mkdir(parents=True, exist_ok=True)
-destination.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+shutil.copyfile(source, destination)
 print("Updated docs/openapi/openapi.json")

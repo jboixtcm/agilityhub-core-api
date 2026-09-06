@@ -31,6 +31,8 @@ class ProfileConfigurationTest {
                 "MONGODB_PASSWORD=fixture_password")
                 .run(context -> {
                     assertThat(context).hasNotFailed();
+                    assertThat(context.getEnvironment().getProperty("springdoc.api-docs.enabled", Boolean.class)).isFalse();
+                    assertThat(context.getEnvironment().getProperty("security.eventRetentionDays")).isNull();
                     var connection = new PropertiesMongoConnectionDetails(
                             context.getBean(MongoProperties.class), null).getConnectionString();
                     assertThat(connection.getHosts()).containsExactly("database.example.test:27017");
@@ -52,6 +54,8 @@ class ProfileConfigurationTest {
     void E0_T01_testProfileKeepsMongoEnabledWithASeparateDatabase() {
         runner.withPropertyValues("spring.profiles.active=test").run(context -> {
             assertThat(context).hasNotFailed();
+            assertThat(context.getEnvironment().getProperty("springdoc.api-docs.enabled", Boolean.class)).isTrue();
+            assertThat(context.getEnvironment().getProperty("springdoc.api-docs.path")).isEqualTo("/api/v1/openapi.json");
             var connection = new PropertiesMongoConnectionDetails(
                     context.getBean(MongoProperties.class), null).getConnectionString();
             assertThat(connection.getDatabase()).isEqualTo("agilityhub_test");
@@ -66,6 +70,7 @@ class ProfileConfigurationTest {
     void E0_T02_defaultLocalProfileEnablesTheDevelopmentReplicaSet() {
         runner.run(context -> {
             assertThat(context).hasNotFailed();
+            assertThat(context.getEnvironment().getProperty("springdoc.api-docs.enabled", Boolean.class)).isTrue();
             assertThat(context.getEnvironment().getDefaultProfiles()).containsExactly("local");
             assertThat(Binder.get(context.getEnvironment())
                     .bind("spring.autoconfigure.exclude", Bindable.listOf(String.class)).get())

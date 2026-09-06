@@ -8,10 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T12: OpenAPI 3.1 at `/api/v1/openapi.json` in local/test, context tags, bearer security,
+  shared error responses, token/JWKS contracts and an endpoint changelog.
+- Reproducible Testcontainers snapshot generation and CI regeneration/diff enforcement.
+- Security-event retention now follows the 90-day catalog default, retains system overrides,
+  and updates existing TTL indexes when retention changes.
+
 - E0-T11: Configurable Bucket4j quotas for token, branding, public and account routes,
   standard rate-limit errors with Retry-After, and cached CORS for registered club and platform hosts.
 - Production HSTS, CSP and referrer headers; global security events for failed logins,
-  refresh reuse, rate limits and tenant mismatches with one-year TTL and no stored credentials.
+  refresh reuse, rate limits and tenant mismatches with configurable TTL and no stored credentials.
 - Private actuator listener on port 8081 with health, info and Prometheus; security integration
   tests, narrowly scoped generated-PEM scan exceptions, and club-schema packaging for Docker.
 

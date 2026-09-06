@@ -45,14 +45,13 @@ core:
     cors:
       platform-hosts: ${CORS_PLATFORM_HOSTS:id.agilitydoghub.com,clubs.agilitydoghub.com,clubsadmin.agilitydoghub.com}
 
-# Existing system parameter; E0-T11 explicitly requires one year instead of the catalog's 90-day default.
-security:
-  eventRetentionDays: 365
-
 springdoc:
   api-docs:
     enabled: false
+    path: /api/v1/openapi.json
     version: OPENAPI_3_1
+  override-with-generic-response: false
+  default-produces-media-type: application/json
   swagger-ui:
     enabled: false
 
@@ -84,6 +83,10 @@ core:
     rateLimits:
       enabled: false
 
+springdoc:
+  api-docs:
+    enabled: true
+
 ---
 spring:
   config:
@@ -98,3 +101,7 @@ spring:
       authentication-database: ${MONGODB_AUTH_DATABASE:admin}
       username: ${MONGODB_USERNAME}
       password: ${MONGODB_PASSWORD}
+
+springdoc:
+  api-docs:
+    enabled: false

@@ -2,6 +2,7 @@ package com.agilityhub.core.configuration;
 
 import com.agilityhub.core.platform.api.ClubCorsConfigurationSource;
 import com.agilityhub.core.platform.application.HostTenantResolver;
+import com.agilityhub.core.platform.application.ParameterCatalog;
 import com.agilityhub.core.platform.persistence.SecurityEventRepository;
 import com.agilityhub.core.shared.api.ApiExceptionHandler;
 import com.agilityhub.core.shared.api.RateLimitFilter;
@@ -53,8 +54,10 @@ public class SecurityBaselineConfiguration {
         return new ClubCorsConfigurationSource(hosts, platformHosts, environment.acceptsProfiles(Profiles.of("local")));
     }
 
-    @Bean ApplicationRunner securityEventIndexes(SecurityEventRepository events,
-            @Value("${security.eventRetentionDays}") int retentionDays) {
+    @Bean ApplicationRunner securityEventIndexes(SecurityEventRepository events, ParameterCatalog catalog,
+            Environment environment) {
+        int retentionDays = environment.getProperty("security.eventRetentionDays", Integer.class,
+                ((Number) catalog.get("security.eventRetentionDays").defaultValue()).intValue());
         return args -> events.ensureIndexes(retentionDays);
     }
 

@@ -14,6 +14,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SecurityEventIT extends IdentityIntegrationSupport {
     @BeforeEach void clearEvents() { mongo.remove(new Query(), SecurityEvent.class); }
 
+    @Test void E0_T12_existingRetentionIndexCanBeAlignedAndOverriddenWithoutRecreation() {
+        var events = new com.agilityhub.core.platform.persistence.SecurityEventRepository(mongo);
+        events.ensureIndexes(365);
+        events.ensureIndexes(90);
+        events.ensureIndexes(90);
+        assertThat(mongo.indexOps(SecurityEvent.class).getIndexInfo()).filteredOn("name", "security_event_retention")
+                .singleElement().satisfies(index -> assertThat(index.getExpireAfter()).contains(Duration.ofDays(90)));
+    }
+
     @Test void T_01_15_failedPasswordWritesGlobalEventForKnownAndUnknownAccountWithoutSecrets() throws Exception {
         login(HOST, "admin@example.test", "do-not-store-password").andExpect(status().isUnauthorized());
         login(HOST, "absent@example.test", "do-not-store-password").andExpect(status().isUnauthorized());
@@ -33,7 +42,7 @@ class SecurityEventIT extends IdentityIntegrationSupport {
         assertThat(mongo.count(new Query(), SecurityEvent.class)).isEqualTo(2);
         var ttl = mongo.indexOps(SecurityEvent.class).getIndexInfo().stream()
                 .filter(index -> index.getName().equals("security_event_retention")).findFirst().orElseThrow();
-        assertThat(ttl.getExpireAfter()).contains(Duration.ofDays(365));
+        assertThat(ttl.getExpireAfter()).contains(Duration.ofDays(90));
     }
 
     @Test void T_01_17_tenantRejectionIsRecordedWithoutExposingGlobalEventsToClubRoles() throws Exception {

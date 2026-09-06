@@ -50,8 +50,11 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(authorize -> {
             authorize.requestMatchers(HttpMethod.GET, "/api/v1/health", "/api/v1/branding", "/api/v1/manifest.webmanifest",
                     "/api/v1/public/**").permitAll();
-            if (environment.acceptsProfiles(Profiles.of("local"))) { authorize.requestMatchers(HttpMethod.GET, "/v3/api-docs").permitAll(); }
-            authorize.requestMatchers("/actuator/**", "/v3/api-docs/**").denyAll();
+            if (environment.acceptsProfiles(Profiles.of("local", "test"))
+                    && !environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
+                authorize.requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll();
+            }
+            authorize.requestMatchers("/actuator/**", "/v3/api-docs/**", "/api/v1/openapi.json", "/api/v1/openapi.json/**").denyAll();
             authorize.anyRequest().authenticated();
         });
         var authorities = new JwtGrantedAuthoritiesConverter();
