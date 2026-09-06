@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T07: Reusable audit aspect, manual writer and tenant-scoped last-change query,
+  append-only Mongo entries with startup indexes, and after-commit persistence.
+- Detached annotated audit snapshots with nested diffs, IBAN/document masking and
+  hidden secrets; rollback, tenant/platform isolation and audit-action coverage tests.
+
 - E0-T06: One public module enum with catalog-checked dependencies, self-service
   flags and MINIM/CANIC presets; dependency validation with missing/dependent details.
 - Tenant-aware module guards for services and schedulers, plus controller/method

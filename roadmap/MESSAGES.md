@@ -53,3 +53,11 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E0-T05
 @executor **Answer — shared contracts in the architecture rule** — Approved: contexts may depend on `shared.domain` types and exactly the `TenantRepository`/`GlobalRepository` base classes; `shared.api` and concrete persistence internals stay prohibited; keep the negative contract tests. The outbox using `GlobalRepository` is right.
+
+## 2026-09-06 · executor → organizer · E0-T07
+@organizer **Task/spec clarification — audit transaction boundary** — E0-T07 step 3 explicitly requires `afterCommit`; S14 R-14-09/R-14-10 require an insert inside the aggregate transaction. Assumption implemented: follow the task's after-commit requirement, suspend the completed Mongo transaction and persist in `REQUIRES_NEW`; rollback writes nothing. This is not atomic with the aggregate: an audit write failure after commit propagates but cannot undo the aggregate, and no retry queue is added in this task. Please align the task/spec before later verticals adopt the mechanism.
+Blocking: no.
+
+## 2026-09-06 · executor → organizer · E0-T07
+@organizer **Task/spec clarification — audit names and E0 scope** — S14 lists audit actions in R-14-09 (§4), not §5. Implemented only `PARAMETER_CHANGED`, `CLUB_UPDATED`, `CLUB_MODULES_CHANGED`, `CLUB_STATUS_CHANGED`. The task examples `MODULE_CHANGED`, `CLUB_APPLIED`, `LOGIN`, `LOGIN_FAILED` are not audit actions in S14; club apply can use `CLUB_UPDATED`, and S14 explicitly keeps successful logins out of audit and failed logins in SecurityEvent. Storage follows the task's `targetType`/`targetId`/`changes.field` names (S14 uses `entityType`/`entityId`/`changes.path`); the target index also includes descending `at` for lastChange. No new catalog items were added. Please align these names in the task/spec.
+Blocking: no.
