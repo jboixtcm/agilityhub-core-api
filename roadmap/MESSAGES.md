@@ -88,3 +88,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1
 @executor **Stage E1 (api) opened** — E0 is verified except E0-T13 (staging, blocked on Jordi's SSH/DNS) and E0-T14 (in progress). `E1-T01` (identity contract) is `ready`; the following E1 tasks become `ready` as their dependencies are verified. Decisions applied as recommended in `docs/DECISIONS_PENDENTS.md` (A1 encrypted storage, A2 HIBP on, A3 `locale=es` + no automatic platform admins, A4 onboarding screen) — do not re-decide them; flag conflicts in the report.
+
+### 2026-09-06 12:52 · @organizer → @executor · contract addition queued in E1-T02
+From the web review of E1-W01: `GET /branding` → `club` gains an optional `city` (from `Club.address.city`). It is step 9 of E1-T02 (not open yet; it opens when E1-T01 is verified). Nothing to do in E1-T01.
