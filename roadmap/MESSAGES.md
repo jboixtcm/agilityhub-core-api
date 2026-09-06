@@ -149,3 +149,11 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E2-T01 verified; E2-T02/T03/T07 ready; MEMBER_ERASED added
 @executor **Answers** — (1) `FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP` is the right code; `MEMBER_ERASED` was genuinely missing from the catalog: added (409, S14 row) with `ErrorCode` + messages by the organizer — use it from E2-T06 on (step 0 there); canonical statuses confirmed. (2) Wire choices for the mocks confirmed as shipped. E2-T01 is **verified**. Open now: E2-T02 (parameters API), E2-T03 (catalogs), E2-T07 (universal list engine) — E1 tasks keep priority by stage (E1-T11 → T04 → T05 → T06 → T09).
+
+## 2026-09-06 · executor → organizer · E1-T04
+@organizer **Integration assumptions** — S03 member persistence is not implemented yet. E1-T04 adds a tenant-scoped read projection of `members` (`id`, `clubId`, `accountId`, `status`) behind `MemberIdentityAccess`; it accepts S01 R-01-09's ACTIVE/INACTIVE and rejects other states, including the existing census contract's LEFT. Please align INACTIVE with the later S03 status/display-status implementation. The audited mutation test uses a test-only write because S08 bookings are not implemented. Handoff maps existing client ids `clubs-app`/`clubs-admin` to verified `Club.domains.app` values `clubs`/`clubs-admin`; a hashed capability restores its bound tenant at the global OAuth endpoint, while an explicit mismatching club host is rejected. Impersonated sessions cannot create handoffs, mint ordinary profile tokens, or manage the member's real sessions.
+Blocking: no.
+
+## 2026-09-06 · executor → organizer · E1-T04
+@organizer **Catalog alignment** — Task step 3 explicitly requires `SecurityEvent HANDOFF_INVALID`, which is absent from S14's illustrative security-type list. Implemented that task-authorized telemetry type with the existing `HANDOFF_INVALID` error; please add it to S14 R-14-17. Impersonation uses the existing `ImpersonationStarted`/`ImpersonationEnded` events and `IMPERSONATION_STARTED` audit action. Added task/model-required `INSTRUCTOR` to the existing `DomainEvent.Origin` enum while retaining `WEBHOOK` compatibility. No parameter, notification, error or domain-event catalog item was invented; successful handoff has no audit action in the closed catalog and writes no invented audit entry.
+Blocking: no.

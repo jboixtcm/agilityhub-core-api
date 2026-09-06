@@ -34,8 +34,9 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 /** Identity token/JWKS filters; full OIDC and persistent client registration follow in E1-T05. */
 @Configuration(proxyBeanMethods = false)
 public class IdentityConfiguration {
-    @Bean @Order(0) ApplicationRunner identityIndexes(AccountRepository accounts, MembershipRepository memberships, RefreshTokenRepository refresh, com.agilityhub.core.identity.persistence.MagicLinkTokenRepository magic) {
-        return args -> { accounts.ensureIndexes(); memberships.ensureIndexes(); refresh.ensureIndexes(); magic.ensureIndexes(); };
+    @Bean @Order(0) ApplicationRunner identityIndexes(AccountRepository accounts, MembershipRepository memberships, RefreshTokenRepository refresh, com.agilityhub.core.identity.persistence.MagicLinkTokenRepository magic,
+            com.agilityhub.core.identity.persistence.ImpersonationGrantRepository impersonations, com.agilityhub.core.identity.persistence.HandoffCodeRepository handoffs) {
+        return args -> { accounts.ensureIndexes(); memberships.ensureIndexes(); refresh.ensureIndexes(); magic.ensureIndexes(); impersonations.ensureIndexes(); handoffs.ensureIndexes(); };
     }
     @Bean(name = "magicLinkExecutor", destroyMethod = "shutdown")
     java.util.concurrent.ThreadPoolExecutor magicLinkExecutor() {
@@ -51,7 +52,8 @@ public class IdentityConfiguration {
         var client = RegisteredClient.withId(id).clientId(id).clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(new AuthorizationGrantType(com.agilityhub.core.identity.application.MagicLinkService.GRANT))
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN);
-        if (!id.equals("id-web")) { client.authorizationGrantType(new AuthorizationGrantType("password")); }
+        if (!id.equals("id-web")) { client.authorizationGrantType(new AuthorizationGrantType("password"))
+                .authorizationGrantType(new AuthorizationGrantType(com.agilityhub.core.identity.application.HandoffService.GRANT)); }
         return client.build();
     }
     @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type = org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
@@ -60,9 +62,9 @@ public class IdentityConfiguration {
             JWKSource<SecurityContext> keys, FilterRegistrationBean<TenantFilter> tenants,
             FilterRegistrationBean<com.agilityhub.core.shared.api.RateLimitFilter> rateLimits,
             org.springframework.core.env.Environment environment, org.springframework.web.cors.CorsConfigurationSource clubCors,
-            ApiExceptionHandler errors, ObjectMapper mapper) throws Exception {
+            ApiExceptionHandler errors, ObjectMapper mapper, com.agilityhub.core.identity.application.HandoffService handoffs) throws Exception {
         SecurityBaselineConfiguration.headersAndCors(http, environment, clubCors);
-        var token = new OAuth2TokenEndpointFilter(new ProviderManager(new PasswordGrantProvider(tokens, clients)));
+        var token = new OAuth2TokenEndpointFilter(new ProviderManager(new PasswordGrantProvider(tokens, clients, handoffs)));
         token.setAuthenticationConverter(new PasswordGrantConverter());
         token.setAuthenticationFailureHandler((request, response, exception) -> {
             String code = ((OAuth2AuthenticationException) exception).getError().getErrorCode();
@@ -82,7 +84,7 @@ public class IdentityConfiguration {
             String path = request.getServletPath().isEmpty() ? request.getRequestURI() : request.getServletPath();
             String grant = request.getParameter("grant_type");
             return path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json")
-                    || (path.equals("/oauth2/token") && !"urn:agilityhub:grant:handoff".equals(grant) && !"authorization_code".equals(grant));
+                    || (path.equals("/oauth2/token") && !"authorization_code".equals(grant));
         })
                 .csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable()).authorizeHttpRequests(auth -> auth.anyRequest().permitAll());

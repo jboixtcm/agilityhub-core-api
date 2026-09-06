@@ -15,7 +15,7 @@ class PasswordGrantConverterTest {
         assertThatThrownBy(() -> new PasswordGrantConverter().convert(request)).isInstanceOf(OAuth2AuthenticationException.class);
         request.removeHeader("Authorization"); request.addParameter("client_id", "a", "b");
         assertThatThrownBy(() -> new PasswordGrantConverter().convert(request)).isInstanceOf(OAuth2AuthenticationException.class);
-        var provider = new PasswordGrantProvider(mock(TokenService.class), mock(RegisteredClientRepository.class));
+        var provider = new PasswordGrantProvider(mock(TokenService.class), mock(RegisteredClientRepository.class), mock(com.agilityhub.core.identity.application.HandoffService.class));
         assertThat(provider.supports(PasswordGrantAuthenticationToken.class)).isTrue();
         assertThat(provider.supports(String.class)).isFalse();
         var token = new PasswordGrantAuthenticationToken("password", "unknown", "Example", "secret");

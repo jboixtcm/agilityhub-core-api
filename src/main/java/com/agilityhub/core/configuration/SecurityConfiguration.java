@@ -43,7 +43,8 @@ public class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http, Environment environment, JwtDecoder decoder,
             ObjectProvider<FilterRegistrationBean<TenantFilter>> tenants,
             FilterRegistrationBean<RateLimitFilter> rateLimits, org.springframework.web.cors.CorsConfigurationSource clubCors,
-            ApiExceptionHandler errors, ObjectMapper mapper, com.agilityhub.core.shared.application.AccountAccess accountAccess) throws Exception {
+            ApiExceptionHandler errors, ObjectMapper mapper, com.agilityhub.core.shared.application.AccountAccess accountAccess,
+            com.agilityhub.core.identity.application.ImpersonationService impersonations) throws Exception {
         SecurityBaselineConfiguration.headersAndCors(http, environment, clubCors);
         http.csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable());
@@ -66,6 +67,9 @@ public class SecurityConfiguration {
         var scopes = new JwtGrantedAuthoritiesConverter();
         var converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
+                return java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_MEMBER"));
+            }
             var combined = new java.util.HashSet<org.springframework.security.core.GrantedAuthority>(authorities.convert(jwt));
             combined.addAll(platformAuthorities.convert(jwt));
             combined.addAll(scopes.convert(jwt));
@@ -79,7 +83,10 @@ public class SecurityConfiguration {
                 .accessDeniedHandler((request, response, exception) -> writeError(request, response, ErrorCode.FORBIDDEN, errors, mapper)));
         var tenant = tenants.getIfAvailable();
         http.addFilterAfter(rateLimits.getFilter(), BearerTokenAuthenticationFilter.class);
-        if (tenant != null) { http.addFilterAfter(tenant.getFilter(), RateLimitFilter.class); }
+        if (tenant != null) {
+            http.addFilterAfter(tenant.getFilter(), RateLimitFilter.class);
+            http.addFilterAfter(new com.agilityhub.core.identity.api.CurrentUserFilter(impersonations), TenantFilter.class);
+        }
         http.addFilterAfter(new com.agilityhub.core.shared.api.AccountStateFilter(accountAccess, errors, mapper), RateLimitFilter.class);
         return http.build();
     }

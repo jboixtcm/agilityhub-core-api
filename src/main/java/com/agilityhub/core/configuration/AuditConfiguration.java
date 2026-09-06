@@ -40,6 +40,13 @@ public class AuditConfiguration {
                     name = jwt.getToken().getClaimAsString("name");
                     impersonated = jwt.getToken().getClaimAsString("impersonatedMemberId");
                     support = jwt.getToken().getClaimAsBoolean("support");
+                    var current = com.agilityhub.core.shared.application.CurrentUser.current();
+                    if (current != null && current.impersonation() != null) {
+                        accountId = current.impersonation().actorAccountId();
+                        name = current.impersonation().actorName();
+                        role = "ADMIN";
+                        impersonated = current.impersonation().memberId();
+                    }
                 }
                 if (role.equals("AGILITYHUB_ADMIN")) { role = "PLATFORM"; }
             }

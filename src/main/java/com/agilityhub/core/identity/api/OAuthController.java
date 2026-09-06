@@ -17,13 +17,16 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 @RestController
 public class OAuthController {
     private final com.agilityhub.core.identity.application.TokenService tokens;
-    public OAuthController(com.agilityhub.core.identity.application.TokenService tokens) { this.tokens = tokens; }
+    private final com.agilityhub.core.identity.application.ImpersonationService impersonations;
+    public OAuthController(com.agilityhub.core.identity.application.TokenService tokens, com.agilityhub.core.identity.application.ImpersonationService impersonations) {
+        this.tokens = tokens; this.impersonations = impersonations;
+    }
     @PostMapping(value = "/oauth2/token", consumes = "application/x-www-form-urlencoded")
     @SecurityRequirements
     @Operation(operationId = "token", summary = "Issue tokens using an OAuth2 or AgilityHub grant",
             description = "ANON with client authentication. Club context comes from the host, never request data. "
                     + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
-                    + "Handoff, authorization-code grants and confidential clients are completed by later E1 tasks. "
+                    + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants and confidential clients follow in E1-T05. "
                     + "client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(mediaType = "application/x-www-form-urlencoded", schema = @Schema(implementation = TokenRequest.class))),
@@ -85,7 +88,10 @@ public class OAuthController {
             responses = @ApiResponse(responseCode = "200", description = "Revoked (also when already revoked)", content = @Content))
     public ResponseEntity<Void> revoke(@jakarta.validation.Valid @RequestBody RevokeRequest request,
             @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
-        tokens.revoke(jwt.getSubject(), request.token());
+        if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp")) && !jwt.getTokenValue().equals(request.token())) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
+        }
+        if (!impersonations.revoke(jwt.getSubject(), request.token())) { tokens.revoke(jwt.getSubject(), request.token()); }
         return ResponseEntity.ok().build();
     }
 

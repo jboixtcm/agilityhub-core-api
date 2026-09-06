@@ -15,11 +15,13 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 
 @RestController
 public class AccountAdministrationController {
+    private final com.agilityhub.core.identity.application.ImpersonationService impersonations;
+    public AccountAdministrationController(com.agilityhub.core.identity.application.ImpersonationService impersonations) { this.impersonations = impersonations; }
     @PostMapping("/api/v1/members/{id}/impersonation-token")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Create a non-refreshable member impersonation token",
-            description = "ADMIN of the same club, never an impersonated token. R-01-09. Target lookup and grant issuance are E1-T04.",
+            description = "ADMIN of the same club, never an impersonated token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued.",
             responses = {@ApiResponse(responseCode = "201", description = "Impersonation JWT and UTC expiry"),
                     @ApiResponse(responseCode = "403", description = "IMPERSONATION_DENIED"),
                     @ApiResponse(responseCode = "404", description = "NOT_FOUND within the current club")})
@@ -28,9 +30,16 @@ public class AccountAdministrationController {
         var jwt = ((JwtAuthenticationToken) authentication).getToken();
         if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp")) || authentication.getAuthorities().stream()
                 .noneMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
+            impersonations.deny(jwt.getSubject());
         }
-        throw new UnsupportedOperationException();
+        try {
+            var issued = impersonations.create(jwt.getSubject(), id, request.reason());
+            return new ImpersonationTokenResponse(issued.token().getTokenValue(), issued.expiresAt(), null);
+        } catch (com.agilityhub.core.shared.domain.ApiException denied) {
+            // Record only after the grant transaction rolls back.
+            if (denied.code().httpStatus() == 403) { impersonations.rejected(jwt.getSubject()); }
+            throw denied;
+        }
     }
 
     @PostMapping("/api/v1/platform/accounts")

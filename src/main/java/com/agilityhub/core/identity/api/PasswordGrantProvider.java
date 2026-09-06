@@ -14,7 +14,10 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 public final class PasswordGrantProvider implements AuthenticationProvider {
     private final TokenService tokens;
     private final RegisteredClientRepository clients;
-    public PasswordGrantProvider(TokenService tokens, RegisteredClientRepository clients) { this.tokens = tokens; this.clients = clients; }
+    private final com.agilityhub.core.identity.application.HandoffService handoffs;
+    public PasswordGrantProvider(TokenService tokens, RegisteredClientRepository clients, com.agilityhub.core.identity.application.HandoffService handoffs) {
+        this.tokens = tokens; this.clients = clients; this.handoffs = handoffs;
+    }
     @Override public Authentication authenticate(Authentication authentication) {
         var grant = (PasswordGrantAuthenticationToken) authentication;
         try {
@@ -25,6 +28,7 @@ public final class PasswordGrantProvider implements AuthenticationProvider {
             var issued = switch (grant.getGrantType().getValue()) {
                 case "password" -> tokens.password(grant.username(), (String) grant.getCredentials(), grant.clientId(), grant.userAgent());
                 case "refresh_token" -> tokens.refresh((String) grant.getCredentials(), grant.clientId());
+                case com.agilityhub.core.identity.application.HandoffService.GRANT -> handoffs.exchange((String) grant.getCredentials(), grant.clientId(), grant.userAgent());
                 default -> tokens.magicLink((String) grant.getCredentials(), grant.clientId(), grant.userAgent());
             };
             var jwt = issued.access();

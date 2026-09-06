@@ -105,11 +105,9 @@ class E2ContractIT extends AbstractIntegrationTest {
                         .with(jwt().authorities(authority)))
                 .andExpect(status().is(route.global() ? 501 : 403));
         if (route.rejectImpersonation()) {
-            var denied = mvc.perform(call(route).with(jwt().jwt(j -> j.claim("clubId", "e2-club-a").claim("imp", true)).authorities(authority)))
-                    .andExpect(status().isForbidden());
-            if (route.path().equals("/api/v1/me/data-export")) {
-                denied.andExpect(jsonPath("$.code").value("IMPERSONATION_DENIED"));
-            }
+            // A synthetic imp claim has no persisted grant; real grant role rejection is covered by T-01-11.
+            mvc.perform(call(route).with(jwt().jwt(j -> j.claim("clubId", "e2-club-a").claim("imp", true)).authorities(authority)))
+                    .andExpect(status().is(route.global() ? 403 : 401));
         }
         if (route.module() != null) {
             mvc.perform(call(route, "e2-b.example.test")

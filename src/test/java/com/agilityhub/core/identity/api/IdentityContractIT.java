@@ -21,11 +21,9 @@ class IdentityContractIT extends IdentityIntegrationSupport {
     static Stream<Endpoint> accountEndpoints() {
         return Stream.of(
                 new Endpoint("GET", "/oauth2/userinfo", null, "SCOPE_openid", false),
-                new Endpoint("POST", "/api/v1/auth/handoff", "{\"targetClientId\":\"clubs-admin\"}", "ROLE_ADMIN", true),
                 new Endpoint("GET", "/api/v1/me/onboarding", null, "ROLE_MEMBER", false),
                 new Endpoint("PUT", "/api/v1/me/onboarding", "{\"consentAccepted\":true,\"consentVersion\":\"v1\"}", "ROLE_MEMBER", false),
                 new Endpoint("POST", "/api/v1/me/onboarding/postpone", null, "ROLE_MEMBER", false),
-                new Endpoint("POST", "/api/v1/members/member-a/impersonation-token", "{}", "ROLE_ADMIN", true),
                 new Endpoint("POST", "/api/v1/platform/accounts", "{\"email\":\"new@example.test\",\"name\":\"Example\",\"locale\":\"en\"}", "ROLE_AGILITYHUB_ADMIN", false),
                 new Endpoint("PUT", "/api/v1/accounts/account-a/password", "{\"passwordHash\":\"fictional-hash\"}", "ROLE_AGILITYHUB_ADMIN", false));
     }
@@ -67,7 +65,7 @@ class IdentityContractIT extends IdentityIntegrationSupport {
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
-    @ParameterizedTest @ValueSource(strings = {"urn:agilityhub:grant:handoff", "authorization_code"})
+    @ParameterizedTest @ValueSource(strings = {"authorization_code"})
     void T_01_24_pendingGrantsReachThe501ContractWithoutChangingExistingGrants(String grant) throws Exception {
         for (String host : List.of(HOST, "id.example.test")) {
             mvc.perform(post("/oauth2/token").header("Host", host).contentType("application/x-www-form-urlencoded")
@@ -145,9 +143,9 @@ class IdentityContractIT extends IdentityIntegrationSupport {
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("IMPERSONATION_DENIED"));
         mvc.perform(put("/api/v1/me/password").contentType("application/json").content("{\"new\":\"fictional\",\"repeat\":\"fictional\"}")
                         .with(jwt().jwt(j -> j.claim("clubId", "club-a").claim("imp", true))))
-                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         mvc.perform(get("/api/v1/me").with(jwt().jwt(j -> j.claim("clubId", "club-a").claim("imp", true))))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test void T_01_14_accountWriteContractsRequireLearnAudienceAndScopeOrPlatformAdmin() throws Exception {

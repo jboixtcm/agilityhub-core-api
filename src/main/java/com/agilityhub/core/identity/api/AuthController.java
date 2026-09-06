@@ -18,9 +18,11 @@ public class AuthController {
     private final com.agilityhub.core.shared.application.RateLimits limits;
     private final com.agilityhub.core.shared.application.SecurityEvents events;
     private final boolean local;
+    private final com.agilityhub.core.identity.application.HandoffService handoffs;
     public AuthController(com.agilityhub.core.identity.application.MagicLinkService magicLinks,
             com.agilityhub.core.shared.application.RateLimits limits, com.agilityhub.core.shared.application.SecurityEvents events,
-            org.springframework.core.env.Environment environment) {
+            org.springframework.core.env.Environment environment, com.agilityhub.core.identity.application.HandoffService handoffs) {
+        this.handoffs = handoffs;
         this.magicLinks = magicLinks; this.limits = limits; this.events = events;
         this.local = environment.acceptsProfiles(org.springframework.core.env.Profiles.of("local"));
     }
@@ -55,5 +57,14 @@ public class AuthController {
             description = "Account token with club context. R-01-13: code lasts 60 seconds and is bound to targetClientId.",
             responses = {@ApiResponse(responseCode = "201", description = "Code and destination login URL"),
                     @ApiResponse(responseCode = "403", description = "NO_MEMBERSHIP for the destination role")})
-    public HandoffResponse handoff(@Valid @RequestBody HandoffRequest request) { throw new UnsupportedOperationException(); }
+    public HandoffResponse handoff(@Valid @RequestBody HandoffRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+        if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
+            events.record(com.agilityhub.core.shared.application.SecurityEvents.Type.IMPERSONATION_DENIED, jwt.getClaimAsString("actorAccountId"),
+                    com.agilityhub.core.shared.application.TenantContext.current());
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
+        }
+        var created = handoffs.create(jwt.getSubject(), jwt.getClaimAsString("azp"), jwt.getClaimAsString("sid"), request.targetClientId());
+        return new HandoffResponse(created.code(), created.url());
+    }
 }

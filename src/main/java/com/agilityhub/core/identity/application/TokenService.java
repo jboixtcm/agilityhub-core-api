@@ -83,6 +83,8 @@ public class TokenService {
         }
         return outcome.tokens();
     }
+    /** Called inside the handoff consumption transaction. */
+    Tokens handoff(IdentityService.Session session, String clientId, String userAgent) { return login(session, clientId, userAgent); }
     private Tokens login(IdentityService.Session session, String clientId, String userAgent) {
         accounts.touchSessions(session.account().id());
         Instant now = clock.instant();

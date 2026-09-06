@@ -14,5 +14,5 @@ public interface DomainEvent {
     String impersonatedMemberId();
     Origin origin();
 
-    enum Origin { APP, BACKOFFICE, SYSTEM, WEBHOOK }
+    enum Origin { APP, BACKOFFICE, INSTRUCTOR, SYSTEM, WEBHOOK }
 }

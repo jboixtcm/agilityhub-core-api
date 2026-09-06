@@ -24,6 +24,8 @@ class EventCatalogContractTest {
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
         Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.identity.domain.ImpersonationEvent.class, () -> new com.agilityhub.core.identity.domain.ImpersonationEvent(
+                        com.agilityhub.core.identity.domain.ImpersonationEvent.Kind.ImpersonationStarted, "club-a", "grant-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a", "member-a"),
                 com.agilityhub.core.identity.domain.IdentityEvent.class, () -> new com.agilityhub.core.identity.domain.IdentityEvent(
                         com.agilityhub.core.identity.domain.IdentityEvent.Kind.AccountCreated, null, "account-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("accountId", "account-a")),
                 com.agilityhub.core.clubs.messaging.domain.NotificationEvent.class, () -> new com.agilityhub.core.clubs.messaging.domain.NotificationEvent(
@@ -58,6 +60,14 @@ class EventCatalogContractTest {
                 assertThat(identity.payload()).containsEntry("accountId", "account-a");
                 assertThat(identity.actorAccountId()).isNull(); assertThat(identity.impersonatedMemberId()).isNull();
                 assertThat(identity.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
+            }
+            if (event instanceof com.agilityhub.core.identity.domain.ImpersonationEvent impersonation) {
+                for (var kind : com.agilityhub.core.identity.domain.ImpersonationEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(impersonation.aggregateType()).isEqualTo("ImpersonationGrant");
+                assertThat(impersonation.payload()).containsEntry("actorAccountId", "account-a").containsEntry("memberId", "member-a");
+                assertThat(impersonation.actorAccountId()).isEqualTo("account-a");
+                assertThat(impersonation.impersonatedMemberId()).isEqualTo("member-a");
+                assertThat(impersonation.origin()).isEqualTo(DomainEvent.Origin.BACKOFFICE); return;
             }
             if (event instanceof ClubConfigChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");

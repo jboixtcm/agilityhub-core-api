@@ -23,6 +23,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T04: Tenant-bound impersonation grants with member-only JWTs, no refresh tokens,
+  live grant validation, revocation events, and admin/member attribution on audited writes.
+- Single-use 60-second app handoff codes, stored as hashes and bound to the account,
+  club, destination client and source session, with verified destination URLs and security telemetry.
+- Grant integration tests for roles, tenants, expiry, concurrency, rollback and credential
+  isolation; refreshed the OpenAPI snapshot for the implemented identity contracts.
+
 - E2-T01: S02/S03/S05/S14 API contracts for settings, census, catalogs, saved views,
   audit, exports, privacy requests and dashboard schemas, with standard 501 stubs.
 - Universal list metadata, role-specific response projections, canonical catalog errors,

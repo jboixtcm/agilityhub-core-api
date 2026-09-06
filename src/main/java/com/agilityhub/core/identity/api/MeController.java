@@ -32,12 +32,9 @@ public class MeController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get the current account and active club context",
             description = "Any valid account token. R-01-15: only the current host/JWT membership, role profiles and enabled features. "
-                    + "Includes global account bootstrap; impersonation is completed in E1-T04.",
+                    + "Includes global bootstrap and a member-only impersonation view with the actor name.",
             responses = @ApiResponse(responseCode = "200", description = "App bootstrap (Me)"))
     public MeResponse me(@AuthenticationPrincipal Jwt jwt) {
-        if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
-            throw new UnsupportedOperationException();
-        }
         var session = identities.current(jwt.getSubject());
         var account = session.account();
         var membership = session.membership();
@@ -45,6 +42,14 @@ public class MeController {
                 account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet()),
                 account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending());
         if (membership == null) { return new MeResponse(publicAccount, null, null, List.of()); }
+        var current = com.agilityhub.core.shared.application.CurrentUser.current();
+        if (current != null && current.impersonation() != null) {
+            return new MeResponse(new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(), java.util.Set.of(),
+                    account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending()),
+                    new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.of(Profile.MEMBER), Profile.MEMBER, List.of(Profile.MEMBER),
+                            membership.memberId(), null, null, false, null), new MeResponse.Impersonation(current.impersonation().actorName()),
+                    clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
+        }
         var profiles = membership.roles().stream().map(role -> Profile.valueOf(role.name())).sorted().toList();
         var defaultProfile = membership.defaultProfile() == null ? null : Profile.valueOf(membership.defaultProfile().name());
         String activeClaim = jwt.getClaimAsString("activeProfile");
@@ -81,7 +86,7 @@ public class MeController {
     }
 
     @PutMapping("/api/v1/me/profile")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Select an available club profile", description = "Account token with club context. R-01-07. Returns a fresh access token.",
             responses = {@ApiResponse(responseCode = "200", description = "New access token"),
                     @ApiResponse(responseCode = "422", description = "PROFILE_NOT_AVAILABLE")})
@@ -91,7 +96,7 @@ public class MeController {
     }
 
     @GetMapping("/api/v1/me/sessions")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "List the current account's device sessions", description = "Any valid account token. R-01-06, R-01-10. Bounded device list, not a desktop paginated list.",
             responses = @ApiResponse(responseCode = "200", description = "Sessions without refresh tokens or token hashes"))
     public List<Session> sessions(@AuthenticationPrincipal Jwt jwt) {
@@ -101,7 +106,7 @@ public class MeController {
     }
 
     @DeleteMapping("/api/v1/me/sessions/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Revoke one of the current account's sessions", description = "Any valid account token. R-01-10. The session must belong to this account.",
             responses = @ApiResponse(responseCode = "200", description = "Session revoked", content = @Content))
     public ResponseEntity<Void> deleteSession(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {

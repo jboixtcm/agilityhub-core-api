@@ -47,6 +47,9 @@ class HealthControllerTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     com.agilityhub.core.shared.application.AccountAccess accountAccess;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    com.agilityhub.core.identity.application.ImpersonationService impersonations;
+
     @Autowired
     MockMvc mvc;
 
