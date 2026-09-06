@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: agilityhub-core-api
+  profiles:
+    default: local
+  threads:
+    virtual:
+      enabled: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+server:
+  port: ${SERVER_PORT:8080}
+
+springdoc:
+  api-docs:
+    enabled: false
+    version: OPENAPI_3_1
+  swagger-ui:
+    enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  # The skeleton's local health endpoint does not require MongoDB yet.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+
+springdoc:
+  api-docs:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  data:
+    mongodb:
+      uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/agilityhub_test?replicaSet=rs0}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: staging | prod
+  data:
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE}
+      replica-set-name: ${MONGODB_REPLICA_SET:rs0}
+      authentication-database: ${MONGODB_AUTH_DATABASE:admin}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}

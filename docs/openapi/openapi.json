@@ -1,0 +1,54 @@
+{
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "properties": {
+          "builtAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "health-controller"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Generated server url",
+      "url": "http://localhost:8080"
+    }
+  ]
+}

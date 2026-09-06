@@ -1,0 +1,2 @@
+/** Domain layer of the payments context. */
+package com.agilityhub.core.payments.domain;

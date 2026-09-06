@@ -1,0 +1,73 @@
+package com.agilityhub.core.shared.api;
+
+import com.agilityhub.core.configuration.SecurityConfiguration;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(HealthController.class)
+@Import({SecurityConfiguration.class, ProjectInfoAutoConfiguration.class})
+@ActiveProfiles("test")
+class HealthControllerTest {
+
+    @Autowired
+    MockMvc mvc;
+
+    @Autowired
+    BuildProperties build;
+
+    @Test
+    void E0_T01_healthIsPublicAndMatchesBuildInfo() throws Exception {
+        mvc.perform(get("/api/v1/health"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.version").value(build.getVersion()))
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN"})
+    void E0_T01_healthIsAccessibleToEveryRole(String role) throws Exception {
+        mvc.perform(get("/api/v1/health").with(user("health-check@example.test").roles(role)))
+                .andExpect(status().isOk());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"club-a.example.test", "club-b.example.test"})
+    void E0_T01_healthIsGlobalAndIndependentOfTenant(String host) throws Exception {
+        mvc.perform(get("/api/v1/health").header("X-Club-Host", host))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.version").value(build.getVersion()))
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()))
+                .andExpect(jsonPath("$.clubId").doesNotExist());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/api/v1/private", "/actuator/health", "/v3/api-docs"})
+    void E0_T01_otherPathsAreNotPublic(String path) throws Exception {
+        mvc.perform(get(path)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void E0_T01_postHealthIsNotPermitted() throws Exception {
+        mvc.perform(post("/api/v1/health").with(csrf())).andExpect(status().isForbidden());
+    }
+}
