@@ -39,6 +39,8 @@ Order: T01 → T02 → T03 → T04 → T05 → T06 → T07 → T08 → T09 → T
 Decisions needed first: A1 (applied), A2, A3, A4 of `docs/DECISIONS_PENDENTS.md`; SendGrid account.
 Planned tasks: E1-T01 contract S01 · E1-T02 identity core (magic link, sliding refresh + rotation, lockout, `/me/*`, SecurityEvent) · E1-T03 email base with SendGrid (S11 WP-11-B0: N-25/26/27) · E1-T04 impersonation + handoff · E1-T05 OIDC provider (discovery, PKCE, userinfo, JWKS rotation, seed clients) · E1-T07 onboarding «Completa el teu perfil» (`Account.onboardingPending`) · E1-T08 Learn import CLI (dry-run, bcrypt hashes untouched) · E1-T09 Learn adapter PR (Laravel repo, not deployed) · E1-T10 integration + gate. (Front counterparts live in the web repo.)
 
+Added 06-09: **E1-T11** OpenAPI required-by-default for DTO schemas (springdoc customizer + contract test) — from the web E1-W06 finding on the branding schemas.
+
 ## E2 · Census and catalogs (thread A) — opens after gate E0 (front with mocks; integration needs E1)
 Planned tasks: E2-T01 contracts (S02-B, S03, S05, S14) · E2-T02 parameters API (`/parameters*`, `/club*`, holidays, postal codes) · E2-T03 levels, rings, FAQ + `CapacityCalculator` · E2-T04 team and roles · E2-T05 plans and prices · E2-T06 census domain + endpoints (members, dogs, family groups, documents, booking block) · E2-T07 universal list + saved views + sync exports · E2-T08 async export engine · E2-T09 audit queries · E2-T10 Playoff mapping + census importer (dry-run on anonymised fixtures) · E2-T11 seeds (Cànic catalogs + `demo-seed` 184 members / 242 dogs).
 
