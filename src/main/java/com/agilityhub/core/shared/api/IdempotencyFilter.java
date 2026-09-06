@@ -87,13 +87,18 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         var record = claim.record();
         if (!claim.acquired()) {
             if (!record.requestHash().equals(hash)) {
-                throw new ApiException(ErrorCode.STALE_VERSION, Map.of("reason", "IDEMPOTENCY_KEY_REUSED"));
+                throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "DIFFERENT_REQUEST"));
             }
             if (record.status() == com.agilityhub.core.shared.persistence.IdempotencyRecord.Status.IN_PROGRESS) {
-                throw new ApiException(ErrorCode.STALE_VERSION, Map.of("reason", "IN_PROGRESS"));
+                throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS"));
             }
             response.setStatus(record.responseStatus());
-            record.responseHeaders().forEach((name, values) -> values.forEach(value -> response.addHeader(name, value)));
+            record.responseHeaders().forEach((name, values) -> {
+                if (!values.isEmpty()) {
+                    response.setHeader(name, values.getFirst());
+                    values.stream().skip(1).forEach(value -> response.addHeader(name, value));
+                }
+            });
             response.getOutputStream().write(record.responseBody());
             return;
         }

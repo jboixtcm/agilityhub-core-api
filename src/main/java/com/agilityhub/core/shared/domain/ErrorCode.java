@@ -1,6 +1,6 @@
 package com.agilityhub.core.shared.domain;
 
-/** Concrete table entries from CATALEG_ERRORS.md; unmapped preconditions use 422 (see E0-T04). */
+/** Concrete table and transversal entries from CATALEG_ERRORS.md; unmapped preconditions use 422. */
 public enum ErrorCode {
     ACCOUNT_BLOCKED(403),
     ACTIVITY_FULL(409),
@@ -81,6 +81,7 @@ public enum ErrorCode {
     HOST_ALREADY_USED(409),
     HOST_NOT_VERIFIED(422),
     HOST_RESERVED(422),
+    IDEMPOTENCY_KEY_REUSED(409),
     ID_DOCUMENT_ALREADY_EXISTS(409),
     ID_DOCUMENT_AMBIGUOUS(422),
     IMPERSONATION_DENIED(403),

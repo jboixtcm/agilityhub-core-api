@@ -4,11 +4,10 @@ import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-import org.springframework.context.support.StaticMessageSource;
+import com.agilityhub.core.shared.application.IcuMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -17,18 +16,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ApiExceptionHandlerTest {
-    private final StaticMessageSource messages = new StaticMessageSource();
-    private final ApiExceptionHandler advice = new ApiExceptionHandler(messages);
+    private final IcuMessageSource messages = new IcuMessageSource();
+    private final RequestLocaleResolver locales = new RequestLocaleResolver(messages, ignored -> java.util.Optional.empty());
+    private final ApiExceptionHandler advice = new ApiExceptionHandler(messages, locales);
     private final org.springframework.test.web.servlet.MockMvc mvc = MockMvcBuilders
             .standaloneSetup(new TestController()).setControllerAdvice(advice).addFilters(new RequestTraceFilter()).build();
 
+    ApiExceptionHandlerTest() throws java.io.IOException { }
+
     @Test void E0_T04_businessErrorsResolveMessagesAndPreserveDetails() throws Exception {
-        messages.addMessage("error.BOOKING_LIMIT_REACHED", Locale.ENGLISH, "Booking limit reached");
-        mvc.perform(get("/business").locale(Locale.ENGLISH))
+        mvc.perform(get("/business").header("Accept-Language", "en"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$.code").value("BOOKING_LIMIT_REACHED"))
-                .andExpect(jsonPath("$.message").value("Booking limit reached"))
+                .andExpect(jsonPath("$.message").value("The booking limit has been reached."))
                 .andExpect(jsonPath("$.details.limit").value(2))
                 .andExpect(jsonPath("$.traceId").isNotEmpty());
     }

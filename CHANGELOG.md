@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T08: UTF-8 ICU message source with all 241 catalog errors in Catalan,
+  Spanish and English; account/club-aware response locales and scoped recipient locales.
+- Club time-zone date/time, exact money and localized duration formatting, plus
+  message parity, ICU plural/select, locale isolation and HTTP integration tests.
+- Approved `IDEMPOTENCY_KEY_REUSED` conflicts with `DIFFERENT_REQUEST` / `IN_PROGRESS`
+  reasons and localized messages; response replay preserves the original language.
+
 - E0-T07: Reusable audit aspect, manual writer and tenant-scoped last-change query,
   append-only Mongo entries with startup indexes, and after-commit persistence.
 - Detached annotated audit snapshots with nested diffs, IBAN/document masking and

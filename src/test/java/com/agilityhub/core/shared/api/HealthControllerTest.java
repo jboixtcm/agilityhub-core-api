@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(HealthController.class)
-@Import({SecurityConfiguration.class, ProjectInfoAutoConfiguration.class})
+@Import({SecurityConfiguration.class, ProjectInfoAutoConfiguration.class, com.agilityhub.core.configuration.I18nConfiguration.class})
 @ActiveProfiles("test")
 class HealthControllerTest {
 
@@ -71,7 +71,7 @@ class HealthControllerTest {
         mvc.perform(get("/api/v1/private"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("No s'ha trobat el recurs."))
                 .andExpect(jsonPath("$.details").isMap())
                 .andExpect(jsonPath("$.traceId").isNotEmpty());
     }
@@ -79,5 +79,15 @@ class HealthControllerTest {
     @Test
     void E0_T01_postHealthIsNotPermitted() throws Exception {
         mvc.perform(post("/api/v1/health").with(csrf())).andExpect(status().isForbidden());
+    }
+
+    @Test void E0_T08_controllerAndSecurityErrorsAreLocalizedInSpanish() throws Exception {
+        mvc.perform(get("/api/v1/missing").header("Accept-Language", "es"))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.message").value("No se ha encontrado el recurso."));
+        mvc.perform(get("/actuator/health").header("Accept-Language", "es"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("No tienes permiso para realizar esta acción."));
+        mvc.perform(get("/actuator/health").with(user("member@example.test").roles("MEMBER"))
+                .header("Accept-Language", "es"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("No tienes permiso para realizar esta acción."));
     }
 }

@@ -74,8 +74,8 @@ class IdempotencyIT extends AbstractIntegrationTest {
         String key = UUID.randomUUID().toString();
         mvc.perform(request(key, "original", "club-a", "account-a")).andExpect(status().isCreated());
         mvc.perform(request(key, "changed", "club-a", "account-a"))
-                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("STALE_VERSION"))
-                .andExpect(jsonPath("$.details.reason").value("IDEMPOTENCY_KEY_REUSED"));
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"))
+                .andExpect(jsonPath("$.details.reason").value("DIFFERENT_REQUEST"));
         mvc.perform(request(key, "original", "club-a", "account-a").queryParam("mode", "different"))
                 .andExpect(status().isConflict());
         assertThat(controller.calls).hasValue(1);
@@ -89,7 +89,8 @@ class IdempotencyIT extends AbstractIntegrationTest {
             try {
                 assertThat(controller.entered.await(10, TimeUnit.SECONDS)).isTrue();
                 mvc.perform(request(key, "original", "club-a", "account-a"))
-                        .andExpect(status().isConflict()).andExpect(jsonPath("$.details.reason").value("IN_PROGRESS"));
+                        .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"))
+                        .andExpect(jsonPath("$.details.reason").value("IN_PROGRESS"));
             } finally { controller.release.countDown(); }
             first.get(10, TimeUnit.SECONDS);
         }
@@ -106,6 +107,19 @@ class IdempotencyIT extends AbstractIntegrationTest {
                 .andExpect(status().isForbidden());
         mvc.perform(request(key, "two", "club-a", "account-a").header("X-Club-Id", "club-b"))
                 .andExpect(status().isConflict());
+    }
+    @Test void E0_T08_conflictsAreLocalizedAndReplayPreservesTheOriginalLanguage() throws Exception {
+        String key = UUID.randomUUID().toString();
+        mvc.perform(request(key, "original", "club-a", "account-a").header("Accept-Language", "es"))
+                .andExpect(status().isCreated()).andExpect(header().string("Content-Language", "es"));
+        var replay = mvc.perform(request(key, "original", "club-a", "account-a").header("Accept-Language", "en"))
+                .andExpect(status().isCreated()).andReturn().getResponse();
+        assertThat(replay.getHeaders("Content-Language")).containsExactly("es");
+        mvc.perform(request(key, "changed", "club-a", "account-a").header("Accept-Language", "es"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"))
+                .andExpect(jsonPath("$.details.reason").value("DIFFERENT_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Esta clave de petición ya se ha utilizado o la petición sigue en curso."));
+        assertThat(controller.calls).hasValue(1);
     }
     @Test void E0_T04_expiredKeysAreReusedAndHeadersAreOptional() throws Exception {
         String key = UUID.randomUUID().toString();

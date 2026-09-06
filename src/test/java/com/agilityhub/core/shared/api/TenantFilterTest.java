@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.support.StaticMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +19,11 @@ class TenantFilterTest {
         case "a.example.test" -> Optional.of("club-a"); case "b.example.test" -> Optional.of("club-b"); default -> Optional.empty();
     };
     @AfterEach void cleanup() { SecurityContextHolder.clearContext(); TenantContext.clear(); }
-    TenantFilter filter(boolean local) { return new TenantFilter(hosts, local, new ApiExceptionHandler(new StaticMessageSource()), new ObjectMapper()); }
+    TenantFilter filter(boolean local) throws java.io.IOException {
+        var messages = new com.agilityhub.core.shared.application.IcuMessageSource();
+        var locales = new RequestLocaleResolver(messages, ignored -> java.util.Optional.empty());
+        return new TenantFilter(hosts, local, new ApiExceptionHandler(messages, locales), new ObjectMapper());
+    }
     MockHttpServletRequest request(String path, String host, String override) {
         var request = new MockHttpServletRequest("GET", path);
         if (host != null) { request.addHeader("Host", host); }

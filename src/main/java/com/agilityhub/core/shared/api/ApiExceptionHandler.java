@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -18,12 +17,15 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class ApiExceptionHandler {
     private final MessageSource messages;
+    private final RequestLocaleResolver locales;
 
-    public ApiExceptionHandler(MessageSource messages) { this.messages = messages; }
+    public ApiExceptionHandler(MessageSource messages, RequestLocaleResolver locales) {
+        this.messages = messages; this.locales = locales;
+    }
 
     public ApiError body(ApiException exception, HttpServletRequest request) {
         String code = exception.code().name();
-        String message = messages.getMessage("error." + code, null, code, LocaleContextHolder.getLocale());
+        String message = messages.getMessage("error." + code, null, code, locales.resolveLocale(request));
         return new ApiError(code, message, exception.details(), RequestTraceFilter.traceId(request));
     }
 
