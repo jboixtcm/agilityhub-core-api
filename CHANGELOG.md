@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E0-T14: Five source-linked playbooks for entities, endpoints, schedulers, event
+  consumers and task reports, with E0 examples and explicit boundaries for S15 jobs.
+
 - E0-T12: OpenAPI 3.1 at `/api/v1/openapi.json` in local/test, context tags, bearer security,
   shared error responses, token/JWKS contracts and an endpoint changelog.
 - Reproducible Testcontainers snapshot generation and CI regeneration/diff enforcement.
