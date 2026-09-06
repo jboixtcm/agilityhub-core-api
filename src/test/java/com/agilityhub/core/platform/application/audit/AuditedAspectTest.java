@@ -26,8 +26,8 @@ class AuditedAspectTest {
         assertThat(target.executed).isFalse();
         verifyNoInteractions(writer);
         AuditableLoader loader = new AuditableLoader() {
-            @Override public String targetType() { return "Club"; }
-            @Override public Object load(String targetId) { return null; }
+            @Override public String entityType() { return "Club"; }
+            @Override public Object load(String entityId) { return null; }
         };
         assertThatThrownBy(() -> new AuditedAspect(writer, List.of(loader, loader))).isInstanceOf(IllegalStateException.class);
     }
@@ -52,16 +52,16 @@ class AuditedAspectTest {
 
     public static class DetachedService {
         boolean executed;
-        @Audited(action = AuditAction.CLUB_UPDATED, targetType = "'Club'", before = "#p0", reason = "#p1")
+        @Audited(action = AuditAction.CLUB_UPDATED, entityType = "'Club'", before = "#p0", reason = "#p1")
         public MutableClub update(MutableClub club, String reason) {
             club.name = "after";
             return club;
         }
 
-        @Audited(action = AuditAction.CLUB_UPDATED, targetType = "'Club'", target = "#p0")
+        @Audited(action = AuditAction.CLUB_UPDATED, entityType = "'Club'", entity = "#p0")
         public MutableClub missingLoader(String id) { executed = true; return new MutableClub(); }
 
-        @Audited(action = AuditAction.CLUB_UPDATED, targetType = "'Club'")
+        @Audited(action = AuditAction.CLUB_UPDATED, entityType = "'Club'")
         public MutableClub create() { return new MutableClub(); }
     }
 }

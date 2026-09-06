@@ -30,14 +30,14 @@ public class AuditRepository {
         }
     }
 
-    public Optional<AuditEntry> lastChange(String targetType, String targetId) {
-        return tenants.lastChange(targetType, targetId);
+    public Optional<AuditEntry> lastChange(String entityType, String entityId) {
+        return tenants.lastChange(entityType, entityId);
     }
 
     /** Explicit global operation selects only platform entries, never all tenants. */
-    public Optional<AuditEntry> lastPlatformChange(String targetType, String targetId) {
+    public Optional<AuditEntry> lastPlatformChange(String entityType, String entityId) {
         requirePlatformScope();
-        return findLast(Query.query(Criteria.where("clubId").is(null)), targetType, targetId);
+        return findLast(Query.query(Criteria.where("clubId").is(null)), entityType, entityId);
     }
 
     private void requirePlatformScope() {
@@ -46,9 +46,9 @@ public class AuditRepository {
         }
     }
 
-    private Optional<AuditEntry> findLast(Query query, String targetType, String targetId) {
-        return Optional.ofNullable(mongo.findOne(query.addCriteria(Criteria.where("targetType").is(targetType)
-                .and("targetId").is(targetId)).with(Sort.by(Sort.Direction.DESC, "at", "_id")).limit(1), AuditEntry.class));
+    private Optional<AuditEntry> findLast(Query query, String entityType, String entityId) {
+        return Optional.ofNullable(mongo.findOne(query.addCriteria(Criteria.where("entityType").is(entityType)
+                .and("entityId").is(entityId)).with(Sort.by(Sort.Direction.DESC, "at", "_id")).limit(1), AuditEntry.class));
     }
 
     public void ensureIndexes() {
@@ -56,14 +56,14 @@ public class AuditRepository {
         indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("at", Sort.Direction.DESC).named("audit_club_at"));
         indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("memberId", Sort.Direction.ASC)
                 .on("at", Sort.Direction.DESC).named("audit_club_member_at"));
-        indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("targetType", Sort.Direction.ASC)
-                .on("targetId", Sort.Direction.ASC).on("at", Sort.Direction.DESC).named("audit_club_target_at"));
+        indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("entityType", Sort.Direction.ASC)
+                .on("entityId", Sort.Direction.ASC).on("at", Sort.Direction.DESC).named("audit_club_entity_at"));
     }
 
     private class TenantEntries extends TenantRepository<AuditEntry> {
         TenantEntries(MongoTemplate mongo) { super(mongo, AuditEntry.class); }
-        Optional<AuditEntry> lastChange(String targetType, String targetId) {
-            return findLast(tenantQuery(), targetType, targetId);
+        Optional<AuditEntry> lastChange(String entityType, String entityId) {
+            return findLast(tenantQuery(), entityType, entityId);
         }
     }
 }

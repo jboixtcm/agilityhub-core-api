@@ -27,7 +27,7 @@ public class AuditedAspect {
 
     public AuditedAspect(AuditWriter writer, List<AuditableLoader> loaders) {
         this.writer = writer;
-        this.loaders = loaders.stream().collect(Collectors.toUnmodifiableMap(AuditableLoader::targetType, Function.identity()));
+        this.loaders = loaders.stream().collect(Collectors.toUnmodifiableMap(AuditableLoader::entityType, Function.identity()));
     }
 
     @Around("@annotation(audited)")
@@ -39,15 +39,15 @@ public class AuditedAspect {
         Object before = null;
         if (!audited.before().isBlank()) {
             before = evaluate(audited.before(), context);
-        } else if (!audited.target().contains("#result") && !audited.targetType().contains("#result")) {
-            String type = text(audited.targetType(), context);
-            before = requireLoader(type).load(text(audited.target(), context));
+        } else if (!audited.entity().contains("#result") && !audited.entityType().contains("#result")) {
+            String type = text(audited.entityType(), context);
+            before = requireLoader(type).load(text(audited.entity(), context));
         }
         AuditDiff.Snapshot snapshot = AuditDiff.snapshot(before);
         Object result = invocation.proceed();
         context.setVariable("result", result);
-        String type = text(audited.targetType(), context);
-        String id = text(audited.target(), context);
+        String type = text(audited.entityType(), context);
+        String id = text(audited.entity(), context);
         AuditableLoader loader = loaders.get(type);
         Object after = loader == null ? result : loader.load(id);
         writer.write(audited.action(), type, id, text(audited.member(), context), text(audited.reason(), context),

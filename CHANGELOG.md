@@ -16,9 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   reasons and localized messages; response replay preserves the original language.
 
 - E0-T07: Reusable audit aspect, manual writer and tenant-scoped last-change query,
-  append-only Mongo entries with startup indexes, and after-commit persistence.
+  append-only Mongo entries with startup indexes, persisted in the aggregate transaction.
 - Detached annotated audit snapshots with nested diffs, IBAN/document masking and
   hidden secrets; rollback, tenant/platform isolation and audit-action coverage tests.
+- E0-T07 Round 2: Audit insert failures roll back aggregate and outbox writes;
+  audit storage, annotations and queries use S14's entityType, entityId and changes.path names.
 
 - E0-T06: One public module enum with catalog-checked dependencies, self-service
   flags and MINIM/CANIC presets; dependency validation with missing/dependent details.

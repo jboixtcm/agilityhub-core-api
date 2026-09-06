@@ -10,12 +10,12 @@ public class AuditQuery {
     private final AuditRepository repository;
     public AuditQuery(AuditRepository repository) { this.repository = repository; }
 
-    public LastChange lastChange(String targetType, String targetId) {
-        return repository.lastChange(targetType, targetId).map(this::project).orElse(null);
+    public LastChange lastChange(String entityType, String entityId) {
+        return repository.lastChange(entityType, entityId).map(this::project).orElse(null);
     }
 
-    public LastChange lastPlatformChange(String targetType, String targetId) {
-        return repository.lastPlatformChange(targetType, targetId).map(this::project).orElse(null);
+    public LastChange lastPlatformChange(String entityType, String entityId) {
+        return repository.lastPlatformChange(entityType, entityId).map(this::project).orElse(null);
     }
 
     private LastChange project(AuditEntry entry) {

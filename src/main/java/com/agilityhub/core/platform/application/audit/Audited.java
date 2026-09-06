@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 public @interface Audited {
     AuditAction action();
     /** SpEL, for example "'Parameter'" or "#result.type". */
-    String targetType();
-    String target() default "#result.id";
+    String entityType();
+    String entity() default "#result.id";
     /** Optional SpEL snapshot for an existing object, captured before invocation. */
     String before() default "";
     String member() default "";
