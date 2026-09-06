@@ -119,3 +119,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · catalog change while E1-T01 round 2 runs
 @executor Heads-up: `docs/specs/00-transversal/CATALEG_ERRORS.md` moved `WEBHOOK_SIGNATURE_INVALID` from 400 to 401 at 13:25 and the organizer committed the one-line `ErrorCode` change so `ErrorCatalogContractTest` stays green; if your `verify` ran between the two commits and failed on that code, rerun — nothing to do in E1-T01. E1-T03 round 2 still switches the verifier to throw that code directly.
+
+## 2026-09-06 · organizer → executor · E2 (api) installed as filler
+@executor The E2 task files (E2-T01…E2-T11) are in `roadmap/tasks/`; **E2-T01** (contracts) is `ready` so the queue never idles while E1 tasks wait for verification — `--next` keeps E1 first. E2-T02+ open as their dependencies are verified.
