@@ -28,7 +28,7 @@ import sys, re, os, datetime, io
 STATES = ["not_open", "ready", "in_progress", "awaiting_verification", "changes_requested", "blocked", "verified"]
 ICON = {"not_open": "—", "ready": "☐", "in_progress": "▶", "awaiting_verification": "🔎",
         "changes_requested": "🔁", "blocked": "⛔", "verified": "✅"}
-NEXT = {"not_open": "organizer opens it", "ready": "executor: start", "in_progress": "executor: finish + report",
+NEXT = {"not_open": "organizer opens it", "ready": "executor: start", "in_progress": "executor: resume + report",
         "awaiting_verification": "organizer: verify", "changes_requested": "executor: apply corrections",
         "blocked": "see MESSAGES.md", "verified": "—"}
 REQUIRED = ["id", "title", "stage", "repo", "order", "status", "depends_on", "updated"]
@@ -128,8 +128,6 @@ def validate(tasks):
             errors.append(f"{tid}: status verified but the Organizer verification section has no 'Result: verified'")
         if st == "changes_requested" and "Result: changes_requested" not in ver:
             errors.append(f"{tid}: status changes_requested but no 'Result: changes_requested' with a numbered list")
-        if st in ("in_progress", "awaiting_verification") and not t.get("branch"):
-            warnings.append(f"{tid}: {st} without 'branch:' in front matter")
         if not re.match(r"\d{4}-\d{2}-\d{2}$", str(t.get("updated", ""))):
             errors.append(f"{tid}: 'updated' must be YYYY-MM-DD")
     return errors, warnings
@@ -139,6 +137,9 @@ def next_for_executor(tasks):
     ordered = sorted(tasks.values(), key=lambda t: (t["stage"], t["order"]))
     for t in ordered:
         if t["status"] == "changes_requested":
+            return t
+    for t in ordered:          # a previous session that did not finish: resume it
+        if t["status"] == "in_progress":
             return t
     for t in ordered:
         if t["status"] != "ready":

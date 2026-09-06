@@ -46,11 +46,11 @@ Use `docs/playbooks/*.md` (written in task E0-T14) for the step-by-step patterns
 ## Session protocol (short form — full text in `roadmap/README.md`)
 
 1. `python3 roadmap/tools/check.py --next` → take that task (or a `changes_requested` one first). Read its file completely.
-2. Branch `feat/<ID>-<slug>` from `main`; `check.py --set <ID> in_progress` and `check.py --field <ID> branch <name>`; commit `chore(roadmap): start <ID>`.
+2. `check.py --set <ID> in_progress`. **Never run git commands that write** (branch/checkout/add/commit/push): your sandbox keeps `.git` read-only; the publish script commits your working tree on `main` after the session. Read-only git (`status`, `diff`, `log`) is fine.
 3. Implement following the task's **Steps**; open only the files under **Context to load** plus the code you touch.
 4. Run every **Verification** command; paste **full outputs** in the task's **Executor report**.
-5. Fill the report (files, `R-xx-nn`/`T-xx-nn`, assumptions, questions, catalog proposals), update `CHANGELOG.md`, `check.py --set <ID> awaiting_verification`, commit `chore(roadmap): <ID> awaiting verification`. Do not push: the publish script fast-forwards `main` with your branch and pushes after the session (CI runs on `main`).
-6. Blocked? `check.py --set <ID> blocked` + entry in `roadmap/MESSAGES.md` addressed to `@organizer` or `@jordi`. Stop.
+5. Fill the report (files, `R-xx-nn`/`T-xx-nn`, assumptions, questions, catalog proposals), update `CHANGELOG.md`, `check.py --set <ID> awaiting_verification`. The publish script commits and pushes after the session (CI runs on `main`).
+6. Blocked? `check.py --set <ID> blocked` + entry in `roadmap/MESSAGES.md` addressed to `@organizer` or `@jordi`. Stop. (A git error is never a reason to block: you are not supposed to run git.)
 
 ## Communication style
 

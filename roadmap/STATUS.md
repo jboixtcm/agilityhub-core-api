@@ -8,7 +8,7 @@ Rendered: 2026-09-06 · Tasks: 14 · — 0 not_open · ☐ 13 ready · ▶ 0 in_
 
 | ID | Title | Thread | Status | Depends on | Branch / PR | Updated | Next action |
 |---|---|---|---|---|---|---|---|
-| [E0-T01](tasks/E0-T01.md) | Repository skeleton, Maven build and context architecture test | A | ☐ `ready` | external:jordi-repo-created | — | 2026-09-05 | executor: start |
+| [E0-T01](tasks/E0-T01.md) | Repository skeleton, Maven build and context architecture test | A | ☐ `ready` | external:jordi-repo-created | — | 2026-09-06 | executor: start |
 | [E0-T02](tasks/E0-T02.md) | Docker Compose for development and the integration-test base (Testcontainers) | A | ☐ `ready` | E0-T01 | — | 2026-09-05 | executor: start |
 | [E0-T03](tasks/E0-T03.md) | CI on GitHub Actions with coverage thresholds, secrets scan and OpenAPI diff hook | A | ☐ `ready` | E0-T02 | — | 2026-09-05 | executor: start |
 | [E0-T04](tasks/E0-T04.md) | shared: Money, LocalizedText, error contract, idempotency, Clock, transactional outbox | A | ☐ `ready` | E0-T02 | — | 2026-09-05 | executor: start |
