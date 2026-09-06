@@ -43,7 +43,7 @@ public class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http, Environment environment, JwtDecoder decoder,
             ObjectProvider<FilterRegistrationBean<TenantFilter>> tenants,
             FilterRegistrationBean<RateLimitFilter> rateLimits, org.springframework.web.cors.CorsConfigurationSource clubCors,
-            ApiExceptionHandler errors, ObjectMapper mapper) throws Exception {
+            ApiExceptionHandler errors, ObjectMapper mapper, com.agilityhub.core.shared.application.AccountAccess accountAccess) throws Exception {
         SecurityBaselineConfiguration.headersAndCors(http, environment, clubCors);
         http.csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable());
@@ -79,6 +79,7 @@ public class SecurityConfiguration {
         var tenant = tenants.getIfAvailable();
         http.addFilterAfter(rateLimits.getFilter(), BearerTokenAuthenticationFilter.class);
         if (tenant != null) { http.addFilterAfter(tenant.getFilter(), RateLimitFilter.class); }
+        http.addFilterAfter(new com.agilityhub.core.shared.api.AccountStateFilter(accountAccess, errors, mapper), RateLimitFilter.class);
         return http.build();
     }
     static void writeError(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response,

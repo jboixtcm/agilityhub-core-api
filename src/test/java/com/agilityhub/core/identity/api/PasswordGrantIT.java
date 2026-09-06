@@ -59,9 +59,10 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
             login(HOST, "admin@example.test", "wrong").andExpect(status().isUnauthorized());
         }
     }
-    @Test void T_01_07_refreshRotatesReloadsRolesKeepsExpiryAndRevokesReusedFamily() throws Exception {
+    @Test void T_01_04_refreshRotatesReloadsRolesSlidesExpiryAndRevokesReusedFamily() throws Exception {
         var first = login();
         membership("club-a", Set.of(Role.MEMBER), null, null);
+        var originalExpiry = mongo.findAll(RefreshToken.class).getFirst().expiresAt();
         clock.advance(Duration.ofMinutes(2));
         var next = mapper.readTree(refresh(first.get("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
@@ -72,7 +73,7 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         assertThat(claims.getClaim("memberId")).isNull();
         var records = mongo.findAll(RefreshToken.class);
         assertThat(records).hasSize(2);
-        assertThat(records.get(0).expiresAt()).isEqualTo(records.get(1).expiresAt());
+        assertThat(records).allMatch(record -> record.expiresAt().equals(originalExpiry.plus(Duration.ofMinutes(2))));
         refresh(first.get("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
         assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.revokedAt() != null);
         refresh(next.get("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));

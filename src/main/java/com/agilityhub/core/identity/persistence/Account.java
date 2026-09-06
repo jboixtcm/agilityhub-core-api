@@ -1,6 +1,7 @@
 package com.agilityhub.core.identity.persistence;
 
 import com.agilityhub.core.identity.domain.Email;
+import com.agilityhub.core.identity.domain.LoginLockout;
 import com.agilityhub.core.shared.domain.audit.Sensitive;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.Instant;
@@ -14,18 +15,34 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public record Account(@Id String id, String email, String name, String locale,
                       @Sensitive(Sensitive.Strategy.HIDE) @JsonIgnore String passwordHash, Set<PlatformRole> platformRoles, Status status,
                       @Sensitive(Sensitive.Strategy.HIDE) @JsonIgnore Security security, Map<String, String> externalIds,
-                      boolean onboardingPending, Instant createdAt, com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus emailStatus) {
+                      boolean onboardingPending, Instant createdAt, com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus emailStatus,
+                      Instant emailVerifiedAt, Source createdSource, Instant lastLoginAt, String lastLoginClientId) {
     public Account(String id, String email, String name, String locale, String passwordHash, Set<PlatformRole> platformRoles,
                    Status status, Security security, Map<String, String> externalIds, boolean onboardingPending, Instant createdAt) {
         this(id, email, name, locale, passwordHash, platformRoles, status, security, externalIds, onboardingPending, createdAt, null);
+    }
+    public Account(String id, String email, String name, String locale, String passwordHash, Set<PlatformRole> platformRoles,
+                   Status status, Security security, Map<String, String> externalIds, boolean onboardingPending, Instant createdAt,
+                   com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus emailStatus) {
+        this(id, email, name, locale, passwordHash, platformRoles, status, security, externalIds, onboardingPending, createdAt,
+                emailStatus, null, null, null, null);
     }
     public Account {
         email = Email.normalize(email);
         platformRoles = Set.copyOf(platformRoles);
         externalIds = Map.copyOf(externalIds);
     }
+    public long familyVersion() { return security == null ? 0 : security.tokenFamilyVersion(); }
+    public LoginLockout lockout() { return security == null ? LoginLockout.empty() : new LoginLockout(security.failedLogins(),
+            security.failedLoginWindowStartedAt(), security.lockedUntil(), security.lockoutLevel()); }
     @Override public String toString() { return "Account[id=" + id + "]"; }
     public enum PlatformRole { AGILITYHUB_ADMIN }
     public enum Status { ACTIVE, BLOCKED, MERGED, ERASED }
-    public record Security(int failedLogins, Instant lockedUntil, Instant passwordChangedAt, long tokenFamilyVersion) { }
+    public enum Source { SIGNUP, IMPORT_LEARN, CONSOLE, MIGRATION }
+    public record Security(int failedLogins, Instant lockedUntil, Instant passwordChangedAt, long tokenFamilyVersion,
+                           Instant failedLoginWindowStartedAt, int lockoutLevel, Instant accessRevokedAt) {
+        public Security(int failedLogins, Instant lockedUntil, Instant passwordChangedAt, long tokenFamilyVersion) {
+            this(failedLogins, lockedUntil, passwordChangedAt, tokenFamilyVersion, null, 0, null);
+        }
+    }
 }

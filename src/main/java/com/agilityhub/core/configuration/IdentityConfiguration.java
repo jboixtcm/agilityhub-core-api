@@ -34,16 +34,25 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 /** E0 exposes only SAS token/JWKS filters; full OIDC endpoints and client registration are E1. */
 @Configuration(proxyBeanMethods = false)
 public class IdentityConfiguration {
-    @Bean @Order(0) ApplicationRunner identityIndexes(AccountRepository accounts, MembershipRepository memberships, RefreshTokenRepository refresh) {
-        return args -> { accounts.ensureIndexes(); memberships.ensureIndexes(); refresh.ensureIndexes(); };
+    @Bean @Order(0) ApplicationRunner identityIndexes(AccountRepository accounts, MembershipRepository memberships, RefreshTokenRepository refresh, com.agilityhub.core.identity.persistence.MagicLinkTokenRepository magic) {
+        return args -> { accounts.ensureIndexes(); memberships.ensureIndexes(); refresh.ensureIndexes(); magic.ensureIndexes(); };
+    }
+    @Bean(name = "magicLinkExecutor", destroyMethod = "shutdown")
+    java.util.concurrent.ThreadPoolExecutor magicLinkExecutor() {
+        return new java.util.concurrent.ThreadPoolExecutor(1, 1, 0, java.util.concurrent.TimeUnit.SECONDS,
+                new java.util.concurrent.ArrayBlockingQueue<>(1000), runnable -> {
+                    var thread = new Thread(runnable, "identity-magic-link"); thread.setDaemon(true); return thread;
+                });
     }
     @Bean RegisteredClientRepository registeredClients() {
-        return new InMemoryRegisteredClientRepository(client("clubs-app"), client("clubs-admin"));
+        return new InMemoryRegisteredClientRepository(client("clubs-app"), client("clubs-admin"), client("id-web"));
     }
     private RegisteredClient client(String id) {
-        return RegisteredClient.withId(id).clientId(id).clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-                .authorizationGrantType(new AuthorizationGrantType("password"))
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN).build();
+        var client = RegisteredClient.withId(id).clientId(id).clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                .authorizationGrantType(new AuthorizationGrantType(com.agilityhub.core.identity.application.MagicLinkService.GRANT))
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN);
+        if (!id.equals("id-web")) { client.authorizationGrantType(new AuthorizationGrantType("password")); }
+        return client.build();
     }
     @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type = org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
     @Bean @Order(1)
@@ -62,15 +71,18 @@ public class IdentityConfiguration {
             catch (IllegalArgumentException unmapped) {
                 catalog = "invalid_client".equals(code) ? ErrorCode.INVALID_CREDENTIALS : ErrorCode.VALIDATION_ERROR;
             }
-            SecurityConfiguration.writeError(request, response, catalog, errors, mapper);
+            var failure = exception.getCause() instanceof com.agilityhub.core.shared.domain.ApiException api
+                    ? api : new com.agilityhub.core.shared.domain.ApiException(catalog);
+            if (failure.details().get("retryAfter") instanceof Number retry) { response.setHeader("Retry-After", retry.toString()); }
+            response.setStatus(catalog.httpStatus()); response.setContentType("application/json"); response.setHeader("Cache-Control", "no-store");
+            mapper.writeValue(response.getOutputStream(), errors.body(failure, request));
         });
         // Pending E1 grants reach the typed MVC contract and its standard 501 response.
         http.securityMatcher(request -> {
             String path = request.getServletPath().isEmpty() ? request.getRequestURI() : request.getServletPath();
             String grant = request.getParameter("grant_type");
             return path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json")
-                    || (path.equals("/oauth2/token") && !"urn:agilityhub:grant:magic-link".equals(grant)
-                    && !"urn:agilityhub:grant:handoff".equals(grant) && !"authorization_code".equals(grant));
+                    || (path.equals("/oauth2/token") && !"urn:agilityhub:grant:handoff".equals(grant) && !"authorization_code".equals(grant));
         })
                 .csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable()).authorizeHttpRequests(auth -> auth.anyRequest().permitAll());

@@ -38,7 +38,9 @@ public class SecurityBaselineConfiguration {
     @Bean RateLimits rateLimits(RateLimitConfiguration settings, Clock clock) {
         return new RateLimits(settings.enabled(), Map.of(RateLimits.Route.TOKEN, settings.token(),
                 RateLimits.Route.BRANDING, settings.branding(), RateLimits.Route.PUBLIC, settings.publicRoutes(),
-                RateLimits.Route.ME, settings.me()), clock);
+                RateLimits.Route.ME, settings.me(),
+                RateLimits.Route.MAGIC_LINK_EMAIL, new RateLimits.Limit(10, java.time.Duration.ofHours(1)),
+                RateLimits.Route.MAGIC_LINK_IP, new RateLimits.Limit(60, java.time.Duration.ofHours(1))), clock);
     }
 
     @Bean FilterRegistrationBean<RateLimitFilter> rateLimitFilter(RateLimits limits, SecurityEvents events,

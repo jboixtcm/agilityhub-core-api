@@ -22,7 +22,12 @@ public class TenantFilter extends OncePerRequestFilter {
     private final ApiExceptionHandler errors;
     private final ObjectMapper mapper;
     private final SecurityEvents events;
+    private final String identityHost;
     public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper, SecurityEvents events) {
+        this(hosts, local, errors, mapper, events, null);
+    }
+    public TenantFilter(TenantHostResolver hosts, boolean local, ApiExceptionHandler errors, ObjectMapper mapper, SecurityEvents events, String identityHost) {
+        this.identityHost = identityHost;
         this.hosts = hosts; this.local = local; this.errors = errors; this.mapper = mapper; this.events = events;
     }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -37,7 +42,9 @@ public class TenantFilter extends OncePerRequestFilter {
                     || path.equals("/api/v1/me/sessions") || path.matches("/api/v1/me/sessions/[^/]+")
                     || path.equals("/api/v1/me/onboarding") || path.equals("/api/v1/me/onboarding/postpone")
                     || path.equals("/oauth2/revoke") || path.equals("/oauth2/userinfo");
-            boolean optionalHost = path.equals("/api/v1/auth/magic-link") || (path.equals("/oauth2/token")
+            boolean globalRefresh = path.equals("/oauth2/token") && "refresh_token".equals(request.getParameter("grant_type"))
+                    && "id-web".equals(request.getParameter("client_id")) && identityHost != null && identityHost.equalsIgnoreCase(request.getHeader("Host"));
+            boolean optionalHost = globalRefresh || path.equals("/api/v1/auth/magic-link") || (path.equals("/oauth2/token")
                     && ("urn:agilityhub:grant:magic-link".equals(request.getParameter("grant_type"))
                     || "urn:agilityhub:grant:handoff".equals(request.getParameter("grant_type"))
                     || "authorization_code".equals(request.getParameter("grant_type"))));
@@ -54,6 +61,7 @@ public class TenantFilter extends OncePerRequestFilter {
                     if (authenticatedJwt) {
                         clubId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("clubId");
                         if ((clubId == null || clubId.isBlank()) && accountRoute) {
+                            if (hostClub.isPresent()) { throw new ApiException(ErrorCode.NO_MEMBERSHIP); }
                             chain.doFilter(request, response);
                             return;
                         }

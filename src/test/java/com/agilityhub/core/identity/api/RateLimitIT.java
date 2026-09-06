@@ -14,9 +14,9 @@ class RateLimitIT extends IdentityIntegrationSupport {
     @Test void T_01_15_magicLinkUsesTheAuthenticationIpQuotaBeforeTenantResolution() throws Exception {
         String body = "{\"email\":\"member@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\"}";
         for (int index = 0; index < 30; index++) {
-            mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body)
+            mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body.replace("member@", "member" + index + "@"))
                     .with(request -> { request.setRemoteAddr("203.0.113.41"); return request; }))
-                    .andExpect(status().isNotImplemented());
+                    .andExpect(status().isAccepted());
         }
         for (String path : new String[]{"/api/v1/auth/magic-link", "/oauth2/token"}) {
             mvc.perform(post(path).header("Host", "unknown.example.test").contentType("application/json").content(body)
@@ -31,11 +31,11 @@ class RateLimitIT extends IdentityIntegrationSupport {
         });
         mvc.perform(post("/api/v1/auth/magic-link").header("Host", "id.example.test").contentType("application/json").content(body)
                         .with(request -> { request.setRemoteAddr("203.0.113.42"); return request; }))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isAccepted());
         clock.advance(Duration.ofMinutes(1));
         mvc.perform(post("/api/v1/auth/magic-link").header("Host", HOST).contentType("application/json").content(body)
                         .with(request -> { request.setRemoteAddr("203.0.113.41"); return request; }))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isAccepted());
     }
 
     @Test void T_01_15_thirtyFirstTokenRequestIsLimitedBeforeTenantResolutionWithRetryAfterAndEvent() throws Exception {

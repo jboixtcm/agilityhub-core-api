@@ -10,8 +10,10 @@ import org.springframework.boot.DefaultApplicationArguments;
 import static org.assertj.core.api.Assertions.*;
 
 class SeedTestAccountsIT extends IdentityIntegrationSupport {
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.identity.application.AccountService accountService;
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.identity.application.MembershipService membershipService;
     SeedTestAccountsCommand command(String secret) {
-        return new SeedTestAccountsCommand(accounts, memberships, passwords, configs, clock, secret);
+        return new SeedTestAccountsCommand(accounts, memberships, passwords, configs, clock, accountService, membershipService, secret);
     }
     @Test void T_01_02_seedCreatesThreeFictionalAccountsAndIsRepeatableWithoutResettingCredentials() {
         var seed = command("Seed-example-password");

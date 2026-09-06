@@ -40,9 +40,15 @@ abstract class IdentityIntegrationSupport extends AbstractIntegrationTest {
     @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs;
     @Autowired HostTenantResolver hosts;
-    @BeforeEach void prepareIdentity() {
+    @Autowired java.util.concurrent.ThreadPoolExecutor magicLinkExecutor;
+    @Autowired com.agilityhub.core.clubs.messaging.application.EmailSender emailSender;
+    void awaitMail() throws Exception { magicLinkExecutor.submit(() -> { }).get(20, java.util.concurrent.TimeUnit.SECONDS); }
+    @org.junit.jupiter.api.AfterEach void drainMail() throws Exception { awaitMail(); }
+    @BeforeEach void prepareIdentity() throws Exception {
+        awaitMail();
+        ((com.agilityhub.core.clubs.messaging.application.FakeEmailSender) emailSender).clear();
         TenantContext.clear();
-        for (Class<?> type : new Class<?>[]{Account.class, Membership.class, RefreshToken.class, Club.class}) {
+        for (Class<?> type : new Class<?>[]{Account.class, Membership.class, RefreshToken.class, MagicLinkToken.class, Club.class}) {
             mongo.remove(new Query(), type);
         }
         clubs.save(PlatformFixtures.club("club-a", HOST));

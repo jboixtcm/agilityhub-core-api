@@ -31,7 +31,9 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handle(ApiException exception, HttpServletRequest request) {
-        return ResponseEntity.status(exception.code().httpStatus()).body(body(exception, request));
+        var response = ResponseEntity.status(exception.code().httpStatus());
+        if (exception.details().get("retryAfter") instanceof Number retry) { response.header("Retry-After", retry.toString()); }
+        return response.body(body(exception, request));
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)

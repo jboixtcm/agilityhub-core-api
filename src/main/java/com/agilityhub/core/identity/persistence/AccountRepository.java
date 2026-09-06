@@ -27,6 +27,43 @@ public class AccountRepository extends GlobalRepository<Account> {
                 .and("emailStatus").ne(com.agilityhub.core.shared.application.NotificationAccounts.EmailStatus.COMPLAINED));
         mongo.updateFirst(query, new Update().set("emailStatus", status), Account.class);
     }
+    public boolean createIfAbsent(Account account) {
+        var update = new Update().setOnInsert("_id", account.id()).setOnInsert("email", account.email())
+                .setOnInsert("name", account.name()).setOnInsert("locale", account.locale())
+                .setOnInsert("platformRoles", account.platformRoles()).setOnInsert("status", account.status())
+                .setOnInsert("security", account.security()).setOnInsert("externalIds", account.externalIds())
+                .setOnInsert("onboardingPending", account.onboardingPending()).setOnInsert("createdAt", account.createdAt())
+                .setOnInsert("createdSource", account.createdSource());
+        return mongo.upsert(Query.query(Criteria.where("email").is(account.email())), update, Account.class).getUpsertedId() != null;
+    }
+    /** Serialize account-wide session limits and credential changes with concurrent grants. */
+    public void touchSessions(String id) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().inc("sessionSequence", 1), Account.class);
+    }
+    public void lockout(String id, com.agilityhub.core.identity.domain.LoginLockout state) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("security.failedLogins", state.failures())
+                .set("security.failedLoginWindowStartedAt", state.windowStartedAt()).set("security.lockedUntil", state.lockedUntil())
+                .set("security.lockoutLevel", state.level()), Account.class);
+    }
+    public void verifyEmail(String id, Instant now) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("emailVerifiedAt").is(null)),
+                new Update().set("emailVerifiedAt", now), Account.class);
+    }
+    public void patch(String id, String locale, String name) {
+        var update = new Update();
+        if (locale != null) { update.set("locale", locale); }
+        if (name != null) { update.set("name", name); }
+        if (!update.getUpdateObject().isEmpty()) { mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), update, Account.class); }
+    }
+    public void password(String id, String hash, Instant now) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("passwordHash", hash)
+                .set("security.passwordChangedAt", now).inc("security.tokenFamilyVersion", 1)
+                .set("security.failedLogins", 0).set("security.lockedUntil", null)
+                .set("security.failedLoginWindowStartedAt", null).set("security.lockoutLevel", 0), Account.class);
+    }
+    public void revokeAll(String id, Instant now) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().inc("security.tokenFamilyVersion", 1).set("security.accessRevokedAt", now), Account.class);
+    }
     public void ensureIndexes() {
         mongo.indexOps(Account.class).ensureIndex(new Index().on("email", Direction.ASC).unique().named("account_email"));
     }

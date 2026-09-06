@@ -30,10 +30,12 @@ public class SeedTestAccountsCommand implements CoreCommand {
     private final ClubConfigService clubs;
     private final Clock clock;
     private final String password;
+    private final AccountService accountService;
+    private final MembershipService membershipService;
     public SeedTestAccountsCommand(AccountRepository accounts, MembershipRepository memberships, PasswordHasher passwords,
-                                   ClubConfigService clubs, Clock clock, @Value("${identity.seed-password}") String password) {
+                                   ClubConfigService clubs, Clock clock, AccountService accountService, MembershipService membershipService, @Value("${identity.seed-password}") String password) {
         this.accounts = accounts; this.memberships = memberships; this.passwords = passwords;
-        this.clubs = clubs; this.clock = clock; this.password = password;
+        this.clubs = clubs; this.clock = clock; this.password = password; this.accountService = accountService; this.membershipService = membershipService;
     }
     @Override public String name() { return "identity:seed-test-accounts"; }
     @Override @Transactional
@@ -48,12 +50,12 @@ public class SeedTestAccountsCommand implements CoreCommand {
             String locale = clubs.get(clubId).club().defaultLocale();
             for (Role role : Role.values()) {
                 String email = role.name().toLowerCase(java.util.Locale.ROOT) + "@example.test";
-                Account account = accounts.findByEmail(email).orElseGet(() -> accounts.save(new Account(UUID.randomUUID().toString(),
-                        email, "Example " + role.name(), locale, passwords.hash(password), Set.of(), Account.Status.ACTIVE,
-                        new Account.Security(0, null, null, 0), Map.of(), true, clock.instant())));
+                boolean exists = accounts.findByEmail(email).isPresent();
+                Account account = accountService.getOrCreate(email, "Example " + role.name(), locale, Account.Source.CONSOLE);
+                if (!exists) { accounts.password(account.id(), passwords.hash(password), clock.instant()); }
                 if (memberships.findByAccountId(account.id()).isEmpty()) {
-                    memberships.insert(new Membership(UUID.randomUUID().toString(), account.id(), clubId, null,
-                            role == Role.MEMBER ? Set.of(Role.MEMBER) : Set.of(Role.MEMBER, role), Membership.Status.ACTIVE, role));
+                    membershipService.setRoles(account.id(), role == Role.MEMBER ? Set.of(Role.MEMBER) : Set.of(Role.MEMBER, role));
+                    memberships.profile(account.id(), role, true);
                 }
             }
         }

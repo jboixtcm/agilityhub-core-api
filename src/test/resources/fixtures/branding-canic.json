@@ -1,7 +1,8 @@
 {
   "club": {
     "slug": "canic",
-    "name": "Club Agility Cànic"
+    "name": "Club Agility Cànic",
+    "city": "Cabrera de Mar"
   },
   "theme": {
     "logoUrl": null,

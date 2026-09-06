@@ -10,7 +10,7 @@ import java.util.Map;
 
 /** Per-instance token buckets for the E0 single-instance deployment. */
 public final class RateLimits {
-    public enum Route { TOKEN, BRANDING, PUBLIC, ME }
+    public enum Route { TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP }
     public record Limit(long capacity, Duration period) {
         public Limit {
             if (capacity < 1 || period == null || period.isZero() || period.isNegative()) {

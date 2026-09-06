@@ -4,6 +4,7 @@ apiVersion: "agilityhub.club/v1"
 club:
   slug: "canic"
   name: "Club Agility Cànic"
+  address: {city: "Cabrera de Mar", country: "ES"}
   locales:
     - "ca"
     - "es"

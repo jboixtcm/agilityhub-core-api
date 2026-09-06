@@ -32,7 +32,11 @@ public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Modu
         return type.cast(value);
     }
     public record ClubView(String id, String slug, String name, List<String> locales, String defaultLocale,
-                           String timeZone, String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl) {
+                           String timeZone, String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city) {
+        public ClubView(String id, String slug, String name, List<String> locales, String defaultLocale, String timeZone,
+                        String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl) {
+            this(id, slug, name, locales, defaultLocale, timeZone, currency, theme, pwa, status, privacyPolicyUrl, null);
+        }
         public ClubView { locales = List.copyOf(locales); }
     }
 }

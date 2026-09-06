@@ -10,12 +10,15 @@ public final class PasswordGrantAuthenticationToken extends OAuth2AuthorizationG
     private final String clientId;
     private final String username;
     private String secret;
+    private String userAgent;
     public PasswordGrantAuthenticationToken(String grant, String clientId, String username, String secret) {
         super(new AuthorizationGrantType(grant), new AnonymousAuthenticationToken("public-clubs-client", clientId,
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")), Map.of());
         this.clientId = clientId; this.username = username; this.secret = secret;
     }
     public String clientId() { return clientId; }
+    public void userAgent(String value) { userAgent = value; }
+    public String userAgent() { return userAgent; }
     public String username() { return username; }
     @Override public Object getCredentials() { return secret; }
     @Override public void eraseCredentials() { super.eraseCredentials(); secret = null; }

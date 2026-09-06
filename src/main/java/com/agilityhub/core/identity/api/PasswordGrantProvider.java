@@ -22,9 +22,11 @@ public final class PasswordGrantProvider implements AuthenticationProvider {
             if (client == null || !client.getAuthorizationGrantTypes().contains(grant.getGrantType())) {
                 throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_CLIENT);
             }
-            var issued = "password".equals(grant.getGrantType().getValue())
-                    ? tokens.password(grant.username(), (String) grant.getCredentials(), grant.clientId())
-                    : tokens.refresh((String) grant.getCredentials(), grant.clientId());
+            var issued = switch (grant.getGrantType().getValue()) {
+                case "password" -> tokens.password(grant.username(), (String) grant.getCredentials(), grant.clientId(), grant.userAgent());
+                case "refresh_token" -> tokens.refresh((String) grant.getCredentials(), grant.clientId());
+                default -> tokens.magicLink((String) grant.getCredentials(), grant.clientId(), grant.userAgent());
+            };
             var jwt = issued.access();
             var access = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, jwt.getTokenValue(), jwt.getIssuedAt(), jwt.getExpiresAt());
             return new OAuth2AccessTokenAuthenticationToken(client, (Authentication) grant.getPrincipal(), access, issued.refresh());

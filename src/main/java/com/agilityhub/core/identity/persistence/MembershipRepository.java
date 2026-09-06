@@ -14,6 +14,15 @@ public class MembershipRepository extends TenantRepository<Membership> {
     public Optional<Membership> findByAccountId(String accountId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("accountId").is(accountId)), Membership.class));
     }
+    public void profile(String accountId, com.agilityhub.core.identity.domain.Role profile, boolean remember) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("accountId").is(accountId)),
+                new org.springframework.data.mongodb.core.query.Update().set("defaultProfile", remember ? profile : null)
+                        .set("rememberProfile", remember), Membership.class);
+    }
+    public void accessed(String accountId, java.time.Instant now) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("accountId").is(accountId)),
+                new org.springframework.data.mongodb.core.query.Update().set("lastAccessAt", now), Membership.class);
+    }
     public void ensureIndexes() {
         mongo.indexOps(Membership.class).ensureIndex(new Index().on("accountId", Direction.ASC)
                 .on("clubId", Direction.ASC).unique().named("membership_account_club"));

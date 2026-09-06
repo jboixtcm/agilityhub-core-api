@@ -84,7 +84,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var response = mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse();
         assertThat(mapper.readTree(response.getContentAsString())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/branding-canic.json").toFile()));
         assertThat(mapper.<com.fasterxml.jackson.databind.JsonNode>valueToTree(configs.get(first.id()).parameters())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/parameters-canic.json").toFile()));
-        assertThat(count("domain_events")).isEqualTo(1); assertThat(count("audit_entries")).isEqualTo(1);
+        assertThat(count("domain_events")).isEqualTo(3); assertThat(count("audit_entries")).isEqualTo(1);
         assertThat(mongo.findAll(AuditEntry.class).getFirst().action()).isEqualTo(AuditAction.CLUB_UPDATED);
         assertThat(mongo.findAll(AuditEntry.class).getFirst().clubId()).isEqualTo(first.id());
         assertThat(mongo.findAll(AuditEntry.class).getFirst().reason()).isEqualTo("source: APPLY");
@@ -92,7 +92,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var second = definitions.apply(definition, false);
         assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("0 changes");
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(original);
-        assertThat(count("domain_events")).isEqualTo(1); assertThat(count("audit_entries")).isEqualTo(1);
+        assertThat(count("domain_events")).isEqualTo(3); assertThat(count("audit_entries")).isEqualTo(1);
         assertThat(count("accounts")).isEqualTo(1); assertThat(count("memberships")).isEqualTo(1);
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero();
@@ -119,7 +119,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
             assertThat(saved.history()).hasSize(2); assertThat(saved.history().getLast().value()).isEqualTo(3);
         }
         assertThat(mongo.findAll(org.bson.Document.class, "domain_events").stream().map(event -> event.getString("type")))
-                .containsOnly("ClubUpdated", "ParameterChanged");
+                .containsOnly("ClubUpdated", "ParameterChanged", "AccountCreated", "MembershipChanged");
         long events = count("domain_events"), auditCount = count("audit_entries");
         assertThat(definitions.apply(definition, false).changes()).isZero();
         assertThat(count("domain_events")).isEqualTo(events); assertThat(count("audit_entries")).isEqualTo(auditCount);
@@ -133,7 +133,8 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var second = definitions.apply(seed("minim"), false);
         assertThat(hosts.resolve("minim.example.test")).contains(second.id());
         assertThat(configs.get(first.id()).club().theme()).isNotEqualTo(configs.get(second.id()).club().theme());
-        mvc.perform(get("/api/v1/branding").header("Host", "minim.example.test")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/branding").header("Host", "minim.example.test")).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.club.city").value(org.hamcrest.Matchers.nullValue()));
         mvc.perform(get("/api/v1/branding").header("Host", "absent.example.test")).andExpect(status().isNotFound());
         try (var scope = TenantContext.open(first.id())) { assertThat(parameters.findAll()).isEmpty(); }
         try (var scope = TenantContext.open(second.id())) { assertThat(parameters.findAll()).hasSize(1); }

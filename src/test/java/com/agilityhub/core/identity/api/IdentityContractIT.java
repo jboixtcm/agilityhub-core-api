@@ -20,14 +20,8 @@ class IdentityContractIT extends IdentityIntegrationSupport {
     record Endpoint(String method, String path, String body, String authority, boolean clubRequired) { }
     static Stream<Endpoint> accountEndpoints() {
         return Stream.of(
-                new Endpoint("POST", "/oauth2/revoke", "{\"token\":\"fictional\"}", "ROLE_MEMBER", false),
                 new Endpoint("GET", "/oauth2/userinfo", null, "SCOPE_openid", false),
                 new Endpoint("POST", "/api/v1/auth/handoff", "{\"targetClientId\":\"clubs-admin\"}", "ROLE_ADMIN", true),
-                new Endpoint("PATCH", "/api/v1/me", "{\"locale\":\"es\",\"name\":\"Example\"}", "ROLE_MEMBER", false),
-                new Endpoint("PUT", "/api/v1/me/password", "{\"new\":\"Fictional password\",\"repeat\":\"Fictional password\"}", "ROLE_MEMBER", false),
-                new Endpoint("PUT", "/api/v1/me/profile", "{\"activeProfile\":\"MEMBER\",\"remember\":true}", "ROLE_MEMBER", true),
-                new Endpoint("GET", "/api/v1/me/sessions", null, "ROLE_MEMBER", false),
-                new Endpoint("DELETE", "/api/v1/me/sessions/session-a", null, "ROLE_MEMBER", false),
                 new Endpoint("GET", "/api/v1/me/onboarding", null, "ROLE_MEMBER", false),
                 new Endpoint("PUT", "/api/v1/me/onboarding", "{\"consentAccepted\":true,\"consentVersion\":\"v1\"}", "ROLE_MEMBER", false),
                 new Endpoint("POST", "/api/v1/me/onboarding/postpone", null, "ROLE_MEMBER", false),
@@ -67,13 +61,13 @@ class IdentityContractIT extends IdentityIntegrationSupport {
         for (String host : List.of(HOST, "id.example.test")) {
             mvc.perform(post("/api/v1/auth/magic-link").header("Host", host).contentType("application/json")
                             .content("{\"email\":\"member@example.test\",\"purpose\":\"LOGIN\",\"client_id\":\"clubs-app\",\"redirect_uri\":\"https://app.example.test/activacio\"}"))
-                    .andExpect(status().isNotImplemented()).andExpect(jsonPath("$.code").value("NOT_IMPLEMENTED"));
+                    .andExpect(status().isAccepted());
         }
         mvc.perform(post("/api/v1/auth/magic-link").contentType("application/json").content("{}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
-    @ParameterizedTest @ValueSource(strings = {"urn:agilityhub:grant:magic-link", "urn:agilityhub:grant:handoff", "authorization_code"})
+    @ParameterizedTest @ValueSource(strings = {"urn:agilityhub:grant:handoff", "authorization_code"})
     void T_01_24_pendingGrantsReachThe501ContractWithoutChangingExistingGrants(String grant) throws Exception {
         for (String host : List.of(HOST, "id.example.test")) {
             mvc.perform(post("/oauth2/token").header("Host", host).contentType("application/x-www-form-urlencoded")
@@ -136,7 +130,7 @@ class IdentityContractIT extends IdentityIntegrationSupport {
         mvc.perform(get("/oauth2/authorize")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         mvc.perform(get("/oauth2/userinfo").with(jwt().authorities(new SimpleGrantedAuthority("ROLE_MEMBER"))))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
-        mvc.perform(get("/api/v1/me").with(jwt())).andExpect(status().isNotImplemented());
+        mvc.perform(get("/api/v1/me").with(jwt().jwt(j -> j.subject("account-a")))).andExpect(status().isOk());
     }
 
     @Test void T_01_11_impersonationAndPasswordContractsRejectImpersonatedAccounts() throws Exception {

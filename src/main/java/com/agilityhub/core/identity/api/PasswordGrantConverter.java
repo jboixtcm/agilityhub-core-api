@@ -9,13 +9,16 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 public final class PasswordGrantConverter implements AuthenticationConverter {
     @Override public Authentication convert(HttpServletRequest request) {
         String grant = request.getParameter("grant_type");
-        if (!"password".equals(grant) && !"refresh_token".equals(grant)) { return null; }
+        if (!"password".equals(grant) && !"refresh_token".equals(grant) && !com.agilityhub.core.identity.application.MagicLinkService.GRANT.equals(grant)) { return null; }
         if (request.getHeader("Authorization") != null || request.getParameter("client_secret") != null
                 || request.getParameter("scope") != null) { throw invalid(); }
+        required(request, "grant_type");
         String client = request.getParameter("client_id") == null ? "clubs-app" : required(request, "client_id");
-        return new PasswordGrantAuthenticationToken(grant, client,
+        var authentication = new PasswordGrantAuthenticationToken(grant, client,
                 "password".equals(grant) ? required(request, "username") : null,
-                required(request, "password".equals(grant) ? "password" : "refresh_token"));
+                required(request, "password".equals(grant) ? "password" : "refresh_token".equals(grant) ? "refresh_token" : "token"));
+        authentication.userAgent(request.getHeader("User-Agent"));
+        return authentication;
     }
     private String required(HttpServletRequest request, String name) {
         String[] values = request.getParameterValues(name);

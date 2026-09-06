@@ -47,7 +47,7 @@ public class JwtConfiguration {
         timestamps.setClock(clock);
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(timestamps, new JwtIssuerValidator(issuer), jwt -> {
             boolean valid = jwt.getExpiresAt() != null && jwt.getExpiresAt().isAfter(clock.instant()) && jwt.getSubject() != null
-                    && jwt.getAudience().stream().anyMatch(Set.of("clubs-app", "clubs-admin")::contains);
+                    && jwt.getAudience().stream().anyMatch(Set.of("clubs-app", "clubs-admin", "id-web")::contains);
             return valid ? OAuth2TokenValidatorResult.success()
                     : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token"));
         }));

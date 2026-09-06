@@ -19,9 +19,10 @@ import org.springframework.stereotype.Service;
 public class ClubAdminService implements ClubAdminProvisioner {
     private final AccountRepository accounts;
     private final MembershipRepository memberships;
-    private final Clock clock;
-    public ClubAdminService(AccountRepository accounts, MembershipRepository memberships, Clock clock) {
-        this.accounts = accounts; this.memberships = memberships; this.clock = clock;
+    private final AccountService accountService;
+    private final MembershipService membershipService;
+    public ClubAdminService(AccountRepository accounts, MembershipRepository memberships, AccountService accountService, MembershipService membershipService) {
+        this.accounts = accounts; this.memberships = memberships; this.accountService = accountService; this.membershipService = membershipService;
     }
     @Override public boolean needsProvision(Admin admin) {
         TenantContext.require();
@@ -30,18 +31,11 @@ public class ClubAdminService implements ClubAdminProvisioner {
     }
     @Override public void provision(Admin admin) {
         String clubId = TenantContext.require();
-        var account = accounts.findByEmail(admin.email()).orElseGet(() -> accounts.save(new Account(UUID.randomUUID().toString(),
-                admin.email(), admin.name(), admin.locale(), null, Set.of(), Account.Status.ACTIVE,
-                new Account.Security(0, null, null, 0), Map.of(), true, clock.instant())));
+        var account = accountService.getOrCreate(admin.email(), admin.name(), admin.locale(), Account.Source.CONSOLE);
         var membership = memberships.findByAccountId(account.id());
-        if (membership.isEmpty()) {
-            memberships.insert(new Membership(UUID.randomUUID().toString(), account.id(), clubId, null,
-                    Set.of(Role.ADMIN), Membership.Status.ACTIVE, Role.ADMIN));
-        } else if (!membership.get().roles().contains(Role.ADMIN)) {
-            var old = membership.get();
-            var roles = EnumSet.copyOf(old.roles()); roles.add(Role.ADMIN);
-            memberships.replace(new Membership(old.id(), old.accountId(), old.clubId(), old.memberId(), roles, old.status(), old.defaultProfile()));
-        }
+        var roles = membership.map(value -> EnumSet.copyOf(value.roles())).orElseGet(() -> EnumSet.noneOf(Role.class));
+        roles.add(Role.ADMIN);
+        membershipService.setRoles(account.id(), roles);
     }
     @Override public List<Admin> list() {
         return memberships.findAll().stream().filter(membership -> membership.roles().contains(Role.ADMIN))

@@ -24,6 +24,8 @@ class EventCatalogContractTest {
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
         Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.identity.domain.IdentityEvent.class, () -> new com.agilityhub.core.identity.domain.IdentityEvent(
+                        com.agilityhub.core.identity.domain.IdentityEvent.Kind.AccountCreated, null, "account-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("accountId", "account-a")),
                 com.agilityhub.core.clubs.messaging.domain.NotificationEvent.class, () -> new com.agilityhub.core.clubs.messaging.domain.NotificationEvent(
                         com.agilityhub.core.clubs.messaging.domain.NotificationEvent.Kind.NotificationQueued, "club-a", "notification-a", Instant.parse("2030-01-01T00:00:00Z")),
                 com.agilityhub.core.platform.domain.events.ParameterChanged.class, () -> new com.agilityhub.core.platform.domain.events.ParameterChanged(
@@ -49,6 +51,13 @@ class EventCatalogContractTest {
                 assertThat(notification.payload()).containsEntry("notificationId", "notification-a").containsEntry("channel", "EMAIL");
                 assertThat(notification.actorAccountId()).isNull(); assertThat(notification.impersonatedMemberId()).isNull();
                 assertThat(notification.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
+            }
+            if (event instanceof com.agilityhub.core.identity.domain.IdentityEvent identity) {
+                for (var kind : com.agilityhub.core.identity.domain.IdentityEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(identity.aggregateType()).isEqualTo("Account");
+                assertThat(identity.payload()).containsEntry("accountId", "account-a");
+                assertThat(identity.actorAccountId()).isNull(); assertThat(identity.impersonatedMemberId()).isNull();
+                assertThat(identity.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
             }
             if (event instanceof ClubConfigChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");

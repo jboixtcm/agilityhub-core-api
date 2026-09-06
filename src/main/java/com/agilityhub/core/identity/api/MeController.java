@@ -21,29 +21,38 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 public class MeController {
     private final IdentityService identities;
     private final ClubConfigService clubs;
-    public MeController(IdentityService identities, ClubConfigService clubs) { this.identities = identities; this.clubs = clubs; }
+    private final com.agilityhub.core.identity.application.AccountService accounts;
+    private final com.agilityhub.core.identity.application.PasswordService passwords;
+    private final com.agilityhub.core.identity.application.TokenService tokens;
+    public MeController(IdentityService identities, ClubConfigService clubs, com.agilityhub.core.identity.application.AccountService accounts,
+            com.agilityhub.core.identity.application.PasswordService passwords, com.agilityhub.core.identity.application.TokenService tokens) {
+        this.identities = identities; this.clubs = clubs; this.accounts = accounts; this.passwords = passwords; this.tokens = tokens;
+    }
     @GetMapping("/api/v1/me")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get the current account and active club context",
             description = "Any valid account token. R-01-15: only the current host/JWT membership, role profiles and enabled features. "
-                    + "The E0 club bootstrap works; global account and impersonation bootstrap are completed in E1.",
+                    + "Includes global account bootstrap; impersonation is completed in E1-T04.",
             responses = @ApiResponse(responseCode = "200", description = "App bootstrap (Me)"))
     public MeResponse me(@AuthenticationPrincipal Jwt jwt) {
-        if (TenantContext.current() == null || Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
+        if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))) {
             throw new UnsupportedOperationException();
         }
         var session = identities.current(jwt.getSubject());
         var account = session.account();
         var membership = session.membership();
+        var publicAccount = new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(),
+                account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet()),
+                account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending());
+        if (membership == null) { return new MeResponse(publicAccount, null, null, List.of()); }
         var profiles = membership.roles().stream().map(role -> Profile.valueOf(role.name())).sorted().toList();
         var defaultProfile = membership.defaultProfile() == null ? null : Profile.valueOf(membership.defaultProfile().name());
         String activeClaim = jwt.getClaimAsString("activeProfile");
-        var activeProfile = activeClaim == null ? defaultProfile : Profile.valueOf(activeClaim);
-        return new MeResponse(new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(),
-                    account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet()),
-                    account.passwordHash() != null, null, false),
+        com.agilityhub.core.identity.domain.Role requested = activeClaim == null ? null : com.agilityhub.core.identity.domain.Role.valueOf(activeClaim);
+        var activeProfile = Profile.valueOf(membership.activeProfile(requested).name());
+        return new MeResponse(publicAccount,
                 new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.copyOf(profiles), activeProfile, profiles,
-                        membership.memberId(), jwt.getClaimAsString("instructorId"), defaultProfile, false, null), null,
+                        membership.memberId(), membership.instructorId(), defaultProfile, membership.rememberProfile(), null), null,
                 clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
     }
 
@@ -52,7 +61,11 @@ public class MeController {
     @Operation(summary = "Update account language or display name", description = "Any valid account token. R-01-14.",
             responses = {@ApiResponse(responseCode = "200", description = "Updated app bootstrap (Me)"),
                     @ApiResponse(responseCode = "400", description = "LOCALE_NOT_SUPPORTED")})
-    public MeResponse update(@Valid @RequestBody AccountPatchRequest request) { throw new UnsupportedOperationException(); }
+    public MeResponse update(@Valid @RequestBody AccountPatchRequest request, @AuthenticationPrincipal Jwt jwt) {
+        identities.current(jwt.getSubject());
+        accounts.patch(jwt.getSubject(), request.locale(), request.name());
+        return me(jwt);
+    }
 
     @PutMapping("/api/v1/me/password")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
@@ -62,26 +75,39 @@ public class MeController {
                     @ApiResponse(responseCode = "400", description = "PASSWORD_TOO_SHORT, PASSWORD_MISMATCH, PASSWORD_COMPROMISED"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS for current password"),
                     @ApiResponse(responseCode = "403", description = "FORBIDDEN for impersonated accounts")})
-    public ResponseEntity<Void> password(@Valid @RequestBody PasswordRequest request) { throw new UnsupportedOperationException(); }
+    public ResponseEntity<Void> password(@Valid @RequestBody PasswordRequest request, @AuthenticationPrincipal Jwt jwt) {
+        passwords.change(jwt.getSubject(), jwt.getClaimAsString("azp"), jwt.getClaimAsString("sid"), request.current(), request.newPassword(), request.repeat());
+        return ResponseEntity.ok().build();
+    }
 
     @PutMapping("/api/v1/me/profile")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Select an available club profile", description = "Account token with club context. R-01-07. Returns a fresh access token.",
             responses = {@ApiResponse(responseCode = "200", description = "New access token"),
                     @ApiResponse(responseCode = "422", description = "PROFILE_NOT_AVAILABLE")})
-    public ProfileResponse profile(@Valid @RequestBody ProfileRequest request) { throw new UnsupportedOperationException(); }
+    public ProfileResponse profile(@Valid @RequestBody ProfileRequest request, @AuthenticationPrincipal Jwt jwt) {
+        return new ProfileResponse(tokens.profile(jwt.getSubject(), jwt.getClaimAsString("azp"), jwt.getClaimAsString("sid"),
+                com.agilityhub.core.identity.domain.Role.valueOf(request.activeProfile().name()), request.remember()).getTokenValue());
+    }
 
     @GetMapping("/api/v1/me/sessions")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List the current account's device sessions", description = "Any valid account token. R-01-06, R-01-10. Bounded device list, not a desktop paginated list.",
             responses = @ApiResponse(responseCode = "200", description = "Sessions without refresh tokens or token hashes"))
-    public List<Session> sessions() { throw new UnsupportedOperationException(); }
+    public List<Session> sessions(@AuthenticationPrincipal Jwt jwt) {
+        return tokens.sessions(jwt.getSubject()).stream().map(token -> new Session(token.familyId(), token.clientId(), token.clubId(),
+                token.activeProfile() == null ? null : Profile.valueOf(token.activeProfile().name()), token.deviceLabel(),
+                token.createdAt(), token.expiresAt(), token.lastUsedAt())).toList();
+    }
 
     @DeleteMapping("/api/v1/me/sessions/{id}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Revoke one of the current account's sessions", description = "Any valid account token. R-01-10. The session must belong to this account.",
             responses = @ApiResponse(responseCode = "200", description = "Session revoked", content = @Content))
-    public ResponseEntity<Void> deleteSession(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public ResponseEntity<Void> deleteSession(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+        tokens.revokeSession(jwt.getSubject(), id);
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/api/v1/me/onboarding")
     @PreAuthorize("isAuthenticated()")

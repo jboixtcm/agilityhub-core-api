@@ -16,6 +16,8 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 
 @RestController
 public class OAuthController {
+    private final com.agilityhub.core.identity.application.TokenService tokens;
+    public OAuthController(com.agilityhub.core.identity.application.TokenService tokens) { this.tokens = tokens; }
     @PostMapping(value = "/oauth2/token", consumes = "application/x-www-form-urlencoded")
     @SecurityRequirements
     @Operation(operationId = "token", summary = "Issue tokens using an OAuth2 or AgilityHub grant",
@@ -81,7 +83,11 @@ public class OAuthController {
     @Operation(summary = "Revoke a refresh session or impersonation grant",
             description = "Any valid account token. R-01-10. Idempotent; JSON body as specified in S01 §6.",
             responses = @ApiResponse(responseCode = "200", description = "Revoked (also when already revoked)", content = @Content))
-    public ResponseEntity<Void> revoke(@jakarta.validation.Valid @RequestBody RevokeRequest request) { throw new UnsupportedOperationException(); }
+    public ResponseEntity<Void> revoke(@jakarta.validation.Valid @RequestBody RevokeRequest request,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+        tokens.revoke(jwt.getSubject(), request.token());
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/oauth2/userinfo")
     @PreAuthorize("isAuthenticated() and hasAuthority('SCOPE_openid')")
