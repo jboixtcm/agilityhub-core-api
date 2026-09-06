@@ -212,6 +212,12 @@ Cadascuna ja és aplicada a la spec/catàleg (Dropbox i `docs/` dels dos repos) 
 | E13 | Correu: `SystemNotificationService.send` es crida **després** del commit de la transacció de qui l'invoca (grava QUEUED + outbox abans de la I/O); `LogEmailSender` a `local`, arrencada fallida a `staging/prod` sense `SENDGRID_API_KEY`; l'enviament real es prova a staging | E1-T03 | sense compte SendGrid no s'atura el desenvolupament |
 | E14 | Web: els tipus es generen de l'**snapshot OpenAPI real** copiat de l'api (`packages/api-client/openapi/openapi.json`, mai editat a mà) fusionat amb `pending.json` (contractes encara no publicats per l'api, mocks-first); test de fixtures contra esquemes | E1-W06 | acaba amb l'stub i la cerca del repo germà (no existeix a CI) |
 | E15 | Tema genèric AgilityHub provisional (blau neutre/clar) fins que donis la paleta de marca | Part C | — |
+| E16 | `MEMBER_ERASED` (409) afegit al catàleg d'errors (S14 el definia però el catàleg no el tenia); `HANDOFF_INVALID` i `TENANT_MISMATCH` afegits a la llista d'esdeveniments de seguretat S14 R-14-17 | catàlegs, S14 | consolidació incompleta del 03-09 |
+| E17 | `POST /members/{id}/impersonation-token` → `{token, expiresAt, launchUrl}` (S01 alineada amb S03 §6); `launchUrl` porta un codi de handoff d'un sol ús, mai el JWT | S01 §6, E1-T04 | «Entra com l'abonat» obre l'app del club en una pestanya nova sense exposar el token |
+| E18 | Pont OIDC per a l'SPA `apps/id`: `POST /oauth2/session {flow} → {redirectUrl}` (nou endpoint a S01 §6); claus de signatura en un anell xifrat AES-256-GCM a Mongo amb `OIDC_MASTER_KEY` (R-01-16 actualitzada; abans PEM a `.env`) | S01 §6, R-01-16, E1-T05 | cal un pont entre el login de l'SPA i la sessió de navegador OIDC; A1 (emmagatzematge xifrat) |
+| E19 | Regla de col·locació del logo: espais compactes (capçalera/lateral < 48 px) = marca + nom del club; espais grans (pantalles d'accés, targetes) = logo complet (`logoDarkUrl` en mode fosc) | web `AGENTS.md` §2, `packages/ui` | el logo complet vertical era il·legible a 40 px |
+| E20 | Pantalla 28 sense consentiments ni idioma (mockup/S03 §2 manen sobre el text de la tasca); tasques de 13 embegudes a `GET /me/dogs` segons R-03-18 (contracte api E2-T06) | E2-W03, E2-T06 | — |
+| E21 | Desplegament (nou a la llista de Jordi): `OIDC_MASTER_KEY` per entorn i les URL de callback dels clients OIDC (`core.oidc.clients[]`), `SENDGRID_API_KEY`, domini verificat | `.env.example` de l'api | — |
 
 ---
 
