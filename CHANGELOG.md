@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E1-T03 Round 2: Return the approved `WEBHOOK_SIGNATURE_INVALID` error with HTTP 401
+  and record signature failures as security events. Audit account email suppression
+  as `ACCOUNT_EMAIL_STATUS_CHANGED`, with webhook regression tests and the updated OpenAPI contract.
+
 - E1-T01 Round 2: Align onboarding schemas and the postpone route with S01 v0.3;
   move public magic-link requests to `/api/v1/auth/magic-link` with the existing
   authentication IP quota; add password, verification, onboarding and gender fields

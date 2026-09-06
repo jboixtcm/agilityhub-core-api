@@ -8,7 +8,6 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.Map;
 
 public final class SendGridSignatureVerifier {
     private final PublicKey publicKey;
@@ -30,7 +29,6 @@ public final class SendGridSignatureVerifier {
         } catch (Exception invalid) {
             // Fail closed, without logging request data or signature material.
         }
-        // Catalog currently assigns WEBHOOK_SIGNATURE_INVALID to 400; the signed endpoint requires 401.
-        throw new ApiException(ErrorCode.UNAUTHENTICATED, Map.of("reason", "WEBHOOK_SIGNATURE_INVALID"));
+        throw new ApiException(ErrorCode.WEBHOOK_SIGNATURE_INVALID);
     }
 }

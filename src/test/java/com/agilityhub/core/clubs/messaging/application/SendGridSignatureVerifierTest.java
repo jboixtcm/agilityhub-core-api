@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.messaging.application;
 
 import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
@@ -19,11 +20,14 @@ class SendGridSignatureVerifierTest {
         for (String key : java.util.List.of(encodedKey, "-----BEGIN PUBLIC KEY-----\n" + encodedKey + "\n-----END PUBLIC KEY-----")) {
             var verifier = new SendGridSignatureVerifier(key); verifier.verify(body, "123", encodedSignature);
             for (String timestamp : java.util.Arrays.asList(null, "not-a-timestamp", "")) {
-                assertThatThrownBy(() -> verifier.verify(body, timestamp, encodedSignature)).isInstanceOf(ApiException.class);
+                assertThatExceptionOfType(ApiException.class).isThrownBy(() -> verifier.verify(body, timestamp, encodedSignature))
+                        .satisfies(invalid -> assertThat(invalid.code()).isEqualTo(ErrorCode.WEBHOOK_SIGNATURE_INVALID));
             }
-            assertThatThrownBy(() -> verifier.verify(body, "123", null)).isInstanceOf(ApiException.class);
+            assertThatExceptionOfType(ApiException.class).isThrownBy(() -> verifier.verify(body, "123", null))
+                    .satisfies(invalid -> assertThat(invalid.code()).isEqualTo(ErrorCode.WEBHOOK_SIGNATURE_INVALID));
         }
         assertThatThrownBy(() -> new SendGridSignatureVerifier("invalid")).hasMessage("SENDGRID_WEBHOOK_PUBLIC_KEY must be a valid ECDSA public key");
-        assertThatThrownBy(() -> new SendGridSignatureVerifier("").verify(body, "123", encodedSignature)).isInstanceOf(ApiException.class);
+        assertThatExceptionOfType(ApiException.class).isThrownBy(() -> new SendGridSignatureVerifier("").verify(body, "123", encodedSignature))
+                .satisfies(invalid -> assertThat(invalid.code()).isEqualTo(ErrorCode.WEBHOOK_SIGNATURE_INVALID));
     }
 }

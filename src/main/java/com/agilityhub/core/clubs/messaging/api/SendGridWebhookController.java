@@ -2,6 +2,7 @@ package com.agilityhub.core.clubs.messaging.api;
 
 import com.agilityhub.core.clubs.messaging.application.SendGridSignatureVerifier;
 import com.agilityhub.core.clubs.messaging.application.SendGridWebhookService;
+import com.agilityhub.core.shared.application.SecurityEvents;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -24,20 +25,26 @@ public class SendGridWebhookController {
     private final SendGridSignatureVerifier signatures;
     private final SendGridWebhookService service;
     private final ObjectMapper mapper;
-    public SendGridWebhookController(SendGridSignatureVerifier signatures, SendGridWebhookService service, ObjectMapper mapper) {
-        this.signatures = signatures; this.service = service; this.mapper = mapper;
+    private final SecurityEvents securityEvents;
+    public SendGridWebhookController(SendGridSignatureVerifier signatures, SendGridWebhookService service, ObjectMapper mapper,
+            SecurityEvents securityEvents) {
+        this.signatures = signatures; this.service = service; this.mapper = mapper; this.securityEvents = securityEvents;
     }
     @PostMapping(value = "/webhooks/email/sendgrid", consumes = "application/json")
     @SecurityRequirements
     @Operation(summary = "Receive signed SendGrid delivery events", description = "ECDSA signature over the timestamp header and raw request bytes. "
             + "No bearer token or request tenant is required. Events are matched to the stored notification, club and recipient; sg_event_id is idempotent.")
     @ApiResponse(responseCode = "200", description = "Processed or safely ignored", content = @Content)
-    @ApiResponse(responseCode = "401", description = "UNAUTHENTICATED; details.reason = WEBHOOK_SIGNATURE_INVALID")
+    @ApiResponse(responseCode = "401", description = "WEBHOOK_SIGNATURE_INVALID")
     public void receive(@RequestHeader(value = "X-Twilio-Email-Event-Webhook-Timestamp", required = false) String timestamp,
             @RequestHeader(value = "X-Twilio-Email-Event-Webhook-Signature", required = false) String signature,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json",
                     array = @ArraySchema(schema = @Schema(implementation = SendGridEvent.class)))) @RequestBody byte[] body) {
-        signatures.verify(body, timestamp, signature);
+        try { signatures.verify(body, timestamp, signature); }
+        catch (ApiException invalid) {
+            securityEvents.record(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID, null, null);
+            throw invalid;
+        }
         SendGridEvent[] events;
         try { events = mapper.readValue(body, SendGridEvent[].class); }
         catch (IOException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }

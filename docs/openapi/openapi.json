@@ -4685,7 +4685,7 @@
                 }
               }
             },
-            "description" : "UNAUTHENTICATED; details.reason = WEBHOOK_SIGNATURE_INVALID"
+            "description" : "WEBHOOK_SIGNATURE_INVALID"
           },
           "403" : {
             "content" : {

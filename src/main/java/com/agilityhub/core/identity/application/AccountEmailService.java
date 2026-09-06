@@ -19,7 +19,7 @@ public class AccountEmailService implements NotificationAccounts, AuditableLoade
     @Override public String entityType() { return "Account"; }
     @Override public Object load(String accountId) { return find(accountId).orElse(null); }
     @Override @Transactional
-    @Audited(action = AuditAction.MEMBER_UPDATED, entityType = "'Account'", entity = "#accountId")
+    @Audited(action = AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED, entityType = "'Account'", entity = "#accountId")
     public void markEmailStatus(String accountId, String expectedEmail, EmailStatus status) {
         accounts.markEmailStatus(accountId, expectedEmail, status);
     }

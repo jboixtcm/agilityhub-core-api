@@ -4,9 +4,10 @@ import com.agilityhub.core.clubs.messaging.persistence.*;
 import com.agilityhub.core.identity.persistence.Account;
 import com.agilityhub.core.identity.persistence.AccountRepository;
 import com.agilityhub.core.platform.application.audit.AuditAction;
-import com.agilityhub.core.platform.application.audit.AuditWriter;
+import com.agilityhub.core.platform.persistence.SecurityEvent;
 import com.agilityhub.core.platform.persistence.audit.AuditEntry;
 import com.agilityhub.core.shared.application.NotificationAccounts;
+import com.agilityhub.core.shared.application.SecurityEvents;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import com.agilityhub.core.support.AuditCovers;
@@ -56,6 +57,7 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
         TenantContext.clear();
         mongo.remove(new Query(), Notification.class); mongo.remove(new Query(), SendGridWebhookReceipt.class);
         mongo.remove(new Query(), AuditEntry.class);
+        mongo.remove(new Query(), SecurityEvent.class);
         accounts.save(new Account("webhook-account", "webhook@example.test", "Example Person", "en", null, Set.of(), Account.Status.ACTIVE,
                 new Account.Security(0, null, null, 0), Map.of(), false, clock.instant()));
         mongo.insert(new Notification("webhook-notification", null, "webhook-account", "N-25", "EMAIL", Notification.Status.SENT,
@@ -78,7 +80,7 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
                 .header("Host", "unregistered.example.test").header("X-Twilio-Email-Event-Webhook-Timestamp", TIMESTAMP)
                 .header("X-Twilio-Email-Event-Webhook-Signature", sign(body))).andExpect(status().isOk());
     }
-    @Test @AuditCovers(AuditAction.MEMBER_UPDATED)
+    @Test @AuditCovers(AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED)
     void T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce() throws Exception {
         byte[] payload = event("event-bounce", "bounce"); send(payload); send(payload);
         assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isEqualTo(NotificationAccounts.EmailStatus.BOUNCED);
@@ -86,13 +88,19 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
         assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isEqualTo(1);
         var audit = mongo.findAll(AuditEntry.class);
         assertThat(audit).hasSize(1); assertThat(audit.getFirst().entityType()).isEqualTo("Account");
+        assertThat(audit.getFirst().action()).isEqualTo(AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED);
         assertThat(audit.getFirst().entityId()).isEqualTo("webhook-account"); assertThat(audit.getFirst().actorRole()).isEqualTo("SYSTEM");
         assertThat(audit.getFirst().changes()).singleElement().satisfies(change -> {
             assertThat(change.path()).isEqualTo("emailStatus"); assertThat(change.before()).isNull(); assertThat(change.after()).isEqualTo("BOUNCED");
         });
         send(event("event-complaint", "spamreport")); send(event("event-dropped", "dropped")); send(event("event-late-delivery", "delivered"));
         assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isEqualTo(NotificationAccounts.EmailStatus.COMPLAINED);
-        assertThat(mongo.count(new Query(), AuditEntry.class)).isEqualTo(2);
+        assertThat(mongo.findAll(AuditEntry.class)).hasSize(2).allSatisfy(entry -> {
+            assertThat(entry.action()).isEqualTo(AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED);
+            assertThat(entry.entityType()).isEqualTo("Account");
+            assertThat(entry.changes()).extracting(change -> change.path()).containsExactly("emailStatus");
+        });
+        assertThat(mongo.count(new Query(), SecurityEvent.class)).isZero();
         assertThat(notifications.findSystem("webhook-notification").orElseThrow().status()).isEqualTo(Notification.Status.FAILED);
     }
     @Test void T_11_22_deliveredAndDeferredPreserveAccountState() throws Exception {
@@ -105,16 +113,18 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
     void T_11_22_rolesCannotBypassSignatureVerification(String role) throws Exception {
         mvc.perform(post("/webhooks/email/sendgrid").with(jwt().jwt(jwt -> jwt.claim("clubId", "club-b").claim("roles", List.of(role))))
                 .contentType("application/json").content(event("invalid", "bounce")))
-                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"))
-                .andExpect(jsonPath("$.details.reason").value("WEBHOOK_SIGNATURE_INVALID"));
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("WEBHOOK_SIGNATURE_INVALID"))
+                .andExpect(jsonPath("$.details").isEmpty());
         assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isZero();
+        assertThat(mongo.findAll(SecurityEvent.class)).singleElement().satisfies(this::assertSignatureSecurityEvent);
     }
     @Test void T_11_22_invalidSignaturesAndTamperedRawBytesFailBeforeParsing() throws Exception {
         byte[] body = event("tampered", "bounce");
         for (String signature : List.of("not-base64", sign("different bytes".getBytes(StandardCharsets.UTF_8)))) {
             mvc.perform(post("/webhooks/email/sendgrid").contentType("application/json").content(body)
                     .header("X-Twilio-Email-Event-Webhook-Timestamp", TIMESTAMP).header("X-Twilio-Email-Event-Webhook-Signature", signature))
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("WEBHOOK_SIGNATURE_INVALID"))
+                    .andExpect(jsonPath("$.details").isEmpty());
         }
         for (String malformed : List.of("{", "null", "{}")) {
             byte[] bytes = malformed.getBytes(StandardCharsets.UTF_8);
@@ -123,6 +133,13 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
                     .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         }
         assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isNull();
+        assertThat(mongo.findAll(SecurityEvent.class)).hasSize(2).allSatisfy(this::assertSignatureSecurityEvent);
+    }
+    private void assertSignatureSecurityEvent(SecurityEvent event) {
+        assertThat(event.type()).isEqualTo(SecurityEvents.Type.WEBHOOK_SIGNATURE_INVALID);
+        assertThat(event.route()).isEqualTo("other");
+        assertThat(event.accountId()).isNull(); assertThat(event.clubId()).isNull();
+        assertThat(event.details()).containsExactlyEntriesOf(Map.of("route", "other"));
     }
     @Test void T_11_22_unknownNotificationOtherClubAndChangedEmailAreIgnored() throws Exception {
         send(event("unknown", "bounce", "unknown", null, "webhook@example.test"));
