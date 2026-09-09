@@ -21,25 +21,32 @@ import static com.agilityhub.core.clubs.census.api.CensusRequests.*;
 /** Contract-first endpoints; standard NOT_IMPLEMENTED until the owning E2 use case is delivered. */
 @RestController
 public class DogsController {
+    private final com.agilityhub.core.shared.application.lists.ListEngine lists;
+    public DogsController(com.agilityhub.core.shared.application.lists.ListEngine lists) { this.lists = lists; }
     @GetMapping("/api/v1/dogs")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
-    @ListContract(filterable = {"name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {"name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"},
-            columns = {"name*", "breed*", "level*#levels.enabled", "owner*", "freeTraining*@FREE_TRAINING", "licenses*", "displayStatus*", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack@PACKS", "registeredAt"}, paged = true, exportable = true)
+    @ListContract(filterable = {"id", "name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "handlerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {"name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"},
+            columns = {"name*", "breed*", "level*#levels.enabled", "owner*", "handler", "freeTraining*@FREE_TRAINING", "licenses*", "displayStatus*", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack@PACKS", "registeredAt"}, paged = true, exportable = true)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "List dogs",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
-            responses = @ApiResponse(responseCode = "200", description = "ListPage<DogListItem>"))
-    public ListPage<DogListItem> listDogs() { throw new UnsupportedOperationException(); }
+            description = "R-03-22. Tenant-scoped universal list, with literal search and role/module-safe projections; fields selects a sparse response.",
+            responses = @ApiResponse(responseCode = "200", description = "ListPage<DogListItem>; fields selects a sparse projection", content = @Content(schema = @Schema(implementation = DogPage.class))))
+    public org.springframework.http.ResponseEntity<?> listDogs(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        return org.springframework.http.ResponseEntity.ok(lists.list("dogs", params));
+    }
 
     @GetMapping("/api/v1/dogs/filter-values")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
-    @ListContract(filterable = {"name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {},
+    @ListContract(filterable = {"id", "name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "handlerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {},
             columns = {}, paged = false, exportable = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Dog filter values",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+            description = "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply.",
             responses = @ApiResponse(responseCode = "200", description = "FilterValues"))
-    public FilterValues dogFilterValues(@RequestParam String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter) { throw new UnsupportedOperationException(); }
+    public FilterValues dogFilterValues(@RequestParam String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        return lists.facets("dogs", field, params);
+    }
 
     @GetMapping("/api/v1/dogs/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")

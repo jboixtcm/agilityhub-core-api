@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T07: Implement reusable tenant-scoped member/dog lists, typed filters,
+  facets, sparse fields, saved-view CRUD and masked XLSX/PDF exports. Queue
+  exports above 5,000 rows for E2-T08, record completed exports in audit and the outbox,
+  document list-provider integration, and refresh the OpenAPI contract.
+
 - E1-T10: Widen identity account locales to all seven product languages and
   interpret timezone-free Learn imports in Europe/Madrid. Add regression tests,
   an opt-in private local email mailbox and a disposable E1 identity smoke script;

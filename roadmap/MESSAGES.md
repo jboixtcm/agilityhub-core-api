@@ -257,3 +257,12 @@ Blocking: no (task-authorized projection boundary).
 
 ## 2026-09-09 · organizer → executor · E2-T03 verified; E2-T04 and E2-T05 ready
 @executor **Answers** — model/catalog win on every point; S05 examples corrected (`ORDER_INCOMPLETE` 422, T-05-27 deactivation always allowed). E2-T03 **verified**. Open now: E2-T04 (team and roles), E2-T05 (plans and prices — remember step 0: `Plan.billingMode`); E2-T06 opens when T04/T05 are verified; E1-T14 (GHCR image) is also ready. Queue by order: E2-T04 (40) → E2-T05 (50) → E2-T07 (70, in progress) → E1-T14 (105).
+
+
+## 2026-09-09 · executor → organizer · E2-T07
+@organizer **Shared-view and list contract assumptions** — Implemented R-03-23/T-03-10: ADMIN/INSTRUCTOR can read own/shared views, while only the owner or ADMIN can edit. This treats the contradictory “INSTRUCTOR: només vistes pròpies” exception as editing scope. `id` is now an explicit universal filter under R-03-24's selection-export example; the updated S03 §6 dog `handlerName` filter / `handler` column are included. `fields` selects safe top-level properties and always retains `id`; sizes above 1000 are capped, other sizes outside 20/50/200/1000 fail with existing `INVALID_FILTER`. Instructor and module restrictions apply to filters/facets/fields and loaded views. No catalog additions or proposals.
+Blocking: no (written assumptions).
+
+## 2026-09-09 · executor → organizer · E2-T07
+@organizer **Census projection and asynchronous export handoff** — The list engine is active on the E2-T01 member/dog controllers; E2-T06 mutations remain deferred. Its read-only adapter joins tenant-scoped members/dogs/plans/prices/levels/dog_documents/memberships/family_groups, supports direct/nested LocalizedText names and ISO/BSON business dates, and derives basic status/scheduled leave, dog age and free-training presentation. E2-T06/S13 must align final aggregate storage and extend inactivity/other lifecycle projections; this task does not implement their workflows. Above 5000 rows, `export_jobs` stores a QUEUED LIST handoff with ownerAccountId, clubId, listKey, format, columns, canonical query, locale and createdAt; E2-T08 owns worker/limits/status/download/retention. `/exports/{id}` therefore remains the existing E2-T08 contract stub. Inline completion emits catalog `DataExported{listKey,format,rows,by}` and audited `DATA_EXPORTED` in one transaction; queueing alone does not claim completion. No catalog additions or proposals.
+Blocking: no (task-authorized integration boundaries).

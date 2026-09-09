@@ -21,25 +21,32 @@ import static com.agilityhub.core.clubs.census.api.CensusRequests.*;
 /** Contract-first endpoints; standard NOT_IMPLEMENTED until the owning E2 use case is delivered. */
 @RestController
 public class MembersController {
+    private final com.agilityhub.core.shared.application.lists.ListEngine lists;
+    public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists) { this.lists = lists; }
     @GetMapping("/api/v1/members")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
-    @ListContract(filterable = {"memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city"},
+    @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city"},
             columns = {"fullName*", "dogs*", "plan*", "displayStatus*", "memberNumber", "contact", "paymentMethod@BILLING", "nextInvoiceDate@BILLING", "familyGroup@FAMILY_GROUP", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining@FREE_TRAINING", "birthDate", "gender", "idDocument"}, paged = true, exportable = true)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "List members",
             description = "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorView without financial or internal data. Fields/filters are limited by role.",
-            responses = @ApiResponse(responseCode = "200", description = "ListPage<MemberListItem>"))
-    public ListPage<MemberListItem> listMembers() { throw new UnsupportedOperationException(); }
+            responses = @ApiResponse(responseCode = "200", description = "ListPage<MemberListItem>; fields selects a sparse projection", content = @Content(schema = @Schema(implementation = MemberPage.class))))
+    public org.springframework.http.ResponseEntity<?> listMembers(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        return org.springframework.http.ResponseEntity.ok(lists.list("members", params));
+    }
 
     @GetMapping("/api/v1/members/filter-values")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
-    @ListContract(filterable = {"memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {},
+    @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {},
             columns = {}, paged = false, exportable = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Member filter values",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+            description = "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply.",
             responses = @ApiResponse(responseCode = "200", description = "FilterValues"))
-    public FilterValues memberFilterValues(@RequestParam String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter) { throw new UnsupportedOperationException(); }
+    public FilterValues memberFilterValues(@RequestParam String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        return lists.facets("members", field, params);
+    }
 
     @GetMapping("/api/v1/members/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")

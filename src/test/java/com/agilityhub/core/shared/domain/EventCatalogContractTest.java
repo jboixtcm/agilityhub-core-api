@@ -24,6 +24,7 @@ class EventCatalogContractTest {
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
         Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.clubs.common.domain.DataExported.class, () -> new com.agilityhub.core.clubs.common.domain.DataExported("club-a", "export-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a", "members", "xlsx", 2),
                 com.agilityhub.core.clubs.catalogs.domain.CatalogEvent.class, () -> new com.agilityhub.core.clubs.catalogs.domain.CatalogEvent(
                         com.agilityhub.core.clubs.catalogs.domain.CatalogKind.LEVEL, "club-a", "level-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "level-a", "diff", Map.of()), "account-a"),
                 com.agilityhub.core.platform.domain.events.ClubModulesChanged.class, () -> new com.agilityhub.core.platform.domain.events.ClubModulesChanged(
@@ -74,7 +75,10 @@ class EventCatalogContractTest {
                 assertThat(impersonation.impersonatedMemberId()).isEqualTo("member-a");
                 assertThat(impersonation.origin()).isEqualTo(DomainEvent.Origin.BACKOFFICE); return;
             }
-            if (event instanceof com.agilityhub.core.clubs.catalogs.domain.CatalogEvent changed) {
+            if (event instanceof com.agilityhub.core.clubs.common.domain.DataExported exported) {
+                assertThat(exported.aggregateType()).isEqualTo("ExportJob");
+                assertThat(exported.payload()).containsEntry("rows", 2L).containsEntry("by", "account-a");
+            } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.CatalogEvent changed) {
                 for (var kind : com.agilityhub.core.clubs.catalogs.domain.CatalogKind.values()) { assertThat(catalog).contains(kind.eventType()); }
                 assertThat(changed.aggregateType()).isEqualTo("Level");
                 assertThat(changed.aggregateId()).isEqualTo("level-a");

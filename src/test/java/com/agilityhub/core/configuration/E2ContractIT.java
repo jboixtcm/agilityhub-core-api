@@ -51,7 +51,9 @@ class E2ContractIT extends AbstractIntegrationTest {
     }
 
     static Stream<Route> pendingRoutes() throws Exception {
-        return routes().filter(route -> !route.path().startsWith("/api/v1/levels")
+        return routes().filter(route -> !route.path().startsWith("/api/v1/saved-views")
+                && !(route.method().equals("GET") && Set.of("/api/v1/members", "/api/v1/dogs", "/api/v1/members/filter-values", "/api/v1/dogs/filter-values", "/api/v1/members/export", "/api/v1/dogs/export").contains(route.path()))
+                && !route.path().startsWith("/api/v1/levels")
                 && !route.path().startsWith("/api/v1/rings")
                 && !route.path().startsWith("/api/v1/faq-entries")
                 && !route.path().startsWith("/api/v1/parameters")
@@ -159,12 +161,12 @@ class E2ContractIT extends AbstractIntegrationTest {
         var lists = Map.of("members", List.of("lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city"),
                 "dogs", List.of("name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"), "audit-entries", List.of("at"));
         var filters = Map.of(
-                "members", "memberNumber,lastName,fullName,status,displayStatus,planId,priceId,paymentMethodType,nextInvoiceDate,joinedAt,leaveDate,bookingBlocked,familyGroupId,imageRightsGranted,roles,city,postalCode,dogLevelId,dogName,hasPendingDocuments,freeTrainingAllowed,gender,birthDate",
-                "dogs", "name,breed,levelId,memberId,ownerName,status,freeTrainingAllowed,hasLicense,licenseOrganisation,hasPendingDocuments,sex,birthDate,chip,registeredAt,levelAssignedAt",
+                "members", "id,memberNumber,lastName,fullName,status,displayStatus,planId,priceId,paymentMethodType,nextInvoiceDate,joinedAt,leaveDate,bookingBlocked,familyGroupId,imageRightsGranted,roles,city,postalCode,dogLevelId,dogName,hasPendingDocuments,freeTrainingAllowed,gender,birthDate",
+                "dogs", "id,name,breed,levelId,memberId,ownerName,handlerName,status,freeTrainingAllowed,hasLicense,licenseOrganisation,hasPendingDocuments,sex,birthDate,chip,registeredAt,levelAssignedAt",
                 "audit-entries", "at,action,entityType,entityId,memberId,actorAccountId,actorRole,impersonatedMemberId,origin");
         var columns = Map.of(
                 "members", "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument",
-                "dogs", "name,breed,level,owner,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt",
+                "dogs", "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt",
                 "audit-entries", "at,action,entityLabel,actorName,impersonatedName,changes,origin");
         lists.forEach((resource, sort) -> {
             var operation = api.path("paths").path("/api/v1/" + resource).path("get");
@@ -188,7 +190,7 @@ class E2ContractIT extends AbstractIntegrationTest {
                 .filter(column -> column.path("defaultVisible").asBoolean()).map(column -> column.path("key").asText()))
                 .containsExactly("fullName", "dogs", "plan", "displayStatus");
         assertThat(api.path("paths").path("/api/v1/dogs").at("/get/x-columns/2/parameter").asText()).isEqualTo("levels.enabled");
-        assertThat(api.path("paths").path("/api/v1/dogs").at("/get/x-columns/4/module").asText()).isEqualTo("FREE_TRAINING");
+        assertThat(api.path("paths").path("/api/v1/dogs").at("/get/x-columns/5/module").asText()).isEqualTo("FREE_TRAINING");
         assertThat(strings(api.path("paths").path("/api/v1/members").at("/get/x-filter-operators/fullName"))).containsExactly("contains");
         assertThat(api.path("paths").path("/api/v1/me/profile").has("put")).isTrue();
         assertThat(api.path("paths").path("/api/v1/me/profile").has("patch")).isTrue();

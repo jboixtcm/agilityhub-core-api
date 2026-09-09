@@ -113,3 +113,61 @@ References: [RequiresModuleIT](../../src/test/java/com/agilityhub/core/platform/
 `T_02_06_*` / `T_02_07_*`, and
 [IdempotencyIT](../../src/test/java/com/agilityhub/core/shared/persistence/IdempotencyIT.java)
 `E0_T04_*` / `E0_T08_*`. Run `./mvnw -q verify` and `bin/openapi-snapshot` for an API change.
+
+## List endpoints
+
+E2-T07 implements the S03 R-03-22–24 engine. Register a `ListProvider` in the
+owning context and expose its application port through `ListEngine`. A provider
+returns a `ListDataset`: a trusted collection, tenant-scoped join stages, a
+`ListDefinition` and an explicit safe output projection. `CensusLists` and
+`CensusListProjection` are the member/dog examples. Every lookup must include
+`clubId`; the shared `MongoListRepository` adds the root tenant predicate through
+`TenantRepository` before the context's stages. Never build a Mongo field path
+from request text or return raw documents.
+
+`ListDefinition` declares typed filters/operators, sortable paths, search paths,
+selectable fields and columns, visible defaults, and a deterministic default
+sort. Reduce the definition and projection for the caller's role and enabled
+modules before parsing. Keep `@ListContract` metadata aligned with this public
+catalog. `id` is a universal filter for selection exports. Preserve the complete
+`MultiValueMap` when binding repeated `filter` and `sort` parameters; Spring's
+scalar-to-list comma conversion would corrupt their grammar.
+
+`ListQuery.parse` supplies page 0, size 50, allowed sizes 20/50/200/1000 and a cap
+of 1000. Negative/invalid pages, malformed values, unsupported operators, sort
+keys and field selections return `INVALID_FILTER`. Text matching is literal,
+case-insensitive regex, with request metacharacters escaped. Business dates use
+ISO dates; instant filters use ISO UTC instants. Each filter is ANDed; `in`/`nin`
+accept arrays. `fields` selects sparse top-level response fields and always
+retains `id`; omitting it returns the full allowed list projection.
+
+`ListEngine.facets` removes the selected field's filters and retains every other
+filter plus `q`. It counts each root document once per value, sorts by count
+(descending) then value, and returns at most 50 values. Resolve reference labels
+in the request locale with the club default as fallback.
+
+Saved views are tenant/owner/list preferences. Own and shared views are readable;
+only the owner or ADMIN may modify them. Uniqueness is enforced by Mongo, updates
+use a version predicate, and deleted/role-restricted column keys disappear on
+load. The R-03-23 “own only” exception is interpreted as editing scope, following
+T-03-10's explicit shared-view read test. Unknown filters on create/update fail.
+
+`ListExportService` uses the same definition and query and ignores pagination and
+`fields`; `columns` selects export order. ADMIN only (A17a), including application
+callers. The provider's projection and `ExportPolicy` mask bank details before
+rendering. XLSX uses POI text cells; PDF uses the club name/color and PDFBox's
+bundled font, wraps long values, and numbers continuation pages. Completed inline
+exports emit catalog `DataExported` and `@Audited(DATA_EXPORTED)` in the same Mongo
+transaction. Render failures leave neither event nor audit.
+
+A bounded 5,001-row probe renders up to 5,000 rows. Larger requests persist an
+`export_jobs` QUEUED handoff with owner, tenant, locale, columns, canonical query
+and creation instant, returning `202 {jobId, statusUrl}` plus Location. E2-T08 owns
+processing, total/concurrent limits, status/download endpoints, retention and
+completion events for queued jobs. Do not treat a queued handoff as a completed
+export. E2-T06 and the owning later verticals must keep the census read projection
+aligned with their final storage and derived lifecycle state.
+
+Verify parser error cases, real Mongo operators/facets, role and tenant isolation,
+view ownership/version conflicts, file contents/masking, and the 5,000/5,001
+boundary. Run `bin/openapi-snapshot` and `./mvnw -q verify` after API changes.

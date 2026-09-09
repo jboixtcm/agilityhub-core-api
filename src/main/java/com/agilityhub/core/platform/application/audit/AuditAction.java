@@ -2,6 +2,7 @@ package com.agilityhub.core.platform.application.audit;
 
 /** Implemented subset of the closed action list in S14 R-14-09. */
 public enum AuditAction {
+    DATA_EXPORTED,
     CATALOG_CHANGED,
     PLATFORM_ROLES_CHANGED,
     ONBOARDING_COMPLETED,

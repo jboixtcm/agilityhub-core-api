@@ -16,6 +16,10 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIR
 public final class CensusResponses {
     private CensusResponses() { }
 
+    @Schema(name = "ListPageMemberListItem")
+    public record MemberPage(List<MemberListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size, @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
+    @Schema(name = "ListPageDogListItem")
+    public record DogPage(List<DogListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size, @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     public enum Gender { MALE, FEMALE, OTHER }
     public enum Sex { MALE, FEMALE }
     public enum MemberStatus { PENDING, ACTIVE, LEFT }
@@ -235,6 +239,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
+            @Schema(requiredMode = NOT_REQUIRED) String handler,
             @Schema(requiredMode = NOT_REQUIRED) FreeTraining freeTraining,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,

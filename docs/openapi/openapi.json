@@ -1378,6 +1378,9 @@
           "freeTraining" : {
             "$ref" : "#/components/schemas/FreeTraining"
           },
+          "handler" : {
+            "type" : "string"
+          },
           "id" : {
             "format" : "uuid",
             "type" : "string"
@@ -10161,7 +10164,7 @@
     },
     "/api/v1/dogs" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-22. Tenant-scoped universal list, with literal search and role/module-safe projections; fields selects a sparse response.",
         "operationId" : "listDogs",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -10231,7 +10234,7 @@
                 }
               }
             },
-            "description" : "ListPage<DogListItem>"
+            "description" : "ListPage<DogListItem>; fields selects a sparse projection"
           },
           "400" : {
             "content" : {
@@ -10369,6 +10372,9 @@
           "defaultVisible" : true,
           "key" : "owner"
         }, {
+          "defaultVisible" : false,
+          "key" : "handler"
+        }, {
           "defaultVisible" : true,
           "key" : "freeTraining",
           "module" : "FREE_TRAINING"
@@ -10404,16 +10410,17 @@
         "x-exportable" : true,
         "x-filter-operators" : {
           "breed" : [ "contains" ],
+          "handlerName" : [ "contains" ],
           "name" : [ "contains" ],
           "ownerName" : [ "contains" ]
         },
-        "x-filterable" : [ "name", "breed", "levelId", "memberId", "ownerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
+        "x-filterable" : [ "id", "name", "breed", "levelId", "memberId", "ownerName", "handlerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
         "x-sortable" : [ "name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt" ]
       }
     },
     "/api/v1/dogs/export" : {
       "get" : {
-        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests persist a QUEUED handoff for E2-T08.",
         "operationId" : "exportDogs",
         "parameters" : [ {
           "in" : "query",
@@ -10661,6 +10668,9 @@
           "defaultVisible" : true,
           "key" : "owner"
         }, {
+          "defaultVisible" : false,
+          "key" : "handler"
+        }, {
           "defaultVisible" : true,
           "key" : "freeTraining",
           "module" : "FREE_TRAINING"
@@ -10696,16 +10706,17 @@
         "x-exportable" : false,
         "x-filter-operators" : {
           "breed" : [ "contains" ],
+          "handlerName" : [ "contains" ],
           "name" : [ "contains" ],
           "ownerName" : [ "contains" ]
         },
-        "x-filterable" : [ "name", "breed", "levelId", "memberId", "ownerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
+        "x-filterable" : [ "id", "name", "breed", "levelId", "memberId", "ownerName", "handlerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
         "x-sortable" : [ "name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt" ]
       }
     },
     "/api/v1/dogs/filter-values" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply.",
         "operationId" : "dogFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -10869,10 +10880,11 @@
         "x-exportable" : false,
         "x-filter-operators" : {
           "breed" : [ "contains" ],
+          "handlerName" : [ "contains" ],
           "name" : [ "contains" ],
           "ownerName" : [ "contains" ]
         },
-        "x-filterable" : [ "name", "breed", "levelId", "memberId", "ownerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
+        "x-filterable" : [ "id", "name", "breed", "levelId", "memberId", "ownerName", "handlerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
         "x-sortable" : [ ]
       }
     },
@@ -19191,7 +19203,7 @@
                 }
               }
             },
-            "description" : "ListPage<MemberListItem>"
+            "description" : "ListPage<MemberListItem>; fields selects a sparse projection"
           },
           "400" : {
             "content" : {
@@ -19388,13 +19400,13 @@
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
         },
-        "x-filterable" : [ "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
+        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
         "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city" ]
       }
     },
     "/api/v1/members/export" : {
       "get" : {
-        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests persist a QUEUED handoff for E2-T08.",
         "operationId" : "exportMembers",
         "parameters" : [ {
           "in" : "query",
@@ -19701,13 +19713,13 @@
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
         },
-        "x-filterable" : [ "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
+        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
         "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city" ]
       }
     },
     "/api/v1/members/filter-values" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-22. Top 50 facet values after q and filters on other fields; role and module restrictions apply.",
         "operationId" : "memberFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -19873,7 +19885,7 @@
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
         },
-        "x-filterable" : [ "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
+        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
         "x-sortable" : [ ]
       }
     },
@@ -27204,7 +27216,7 @@
     },
     "/api/v1/saved-views" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-23. Tenant-scoped preferences: own and shared views are readable; only the owner or ADMIN may edit. Unknown or restricted columns are omitted on load.",
         "operationId" : "savedViews",
         "parameters" : [ {
           "in" : "query",
@@ -27372,7 +27384,7 @@
         "x-sortable" : [ ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-23. Tenant-scoped preferences: own and shared views are readable; only the owner or ADMIN may edit. Unknown or restricted columns are omitted on load.",
         "operationId" : "createSavedView",
         "requestBody" : {
           "content" : {
@@ -27521,7 +27533,7 @@
     },
     "/api/v1/saved-views/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-23. Tenant-scoped preferences: own and shared views are readable; only the owner or ADMIN may edit. Unknown or restricted columns are omitted on load.",
         "operationId" : "deleteSavedView",
         "parameters" : [ {
           "in" : "path",
@@ -27659,7 +27671,7 @@
         "tags" : [ "clubs.common" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "R-03-23. Tenant-scoped preferences: own and shared views are readable; only the owner or ADMIN may edit. Unknown or restricted columns are omitted on load.",
         "operationId" : "savedView",
         "parameters" : [ {
           "in" : "path",
