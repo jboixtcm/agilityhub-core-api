@@ -258,6 +258,7 @@ Codi revisat: `AH_LearnPlatform/agilityhub-api` (Laravel 10, PHP 8.1, MySQL 8) i
 ## Canvis
 
 - 03-09-2026 · v0.1 · esborrany inicial a partir dels mockups 01/02/03b/12 (V8), D10 (V7), ADR-004/ADR-010 i PLATAFORMA §1.
+- 09-09-2026 · v0.4 (E1-T07) · importació de Learn: columnes reals `id,email,password,name,role,created_at` (sense `locale`; §14), hash existent es **conserva** (`PASSWORD_PRESERVED`) i només s'adopta el de Learn si el compte no en té; `created_at` naïf = hora local `Europe/Madrid`; `/oauth2/revoke` amb `{}` + bearer per als clients cookie (E1-T13).
 - 09-09-2026 · v0.4 · **A1 aplicada** (Jordi 06-09): refresh token en cookie `HttpOnly` darrere del proxy same-site de cada host (R-01-06, §6 `tokenDelivery = COOKIE`); l'storage WebCrypto queda retirat (tasques E1-T13 api / E1-W07 web); §13 fila 1 resolta.
 - 06-09-2026 · v0.3 · contracte tancat en verificar E1-T01: R-01-15 afegeix `account.hasPassword/emailVerifiedAt/onboardingPending` i `membership.gender`; §6 fixa els hosts (`/auth/*` sota `/api/v1`) i afegeix `GET/PUT /me/onboarding` + `POST /me/onboarding/postpone` (§14, A12) amb `signup.onboardingFields` i `legal.maxPostpones` al catàleg.
 - 05-09-2026 · v0.2 · §14: revisió del codi de Learn (auth JWT + bcrypt 12, sense login social, convidat local, alta per `POST /users`, 6 idiomes, API a `app.agilitydoghub.com`), onboarding «Completa el teu perfil» per als comptes importats/migrats, idiomes de producte = unió amb Learn.
