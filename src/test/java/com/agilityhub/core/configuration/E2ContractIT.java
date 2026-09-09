@@ -51,7 +51,12 @@ class E2ContractIT extends AbstractIntegrationTest {
     }
 
     static Stream<Route> pendingRoutes() throws Exception {
-        return routes().filter(route -> !route.path().startsWith("/api/v1/exports")
+        return routes().filter(route -> !(route.path().startsWith("/api/v1/members") && !route.path().contains("audit-entries") && !route.path().contains("data-export") && !route.path().contains("erasure"))
+                && !route.path().startsWith("/api/v1/dogs")
+                && !route.path().startsWith("/api/v1/family-groups")
+                && !route.path().startsWith("/api/v1/me/dogs")
+                && !route.path().equals("/api/v1/me/profile")
+                && !route.path().equals("/api/v1/me/family-group") && !route.path().startsWith("/api/v1/exports")
                 && !route.path().startsWith("/api/v1/saved-views")
                 && !(route.method().equals("GET") && Set.of("/api/v1/members", "/api/v1/dogs", "/api/v1/members/filter-values", "/api/v1/dogs/filter-values", "/api/v1/members/export", "/api/v1/dogs/export").contains(route.path()))
                 && !route.path().startsWith("/api/v1/plans")

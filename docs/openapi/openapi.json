@@ -190,6 +190,56 @@
         "required" : [ "code", "message", "traceId" ],
         "type" : "object"
       },
+      "AttachmentRequest" : {
+        "properties" : {
+          "entityId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "entityType" : {
+            "enum" : [ "INSTRUCTOR_NOTE" ],
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "fileKey" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "name" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "entityId", "entityType", "fileKey", "name" ],
+        "type" : "object"
+      },
+      "AttachmentResponse" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "mimeType" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "sizeBytes" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "uploadedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "mimeType", "name", "sizeBytes", "uploadedAt", "url" ],
+        "type" : "object"
+      },
       "AuditAction" : {
         "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CATALOG_CHANGED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED" ],
         "type" : "string"
@@ -1141,6 +1191,10 @@
       "DisplayStatus" : {
         "description" : "Derived presentation status; includes ERASED under S14.",
         "properties" : {
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
           "kind" : {
             "type" : "string"
           },
@@ -1203,6 +1257,10 @@
           },
           "freeTrainingOverride" : {
             "type" : "boolean"
+          },
+          "handlerName" : {
+            "maxLength" : 80,
+            "type" : "string"
           },
           "id" : {
             "format" : "uuid",
@@ -1298,7 +1356,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "documents", "dog", "freeTraining", "levelHistory", "licenses", "owner", "tasksSummary", "version" ],
+        "required" : [ "documents", "dog", "licenses", "owner", "version" ],
         "type" : "object"
       },
       "DogDocument" : {
@@ -1381,6 +1439,10 @@
           "handler" : {
             "type" : "string"
           },
+          "handlerName" : {
+            "maxLength" : 80,
+            "type" : "string"
+          },
           "id" : {
             "format" : "uuid",
             "type" : "string"
@@ -1445,6 +1507,11 @@
             "minLength" : 0,
             "type" : "string"
           },
+          "handlerName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          },
           "licenses" : {
             "items" : {
               "$ref" : "#/components/schemas/License"
@@ -1482,6 +1549,26 @@
           }
         },
         "required" : [ "id", "name" ],
+        "type" : "object"
+      },
+      "DogTasks" : {
+        "properties" : {
+          "completed" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/TaskItem"
+            },
+            "type" : "array"
+          },
+          "open" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "completed", "items", "open" ],
         "type" : "object"
       },
       "DogTransferRequest" : {
@@ -1767,8 +1854,6 @@
             "items" : {
               "type" : "string"
             },
-            "maxItems" : 2147483647,
-            "minItems" : 2,
             "type" : "array"
           }
         },
@@ -1785,8 +1870,6 @@
             "items" : {
               "type" : "string"
             },
-            "maxItems" : 2147483647,
-            "minItems" : 2,
             "type" : "array"
           },
           "version" : {
@@ -2045,7 +2128,7 @@
             "type" : [ "boolean", "null" ]
           },
           "source" : {
-            "enum" : [ "LEVEL", "OVERRIDE" ],
+            "enum" : [ "LEVEL", "MANUAL" ],
             "type" : "string"
           }
         },
@@ -2283,6 +2366,12 @@
       },
       "InstructorNote" : {
         "properties" : {
+          "attachments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/NoteAttachment"
+            },
+            "type" : "array"
+          },
           "text" : {
             "type" : "string"
           },
@@ -2483,12 +2572,9 @@
           "levelAssignedAt" : {
             "format" : "date-time",
             "type" : "string"
-          },
-          "warnings" : {
-            "$ref" : "#/components/schemas/LevelWarnings"
           }
         },
-        "required" : [ "level", "levelAssignedAt", "warnings" ],
+        "required" : [ "level", "levelAssignedAt" ],
         "type" : "object"
       },
       "LevelCreate" : {
@@ -2681,25 +2767,26 @@
         "required" : [ "activeDogs", "futureClassSessions", "templateClasses" ],
         "type" : "object"
       },
-      "LevelWarnings" : {
-        "properties" : {
-          "futureBookingsOutsideLevel" : {
-            "format" : "int32",
-            "type" : "integer"
-          }
-        },
-        "required" : [ "futureBookingsOutsideLevel" ],
-        "type" : "object"
-      },
       "License" : {
         "properties" : {
+          "category" : {
+            "maxLength" : 10,
+            "type" : "string"
+          },
+          "division" : {
+            "maxLength" : 20,
+            "type" : "string"
+          },
           "grade" : {
+            "maxLength" : 30,
             "type" : "string"
           },
           "number" : {
+            "maxLength" : 30,
             "type" : "string"
           },
           "organisation" : {
+            "maxLength" : 20,
             "type" : "string"
           }
         },
@@ -3126,10 +3213,10 @@
             "type" : "string"
           },
           "tasks" : {
-            "$ref" : "#/components/schemas/TasksSummary"
+            "$ref" : "#/components/schemas/DogTasks"
           }
         },
-        "required" : [ "ageYears", "breed", "documents", "freeTrainingAllowed", "id", "licenses", "name", "sex" ],
+        "required" : [ "ageYears", "breed", "documents", "id", "licenses", "name", "sex" ],
         "type" : "object"
       },
       "MeDogs" : {
@@ -3232,7 +3319,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "address", "contactEmails", "phones", "version" ],
+        "required" : [ "version" ],
         "type" : "object"
       },
       "Member" : {
@@ -3247,6 +3334,10 @@
           },
           "address" : {
             "$ref" : "#/components/schemas/Address"
+          },
+          "billedViaMemberId" : {
+            "format" : "uuid",
+            "type" : "string"
           },
           "birthDate" : {
             "format" : "date",
@@ -3333,6 +3424,9 @@
             },
             "type" : "array"
           },
+          "plan" : {
+            "$ref" : "#/components/schemas/PlanReference"
+          },
           "planId" : {
             "format" : "uuid",
             "type" : "string"
@@ -3352,7 +3446,7 @@
             "type" : "array"
           },
           "status" : {
-            "enum" : [ "PENDING", "ACTIVE", "LEFT" ],
+            "enum" : [ "PENDING", "ACTIVE", "INACTIVE", "LEFT" ],
             "type" : "string"
           },
           "version" : {
@@ -3426,7 +3520,7 @@
             "type" : "array"
           },
           "status" : {
-            "enum" : [ "PENDING", "ACTIVE", "LEFT" ],
+            "enum" : [ "PENDING", "ACTIVE", "INACTIVE", "LEFT" ],
             "type" : "string"
           },
           "version" : {
@@ -3574,7 +3668,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "dogs", "invoicesCount", "member", "notificationPreferences", "recentAudit", "recentInvoices" ],
+        "required" : [ "dogs", "member", "notificationPreferences", "recentAudit" ],
         "type" : "object"
       },
       "MemberPatch" : {
@@ -3662,6 +3756,14 @@
             "format" : "uuid",
             "type" : "string"
           },
+          "lastDogForClass" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "lastDogForTraining" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
           "memberId" : {
             "format" : "uuid",
             "type" : "string"
@@ -3744,6 +3846,32 @@
           }
         },
         "required" : [ "amount", "date" ],
+        "type" : "object"
+      },
+      "NoteAttachment" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "mimeType" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "sizeBytes" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "uploadedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "mimeType", "name", "sizeBytes", "uploadedAt", "url" ],
         "type" : "object"
       },
       "OidcSessionRequest" : {
@@ -3958,7 +4086,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "breed", "freeTrainingAllowed", "id", "name", "pendingDocuments" ],
+        "required" : [ "breed", "id", "name", "pendingDocuments" ],
         "type" : "object"
       },
       "OwnerSummary" : {
@@ -3975,7 +4103,7 @@
             "type" : "integer"
           },
           "status" : {
-            "enum" : [ "PENDING", "ACTIVE", "LEFT" ],
+            "enum" : [ "PENDING", "ACTIVE", "INACTIVE", "LEFT" ],
             "type" : "string"
           }
         },
@@ -4681,6 +4809,27 @@
           }
         },
         "required" : [ "active", "code", "dogsIncluded", "id", "name", "order", "showOnSignup", "showOnWeb", "type", "version" ],
+        "type" : "object"
+      },
+      "PlanReference" : {
+        "properties" : {
+          "billingMode" : {
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "enum" : [ "MONTHLY", "PACK", "SINGLE_CLASS" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "name", "type" ],
         "type" : "object"
       },
       "PlanTexts" : {
@@ -5732,6 +5881,34 @@
         "required" : [ "cancelPolicy", "chargeMode" ],
         "type" : "object"
       },
+      "TaskItem" : {
+        "properties" : {
+          "attachmentsCount" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "doneAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "instructorName" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "attachmentsCount", "createdAt", "id", "instructorName", "text" ],
+        "type" : "object"
+      },
       "TasksSummary" : {
         "properties" : {
           "completed" : {
@@ -5870,6 +6047,51 @@
           }
         },
         "required" : [ "distinctMembers", "value" ],
+        "type" : "object"
+      },
+      "Upload" : {
+        "properties" : {
+          "expiresAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "fileKey" : {
+            "type" : "string"
+          },
+          "headers" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "uploadUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "expiresAt", "fileKey", "headers", "uploadUrl" ],
+        "type" : "object"
+      },
+      "UploadRequest" : {
+        "properties" : {
+          "fileName" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "mimeType" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "purpose" : {
+            "enum" : [ "DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE" ],
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "sizeBytes" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "fileName", "mimeType", "purpose", "sizeBytes" ],
         "type" : "object"
       },
       "UserInfo" : {
@@ -7381,6 +7603,304 @@
         },
         "summary" : "Update administrator",
         "tags" : [ "clubs.catalogs" ]
+      }
+    },
+    "/api/v1/attachments" : {
+      "post" : {
+        "description" : "Minimal S10 INSTRUCTOR_NOTE attachment. Task and observation attachments remain owned by S10.",
+        "operationId" : "add",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AttachmentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttachmentResponse"
+                }
+              }
+            },
+            "description" : "Attachment with signed download URL"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MEMBER_ERASED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Attach a file to the owner's instructor note",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/attachments/upload-url" : {
+      "post" : {
+        "description" : "S03/S10 minimal upload contract. Upload using the returned headers; URLs last five minutes. Ownership is checked when attaching the uploaded file.",
+        "operationId" : "upload",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UploadRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Upload"
+                }
+              }
+            },
+            "description" : "Upload URL, opaque file key, required headers and expiry"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ATTACHMENT_ENTITY_MISMATCH"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Create an attachment upload URL",
+        "tags" : [ "clubs.followup" ]
       }
     },
     "/api/v1/audit-entries" : {
@@ -11243,7 +11763,7 @@
     },
     "/api/v1/dogs/{id}" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "getDog",
         "parameters" : [ {
           "in" : "path",
@@ -11388,7 +11908,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "updateDog",
         "parameters" : [ {
           "in" : "path",
@@ -11467,7 +11987,7 @@
                 }
               }
             },
-            "description" : "CHIP_ALREADY_EXISTS, STALE_VERSION"
+            "description" : "CHIP_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -11545,7 +12065,7 @@
     },
     "/api/v1/dogs/{id}/deactivation" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "deactivationDog",
         "parameters" : [ {
           "in" : "path",
@@ -11624,7 +12144,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -11702,7 +12222,7 @@
     },
     "/api/v1/dogs/{id}/documents" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "dogDocuments",
         "parameters" : [ {
           "in" : "path",
@@ -11864,7 +12384,7 @@
         "x-sortable" : [ ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "uploadDogDocument",
         "parameters" : [ {
           "in" : "path",
@@ -11943,7 +12463,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -12021,7 +12541,7 @@
     },
     "/api/v1/dogs/{id}/documents/reminder" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "remindDogDocument",
         "parameters" : [ {
           "in" : "path",
@@ -12093,7 +12613,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -12171,7 +12691,7 @@
     },
     "/api/v1/dogs/{id}/documents/{docId}/files/{fileId}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "removeDogDocumentFile",
         "parameters" : [ {
           "in" : "path",
@@ -12247,7 +12767,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
           },
           "422" : {
             "content" : {
@@ -12325,7 +12845,7 @@
     },
     "/api/v1/dogs/{id}/free-training" : {
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "updateDogFreeTraining",
         "parameters" : [ {
           "in" : "path",
@@ -12404,7 +12924,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
           },
           "422" : {
             "content" : {
@@ -12482,7 +13002,7 @@
     },
     "/api/v1/dogs/{id}/level" : {
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "updateDogLevel",
         "parameters" : [ {
           "in" : "path",
@@ -12561,7 +13081,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -12639,7 +13159,7 @@
     },
     "/api/v1/dogs/{id}/photo" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "updateDogPhoto",
         "parameters" : [ {
           "in" : "path",
@@ -12718,7 +13238,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -12796,7 +13316,7 @@
     },
     "/api/v1/dogs/{id}/reactivation" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "reactivationDog",
         "parameters" : [ {
           "in" : "path",
@@ -12875,7 +13395,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -12953,7 +13473,7 @@
     },
     "/api/v1/dogs/{id}/transfer" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "transferDog",
         "parameters" : [ {
           "in" : "path",
@@ -13032,7 +13552,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -13603,7 +14123,7 @@
     },
     "/api/v1/family-groups" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "createFamilyGroup",
         "requestBody" : {
           "content" : {
@@ -13674,7 +14194,7 @@
                 }
               }
             },
-            "description" : "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP"
+            "description" : "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -13752,7 +14272,7 @@
     },
     "/api/v1/family-groups/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "dissolveFamilyGroup",
         "parameters" : [ {
           "in" : "path",
@@ -13814,7 +14334,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
           },
           "422" : {
             "content" : {
@@ -13890,7 +14410,7 @@
         "tags" : [ "clubs.census" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "getFamilyGroup",
         "parameters" : [ {
           "in" : "path",
@@ -14035,7 +14555,7 @@
         "tags" : [ "clubs.census" ]
       },
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "updateFamilyGroup",
         "parameters" : [ {
           "in" : "path",
@@ -14114,7 +14634,7 @@
                 }
               }
             },
-            "description" : "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP"
+            "description" : "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -17587,7 +18107,7 @@
     },
     "/api/v1/me/dogs" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "myDogs",
         "responses" : {
           "200" : {
@@ -17754,7 +18274,7 @@
     },
     "/api/v1/me/dogs/{id}/documents" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "uploadMyDogDocument",
         "parameters" : [ {
           "in" : "path",
@@ -17833,7 +18353,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -17911,7 +18431,7 @@
     },
     "/api/v1/me/dogs/{id}/instructor-note" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "updateInstructorNote",
         "parameters" : [ {
           "in" : "path",
@@ -17990,7 +18510,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
           },
           "422" : {
             "content" : {
@@ -18068,7 +18588,7 @@
     },
     "/api/v1/me/dogs/{id}/photo" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "updateMyDogPhoto",
         "parameters" : [ {
           "in" : "path",
@@ -18147,7 +18667,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -18225,7 +18745,7 @@
     },
     "/api/v1/me/family-group" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "myFamilyGroup",
         "responses" : {
           "200" : {
@@ -18934,7 +19454,7 @@
     },
     "/api/v1/me/profile" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks.",
         "operationId" : "myCensusProfile",
         "responses" : {
           "200" : {
@@ -19142,7 +19662,7 @@
                 }
               }
             },
-            "description" : "STALE_VERSION"
+            "description" : "STALE_VERSION, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -20946,7 +21466,7 @@
                 }
               }
             },
-            "description" : "ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION"
+            "description" : "ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -21024,7 +21544,7 @@
     },
     "/api/v1/members/{id}/access-resend" : {
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "resendAccess",
         "parameters" : [ {
           "in" : "path",
@@ -21093,7 +21613,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -21404,7 +21924,7 @@
     },
     "/api/v1/members/{id}/booking-block" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "removeBookingBlock",
         "parameters" : [ {
           "in" : "path",
@@ -21466,7 +21986,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -21542,7 +22062,7 @@
         "tags" : [ "clubs.census" ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "activateBookingBlock",
         "parameters" : [ {
           "in" : "path",
@@ -21621,7 +22141,7 @@
                 }
               }
             },
-            "description" : "BOOKING_BLOCK_ALREADY_ACTIVE"
+            "description" : "BOOKING_BLOCK_ALREADY_ACTIVE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -22548,7 +23068,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -22626,7 +23146,7 @@
     },
     "/api/v1/members/{id}/overview" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "memberOverview",
         "parameters" : [ {
           "in" : "path",
@@ -22773,7 +23293,7 @@
     },
     "/api/v1/members/{id}/payment-method" : {
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
         "operationId" : "updatePaymentMethod",
         "parameters" : [ {
           "in" : "path",
@@ -22852,7 +23372,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -23009,7 +23529,7 @@
                 }
               }
             },
-            "description" : "LAST_ADMIN"
+            "description" : "LAST_ADMIN, MEMBER_ERASED"
           },
           "422" : {
             "content" : {

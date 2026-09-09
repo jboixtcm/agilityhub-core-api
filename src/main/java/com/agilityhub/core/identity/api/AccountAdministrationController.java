@@ -50,6 +50,7 @@ public class AccountAdministrationController {
         return new PlatformRoles(values.stream().map(PlatformRole::valueOf).collect(java.util.stream.Collectors.toSet()));
     }
     @PostMapping("/api/v1/members/{id}/impersonation-token")
+    @com.agilityhub.core.shared.application.contract.ContractErrors({com.agilityhub.core.shared.domain.ErrorCode.MEMBER_ERASED})
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Create a non-refreshable member impersonation token",

@@ -41,6 +41,17 @@ public class SystemNotificationService {
     /** Invoke after the identity transaction commits; network delivery never runs inside a Mongo transaction. */
     @Transactional(propagation = Propagation.NEVER)
     public String send(String code, String accountId, Map<String, ?> variables) {
+        return deliver(UUID.randomUUID().toString(), code, accountId, variables);
+    }
+    public boolean completed(String id) {
+        return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
+    }
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendOnce(String id, String code, String accountId, Map<String, ?> variables) {
+        if (completed(id)) { return id; }
+        return deliver(id, code, accountId, variables);
+    }
+    private String deliver(String id, String code, String accountId, Map<String, ?> variables) {
         var account = accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         String clubId = TenantContext.current();
         var settings = clubId == null ? new ClubEmailSettings.Settings("AgilityHub", null, "#2563eb", "#ffffff",
@@ -48,7 +59,6 @@ public class SystemNotificationService {
                 : clubs.get(clubId, platformFrom);
         Locale locale = Locale.forLanguageTag(account.locale() == null ? settings.defaultLocale() : account.locale());
         if (!messages.supports(locale)) { locale = Locale.forLanguageTag(settings.defaultLocale()); }
-        String id = UUID.randomUUID().toString();
         var tags = new java.util.HashMap<String, String>();
         tags.put("notificationId", id);
         if (clubId != null) { tags.put("clubId", clubId); }
@@ -56,8 +66,10 @@ public class SystemNotificationService {
         var notification = new Notification(id, clubId, accountId, code, "EMAIL", Notification.Status.QUEUED,
                 null, null, null, account.email(), locale.toLanguageTag(), clock.instant());
         transactions.executeWithoutResult(tx -> {
-            notifications.queue(notification);
-            events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued, clubId, id, clock.instant()));
+            if (notifications.findScoped(id).isEmpty()) {
+                notifications.queue(notification);
+                events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued, clubId, id, clock.instant()));
+            }
         });
         var result = account.emailStatus() == null ? sender.send(email) : EmailSender.SendResult.failed("Recipient email suppressed");
         transactions.executeWithoutResult(tx -> {

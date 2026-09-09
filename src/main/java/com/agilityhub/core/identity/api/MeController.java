@@ -19,6 +19,7 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 
 @RestController
 public class MeController {
+    private final com.agilityhub.core.shared.application.MemberIdentityAccess census;
     private final RefreshCookies refreshCookies;
     private final IdentityService identities;
     private final ClubConfigService clubs;
@@ -29,7 +30,8 @@ public class MeController {
     private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
     public MeController(IdentityService identities, ClubConfigService clubs, com.agilityhub.core.identity.application.AccountService accounts,
             com.agilityhub.core.identity.application.PasswordService passwords, com.agilityhub.core.identity.application.TokenService tokens,
-            com.agilityhub.core.identity.application.OnboardingService onboarding, com.agilityhub.core.identity.application.IdentityTransactions transactions, RefreshCookies refreshCookies) {
+            com.agilityhub.core.identity.application.OnboardingService onboarding, com.agilityhub.core.identity.application.IdentityTransactions transactions, RefreshCookies refreshCookies, com.agilityhub.core.shared.application.MemberIdentityAccess census) {
+        this.census = census;
         this.refreshCookies = refreshCookies;
         this.identities = identities; this.clubs = clubs; this.accounts = accounts; this.passwords = passwords; this.tokens = tokens;
         this.onboarding = onboarding; this.transactions = transactions;
@@ -48,12 +50,14 @@ public class MeController {
                 account.platformRoles().stream().map(role -> PlatformRole.valueOf(role.name())).collect(Collectors.toSet()),
                 account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending());
         if (membership == null) { return new MeResponse(publicAccount, null, null, List.of()); }
+        var details = census.bootstrap(membership.memberId());
+        var gender = details.gender() == null ? null : MeResponse.Gender.valueOf(details.gender());
         var current = com.agilityhub.core.shared.application.CurrentUser.current();
         if (current != null && current.impersonation() != null) {
             return new MeResponse(new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(), java.util.Set.of(),
                     account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending()),
                     new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.of(Profile.MEMBER), Profile.MEMBER, List.of(Profile.MEMBER),
-                            membership.memberId(), null, null, false, null), new MeResponse.Impersonation(current.impersonation().actorName()),
+                            membership.memberId(), null, null, false, gender, details.lastDogForClass(), details.lastDogForTraining()), new MeResponse.Impersonation(current.impersonation().actorName()),
                     clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
         }
         var profiles = membership.roles().stream().map(role -> Profile.valueOf(role.name())).sorted().toList();
@@ -63,7 +67,7 @@ public class MeController {
         var activeProfile = Profile.valueOf(membership.activeProfile(requested).name());
         return new MeResponse(publicAccount,
                 new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.copyOf(profiles), activeProfile, profiles,
-                        membership.memberId(), membership.instructorId(), defaultProfile, membership.rememberProfile(), null), null,
+                        membership.memberId(), membership.instructorId(), defaultProfile, membership.rememberProfile(), gender, details.lastDogForClass(), details.lastDogForTraining()), null,
                 clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
     }
 

@@ -66,7 +66,7 @@ class ExportEngineIT extends AbstractIntegrationTest {
                 .append("phones", List.of(new Document("prefix", "+34").append("number", "600000000").append("label", "Example")))
                 .append("bookingBlock", new Document("active", false).append("reason", "Internal reason"))
                 .append("consents", new Document("imageRights", new Document("granted", true)))
-                .append("idDocument", new Document("type", "PASSPORT").append("number", "AB123456CD"))
+                .append("idDocument", new Document("type", "PASSPORT").append("number", String.format("AB%06dCD", i)))
                 .append("paymentMethod", new Document("type", "SEPA_DD").append("sepa", new Document("iban", "ES0000000000000000002231").append("holderName", "Fictional Holder")))
                 .append("nextInvoiceDate", "2026-10-01").append("joinedAt", Date.from(Instant.parse("2025-01-01T00:00:00Z"))).append("version", 0);
     }
@@ -144,7 +144,7 @@ class ExportEngineIT extends AbstractIntegrationTest {
         if (mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "dogs") < 5001) {
             mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "dogs");
             var rows = new ArrayList<Document>();
-            for (int i = 0; i < 5001; i++) { rows.add(dog("export-dog-" + i, String.format("Dog %05d", i), CLUB)); }
+            for (int i = 0; i < 5001; i++) { rows.add(dog("export-dog-" + i, String.format("Dog %05d", i), CLUB).append("chip", String.format("%012d001", i))); }
             mongo.insert(rows, "dogs");
         }
         return json(admin(post("/api/v1/dogs/export").header("Accept-Language", "ca").param("format", "xlsx").param("columns", "name,chip")), 202).path("jobId").asText();

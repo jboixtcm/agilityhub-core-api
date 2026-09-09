@@ -1,22 +1,38 @@
 package com.agilityhub.core.clubs.census.application;
 
-import com.agilityhub.core.clubs.census.persistence.MemberIdentityRepository;
+import com.agilityhub.core.clubs.census.persistence.*;
+import com.agilityhub.core.clubs.census.domain.CensusRules;
+import com.agilityhub.core.platform.application.CountryContacts;
 import com.agilityhub.core.shared.application.MemberOnboardingAccess;
 import java.time.Instant;
+import java.util.*;
 import org.springframework.stereotype.Service;
+import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 
 @Service
 public class MemberOnboardingService implements MemberOnboardingAccess {
-    private final MemberIdentityRepository members;
-    public MemberOnboardingService(MemberIdentityRepository members) { this.members = members; }
+    private final CensusRepository<Member> members; private final CountryContacts countries;
+    public MemberOnboardingService(CensusRepository<Member> members, CountryContacts countries) { this.members = members; this.countries = countries; }
+    private Optional<Member> member(String id, String account) { return members.findById(id).filter(item -> account.equals(item.accountId) && !"ERASED".equals(item.status)); }
     @Override public String phone(String memberId, String accountId) {
-        return members.forAccount(memberId, accountId).map(member -> {
-            if (member.phones() == null || member.phones().isEmpty()) { return null; }
-            var phone = member.phones().getFirst();
-            return (phone.prefix() == null ? "" : phone.prefix()) + phone.number();
+        return member(memberId, accountId).map(member -> {
+            if (rows(member.phones).isEmpty()) { return null; }
+            var phone = member.phones.getFirst(); return string(phone.getOrDefault("prefix", "")) + phone.get("number");
         }).orElse(null);
     }
     @Override public void update(String memberId, String accountId, String phone, Boolean imageConsent, String version, Instant at) {
-        members.forAccount(memberId, accountId).ifPresent(member -> members.updateOnboarding(member, phone, imageConsent, version, at));
+        member(memberId, accountId).ifPresent(member -> {
+            CensusRules.mutable(member.erasedAt); if (phone == null && imageConsent == null) { return; }
+            if (phone != null) {
+                var phones = new ArrayList<>(rows(member.phones));
+                var primary = countries.phone(null, phone, phones.isEmpty() ? null : string(phones.getFirst().get("label")));
+                if (phones.isEmpty()) { phones.add(primary); } else { phones.set(0, primary); } member.phones = phones;
+            }
+            if (imageConsent != null) {
+                var consent = new LinkedHashMap<>(map(member.consents));
+                consent.put("imageRights", object("granted", imageConsent, "at", at, "version", version, "byAccountId", accountId)); member.consents = consent;
+            }
+            members.save(member);
+        });
     }
 }

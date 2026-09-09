@@ -22,7 +22,7 @@ public final class CensusResponses {
     public record DogPage(List<DogListItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size, @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
     public enum Gender { MALE, FEMALE, OTHER }
     public enum Sex { MALE, FEMALE }
-    public enum MemberStatus { PENDING, ACTIVE, LEFT }
+    public enum MemberStatus { PENDING, ACTIVE, INACTIVE, LEFT }
     public enum DogStatus { PENDING, ACTIVE, INACTIVE }
     public enum MemberRole { MEMBER, INSTRUCTOR, ADMIN }
     public enum PaymentMethodType { SEPA_DD, CARD, MANUAL }
@@ -51,7 +51,8 @@ public final class CensusResponses {
     @Schema(description = "Derived presentation status; includes ERASED under S14.")
     public record DisplayStatus(
             @Schema(requiredMode = REQUIRED) String kind,
-            @Schema(requiredMode = REQUIRED) String label) { }
+            @Schema(requiredMode = REQUIRED) String label,
+            @Schema(requiredMode = NOT_REQUIRED) LocalDate date) { }
     public record BookingBlock(
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = NOT_REQUIRED) String reason,
@@ -101,7 +102,9 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) long version,
             @Schema(requiredMode = NOT_REQUIRED) boolean accountMissing,
             @Schema(requiredMode = NOT_REQUIRED) Instant erasedAt,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String erasureRequestId) { }
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String erasureRequestId,
+            @Schema(requiredMode = NOT_REQUIRED) PlanReference plan,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String billedViaMemberId) { }
     public record LevelSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
@@ -159,12 +162,22 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) String idDocument,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record License(
-            @Schema(requiredMode = REQUIRED) String organisation,
-            @Schema(requiredMode = REQUIRED) String number,
-            @Schema(requiredMode = NOT_REQUIRED) String grade) { }
+            @Schema(requiredMode = REQUIRED, maxLength = 20) String organisation,
+            @Schema(requiredMode = REQUIRED, maxLength = 30) String number,
+            @Schema(requiredMode = NOT_REQUIRED, maxLength = 30) String grade,
+            @Schema(requiredMode = NOT_REQUIRED, maxLength = 10) String category,
+            @Schema(requiredMode = NOT_REQUIRED, maxLength = 20) String division) { }
+    public record NoteAttachment(
+            @Schema(requiredMode = REQUIRED) String id,
+            @Schema(requiredMode = REQUIRED) String name,
+            @Schema(requiredMode = REQUIRED) String mimeType,
+            @Schema(requiredMode = REQUIRED) long sizeBytes,
+            @Schema(requiredMode = REQUIRED) String url,
+            @Schema(requiredMode = REQUIRED) Instant uploadedAt) { }
     public record InstructorNote(
             @Schema(requiredMode = REQUIRED) String text,
-            @Schema(requiredMode = REQUIRED) Instant updatedAt) { }
+            @Schema(requiredMode = REQUIRED) Instant updatedAt,
+            @Schema(requiredMode = NOT_REQUIRED) List<NoteAttachment> attachments) { }
     public record PackSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) int remaining,
@@ -192,6 +205,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) Sex sex,
             @Schema(requiredMode = REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = REQUIRED) String chip,
+            @Schema(requiredMode = NOT_REQUIRED, maxLength = 80) String handlerName,
             @Schema(requiredMode = NOT_REQUIRED) String photoUrl,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId,
             @Schema(requiredMode = NOT_REQUIRED) Instant levelAssignedAt,
@@ -213,7 +227,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) Instant from,
             @Schema(requiredMode = NOT_REQUIRED) Instant to,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String byAccountId) { }
-    public enum FreeTrainingSource { LEVEL, OVERRIDE }
+    public enum FreeTrainingSource { LEVEL, MANUAL }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
     public record FreeTraining(
             @Schema(requiredMode = REQUIRED) boolean allowed,
@@ -222,16 +236,27 @@ public final class CensusResponses {
     public record TasksSummary(
             @Schema(requiredMode = REQUIRED) int open,
             @Schema(requiredMode = REQUIRED) int completed) { }
+    public record TaskItem(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
+            @Schema(requiredMode = REQUIRED) String text, @Schema(requiredMode = REQUIRED) Instant createdAt,
+            @Schema(requiredMode = REQUIRED) String instructorName, @Schema(requiredMode = REQUIRED) long attachmentsCount,
+            @Schema(requiredMode = NOT_REQUIRED) Instant doneAt) { }
+    public record DogTasks(@Schema(requiredMode = REQUIRED) long open, @Schema(requiredMode = REQUIRED) long completed,
+            @Schema(requiredMode = REQUIRED) List<TaskItem> items) { }
+    public record PlanReference(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
+            @Schema(requiredMode = REQUIRED) String name,
+            @Schema(requiredMode = REQUIRED, allowableValues = {"MONTHLY", "PACK", "SINGLE_CLASS"}) String type,
+            @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"MONTHLY_FEE", "MAINTENANCE"}) String billingMode) { }
+
     public record DogDetail(
             @Schema(requiredMode = REQUIRED) Dog dog,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
-            @Schema(requiredMode = REQUIRED) List<LevelHistoryEntry> levelHistory,
-            @Schema(requiredMode = REQUIRED) FreeTraining freeTraining,
+            @Schema(requiredMode = NOT_REQUIRED) List<LevelHistoryEntry> levelHistory,
+            @Schema(requiredMode = NOT_REQUIRED) FreeTraining freeTraining,
             @Schema(requiredMode = REQUIRED) List<DogDocument> documents,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,
-            @Schema(requiredMode = REQUIRED) TasksSummary tasksSummary,
+            @Schema(requiredMode = NOT_REQUIRED) TasksSummary tasksSummary,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record DogListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
@@ -240,6 +265,7 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = REQUIRED) OwnerSummary owner,
             @Schema(requiredMode = NOT_REQUIRED) String handler,
+            @Schema(requiredMode = NOT_REQUIRED, maxLength = 80) String handlerName,
             @Schema(requiredMode = NOT_REQUIRED) FreeTraining freeTraining,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
@@ -282,9 +308,9 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) String photoUrl,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = NOT_REQUIRED) InstructorNote instructorNote,
-            @Schema(requiredMode = NOT_REQUIRED) TasksSummary tasks,
+            @Schema(requiredMode = NOT_REQUIRED) DogTasks tasks,
             @Schema(requiredMode = REQUIRED) List<DogDocument> documents,
-            @Schema(requiredMode = REQUIRED) boolean freeTrainingAllowed,
+            @Schema(requiredMode = NOT_REQUIRED) boolean freeTrainingAllowed,
             @Schema(requiredMode = REQUIRED) List<License> licenses,
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack) { }
     public record MeDogs(
@@ -305,7 +331,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
-            @Schema(requiredMode = REQUIRED) boolean freeTrainingAllowed,
+            @Schema(requiredMode = NOT_REQUIRED) boolean freeTrainingAllowed,
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,
             @Schema(requiredMode = REQUIRED) List<String> pendingDocuments) { }
     public record InvoiceSummary(
@@ -328,16 +354,13 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) FamilyGroup familyGroup,
             @Schema(requiredMode = REQUIRED) List<OverviewDog> dogs,
             @Schema(requiredMode = REQUIRED) Map<String, Object> notificationPreferences,
-            @Schema(requiredMode = REQUIRED) @Size(max = 2) List<InvoiceSummary> recentInvoices,
-            @Schema(requiredMode = REQUIRED) long invoicesCount,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 2) List<InvoiceSummary> recentInvoices,
+            @Schema(requiredMode = NOT_REQUIRED) long invoicesCount,
             @Schema(requiredMode = REQUIRED) @Size(max = 2) List<AuditSummary> recentAudit,
             @Schema(requiredMode = NOT_REQUIRED) NextInvoice nextInvoice) { }
     public record LevelChangeResult(
             @Schema(requiredMode = REQUIRED) LevelSummary level,
-            @Schema(requiredMode = REQUIRED) Instant levelAssignedAt,
-            @Schema(requiredMode = REQUIRED) LevelWarnings warnings) { }
-    public record LevelWarnings(
-            @Schema(requiredMode = REQUIRED) int futureBookingsOutsideLevel) { }
+            @Schema(requiredMode = REQUIRED) Instant levelAssignedAt) { }
     public record PhotoResponse(
             @Schema(requiredMode = REQUIRED) String photoUrl) { }
     public record AccessResendResponse(

@@ -10,7 +10,7 @@ import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 
-/** Read-only census adapter until E2-T06 supplies the aggregate writers. Every join binds clubId. */
+/** Census list projection over the Member/Dog aggregate schema. Every join binds clubId. */
 @Repository
 public class CensusListProjection extends TenantRepository<CensusListProjection.Projection> {
     public record Projection(String id, String clubId) implements TenantEntity { }
@@ -28,6 +28,12 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private List<Document> memberStages() {
         var stages = new ArrayList<Document>();
         stages.add(dateFields("birthDate", "leaveDate", "nextInvoiceDate"));
+        if (configs.get(TenantContext.require()).modules().contains(com.agilityhub.core.platform.application.Module.INACTIVITY)) {
+            String today = clock.today(TenantContext.require()).toString();
+            stages.add(join("inactivity_periods", "$_id", "memberId", "inactivity", List.of(dateFields("from", "to"),
+                    new Document("$match", new Document("from", new Document("$lte", today)).append("to", new Document("$gte", today))
+                            .append("status", new Document("$nin", List.of("CANCELLED", "REJECTED", "DENIED")))))));
+        }
         stages.add(join("dogs", "$_id", "memberId", "dogs", dogStages(false)));
         stages.add(join("plans", "$planId", "_id", "plan", List.of()));
         stages.add(join("family_groups", "$familyGroupId", "_id", "familyGroup", List.of()));
@@ -37,7 +43,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 .append("plan", expr("$arrayElemAt", "$plan", 0)).append("familyGroup", expr("$arrayElemAt", "$familyGroup", 0))
                 .append("roles", fallback(expr("$arrayElemAt", "$membership.roles", 0), List.of()))
                 .append("hasPendingDocuments", expr("$in", true, "$dogs.hasPendingDocuments"))
-                .append("displayStatus", status("$status", "$leaveDate"))));
+                .append("displayStatus", memberStatus())));
         return stages;
     }
     private List<Document> dogStages(boolean owner) {
@@ -47,8 +53,9 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         stages.add(join("dog_documents", "$_id", "dogId", "documents", List.of()));
         stages.add(new Document("$set", new Document("level", expr("$arrayElemAt", "$level", 0))
                 .append("licenses", fallback("$licenses", List.of()))
-                .append("pendingDocuments", map(new Document("$filter", new Document("input", "$documents").append("as", "doc")
-                        .append("cond", expr("$eq", "$$doc.state", "PENDING"))), "doc", "$$doc.type"))));
+                .append("pendingDocuments", new Document("$setDifference", List.of(requiredDocumentTypes(),
+                        map(new Document("$filter", new Document("input", "$documents").append("as", "doc")
+                                .append("cond", expr("$eq", "$$doc.state", "RECEIVED"))), "doc", "$$doc.type"))))));
         boolean enabled = Boolean.TRUE.equals(configs.get(TenantContext.require()).get("levels.enabled", Boolean.class));
         stages.add(new Document("$set", new Document("freeTrainingAllowed", fallback("$freeTrainingOverride",
                         enabled ? fallback("$level.grantsFreeTraining", false) : false))
@@ -89,14 +96,14 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         return fields;
     }
     private Map<String, Object> dogFields() {
-        var fields = fields("name", "breed", "sex", "chip", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
+        var fields = fields("name", "breed", "sex", "chip", "handlerName", "pendingDocuments", "levelAssignedAt", "registeredAt", "displayStatus");
         fields.put("version", fallback("$version", 0));
         fields.put("level", level("$level"));
         fields.put("owner", new Document("id", "$owner._id").append("fullName", "$owner.fullName")
                 .append("memberNumber", "$owner.memberNumber").append("status", "$owner.status"));
         fields.put("handler", new Document("$cond", Arrays.asList(expr("$ne", "$handlerName", "$owner.fullName"), "$handlerName", null)));
         fields.put("freeTraining", new Document("allowed", "$freeTrainingAllowed")
-                .append("source", new Document("$cond", List.of(expr("$eq", fallback("$freeTrainingOverride", "LEVEL"), "LEVEL"), "LEVEL", "OVERRIDE")))
+                .append("source", new Document("$cond", List.of(expr("$eq", fallback("$freeTrainingOverride", "LEVEL"), "LEVEL"), "LEVEL", "MANUAL")))
                 .append("override", fallback("$freeTrainingOverride", null)));
         fields.put("licenses", map("$licenses", "license", new Document("organisation", "$$license.organisation").append("number", "$$license.number")
                 .append("grade", "$$license.grade").append("category", "$$license.category").append("division", "$$license.division")));
@@ -138,10 +145,21 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         if (translated == null) { translated = names.get(configs.get(TenantContext.require()).club().defaultLocale()); }
         return translated == null ? value.toString() : translated.toString();
     }
+    private List<String> requiredDocumentTypes() {
+        return com.agilityhub.core.clubs.census.application.CensusValues.rows(configs.get(TenantContext.require()).get("census.dogDocumentTypes", List.class)).stream()
+                .filter(row -> Boolean.TRUE.equals(row.get("required"))).map(row -> row.get("key").toString()).toList();
+    }
+    private Object memberStatus() {
+        Object inactive = expr("$arrayElemAt", fallback("$inactivity.to", List.of()), 0);
+        Object scheduled = status("$status", "$leaveDate");
+        Object activeInactivity = new Document("$cond", List.of(expr("$and", expr("$eq", "$status", "ACTIVE"), expr("$ne", fallback(inactive, ""), "")),
+                new Document("kind", "INACTIVE_PERIOD").append("label", "INACTIVE_PERIOD").append("date", inactive), scheduled));
+        return new Document("$cond", List.of(expr("$ne", fallback("$erasedAt", ""), ""), new Document("kind", "ERASED").append("label", "ERASED"), activeInactivity));
+    }
     private Object status(String status, String date) {
         Object kind = new Document("$cond", List.of(expr("$and", expr("$eq", status, "ACTIVE"),
                 expr("$gte", date, clock.today(TenantContext.require()).toString())), "LEAVE_SCHEDULED", status));
-        return new Document("kind", kind).append("label", kind);
+        return new Document("kind", kind).append("label", kind).append("date", date);
     }
     private static Document dateFields(String... names) {
         var fields = new Document();

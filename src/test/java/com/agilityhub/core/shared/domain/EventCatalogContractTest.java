@@ -53,6 +53,10 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.catalogs.domain.OfferChanged.class,
                 () -> new com.agilityhub.core.clubs.catalogs.domain.OfferChanged(com.agilityhub.core.clubs.catalogs.domain.OfferChanged.Kind.Plan,
                         "club-a", "plan-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "plan-a", "diff", Map.of()), "account-a"));
+        samples.put(com.agilityhub.core.clubs.census.domain.CensusEvent.class, () -> new com.agilityhub.core.clubs.census.domain.CensusEvent(
+                "MemberUpdated", "club-a", "Member", "member-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("memberId", "member-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.followup.domain.AttachmentAdded.class, () -> new com.agilityhub.core.clubs.followup.domain.AttachmentAdded(
+                "club-a", "attachment-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("attachmentId", "attachment-a", "entityType", "INSTRUCTOR_NOTE", "entityId", "dog-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -90,6 +94,10 @@ class EventCatalogContractTest {
             if (event instanceof com.agilityhub.core.clubs.common.domain.DataExported exported) {
                 assertThat(exported.aggregateType()).isEqualTo("ExportJob");
                 assertThat(exported.payload()).containsEntry("rows", 2L).containsEntry("by", "account-a");
+            } else if (event instanceof com.agilityhub.core.clubs.census.domain.CensusEvent) {
+                assertThat(event.aggregateType()).isEqualTo("Member"); assertThat(event.payload()).containsKeys("memberId", "diff");
+            } else if (event instanceof com.agilityhub.core.clubs.followup.domain.AttachmentAdded) {
+                assertThat(event.aggregateType()).isEqualTo("Attachment"); assertThat(event.payload()).containsKeys("attachmentId", "entityType", "entityId");
             } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.CatalogEvent changed) {
                 for (var kind : com.agilityhub.core.clubs.catalogs.domain.CatalogKind.values()) { assertThat(catalog).contains(kind.eventType()); }
                 assertThat(changed.aggregateType()).isEqualTo("Level");

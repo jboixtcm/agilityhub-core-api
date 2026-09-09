@@ -2,6 +2,7 @@ name: agilityhub-consumer
 
 x-core-environment: &core-environment
   SPRING_PROFILES_ACTIVE: local
+  ATTACHMENT_LOCAL_DIRECTORY: /app/attachments
   EXPORT_LOCAL_DIRECTORY: /app/exports
   MONGODB_HOST: mongo
   MONGODB_PORT: 27017
@@ -49,6 +50,7 @@ services:
   seed:
     volumes:
       - export-files:/app/exports
+      - attachment-files:/app/attachments
     image: ${CORE_IMAGE:-ghcr.io/jboixtcm/agilityhub-core-api:main}
     environment:
       <<: *core-environment
@@ -76,6 +78,7 @@ services:
     volumes:
       - mailbox:/app/mailbox
       - export-files:/app/exports
+      - attachment-files:/app/attachments
     depends_on:
       mongo:
         condition: service_healthy
@@ -86,3 +89,4 @@ volumes:
   mongo-data:
   mailbox:
   export-files:
+  attachment-files:

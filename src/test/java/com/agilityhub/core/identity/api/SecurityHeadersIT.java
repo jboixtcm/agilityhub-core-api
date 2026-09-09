@@ -20,6 +20,10 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
         registry.add("email.sendgrid.webhook-public-key", () -> webhookKey);
         registry.add("email.sendgrid.api-key", () -> emailKey);
         registry.add("email.platform-from", () -> "sender@example.test");
+        registry.add("attachments.s3.region", () -> "eu-west-1");
+        registry.add("attachments.s3.bucket", () -> "fictional-security-test");
+        registry.add("attachments.s3.access-key", () -> java.util.UUID.randomUUID().toString());
+        registry.add("attachments.s3.secret-key", () -> java.util.UUID.randomUUID().toString());
         registry.add("exports.s3.region", () -> "eu-west-1");
         registry.add("exports.s3.bucket", () -> "fictional-security-test");
         registry.add("exports.s3.access-key", () -> java.util.UUID.randomUUID().toString());

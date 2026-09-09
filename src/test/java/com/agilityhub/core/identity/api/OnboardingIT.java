@@ -310,7 +310,7 @@ class OnboardingIT extends IdentityIntegrationSupport {
         assertThat(state("club-a").at("/fields/2/value").isNull()).isTrue();
         call(acceptance("platform-v1").content("{\"consentAccepted\":true,\"consentVersion\":\"platform-v1\",\"fields\":{\"phone\":\"600000004\"},\"imageConsent\":false}"), "club-a", "MEMBER")
                 .andExpect(status().isOk());
-        assertThat(state("club-a").at("/fields/2/value").asText()).isEqualTo("600000004");
+        assertThat(state("club-a").at("/fields/2/value").asText()).isEqualTo("+34600000004");
         assertThat(mongo.getCollection("members").find().first().get("consents", Document.class)
                 .get("imageRights", Document.class).getBoolean("granted")).isFalse();
         mongo.updateFirst(new Query(), new Update().set("phones", List.of()), "members");

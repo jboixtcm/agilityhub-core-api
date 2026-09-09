@@ -57,7 +57,7 @@ class MeIT extends IdentityIntegrationSupport {
                 Set.of(), true, clock.instant(), false);
         var membership = new MeResponse.MembershipSummary("club-a", Set.of(IdentityResponses.Profile.MEMBER),
                 IdentityResponses.Profile.MEMBER, List.of(IdentityResponses.Profile.MEMBER), "member-a", null,
-                IdentityResponses.Profile.MEMBER, false, gender);
+                IdentityResponses.Profile.MEMBER, false, gender, null, null);
         String response = mapper.writeValueAsString(new MeResponse(account, membership, null, List.of()));
         var json = mapper.readTree(response);
         assertThat(json.at("/account").fieldNames()).toIterable().containsExactlyInAnyOrder(

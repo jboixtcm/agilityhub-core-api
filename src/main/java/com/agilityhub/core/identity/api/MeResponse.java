@@ -28,7 +28,9 @@ public record MeResponse(@Schema(requiredMode = REQUIRED) MeAccount account,
             @Schema(requiredMode = REQUIRED) List<Profile> profiles,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String memberId, @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String instructorId,
             @Schema(requiredMode = NOT_REQUIRED) Profile defaultProfile, @Schema(requiredMode = REQUIRED) boolean rememberProfile,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Member.gender; absent when there is no member") Gender gender) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Member.gender; absent when there is no member") Gender gender,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String lastDogForClass,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String lastDogForTraining) { }
     public enum Gender { MALE, FEMALE, OTHER }
     public record Impersonation(@Schema(requiredMode = REQUIRED) String actorName) { }
 }

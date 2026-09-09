@@ -606,10 +606,7 @@
       "name": "Level A",
       "color": "#123456"
     },
-    "levelAssignedAt": "2026-09-06T10:00:00Z",
-    "warnings": {
-      "futureBookingsOutsideLevel": 2
-    }
+    "levelAssignedAt": "2026-09-06T10:00:00Z"
   },
   "clubs.census.api.CensusResponses$PhotoResponse": {
     "photoUrl": "https://files.example.test/photo"

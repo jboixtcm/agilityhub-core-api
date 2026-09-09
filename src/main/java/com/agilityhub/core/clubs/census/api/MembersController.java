@@ -18,13 +18,20 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 import static com.agilityhub.core.clubs.census.api.CensusResponses.*;
 import static com.agilityhub.core.clubs.census.api.CensusRequests.*;
 
-/** Contract-first endpoints; standard NOT_IMPLEMENTED until the owning E2 use case is delivered. */
+/** S03 tenant-scoped census endpoints. */
 @RestController
 public class MembersController {
+    private final com.agilityhub.core.clubs.census.application.CensusQuery queries;
+    private final com.agilityhub.core.clubs.census.application.CensusAccess access;
+    private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
     private final com.agilityhub.core.shared.application.lists.ListEngine lists;
     private final com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles;
-    public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists,
-                             com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles) { this.lists = lists; this.roles = roles; }
+    private final com.agilityhub.core.clubs.census.application.MemberService members;
+    public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists, com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles,
+            com.agilityhub.core.clubs.census.application.CensusQuery queries, com.agilityhub.core.clubs.census.application.CensusAccess access,
+            com.agilityhub.core.identity.application.IdentityTransactions transactions, com.agilityhub.core.clubs.census.application.MemberService members) {
+        this.lists = lists; this.roles = roles; this.queries = queries; this.access = access; this.transactions = transactions; this.members = members;
+    }
     @GetMapping("/api/v1/members")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city"},
@@ -55,67 +62,74 @@ public class MembersController {
     @Operation(summary = "Get member",
             description = "S03 §6, R-03-31. ADMIN: Member; INSTRUCTOR: MemberInstructorView. Other-club resources return NOT_FOUND.",
             responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(oneOf = {Member.class, MemberInstructorView.class}))))
-    public Member getMember(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public java.util.Map<String,Object> getMember(@PathVariable String id) { return queries.member(id, access.role("ADMIN")); }
 
     @GetMapping("/api/v1/members/{id}/overview")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @Operation(summary = "Member overview",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
-            responses = @ApiResponse(responseCode = "200", description = "MemberOverview"))
-    public MemberOverview memberOverview(@PathVariable String id) { throw new UnsupportedOperationException(); }
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            responses = @ApiResponse(responseCode = "200", description = "MemberOverview", content = @Content(schema = @Schema(implementation = MemberOverview.class))))
+    public java.util.Map<String,Object> memberOverview(@PathVariable String id) { return queries.overview(id); }
 
     @PatchMapping("/api/v1/members/{id}")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({VALIDATION_ERROR, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION})
+    @ContractErrors({VALIDATION_ERROR, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED})
     @Operation(summary = "Update member",
             description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required.",
-            responses = @ApiResponse(responseCode = "200", description = "Member"))
-    public Member updateMember(@PathVariable String id, @Valid @RequestBody MemberPatch request) { throw new UnsupportedOperationException(); }
+            responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(implementation = Member.class))))
+    public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
+        else { members.patch(id, request, false); } return queries.member(id, true); }); }
 
     @PatchMapping("/api/v1/members/{id}/payment-method")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
-    @ContractErrors({INVALID_IBAN, PAYMENT_PROVIDER_NOT_ENABLED})
+    @ContractErrors({INVALID_IBAN, PAYMENT_PROVIDER_NOT_ENABLED, MEMBER_ERASED})
     @Operation(summary = "Update payment method",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
-            responses = @ApiResponse(responseCode = "200", description = "PaymentMethodView"))
-    public PaymentMethodView updatePaymentMethod(@PathVariable String id, @Valid @RequestBody PaymentMethodPatch request) { throw new UnsupportedOperationException(); }
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            responses = @ApiResponse(responseCode = "200", description = "PaymentMethodView", content = @Content(schema = @Schema(implementation = PaymentMethodView.class))))
+    public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
 
     @PostMapping("/api/v1/members/{id}/booking-block")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({BOOKING_BLOCK_ALREADY_ACTIVE})
+    @ContractErrors({BOOKING_BLOCK_ALREADY_ACTIVE, MEMBER_ERASED})
     @Operation(summary = "Activate booking block",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
-            responses = @ApiResponse(responseCode = "201", description = "BookingBlock"))
-    public BookingBlock activateBookingBlock(@PathVariable String id, @Valid @RequestBody BookingBlockRequest request) { throw new UnsupportedOperationException(); }
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            responses = @ApiResponse(responseCode = "201", description = "BookingBlock", content = @Content(schema = @Schema(implementation = BookingBlock.class))))
+    public java.util.Map<String,Object> activateBookingBlock(@PathVariable String id, @Valid @RequestBody BookingBlockRequest request) { return transactions.run(() -> { members.block(id, request.reason()); return queries.block(id); }); }
 
     @DeleteMapping("/api/v1/members/{id}/booking-block")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({BOOKING_BLOCK_NOT_ACTIVE})
+    @ContractErrors({BOOKING_BLOCK_NOT_ACTIVE, MEMBER_ERASED})
     @Operation(summary = "Remove booking block",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void removeBookingBlock(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void removeBookingBlock(@PathVariable String id) { transactions.run(() -> { members.unblock(id); return null; }); }
 
     @PostMapping("/api/v1/members/{id}/access-resend")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({MEMBER_NOT_ACTIVE, RATE_LIMITED})
+    @ContractErrors({MEMBER_NOT_ACTIVE, RATE_LIMITED, MEMBER_ERASED})
     @Operation(summary = "Resend access",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
             responses = @ApiResponse(responseCode = "202", description = "AccessResendResponse"))
-    public AccessResendResponse resendAccess(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public AccessResendResponse resendAccess(@PathVariable String id, jakarta.servlet.http.HttpServletRequest http) { return new AccessResendResponse(transactions.run(() -> members.resend(id, http.getRemoteAddr()))); }
 
     @PutMapping("/api/v1/members/{id}/roles")
+    @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({MEMBER_NOT_ACTIVE, ROLE_MEMBER_REQUIRED, LAST_ADMIN, CANNOT_CHANGE_OWN_ADMIN_ROLE})
+    @ContractErrors({MEMBER_NOT_ACTIVE, ROLE_MEMBER_REQUIRED, LAST_ADMIN, CANNOT_CHANGE_OWN_ADMIN_ROLE, MEMBER_ERASED})
     @Operation(summary = "Update member roles",
             description = "S03 R-03-10. Synchronizes S05 profiles; MEMBER is required and ADMIN cannot be removed from oneself.",
             responses = @ApiResponse(responseCode = "200", description = "RolesResponse"))
     public RolesResponse updateMemberRoles(@PathVariable String id, @Valid @RequestBody RolesRequest request) {
-        var assigned = roles.setRoles(id, request.roles().stream().map(Enum::name).collect(java.util.stream.Collectors.toSet()));
+        var assigned = transactions.run(() -> { access.mutableMember(id); return roles.setRoles(id, request.roles().stream().map(Enum::name).collect(java.util.stream.Collectors.toSet())); });
         return new RolesResponse(assigned.stream().map(MemberRole::valueOf).sorted().toList());
     }
 

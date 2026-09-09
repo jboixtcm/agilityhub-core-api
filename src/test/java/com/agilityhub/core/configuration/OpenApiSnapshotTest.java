@@ -82,6 +82,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(strings(document.at("/components/schemas/TokenResponse/required")))
                 .containsExactlyInAnyOrder("access_token", "token_type", "expires_in", "scope");
         assertIdentityContract(document);
+        assertCensusContract(document);
         assertReferencesResolve(document, document);
         var second = mvc.perform(get("/api/v1/openapi.json").header("Host", "unregistered.example.test")
                         .header("X-Forwarded-Host", "untrusted.example.test").header("Accept-Language", "es"))
@@ -105,6 +106,30 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
                         .with(jwt().authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role))))
                 .andExpect(status().isOk());
         mvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
+    }
+
+    private void assertCensusContract(JsonNode document) {
+        var schemas = document.at("/components/schemas");
+        assertThat(schemas.at("/DogPatch/properties/handlerName/maxLength").asInt()).isEqualTo(80);
+        assertThat(names(schemas.at("/DogListItem/properties"))).contains("handlerName");
+        assertThat(schemas.at("/License/properties/category/maxLength").asInt()).isEqualTo(10);
+        assertThat(schemas.at("/License/properties/division/maxLength").asInt()).isEqualTo(20);
+        assertThat(names(schemas.at("/LevelChangeResult/properties"))).containsExactlyInAnyOrder("level", "levelAssignedAt");
+        assertThat(names(schemas.at("/Member/properties"))).doesNotContain("billingMode");
+        assertThat(names(schemas.at("/PlanReference/properties"))).contains("billingMode");
+        assertThat(names(schemas.at("/DogTasks/properties"))).containsExactlyInAnyOrder("open", "completed", "items");
+        assertThat(schemas.at("/MeDog/properties/tasks/$ref").asText()).isEqualTo("#/components/schemas/DogTasks");
+        assertThat(strings(schemas.at("/MeProfilePatch/required"))).containsExactly("version");
+        document.path("paths").fields().forEachRemaining(path -> {
+            String name = path.getKey();
+            if (!(name.startsWith("/api/v1/members/") || name.startsWith("/api/v1/dogs/") || name.startsWith("/api/v1/me/dogs/")
+                    || name.equals("/api/v1/me/profile") || name.startsWith("/api/v1/family-groups"))) { return; }
+            if (name.contains("/erasure") || name.contains("/export") || name.contains("/data-export")) { return; }
+            path.getValue().fields().forEachRemaining(method -> {
+                if (!List.of("patch", "put", "post", "delete").contains(method.getKey()) || (name.equals("/api/v1/me/profile") && method.getKey().equals("put"))) { return; }
+                assertThat(method.getValue().at("/responses/409").toString()).as(method.getKey() + " " + name).contains("MEMBER_ERASED");
+            });
+        });
     }
 
     private void assertIdentityContract(JsonNode document) {
@@ -161,7 +186,7 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(names(document.at("/components/schemas/AccountSummary/properties")))
                 .containsExactlyInAnyOrder("id", "email", "name", "locale", "platformRoles");
         assertThat(names(document.at("/components/schemas/MembershipSummary/properties")))
-                .containsExactlyInAnyOrder("clubId", "roles", "activeProfile", "profiles", "memberId", "instructorId", "defaultProfile", "rememberProfile", "gender");
+                .containsExactlyInAnyOrder("clubId", "roles", "activeProfile", "profiles", "memberId", "instructorId", "defaultProfile", "rememberProfile", "gender", "lastDogForClass", "lastDogForTraining");
         assertThat(strings(document.at("/components/schemas/MembershipSummary/required"))).doesNotContain("gender");
         assertThat(strings(document.at("/components/schemas/MembershipSummary/properties/gender/enum")))
                 .containsExactly("MALE", "FEMALE", "OTHER");

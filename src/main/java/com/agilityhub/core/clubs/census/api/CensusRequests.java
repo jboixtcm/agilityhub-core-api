@@ -37,9 +37,9 @@ public final class CensusRequests {
     public record ContactEmailInput(
             @Schema(requiredMode = REQUIRED) @NotBlank @Email String email) { }
     public record MeProfilePatch(
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1, max = 2) List<@Valid ContactEmailInput> contactEmails,
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1, max = 2) List<@Valid Phone> phones,
-            @Schema(requiredMode = REQUIRED) @NotNull @Valid Address address,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 2) List<@Valid ContactEmailInput> contactEmails,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 2) List<@Valid Phone> phones,
+            @Schema(requiredMode = NOT_REQUIRED) @Valid Address address,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record PaymentMethodPatch(
             @Schema(requiredMode = REQUIRED) @NotNull PaymentMethodType type,
@@ -68,6 +68,7 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) Sex sex,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 20) String chip,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(max = 80) String handlerName,
             @Schema(requiredMode = NOT_REQUIRED) List<License> licenses,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record DogLevelRequest(
@@ -87,10 +88,10 @@ public final class CensusRequests {
             @Schema(requiredMode = REQUIRED) @NotBlank String type) { }
     public record FamilyGroupRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String holderMemberId,
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 2) List<String> memberIds) { }
+            @Schema(requiredMode = REQUIRED) @NotNull List<String> memberIds) { }
     public record FamilyGroupUpdate(
             @Schema(requiredMode = REQUIRED) @NotBlank String holderMemberId,
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 2) List<String> memberIds,
+            @Schema(requiredMode = REQUIRED) @NotNull List<String> memberIds,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record InstructorNoteRequest(
             @Schema(requiredMode = REQUIRED) @NotNull @Size(max = 2000) String text) { }

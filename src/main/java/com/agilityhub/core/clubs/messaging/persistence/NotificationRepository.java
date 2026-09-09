@@ -25,6 +25,9 @@ public class NotificationRepository extends TenantRepository<Notification> {
         requireSystem();
         return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
     }
+    public Optional<Notification> findScoped(String id) {
+        return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
+    }
     public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at) {
         var query = scoped(id).addCriteria(Criteria.where("status").is(Notification.Status.QUEUED));
         var update = new Update().set("status", status).set("providerMessageId", providerId).set("error", error);

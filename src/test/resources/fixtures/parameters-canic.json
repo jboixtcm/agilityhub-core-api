@@ -9,14 +9,14 @@
   "signup.firstMonthSplitDay": 16,
   "signup.allowFamilyGroupPending": true,
   "signup.text.paymentDay": {
-    "ca": "El rebut es carrega normalment l'últim dia de cada mes. Tens fins al dia {deadlineDay} per modificar l'emissió de rebuts del mes següent, des de la teva fitxa o posant-te en contacte amb el club.",
-    "es": "El recibo se carga normalmente el último día de cada mes. Tienes hasta el día {deadlineDay} para modificar la emisión de recibos del mes siguiente, desde tu ficha o poniéndote en contacto con el club.",
-    "en": "Payment is normally collected on the last day of each month. You have until day {deadlineDay} to change billing for the following month, from your profile or by contacting the club."
+    "ca": "Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia {deadlineDay} per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.",
+    "es": "Cuando ya no quieras seguir haciendo actividades en el club o quieras estar un tiempo sin venir, indícanoslo antes del día {deadlineDay} para modificar la emisión de recibos del mes siguiente. Puedes hacerlo desde tu ficha o contactando con nosotros directamente.",
+    "en": "When you no longer want to train at the club, or you want to take a break, let us know before day {deadlineDay} so we can change the following month's billing. You can do it from your profile or by contacting us."
   },
   "signup.text.cashConditions": {
-    "ca": "Pagament en efectiu: la quota es paga mensualment al club. Posa't en contacte amb el club per coordinar-ho.",
-    "es": "Pago en efectivo: la cuota se paga mensualmente en el club. Ponte en contacto con el club para coordinarlo.",
-    "en": "Cash payment: the fee is paid monthly at the club. Contact the club to arrange this."
+    "ca": "Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.",
+    "es": "Pago en efectivo: la cuota se paga por semestres naturales completos en el club. Ponte en contacto con el club para coordinarlo.",
+    "en": "Cash payment: the fee is paid at the club in full calendar half-years. Contact the club to arrange this."
   },
   "signup.text.freeTrainingConditions": {
     "ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.",
@@ -266,9 +266,9 @@
     }
   ],
   "signup.text.monthlyPaymentIntro": {
-    "ca": "La quota mensual per abonats es cobrarà normalment l'últim dia de cada mes. En el cas de packs no es genera cap càrrec mensual.",
-    "es": "La cuota mensual para abonados se cobrará normalmente el último día de cada mes. En el caso de packs no se genera ningún cargo mensual.",
-    "en": "The monthly membership fee is normally collected on the last day of each month. Packs do not generate a monthly charge."
+    "ca": "La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.",
+    "es": "La cuota mensual para abonados se cobrará normalmente el día 1. En el caso de packs no se genera ningún cargo.",
+    "en": "The monthly membership fee is normally collected on the 1st. Packs do not generate a monthly charge."
   },
   "signup.text.therapyIntro": {
     "ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.",

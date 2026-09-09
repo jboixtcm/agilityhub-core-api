@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T06: Implement the S03 census with tenant-scoped members, dogs, family groups,
+  document uploads, booking blocks, payment-method masking, owner profiles, tasks
+  projections and audited outbox consumers. Preserve identity/onboarding compatibility,
+  normalize country-profile phones, expose handler and license fields, retain bookings
+  on level changes, and derive billing mode from plans. Add private local/S3 attachments,
+  concurrency and permission tests, and refresh OpenAPI.
+
 - E2-T08: Complete asynchronous list exports with tenant-scoped claims, per-club
   concurrency and account rate limits, streamed XLSX/PDF rendering, localized
   headers, masked values, seven-day signed downloads, retries and file cleanup.

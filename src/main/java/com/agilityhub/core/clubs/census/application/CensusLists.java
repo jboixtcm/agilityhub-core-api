@@ -64,6 +64,7 @@ public class CensusLists implements ListProvider {
         var defaults = (members ? List.of("fullName", "dogs", "plan", "displayStatus")
                 : List.of("name", "breed", "level", "owner", "freeTraining", "licenses", "displayStatus")).stream().filter(columns::contains).toList();
         var fields = new HashSet<>(columns); fields.addAll(List.of("id", "version"));
+        if (!members) { fields.add("handlerName"); }
         if (members && !ListAccess.admin()) { fields.addAll(List.of("firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status")); }
         var definition = new ListDefinition(key, filters, sorts,
                 members ? List.of("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name") : List.of("name", "owner.fullName", "chip"),

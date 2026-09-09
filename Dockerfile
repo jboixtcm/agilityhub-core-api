@@ -15,7 +15,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 --user-group --create-home agilityhub \
-    && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports
+    && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
 WORKDIR /app
 COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
 COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml

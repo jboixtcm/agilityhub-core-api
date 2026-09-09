@@ -66,7 +66,7 @@ class UniversalListsIT extends AbstractIntegrationTest {
                 .append("phones", List.of(new Document("prefix", "+34").append("number", "600000000").append("label", "Example")))
                 .append("bookingBlock", new Document("active", false).append("reason", "Internal reason"))
                 .append("consents", new Document("imageRights", new Document("granted", true)))
-                .append("idDocument", new Document("type", "PASSPORT").append("number", "AB123456CD"))
+                .append("idDocument", new Document("type", "PASSPORT").append("number", String.format("AB%06dCD", i)))
                 .append("paymentMethod", new Document("type", "SEPA_DD").append("sepa", new Document("iban", "ES0000000000000000002231").append("holderName", "Fictional Holder")))
                 .append("nextInvoiceDate", "2026-10-01").append("joinedAt", Date.from(Instant.parse("2025-01-01T00:00:00Z"))).append("version", 0);
     }

@@ -64,6 +64,10 @@ public class MagicLinkService {
         }
     }
     public void createAndSend(String email, MagicLinkToken.Purpose purpose, String clientId, String redirectUri, String host, String ip, String agent) {
+        createAndSend(email, purpose, clientId, redirectUri, host, ip, agent, null);
+    }
+    public void createAndSend(String email, MagicLinkToken.Purpose purpose, String clientId, String redirectUri, String host, String ip, String agent, String deliveryId) {
+        if (deliveryId != null && notifications.completed(deliveryId)) { return; }
         var client = clients.findByClientId(clientId);
         if (client == null || !client.getAuthorizationGrantTypes().contains(new AuthorizationGrantType(GRANT))) { return; }
         String clubId = TenantContext.current();
@@ -95,7 +99,8 @@ public class MagicLinkService {
             return account.id();
         });
         if (accountId != null) {
-            notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", base + "?t=" + value));
+            if (deliveryId == null) { notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", base + "?t=" + value)); }
+            else { notifications.sendOnce(deliveryId, "N-27", accountId, Map.of("link", base + "?t=" + value)); }
         }
     }
 }

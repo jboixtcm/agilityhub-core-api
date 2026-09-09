@@ -32,6 +32,9 @@
          Spring Security, Caffeine, Testcontainers and their dependencies. -->
     <dependencies>
         <dependency>
+            <groupId>com.googlecode.libphonenumber</groupId><artifactId>libphonenumber</artifactId><version>9.0.35</version>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId><artifactId>s3</artifactId><version>2.54.14</version>
         </dependency>
         <dependency>
