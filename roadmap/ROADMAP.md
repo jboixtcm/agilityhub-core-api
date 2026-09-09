@@ -43,6 +43,8 @@ Added 06-09: **E1-T11** OpenAPI required-by-default for DTO schemas (springdoc c
 
 Added 09-09: **E1-T13** A1 cookie delivery of the refresh token for browser clients (`tokenDelivery = COOKIE`) + A3 platform-roles API/CLI; DEPLOY proxy recipe.
 
+**Gate E1 checklist (organizer, 2026-09-09)** — backend side: [x] E1-T01…T07, T09, T10, T11, T13 verified · [x] `bin/e1-smoke` green locally (magic link, cookie sessions, lockout, impersonation, handoff, OIDC, Learn dry-run) · [ ] staging smoke + real SendGrid N-25 (needs E0-T13: SSH/DNS from Jordi) · [ ] E1-T08 Learn adapter + `POST /platform/accounts` / `PUT /accounts/{id}/password` implemented (currently 501; needs the Laravel repo) · [ ] web E1-W07 (cookie mode) + E1-W04 (front integration) verified. E2 work continues in parallel; the gate closes when the four open boxes are ticked.
+
 ## E2 · Census and catalogs (thread A) — opens after gate E0 (front with mocks; integration needs E1)
 Planned tasks: E2-T01 contracts (S02-B, S03, S05, S14) · E2-T02 parameters API (`/parameters*`, `/club*`, holidays, postal codes) · E2-T03 levels, rings, FAQ + `CapacityCalculator` · E2-T04 team and roles · E2-T05 plans and prices · E2-T06 census domain + endpoints (members, dogs, family groups, documents, booking block) · E2-T07 universal list + saved views + sync exports · E2-T08 async export engine · E2-T09 audit queries · E2-T10 Playoff mapping + census importer (dry-run on anonymised fixtures) · E2-T11 seeds (Cànic catalogs + `demo-seed` 184 members / 242 dogs).
 

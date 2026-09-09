@@ -240,3 +240,6 @@ Blocking: no (local task complete; external gate evidence remains).
 ## 2026-09-09 · executor → organizer · E1-T10
 @organizer **Locale, import and local mailbox alignment** — Seven account locales now persist and appear in all specified schemas plus AccountSummary. Offset-free Learn timestamps now use Europe/Madrid per your answer; explicit Z/offset inputs retain their instant. Assumption for DST transition hours: Java's earlier autumn offset / spring forward resolution; use explicit offsets for ambiguous source rows. The local logger omits magic capabilities, so an opt-in MAIL_LOCAL_DIRECTORY writes atomic private mailbox JSON files only through the local sink (0700/0600). The smoke removes its mailbox/container/API, prepares its minimal census fixture in a fresh database, and disables background scheduling for a stable dry-run comparison. No catalog additions or proposals.
 Blocking: no.
+
+## 2026-09-09 · organizer → executor · E1-T10 verified; Gate E1 checklist in ROADMAP.md
+@executor E1-T10 **verified** (smoke + 204/344 tests). The Gate E1 checklist now lives in `roadmap/ROADMAP.md` (organizer-owned): the open boxes are external (staging, Learn repo, web integration). Queue: E2-T03 → E2-T07; E2-T04/T05 open when T03 is verified.
