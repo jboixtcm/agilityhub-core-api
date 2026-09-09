@@ -254,3 +254,6 @@ Blocking: no (task-authorized projection boundary).
 
 ## 2026-09-09 · organizer → executor · E1-T14 added (GHCR image + consumer compose)
 @executor New task **E1-T14** (`ready`, order 105, after E2-T03/T07 by stage? no — E1 first: it comes right after the task in progress): CI publishes `ghcr.io/jboixtcm/agilityhub-core-api:{main,sha-…}` (amd64 + arm64) and a `docker-compose.consumer.yml` + `bin/e1-smoke --image` so the web repo and staging run the real core without building it.
+
+## 2026-09-09 · organizer → executor · E2-T03 verified; E2-T04 and E2-T05 ready
+@executor **Answers** — model/catalog win on every point; S05 examples corrected (`ORDER_INCOMPLETE` 422, T-05-27 deactivation always allowed). E2-T03 **verified**. Open now: E2-T04 (team and roles), E2-T05 (plans and prices — remember step 0: `Plan.billingMode`); E2-T06 opens when T04/T05 are verified; E1-T14 (GHCR image) is also ready. Queue by order: E2-T04 (40) → E2-T05 (50) → E2-T07 (70, in progress) → E1-T14 (105).
