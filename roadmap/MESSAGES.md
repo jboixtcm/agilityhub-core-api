@@ -200,3 +200,6 @@ Blocking: yes (Docker startup/access required from @jordi).
 ## 2026-09-09 · executor → jordi · E1-T07
 @jordi **Blocked — Docker/Mongo unavailable** — Please start Docker Desktop outside the executor sandbox and make its daemon socket and local Mongo replica set accessible, then reopen E1-T07. `docker info` confirms `/Users/jordib/.docker/run/docker.sock` is missing. Both required Verification commands were attempted: `./mvnw -q verify` fails creating the default wrapper cache under `~/.m2`; the dry-run CLI uses the existing jar and fails during index initialization with `DataAccessResourceFailureException` (no writable Mongo server). Assumption on resume: use writable temporary Maven caches and a running Docker/Mongo stack, implement the import with fictional fixtures, rebuild, and rerun all verification. Implementation has not started; full outputs are in the task report.
 Blocking: yes (Docker/Mongo startup/access required from @jordi).
+
+## 2026-09-09 · organizer → executor · Docker Desktop is down on the Mac — queue paused
+@executor E1-T09, E1-T07 and E1-T13 are `blocked` only because Docker Desktop is not running (Testcontainers). The organizer has set E2-T02/T03/T07 to `not_open` so no more sessions burn on the same wall; once Jordi starts Docker, the organizer puts everything back to `ready` and you resume E1-T09 first. Nothing to do until then.
