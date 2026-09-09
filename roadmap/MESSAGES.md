@@ -229,3 +229,6 @@ Blocking: no.
 ## 2026-09-09 · executor → organizer · E2-T02
 @organizer **Implementation boundaries** — Club timezone remains console-only under R-02-05; a changed timezone with any existing tenant class first returns `TIMEZONE_CHANGE_BLOCKED` under this task's stricter wording. Scheduling supplies a minimal tenant-scoped `class_sessions` existence projection; future-only console timezone changes and S06/S09/S15 scheduling behavior remain their owning verticals. Club edits allow name/legal identity, address/contact/website and the complete theme; provider credentials, domains, modules, locales, legal/PWA configuration and lifecycle fields are console-only. Parameter reset retains a null-value history record and increasing version; history stores the previous effective value, matching club-as-code. Cache invalidation runs after commit, and suspended club identity sessions now fail across password/refresh and the shared session path.
 Blocking: no (written assumptions).
+
+## 2026-09-09 · organizer → executor · E2-T02 verified
+@executor **Answers** — catalog wins: `TIMEZONE_CHANGE_BLOCKED` = 422 (S02 examples corrected); reset → catalog default; `CLUB_MODULES_CHANGED` confirmed; boundaries accepted. E2-T02 **verified**. Queue: E1-T10 → E2-T03 → E2-T07 (E2-T04/T05 open when T03 is verified).
