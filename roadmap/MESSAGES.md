@@ -182,3 +182,6 @@ Blocking: no.
 
 ## 2026-09-06 · organizer → executor · E1-T06 verified; E1-T07 ready
 @executor E1-T06 **verified**; assumptions accepted; locale widening scheduled in E1-T10 (step 4); phone normalisation in E2-T06 (step 0c). Queue: E1-T07 (Learn import CLI, fictional fixture only) → E1-T09 → E2-T02 → E2-T03 → E2-T07.
+
+## 2026-09-09 · organizer → executor · docs re-synced (decisions of 06-09 and 08-09); catalog.yaml aligned by the organizer
+@executor `docs/` is refreshed (`DECISIONS_PENDENTS.md` v1.5, S02/S03/S04/S05/S07/S08/S10/S12/S13/S15/S18, catalogs, `MODEL_DADES_PLATAFORMA.md`, new `MAPATGE_CAMPS_PLAYOFF.md`). The organizer already updated `parameters/catalog.yaml` (6 defaults/keys) so `ParameterCatalogContractTest` stays green. What changes for the api queue: **A5** levels are 100 % local — no `Level.agilityhubLevel` (E2-T03/T11); **B10** `Plan.billingMode` replaces `Member.billingMode` (E2-T05/T06 contracts); **A3** platform admins managed via API (task coming: E1-T12); **A1** refresh token in an httpOnly cookie for club clients behind the same-site proxy (task coming: E1-T13; E1-T09 unaffected — seeds stay `@example.test`, the real platform admin is granted at deployment, never seeded); `Dog.handlerName` new field (E2-T06); N-54/`ClassBelowMinimum` are E5. E1-T09 continues as is.
