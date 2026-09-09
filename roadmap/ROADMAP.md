@@ -50,8 +50,15 @@ Added 09-09: **E1-T14** CI publishes the api image to GHCR + `docker-compose.con
 ## E2 · Census and catalogs (thread A) — opens after gate E0 (front with mocks; integration needs E1)
 Planned tasks: E2-T01 contracts (S02-B, S03, S05, S14) · E2-T02 parameters API (`/parameters*`, `/club*`, holidays, postal codes) · E2-T03 levels, rings, FAQ + `CapacityCalculator` · E2-T04 team and roles · E2-T05 plans and prices · E2-T06 census domain + endpoints (members, dogs, family groups, documents, booking block) · E2-T07 universal list + saved views + sync exports · E2-T08 async export engine · E2-T09 audit queries · E2-T10 Playoff mapping + census importer (dry-run on anonymised fixtures) · E2-T11 seeds (Cànic catalogs + `demo-seed` 184 members / 242 dogs) · E2-T12 club pages (`ClubPage`: rules, privacy, image consent, welcome guide; added 09-09). · E2-T13 CI stability: bounded export size check (added 09-09 after the first red CI post-E2-T06).
 
-## E3 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md` and the Catalan backlog `docs/backlog` when synced)
-- **E3** Public signup + dashboard (S04, S14 WP-E) — gate: a fictional signup enters from the public form, is validated in D2, the member receives the welcome and logs in; D1 shows KPIs.
+## E3 · Public signup + dashboard (thread A) — task files installed 09-09 (`not_open`; the organizer opens E3-T01 at gate E2)
+Planned tasks: E3-T01 contract S04 (`/signup*`, `/checkout-sessions`, `/me/dogs/signup`, `/members/{id}/signup|validation|rejection`, virtual list fields) + dashboard schema check against S14 §6 · E3-T02 signup domain (id documents/phones/postal codes per country profile, `FirstMonthCalculator`, `UpfrontAllocator`, `FamilyHolderMatcher`, `SignupPlanCatalog`, upfront lines, state machines; T-04-01…10) · E3-T03 signup endpoints (public flow, identity checks, uploads, family lookups, D2 validation/rejection, add-dog, `PaymentProvider` + `FakeCheckoutGateway`, rate limits, N-01/02/03/37/39, seeds; T-04-11…28) · E3-T04 dashboard back (`DashboardQuery` + cache/invalidation, `RiskCardBuilder` over S06 ports, `DogActivityQuery`, `/dashboard`, `/dashboard/counters`; T-14-01…06, 11, 22, 23) · E3-T05 integration (`bin/e3-smoke`, D1 seed values, DEPLOY, gate checklist).
+
+### Gate E3 (back — checked by the organizer)
+- [ ] `bin/e3-smoke` green twice on the local stack: public signup (family group found, SEPA without IBAN → warning) → D1 pending → D2 validation → N-02 in the mailbox → welcome link → `/me`; add-dog → N-37; rejection → N-03; `signup.enabled=false` → `SIGNUP_CLOSED`.
+- [ ] `GET /dashboard` with the seed: `pendingSignups` real, `activeMembers` real, class/training blocks `null`/0 (ports until E4/E5), `dogsByLevel` real.
+- [ ] CI green; OpenAPI snapshot staged for the web (E3-W03).
+
+## E4 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md` and the Catalan backlog `docs/backlog` when synced)
 - **E4** Planning + activities (S06, S07) — gate: a week generated from templates and validated; a class with bookings cancelled with events.
 - **E5** Bookings + free training + scheduler framework (S08, S09, S15 P1/P6/P7/P9) — gate: full booking/cancel/waitlist/training cycle in staging with jobs running; k6 peak test passes; zero overbooking under concurrency.
 - **E6** Attendance + follow-up (S10, S15 P3/P8).
