@@ -24,6 +24,8 @@ class EventCatalogContractTest {
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
         Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.clubs.catalogs.domain.CatalogEvent.class, () -> new com.agilityhub.core.clubs.catalogs.domain.CatalogEvent(
+                        com.agilityhub.core.clubs.catalogs.domain.CatalogKind.LEVEL, "club-a", "level-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "level-a", "diff", Map.of()), "account-a"),
                 com.agilityhub.core.platform.domain.events.ClubModulesChanged.class, () -> new com.agilityhub.core.platform.domain.events.ClubModulesChanged(
                         "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("diff", Map.of("modules", java.util.List.of("FAQ"))),
                         "account-a", null, DomainEvent.Origin.BACKOFFICE),
@@ -72,7 +74,12 @@ class EventCatalogContractTest {
                 assertThat(impersonation.impersonatedMemberId()).isEqualTo("member-a");
                 assertThat(impersonation.origin()).isEqualTo(DomainEvent.Origin.BACKOFFICE); return;
             }
-            if (event instanceof ClubConfigChanged || event instanceof com.agilityhub.core.platform.domain.events.ClubModulesChanged) {
+            if (event instanceof com.agilityhub.core.clubs.catalogs.domain.CatalogEvent changed) {
+                for (var kind : com.agilityhub.core.clubs.catalogs.domain.CatalogKind.values()) { assertThat(catalog).contains(kind.eventType()); }
+                assertThat(changed.aggregateType()).isEqualTo("Level");
+                assertThat(changed.aggregateId()).isEqualTo("level-a");
+                assertThat(changed.payload()).containsKeys("id", "diff");
+            } else if (event instanceof ClubConfigChanged || event instanceof com.agilityhub.core.platform.domain.events.ClubModulesChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());
                 assertThat(event.payload()).containsKey("diff");

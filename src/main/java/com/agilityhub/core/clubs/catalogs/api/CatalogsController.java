@@ -17,10 +17,16 @@ import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 import static com.agilityhub.core.clubs.catalogs.api.CatalogResponses.*;
 import static com.agilityhub.core.clubs.catalogs.api.CatalogRequests.*;
+import static com.agilityhub.core.clubs.catalogs.domain.CatalogKind.*;
 
-/** Contract-first endpoints; standard NOT_IMPLEMENTED until the owning E2 use case is delivered. */
+/** S05 base catalogs; plan implementation belongs to E2-T05. */
 @RestController
 public class CatalogsController {
+    private final com.agilityhub.core.clubs.catalogs.application.CatalogService catalogs;
+    private final CatalogViews views;
+    public CatalogsController(com.agilityhub.core.clubs.catalogs.application.CatalogService catalogs, CatalogViews views) {
+        this.catalogs = catalogs; this.views = views;
+    }
     @GetMapping("/api/v1/levels")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ListContract(filterable = {}, sortable = {"order"},
@@ -28,48 +34,48 @@ public class CatalogsController {
     @Operation(summary = "List levels",
             description = "S05 §6. Unpaginated catalog; includeInactive is ADMIN-only. MEMBER/INSTRUCTOR receive LevelReaderView without usage or translation maps.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Level>"))
-    public CatalogItems<Level> listLevels(@RequestParam(defaultValue = "false") boolean includeInactive) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Level> listLevels(@RequestParam(defaultValue = "false") boolean includeInactive) { return views.levels(includeInactive); }
 
     @PostMapping("/api/v1/levels")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({VALIDATION_ERROR, DUPLICATE_NAME})
     @Operation(summary = "Create level",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "Level"))
-    public Level createLevel(@Valid @RequestBody LevelCreate request) { throw new UnsupportedOperationException(); }
+    public Level createLevel(@Valid @RequestBody LevelCreate request) { return views.level(views.create(LEVEL, request), false); }
 
     @GetMapping("/api/v1/levels/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @Operation(summary = "Get level",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Level"))
-    public Level getLevel(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public Level getLevel(@PathVariable String id) { return views.level(id, false); }
 
     @PatchMapping("/api/v1/levels/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({STALE_VERSION, LEVEL_IN_USE, DUPLICATE_NAME})
     @Operation(summary = "Update level",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Level"))
-    public Level updateLevel(@PathVariable String id, @Valid @RequestBody LevelPatch request) { throw new UnsupportedOperationException(); }
+    public Level updateLevel(@PathVariable String id, @Valid @RequestBody LevelPatch request) { views.update(LEVEL, id, request); return views.level(id, Boolean.FALSE.equals(request.active())); }
 
     @DeleteMapping("/api/v1/levels/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({LEVEL_IN_USE})
     @Operation(summary = "Delete level",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void deleteLevel(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void deleteLevel(@PathVariable String id) { catalogs.delete(LEVEL, id); }
 
     @PutMapping("/api/v1/levels/order")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({ORDER_INCOMPLETE})
     @Operation(summary = "Order levels",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Level>"))
-    public CatalogItems<Level> orderLevels(@Valid @RequestBody LevelOrder request) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Level> orderLevels(@Valid @RequestBody LevelOrder request) { catalogs.order(LEVEL, request.levelIds()); return views.levels(true); }
 
     @GetMapping("/api/v1/rings")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
@@ -78,48 +84,48 @@ public class CatalogsController {
     @Operation(summary = "List rings",
             description = "S05 §6. Unpaginated catalog; includeInactive is ADMIN-only. MEMBER/INSTRUCTOR receive RingReaderView without usage or translation maps.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Ring>"))
-    public CatalogItems<Ring> listRings(@RequestParam(defaultValue = "false") boolean includeInactive) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Ring> listRings(@RequestParam(defaultValue = "false") boolean includeInactive) { return views.rings(includeInactive); }
 
     @PostMapping("/api/v1/rings")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({VALIDATION_ERROR, DUPLICATE_NAME})
     @Operation(summary = "Create ring",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "Ring"))
-    public Ring createRing(@Valid @RequestBody RingCreate request) { throw new UnsupportedOperationException(); }
+    public Ring createRing(@Valid @RequestBody RingCreate request) { return views.ring(views.create(RING, request)); }
 
     @GetMapping("/api/v1/rings/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @Operation(summary = "Get ring",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Ring"))
-    public Ring getRing(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public Ring getRing(@PathVariable String id) { return views.ring(id); }
 
     @PatchMapping("/api/v1/rings/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({STALE_VERSION, RING_IN_USE, DUPLICATE_NAME})
     @Operation(summary = "Update ring",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Ring"))
-    public Ring updateRing(@PathVariable String id, @Valid @RequestBody RingPatch request) { throw new UnsupportedOperationException(); }
+    public Ring updateRing(@PathVariable String id, @Valid @RequestBody RingPatch request) { views.update(RING, id, request); return views.ring(id); }
 
     @DeleteMapping("/api/v1/rings/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({RING_IN_USE})
     @Operation(summary = "Delete ring",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void deleteRing(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void deleteRing(@PathVariable String id) { catalogs.delete(RING, id); }
 
     @PutMapping("/api/v1/rings/order")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({ORDER_INCOMPLETE})
     @Operation(summary = "Order rings",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Ring>"))
-    public CatalogItems<Ring> orderRings(@Valid @RequestBody RingOrder request) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Ring> orderRings(@Valid @RequestBody RingOrder request) { catalogs.order(RING, request.ringIds()); return views.rings(true); }
 
     @GetMapping("/api/v1/plans")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
@@ -179,7 +185,7 @@ public class CatalogsController {
     @Operation(summary = "List faqs",
             description = "S05 §6. Unpaginated catalog; includeInactive is ADMIN-only. MEMBER/INSTRUCTOR receive FaqReaderView without usage or translation maps.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<FaqEntry>"))
-    public CatalogItems<FaqEntry> listFaqs(@RequestParam(defaultValue = "false") boolean includeInactive) { throw new UnsupportedOperationException(); }
+    public CatalogItems<FaqEntry> listFaqs(@RequestParam(defaultValue = "false") boolean includeInactive) { return views.faqs(includeInactive); }
 
     @PostMapping("/api/v1/faq-entries")
     @ResponseStatus(HttpStatus.CREATED)
@@ -187,18 +193,18 @@ public class CatalogsController {
     @RequiresModule(Module.FAQ)
     @ContractErrors({VALIDATION_ERROR})
     @Operation(summary = "Create faq",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "FaqEntry"))
-    public FaqEntry createFaq(@Valid @RequestBody FaqCreate request) { throw new UnsupportedOperationException(); }
+    public FaqEntry createFaq(@Valid @RequestBody FaqCreate request) { return views.faq(views.create(FAQ, request)); }
 
     @PatchMapping("/api/v1/faq-entries/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.FAQ)
-    @ContractErrors({STALE_VERSION, STALE_VERSION})
+    @ContractErrors({STALE_VERSION})
     @Operation(summary = "Update faq",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "FaqEntry"))
-    public FaqEntry updateFaq(@PathVariable String id, @Valid @RequestBody FaqPatch request) { throw new UnsupportedOperationException(); }
+    public FaqEntry updateFaq(@PathVariable String id, @Valid @RequestBody FaqPatch request) { views.update(FAQ, id, request); return views.faq(id); }
 
     @DeleteMapping("/api/v1/faq-entries/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -206,18 +212,18 @@ public class CatalogsController {
     @RequiresModule(Module.FAQ)
     @ContractErrors({STALE_VERSION})
     @Operation(summary = "Delete faq",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void deleteFaq(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void deleteFaq(@PathVariable String id) { catalogs.delete(FAQ, id); }
 
     @PutMapping("/api/v1/faq-entries/order")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.FAQ)
     @ContractErrors({ORDER_INCOMPLETE})
     @Operation(summary = "Order faqs",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<FaqEntry>"))
-    public CatalogItems<FaqEntry> orderFaqs(@Valid @RequestBody FaqOrder request) { throw new UnsupportedOperationException(); }
+    public CatalogItems<FaqEntry> orderFaqs(@Valid @RequestBody FaqOrder request) { catalogs.order(FAQ, request.faqEntryIds()); return views.faqs(true); }
 
     @GetMapping("/api/v1/faq-entries/filter-values")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
@@ -226,8 +232,12 @@ public class CatalogsController {
             columns = {}, paged = false, exportable = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Faq category values",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "FilterValues"))
-    public FilterValues faqCategoryValues(@RequestParam @Schema(allowableValues = "category") String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter) { throw new UnsupportedOperationException(); }
+    public FilterValues faqCategoryValues(@RequestParam @Schema(allowableValues = "category") String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter, jakarta.servlet.http.HttpServletRequest servletRequest) {
+        // Preserve commas inside a single filter value; Spring's List conversion splits them otherwise.
+        String[] rawFilters = servletRequest.getParameterValues("filter");
+        return views.categories(field, q, rawFilters == null ? null : java.util.Arrays.asList(rawFilters));
+    }
 
 }

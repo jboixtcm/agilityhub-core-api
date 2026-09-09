@@ -17,7 +17,6 @@ public final class CatalogResponses {
     private CatalogResponses() { }
 
     public enum PlanType { MONTHLY, PACK, SINGLE_CLASS }
-    public enum AgilityHubLevel { EASY, MEDIUM, HARD }
     public enum PriceConcept { MONTHLY_FEE, MAINTENANCE_FEE, PACK, SINGLE_CLASS }
     public enum PriceStatus { SCHEDULED, CURRENT, EXPIRED }
     public enum EntryFeeMode { STANDARD, AMOUNT, PERCENT, NONE }
@@ -57,6 +56,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) int packBalances,
             @Schema(requiredMode = REQUIRED) int invoiceLines) { }
     @Schema(description = "ADMIN projection; reduced catalog readers omit usage and nameI18n.")
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Level(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
@@ -66,10 +66,9 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) boolean grantsFreeTraining,
-            @Schema(requiredMode = NOT_REQUIRED) AgilityHubLevel agilityhubLevel,
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = NOT_REQUIRED) LevelUsage usage,
-            @Schema(requiredMode = NOT_REQUIRED) List<String> warnings,
+            @Schema(requiredMode = NOT_REQUIRED) LevelUsage warnings,
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record LevelReaderView(
@@ -80,9 +79,9 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) boolean grantsFreeTraining,
-            @Schema(requiredMode = NOT_REQUIRED) AgilityHubLevel agilityhubLevel,
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = REQUIRED) long version) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Ring(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
@@ -213,6 +212,7 @@ public final class CatalogResponses {
     public record PublicPlans(
             @Schema(requiredMode = REQUIRED) PublicPlansClub club,
             @Schema(requiredMode = REQUIRED) List<PublicPlan> plans) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record FaqEntry(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String category,

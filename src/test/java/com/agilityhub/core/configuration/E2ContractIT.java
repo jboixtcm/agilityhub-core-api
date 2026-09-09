@@ -51,7 +51,10 @@ class E2ContractIT extends AbstractIntegrationTest {
     }
 
     static Stream<Route> pendingRoutes() throws Exception {
-        return routes().filter(route -> !route.path().startsWith("/api/v1/parameters")
+        return routes().filter(route -> !route.path().startsWith("/api/v1/levels")
+                && !route.path().startsWith("/api/v1/rings")
+                && !route.path().startsWith("/api/v1/faq-entries")
+                && !route.path().startsWith("/api/v1/parameters")
                 && !route.path().startsWith("/api/v1/club")
                 && !route.path().startsWith("/api/v1/country-profile")
                 && !route.path().equals("/api/v1/platform/parameter-catalog"));
@@ -193,6 +196,11 @@ class E2ContractIT extends AbstractIntegrationTest {
         assertThat(schemas.path("MemberInstructorView").path("properties").fieldNames()).toIterable()
                 .doesNotContain("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "bookingBlock");
         assertThat(schemas.path("MeDog").path("properties").fieldNames()).toIterable().doesNotContain("chip", "remarks", "memberId");
+        for (String levelSchema : List.of("Level", "LevelReaderView", "LevelCreate", "LevelPatch")) {
+            assertThat(schemas.path(levelSchema).path("properties").has("agilityhubLevel")).isFalse();
+        }
+        assertThat(schemas.path("Level").at("/properties/warnings/$ref").asText()).isEqualTo("#/components/schemas/LevelUsage");
+        assertThat(strings(schemas.path("RingPatch").at("/properties/trainingCapacity/type"))).containsExactlyInAnyOrder("integer", "null");
         assertThat(schemas.path("InstructorReaderView").path("properties").fieldNames()).toIterable().doesNotContain("memberId", "usage");
         assertThat(schemas.path("ListPageMemberListItem").at("/properties/items/items/anyOf").size()).isEqualTo(2);
         assertThat(api.path("paths").path("/api/v1/public/{clubSlug}/plans").at("/get/security/0/clubApiKey").isArray()).isTrue();

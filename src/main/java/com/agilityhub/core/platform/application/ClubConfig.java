@@ -31,6 +31,8 @@ public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Modu
         }
         return type.cast(value);
     }
+    public List<String> ringPalette() { return club.theme().ringPalette(); }
+    public String primaryColor() { return club.theme().colors().primary(); }
     public record ClubView(String id, String slug, String name, List<String> locales, String defaultLocale,
                            String timeZone, String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city) {
         public ClubView(String id, String slug, String name, List<String> locales, String defaultLocale, String timeZone,

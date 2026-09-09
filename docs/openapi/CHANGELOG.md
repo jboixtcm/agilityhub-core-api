@@ -2,6 +2,13 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E2-T03 · Base catalogs
+
+- `/levels`, `/rings` and `/faq-entries` now execute the S05 CRUD/order rules; FAQ category suggestions return localized values and counts. ADMIN-only inactive lists and reduced MEMBER/INSTRUCTOR views are enforced.
+- Remove `agilityhubLevel` from level requests, responses and reader schemas (A5). Level `warnings` is the S05 usage object, replacing the contract stub's string array.
+- Level codes and ring short names accept lowercase input and store uppercase, with case-insensitive uniqueness. `RingPatch.trainingCapacity: null` resets to the configured fallback; omission preserves the override. Ring geometry and active setup remain owned by S16.
+- `lastChange` uses the approved `CATALOG_CHANGED` audit action. `ORDER_INCOMPLETE` retains the catalog's HTTP 422 despite S05's illustrative 400.
+
 ## 2026-09-09 · E1-T10 · identity locale contract and integration rehearsal
 
 `MeAccount`, `AccountSummary`, `AccountPatchRequest`, `OnboardingFields` and

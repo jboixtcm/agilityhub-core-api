@@ -17,27 +17,25 @@ public final class CatalogRequests {
     private CatalogRequests() { }
 
     public record LevelCreate(
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1, max = 8) @Pattern(regexp = "[A-Z0-9_]+") String code,
+            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1, max = 8) @Pattern(regexp = "[A-Za-z0-9_]+") String code,
             @Schema(requiredMode = REQUIRED) @NotNull Map<String, String> name,
             @Schema(requiredMode = NOT_REQUIRED) @Min(0) Integer order,
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(99) Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED) Boolean grantsFreeTraining,
-            @Schema(requiredMode = NOT_REQUIRED) AgilityHubLevel agilityhubLevel,
             @Schema(requiredMode = NOT_REQUIRED) Boolean active) { }
     public record LevelPatch(
-            @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 8) @Pattern(regexp = "[A-Z0-9_]+") String code,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 8) @Pattern(regexp = "[A-Za-z0-9_]+") String code,
             @Schema(requiredMode = NOT_REQUIRED) Map<String, String> name,
             @Schema(requiredMode = NOT_REQUIRED) @Min(0) Integer order,
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(99) Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED) Boolean grantsFreeTraining,
-            @Schema(requiredMode = NOT_REQUIRED) AgilityHubLevel agilityhubLevel,
             @Schema(requiredMode = NOT_REQUIRED) Boolean active,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record RingCreate(
             @Schema(requiredMode = REQUIRED) @NotNull @Size(max = 40) String name,
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 2, max = 4) @Pattern(regexp = "[A-Z0-9]+") String shortName,
+            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 2, max = 4) @Pattern(regexp = "[A-Za-z0-9]+") String shortName,
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
             @Schema(requiredMode = NOT_REQUIRED) Boolean allowsFreeTraining,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(20) Integer trainingCapacity,
@@ -45,10 +43,10 @@ public final class CatalogRequests {
             @Schema(requiredMode = NOT_REQUIRED) Boolean active) { }
     public record RingPatch(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) String name,
-            @Schema(requiredMode = NOT_REQUIRED) @Size(min = 2, max = 4) @Pattern(regexp = "[A-Z0-9]+") String shortName,
+            @Schema(requiredMode = NOT_REQUIRED) @Size(min = 2, max = 4) @Pattern(regexp = "[A-Za-z0-9]+") String shortName,
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
             @Schema(requiredMode = NOT_REQUIRED) Boolean allowsFreeTraining,
-            @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(20) Integer trainingCapacity,
+            @Schema(requiredMode = NOT_REQUIRED, implementation = Integer.class, types = {"integer", "null"}, minimum = "1", maximum = "20") com.fasterxml.jackson.databind.JsonNode trainingCapacity,
             @Schema(requiredMode = NOT_REQUIRED) @Min(0) Integer order,
             @Schema(requiredMode = NOT_REQUIRED) Boolean active,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }

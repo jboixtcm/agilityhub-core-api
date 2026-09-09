@@ -633,14 +633,17 @@
     "order": 0,
     "capacity": 6,
     "grantsFreeTraining": true,
-    "agilityhubLevel": "EASY",
     "active": true,
     "usage": {
       "activeDogs": 1,
       "futureClassSessions": 0,
       "templateClasses": 0
     },
-    "warnings": [],
+    "warnings": {
+      "activeDogs": 0,
+      "futureClassSessions": 0,
+      "templateClasses": 0
+    },
     "lastChange": {
       "at": "2026-09-06T10:00:00Z",
       "actorName": "Example Admin",
@@ -897,7 +900,6 @@
     "order": 0,
     "capacity": 6,
     "grantsFreeTraining": true,
-    "agilityhubLevel": "EASY",
     "active": true,
     "version": 1
   },
@@ -1336,7 +1338,6 @@
         "order": 0,
         "capacity": 6,
         "grantsFreeTraining": true,
-        "agilityhubLevel": "EASY",
         "active": true,
         "usage": {
           "activeDogs": 1,

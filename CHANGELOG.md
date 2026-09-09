@@ -34,6 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E2-T03: Tenant-scoped levels, rings and FAQs with localized text, ordering,
+  usage guards, optimistic edits, transactional audit/outbox records and reduced
+  reader views. Add pure class/ring capacity and D3 coverage calculations. Remove
+  the obsolete club-level difficulty field and align the OpenAPI contract.
+
 - E2-T02: Audited parameter and club settings APIs with scoped overrides, retained
   reset history, optimistic concurrency, immediate cache refresh, self-service
   module toggles, labeled holidays and country-profile lookups. Suspended clubs

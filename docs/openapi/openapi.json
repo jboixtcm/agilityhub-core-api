@@ -2425,10 +2425,6 @@
           "active" : {
             "type" : "boolean"
           },
-          "agilityhubLevel" : {
-            "enum" : [ "EASY", "MEDIUM", "HARD" ],
-            "type" : "string"
-          },
           "capacity" : {
             "format" : "int32",
             "type" : "integer"
@@ -2470,10 +2466,7 @@
             "type" : "integer"
           },
           "warnings" : {
-            "items" : {
-              "type" : "string"
-            },
-            "type" : "array"
+            "$ref" : "#/components/schemas/LevelUsage"
           }
         },
         "required" : [ "active", "capacity", "code", "color", "grantsFreeTraining", "id", "name", "order", "version" ],
@@ -2500,10 +2493,6 @@
           "active" : {
             "type" : "boolean"
           },
-          "agilityhubLevel" : {
-            "enum" : [ "EASY", "MEDIUM", "HARD" ],
-            "type" : "string"
-          },
           "capacity" : {
             "format" : "int32",
             "maximum" : 99,
@@ -2513,7 +2502,7 @@
           "code" : {
             "maxLength" : 8,
             "minLength" : 1,
-            "pattern" : "[A-Z0-9_]+",
+            "pattern" : "[A-Za-z0-9_]+",
             "type" : "string"
           },
           "color" : {
@@ -2577,10 +2566,6 @@
           "active" : {
             "type" : "boolean"
           },
-          "agilityhubLevel" : {
-            "enum" : [ "EASY", "MEDIUM", "HARD" ],
-            "type" : "string"
-          },
           "capacity" : {
             "format" : "int32",
             "maximum" : 99,
@@ -2590,7 +2575,7 @@
           "code" : {
             "maxLength" : 8,
             "minLength" : 1,
-            "pattern" : "[A-Z0-9_]+",
+            "pattern" : "[A-Za-z0-9_]+",
             "type" : "string"
           },
           "color" : {
@@ -2623,10 +2608,6 @@
         "properties" : {
           "active" : {
             "type" : "boolean"
-          },
-          "agilityhubLevel" : {
-            "enum" : [ "EASY", "MEDIUM", "HARD" ],
-            "type" : "string"
           },
           "capacity" : {
             "format" : "int32",
@@ -5198,7 +5179,7 @@
           "shortName" : {
             "maxLength" : 4,
             "minLength" : 2,
-            "pattern" : "[A-Z0-9]+",
+            "pattern" : "[A-Za-z0-9]+",
             "type" : "string"
           },
           "trainingCapacity" : {
@@ -5248,14 +5229,14 @@
           "shortName" : {
             "maxLength" : 4,
             "minLength" : 2,
-            "pattern" : "[A-Z0-9]+",
+            "pattern" : "[A-Za-z0-9]+",
             "type" : "string"
           },
           "trainingCapacity" : {
             "format" : "int32",
             "maximum" : 20,
             "minimum" : 1,
-            "type" : "integer"
+            "type" : [ "integer", "null" ]
           },
           "version" : {
             "format" : "int64",
@@ -13846,7 +13827,7 @@
         "x-sortable" : [ "order" ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "createFaq",
         "requestBody" : {
           "content" : {
@@ -13995,7 +13976,7 @@
     },
     "/api/v1/faq-entries/filter-values" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "faqCategoryValues",
         "parameters" : [ {
           "in" : "query",
@@ -14165,7 +14146,7 @@
     },
     "/api/v1/faq-entries/order" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "orderFaqs",
         "requestBody" : {
           "content" : {
@@ -14314,7 +14295,7 @@
     },
     "/api/v1/faq-entries/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "deleteFaq",
         "parameters" : [ {
           "in" : "path",
@@ -14452,7 +14433,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "updateFaq",
         "parameters" : [ {
           "in" : "path",
@@ -14531,7 +14512,7 @@
                 }
               }
             },
-            "description" : "STALE_VERSION, STALE_VERSION"
+            "description" : "STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -15774,7 +15755,7 @@
         "x-sortable" : [ "order" ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "createLevel",
         "requestBody" : {
           "content" : {
@@ -15923,7 +15904,7 @@
     },
     "/api/v1/levels/order" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "orderLevels",
         "requestBody" : {
           "content" : {
@@ -16072,7 +16053,7 @@
     },
     "/api/v1/levels/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "deleteLevel",
         "parameters" : [ {
           "in" : "path",
@@ -16210,7 +16191,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "getLevel",
         "parameters" : [ {
           "in" : "path",
@@ -16355,7 +16336,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "updateLevel",
         "parameters" : [ {
           "in" : "path",
@@ -26485,7 +26466,7 @@
         "x-sortable" : [ "order" ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "createRing",
         "requestBody" : {
           "content" : {
@@ -26634,7 +26615,7 @@
     },
     "/api/v1/rings/order" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "orderRings",
         "requestBody" : {
           "content" : {
@@ -26783,7 +26764,7 @@
     },
     "/api/v1/rings/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "deleteRing",
         "parameters" : [ {
           "in" : "path",
@@ -26921,7 +26902,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "getRing",
         "parameters" : [ {
           "in" : "path",
@@ -27066,7 +27047,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "updateRing",
         "parameters" : [ {
           "in" : "path",
