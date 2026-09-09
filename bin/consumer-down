@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec docker compose --env-file "${CONSUMER_ENV_FILE:-.env.consumer}" \
+  -f docker-compose.consumer.yml down "$@"

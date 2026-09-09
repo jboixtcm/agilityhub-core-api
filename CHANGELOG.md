@@ -39,6 +39,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T14: Publish green main builds to private GHCR for amd64 and arm64. Add a
+  consumer Compose stack with image-contained fictional seeds, private local mail,
+  up/down helpers and an image mode for the disposable E1 smoke; document pulls,
+  local proxy hosts and the staging image handoff. Disable Mongo's wall-clock TTL
+  worker only in the disposable integration-test server to preserve clock-controlled fixtures.
+
 - E2-T03: Tenant-scoped levels, rings and FAQs with localized text, ordering,
   usage guards, optimistic edits, transactional audit/outbox records and reduced
   reader views. Add pure class/ring capacity and D3 coverage calculations. Remove

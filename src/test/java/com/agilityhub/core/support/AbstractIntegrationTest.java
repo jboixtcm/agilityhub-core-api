@@ -19,7 +19,10 @@ public abstract class AbstractIntegrationTest {
     // Singleton lifecycle: no @Container, which would stop Mongo after each subclass.
     // Testcontainers' Ryuk cleans up when the test JVM exits.
     protected static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
-    protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
+    // Fixtures use MockClock; Mongo's wall-clock TTL worker would delete their historical
+    // tokens/events nondeterministically. Keep TTL indexes and application expiry checks.
+    protected static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7")
+            .withCommand("--replSet", "docker-rs", "--bind_ip_all", "--setParameter", "ttlMonitorEnabled=false");
 
     static {
         MONGO.start();

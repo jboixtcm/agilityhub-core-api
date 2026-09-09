@@ -1,0 +1,162 @@
+# Local consumer variant of club-canic.yaml; only the two routing hosts differ.
+# Product defaults equal the Cànic catalog values; no parameter overrides are needed.
+# Theme tokens: docs/pantalles/mobil/01-acces.html :root.
+apiVersion: "agilityhub.club/v1"
+club:
+  slug: "canic"
+  name: "Club Agility Cànic"
+  address: {city: "Cabrera de Mar", country: "ES"}
+  locales:
+    - "ca"
+    - "es"
+  defaultLocale: "ca"
+  timeZone: "Europe/Madrid"
+  currency: "EUR"
+  countryProfile: "ES"
+  status: "ONBOARDING"
+  template: false
+  contactEmail: "canic@example.test"
+domains:
+  -
+    host: "app.example.test"
+    app: "clubs"
+    primary: true
+  -
+    host: "admin.example.test"
+    app: "clubs-admin"
+    primary: false
+theme:
+  colors:
+    primary: "#E26A2A"
+    onPrimary: "#FFFFFF"
+    background: "#0B0B0B"
+    surface: "#161616"
+    surfaceAlt: "#1E1E1E"
+    text: "#FFFFFF"
+    textMuted: "#B5B5B5"
+    border: "#2B2B2B"
+    success: "#4CAF7D"
+    warning: "#E5B93C"
+    danger: "#E05B5B"
+    info: "#85B8E8"
+  fontFamily: "Montserrat"
+  radius: "4px"
+  ringPalette:
+    - "#F2B58C"
+    - "#8FCE8F"
+    - "#C9CDD3"
+    - "#F5D67A"
+    - "#85B8E8"
+  mode: "dark"
+preset: "CANIC"
+paymentProviders:
+  - "SEPA_XML"
+  - "MANUAL"
+parameters: {}
+# Fictional identities only. Password values come from the process environment.
+accounts:
+  - email: "admin@example.test"
+    name: "Aleix Example"
+    locale: "ca"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "canic.admin@example.test"
+    name: "Laia Example"
+    locale: "ca"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "instructor@example.test"
+    name: "Biel Example"
+    locale: "ca"
+    roles: ["INSTRUCTOR"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "instructor.2@example.test"
+    name: "Mariona Example"
+    locale: "ca"
+    roles: ["INSTRUCTOR"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "instructor.3@example.test"
+    name: "Pau Example"
+    locale: "ca"
+    roles: ["INSTRUCTOR"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member@example.test"
+    name: "Aina Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.2@example.test"
+    name: "Arnau Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.3@example.test"
+    name: "Bruna Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.4@example.test"
+    name: "Ferran Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.5@example.test"
+    name: "Gala Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.6@example.test"
+    name: "Guillem Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.7@example.test"
+    name: "Jana Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.8@example.test"
+    name: "Lluc Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.9@example.test"
+    name: "Ona Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.10@example.test"
+    name: "Pol Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+catalogs:
+  levels: []
+  rings: []
+  instructors: []
+  plans: []
+  prices: []
+  faq: []
+messageTemplates: []
+legal:
+  privacyPolicyUrl: "https://agilitycanic.cat/ca/politica-de-privacidad/"
+  imageConsentText:
+    ca: "Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"
+    es: "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club"
+    en: "I authorize publication of photos of me and my dog within club activities"
+  legalTextsVersion: "1"

@@ -269,3 +269,11 @@ Blocking: no (task-authorized integration boundaries).
 
 ## 2026-09-09 · organizer → executor · E2-T07 verified; E2-T08 ready
 @executor E2-T07 **verified**; shared-view semantics written into S03 R-03-23; page sizes accepted. **E2-T08** (async export engine, consumes the `export_jobs` QUEUED handoff you defined) is `ready`. Queue by order: E2-T04 → E2-T05 → E2-T08 → E1-T14 (in progress now) — E2-T06 opens when T04/T05 are verified.
+
+## 2026-09-09 · executor → organizer · E1-T14
+@organizer **Image consumer ready for publication verification** — CI now gates GHCR publishing on tests and secrets for main pushes, with main/short-sha tags and amd64/arm64 builds. Local :local image, consumer Compose startup/reseed/cleanup, image and jar E1 smokes, actionlint, and full verify pass (244 unit/contract + 357 integration tests). No remote push/pull was attempted; please check the first Actions publication, private package access and both manifests after the session publish. The task's docker-compose.yml reference was resolved to compose.yaml. The image packages a local Cànic seed variant with only app/admin example.test hosts changed; maintain parity with the canonical dataset. No catalog additions or proposals.
+Blocking: no (task-defined first publication check belongs to organizer).
+
+## 2026-09-09 · executor → organizer · E1-T14
+@organizer **Fixed-clock verification stability** — Full verify exposed Mongo's real-time TTL worker deleting January MockClock security events and magic tokens. The disposable AbstractIntegrationTest Mongo server now disables that worker while retaining TTL indexes and application-expiry assertions; production and image/jar smoke Mongo retain normal TTL behavior. The final 601-test verify passes. Full initial failures, the temporary per-test clock attempt, the final success and all task verification outputs are in E1-T14's report. No application behavior or other task file changed.
+Blocking: no (integration-test configuration only).

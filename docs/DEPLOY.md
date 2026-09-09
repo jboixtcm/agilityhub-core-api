@@ -1,5 +1,136 @@
 # Deployment recipes
 
+## Run the published image (E1-T14)
+
+Requirements: Docker with Compose v2.20+, `curl`, and access to the private GHCR
+package. No host Java or Maven is required. CI publishes
+`ghcr.io/jboixtcm/agilityhub-core-api:main` and `:sha-<seven-character-commit>` for
+both `linux/amd64` and `linux/arm64` after tests, coverage, OpenAPI and the secret
+scan pass on a `main` push. PRs and manual runs only validate; GitHub's existing
+`[skip ci]` push behavior remains in force. Actions are pinned to commits.
+The build stage uses the builder's native architecture for the portable Java jar;
+the runtime uses the requested target architecture. See the
+[Docker multi-platform workflow](https://docs.docker.com/build/ci/github-actions/multi-platform/).
+
+The first package publication is private by default and the workflow associates
+it with this private repository; keep its inherited repository access. Local
+pulls need a credential with package read access. If the GitHub CLI's stored
+credential has that access, pipe it directly to Docker:
+
+```sh
+gh auth token | docker login ghcr.io -u "$(gh api user --jq .login)" --password-stdin
+docker pull ghcr.io/jboixtcm/agilityhub-core-api:main
+cp .env.consumer.example .env.consumer
+chmod 600 .env.consumer
+# Edit .env.consumer: set a local SEED_PASSWORD of at least 12 characters.
+bin/consumer-up
+curl -fsS http://127.0.0.1:8080/api/v1/health
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml ps -a
+```
+
+If the stored CLI credential cannot pull packages, use a classic PAT with
+`read:packages` and repository/package access via `docker login --password-stdin`.
+Do not print the token or save it in the consumer env file. GitHub documents
+[GHCR authentication and visibility](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+The CI publisher uses only `GITHUB_TOKEN` with job-scoped `packages: write`.
+
+`bin/consumer-up` wraps `docker compose --env-file .env.consumer
+-f docker-compose.consumer.yml up -d --wait`; `CONSUMER_ENV_FILE` can select another
+env file. From a different repo, copy `docker-compose.consumer.yml`,
+`.env.consumer.example` and the two `bin/consumer-*` helpers with the same relative
+layout, or run the Compose command directly. No source checkout mounts are used.
+The image contains both seed files. Its local Cànic seed is
+`seeds/club-canic-consumer.yaml`, installed as `/app/seeds/club-canic.yaml`; it
+differs from the canonical seed only in the two domain hosts. Keep those fixture
+datasets aligned when changing seeds.
+
+Startup waits for Mongo's single-node `rs0` PRIMARY, then the one-shot `seed`
+service applies `/app/seeds/club-canic.yaml` and `/app/seeds/club-minim.yaml`, then
+the non-root `core` becomes healthy. An unsuccessful seed prevents API startup.
+Account examples: `admin@example.test`, `instructor@example.test`,
+`member@example.test`, and `minim.admin@example.test`. All passwords come from
+`SEED_PASSWORD`; repeated applies preserve existing credentials. To change this
+local password for existing fixtures, reset the disposable volumes and reseed.
+
+Only `127.0.0.1:8080` is published (`CONSUMER_PORT` overrides it). Mongo and the
+management listener stay private. Mongo data and `MAIL_LOCAL_DIRECTORY=/app/mailbox`
+use named volumes. The mailbox is owned by the image's non-root user with private
+permissions; messages go to the local sink. Copy it locally when inspecting a
+fictional magic link:
+
+```sh
+mailbox_dir="$(mktemp -d)"
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml cp core:/app/mailbox/. "$mailbox_dir/"
+```
+
+Treat the mailbox contents as local credentials; keep them out of version control
+and delete the copied directory after use. The local profile uses an ephemeral
+OIDC signing ring (`OIDC_MASTER_KEY` empty); restarting core invalidates existing
+access tokens, which can be refreshed. Deployment mail/key variables are not
+inherited by this stack.
+
+For browser development, map these names in `/etc/hosts` and serve each SPA on its
+matching host (including Vite's port):
+
+```text
+127.0.0.1 app.example.test admin.example.test id.example.test minim.example.test
+```
+
+Use the Vite proxy below with `changeOrigin: false` to preserve Host. Alternatively,
+when using `localhost` without a hosts-file edit, set a separate upstream Host for
+each SPA, for example this app proxy (use `admin.example.test` / `id.example.test`
+in the other SPAs):
+
+```typescript
+const backend = {
+  target: 'http://127.0.0.1:8080',
+  changeOrigin: false,
+  configure(proxy) {
+    proxy.on('proxyReq', (request) => {
+      request.setHeader('Host', 'app.example.test')
+      if (request.getHeader('Origin')) request.setHeader('Origin', 'http://app.example.test')
+      if (request.getHeader('Referer')) request.setHeader('Referer', 'http://app.example.test/')
+    })
+  },
+}
+// Assign backend to /api, /oauth2, /.well-known and /connect/logout.
+```
+
+The header rewrite is for a loopback development proxy only; bind Vite to loopback
+and keep its host allowlist. Each SPA needs its own browser host for independent
+cookies. Handoff/magic-link URLs still use seeded hosts; full browser redirects
+and the Secure OIDC browser cookie require the HTTPS hosts/Caddy recipe below.
+The HTTP smoke simulates these hosts explicitly and carries the Secure cookie.
+
+To update, `docker compose --env-file .env.consumer -f docker-compose.consumer.yml
+pull` then `bin/consumer-up`. To stop while retaining data, use
+`bin/consumer-down`; to delete this consumer project's data and mailbox, use
+`bin/consumer-down -v`. Choose a different `COMPOSE_PROJECT_NAME` and
+`CONSUMER_PORT` for simultaneous independent consumers.
+
+The same E1 assertions can run against any compatible image:
+
+```sh
+bin/e1-smoke --image ghcr.io/jboixtcm/agilityhub-core-api:main
+# Before CI's first publication, build the exact same Dockerfile locally:
+docker build -t ghcr.io/jboixtcm/agilityhub-core-api:local .
+CORE_IMAGE=ghcr.io/jboixtcm/agilityhub-core-api:local bin/consumer-up
+bin/e1-smoke --image ghcr.io/jboixtcm/agilityhub-core-api:local
+```
+
+Smoke additionally needs Python 3, `bin/e1-smoke`, the consumer Compose file and
+`src/test/resources/fixtures/learn-users.csv`. It creates a random project/port,
+password, database and mailbox, runs CLI commands from the image, and removes its
+own containers/volumes even on failure. It never changes an existing consumer
+stack. The no-argument smoke still uses a locally built jar.
+
+**Staging handoff (E0-T13):** pull a reviewed `:sha-…` tag (or pin its digest),
+rather than building a checkout or following mutable `:main`. The consumer file
+is local-only. E0-T13 must provide its staging profile, authenticated Mongo,
+persistent backed-up `OIDC_MASTER_KEY`, real secrets and verified HTTPS hosts;
+fictional auto-seeding and ephemeral signing stay in the local stack. The organizer
+checks the first real publish run, package access and both architectures in Actions.
+
 ## Browser hosts and refresh cookies (E1-T13 / A1)
 
 Serve every club app, club admin and identity SPA through its own HTTPS host.

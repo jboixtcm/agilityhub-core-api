@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Rehearse E1 on a disposable local API/Mongo stack with fictional seed accounts."""
+import argparse
 import base64
 import hashlib
 import http.cookies
@@ -37,9 +38,9 @@ def free_port():
         return sock.getsockname()[1]
 
 
-def command(args, *, env=None, input=None):
+def command(args, *, env=None, input=None, timeout=180):
     result = subprocess.run(args, cwd=ROOT, env=env, input=input, text=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180)
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
     if result.returncode != 0:
         classes = sorted(set(re.findall(r"(?:Caused by: |Exception in thread \"[^\"]+\" )([A-Za-z0-9_.$]+)", result.stdout)))
         raise AssertionError(f"{Path(args[0]).name} failed (exit {result.returncode}; exception classes: {', '.join(classes) or 'none'}; output withheld to protect credentials)")
@@ -117,16 +118,21 @@ def read_cookie(headers, name):
 
 
 def main():
-    require(len(sys.argv) == 1, "Usage: bin/e1-smoke (disposable local stack only)")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--image", help="Run this image in a disposable consumer Compose project; no Java build needed")
+    options = parser.parse_args()
     jars = list((ROOT / "target").glob("agilityhub-core-api-*.jar"))
-    require(len(jars) == 1, "Build first with ./mvnw -q -DskipTests package")
+    if not options.image:
+        require(len(jars) == 1, "Build first with ./mvnw -q -DskipTests package")
     container = "e1-smoke-" + secrets.token_hex(6)
+    core_container = None
     app = None
     started = False
     with tempfile.TemporaryDirectory(prefix="agilityhub-e1-") as temporary:
         directory = Path(temporary)
         # Do not inherit deployment credentials, Spring overrides or external email settings.
-        env = {key: os.environ[key] for key in ("PATH", "JAVA_HOME", "TMPDIR", "LANG") if key in os.environ}
+        env = {key: os.environ[key] for key in ("PATH", "JAVA_HOME", "TMPDIR", "LANG", "HOME",
+               "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY") if key in os.environ}
         env.update(SPRING_PROFILES_ACTIVE="local", SEED_PASSWORD=secrets.token_urlsafe(32),
                    LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off",
                    MANAGEMENT_SERVER_PORT="0", MANAGEMENT_SERVER_ADDRESS="127.0.0.1",
@@ -138,20 +144,41 @@ def main():
                    CORE_SECURITY_CORS_PLATFORM_HOSTS="id.example.test")
         api = Api(free_port())
         env["SERVER_PORT"] = api.base.rsplit(":", 1)[1]
+        env.update(CORE_IMAGE=options.image or "", CONSUMER_PORT=env["SERVER_PORT"],
+                   CONSUMER_DATABASE="e1_smoke", CONSUMER_LOG_LEVEL="ERROR", CONSUMER_SCHEDULING_ENABLED="false")
+        compose_args = ["docker", "compose", "--env-file", os.devnull, "--project-name", container,
+                        "-f", str(ROOT / "docker-compose.consumer.yml")]
+
+        def compose(*args):
+            return command([*compose_args, *args], env=env, timeout=300)
 
         def mongo(script):
-            raw = command(["docker", "exec", container, "mongosh", "--quiet", "e1_smoke", "--eval", script])
+            if options.image:
+                raw = compose("exec", "-T", "mongo", "mongosh", "--quiet", "e1_smoke", "--eval", script)
+            else:
+                raw = command(["docker", "exec", container, "mongosh", "--quiet", "e1_smoke", "--eval", script], env=env)
             return json.loads(raw.strip().splitlines()[-1])
 
         def cli(*args):
+            if options.image:
+                mounts = []
+                if args[0] == "identity:import-learn":
+                    mounts = ["--volume", str(ROOT / args[1]) + ":/tmp/learn-users.csv:ro"]
+                    args = (args[0], "/tmp/learn-users.csv", *args[2:])
+                return compose("run", "--rm", "--no-deps", "-T", *mounts, "--entrypoint", "java",
+                               "seed", "-jar", "/app/app.jar", "--core.command=" + args[0], *args[1:])
             return command([str(ROOT / "bin/core"), *args], env=env)
 
         def mailbox_token():
+            if options.image:
+                command(["docker", "cp", core_container + ":/app/mailbox/.", str(directory / "mailbox")], env=env)
             for file in (directory / "mailbox").glob("local-*.json"):
                 mail = json.loads(file.read_text())
                 if mail["to"] == fixture["memberEmail"]:
                     match = re.search(r"[?]t=([A-Za-z0-9_-]{43})", mail["text"])
                     if match:
+                        if options.image:
+                            command(["docker", "exec", core_container, "rm", "/app/mailbox/" + file.name], env=env)
                         file.unlink()
                         return match[1]
             return None
@@ -167,18 +194,26 @@ def main():
                              username=email, password=password), expected, **kwargs)
 
         try:
-            command(["docker", "run", "--detach", "--rm", "--name", container, "--publish", "127.0.0.1::27017",
-                     "mongo:7.0", "--replSet", "rs0", "--bind_ip_all"])
-            started = True
-            address = command(["docker", "port", container, "27017/tcp"]).strip()
-            env.update(MONGODB_HOST="127.0.0.1", MONGODB_PORT=address.rsplit(":", 1)[1])
-            eventually(lambda: mongo('print(JSON.stringify(db.adminCommand({ping:1}).ok))'), "Mongo did not start")
-            mongo('print(JSON.stringify(rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}).ok))')
-            eventually(lambda: mongo('print(JSON.stringify(db.hello().isWritablePrimary))'), "Replica set has no primary")
+            if options.image:
+                # Mark before up so failed starts also remove their network/volumes.
+                started = True
+                compose("up", "-d", "--wait", "--wait-timeout", "180")
+                core_container = compose("ps", "-q", "core").strip()
+                (directory / "mailbox").mkdir(mode=0o700)
+                print("PASS consumer Compose image started with successful one-shot seeds", flush=True)
+            else:
+                command(["docker", "run", "--detach", "--rm", "--name", container, "--publish", "127.0.0.1::27017",
+                         "mongo:7.0", "--replSet", "rs0", "--bind_ip_all"], env=env)
+                started = True
+                address = command(["docker", "port", container, "27017/tcp"], env=env).strip()
+                env.update(MONGODB_HOST="127.0.0.1", MONGODB_PORT=address.rsplit(":", 1)[1])
+                eventually(lambda: mongo('print(JSON.stringify(db.adminCommand({ping:1}).ok))'), "Mongo did not start")
+                mongo('print(JSON.stringify(rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}).ok))')
+                eventually(lambda: mongo('print(JSON.stringify(db.hello().isWritablePrimary))'), "Replica set has no primary")
+                cli("club:apply", "seeds/club-canic.yaml")
             print("PASS disposable MongoDB 7 replica set ready", flush=True)
-            cli("club:apply", "seeds/club-canic.yaml")
             fixture = mongo('''
-                const club = db.clubs.findOne({});
+                const club = db.clubs.findOne({"domains.app":"clubs-admin"});
                 const member = db.memberships.findOne({clubId:club._id,roles: "MEMBER"});
                 const admin = db.memberships.findOne({clubId:club._id,roles: "ADMIN"});
                 const account = db.accounts.findOne({_id:member.accountId});
@@ -192,10 +227,12 @@ def main():
             ''')
             host = fixture["host"]
             require(all(fixture[key].endswith("@example.test") for key in ("memberEmail", "adminEmail")), "Smoke requires fictional seed accounts")
-            cli("club:apply", "seeds/club-minim.yaml")
+            if not options.image:
+                cli("club:apply", "seeds/club-minim.yaml")
             print("PASS Cànic and minimal seeds applied; disposable passwordless member projection prepared", flush=True)
-            with (directory / "api.log").open("w") as log:
-                app = subprocess.Popen(["java", "-jar", str(jars[0])], cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
+            if not options.image:
+                with (directory / "api.log").open("w") as log:
+                    app = subprocess.Popen(["java", "-jar", str(jars[0])], cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
             eventually(lambda: api.call("/api/v1/health")[0].get("status") == "UP", "Local API did not become healthy", 90)
             print("PASS local API health UP", flush=True)
 
@@ -310,7 +347,10 @@ def main():
                     app.kill()
                     app.wait(timeout=10)
             if started:
-                command(["docker", "rm", "--force", container])
+                if options.image:
+                    compose("down", "--volumes", "--remove-orphans")
+                else:
+                    command(["docker", "rm", "--force", container], env=env)
             print("CLEANUP local API stopped; disposable Mongo and private mailbox removed", flush=True)
 
 

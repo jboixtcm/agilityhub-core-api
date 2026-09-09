@@ -5,6 +5,12 @@ Spring Boot 3.5 modular monolith, Java 21, Maven 3.9.16 and MongoDB 7
 
 ## Run locally
 
+To run the published API without Java or a source build, see
+[Run the published image](docs/DEPLOY.md#run-the-published-image-e1-t14).
+The consumer Compose stack includes Mongo, fictional seeds and a local mailbox;
+`bin/e1-smoke --image ghcr.io/jboixtcm/agilityhub-core-api:main` verifies it in an
+isolated temporary stack.
+
 Prerequisites: Docker with Compose v2.20+ and `curl`. From the repository root:
 
 ```sh

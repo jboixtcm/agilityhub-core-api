@@ -1,0 +1,83 @@
+name: agilityhub-consumer
+
+x-core-environment: &core-environment
+  SPRING_PROFILES_ACTIVE: local
+  MONGODB_HOST: mongo
+  MONGODB_PORT: 27017
+  MONGODB_DATABASE: ${CONSUMER_DATABASE:-agilityhub}
+  MONGODB_REPLICA_SET: rs0
+  # Local-only ephemeral signing ring; never inherit deployment credentials.
+  OIDC_MASTER_KEY: ""
+  AUTH_ISSUER: https://id.example.test
+  OIDC_LOGIN_URL: https://id.example.test/login
+  OIDC_ID_WEB_REDIRECT_URI: https://id.example.test/oidc/callback
+  OIDC_ID_WEB_LOGOUT_URI: https://id.example.test/
+  OIDC_CLUBS_APP_REDIRECT_URI: https://app.example.test/oidc/callback
+  OIDC_CLUBS_APP_LOGOUT_URI: https://app.example.test/
+  OIDC_CLUBS_ADMIN_REDIRECT_URI: https://admin.example.test/oidc/callback
+  OIDC_CLUBS_ADMIN_LOGOUT_URI: https://admin.example.test/
+  CORS_PLATFORM_HOSTS: id.example.test
+  SHARED_SCHEDULING_ENABLED: ${CONSUMER_SCHEDULING_ENABLED:-true}
+  LOGGING_LEVEL_ROOT: ${CONSUMER_LOG_LEVEL:-INFO}
+  SPRING_MAIN_BANNER_MODE: "off"
+
+services:
+  mongo:
+    image: mongo:7
+    command: [mongod, --replSet, rs0, --bind_ip_all]
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Same initialization as docker/mongo-healthcheck.js; no checkout mount needed.
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - >-
+          try { rs.status(); } catch (error) {
+            if (error.code !== 94) { throw error; }
+            rs.initiate({_id:"rs0",members:[{_id:0,host:"mongo:27017"}]});
+          }
+          if (!db.hello().isWritablePrimary) { quit(1); }
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+
+  seed:
+    image: ${CORE_IMAGE:-ghcr.io/jboixtcm/agilityhub-core-api:main}
+    environment:
+      <<: *core-environment
+      SEED_PASSWORD: ${SEED_PASSWORD:?Set SEED_PASSWORD in .env.consumer or the environment}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        java -jar /app/app.jar --core.command=club:apply seeds/club-canic.yaml
+        java -jar /app/app.jar --core.command=club:apply seeds/club-minim.yaml
+    healthcheck:
+      disable: true
+    restart: "no"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  core:
+    image: ${CORE_IMAGE:-ghcr.io/jboixtcm/agilityhub-core-api:main}
+    environment:
+      <<: *core-environment
+      SERVER_PORT: 8080
+      MAIL_LOCAL_DIRECTORY: /app/mailbox
+    ports:
+      - "127.0.0.1:${CONSUMER_PORT:-8080}:8080"
+    volumes:
+      - mailbox:/app/mailbox
+    depends_on:
+      mongo:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+
+volumes:
+  mongo-data:
+  mailbox:
