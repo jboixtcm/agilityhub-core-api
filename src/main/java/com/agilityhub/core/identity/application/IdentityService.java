@@ -60,6 +60,7 @@ public class IdentityService {
     private Session session(Account account) {
         if (account.status() != Account.Status.ACTIVE) { throw new ApiException(ErrorCode.ACCOUNT_BLOCKED); }
         if (TenantContext.current() == null) { return new Session(account, null); }
+        settings.requireClubAccess();
         Membership membership = memberships.findByAccountId(account.id()).orElseThrow(() -> new ApiException(ErrorCode.NO_MEMBERSHIP));
         if (membership.status() != Membership.Status.ACTIVE) { throw new ApiException(ErrorCode.MEMBERSHIP_SUSPENDED); }
         return new Session(account, membership);

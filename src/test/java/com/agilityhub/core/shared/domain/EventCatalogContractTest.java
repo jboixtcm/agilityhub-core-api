@@ -24,6 +24,9 @@ class EventCatalogContractTest {
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
         Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+                com.agilityhub.core.platform.domain.events.ClubModulesChanged.class, () -> new com.agilityhub.core.platform.domain.events.ClubModulesChanged(
+                        "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("diff", Map.of("modules", java.util.List.of("FAQ"))),
+                        "account-a", null, DomainEvent.Origin.BACKOFFICE),
                 com.agilityhub.core.identity.domain.ImpersonationEvent.class, () -> new com.agilityhub.core.identity.domain.ImpersonationEvent(
                         com.agilityhub.core.identity.domain.ImpersonationEvent.Kind.ImpersonationStarted, "club-a", "grant-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a", "member-a"),
                 com.agilityhub.core.identity.domain.IdentityEvent.class, () -> new com.agilityhub.core.identity.domain.IdentityEvent(
@@ -69,7 +72,7 @@ class EventCatalogContractTest {
                 assertThat(impersonation.impersonatedMemberId()).isEqualTo("member-a");
                 assertThat(impersonation.origin()).isEqualTo(DomainEvent.Origin.BACKOFFICE); return;
             }
-            if (event instanceof ClubConfigChanged) {
+            if (event instanceof ClubConfigChanged || event instanceof com.agilityhub.core.platform.domain.events.ClubModulesChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());
                 assertThat(event.payload()).containsKey("diff");

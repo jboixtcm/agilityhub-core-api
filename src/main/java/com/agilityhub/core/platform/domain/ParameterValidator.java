@@ -57,9 +57,9 @@ public class ParameterValidator {
                 });
                 case "holidays" -> {
                     for (Object holiday : (List<?>) value) {
-                        if (holiday instanceof String date) { LocalDate.parse(date); }
-                        else { Map<?, ?> item = (Map<?, ?>) holiday; LocalDate.parse((String) item.get("date"));
-                            require(item.get("label") instanceof String); }
+                        Map<?, ?> item = (Map<?, ?>) holiday;
+                        LocalDate.parse((String) item.get("date"));
+                        require(item.get("label") instanceof String label && !label.isBlank());
                     }
                 }
                 case "localizedList" -> ((List<?>) value).forEach(item -> localized(item, defaultLocale));

@@ -982,7 +982,10 @@
             "label": "Holidays",
             "help": "Closed dates",
             "value": [
-              "2026-12-25"
+              {
+                "date": "2026-12-25",
+                "label": "Example holiday"
+              }
             ],
             "isOverride": true,
             "lastChange": {
@@ -992,7 +995,10 @@
             },
             "editableBy": "CLUB",
             "constraints": {},
-            "version": 1
+            "version": 1,
+            "default": [],
+            "block": "club",
+            "history": []
           }
         ]
       }
@@ -1005,7 +1011,10 @@
   },
   "platform.api.SettingsContracts$ParameterHistoryEntry": {
     "value": [
-      "2026-12-25"
+      {
+        "date": "2026-12-25",
+        "label": "Example holiday"
+      }
     ],
     "changedAt": "2026-09-06T10:00:00Z",
     "changedByAccountId": "account-a",

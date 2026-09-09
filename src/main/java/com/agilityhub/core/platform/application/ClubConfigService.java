@@ -35,6 +35,12 @@ public class ClubConfigService implements TimeZoneProvider {
         try (var scope = TenantContext.open(clubId)) { return cache.get(clubId, this::load); }
     }
     public void invalidate(String clubId) { cache.invalidate(clubId); }
+    public void invalidateAfterCommit(String clubId) {
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override public void afterCommit() { invalidate(clubId); }
+                });
+    }
     /** Consent writes must check the current version, independently of the branding cache. */
     public PrivacyPolicy privacyPolicy(String clubId) {
         var legal = clubs.findById(clubId).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND)).legal();
@@ -54,6 +60,8 @@ public class ClubConfigService implements TimeZoneProvider {
         });
         Map<String, Map<String, Object>> scoped = new LinkedHashMap<>();
         for (var override : parameters.findAll()) {
+            // A reset retains the document's version and history but has no active override.
+            if (override.value() == null) { continue; }
             try {
                 var definition = catalog.get(override.key());
                 if (override.scopeRef() != null && !definition.scope().equals("ring") && !definition.scope().equals("level")) {

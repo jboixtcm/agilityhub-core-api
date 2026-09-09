@@ -29,7 +29,10 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) ParameterEditor editableBy,
             @Schema(requiredMode = REQUIRED) Map<String, Object> constraints,
             @Schema(requiredMode = NOT_REQUIRED) String module,
-            @Schema(requiredMode = REQUIRED) long version) { }
+            @Schema(requiredMode = REQUIRED) long version,
+            @Schema(requiredMode = REQUIRED) @com.fasterxml.jackson.annotation.JsonProperty("default") Object defaultValue,
+            @Schema(requiredMode = REQUIRED) String block,
+            @Schema(requiredMode = REQUIRED) List<ParameterHistoryEntry> history) { }
     public record ParameterHistoryEntry(
             @Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) Instant changedAt,
@@ -121,8 +124,30 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     @Schema(description = "Alias of club.holidays.")
     public record HolidaysUpdate(
-            @Schema(requiredMode = REQUIRED) @NotNull List<LocalDate> value,
+            @Schema(requiredMode = REQUIRED) @NotNull List<Holiday> value,
             @Schema(requiredMode = NOT_REQUIRED) String reason,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
+
+    public record Holiday(@Schema(requiredMode = REQUIRED) LocalDate date,
+            @Schema(requiredMode = REQUIRED) String label) { }
+    @Schema(description = "Versioned edit of club identity, contact and theme. Omitted fields are preserved. Console fields are rejected with PLATFORM_ONLY; a timeZone change with existing classes returns TIMEZONE_CHANGE_BLOCKED.")
+    public record ClubUpdate(
+            @Schema(requiredMode = REQUIRED) @NotNull Long version,
+            @Schema(requiredMode = NOT_REQUIRED) String name,
+            @Schema(requiredMode = NOT_REQUIRED) String legalName,
+            @Schema(requiredMode = NOT_REQUIRED) String taxId,
+            @Schema(requiredMode = NOT_REQUIRED) ClubAddress address,
+            @Schema(requiredMode = NOT_REQUIRED) String contactEmail,
+            @Schema(requiredMode = NOT_REQUIRED) String contactPhone,
+            @Schema(requiredMode = NOT_REQUIRED) String websiteUrl,
+            @Schema(requiredMode = NOT_REQUIRED) com.agilityhub.core.platform.domain.Theme theme,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Console-only field; cannot be changed here.") String timeZone) { }
+    public record CountryProfileSettings(
+            @Schema(requiredMode = REQUIRED) String code,
+            @Schema(requiredMode = REQUIRED) List<String> idDocumentTypes,
+            @Schema(requiredMode = REQUIRED) boolean postalCodeLookup,
+            @Schema(requiredMode = REQUIRED) String phonePrefix,
+            @Schema(requiredMode = REQUIRED) String dateFormat,
+            @Schema(requiredMode = REQUIRED) String timeFormat) { }
 
 }

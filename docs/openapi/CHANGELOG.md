@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E2-T02 · Club settings and parameters implementation
+
+- Settings routes now execute their S02 use cases, including scoped parameter history/reset, self-service modules and the global parameter catalog.
+- Added `PUT /api/v1/club` with a required version and optional identity/contact/theme fields; console fields return `PLATFORM_ONLY`. Added `GET /api/v1/club/opening-hours`, `GET /api/v1/club/holidays` and public tenant-bound `GET /api/v1/country-profile`.
+- `Parameter` adds `default`, `block` and `history` to support the task's detail response; the existing history route remains available. Version zero denotes an absent override; reset keeps a versioned history record with `isOverride=false`.
+- `HolidaysUpdate.value` now contains `{date, label}` objects, as required by B23 and S02 R-02-09. History entries retain the previous effective value, consistent with the existing club-as-code writer.
+- The closed catalog's HTTP `422 TIMEZONE_CHANGE_BLOCKED` is preserved. Club timezone edits remain platform-only; the current endpoint additionally refuses a changed timezone when tenant classes exist.
+
 ## 2026-09-09 · E1-T13 · Cookie refresh and platform roles
 
 - `POST /oauth2/token`: COOKIE clients omit `refresh_token` from JSON and issue/rotate `ah_refresh`; refresh accepts the cookie with explicit client_id and a same-host Origin/Referer. BODY delivery remains unchanged. The contract documents Set-Cookie and conditional form requirements.

@@ -29,6 +29,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E2-T02: Audited parameter and club settings APIs with scoped overrides, retained
+  reset history, optimistic concurrency, immediate cache refresh, self-service
+  module toggles, labeled holidays and country-profile lookups. Suspended clubs
+  now reject identity sessions. Added tenant/role, rollback and concurrent-edit
+  tests and updated the OpenAPI contract.
+
 - E1-T07: Learn CSV import CLI with unchanged bcrypt credentials, idempotent
   account linking, explicit audited platform-admin grants, guest exclusion,
   write-free previews and reports without personal data. Added a fictional

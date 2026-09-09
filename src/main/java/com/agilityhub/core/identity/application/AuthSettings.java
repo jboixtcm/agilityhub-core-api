@@ -12,6 +12,11 @@ public class AuthSettings {
     public AuthSettings(ClubConfigService clubs, ParameterCatalog catalog) { this.clubs = clubs; this.catalog = catalog; }
     public int integer(String key) { return ((Number) value(key)).intValue(); }
     public boolean enabled(String key) { return Boolean.TRUE.equals(value(key)); }
+    public void requireClubAccess() {
+        if (clubs.get(TenantContext.require()).club().status().equals("SUSPENDED")) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.CLUB_SUSPENDED);
+        }
+    }
     private Object value(String key) {
         return TenantContext.current() == null ? catalog.defaultValue(key) : clubs.get(TenantContext.require()).get(key, Object.class);
     }

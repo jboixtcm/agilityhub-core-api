@@ -818,6 +818,45 @@
         "required" : [ "name", "slug" ],
         "type" : "object"
       },
+      "ClubUpdate" : {
+        "description" : "Versioned edit of club identity, contact and theme. Omitted fields are preserved. Console fields are rejected with PLATFORM_ONLY; a timeZone change with existing classes returns TIMEZONE_CHANGE_BLOCKED.",
+        "properties" : {
+          "address" : {
+            "$ref" : "#/components/schemas/ClubAddress"
+          },
+          "contactEmail" : {
+            "type" : "string"
+          },
+          "contactPhone" : {
+            "type" : "string"
+          },
+          "legalName" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taxId" : {
+            "type" : "string"
+          },
+          "theme" : {
+            "$ref" : "#/components/schemas/Theme"
+          },
+          "timeZone" : {
+            "description" : "Console-only field; cannot be changed here.",
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "websiteUrl" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "version" ],
+        "type" : "object"
+      },
       "Colors" : {
         "properties" : {
           "background" : {
@@ -954,6 +993,33 @@
           }
         },
         "required" : [ "code", "idDocumentTypes", "phonePrefix" ],
+        "type" : "object"
+      },
+      "CountryProfileSettings" : {
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "dateFormat" : {
+            "type" : "string"
+          },
+          "idDocumentTypes" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "phonePrefix" : {
+            "type" : "string"
+          },
+          "postalCodeLookup" : {
+            "type" : "boolean"
+          },
+          "timeFormat" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "dateFormat", "idDocumentTypes", "phonePrefix", "postalCodeLookup", "timeFormat" ],
         "type" : "object"
       },
       "Dashboard" : {
@@ -2031,6 +2097,19 @@
         "required" : [ "builtAt", "status", "version" ],
         "type" : "object"
       },
+      "Holiday" : {
+        "properties" : {
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "date", "label" ],
+        "type" : "object"
+      },
       "HolidaysUpdate" : {
         "description" : "Alias of club.holidays.",
         "properties" : {
@@ -2039,8 +2118,7 @@
           },
           "value" : {
             "items" : {
-              "format" : "date",
-              "type" : "string"
+              "$ref" : "#/components/schemas/Holiday"
             },
             "type" : "array"
           },
@@ -3958,16 +4036,26 @@
       },
       "Parameter" : {
         "properties" : {
+          "block" : {
+            "type" : "string"
+          },
           "constraints" : {
             "additionalProperties" : { },
             "type" : "object"
           },
+          "default" : { },
           "editableBy" : {
             "enum" : [ "CLUB", "PLATFORM" ],
             "type" : "string"
           },
           "help" : {
             "type" : "string"
+          },
+          "history" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ParameterHistoryEntry"
+            },
+            "type" : "array"
           },
           "isOverride" : {
             "type" : "boolean"
@@ -3996,7 +4084,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "constraints", "editableBy", "help", "isOverride", "key", "label", "type", "value", "version" ],
+        "required" : [ "block", "constraints", "default", "editableBy", "help", "history", "isOverride", "key", "label", "type", "value", "version" ],
         "type" : "object"
       },
       "ParameterBlock" : {
@@ -8497,7 +8585,7 @@
     },
     "/api/v1/club" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "clubSettings",
         "responses" : {
           "200" : {
@@ -8632,11 +8720,295 @@
         },
         "summary" : "Club settings",
         "tags" : [ "platform" ]
+      },
+      "put" : {
+        "description" : "S02. Versioned edit of name, contact and theme. Console-only fields are rejected.",
+        "operationId" : "updateClub",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ClubUpdate"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClubSettings"
+                }
+              }
+            },
+            "description" : "ClubSettings"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "PLATFORM_ONLY"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TIMEZONE_CHANGE_BLOCKED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Update club settings",
+        "tags" : [ "platform" ]
       }
     },
     "/api/v1/club/holidays" : {
+      "get" : {
+        "description" : "S02. Resolved local holiday dates with labels, version and history.",
+        "operationId" : "holidays",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Parameter"
+                }
+              }
+            },
+            "description" : "Parameter"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Holidays",
+        "tags" : [ "platform" ]
+      },
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "updateHolidays",
         "requestBody" : {
           "content" : {
@@ -8785,7 +9157,7 @@
     },
     "/api/v1/club/modules/{module}" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "updateModule",
         "parameters" : [ {
           "in" : "path",
@@ -8941,8 +9313,145 @@
       }
     },
     "/api/v1/club/opening-hours" : {
+      "get" : {
+        "description" : "S02. Resolved club.openingHours, version and history.",
+        "operationId" : "openingHours",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Parameter"
+                }
+              }
+            },
+            "description" : "Parameter"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Opening hours",
+        "tags" : [ "platform" ]
+      },
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "updateOpeningHours",
         "requestBody" : {
           "content" : {
@@ -9086,6 +9595,146 @@
           }
         },
         "summary" : "Update opening hours",
+        "tags" : [ "platform" ]
+      }
+    },
+    "/api/v1/country-profile" : {
+      "get" : {
+        "description" : "S02. Public country validation and formatting capabilities for the host-selected club.",
+        "operationId" : "countryProfile",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountryProfileSettings"
+                }
+              }
+            },
+            "description" : "CountryProfileSettings"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Country profile",
         "tags" : [ "platform" ]
       }
     },
@@ -21861,7 +22510,7 @@
     },
     "/api/v1/parameters" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "parameters",
         "parameters" : [ {
           "in" : "query",
@@ -22037,7 +22686,7 @@
     },
     "/api/v1/parameters/{key}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "resetParameter",
         "parameters" : [ {
           "in" : "path",
@@ -22189,7 +22838,7 @@
         "tags" : [ "platform" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "parameter",
         "parameters" : [ {
           "in" : "path",
@@ -22498,7 +23147,7 @@
     },
     "/api/v1/parameters/{key}/history" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S02. Tenant comes from the JWT. ADMIN endpoints reject impersonation. Changes are versioned and audited.",
         "operationId" : "parameterHistory",
         "parameters" : [ {
           "in" : "path",

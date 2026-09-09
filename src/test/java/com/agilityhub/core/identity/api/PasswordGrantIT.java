@@ -18,6 +18,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class PasswordGrantIT extends IdentityIntegrationSupport {
+    @Test void T_02_10_suspendedClubBlocksLoginAndRefreshWhileOnboardingStillWorks() throws Exception {
+        var tokens = login();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("club-a")), new Update().set("status", "SUSPENDED"), com.agilityhub.core.platform.persistence.Club.class);
+        configs.invalidate("club-a");
+        mvc.perform(get("/api/v1/branding").header("Host", HOST)).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SUSPENDED"));
+        login(HOST, "admin@example.test", PASSWORD).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CLUB_SUSPENDED"));
+        refresh(refreshValue(tokens), HOST, "clubs-app").andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("CLUB_SUSPENDED"));
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("club-a")), new Update().set("status", "ONBOARDING"), com.agilityhub.core.platform.persistence.Club.class);
+        configs.invalidate("club-a");
+        login(HOST, "admin@example.test", PASSWORD).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/branding").header("Host", HOST)).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ONBOARDING"));
+    }
+
     @Test void T_01_07_passwordIssuesSignedTenantClaimsAndOnlyHashedRefreshStorage() throws Exception {
         var result = login();
         var jwt = SignedJWT.parse(result.get("access_token").asText());

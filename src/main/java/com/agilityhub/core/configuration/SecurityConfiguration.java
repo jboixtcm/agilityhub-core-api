@@ -50,7 +50,7 @@ public class SecurityConfiguration {
                 .requestCache(cache -> cache.disable());
         http.authorizeHttpRequests(authorize -> {
             authorize.requestMatchers(HttpMethod.GET, "/api/v1/health", "/api/v1/branding", "/api/v1/manifest.webmanifest",
-                    "/api/v1/public/**", "/api/v1/country-profile/postal-codes/*",
+                    "/api/v1/public/**", "/api/v1/country-profile", "/api/v1/country-profile/postal-codes/*",
                     "/.well-known/openid-configuration", "/oauth2/authorize", "/connect/logout").permitAll();
             authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid").permitAll();
             if (environment.acceptsProfiles(Profiles.of("local", "test"))

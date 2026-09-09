@@ -75,7 +75,9 @@ class ParameterValidatorTest {
         invalid("club.openingHours", Map.of("MONDAY", Map.of("open", "07:01", "close", "22:00")));
         invalid("club.openingHours", Map.of("MONDAY", Map.of("open", "07:00", "close", "22:01")));
         invalid("club.openingHours", Map.of("FUNDAY", Map.of("open", "07:00", "close", "22:00")));
-        valid("club.holidays", List.of("2030-01-01", Map.of("date", "2030-12-25", "label", "Example holiday")));
+        valid("club.holidays", List.of(Map.of("date", "2030-12-25", "label", "Example holiday")));
+        invalid("club.holidays", List.of("2030-01-01"));
+        invalid("club.holidays", List.of(Map.of("date", "2030-01-01", "label", " ")));
         invalid("club.holidays", List.of("2030-02-30")); invalid("club.holidays", List.of(Map.of("date", "2030-01-01")));
     }
     @Test void T_02_02_invalidCatalogSchemasAndPatternsFailClosed() {

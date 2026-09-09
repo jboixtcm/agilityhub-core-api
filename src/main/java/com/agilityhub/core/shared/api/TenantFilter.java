@@ -50,7 +50,7 @@ public class TenantFilter extends OncePerRequestFilter {
                     || "urn:agilityhub:grant:handoff".equals(request.getParameter("grant_type"))
                     || "authorization_code".equals(request.getParameter("grant_type"))));
             boolean publicRoute = path.equals("/api/v1/branding") || path.equals("/api/v1/manifest.webmanifest")
-                    || path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/country-profile/postal-codes/")
+                    || path.startsWith("/api/v1/public/") || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/postal-codes/")
                     || path.startsWith("/oauth2/") || optionalHost;
             if (!global) {
                 var authentication = SecurityContextHolder.getContext().getAuthentication();

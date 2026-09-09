@@ -50,6 +50,13 @@ class E2ContractIT extends AbstractIntegrationTest {
         }
     }
 
+    static Stream<Route> pendingRoutes() throws Exception {
+        return routes().filter(route -> !route.path().startsWith("/api/v1/parameters")
+                && !route.path().startsWith("/api/v1/club")
+                && !route.path().startsWith("/api/v1/country-profile")
+                && !route.path().equals("/api/v1/platform/parameter-catalog"));
+    }
+
     @BeforeEach void prepareClubs() {
         if (prepared) { return; }
         var tree = mapper.valueToTree(PlatformFixtures.club("e2-club-a", HOST));
@@ -75,7 +82,7 @@ class E2ContractIT extends AbstractIntegrationTest {
         return request;
     }
 
-    @ParameterizedTest(name = "{0}") @MethodSource("routes")
+    @ParameterizedTest(name = "{0}") @MethodSource("pendingRoutes")
     void T_03_33_T_14_22_everyE2ContractEnforcesRolesTenantAndPendingResponse(Route route) throws Exception {
         var anonymous = mvc.perform(call(route));
         if (route.roles().isEmpty()) {
@@ -120,7 +127,7 @@ class E2ContractIT extends AbstractIntegrationTest {
         mvc.perform(get("/api/v1/country-profile/postal-codes/08001").header("Host", "unknown.example.test"))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
         mvc.perform(get("/api/v1/country-profile/postal-codes/08001").header("Host", HOST))
-                .andExpect(status().isNotImplemented());
+                .andExpect(status().isOk());
         mvc.perform(get("/api/v1/public/example/plans")).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         mvc.perform(get("/api/v1/public/example/plans").header("X-Api-Key", "fictional"))
