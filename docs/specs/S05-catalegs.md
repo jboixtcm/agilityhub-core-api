@@ -291,6 +291,15 @@ No aplica: cap codi del `CATALEG_NOTIFICACIONS.md` neix d'aquest vertical (els c
 - T-05-29 (R-05-11) donar d'alta un instructor a D17 → `Membership.roles ∋ INSTRUCTOR` i D10 «Rols d'accés» ho reflecteix; retirar-lo a D10 → desapareix de D17 (`MembershipChanged` una sola vegada).
 - T-05-30 (R-05-17) cobert per T-05-03 (`PRICE_LOCKED` sobre import, `validFrom`, `concept`).
 
+**Pàgines del club (`ClubPage`, afegit 09-09 — api E2-T12, web E2-W09)**
+- T-05-CP-01 (§6 `/club-pages`): editar el cos d'una pàgina inactiva no canvia `version`; activar-la o editar el cos d'una pàgina activa → `version + 1` i `publishedAt`; `history[]` conserva les 10 darreres versions publicades.
+- T-05-CP-02: MEMBER/INSTRUCTOR només veuen pàgines `active = true` (també amb `?active=false`); ADMIN les veu totes.
+- T-05-CP-03: `GET /public/{clubSlug}/pages/{key}` amb `X-Api-Key` i `Accept-Language` (cadena de fallback del club); pàgina inactiva → `404`.
+- T-05-CP-04: `PATCH` amb `version` antiga → `409 STALE_VERSION`; Markdown no permès (HTML, imatges) o > 20 000 caràcters per idioma → `400 VALIDATION_ERROR` amb `fieldErrors[]`.
+- T-05-CP-05: cada `POST/PATCH` escriu `CATALOG_CHANGED {entityType: ClubPage}` i publica `ClubPageChanged` a l'outbox dins la mateixa transacció.
+- T-05-CP-06: `club:apply` amb `pages[]` (Cànic: `RULES` i `IMAGE_CONSENT` actives amb el marcador «[Text pendent — el club l'omplirà des de Paràmetres]», `PRIVACY` inactiva) és idempotent: la segona execució no escriu res ni puja `version`.
+- T-05-CP-07 (front, E2-W09): D11 «Pàgines del club» llista les pàgines amb estat (publicada · esborrany · versió · data), editor per idioma amb vista prèvia del Markdown i [Publica]/[Desa l'esborrany]; pantalla 30 «Info» mostra les pestanyes FAQ · Normes · altres actives.
+
 ## 12. Paquets de feina (per a fils d'IA en paral·lel)
 
 | Paquet | Repo | Depèn de | Lliurable verificable |
