@@ -215,7 +215,7 @@
   ],
   "files.dogPhotoMaxMb": 8,
   "history.monthsVisible": 2,
-  "dashboard.pendingSignupAgeWarnDays": 7,
+  "dashboard.pendingSignupAgeWarnDays": 2,
   "courses.setupAutoExpireDays": 7,
   "courses.placementMarginMeters": 1.5,
   "courses.showSetupToMembers": true,
@@ -289,7 +289,7 @@
     "checkoutSessionsAnonymousPerHour": 10,
     "townsPerHour": 60
   },
-  "activities.cancelDeadline": "REGISTRATION_CLOSE",
+  "activities.cancelDeadline": "EVENT_START",
   "activities.publicUrlTemplate": "{websiteUrl}/activitat/{slug}",
   "bookings.paymentPendingMinutes": 30,
   "ringBlocks.maxHorizonDays": 60,
@@ -299,18 +299,18 @@
   "messaging.push.ttlMinutes": 1440,
   "billing.invoiceSeriesPattern": "{YYYY}",
   "billing.invoiceResetYearly": true,
-  "billing.cashInvoicing": "MONTHLY",
+  "billing.cashInvoicing": "SEMESTER",
   "billing.taxIncluded": true,
   "billing.sepa.useFrst": false,
   "billing.sepa.schema": "pain.008.001.02",
-  "billing.sepa.collectionDayOfMonth": 0,
+  "billing.sepa.collectionDayOfMonth": 1,
   "billing.stripeMaxAttempts": 3,
   "billing.remittanceReminderDay": 22,
   "inactivity.maxStartMonthsAhead": 12,
   "leave.packExpiryGraceDays": 30,
   "audit.retentionYears": 6,
   "rgpd.erasureMinDaysAfterLeave": 30,
-  "rgpd.retentionYearsAfterLeave": 5,
+  "rgpd.retentionYearsAfterLeave": 6,
   "rgpd.rejectedSignupRetentionDays": 365,
   "security.eventRetentionDays": 90,
   "jobs.weekOpening.enabled": true,
@@ -359,5 +359,8 @@
       "required": false
     }
   ],
-  "legal.maxPostpones": 3
+  "legal.maxPostpones": 3,
+  "billing.packToMemberEntryDiscountPercent": 40,
+  "billing.packToMemberMinSessions": 10,
+  "billing.upfrontCutoffDay": 25
 }

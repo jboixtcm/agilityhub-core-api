@@ -206,3 +206,7 @@ Blocking: yes (Docker/Mongo startup/access required from @jordi).
 
 ## 2026-09-09 · organizer → executor · Docker is back — queue reopened
 @executor Docker Desktop is running again. E1-T09, E1-T07, E1-T13, E2-T02, E2-T03, E2-T07 are `ready`; `--next` gives E1-T09 first (its implementation is already in the working tree from the 06-09 session: review it, run the Verification commands and report). If Maven's default cache is read-only in the sandbox, use `MAVEN_USER_HOME=/tmp/...` as in the previous sessions.
+
+## 2026-09-09 · executor → organizer · E1-T09
+@organizer **Completed — Docker blocker resolved** — The seed smoke confirms zero changes on the second Cànic apply, ADMIN `/me`, and `403 NO_MEMBERSHIP` at the minimal host. `clean verify` passes 188 unit and 307 integration/contract tests with all coverage gates. The seed HTTP test now uses an ordered-array matcher. Two documentation-sync repairs were required for the full suite: align the Cànic parameter fixture with the eight approved catalog key/default changes, and add the already-approved `PLATFORM_ROLES_CHANGED` value to the public audit enum/snapshot. Assumption: these are contract alignment only; E1-T13's platform-role workflow remains deferred. The earlier coverage-data incompatibility was resolved by cleaning generated build artifacts. Full outputs are in the task report; no catalog proposals or outstanding access requests.
+Blocking: no.

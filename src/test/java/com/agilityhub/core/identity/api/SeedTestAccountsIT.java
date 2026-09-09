@@ -95,7 +95,7 @@ class SeedTestAccountsIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andReturn().getResponse();
         String token = mapper.readTree(response.getContentAsString()).path("access_token").asText();
         mvc.perform(get("/api/v1/me").header("Host", "app.agilitycanic.cat").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.membership.roles").value(List.of("ADMIN")));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.membership.roles").value(org.hamcrest.Matchers.contains("ADMIN")));
         mvc.perform(post("/oauth2/token").header("Host", "minim.example.test")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED).param("grant_type", "password").param("client_id", "clubs-app")
                 .param("username", "admin@example.test").param("password", "Fictional-seed-password"))
