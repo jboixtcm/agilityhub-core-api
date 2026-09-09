@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E2-T05 · Plans and dated prices
+
+- Implement `/plans*`, `/prices*` and public plans. Add `billingMode` to monthly plan
+  requests and all plan projections; default omitted monthly input to `MONTHLY_FEE`.
+- Public plans include resolved text plus translation maps, pack/single-class terms,
+  current prices with tax percentages and localized `priceLine`. Omit price/entry-fee
+  fields when BILLING is disabled; reader projections omit audit and usage data.
+- Replace plan `warnings` with usage counts and expose `upfrontCollections` in usage.
+  Price `periodicity` is derived; PATCH `validTo: null` reopens an interval subject to
+  overlap/lock checks. Document update-time currency and overlap errors.
+- Missing or invalid public keys return catalog `INVALID_API_KEY` (403); resolve the
+  club by slug without a tenant header, vary public caching by key and language.
+
 ## 2026-09-09 · E2-T03 · Base catalogs
 
 - `/levels`, `/rings` and `/faq-entries` now execute the S05 CRUD/order rules; FAQ category suggestions return localized values and counts. ADMIN-only inactive lists and reduced MEMBER/INSTRUCTOR views are enforced.

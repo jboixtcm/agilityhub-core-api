@@ -22,7 +22,7 @@ public record Club(@Id String id, String slug, String name, String legalName, St
                    String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
                    Set<Module> modules, Map<String, Object> paymentProviders, Legal legal,
                    Status status, Map<String, Boolean> onboardingChecklist, Map<String, Long> usage,
-                   @Version Long version, Instant createdAt, Instant updatedAt, Boolean template) {
+                   @Version Long version, Instant createdAt, Instant updatedAt, Boolean template, String publicApiKeyHash) {
     public Club(String id, String slug, String name, String legalName, String taxId, Address address,
                 String contactEmail, String contactPhone, String websiteUrl, List<String> locales, String defaultLocale,
                 String timeZone, String currency, String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
@@ -31,6 +31,15 @@ public record Club(@Id String id, String slug, String name, String legalName, St
         this(id, slug, name, legalName, taxId, address, contactEmail, contactPhone, websiteUrl, locales, defaultLocale,
                 timeZone, currency, countryProfile, domains, theme, pwa, modules, paymentProviders, legal, status,
                 onboardingChecklist, usage, version, createdAt, updatedAt, false);
+    }
+    public Club(String id, String slug, String name, String legalName, String taxId, Address address,
+                String contactEmail, String contactPhone, String websiteUrl, List<String> locales, String defaultLocale,
+                String timeZone, String currency, String countryProfile, List<Domain> domains, Theme theme, Pwa pwa,
+                Set<Module> modules, Map<String, Object> paymentProviders, Legal legal, Status status,
+                Map<String, Boolean> onboardingChecklist, Map<String, Long> usage, Long version, Instant createdAt, Instant updatedAt, Boolean template) {
+        this(id, slug, name, legalName, taxId, address, contactEmail, contactPhone, websiteUrl, locales, defaultLocale,
+                timeZone, currency, countryProfile, domains, theme, pwa, modules, paymentProviders, legal, status,
+                onboardingChecklist, usage, version, createdAt, updatedAt, template, null);
     }
     public Club {
         template = Boolean.TRUE.equals(template);

@@ -19,13 +19,15 @@ import static com.agilityhub.core.clubs.catalogs.api.CatalogResponses.*;
 import static com.agilityhub.core.clubs.catalogs.api.CatalogRequests.*;
 import static com.agilityhub.core.clubs.catalogs.domain.CatalogKind.*;
 
-/** S05 base catalogs; plan implementation belongs to E2-T05. */
+/** S05 tenant catalogs and club offers. */
 @RestController
 public class CatalogsController {
     private final com.agilityhub.core.clubs.catalogs.application.CatalogService catalogs;
     private final CatalogViews views;
-    public CatalogsController(com.agilityhub.core.clubs.catalogs.application.CatalogService catalogs, CatalogViews views) {
-        this.catalogs = catalogs; this.views = views;
+    private final OfferViews offers;
+    private final com.agilityhub.core.clubs.catalogs.application.PlanService plans;
+    public CatalogsController(com.agilityhub.core.clubs.catalogs.application.CatalogService catalogs, CatalogViews views, OfferViews offers, com.agilityhub.core.clubs.catalogs.application.PlanService plans) {
+        this.catalogs = catalogs; this.views = views; this.offers = offers; this.plans = plans;
     }
     @GetMapping("/api/v1/levels")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
@@ -134,48 +136,48 @@ public class CatalogsController {
     @Operation(summary = "List plans",
             description = "S05 §6. Unpaginated catalog; includeInactive is ADMIN-only. MEMBER/INSTRUCTOR receive PlanReaderView without usage or translation maps.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Plan>"))
-    public CatalogItems<Plan> listPlans(@RequestParam(defaultValue = "false") boolean includeInactive) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Plan> listPlans(@RequestParam(defaultValue = "false") boolean includeInactive) { return offers.plans(includeInactive); }
 
     @PostMapping("/api/v1/plans")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({VALIDATION_ERROR, DUPLICATE_NAME})
     @Operation(summary = "Create plan",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "Plan"))
-    public Plan createPlan(@Valid @RequestBody PlanCreate request) { throw new UnsupportedOperationException(); }
+    public Plan createPlan(@Valid @RequestBody PlanCreate request) { return offers.plan(plans.create(offers.input(request)), true, false); }
 
     @GetMapping("/api/v1/plans/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @Operation(summary = "Get plan",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Plan"))
-    public Plan getPlan(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public Plan getPlan(@PathVariable String id) { return offers.plan(id, true, false); }
 
     @PatchMapping("/api/v1/plans/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({STALE_VERSION, PLAN_IN_USE, DUPLICATE_NAME})
     @Operation(summary = "Update plan",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Plan"))
-    public Plan updatePlan(@PathVariable String id, @Valid @RequestBody PlanPatch request) { throw new UnsupportedOperationException(); }
+    public Plan updatePlan(@PathVariable String id, @Valid @RequestBody PlanPatch request) { plans.update(id, offers.input(request)); return offers.plan(id, true, Boolean.FALSE.equals(request.active())); }
 
     @DeleteMapping("/api/v1/plans/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({PLAN_IN_USE})
     @Operation(summary = "Delete plan",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void deletePlan(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void deletePlan(@PathVariable String id) { plans.delete(id); }
 
     @PutMapping("/api/v1/plans/order")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({ORDER_INCOMPLETE})
     @Operation(summary = "Order plans",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Plan>"))
-    public CatalogItems<Plan> orderPlans(@Valid @RequestBody PlanOrder request) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Plan> orderPlans(@Valid @RequestBody PlanOrder request) { plans.order(request.planIds()); return offers.plans(true); }
 
     @GetMapping("/api/v1/faq-entries")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")

@@ -74,7 +74,7 @@ public class ClubDefinitionMapper {
                 merged.has("legal") ? mapper.convertValue(merged.get("legal"), Club.Legal.class) : new Club.Legal("", Map.of(), ""),
                 Club.Status.valueOf(identity.path("status").asText()), previous == null ? Map.of() : previous.onboardingChecklist(),
                 previous == null ? Map.of() : previous.usage(), previous == null ? null : previous.version(),
-                previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean());
+                previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean(), previous == null ? null : previous.publicApiKeyHash());
     }
     private String value(ObjectNode object, String field) { return object.has(field) ? object.get(field).asText() : null; }
 }

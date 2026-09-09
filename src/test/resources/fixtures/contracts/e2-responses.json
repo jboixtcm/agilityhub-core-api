@@ -770,7 +770,8 @@
           "actorName": "Example Admin",
           "action": "PARAMETER_CHANGED"
         },
-        "version": 1
+        "version": 1,
+        "periodicity": "MONTHLY"
       }
     ],
     "prices": [
@@ -791,25 +792,33 @@
           "actorName": "Example Admin",
           "action": "PARAMETER_CHANGED"
         },
-        "version": 1
+        "version": 1,
+        "periodicity": "MONTHLY"
       }
     ],
     "usage": {
       "members": 1,
       "packBalances": 0,
-      "invoiceLines": 1
+      "invoiceLines": 1,
+      "upfrontCollections": 0
     },
     "entryFeeAmount": {
       "amountMinor": 1000,
       "currency": "EUR"
     },
-    "warnings": [],
+    "warnings": {
+      "members": 1,
+      "packBalances": 0,
+      "invoiceLines": 1,
+      "upfrontCollections": 0
+    },
     "lastChange": {
       "at": "2026-09-06T10:00:00Z",
       "actorName": "Example Admin",
       "action": "PARAMETER_CHANGED"
     },
-    "version": 1
+    "version": 1,
+    "billingMode": "MONTHLY_FEE"
   },
   "clubs.catalogs.api.CatalogResponses$PriceCreated": {
     "price": {
@@ -829,7 +838,8 @@
         "actorName": "Example Admin",
         "action": "PARAMETER_CHANGED"
       },
-      "version": 1
+      "version": 1,
+      "periodicity": "MONTHLY"
     },
     "closedPriceId": "price-old"
   },
@@ -858,14 +868,19 @@
             "amount": {
               "amountMinor": 1000,
               "currency": "EUR"
-            }
+            },
+            "taxPercent": 0
           }
         ],
         "entryFeeAmount": {
           "amountMinor": 1000,
           "currency": "EUR"
         },
-        "order": 0
+        "order": 0,
+        "billingMode": "MONTHLY_FEE",
+        "nameI18n": {
+          "ca": "Monthly"
+        }
       }
     ]
   },
@@ -967,10 +982,12 @@
         "amount": {
           "amountMinor": 1000,
           "currency": "EUR"
-        }
+        },
+        "taxPercent": 0
       }
     ],
-    "version": 1
+    "version": 1,
+    "billingMode": "MONTHLY_FEE"
   },
   "platform.api.SettingsContracts$Parameters": {
     "blocks": [

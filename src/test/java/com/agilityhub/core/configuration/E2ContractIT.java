@@ -53,6 +53,9 @@ class E2ContractIT extends AbstractIntegrationTest {
     static Stream<Route> pendingRoutes() throws Exception {
         return routes().filter(route -> !route.path().startsWith("/api/v1/saved-views")
                 && !(route.method().equals("GET") && Set.of("/api/v1/members", "/api/v1/dogs", "/api/v1/members/filter-values", "/api/v1/dogs/filter-values", "/api/v1/members/export", "/api/v1/dogs/export").contains(route.path()))
+                && !route.path().startsWith("/api/v1/plans")
+                && !route.path().startsWith("/api/v1/prices")
+                && !route.path().equals("/api/v1/public/{clubSlug}/plans")
                 && !route.path().startsWith("/api/v1/instructors")
                 && !route.path().startsWith("/api/v1/administrators")
                 && !(route.method().equals("PUT") && route.path().equals("/api/v1/members/{id}/roles"))
@@ -136,10 +139,10 @@ class E2ContractIT extends AbstractIntegrationTest {
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("UNKNOWN_HOST"));
         mvc.perform(get("/api/v1/country-profile/postal-codes/08001").header("Host", HOST))
                 .andExpect(status().isOk());
-        mvc.perform(get("/api/v1/public/example/plans")).andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
-        mvc.perform(get("/api/v1/public/example/plans").header("X-Api-Key", "fictional"))
-                .andExpect(status().isNotImplemented());
+        mvc.perform(get("/api/v1/public/e2-club-a/plans")).andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+        mvc.perform(get("/api/v1/public/missing-club/plans").header("X-Api-Key", "fictional"))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("CLUB_NOT_FOUND"));
     }
 
     @Test void T_03_22_T_05_01_T_14_13_allRoutesAndListCapabilitiesArePublished() throws Exception {

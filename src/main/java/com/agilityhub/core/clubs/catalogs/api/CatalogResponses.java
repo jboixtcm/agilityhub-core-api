@@ -17,7 +17,9 @@ public final class CatalogResponses {
     private CatalogResponses() { }
 
     public enum PlanType { MONTHLY, PACK, SINGLE_CLASS }
+    public enum BillingMode { MONTHLY_FEE, MAINTENANCE }
     public enum PriceConcept { MONTHLY_FEE, MAINTENANCE_FEE, PACK, SINGLE_CLASS }
+    public enum PricePeriodicity { MONTHLY, ONE_OFF }
     public enum PriceStatus { SCHEDULED, CURRENT, EXPIRED }
     public enum EntryFeeMode { STANDARD, AMOUNT, PERCENT, NONE }
     public enum ChargeMode { CHARGE_ON_ATTENDANCE, PAY_TO_BOOK }
@@ -32,6 +34,7 @@ public final class CatalogResponses {
     public record SingleClassSettings(
             @Schema(requiredMode = REQUIRED) ChargeMode chargeMode,
             @Schema(requiredMode = REQUIRED) CancelPolicy cancelPolicy) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record PlanTexts(
             @Schema(requiredMode = NOT_REQUIRED) String description,
             @Schema(requiredMode = NOT_REQUIRED) Map<String, String> descriptionI18n,
@@ -54,7 +57,8 @@ public final class CatalogResponses {
     public record PlanUsage(
             @Schema(requiredMode = REQUIRED) int members,
             @Schema(requiredMode = REQUIRED) int packBalances,
-            @Schema(requiredMode = REQUIRED) int invoiceLines) { }
+            @Schema(requiredMode = REQUIRED) int invoiceLines,
+            @Schema(requiredMode = REQUIRED) int upfrontCollections) { }
     @Schema(description = "ADMIN projection; reduced catalog readers omit usage and nameI18n.")
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Level(
@@ -131,6 +135,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Price(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED, format = "uuid") String planId,
@@ -140,20 +145,24 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) LocalDate validFrom,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate validTo,
             @Schema(requiredMode = REQUIRED) PriceStatus status,
+            @Schema(requiredMode = REQUIRED) PricePeriodicity periodicity,
             @Schema(requiredMode = REQUIRED) boolean locked,
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record PriceCreated(
             @Schema(requiredMode = REQUIRED) Price price,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String closedPriceId) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Plan(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED) Map<String, String> nameI18n,
             @Schema(requiredMode = REQUIRED) PlanType type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Present for MONTHLY plans") BillingMode billingMode,
             @Schema(requiredMode = REQUIRED) int dogsIncluded,
-            @Schema(requiredMode = REQUIRED) EntryFee entryFee,
+            @Schema(requiredMode = NOT_REQUIRED) String priceLine,
+            @Schema(requiredMode = NOT_REQUIRED) EntryFee entryFee,
             @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
             @Schema(requiredMode = NOT_REQUIRED) SingleClassSettings singleClass,
             @Schema(requiredMode = NOT_REQUIRED) String conditions,
@@ -167,16 +176,19 @@ public final class CatalogResponses {
             @Schema(requiredMode = NOT_REQUIRED) List<Price> prices,
             @Schema(requiredMode = NOT_REQUIRED) PlanUsage usage,
             @Schema(requiredMode = NOT_REQUIRED) Money entryFeeAmount,
-            @Schema(requiredMode = NOT_REQUIRED) List<String> warnings,
+            @Schema(requiredMode = NOT_REQUIRED) PlanUsage warnings,
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record PlanReaderView(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED) PlanType type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Present for MONTHLY plans") BillingMode billingMode,
             @Schema(requiredMode = REQUIRED) int dogsIncluded,
-            @Schema(requiredMode = REQUIRED) EntryFee entryFee,
+            @Schema(requiredMode = NOT_REQUIRED) String priceLine,
+            @Schema(requiredMode = NOT_REQUIRED) EntryFee entryFee,
             @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
             @Schema(requiredMode = NOT_REQUIRED) SingleClassSettings singleClass,
             @Schema(requiredMode = NOT_REQUIRED) String conditions,
@@ -189,20 +201,29 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) long version) { }
     public record PublicPrice(
             @Schema(requiredMode = REQUIRED) PriceConcept concept,
-            @Schema(requiredMode = REQUIRED) Money amount) { }
+            @Schema(requiredMode = REQUIRED) Money amount,
+            @Schema(requiredMode = REQUIRED) java.math.BigDecimal taxPercent) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record PublicPlanTexts(
             @Schema(requiredMode = NOT_REQUIRED) String description,
             @Schema(requiredMode = NOT_REQUIRED) String offerLabel,
             @Schema(requiredMode = NOT_REQUIRED) String priceLabel) { }
     @Schema(description = "Only active showOnWeb plans; prices omitted when BILLING is disabled.")
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record PublicPlan(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
+            @Schema(requiredMode = REQUIRED) Map<String, String> nameI18n,
             @Schema(requiredMode = REQUIRED) PlanType type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Present for MONTHLY plans") BillingMode billingMode,
             @Schema(requiredMode = REQUIRED) int dogsIncluded,
+            @Schema(requiredMode = NOT_REQUIRED) String priceLine,
             @Schema(requiredMode = NOT_REQUIRED) String conditions,
-            @Schema(requiredMode = NOT_REQUIRED) PublicPlanTexts texts,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> conditionsI18n,
+            @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
+            @Schema(requiredMode = NOT_REQUIRED) SingleClassSettings singleClass,
+            @Schema(requiredMode = NOT_REQUIRED) PlanTexts texts,
             @Schema(requiredMode = NOT_REQUIRED) List<PublicPrice> currentPrices,
             @Schema(requiredMode = NOT_REQUIRED) Money entryFeeAmount,
             @Schema(requiredMode = REQUIRED) int order) { }

@@ -4373,6 +4373,11 @@
           "active" : {
             "type" : "boolean"
           },
+          "billingMode" : {
+            "description" : "Present for MONTHLY plans",
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+            "type" : "string"
+          },
           "code" : {
             "type" : "string"
           },
@@ -4424,6 +4429,9 @@
           "pack" : {
             "$ref" : "#/components/schemas/PackSettings"
           },
+          "priceLine" : {
+            "type" : "string"
+          },
           "prices" : {
             "items" : {
               "$ref" : "#/components/schemas/Price"
@@ -4454,19 +4462,21 @@
             "type" : "integer"
           },
           "warnings" : {
-            "items" : {
-              "type" : "string"
-            },
-            "type" : "array"
+            "$ref" : "#/components/schemas/PlanUsage"
           }
         },
-        "required" : [ "active", "code", "dogsIncluded", "entryFee", "id", "name", "order", "showOnSignup", "showOnWeb", "type", "version" ],
+        "required" : [ "active", "code", "dogsIncluded", "id", "name", "order", "showOnSignup", "showOnWeb", "type", "version" ],
         "type" : "object"
       },
       "PlanCreate" : {
         "properties" : {
           "active" : {
             "type" : "boolean"
+          },
+          "billingMode" : {
+            "description" : "MONTHLY plans only; defaults to MONTHLY_FEE",
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+            "type" : "string"
           },
           "code" : {
             "maxLength" : 16,
@@ -4540,6 +4550,10 @@
           "active" : {
             "type" : "boolean"
           },
+          "billingMode" : {
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+            "type" : "string"
+          },
           "code" : {
             "maxLength" : 16,
             "minLength" : 1,
@@ -4604,6 +4618,11 @@
           "active" : {
             "type" : "boolean"
           },
+          "billingMode" : {
+            "description" : "Present for MONTHLY plans",
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+            "type" : "string"
+          },
           "code" : {
             "type" : "string"
           },
@@ -4637,6 +4656,9 @@
           "pack" : {
             "$ref" : "#/components/schemas/PackSettings"
           },
+          "priceLine" : {
+            "type" : "string"
+          },
           "showOnSignup" : {
             "type" : "boolean"
           },
@@ -4658,7 +4680,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "active", "code", "dogsIncluded", "entryFee", "id", "name", "order", "showOnSignup", "showOnWeb", "type", "version" ],
+        "required" : [ "active", "code", "dogsIncluded", "id", "name", "order", "showOnSignup", "showOnWeb", "type", "version" ],
         "type" : "object"
       },
       "PlanTexts" : {
@@ -4731,9 +4753,13 @@
           "packBalances" : {
             "format" : "int32",
             "type" : "integer"
+          },
+          "upfrontCollections" : {
+            "format" : "int32",
+            "type" : "integer"
           }
         },
-        "required" : [ "invoiceLines", "members", "packBalances" ],
+        "required" : [ "invoiceLines", "members", "packBalances", "upfrontCollections" ],
         "type" : "object"
       },
       "PlatformAccountRequest" : {
@@ -4806,6 +4832,10 @@
           "locked" : {
             "type" : "boolean"
           },
+          "periodicity" : {
+            "enum" : [ "MONTHLY", "ONE_OFF" ],
+            "type" : "string"
+          },
           "planId" : {
             "format" : "uuid",
             "type" : "string"
@@ -4830,7 +4860,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "amount", "concept", "id", "locked", "planId", "status", "taxPercent", "validFrom", "version" ],
+        "required" : [ "amount", "concept", "id", "locked", "periodicity", "planId", "status", "taxPercent", "validFrom", "version" ],
         "type" : "object"
       },
       "PriceCreate" : {
@@ -4896,7 +4926,7 @@
           },
           "validTo" : {
             "format" : "date",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "version" : {
             "format" : "int64",
@@ -4972,11 +5002,22 @@
       "PublicPlan" : {
         "description" : "Only active showOnWeb plans; prices omitted when BILLING is disabled.",
         "properties" : {
+          "billingMode" : {
+            "description" : "Present for MONTHLY plans",
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE" ],
+            "type" : "string"
+          },
           "code" : {
             "type" : "string"
           },
           "conditions" : {
             "type" : "string"
+          },
+          "conditionsI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
           },
           "currentPrices" : {
             "items" : {
@@ -4998,19 +5039,34 @@
           "name" : {
             "type" : "string"
           },
+          "nameI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
           "order" : {
             "format" : "int32",
             "type" : "integer"
           },
+          "pack" : {
+            "$ref" : "#/components/schemas/PackSettings"
+          },
+          "priceLine" : {
+            "type" : "string"
+          },
+          "singleClass" : {
+            "$ref" : "#/components/schemas/SingleClassSettings"
+          },
           "texts" : {
-            "$ref" : "#/components/schemas/PublicPlanTexts"
+            "$ref" : "#/components/schemas/PlanTexts"
           },
           "type" : {
             "enum" : [ "MONTHLY", "PACK", "SINGLE_CLASS" ],
             "type" : "string"
           }
         },
-        "required" : [ "code", "dogsIncluded", "id", "name", "order", "type" ],
+        "required" : [ "code", "dogsIncluded", "id", "name", "nameI18n", "order", "type" ],
         "type" : "object"
       },
       "PublicPlanTexts" : {
@@ -5066,9 +5122,12 @@
           "concept" : {
             "enum" : [ "MONTHLY_FEE", "MAINTENANCE_FEE", "PACK", "SINGLE_CLASS" ],
             "type" : "string"
+          },
+          "taxPercent" : {
+            "type" : "number"
           }
         },
-        "required" : [ "amount", "concept" ],
+        "required" : [ "amount", "concept", "taxPercent" ],
         "type" : "object"
       },
       "ReasonRequest" : {
@@ -23478,7 +23537,7 @@
         "x-sortable" : [ "order" ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "createPlan",
         "requestBody" : {
           "content" : {
@@ -23627,7 +23686,7 @@
     },
     "/api/v1/plans/order" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "orderPlans",
         "requestBody" : {
           "content" : {
@@ -23776,7 +23835,7 @@
     },
     "/api/v1/plans/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "deletePlan",
         "parameters" : [ {
           "in" : "path",
@@ -23914,7 +23973,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "getPlan",
         "parameters" : [ {
           "in" : "path",
@@ -24059,7 +24118,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "updatePlan",
         "parameters" : [ {
           "in" : "path",
@@ -25506,7 +25565,7 @@
     },
     "/api/v1/prices" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "listPrices",
         "parameters" : [ {
           "in" : "query",
@@ -25682,7 +25741,7 @@
         "x-sortable" : [ ]
       },
       "post" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "createPrice",
         "requestBody" : {
           "content" : {
@@ -25831,7 +25890,7 @@
     },
     "/api/v1/prices/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "deletePrice",
         "parameters" : [ {
           "in" : "path",
@@ -25969,7 +26028,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "updatePrice",
         "parameters" : [ {
           "in" : "path",
@@ -26048,7 +26107,7 @@
                 }
               }
             },
-            "description" : "PRICE_LOCKED, STALE_VERSION"
+            "description" : "PRICE_LOCKED, STALE_VERSION, PRICE_OVERLAP"
           },
           "422" : {
             "content" : {
@@ -26058,7 +26117,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "CURRENCY_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -26138,7 +26197,7 @@
         }, {
           "in" : "header",
           "name" : "X-Api-Key",
-          "required" : true,
+          "required" : false,
           "schema" : {
             "type" : "string"
           }

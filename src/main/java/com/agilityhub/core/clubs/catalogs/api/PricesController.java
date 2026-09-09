@@ -18,18 +18,21 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 import static com.agilityhub.core.clubs.catalogs.api.CatalogResponses.*;
 import static com.agilityhub.core.clubs.catalogs.api.CatalogRequests.*;
 
-/** Contract-first endpoints; standard NOT_IMPLEMENTED until the owning E2 use case is delivered. */
+/** Dated prices with transactional supersession and immutable billed terms. */
 @RestController
 public class PricesController {
+    private final com.agilityhub.core.clubs.catalogs.application.PriceService prices;
+    private final OfferViews views;
+    public PricesController(com.agilityhub.core.clubs.catalogs.application.PriceService prices, OfferViews views) { this.prices = prices; this.views = views; }
     @GetMapping("/api/v1/prices")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
     @ListContract(filterable = {"planId", "concept"}, sortable = {},
             columns = {"concept*", "amount*", "taxPercent*", "validFrom*", "validTo*", "status*"}, paged = false, exportable = false)
     @Operation(summary = "List prices",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Price>"))
-    public CatalogItems<Price> listPrices(@RequestParam String planId, @RequestParam(required = false) PriceConcept concept) { throw new UnsupportedOperationException(); }
+    public CatalogItems<Price> listPrices(@RequestParam String planId, @RequestParam(required = false) PriceConcept concept) { return views.prices(planId, concept); }
 
     @PostMapping("/api/v1/prices")
     @ResponseStatus(HttpStatus.CREATED)
@@ -37,18 +40,18 @@ public class PricesController {
     @RequiresModule(Module.BILLING)
     @ContractErrors({CURRENCY_MISMATCH, PRICE_OVERLAP, PRICE_LOCKED})
     @Operation(summary = "Create price",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "201", description = "PriceCreated"))
-    public PriceCreated createPrice(@Valid @RequestBody PriceCreate request) { throw new UnsupportedOperationException(); }
+    public PriceCreated createPrice(@Valid @RequestBody PriceCreate request) { var result = prices.create(views.input(request)); return new PriceCreated(views.price(result.id()), result.closedPriceId()); }
 
     @PatchMapping("/api/v1/prices/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
-    @ContractErrors({PRICE_LOCKED, STALE_VERSION})
+    @ContractErrors({PRICE_LOCKED, STALE_VERSION, PRICE_OVERLAP, CURRENCY_MISMATCH})
     @Operation(summary = "Update price",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "200", description = "Price"))
-    public Price updatePrice(@PathVariable String id, @Valid @RequestBody PricePatch request) { throw new UnsupportedOperationException(); }
+    public Price updatePrice(@PathVariable String id, @Valid @RequestBody PricePatch request) { prices.update(id, views.input(request)); return views.price(id); }
 
     @DeleteMapping("/api/v1/prices/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -56,8 +59,8 @@ public class PricesController {
     @RequiresModule(Module.BILLING)
     @ContractErrors({PRICE_LOCKED})
     @Operation(summary = "Delete price",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
-    public void deletePrice(@PathVariable String id) { throw new UnsupportedOperationException(); }
+    public void deletePrice(@PathVariable String id) { prices.delete(id); }
 
 }

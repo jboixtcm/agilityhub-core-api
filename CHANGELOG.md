@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T05: Implement tenant-scoped plans and dated prices, monthly billing modes,
+  atomic price supersession and invoice locks, entry-fee and discount proposals,
+  and localized public plans with club-key access. Add role, tenant, concurrency
+  and pricing tests; refresh the OpenAPI snapshot.
+
 - E2-T04: Implement instructor and administrator profiles, shared member-role
   assignment, tenant-scoped usage guards and concurrent last-administrator
   protection. Process member leave through the outbox, retain the last admin

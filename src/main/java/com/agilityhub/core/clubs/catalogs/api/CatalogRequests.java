@@ -54,6 +54,7 @@ public final class CatalogRequests {
             @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1, max = 16) @Pattern(regexp = "[A-Z0-9_]+") String code,
             @Schema(requiredMode = REQUIRED) @NotNull Map<String, String> name,
             @Schema(requiredMode = REQUIRED) @NotNull PlanType type,
+            @Schema(requiredMode = NOT_REQUIRED, description = "MONTHLY plans only; defaults to MONTHLY_FEE") BillingMode billingMode,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(9) Integer dogsIncluded,
             @Schema(requiredMode = NOT_REQUIRED) EntryFee entryFee,
             @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
@@ -68,6 +69,7 @@ public final class CatalogRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 16) @Pattern(regexp = "[A-Z0-9_]+") String code,
             @Schema(requiredMode = NOT_REQUIRED) Map<String, String> name,
             @Schema(requiredMode = NOT_REQUIRED) PlanType type,
+            @Schema(requiredMode = NOT_REQUIRED) BillingMode billingMode,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(9) Integer dogsIncluded,
             @Schema(requiredMode = NOT_REQUIRED) EntryFee entryFee,
             @Schema(requiredMode = NOT_REQUIRED) PackSettings pack,
@@ -134,7 +136,7 @@ public final class CatalogRequests {
             @Schema(requiredMode = NOT_REQUIRED) Money amount,
             @Schema(requiredMode = NOT_REQUIRED) @DecimalMin("0") @DecimalMax("100") java.math.BigDecimal taxPercent,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate validFrom,
-            @Schema(requiredMode = NOT_REQUIRED) LocalDate validTo,
+            @Schema(requiredMode = NOT_REQUIRED, implementation = String.class, types = {"string", "null"}, format = "date") com.fasterxml.jackson.databind.JsonNode validTo,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
 
 }

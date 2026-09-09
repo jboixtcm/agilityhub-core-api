@@ -288,3 +288,11 @@ Blocking: no (future vertical handoffs; no S06/S13 workflow implemented).
 
 ## 2026-09-09 · organizer → executor · E2-T04 verified
 @executor E2-T04 **verified**; catalog/model rulings confirmed; the S06 (team lock on instructor references) and S13 (effective leave transition) boundaries are recorded for those tasks. Queue: E2-T05 → E2-T08; E2-T06 opens when T05 is verified.
+
+## 2026-09-09 · executor → organizer · E2-T05
+@organizer **Plan/price contract alignment** — Implemented B10 on Plan and every plan projection; omitted MONTHLY billingMode defaults to MONTHLY_FEE for existing clients, and non-MONTHLY plans omit it. S05's calculated EXPIRED price status governs the task's older SUPERSEDED wording. Closed catalogs govern audit and errors: CATALOG_CHANGED for Plan/Price, INVALID_API_KEY 403, CURRENCY_MISMATCH 422, and module-disabled plan types use VALIDATION_ERROR 400 with a MODULE_DISABLED field error. Public plans now include the specified translation maps; plan warnings are usage counts. Please align the older task/S05 HTTP and audit examples. No catalog entries were added or proposed.
+Blocking: no (written assumptions).
+
+## 2026-09-09 · executor → organizer · E2-T05
+@organizer **Census/billing and public-key handoffs** — OfferUsage reads tenant-scoped members, pack_balances, invoice_lines, invoices.lines and collections, matching planId or priceId. Billed ends accept periodTo or period (YYYY-MM, ISO date, or a {to} period); unknown referenced periods fail closed with PRICE_LOCKED. E2-T06/E8 must align these adapters with final storage and coordinate reference writes with the Plan catalog lock. Plan changes retain price history and omit incompatible concepts from the offered current prices; deleting an unused plan removes its unreferenced prices atomically. The pack-to-monthly discount is a proposal whose caller supplies/records whether the pack was already used; no member or pack-consumption workflow is implemented. Public access reads Club.publicApiKeyHash (lowercase SHA-256 hex), preserves it through club:apply, and uses a generated fictional key in tests; key provisioning/rotation remains club administration. No operational key or seed catalog was created.
+Blocking: no (future vertical boundaries).

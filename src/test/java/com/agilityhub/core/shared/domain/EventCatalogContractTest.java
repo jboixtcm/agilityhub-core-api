@@ -50,6 +50,9 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.identity.domain.TeamMembershipChanged.class,
                 () -> new com.agilityhub.core.identity.domain.TeamMembershipChanged("club-a", "membership-a", Instant.parse("2030-01-01T00:00:00Z"),
                         Map.of("accountId", "account-a", "clubId", "club-a", "rolesBefore", Set.of("MEMBER"), "rolesAfter", Set.of("MEMBER", "INSTRUCTOR")), "account-a", DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.catalogs.domain.OfferChanged.class,
+                () -> new com.agilityhub.core.clubs.catalogs.domain.OfferChanged(com.agilityhub.core.clubs.catalogs.domain.OfferChanged.Kind.Plan,
+                        "club-a", "plan-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "plan-a", "diff", Map.of()), "account-a"));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -92,6 +95,9 @@ class EventCatalogContractTest {
                 assertThat(changed.aggregateType()).isEqualTo("Level");
                 assertThat(changed.aggregateId()).isEqualTo("level-a");
                 assertThat(changed.payload()).containsKeys("id", "diff");
+            } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.OfferChanged changed) {
+                for (var kind : com.agilityhub.core.clubs.catalogs.domain.OfferChanged.Kind.values()) { assertThat(catalog).contains(kind.name() + "Changed"); }
+                assertThat(changed.aggregateType()).isEqualTo("Plan"); assertThat(changed.payload()).containsKeys("id", "diff");
             } else if (event instanceof com.agilityhub.core.shared.domain.events.MemberStatusChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Member"); assertThat(event.payload()).containsKeys("memberId", "before", "after", "effectiveDate");
             } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.InstructorChanged) {
