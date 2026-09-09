@@ -8,7 +8,7 @@ import java.util.Map;
 public record IdentityEvent(Kind kind, String clubId, String aggregateId, Instant occurredAt,
                             Map<String, Object> payload) implements DomainEvent {
     public IdentityEvent { payload = Map.copyOf(payload); }
-    public enum Kind { AccountCreated, MagicLinkRequested, PasswordChanged, MembershipChanged, AccountLocaleChanged, SessionRevoked, AccountErasureRequested }
+    public enum Kind { AccountCreated, MagicLinkRequested, PasswordChanged, MembershipChanged, AccountLocaleChanged, SessionRevoked, AccountErasureRequested, LearnAccountsImported }
     @Override public String type() { return kind.name(); }
     @Override public String aggregateType() { return kind == Kind.MembershipChanged ? "Membership" : "Account"; }
     @Override public String actorAccountId() { return null; }

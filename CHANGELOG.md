@@ -8,9 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- E1-T07 (blocked before implementation): Recorded missing Docker/Mongo access and
-  full verification failures; the Learn import CLI and T-01-14 remain pending.
-
 - E1-T13: Browser refresh tokens now use host-only HttpOnly cookies with rotation,
   same-host request validation and logout/revocation clearing. BODY clients retain
   their token responses. Added audited platform-role GET/PUT endpoints with a
@@ -31,6 +28,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   to `Me`, with contract, serialization and tenant/role tests.
 
 ### Added
+
+- E1-T07: Learn CSV import CLI with unchanged bcrypt credentials, idempotent
+  account linking, explicit audited platform-admin grants, guest exclusion,
+  write-free previews and reports without personal data. Added a fictional
+  50-account fixture and T-01-14 import, login, conflict and rollback tests.
 
 - E1-T09: Fictional Cànic/minimal account definitions,
   tenant role reconciliation, insert-only credentials and onboarding defaults,

@@ -18,6 +18,22 @@ public class AccountRepository extends GlobalRepository<Account> {
     public Optional<Account> findByEmail(String email) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("email").is(Email.normalize(email))), Account.class));
     }
+    public Optional<Account> findByLearnUserId(String id) {
+        return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("externalIds.learnUserId").is(id)), Account.class));
+    }
+    /** Called in the import transaction; partial updates preserve all unrelated account and security state. */
+    public void linkLearn(String id, String learnUserId, String learnRole, String hash, Instant originalCreatedAt, Instant now) {
+        var query = Query.query(Criteria.where("_id").is(id));
+        var update = new Update().set("externalIds.learnUserId", learnUserId).set("externalIds.learnRole", learnRole)
+                .set("onboardingPending", true);
+        if (originalCreatedAt != null) { update.set("createdAt", originalCreatedAt); }
+        mongo.updateFirst(query, update, Account.class);
+        var account = findById(id).orElseThrow();
+        var credential = new Update().set("passwordHash", hash);
+        if (account.security() == null) { credential.set("security", new Account.Security(0, null, now, 0)); }
+        else { credential.set("security.passwordChangedAt", now); }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("passwordHash").is(null)), credential, Account.class);
+    }
     public void recordLogin(String id, String clientId, Instant now) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),
                 new Update().set("lastLoginAt", now).set("lastLoginClientId", clientId), Account.class);
@@ -89,5 +105,8 @@ public class AccountRepository extends GlobalRepository<Account> {
     }
     public void ensureIndexes() {
         mongo.indexOps(Account.class).ensureIndex(new Index().on("email", Direction.ASC).unique().named("account_email"));
+        mongo.indexOps(Account.class).ensureIndex(new Index().on("externalIds.learnUserId", Direction.ASC).unique()
+                .partial(org.springframework.data.mongodb.core.index.PartialIndexFilter.of(Criteria.where("externalIds.learnUserId").type(2)))
+                .named("account_learn_user"));
     }
 }
