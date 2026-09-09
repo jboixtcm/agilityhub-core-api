@@ -1,0 +1,1188 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e1-t09-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+21:35:48.397 [main] INFO com.agilityhub.core.clubs.messaging.application.LogEmailSender -- Local email accepted notificationId=fixture
+21:35:48.399 [main] INFO com.agilityhub.core.clubs.messaging.application.LogEmailSender -- Local email accepted notificationId=fixture
+21:35:48.454 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'emailSender' defined in com.agilityhub.core.configuration.EmailConfiguration: Failed to instantiate [com.agilityhub.core.clubs.messaging.application.EmailSender]: Factory method 'emailSender' threw exception with message: MAIL_FROM_PLATFORM is required in staging/prod
+21:35:48.545 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sendGridSignatures' defined in com.agilityhub.core.configuration.EmailConfiguration: Failed to instantiate [com.agilityhub.core.clubs.messaging.application.SendGridSignatureVerifier]: Factory method 'sendGridSignatures' threw exception with message: SENDGRID_WEBHOOK_PUBLIC_KEY is required in staging/prod
+21:35:48.855 [main] INFO com.agilityhub.core.clubs.messaging.application.LogEmailSender -- Local email accepted notificationId=fixture
+21:35:48.901 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'emailSender' defined in com.agilityhub.core.configuration.EmailConfiguration: Failed to instantiate [com.agilityhub.core.clubs.messaging.application.EmailSender]: Factory method 'emailSender' threw exception with message: SENDGRID_API_KEY is required in staging/prod
+21:35:48.911 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'emailSender' defined in com.agilityhub.core.configuration.EmailConfiguration: Failed to instantiate [com.agilityhub.core.clubs.messaging.application.EmailSender]: Factory method 'emailSender' threw exception with message: SENDGRID_API_KEY is required in staging/prod
+21:35:49.707 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'registeredClients' defined in com.agilityhub.core.configuration.OidcClientConfiguration: Unsatisfied dependency expressed through method 'registeredClients' parameter 0: Error creating bean with name 'core.oidc-com.agilityhub.core.configuration.OidcClientConfiguration$Properties': Could not bind properties to 'OidcClientConfiguration.Properties' : prefix=core.oidc, ignoreInvalidFields=false, ignoreUnknownFields=true
+21:35:49.711 [main] WARN org.springframework.context.annotation.AnnotationConfigApplicationContext -- Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'registeredClients' defined in com.agilityhub.core.configuration.OidcClientConfiguration: Failed to instantiate [org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository]: Factory method 'registeredClients' threw exception with message: OIDC tokenDelivery is required
+21:35:50.637 [main] WARN com.agilityhub.core.clubs.common.application.ExportWorker -- Export poll failed for club club-a
+21:35:50.638 [main] WARN com.agilityhub.core.clubs.common.application.ExportWorker -- Export attempt failed for job null (attempt 0)
+21:35:50.639 [main] WARN com.agilityhub.core.clubs.common.application.ExportWorker -- Export attempt failed for job null (attempt 0)
+21:35:51.795 [main] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 8.0.3.Final
+Imported: 0 created, 0 linked, 0 skipped, 1 errors
+Reasons: {INVALID_PASSWORD=1}
+VALIDATION_ERROR {}
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Usage: identity:import-learn <csv> [--dry-run] [--platform-admins=a@x,b@y]
+Imported: 1 created, 0 linked, 0 skipped, 0 errors
+Reasons: {NEW_ACCOUNT=1}
+Dry run: 1 would create, 0 would link, 0 skipped, 0 errors
+Reasons: {NEW_ACCOUNT=1}
+21:35:52.589 [main] WARN org.springframework.security.crypto.argon2.Argon2PasswordEncoder -- Malformed password hash
+java.lang.IllegalArgumentException: Invalid encoded Argon2-hash
+	at org.springframework.security.crypto.argon2.Argon2EncodingUtils.decode(Argon2EncodingUtils.java:107)
+	at org.springframework.security.crypto.argon2.Argon2PasswordEncoder.matches(Argon2PasswordEncoder.java:137)
+	at com.agilityhub.core.identity.application.PasswordHasher.verify(PasswordHasher.java:21)
+	at com.agilityhub.core.identity.application.PasswordHasherTest.T_01_02_missingAndUnusableHashesFailThroughDummyVerification(PasswordHasherTest.java:40)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+21:35:53.961 [main] WARN com.agilityhub.core.identity.application.CompromisedPasswords -- Compromised password check unavailable; continuing per A2
+21:35:53.992 [main] WARN com.agilityhub.core.identity.application.CompromisedPasswords -- Compromised password check unavailable; continuing per A2
+21:35:53.993 [main] WARN com.agilityhub.core.identity.application.CompromisedPasswords -- Compromised password check unavailable; continuing per A2
+21:35:54.249 [main] WARN com.agilityhub.core.platform.application.ClubConfigService -- ParameterInvalidOverride clubId=club-a key=training.capacityPerRingSlot error=PARAMETER_INVALID
+21:35:54.249 [main] WARN com.agilityhub.core.platform.application.ClubConfigService -- ParameterInvalidOverride clubId=club-a key=signup.enabled error=PARAMETER_INVALID
+21:35:54.249 [main] WARN com.agilityhub.core.platform.application.ClubConfigService -- ParameterInvalidOverride clubId=club-a key=retired.key error=UNKNOWN_PARAMETER
+21:35:54.250 [main] WARN com.agilityhub.core.platform.application.ClubConfigService -- ParameterInvalidOverride clubId=club-a key=training.capacityPerRingSlot error=PARAMETER_INVALID
+FREE_TRAINING dependsOn=[] selfService=false MINIM=false CANIC=true
+BILLING dependsOn=[] selfService=false MINIM=false CANIC=true
+PACKS dependsOn=[BILLING] selfService=false MINIM=false CANIC=true
+SINGLE_CLASS dependsOn=[BILLING] selfService=false MINIM=false CANIC=false
+ACTIVITIES dependsOn=[] selfService=false MINIM=false CANIC=true
+FAMILY_GROUP dependsOn=[] selfService=false MINIM=false CANIC=true
+WAITLIST dependsOn=[] selfService=false MINIM=true CANIC=true
+TASKS dependsOn=[] selfService=false MINIM=false CANIC=true
+FAQ dependsOn=[] selfService=true MINIM=true CANIC=true
+SMS dependsOn=[] selfService=false MINIM=false CANIC=true
+PUSH dependsOn=[] selfService=true MINIM=true CANIC=true
+INACTIVITY dependsOn=[] selfService=false MINIM=false CANIC=true
+COURSES dependsOn=[] selfService=false MINIM=false CANIC=true
+LEARN_LINK dependsOn=[] selfService=true MINIM=false CANIC=true
+STATS dependsOn=[] selfService=false MINIM=false CANIC=false
+SOCIAL_LEAGUE dependsOn=[STATS] selfService=false MINIM=false CANIC=false
+Audit coverage: MEMBER_UPDATED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff
+Audit coverage: SIGNUP_EDITED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff
+Audit coverage: MEMBER_PAYMENT_METHOD_CHANGED -> CensusIT.T_03_13_paymentMethodsAreValidatedAndAlwaysMasked
+Audit coverage: MEMBER_STATUS_CHANGED -> CensusIT.T_03_06_T_03_31_memberLeaveDeactivatesDogsAndReactivationKeepsTheirStatus
+Audit coverage: BOOKING_BLOCK_SET -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: BOOKING_BLOCK_CLEARED -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: ACCESS_RESENT -> CensusIT.T_03_16_accessResendPublishesAndDeliversN27Once
+Audit coverage: DOG_UPDATED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: DOG_LEVEL_CHANGED -> CensusIT.T_03_19_levelChangeKeepsBookingsAndEmitsNoWarnings
+Audit coverage: DOG_FREE_TRAINING_CHANGED -> CensusIT.T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges
+Audit coverage: DOG_TRANSFERRED -> CensusIT.T_03_21_transferPreservesDogDataAndClearsSelections
+Audit coverage: DOG_DEACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_REACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_DOCUMENT_FILE_REMOVED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: FAMILY_GROUP_CHANGED -> CensusIT.T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic
+Audit coverage: MEMBER_ROLES_CHANGED -> TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: DATA_EXPORTED -> ExportEngineIT.T_14_15_localizedHeadersMaskedValuesDatesAndReadyJobs, UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+Audit coverage: CATALOG_CHANGED -> CatalogsIT.T_05_06_T_05_19_T_05_20_catalogCrudOrderVersionAuditAndOutbox, ClubPagesIT.T_05_CP_05_auditOutboxAndPageWritesCommitAndRollbackTogether, PlansIT.T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges, TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: PLATFORM_ROLES_CHANGED -> PlatformRolesIT.T_17_09_globalReadReplaceAndRemovalAuditOnlyRolePathWithoutDomainEvent
+Audit coverage: ONBOARDING_COMPLETED -> OnboardingIT.T_01_26_importedAccountAcceptsOnceWithVersionTimeAndTransactionalAudit
+Audit coverage: IMPERSONATION_STARTED -> ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation
+Audit coverage: ACCOUNT_EMAIL_STATUS_CHANGED -> SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce
+Audit coverage: PARAMETER_CHANGED -> AuditedAspectIT.T_14_12_parameterEntryCommitsAtomicallyWithAggregateAndOutboxAndCapturesMetadata, SettingsIT.T_02_08_parameterHistoryAuditOutboxCacheAndVersionedReset
+Audit coverage: CLUB_UPDATED -> AuditedAspectIT.T_14_12_manualWriterMasksAndFreezesMutableSnapshotsBeforeCommit, ClubDefinitionsIT.T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite, SettingsIT.T_02_11_clubProjectionAndAllowlistedUpdatesAuditAndRefreshBranding
+Audit coverage: CLUB_MODULES_CHANGED -> AuditedAspectIT.T_14_11_lastChangeUsesLatestTimestampAndSeparatesTenantsAndTargets, SettingsIT.T_02_09_selfServiceModulesAuditOutboxDependenciesAndBranding
+Audit coverage: CLUB_STATUS_CHANGED -> AuditedAspectIT.T_14_11_platformEntriesHaveNullClubIdAndExplicitIsolatedQuery
+catalog.yaml parameter keys: 151
+CATALEG_PARAMETRES.md expanded effective parameter keys: 151
+Markdown grouped keys/jobs expanded; Club binding rows excluded; Annex amendments folded
+21:35:55.030 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.api.HealthControllerTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:35:55.124+02:00  INFO 60593 --- [agilityhub-core-api] [           main] c.a.c.shared.api.HealthControllerTest    : Starting HealthControllerTest using Java 21.0.12.1 with PID 60593 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:35:55.124+02:00  INFO 60593 --- [agilityhub-core-api] [           main] c.a.c.shared.api.HealthControllerTest    : The following 1 profile is active: "test"
+2026-09-09T21:35:55.921+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:35:55.921+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:35:55.922+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-09T21:35:55.930+02:00  INFO 60593 --- [agilityhub-core-api] [           main] c.a.c.shared.api.HealthControllerTest    : Started HealthControllerTest in 0.874 seconds (process running for 9.501)
+2026-09-09T21:35:56.067+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:35:56.067+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:35:56.068+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:35:56.071+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:35:56.072+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:35:56.072+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:35:56.087+02:00  WARN 60593 --- [agilityhub-core-api] [           main] o.s.web.servlet.PageNotFound             : No mapping for GET /missing
+2026-09-09T21:35:56.092+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:35:56.092+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:35:56.092+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:35:56.099+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:35:56.099+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:35:56.099+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:35:56.117+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:35:56.117+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:35:56.118+02:00  INFO 60593 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+E0-T08 ca: 242 error messages; 322 keys; parity and ICU syntax OK
+E0-T08 es: 242 error messages; 322 keys; parity and ICU syntax OK
+E0-T08 en: 242 error messages; 322 keys; parity and ICU syntax OK
+2026-09-09T21:35:56.201+02:00  INFO 60593 --- [agilityhub-core-api] [           main] com.tngtech.archunit.core.PluginLoader   : Detected Java version 21.0.12.1
+
+0 changes (applied)
+
+0 changes (dry run)
+
+0 changes (applied)
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
+Usage: identity:seed-test-accounts <file> | --club=<slug> [--dry-run] [--allow-seed-passwords]
++ club
+1 changes (dry run)
+= club
+0 changes (applied)
+apiVersion: agilityhub.club/v1
+Specify exactly one --core.command=<name>
+Specify exactly one --core.command=<name>
+Unknown or unavailable command: x
+Specify exactly one --core.command=<name>
+Usage: club:apply <file> [--dry-run] [--allow-seed-passwords]
+Usage: club:apply <file> [--dry-run] [--allow-seed-passwords]
+Usage: club:apply <file> [--dry-run] [--allow-seed-passwords]
+Usage: club:apply <file> [--dry-run] [--allow-seed-passwords]
+Usage: club:export <slug>
+Usage: club:export <slug>
+CLUB_NOT_FOUND {}
+Command failed (IllegalStateException)
+21:36:03.342 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.OpenApiSnapshotTest]: OpenApiSnapshotTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:36:03.458 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.OpenApiSnapshotTest
+21:36:03.568 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+21:36:03.569 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+21:36:03.576 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+21:36:03.913 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+21:36:03.914 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+21:36:03.925 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+21:36:03.984 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+21:36:04.072 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+21:36:04.142 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 78c65b…[truncated]
+21:36:04.278 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.293615S
+21:36:04.282 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+21:36:04.282 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+21:36:04.282 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+21:36:04.282 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+21:36:04.314 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 664193…[truncated]
+21:36:04.830 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.547851S
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:05.507+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : Starting OpenApiSnapshotTest using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:05.508+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : The following 1 profile is active: "test"
+2026-09-09T21:36:06.204+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:06.231+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:06.625+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:36:06.634+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:36:06.634+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:36:06.662+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:36:06.663+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1149 ms
+2026-09-09T21:36:06.779+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@206…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7b3…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:06.786+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=12121458, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:05 CEST 2026, lastUpdateTimeNanos=126449339934708}
+2026-09-09T21:36:07.134+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-09T21:36:08.930+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:08.930+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:08.931+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-09T21:36:08.994+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52438 (http) with context path '/'
+2026-09-09T21:36:09.030+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:36:09.031+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:36:09.031+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:36:09.041+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:36:09.041+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 45 ms
+2026-09-09T21:36:09.047+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-09T21:36:09.067+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52439 (http) with context path '/'
+2026-09-09T21:36:09.074+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : Started OpenApiSnapshotTest in 3.76 seconds (process running for 6.485)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e1-t09-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-09-09T21:36:10.851+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 1050 ms
+2026-09-09T21:36:11.198+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-09T21:36:11.198+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-09T21:36:11.198+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-09-09T21:36:11.876+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 637 ms
+2026-09-09T21:36:11.926+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.MongoTransactionSmokeIT]: MongoTransactionSmokeIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:11.933+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.MongoTransactionSmokeIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:11.949+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.MongoTransactionSmokeIT          : Starting MongoTransactionSmokeIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:11.949+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.MongoTransactionSmokeIT          : The following 1 profile is active: "test"
+2026-09-09T21:36:12.091+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:12.104+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:12.144+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@61a…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2e4…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:12.146+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1698792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:09 CEST 2026, lastUpdateTimeNanos=126454700716041}
+2026-09-09T21:36:12.589+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.MongoTransactionSmokeIT          : Started MongoTransactionSmokeIT in 0.652 seconds (process running for 9.999)
+2026-09-09T21:36:12.684+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E2ContractIT]: E2ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:12.685+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E2ContractIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:12.696+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.configuration.E2ContractIT      : Starting E2ContractIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:12.696+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.configuration.E2ContractIT      : The following 1 profile is active: "test"
+2026-09-09T21:36:12.822+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:12.833+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:12.868+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6ae…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@77c…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:12.869+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1232959, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:12 CEST 2026, lastUpdateTimeNanos=126455423998208}
+2026-09-09T21:36:13.259+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:13.259+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:13.259+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:36:13.265+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.configuration.E2ContractIT      : Started E2ContractIT in 0.579 seconds (process running for 10.675)
+2026-09-09T21:36:13.926+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 512 ms
+[ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.736 s <<< FAILURE! -- in com.agilityhub.core.configuration.E2ContractIT
+[ERROR] com.agilityhub.core.configuration.E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses -- Time elapsed: 0.059 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["MEMBER_VALIDATED",
+    "SIGNUP_REJECTED",
+    "SIGNUP_EDITED",
+    "MEMBER_UPDATED",
+    "MEMBER_PAYMENT_METHOD_CHANGED",
+    "MEMBER_STATUS_CHANGED",
+    "MEMBER_ROLES_CHANGED",
+    "MEMBER_CONSENT_CHANGED",
+    "BOOKING_BLOCK_SET",
+    "BOOKING_BLOCK_CLEARED",
+    "ACCESS_RESENT",
+    "DOG_UPDATED",
+    "DOG_LEVEL_CHANGED",
+    "DOG_FREE_TRAINING_CHANGED",
+    "DOG_TRANSFERRED",
+    "DOG_DEACTIVATED",
+    "DOG_REACTIVATED",
+    "DOG_DOCUMENT_FILE_REMOVED",
+    "FAMILY_GROUP_CHANGED",
+    "MEMBER_PLAN_CHANGED",
+    "INVOICE_MARKED_PAID",
+    "INVOICE_MARKED_FAILED",
+    "INVOICE_CANCELLED",
+    "REMITTANCE_GENERATED",
+    "REMITTANCE_ROLLED_BACK",
+    "UPFRONT_PAYMENT_RECORDED",
+    "PAYMENT_REFUNDED",
+    "IMPERSONATION_STARTED",
+    "ACCOUNT_EMAIL_STATUS_CHANGED",
+    "PLATFORM_ROLES_CHANGED",
+    "BOOKING_CREATED_BY_CLUB",
+    "BOOKING_CANCELLED_BY_CLUB",
+    "BOOKING_CANCELLED_LATE",
+    "TRAINING_BOOKED_BY_CLUB",
+    "TRAINING_CANCELLED_BY_CLUB",
+    "ATTENDANCE_OVERRIDDEN",
+    "WEEK_VALIDATED",
+    "CLASS_CANCELLED",
+    "CLASS_UPDATED_WITH_BOOKINGS",
+    "CLASS_RISK_EXEMPTION_CHANGED",
+    "RING_BLOCK_CREATED",
+    "RING_BLOCK_CANCELLED",
+    "TEMPLATE_CLASS_DELETED",
+    "ACTIVITY_PUBLISHED",
+    "ACTIVITY_CANCELLED",
+    "INACTIVITY_RESOLVED",
+    "LEAVE_RESOLVED",
+    "LEAVE_CANCELLED",
+    "PARAMETER_CHANGED",
+    "CLUB_UPDATED",
+    "CLUB_MODULES_CHANGED",
+    "CLUB_STATUS_CHANGED",
+    "CATALOG_CHANGED",
+    "ANNOUNCEMENT_SENT",
+    "DATA_EXPORTED",
+    "MEMBER_DATA_EXPORTED",
+    "ERASURE_REQUESTED",
+    "ERASURE_CANCELLED",
+    "MEMBER_ERASED",
+    "ACCOUNT_ERASED",
+    "ONBOARDING_COMPLETED"]
+to contain exactly (and in same order):
+  ["MEMBER_VALIDATED",
+    "SIGNUP_REJECTED",
+    "SIGNUP_EDITED",
+    "MEMBER_UPDATED",
+    "MEMBER_PAYMENT_METHOD_CHANGED",
+    "MEMBER_STATUS_CHANGED",
+    "MEMBER_ROLES_CHANGED",
+    "MEMBER_CONSENT_CHANGED",
+    "BOOKING_BLOCK_SET",
+    "BOOKING_BLOCK_CLEARED",
+    "ACCESS_RESENT",
+    "DOG_UPDATED",
+    "DOG_LEVEL_CHANGED",
+    "DOG_FREE_TRAINING_CHANGED",
+    "DOG_TRANSFERRED",
+    "DOG_DEACTIVATED",
+    "DOG_REACTIVATED",
+    "DOG_DOCUMENT_FILE_REMOVED",
+    "FAMILY_GROUP_CHANGED",
+    "MEMBER_PLAN_CHANGED",
+    "INVOICE_MARKED_PAID",
+    "INVOICE_MARKED_FAILED",
+    "INVOICE_CANCELLED",
+    "REMITTANCE_GENERATED",
+    "REMITTANCE_ROLLED_BACK",
+    "UPFRONT_PAYMENT_RECORDED",
+    "PAYMENT_REFUNDED",
+    "IMPERSONATION_STARTED",
+    "ONBOARDING_COMPLETED",
+    "ACCOUNT_EMAIL_STATUS_CHANGED",
+    "PLATFORM_ROLES_CHANGED",
+    "BOOKING_CREATED_BY_CLUB",
+    "BOOKING_CANCELLED_BY_CLUB",
+    "BOOKING_CANCELLED_LATE",
+    "TRAINING_BOOKED_BY_CLUB",
+    "TRAINING_CANCELLED_BY_CLUB",
+    "ATTENDANCE_OVERRIDDEN",
+    "WEEK_VALIDATED",
+    "CLASS_CANCELLED",
+    "CLASS_UPDATED_WITH_BOOKINGS",
+    "CLASS_RISK_EXEMPTION_CHANGED",
+    "RING_BLOCK_CREATED",
+    "RING_BLOCK_CANCELLED",
+    "TEMPLATE_CLASS_DELETED",
+    "ACTIVITY_PUBLISHED",
+    "ACTIVITY_CANCELLED",
+    "INACTIVITY_RESOLVED",
+    "LEAVE_RESOLVED",
+    "LEAVE_CANCELLED",
+    "PARAMETER_CHANGED",
+    "CLUB_UPDATED",
+    "CLUB_MODULES_CHANGED",
+    "CLUB_STATUS_CHANGED",
+    "CATALOG_CHANGED",
+    "ANNOUNCEMENT_SENT",
+    "DATA_EXPORTED",
+    "MEMBER_DATA_EXPORTED",
+    "ERASURE_REQUESTED",
+    "ERASURE_CANCELLED",
+    "MEMBER_ERASED",
+    "ACCOUNT_ERASED"]
+but there were differences at these indexes:
+  - element at index 28: expected "ONBOARDING_COMPLETED" but was "ACCOUNT_EMAIL_STATUS_CHANGED"
+  - element at index 29: expected "ACCOUNT_EMAIL_STATUS_CHANGED" but was "PLATFORM_ROLES_CHANGED"
+  - element at index 30: expected "PLATFORM_ROLES_CHANGED" but was "BOOKING_CREATED_BY_CLUB"
+  - element at index 31: expected "BOOKING_CREATED_BY_CLUB" but was "BOOKING_CANCELLED_BY_CLUB"
+  - element at index 32: expected "BOOKING_CANCELLED_BY_CLUB" but was "BOOKING_CANCELLED_LATE"
+  - element at index 33: expected "BOOKING_CANCELLED_LATE" but was "TRAINING_BOOKED_BY_CLUB"
+  - element at index 34: expected "TRAINING_BOOKED_BY_CLUB" but was "TRAINING_CANCELLED_BY_CLUB"
+  - element at index 35: expected "TRAINING_CANCELLED_BY_CLUB" but was "ATTENDANCE_OVERRIDDEN"
+  - element at index 36: expected "ATTENDANCE_OVERRIDDEN" but was "WEEK_VALIDATED"
+  - element at index 37: expected "WEEK_VALIDATED" but was "CLASS_CANCELLED"
+  - element at index 38: expected "CLASS_CANCELLED" but was "CLASS_UPDATED_WITH_BOOKINGS"
+  - element at index 39: expected "CLASS_UPDATED_WITH_BOOKINGS" but was "CLASS_RISK_EXEMPTION_CHANGED"
+  - element at index 40: expected "CLASS_RISK_EXEMPTION_CHANGED" but was "RING_BLOCK_CREATED"
+  - element at index 41: expected "RING_BLOCK_CREATED" but was "RING_BLOCK_CANCELLED"
+  - element at index 42: expected "RING_BLOCK_CANCELLED" but was "TEMPLATE_CLASS_DELETED"
+  - element at index 43: expected "TEMPLATE_CLASS_DELETED" but was "ACTIVITY_PUBLISHED"
+  - element at index 44: expected "ACTIVITY_PUBLISHED" but was "ACTIVITY_CANCELLED"
+  - element at index 45: expected "ACTIVITY_CANCELLED" but was "INACTIVITY_RESOLVED"
+  - element at index 46: expected "INACTIVITY_RESOLVED" but was "LEAVE_RESOLVED"
+  - element at index 47: expected "LEAVE_RESOLVED" but was "LEAVE_CANCELLED"
+  - element at index 48: expected "LEAVE_CANCELLED" but was "PARAMETER_CHANGED"
+  - element at index 49: expected "PARAMETER_CHANGED" but was "CLUB_UPDATED"
+  - element at index 50: expected "CLUB_UPDATED" but was "CLUB_MODULES_CHANGED"
+  - element at index 51: expected "CLUB_MODULES_CHANGED" but was "CLUB_STATUS_CHANGED"
+  - element at index 52: expected "CLUB_STATUS_CHANGED" but was "CATALOG_CHANGED"
+  - element at index 53: expected "CATALOG_CHANGED" but was "ANNOUNCEMENT_SENT"
+  - element at index 54: expected "ANNOUNCEMENT_SENT" but was "DATA_EXPORTED"
+  - element at index 55: expected "DATA_EXPORTED" but was "MEMBER_DATA_EXPORTED"
+  - element at index 56: expected "MEMBER_DATA_EXPORTED" but was "ERASURE_REQUESTED"
+  - element at index 57: expected "ERASURE_REQUESTED" but was "ERASURE_CANCELLED"
+  - element at index 58: expected "ERASURE_CANCELLED" but was "MEMBER_ERASED"
+  - element at index 59: expected "MEMBER_ERASED" but was "ACCOUNT_ERASED"
+  - element at index 60: expected "ACCOUNT_ERASED" but was "ONBOARDING_COMPLETED"
+
+	at com.agilityhub.core.configuration.E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses(E2ContractIT.java:246)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-09-09T21:36:14.421+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.configuration.ManagementIT]: ManagementIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:14.422+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.ManagementIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:14.432+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.configuration.ManagementIT      : Starting ManagementIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:14.432+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.configuration.ManagementIT      : The following 1 profile is active: "test"
+2026-09-09T21:36:14.564+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:14.576+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:14.603+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:36:14.603+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:36:14.603+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:36:14.612+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:36:14.613+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 181 ms
+2026-09-09T21:36:14.641+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@d69…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@137…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:14.642+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1517500, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:14 CEST 2026, lastUpdateTimeNanos=126457197397708}
+2026-09-09T21:36:14.703+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-09T21:36:15.002+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52451 (http) with context path '/'
+2026-09-09T21:36:15.013+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:36:15.014+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:36:15.014+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:36:15.022+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-3].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:36:15.022+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 19 ms
+2026-09-09T21:36:15.025+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-09-09T21:36:15.034+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52452 (http) with context path '/'
+2026-09-09T21:36:15.036+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.configuration.ManagementIT      : Started ManagementIT in 0.612 seconds (process running for 12.446)
+2026-09-09T21:36:15.063+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat-3].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServletRegistration'
+2026-09-09T21:36:15.063+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServletRegistration'
+2026-09-09T21:36:15.063+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-09-09T21:36:15.079+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-09T21:36:15.079+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-09T21:36:15.080+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-09-09T21:36:15.150+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.content.api.ClubPagesIT]: ClubPagesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:15.165+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.content.api.ClubPagesIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:15.174+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.clubs.content.api.ClubPagesIT   : Starting ClubPagesIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:15.174+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.clubs.content.api.ClubPagesIT   : The following 1 profile is active: "test"
+2026-09-09T21:36:15.276+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:15.288+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:15.322+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@7ec…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@791…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:15.324+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1659083, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:14 CEST 2026, lastUpdateTimeNanos=126457878910125}
+2026-09-09T21:36:16.184+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:16.184+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:16.185+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-09T21:36:16.202+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.clubs.content.api.ClubPagesIT   : Started ClubPagesIT in 1.036 seconds (process running for 13.613)
+2026-09-09T21:36:18.056+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.ExportEngineIT]: ExportEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:18.089+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.ExportEngineIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:18.108+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.clubs.common.api.ExportEngineIT    : Starting ExportEngineIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:18.108+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.clubs.common.api.ExportEngineIT    : The following 1 profile is active: "test"
+2026-09-09T21:36:18.335+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:18.352+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 15 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:18.402+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:36:18.402+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:36:18.402+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:36:18.414+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-4].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:36:18.414+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 305 ms
+2026-09-09T21:36:18.438+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@223…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@119…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:18.440+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1182041, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:18 CEST 2026, lastUpdateTimeNanos=126460994329041}
+2026-09-09T21:36:18.542+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-09T21:36:19.025+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-4].[localhost].[/]     : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:19.025+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:19.026+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-09T21:36:19.035+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52466 (http) with context path '/'
+2026-09-09T21:36:19.055+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:36:19.056+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:36:19.056+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:36:19.066+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-5].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:36:19.066+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 29 ms
+2026-09-09T21:36:19.071+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-09T21:36:19.084+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52467 (http) with context path '/'
+2026-09-09T21:36:19.088+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.clubs.common.api.ExportEngineIT    : Started ExportEngineIT in 0.997 seconds (process running for 16.498)
+T_14_16_100001RowsRejectBeforeCreatingAJob [unfiltered]: HTTP 422 EXPORT_TOO_LARGE in 45 ms
+T_14_16_100001RowsRejectBeforeCreatingAJob [status:eq:ACTIVE]: HTTP 422 EXPORT_TOO_LARGE in 51 ms
+2026-09-09T21:36:23.588+02:00  WARN 60615 --- [agilityhub-core-api] [           main] c.a.c.c.common.application.ExportWorker  : Export attempt failed for job ed29434e-573b-4902-8f5a-cee822…[truncated] (attempt 1)
+2026-09-09T21:36:23.598+02:00  WARN 60615 --- [agilityhub-core-api] [           main] c.a.c.c.common.application.ExportWorker  : Export attempt failed for job ed29434e-573b-4902-8f5a-cee822…[truncated] (attempt 2)
+2026-09-09T21:36:23.606+02:00  WARN 60615 --- [agilityhub-core-api] [           main] c.a.c.c.common.application.ExportWorker  : Export attempt failed for job ed29434e-573b-4902-8f5a-cee822…[truncated] (attempt 3)
+2026-09-09T21:36:27.601+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.UniversalListsIT]: UniversalListsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:27.602+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.UniversalListsIT
+2026-09-09T21:36:27.871+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat-4].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-09T21:36:27.871+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-09T21:36:27.871+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-09-09T21:36:30.818+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.catalogs.api.PlansIT]: PlansIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:30.834+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.catalogs.api.PlansIT
+E2-T05 curl /api/v1/public/canic/plans (fictional fixture, key omitted):
+{"club":{"slug":"canic","name":"Example Agility Club","currency":"EUR"},"plans":[{"id":"ae5cb365-aa9f-4fa7-97a3-90223c…[truncated]","code":"MONTHLY","name":"Abonado MONTHLY","nameI18n":{"es":"Abonado MONTHLY","ca":"Abonat MONTHLY","en":"Member MONTHLY"},"type":"MONTHLY","billingMode":"MONTHLY_FEE","dogsIncluded":1,"priceLine":"60,00 €/mes","conditions":"Condiciones","conditionsI18n":{"es":"Condiciones","ca":"Condicions"},"texts":{"description":"Descripción","descriptionI18n":{"es":"Descripción","ca":"Descripció"}},"currentPrices":[{"concept":"MONTHLY_FEE","amount":{"amountMinor":6000,"currency":"EUR"},"taxPercent":0}],"entryFeeAmount":{"amountMinor":10000,"currency":"EUR"},"order":0}]}
+2026-09-09T21:36:33.550+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.catalogs.api.CatalogsIT]: CatalogsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:33.551+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.catalogs.api.CatalogsIT
+2026-09-09T21:36:36.738+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.catalogs.api.TeamIT]: TeamIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:36.739+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.catalogs.api.TeamIT
+2026-09-09T21:36:37.988+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:38.014+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+2026-09-09T21:36:41.827+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.api.SendGridWebhookIT]: SendGridWebhookIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:41.839+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.api.SendGridWebhookIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:41.870+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.messaging.api.SendGridWebhookIT  : Starting SendGridWebhookIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:41.870+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.messaging.api.SendGridWebhookIT  : The following 1 profile is active: "test"
+2026-09-09T21:36:42.074+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:42.086+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:42.127+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@634…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5a0…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:42.128+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1493375, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:41 CEST 2026, lastUpdateTimeNanos=126484683768541}
+2026-09-09T21:36:42.547+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:42.547+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:42.547+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:36:42.554+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.messaging.api.SendGridWebhookIT  : Started SendGridWebhookIT in 0.695 seconds (process running for 39.964)
+2026-09-09T21:36:42.801+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT]: SystemNotificationServiceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:42.812+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:42.822+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.SystemNotificationServiceIT  : Starting SystemNotificationServiceIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:42.822+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.SystemNotificationServiceIT  : The following 1 profile is active: "test"
+2026-09-09T21:36:42.927+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:42.939+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:42.966+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6fc…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@38f…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:42.968+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1615250, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:42 CEST 2026, lastUpdateTimeNanos=126485523500583}
+2026-09-09T21:36:43.376+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.SystemNotificationServiceIT  : Started SystemNotificationServiceIT in 0.562 seconds (process running for 40.786)
+2026-09-09T21:36:43.664+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.ImpersonationHandoffIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:43.671+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.i.api.ImpersonationHandoffIT       : Starting ImpersonationHandoffIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:43.671+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.i.api.ImpersonationHandoffIT       : The following 1 profile is active: "test"
+2026-09-09T21:36:43.776+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:43.788+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:43.826+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@42b…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@22e…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:43.828+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1635333, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:43 CEST 2026, lastUpdateTimeNanos=126486383469875}
+2026-09-09T21:36:44.160+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:44.160+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:44.160+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:36:44.166+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.i.api.ImpersonationHandoffIT       : Started ImpersonationHandoffIT in 0.501 seconds (process running for 41.576)
+T-01-11 decoded fictional JWT claims: {sub=account-member, activeProfile=MEMBER, roles=[MEMBER], iss=https://id.agilitydoghub.com, clubId=club-a, impersonatedMemberId=member-target, locale=en, imp=true, actorAccountId=account-a, aud=clubs-app, azp=clubs-app, name=Example Member, exp=1767229200, iat=1767225600, jti=d25f1a1d-ce8a-4efb-a683-ca9704…[truncated], email=member@example.test, memberId=member-target}
+2026-09-09T21:36:45.732+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.RateLimitIT]: RateLimitIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:45.733+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.RateLimitIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:45.740+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.RateLimitIT        : Starting RateLimitIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:45.741+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.RateLimitIT        : The following 1 profile is active: "test"
+2026-09-09T21:36:45.865+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:45.878+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:45.909+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@38e…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3fe…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:45.911+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1550208, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:45 CEST 2026, lastUpdateTimeNanos=126488466635625}
+2026-09-09T21:36:46.227+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:46.227+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:46.227+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:36:46.233+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.RateLimitIT        : Started RateLimitIT in 0.498 seconds (process running for 43.644)
+2026-09-09T21:36:47.644+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.SeedTestAccountsIT]: SeedTestAccountsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:47.645+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.SeedTestAccountsIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:47.652+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.identity.api.SeedTestAccountsIT    : Starting SeedTestAccountsIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:47.652+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.identity.api.SeedTestAccountsIT    : The following 1 profile is active: "test"
+2026-09-09T21:36:47.751+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:47.762+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:47.786+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@608…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@53d…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:47.787+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1043167, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:47 CEST 2026, lastUpdateTimeNanos=126490342387916}
+2026-09-09T21:36:48.093+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:48.093+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:48.093+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:36:48.104+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.identity.api.SeedTestAccountsIT    : Started SeedTestAccountsIT in 0.458 seconds (process running for 45.514)
++ accounts: 15 to provision
+1 changes (dry run)
++ accounts: 15 to provision
+1 changes (applied)
+= accounts: 0 to provision
+0 changes (applied)
+2026-09-09T21:36:50.280+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.CorsIT]: CorsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:50.281+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.CorsIT
+2026-09-09T21:36:50.432+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.SecurityHeadersIT]: SecurityHeadersIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:50.433+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.SecurityHeadersIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:36:50.442+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.SecurityHeadersIT  : Starting SecurityHeadersIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:36:50.442+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.SecurityHeadersIT  : The following 2 profiles are active: "test", "prod"
+2026-09-09T21:36:50.541+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:36:50.553+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:36:50.579+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@590…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@187…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:36:50.581+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1096458, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:36:50 CEST 2026, lastUpdateTimeNanos=126493135882250}
+2026-09-09T21:36:51.079+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:36:51.080+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:36:51.080+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:36:51.085+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.SecurityHeadersIT  : Started SecurityHeadersIT in 0.651 seconds (process running for 48.495)
+2026-09-09T21:36:51.203+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.MeIT]: MeIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:51.204+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.MeIT
+2026-09-09T21:36:51.870+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.PlatformRolesIT]: PlatformRolesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:51.871+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.PlatformRolesIT
+Platform administrator role ensured.
+Platform administrator role ensured.
+2026-09-09T21:36:52.252+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.PasswordGrantIT]: PasswordGrantIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:52.252+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.PasswordGrantIT
+2026-09-09T21:36:53.247+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.LearnImportIT]: LearnImportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:36:53.248+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.LearnImportIT
+2026-09-09T21:37:05.086+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCoreIT]: IdentityCoreIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:05.087+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCoreIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:05.093+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.IdentityCoreIT     : Starting IdentityCoreIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:05.093+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.IdentityCoreIT     : The following 1 profile is active: "test"
+2026-09-09T21:37:05.194+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:05.206+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:05.282+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@41e…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@333…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:05.284+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=997834, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:05 CEST 2026, lastUpdateTimeNanos=126507839295666}
+2026-09-09T21:37:05.584+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:05.584+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:05.584+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:05.590+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.IdentityCoreIT     : Started IdentityCoreIT in 0.502 seconds (process running for 63.0)
+2026-09-09T21:37:09.835+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityContractIT]: IdentityContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:09.836+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityContractIT
+2026-09-09T21:37:10.381+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.OnboardingIT]: OnboardingIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:10.381+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.OnboardingIT
+T-01-26 example GET /me/onboarding: {"pending":true,"postponeRemaining":0,"requiredConsent":{"policy":"PLATFORM","version":"platform-v1","url":"https://id.example.test/privacy"},"fields":[{"key":"name","value":"Example Admin","required":true},{"key":"locale","value":"en","required":true},{"key":"phone","value":null,"required":false}]}
+2026-09-09T21:37:12.324+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.CookieRefreshIT]: CookieRefreshIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:12.324+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.CookieRefreshIT
+2026-09-09T21:37:12.758+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.OidcIT]: OidcIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:12.759+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.OidcIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:12.765+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.agilityhub.core.identity.api.OidcIT    : Starting OidcIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:12.765+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.agilityhub.core.identity.api.OidcIT    : The following 1 profile is active: "test"
+2026-09-09T21:37:12.881+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:12.892+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:12.918+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@38c…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@14a…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:12.920+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1650833, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:12 CEST 2026, lastUpdateTimeNanos=126515475602083}
+2026-09-09T21:37:13.204+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:13.204+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:13.204+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:13.209+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.agilityhub.core.identity.api.OidcIT    : Started OidcIT in 0.449 seconds (process running for 70.619)
+Signing key rotated; previous key retained for verification.
+2026-09-09T21:37:14.311+02:00  WARN 60615 --- [agilityhub-core-api] [           main] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Method parameter 'max_age': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: "invalid"]
+2026-09-09T21:37:14.828+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.SecurityEventIT]: SecurityEventIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:14.829+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.SecurityEventIT
+2026-09-09T21:37:15.174+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.identity.api.IdentityCurlIT]: IdentityCurlIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:15.174+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.identity.api.IdentityCurlIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:15.181+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.IdentityCurlIT     : Starting IdentityCurlIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:15.181+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.IdentityCurlIT     : The following 1 profile is active: "test"
+2026-09-09T21:37:15.276+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:15.287+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:15.309+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:37:15.310+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:37:15.310+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:37:15.318+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-6].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:37:15.318+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 136 ms
+2026-09-09T21:37:15.328+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@370…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@364…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:15.329+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1010959, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:15 CEST 2026, lastUpdateTimeNanos=126517884625333}
+2026-09-09T21:37:15.375+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-09T21:37:15.615+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-6].[localhost].[/]     : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:15.615+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:15.615+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:15.620+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52527 (http) with context path '/'
+2026-09-09T21:37:15.630+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-09T21:37:15.630+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T21:37:15.630+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-09T21:37:15.638+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-7].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-09T21:37:15.638+02:00  INFO 60615 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 17 ms
+2026-09-09T21:37:15.639+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-09T21:37:15.645+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 52528 (http) with context path '/'
+2026-09-09T21:37:15.647+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.identity.api.IdentityCurlIT     : Started IdentityCurlIT in 0.472 seconds (process running for 73.057)
+2026-09-09T21:37:15.714+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat-6].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-09T21:37:15.714+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-09T21:37:15.714+02:00  INFO 60615 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-09-09T21:37:15.970+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.persistence.PlatformIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:15.975+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.platform.persistence.PlatformIT    : Starting PlatformIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:15.975+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.platform.persistence.PlatformIT    : The following 1 profile is active: "test"
+2026-09-09T21:37:16.064+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:16.074+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:16.099+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6d3…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7ff…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:16.100+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1319750, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:15 CEST 2026, lastUpdateTimeNanos=126518655738583}
+2026-09-09T21:37:16.422+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:16.422+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:16.422+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:16.427+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.platform.persistence.PlatformIT    : Started PlatformIT in 0.456 seconds (process running for 73.837)
+2026-09-09T21:37:16.506+02:00  WARN 60615 --- [agilityhub-core-api] [           main] o.s.w.s.h.HandlerMappingIntrospector     : Cache miss for REQUEST dispatch to '/api/v1/branding' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+clubs indexes: [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{slug=1}}, name=club_slug, unique=true}}, Document{{v=2, key=Document{{domains.host=1}}, name=club_host, unique=true, sparse=true}}]
+parameters indexes: [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{clubId=1, key=1, scopeRef=1}}, name=parameter_scope_key, unique=true}}]
+2026-09-09T21:37:16.671+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.RequiresModuleIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:16.677+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.platform.api.RequiresModuleIT   : Starting RequiresModuleIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:16.677+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.platform.api.RequiresModuleIT   : The following 1 profile is active: "test"
+2026-09-09T21:37:16.772+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:16.782+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:16.806+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@166…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1c7…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:16.807+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1328708, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:16 CEST 2026, lastUpdateTimeNanos=126519362629458}
+2026-09-09T21:37:17.098+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:17.098+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:17.098+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:17.103+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.platform.api.RequiresModuleIT   : Started RequiresModuleIT in 0.431 seconds (process running for 74.513)
+2026-09-09T21:37:17.133+02:00  WARN 60615 --- [agilityhub-core-api] [           main] o.s.w.s.h.HandlerMappingIntrospector     : Cache miss for REQUEST dispatch to '/api/v1/_test/module-open' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-09-09T21:37:17.349+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.SettingsIT]: SettingsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:17.350+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.SettingsIT
+2026-09-09T21:37:18.360+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:18.361+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+2026-09-09T21:37:19.878+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.audit.AuditedAspectIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:19.884+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.p.a.audit.AuditedAspectIT          : Starting AuditedAspectIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:19.884+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.p.a.audit.AuditedAspectIT          : The following 1 profile is active: "test"
+2026-09-09T21:37:19.975+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:19.985+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:20.010+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@425…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5f9…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:20.012+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1135583, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:19 CEST 2026, lastUpdateTimeNanos=126522567042208}
+2026-09-09T21:37:20.349+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.p.a.audit.AuditedAspectIT          : Started AuditedAspectIT in 0.47 seconds (process running for 77.759)
+audit_entries indexes: [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{clubId=1, at=-1}}, name=audit_club_at}}, Document{{v=2, key=Document{{clubId=1, memberId=1, at=-1}}, name=audit_club_member_at}}, Document{{v=2, key=Document{{clubId=1, impersonatedMemberId=1, at=-1}}, name=audit_club_impersonated_at}}, Document{{v=2, key=Document{{clubId=1, entityType=1, entityId=1, at=-1}}, name=audit_club_entity_at}}]
+2026-09-09T21:37:20.628+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.platform.application.definition.ClubDefinitionsIT]: ClubDefinitionsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:20.639+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.definition.ClubDefinitionsIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:20.646+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.p.a.definition.ClubDefinitionsIT   : Starting ClubDefinitionsIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:20.646+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.p.a.definition.ClubDefinitionsIT   : The following 1 profile is active: "test"
+2026-09-09T21:37:20.750+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:20.761+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:20.787+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@610…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1c0…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:20.788+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1219958, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:20 CEST 2026, lastUpdateTimeNanos=126523343656583}
+2026-09-09T21:37:21.073+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:21.073+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:21.073+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:21.078+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.p.a.definition.ClubDefinitionsIT   : Started ClubDefinitionsIT in 0.438 seconds (process running for 78.488)
+2026-09-09T21:37:26.744+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.persistence.IdempotencyIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:26.750+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.shared.persistence.IdempotencyIT   : Starting IdempotencyIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:26.750+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.shared.persistence.IdempotencyIT   : The following 1 profile is active: "test"
+2026-09-09T21:37:26.852+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:26.863+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 10 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:26.891+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@758…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@634…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:26.892+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1268792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:26 CEST 2026, lastUpdateTimeNanos=126529447411208}
+2026-09-09T21:37:27.194+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:27.194+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:27.194+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:27.200+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.c.shared.persistence.IdempotencyIT   : Started IdempotencyIT in 0.455 seconds (process running for 84.61)
+2026-09-09T21:37:27.229+02:00  WARN 60615 --- [agilityhub-core-api] [           main] o.s.w.s.h.HandlerMappingIntrospector     : Cache miss for REQUEST dispatch to '/api/v1/test/idempotency' (previous null). Performing MatchableHandlerMapping lookup. This is logged once only at WARN level, and every time at TRACE.
+idempotency_records indexes: [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{clubId=1, accountId=1, key=1}}, name=scope_key, unique=true}}, Document{{v=2, key=Document{{createdAt=1}}, name=idempotency_retention, expireAfterSeconds=86400}}]
+2026-09-09T21:37:27.370+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.shared.persistence.OutboxIT]: OutboxIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:27.370+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.persistence.OutboxIT
+2026-09-09T21:37:27.414+02:00  WARN 60615 --- [agilityhub-core-api] [           main] i.m.core.instrument.MeterRegistry        : This Gauge has been already registered (MeterId{name='outbox.pending', tags=[]}), the registration will be ignored. Note that subsequent logs will be logged at debug level.
+db.domain_events.getIndexes(): [Document{{v=2, key=Document{{_id=1}}, name=_id_}}, Document{{v=2, key=Document{{publishedAt=1}}, name=outbox_retention, expireAfterSeconds=7776000}}, Document{{v=2, key=Document{{status=1, nextAttemptAt=1}}, name=outbox_dispatch}}, Document{{v=2, key=Document{{clubId=1, aggregateType=1, aggregateId=1}}, name=outbox_aggregate}}]
+2026-09-09T21:37:28.778+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.shared.api.ResponseLocaleIT]: ResponseLocaleIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:28.787+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.api.ResponseLocaleIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:37:28.793+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ResponseLocaleIT     : Starting ResponseLocaleIT using Java 21.0.12.1 with PID 60615 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:37:28.793+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ResponseLocaleIT     : The following 1 profile is active: "test"
+2026-09-09T21:37:28.882+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:37:28.892+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:37:28.913+02:00  INFO 60615 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@163…[truncated]], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16a…[truncated], com.mongodb.Jep395RecordCodecProvider@1f2…[truncated], com.mongodb.KotlinCodecProvider@1f2…[truncated]]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52432], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2c2…[truncated]], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:37:28.915+02:00  INFO 60615 --- [agilityhub-core-api] [localhost:52432] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52432, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1221583, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=664193…[truncated]:27017, hosts=[664193…[truncated]:27017], passives=[], arbiters=[], primary='664193…[truncated]:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1b5…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:37:28 CEST 2026, lastUpdateTimeNanos=126531469846000}
+2026-09-09T21:37:29.210+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:37:29.210+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:37:29.210+02:00  INFO 60615 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-09T21:37:29.216+02:00  INFO 60615 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ResponseLocaleIT     : Started ResponseLocaleIT in 0.428 seconds (process running for 86.626)
+2026-09-09T21:37:29.298+02:00  INFO 60615 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.support.IntegrationTestSupportIT]: IntegrationTestSupportIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-09T21:37:29.307+02:00  INFO 60615 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.support.IntegrationTestSupportIT
+[ERROR] Failures: 
+[ERROR]   E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses:246 
+Expecting actual:
+  ["MEMBER_VALIDATED",
+    "SIGNUP_REJECTED",
+    "SIGNUP_EDITED",
+    "MEMBER_UPDATED",
+    "MEMBER_PAYMENT_METHOD_CHANGED",
+    "MEMBER_STATUS_CHANGED",
+    "MEMBER_ROLES_CHANGED",
+    "MEMBER_CONSENT_CHANGED",
+    "BOOKING_BLOCK_SET",
+    "BOOKING_BLOCK_CLEARED",
+    "ACCESS_RESENT",
+    "DOG_UPDATED",
+    "DOG_LEVEL_CHANGED",
+    "DOG_FREE_TRAINING_CHANGED",
+    "DOG_TRANSFERRED",
+    "DOG_DEACTIVATED",
+    "DOG_REACTIVATED",
+    "DOG_DOCUMENT_FILE_REMOVED",
+    "FAMILY_GROUP_CHANGED",
+    "MEMBER_PLAN_CHANGED",
+    "INVOICE_MARKED_PAID",
+    "INVOICE_MARKED_FAILED",
+    "INVOICE_CANCELLED",
+    "REMITTANCE_GENERATED",
+    "REMITTANCE_ROLLED_BACK",
+    "UPFRONT_PAYMENT_RECORDED",
+    "PAYMENT_REFUNDED",
+    "IMPERSONATION_STARTED",
+    "ACCOUNT_EMAIL_STATUS_CHANGED",
+    "PLATFORM_ROLES_CHANGED",
+    "BOOKING_CREATED_BY_CLUB",
+    "BOOKING_CANCELLED_BY_CLUB",
+    "BOOKING_CANCELLED_LATE",
+    "TRAINING_BOOKED_BY_CLUB",
+    "TRAINING_CANCELLED_BY_CLUB",
+    "ATTENDANCE_OVERRIDDEN",
+    "WEEK_VALIDATED",
+    "CLASS_CANCELLED",
+    "CLASS_UPDATED_WITH_BOOKINGS",
+    "CLASS_RISK_EXEMPTION_CHANGED",
+    "RING_BLOCK_CREATED",
+    "RING_BLOCK_CANCELLED",
+    "TEMPLATE_CLASS_DELETED",
+    "ACTIVITY_PUBLISHED",
+    "ACTIVITY_CANCELLED",
+    "INACTIVITY_RESOLVED",
+    "LEAVE_RESOLVED",
+    "LEAVE_CANCELLED",
+    "PARAMETER_CHANGED",
+    "CLUB_UPDATED",
+    "CLUB_MODULES_CHANGED",
+    "CLUB_STATUS_CHANGED",
+    "CATALOG_CHANGED",
+    "ANNOUNCEMENT_SENT",
+    "DATA_EXPORTED",
+    "MEMBER_DATA_EXPORTED",
+    "ERASURE_REQUESTED",
+    "ERASURE_CANCELLED",
+    "MEMBER_ERASED",
+    "ACCOUNT_ERASED",
+    "ONBOARDING_COMPLETED"]
+to contain exactly (and in same order):
+  ["MEMBER_VALIDATED",
+    "SIGNUP_REJECTED",
+    "SIGNUP_EDITED",
+    "MEMBER_UPDATED",
+    "MEMBER_PAYMENT_METHOD_CHANGED",
+    "MEMBER_STATUS_CHANGED",
+    "MEMBER_ROLES_CHANGED",
+    "MEMBER_CONSENT_CHANGED",
+    "BOOKING_BLOCK_SET",
+    "BOOKING_BLOCK_CLEARED",
+    "ACCESS_RESENT",
+    "DOG_UPDATED",
+    "DOG_LEVEL_CHANGED",
+    "DOG_FREE_TRAINING_CHANGED",
+    "DOG_TRANSFERRED",
+    "DOG_DEACTIVATED",
+    "DOG_REACTIVATED",
+    "DOG_DOCUMENT_FILE_REMOVED",
+    "FAMILY_GROUP_CHANGED",
+    "MEMBER_PLAN_CHANGED",
+    "INVOICE_MARKED_PAID",
+    "INVOICE_MARKED_FAILED",
+    "INVOICE_CANCELLED",
+    "REMITTANCE_GENERATED",
+    "REMITTANCE_ROLLED_BACK",
+    "UPFRONT_PAYMENT_RECORDED",
+    "PAYMENT_REFUNDED",
+    "IMPERSONATION_STARTED",
+    "ONBOARDING_COMPLETED",
+    "ACCOUNT_EMAIL_STATUS_CHANGED",
+    "PLATFORM_ROLES_CHANGED",
+    "BOOKING_CREATED_BY_CLUB",
+    "BOOKING_CANCELLED_BY_CLUB",
+    "BOOKING_CANCELLED_LATE",
+    "TRAINING_BOOKED_BY_CLUB",
+    "TRAINING_CANCELLED_BY_CLUB",
+    "ATTENDANCE_OVERRIDDEN",
+    "WEEK_VALIDATED",
+    "CLASS_CANCELLED",
+    "CLASS_UPDATED_WITH_BOOKINGS",
+    "CLASS_RISK_EXEMPTION_CHANGED",
+    "RING_BLOCK_CREATED",
+    "RING_BLOCK_CANCELLED",
+    "TEMPLATE_CLASS_DELETED",
+    "ACTIVITY_PUBLISHED",
+    "ACTIVITY_CANCELLED",
+    "INACTIVITY_RESOLVED",
+    "LEAVE_RESOLVED",
+    "LEAVE_CANCELLED",
+    "PARAMETER_CHANGED",
+    "CLUB_UPDATED",
+    "CLUB_MODULES_CHANGED",
+    "CLUB_STATUS_CHANGED",
+    "CATALOG_CHANGED",
+    "ANNOUNCEMENT_SENT",
+    "DATA_EXPORTED",
+    "MEMBER_DATA_EXPORTED",
+    "ERASURE_REQUESTED",
+    "ERASURE_CANCELLED",
+    "MEMBER_ERASED",
+    "ACCOUNT_ERASED"]
+but there were differences at these indexes:
+  - element at index 28: expected "ONBOARDING_COMPLETED" but was "ACCOUNT_EMAIL_STATUS_CHANGED"
+  - element at index 29: expected "ACCOUNT_EMAIL_STATUS_CHANGED" but was "PLATFORM_ROLES_CHANGED"
+  - element at index 30: expected "PLATFORM_ROLES_CHANGED" but was "BOOKING_CREATED_BY_CLUB"
+  - element at index 31: expected "BOOKING_CREATED_BY_CLUB" but was "BOOKING_CANCELLED_BY_CLUB"
+  - element at index 32: expected "BOOKING_CANCELLED_BY_CLUB" but was "BOOKING_CANCELLED_LATE"
+  - element at index 33: expected "BOOKING_CANCELLED_LATE" but was "TRAINING_BOOKED_BY_CLUB"
+  - element at index 34: expected "TRAINING_BOOKED_BY_CLUB" but was "TRAINING_CANCELLED_BY_CLUB"
+  - element at index 35: expected "TRAINING_CANCELLED_BY_CLUB" but was "ATTENDANCE_OVERRIDDEN"
+  - element at index 36: expected "ATTENDANCE_OVERRIDDEN" but was "WEEK_VALIDATED"
+  - element at index 37: expected "WEEK_VALIDATED" but was "CLASS_CANCELLED"
+  - element at index 38: expected "CLASS_CANCELLED" but was "CLASS_UPDATED_WITH_BOOKINGS"
+  - element at index 39: expected "CLASS_UPDATED_WITH_BOOKINGS" but was "CLASS_RISK_EXEMPTION_CHANGED"
+  - element at index 40: expected "CLASS_RISK_EXEMPTION_CHANGED" but was "RING_BLOCK_CREATED"
+  - element at index 41: expected "RING_BLOCK_CREATED" but was "RING_BLOCK_CANCELLED"
+  - element at index 42: expected "RING_BLOCK_CANCELLED" but was "TEMPLATE_CLASS_DELETED"
+  - element at index 43: expected "TEMPLATE_CLASS_DELETED" but was "ACTIVITY_PUBLISHED"
+  - element at index 44: expected "ACTIVITY_PUBLISHED" but was "ACTIVITY_CANCELLED"
+  - element at index 45: expected "ACTIVITY_CANCELLED" but was "INACTIVITY_RESOLVED"
+  - element at index 46: expected "INACTIVITY_RESOLVED" but was "LEAVE_RESOLVED"
+  - element at index 47: expected "LEAVE_RESOLVED" but was "LEAVE_CANCELLED"
+  - element at index 48: expected "LEAVE_CANCELLED" but was "PARAMETER_CHANGED"
+  - element at index 49: expected "PARAMETER_CHANGED" but was "CLUB_UPDATED"
+  - element at index 50: expected "CLUB_UPDATED" but was "CLUB_MODULES_CHANGED"
+  - element at index 51: expected "CLUB_MODULES_CHANGED" but was "CLUB_STATUS_CHANGED"
+  - element at index 52: expected "CLUB_STATUS_CHANGED" but was "CATALOG_CHANGED"
+  - element at index 53: expected "CATALOG_CHANGED" but was "ANNOUNCEMENT_SENT"
+  - element at index 54: expected "ANNOUNCEMENT_SENT" but was "DATA_EXPORTED"
+  - element at index 55: expected "DATA_EXPORTED" but was "MEMBER_DATA_EXPORTED"
+  - element at index 56: expected "MEMBER_DATA_EXPORTED" but was "ERASURE_REQUESTED"
+  - element at index 57: expected "ERASURE_REQUESTED" but was "ERASURE_CANCELLED"
+  - element at index 58: expected "ERASURE_CANCELLED" but was "MEMBER_ERASED"
+  - element at index 59: expected "MEMBER_ERASED" but was "ACCOUNT_ERASED"
+  - element at index 60: expected "ACCOUNT_ERASED" but was "ONBOARDING_COMPLETED"
+
+[ERROR] Tests run: 391, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

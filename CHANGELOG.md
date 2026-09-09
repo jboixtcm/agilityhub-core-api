@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T13: Count export admission on tenant/base-field matches with a maxRows + 1
+  bound, skipping census enrichment while preserving joined/computed filters.
+  Keep exact rendered totals and cover 5,000/5,001 and 100,000/100,001 boundaries,
+  selected IDs, tenant isolation and timed oversized rejection with an unordered bulk fixture.
+  Align the existing audit contract assertion with S14's approved ONBOARDING_COMPLETED entry.
+
 - E2-T09: Implement tenant-scoped admin audit lists, member impersonation history,
   filters, detail reads and synchronous/background XLSX/PDF exports with nested
   sensitive-value masking and localized column labels. Verify parameter/level

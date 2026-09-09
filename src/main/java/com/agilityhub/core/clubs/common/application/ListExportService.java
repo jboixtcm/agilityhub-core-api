@@ -23,7 +23,7 @@ public class ListExportService {
         policy.requireAllowed(format);
         var dataset = lists.dataset(key); var query = ListQuery.parse(dataset.definition(), params);
         var columns = dataset.definition().selectColumns(selected);
-        long rows = lists.exportCount(dataset, query);
+        long rows = lists.exportCount(dataset, query, ExportPolicy.MAX_ROWS);
         if (rows > ExportPolicy.MAX_ROWS) { throw new ApiException(ErrorCode.EXPORT_TOO_LARGE); }
         String id = UUID.randomUUID().toString(); String clubId = TenantContext.require();
         var config = configs.get(clubId); Instant now = clock.instant();

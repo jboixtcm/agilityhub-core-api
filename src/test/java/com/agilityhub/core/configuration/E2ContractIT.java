@@ -240,10 +240,8 @@ class E2ContractIT extends AbstractIntegrationTest {
         var matcher = java.util.regex.Pattern.compile("`([A-Z][A-Z_]+)`").matcher(actionRow);
         var actions = new java.util.LinkedHashSet<String>();
         while (matcher.find()) { actions.add(matcher.group(1)); }
-        // E1-T06 already writes this task-authorized action; the read contract must represent those entries.
-        actions.add("ONBOARDING_COMPLETED");
         assertThat(java.util.Arrays.stream(com.agilityhub.core.platform.api.AuditContracts.AuditActionName.values()).map(Enum::name))
-                .containsExactlyElementsOf(actions);
+                .containsExactlyInAnyOrderElementsOf(actions);
     }
 
     private List<String> strings(JsonNode node) {

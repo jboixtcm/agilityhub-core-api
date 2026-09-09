@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.*;
 import java.util.*;
 import java.io.ByteArrayInputStream;
 import java.time.Instant;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertOneModel;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -247,10 +249,53 @@ class ExportEngineIT extends AbstractIntegrationTest {
     }
     @Test void T_14_16_100001RowsRejectBeforeCreatingAJob() throws Exception {
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "dogs");
-        var rows = new ArrayList<Document>();
-        for (int i = 0; i < 100001; i++) { rows.add(new Document("_id", "too-large-" + i).append("clubId", CLUB).append("name", "Dog " + i).append("status", "ACTIVE")); }
-        mongo.insert(rows, "dogs");
-        admin(post("/api/v1/dogs/export").param("format", "xlsx")).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("EXPORT_TOO_LARGE"));
+        var rows = new ArrayList<InsertOneModel<Document>>(100001);
+        for (int i = 0; i < 100001; i++) {
+            rows.add(new InsertOneModel<>(new Document("_id", "too-large-" + i).append("clubId", CLUB).append("status", "ACTIVE")));
+        }
+        mongo.getCollection("dogs").bulkWrite(rows, new BulkWriteOptions().ordered(false));
+        for (String filter : List.of("", "status:eq:ACTIVE")) {
+            var request = post("/api/v1/dogs/export").param("format", "xlsx");
+            if (!filter.isEmpty()) { request.param("filter", filter); }
+            long started = System.nanoTime();
+            admin(request).andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.code").value("EXPORT_TOO_LARGE"));
+            var elapsed = java.time.Duration.ofNanos(System.nanoTime() - started);
+            System.out.printf(Locale.ROOT, "T_14_16_100001RowsRejectBeforeCreatingAJob [%s]: HTTP 422 EXPORT_TOO_LARGE in %d ms%n",
+                    filter.isEmpty() ? "unfiltered" : filter, elapsed.toMillis());
+            assertThat(elapsed).isLessThan(java.time.Duration.ofSeconds(10));
+        }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "export_jobs")).isZero();
+
+        // The same large fixture must still admit small selections and another tenant.
+        admin(post("/api/v1/dogs/export").param("format", "xlsx").param("columns", "name")
+                .param("filter", "id:in:too-large-0,too-large-1")).andExpect(status().isOk());
+        assertThat(mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB)), Document.class, "export_jobs").getLong("rows")).isEqualTo(2);
+        call(post("/api/v1/dogs/export").param("format", "xlsx"), OTHER, "export-admin-b", "ADMIN").andExpect(status().isOk());
+        assertThat(mongo.findOne(Query.query(Criteria.where("clubId").is(OTHER)), Document.class, "export_jobs").getLong("rows")).isEqualTo(1);
+
+        mongo.remove(Query.query(Criteria.where("_id").is("too-large-100000").and("clubId").is(CLUB)), "dogs");
+        String id = json(admin(post("/api/v1/dogs/export").param("format", "xlsx")), 202).path("jobId").asText();
+        assertThat(mongo.findById(id, Document.class, "export_jobs").getLong("rows")).isEqualTo(100000);
+    }
+    @Test void T_14_16_filteredSelectionsKeepTheSynchronousBoundaryAndExactRows() throws Exception {
+        String all = largeExport();
+        assertThat(mongo.findById(all, Document.class, "export_jobs").getLong("rows")).isEqualTo(5001);
+        mongo.insert(member(100).append("firstName", "Distinctive"), "members");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("export-dog-0").and("clubId").is(CLUB)),
+                new Update().set("memberId", "export-member-100").set("birthDate", Date.from(Instant.parse("2024-01-02T00:00:00Z"))), "dogs");
+        for (var selection : List.of(Map.entry("filter", "ownerName:contains:Distinctive"),
+                Map.entry("q", "Distinctive"), Map.entry("filter", "birthDate:eq:2024-01-02"))) {
+            var bytes = admin(post("/api/v1/dogs/export").param("format", "xlsx").param("columns", "name")
+                    .param(selection.getKey(), selection.getValue())).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+            try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+                assertThat(workbook.getSheetAt(0).getLastRowNum()).isEqualTo(1);
+                assertThat(workbook.getSheetAt(0).getRow(1).getCell(0).getStringCellValue()).isEqualTo("Dog 00000");
+            }
+        }
+        var bytes = admin(post("/api/v1/dogs/export").param("format", "xlsx").param("columns", "name")
+                .param("filter", "id:ne:export-dog-0")).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+            assertThat(workbook.getSheetAt(0).getLastRowNum()).isEqualTo(5000);
+        }
     }
 }

@@ -41,7 +41,7 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         return aggregate(data, pipeline).stream().map(row -> publicRow(data, row)).toList();
     }
     public long exportCount(ListDataset data, ListQuery query, int limit) {
-        var stages = pipeline(data, query);
+        var stages = countPipeline(data, query);
         stages.add(new Document("$limit", limit));
         stages.add(new Document("$count", "count"));
         var result = aggregate(data, stages);
@@ -78,6 +78,32 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         var stages = new ArrayList<Document>();
         stages.add(new Document("$match", tenantQuery().getQueryObject()));
         stages.addAll(data.stages());
+        match(data, query, stages);
+        return stages;
+    }
+    /** Skip row enrichment only when it cannot change the selected rows or their filter values. */
+    private List<Document> countPipeline(ListDataset data, ListQuery query) {
+        var paths = new HashSet<String>();
+        query.filters().forEach(filter -> paths.add(data.definition().field(filter.field()).path()));
+        if (!query.q().isEmpty()) { paths.addAll(data.definition().searchable()); }
+        for (Document stage : data.stages()) {
+            Set<String> written;
+            if (stage.size() == 1 && stage.get("$set") instanceof Document fields) { written = fields.keySet(); }
+            else if (stage.size() == 1 && stage.get("$lookup") instanceof Document lookup) { written = Set.of(lookup.getString("as")); }
+            // A provider's match, unwind, projection or other stage may change membership/cardinality.
+            else { return pipeline(data, query); }
+            if (written.stream().anyMatch(field -> paths.stream().anyMatch(path ->
+                    path.equals(field) || path.startsWith(field + ".") || field.startsWith(path + ".")))) {
+                // Joined/computed filters must retain their original semantics, including date normalization.
+                return pipeline(data, query);
+            }
+        }
+        var stages = new ArrayList<Document>();
+        stages.add(new Document("$match", tenantQuery().getQueryObject()));
+        match(data, query, stages);
+        return stages;
+    }
+    private void match(ListDataset data, ListQuery query, List<Document> stages) {
         var predicates = new ArrayList<Criteria>();
         for (Filter filter : query.filters()) { predicates.add(criteria(data.definition(), filter)); }
         if (!query.q().isEmpty()) {
@@ -85,7 +111,6 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
                     .map(path -> Criteria.where(path).regex(Pattern.quote(query.q()), "i")).toList()));
         }
         if (!predicates.isEmpty()) { stages.add(new Document("$match", new Criteria().andOperator(predicates).getCriteriaObject())); }
-        return stages;
     }
     private Criteria criteria(ListDefinition definition, Filter filter) {
         var field = definition.field(filter.field());
