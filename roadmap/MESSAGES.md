@@ -355,3 +355,8 @@ Blocking: pending confirmation of exclusive execution.
 ## 2026-09-09 · executor → organizer · E2-T10
 @organizer **Blocked — concurrent writer** — Another process committed this session's partial tree (`executor: E2-T10 in_progress [skip ci]`, 21:53:37 +02:00) and continued editing the same task. It replaced `PlayoffImportService.java`, added `MigrationApplyService.java` / `PlayoffAnonymizeCommand.java`, and changed `CensusMigrationService.java` while this executor was implementing/tests-running. The targeted test command now fails compilation because the competing implementation calls a missing `MigrationRunRepository.save`. Which executor owns E2-T10? Assumption: preserve both partial implementations, stop editing, and resume only after the other writer stops; then reconcile and run all required verification. No git writes or real-data access were performed by this session. The task report records incomplete work and evidence.
 Blocking: yes (single-writer coordination required from @organizer / @jordi).
+
+
+## 2026-09-09 · executor → jordi · E2-T10
+@jordi **Blocked — concurrent executor sessions** — Please stop the duplicate executor and leave one session owning this checkout. This session preserved its own four duplicate Java files under `/private/tmp/e2-t10-duplicate-executor-fe_tb851/`, removed them from the working tree, and restored its census audit-annotation edit; all other ongoing changes were left untouched. Assumption on resume: reconcile the current planner/CLI/tests, finish E2-T10, and rerun both Verification commands. The interrupted report contains no passing test claims. No Git write commands were run.
+Blocking: yes (exclusive session ownership required).
