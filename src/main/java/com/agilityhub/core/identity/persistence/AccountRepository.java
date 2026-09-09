@@ -30,6 +30,7 @@ public class AccountRepository extends GlobalRepository<Account> {
     public boolean createIfAbsent(Account account) {
         var update = new Update().setOnInsert("_id", account.id()).setOnInsert("email", account.email())
                 .setOnInsert("name", account.name()).setOnInsert("locale", account.locale())
+                .setOnInsert("passwordHash", account.passwordHash())
                 .setOnInsert("platformRoles", account.platformRoles()).setOnInsert("status", account.status())
                 .setOnInsert("security", account.security()).setOnInsert("externalIds", account.externalIds())
                 .setOnInsert("onboardingPending", account.onboardingPending()).setOnInsert("createdAt", account.createdAt())

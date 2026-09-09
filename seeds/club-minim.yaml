@@ -41,11 +41,26 @@ paymentProviders:
   - "MANUAL"
 parameters:
   messaging.email.fromName: "Club Mínim"
-admins:
-  -
-    email: "minim.admin@example.test"
-    name: "Example Administrator"
+# Fictional identities only. Password values come from the process environment.
+accounts:
+  - email: "minim.admin@example.test"
+    name: "Núria Example"
     locale: "en"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "minim.member@example.test"
+    name: "Roc Example"
+    locale: "en"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "minim.member.2@example.test"
+    name: "Queralt Example"
+    locale: "en"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
 catalogs:
   levels: []
   rings: []

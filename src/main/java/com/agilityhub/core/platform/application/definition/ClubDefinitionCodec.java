@@ -77,10 +77,13 @@ public class ClubDefinitionCodec {
             if (!domain.has("app")) { ((ObjectNode) domain).put("app", "clubs"); }
         }
         Set<String> emails = new HashSet<>();
-        for (var admin : definition.path("admins")) {
-            String email = admin.path("email").asText().toLowerCase(java.util.Locale.ROOT);
-            if (!emails.add(email)) { throw new ApiException(ErrorCode.VALIDATION_ERROR, java.util.Map.of("field", "admins")); }
-            ((ObjectNode) admin).put("email", email);
+        for (String section : java.util.List.of("admins", "accounts")) {
+            for (var account : definition.path(section)) {
+                String email = java.text.Normalizer.normalize(account.path("email").asText().trim()
+                        .toLowerCase(java.util.Locale.ROOT), java.text.Normalizer.Form.NFC);
+                if (!emails.add(email)) { throw new ApiException(ErrorCode.VALIDATION_ERROR, java.util.Map.of("field", section)); }
+                ((ObjectNode) account).put("email", email);
+            }
         }
         return definition;
     }

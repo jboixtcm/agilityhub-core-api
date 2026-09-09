@@ -52,11 +52,98 @@ paymentProviders:
   - "SEPA_XML"
   - "MANUAL"
 parameters: {}
-admins:
-  -
-    email: "canic.admin@example.test"
-    name: "Example Administrator"
+# Fictional identities only. Password values come from the process environment.
+accounts:
+  - email: "admin@example.test"
+    name: "Aleix Example"
     locale: "ca"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "canic.admin@example.test"
+    name: "Laia Example"
+    locale: "ca"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "instructor@example.test"
+    name: "Biel Example"
+    locale: "ca"
+    roles: ["INSTRUCTOR"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "instructor.2@example.test"
+    name: "Mariona Example"
+    locale: "ca"
+    roles: ["INSTRUCTOR"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "instructor.3@example.test"
+    name: "Pau Example"
+    locale: "ca"
+    roles: ["INSTRUCTOR"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member@example.test"
+    name: "Aina Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.2@example.test"
+    name: "Arnau Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.3@example.test"
+    name: "Bruna Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.4@example.test"
+    name: "Ferran Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.5@example.test"
+    name: "Gala Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.6@example.test"
+    name: "Guillem Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.7@example.test"
+    name: "Jana Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.8@example.test"
+    name: "Lluc Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.9@example.test"
+    name: "Ona Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "member.10@example.test"
+    name: "Pol Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
 catalogs:
   levels: []
   rings: []

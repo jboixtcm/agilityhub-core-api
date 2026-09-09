@@ -23,14 +23,20 @@ public class AccountService implements com.agilityhub.core.shared.application.Ac
         this.accounts = accounts; this.transactions = transactions; this.events = events; this.clock = clock;
     }
     public Account getOrCreate(String email, String name, String locale, Account.Source source) {
+        return getOrCreate(email, name, locale, source, null, null);
+    }
+    /** Seed initialization is insert-only, including under concurrent account creation. */
+    public Account getOrCreate(String email, String name, String locale, Account.Source source,
+                               String initialPasswordHash, Boolean initialOnboardingPending) {
         String normalized = Email.normalize(email);
         validate(locale, name);
         if (source == null || name == null || locale == null) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         return transactions.run(() -> {
             var existing = accounts.findByEmail(normalized);
             if (existing.isPresent()) { return existing.get(); }
-            var candidate = new Account(UUID.randomUUID().toString(), normalized, name.strip(), locale, null, Set.of(), Account.Status.ACTIVE,
-                    new Account.Security(0, null, null, 0), Map.of(), source == Account.Source.IMPORT_LEARN || source == Account.Source.MIGRATION,
+            var candidate = new Account(UUID.randomUUID().toString(), normalized, name.strip(), locale, initialPasswordHash, Set.of(), Account.Status.ACTIVE,
+                    new Account.Security(0, null, initialPasswordHash == null ? null : clock.instant(), 0), Map.of(),
+                    initialOnboardingPending == null ? source == Account.Source.IMPORT_LEARN || source == Account.Source.MIGRATION : initialOnboardingPending,
                     clock.instant(), null, null, source, null, null);
             boolean created = accounts.createIfAbsent(candidate);
             var account = accounts.findByEmail(normalized).orElseThrow();

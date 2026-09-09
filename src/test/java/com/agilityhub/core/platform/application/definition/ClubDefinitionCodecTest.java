@@ -49,12 +49,35 @@ class ClubDefinitionCodecTest {
         definition = seed(); ((ObjectNode) definition.path("domains").get(0)).put("host", "-invalid.test"); fails(definition, ErrorCode.VALIDATION_ERROR);
     }
     @Test void T_17_01_duplicateAdminsAndMalformedYamlAreRejected(@TempDir Path temporary) throws Exception {
-        var definition = seed(); ((com.fasterxml.jackson.databind.node.ArrayNode) definition.path("admins")).add(definition.path("admins").get(0).deepCopy());
+        var definition = seed();
+        var admin = definition.putArray("admins").addObject().put("email", "legacy@example.test").put("name", "Legacy Example").put("locale", "en");
+        ((com.fasterxml.jackson.databind.node.ArrayNode) definition.path("admins")).add(admin.deepCopy());
         fails(definition, ErrorCode.VALIDATION_ERROR);
         for (String yaml : new String[]{"club: [broken", "club: 1\nclub: 2", "!!java.net.URL ['https://example.test']"}) {
             var path = temporary.resolve("invalid.yaml"); java.nio.file.Files.writeString(path, yaml);
             assertThatThrownBy(() -> codec.read(path)).isInstanceOf(ApiException.class);
         }
         assertThatThrownBy(() -> codec.read(temporary.resolve("absent"))).isInstanceOf(ApiException.class);
+    }
+    @Test void T_17_01_accountsRequireClosedRolesAndUniqueNormalizedEmails() {
+        var definition = seed();
+        ((ObjectNode) definition.path("accounts").get(0)).put("email", "ADMIN@example.test");
+        assertThat(codec.validate(definition).path("accounts").get(0).path("email").asText()).isEqualTo("admin@example.test");
+        ((com.fasterxml.jackson.databind.node.ArrayNode) definition.path("accounts")).add(definition.path("accounts").get(0).deepCopy());
+        fails(definition, ErrorCode.VALIDATION_ERROR);
+        definition = seed(); definition.putArray("admins").addObject().put("email", "ADMIN@example.test").put("name", "Duplicate Example").put("locale", "en");
+        fails(definition, ErrorCode.VALIDATION_ERROR);
+        for (String roles : new String[]{"[]", "[\"ADMIN\",\"ADMIN\"]", "[\"AGILITYHUB_ADMIN\"]"}) {
+            definition = seed();
+            try { ((ObjectNode) definition.path("accounts").get(0)).set("roles", mapper.readTree(roles)); }
+            catch (Exception invalid) { throw new AssertionError(invalid); }
+            fails(definition, ErrorCode.VALIDATION_ERROR);
+        }
+        for (String field : new String[]{"email", "name", "locale", "roles"}) {
+            definition = seed(); ((ObjectNode) definition.path("accounts").get(0)).remove(field); fails(definition, ErrorCode.VALIDATION_ERROR);
+        }
+        definition = seed(); ((ObjectNode) definition.path("accounts").get(0)).put("onboardingPending", "yes"); fails(definition, ErrorCode.VALIDATION_ERROR);
+        definition = seed(); ((ObjectNode) definition.path("accounts").get(0)).put("password", ""); fails(definition, ErrorCode.VALIDATION_ERROR);
+        definition = seed(); ((ObjectNode) definition.path("accounts").get(0)).put("platformRoles", "AGILITYHUB_ADMIN"); fails(definition, ErrorCode.VALIDATION_ERROR);
     }
 }

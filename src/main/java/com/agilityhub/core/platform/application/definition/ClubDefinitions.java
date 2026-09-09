@@ -1,6 +1,6 @@
 package com.agilityhub.core.platform.application.definition;
 
-import com.agilityhub.core.platform.application.ClubAdminProvisioner;
+import com.agilityhub.core.platform.application.ClubAccountProvisioner;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.HostTenantResolver;
 import com.agilityhub.core.platform.persistence.ClubRepository;
@@ -22,23 +22,33 @@ public class ClubDefinitions {
     private final ClubDefinitionMapper definitions;
     private final ClubRepository clubs;
     private final ParameterRepository parameters;
-    private final ClubAdminProvisioner admins;
+    private final ClubAccountProvisioner accounts;
     private final ClubConfigService configs;
     private final HostTenantResolver hosts;
     private final ObjectMapper mapper;
     public ClubDefinitions(ClubDefinitionCodec codec, ClubDefinitionWriter writer, ClubDefinitionMapper definitions,
-                           ClubRepository clubs, ParameterRepository parameters, ClubAdminProvisioner admins,
+                           ClubRepository clubs, ParameterRepository parameters, ClubAccountProvisioner accounts,
                            ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper) {
         this.codec = codec; this.writer = writer; this.definitions = definitions; this.clubs = clubs;
-        this.parameters = parameters; this.admins = admins; this.configs = configs; this.hosts = hosts; this.mapper = mapper;
+        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper;
     }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun) { return apply(codec.read(file), dryRun); }
+    public ClubDefinitionWriter.Result apply(Path file, boolean dryRun, boolean allowSeedPasswords) {
+        return apply(codec.read(file), dryRun, allowSeedPasswords, false);
+    }
+    public ClubDefinitionWriter.Result applyAccounts(Path file, boolean dryRun, boolean allowSeedPasswords) {
+        return apply(codec.read(file), dryRun, allowSeedPasswords, true);
+    }
     public ClubDefinitionWriter.Result apply(ObjectNode input, boolean dryRun) {
+        return apply(input, dryRun, false, false);
+    }
+    private ClubDefinitionWriter.Result apply(ObjectNode input, boolean dryRun, boolean allowSeedPasswords, boolean accountsOnly) {
         var definition = codec.validate(input);
         String slug = definition.path("club").path("slug").asText();
         String id = clubs.findBySlug(slug).map(club -> club.id()).orElseGet(() -> UUID.randomUUID().toString());
         try (var scope = TenantContext.open(id)) {
-            var result = dryRun ? writer.preview(definition) : writer.apply(definition);
+            var result = dryRun ? writer.preview(definition, allowSeedPasswords, accountsOnly)
+                    : writer.apply(definition, allowSeedPasswords, accountsOnly);
             if (!dryRun && result.changes() > 0) { configs.invalidate(id); hosts.invalidate(); }
             return result;
         } catch (DuplicateKeyException conflict) {
@@ -59,7 +69,12 @@ public class ClubDefinitions {
             parameters.findAll().stream().filter(parameter -> parameter.scopeRef() == null)
                     .sorted(java.util.Comparator.comparing(parameter -> parameter.key()))
                     .forEach(parameter -> overrides.set(parameter.key(), mapper.valueToTree(parameter.value())));
-            definition.set("admins", mapper.valueToTree(admins.list()));
+            var exportedAccounts = definition.putArray("accounts");
+            for (var account : accounts.list()) {
+                ObjectNode entry = mapper.valueToTree(account);
+                entry.remove("password");
+                exportedAccounts.add(entry);
+            }
             var catalogs = definition.putObject("catalogs");
             for (String part : java.util.List.of("levels", "rings", "instructors", "plans", "prices", "faq")) { catalogs.putArray(part); }
             definition.putArray("messageTemplates");

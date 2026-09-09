@@ -42,6 +42,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
+@org.springframework.test.context.TestPropertySource(properties = "identity.seed-password=Fictional-seed-password")
 class ClubDefinitionsIT extends AbstractIntegrationTest {
     @Autowired ClubDefinitions definitions;
     @Autowired ClubDefinitionCodec codec;
@@ -84,16 +85,16 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var response = mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse();
         assertThat(mapper.readTree(response.getContentAsString())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/branding-canic.json").toFile()));
         assertThat(mapper.<com.fasterxml.jackson.databind.JsonNode>valueToTree(configs.get(first.id()).parameters())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/parameters-canic.json").toFile()));
-        assertThat(count("domain_events")).isEqualTo(3); assertThat(count("audit_entries")).isEqualTo(1);
+        assertThat(count("domain_events")).isEqualTo(31); assertThat(count("audit_entries")).isEqualTo(1);
         assertThat(mongo.findAll(AuditEntry.class).getFirst().action()).isEqualTo(AuditAction.CLUB_UPDATED);
         assertThat(mongo.findAll(AuditEntry.class).getFirst().clubId()).isEqualTo(first.id());
         assertThat(mongo.findAll(AuditEntry.class).getFirst().reason()).isEqualTo("source: APPLY");
-        assertThat(mongo.findAll(Account.class).getFirst().passwordHash()).isNull();
+        assertThat(mongo.findAll(Account.class).getFirst().passwordHash()).startsWith("$argon2id$");
         var second = definitions.apply(definition, false);
         assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("0 changes");
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(original);
-        assertThat(count("domain_events")).isEqualTo(3); assertThat(count("audit_entries")).isEqualTo(1);
-        assertThat(count("accounts")).isEqualTo(1); assertThat(count("memberships")).isEqualTo(1);
+        assertThat(count("domain_events")).isEqualTo(31); assertThat(count("audit_entries")).isEqualTo(1);
+        assertThat(count("accounts")).isEqualTo(15); assertThat(count("memberships")).isEqualTo(15);
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero();
         assertThat(TenantContext.current()).isNull();
@@ -152,7 +153,9 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var template = definitions.apply(seed("template-default"), false);
         var club = clubs.findBySlug("club-template-default").orElseThrow(); assertThat(club.template()).isTrue(); assertThat(club.domains()).isEmpty();
         assertThat(definitions.apply(definitions.export("club-template-default"), false).changes()).isZero();
-        var definition = seed("canic"); var result = definitions.apply(definition, false);
+        var definition = seed("canic"); definition.remove("accounts");
+        definition.putArray("admins").addObject().put("email", "canic.admin@example.test").put("name", "Laia Example").put("locale", "ca");
+        var result = definitions.apply(definition, false);
         var account = accounts.findByEmail("canic.admin@example.test").orElseThrow();
         try (var scope = TenantContext.open(result.id())) {
             var membership = memberships.findByAccountId(account.id()).orElseThrow();

@@ -1,35 +1,36 @@
 package com.agilityhub.core.configuration;
 
-import com.agilityhub.core.identity.application.PasswordHasher;
-import com.agilityhub.core.identity.application.SeedTestAccountsCommand;
-import com.agilityhub.core.identity.persistence.AccountRepository;
-import com.agilityhub.core.identity.persistence.MembershipRepository;
-import com.agilityhub.core.platform.application.ClubConfigService;
-import java.time.Clock;
+import com.agilityhub.core.identity.application.SeedPasswordPolicy;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import org.springframework.mock.env.MockEnvironment;
+import static org.assertj.core.api.Assertions.*;
 
 class SeedProfileTest {
-    @ParameterizedTest @ValueSource(strings = {"local", "test", "prod", "staging", "local,prod", "test,staging"})
-    void T_01_02_seedCommandExistsOnlyInLocalOrTestWithoutDeploymentProfiles(String profile) {
-        new ApplicationContextRunner().withUserConfiguration(SeedTestAccountsCommand.class)
-                .withPropertyValues("spring.profiles.active=" + profile, "identity.seed-password=")
-                .withBean(AccountRepository.class, () -> mock(AccountRepository.class))
-                .withBean(MembershipRepository.class, () -> mock(MembershipRepository.class))
-                .withBean(PasswordHasher.class, () -> mock(PasswordHasher.class))
-                .withBean(com.agilityhub.core.identity.application.AccountService.class,
-                        () -> mock(com.agilityhub.core.identity.application.AccountService.class))
-                .withBean(com.agilityhub.core.identity.application.MembershipService.class,
-                        () -> mock(com.agilityhub.core.identity.application.MembershipService.class))
-                .withBean(ClubConfigService.class, () -> mock(ClubConfigService.class))
-                .withBean(Clock.class, Clock::systemUTC)
-                .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThat(context.getBeansOfType(SeedTestAccountsCommand.class))
-                            .hasSize(profile.equals("local") || profile.equals("test") ? 1 : 0);
-                });
+    @ParameterizedTest @ValueSource(strings = {"local", "test", "prod", "staging", "local,prod", "test,staging", "unknown"})
+    void T_01_02_seedPasswordsRequireAllowedProfileAndExplicitDeploymentOverride(String profile) {
+        var environment = new MockEnvironment(); environment.setActiveProfiles(profile.split(","));
+        var policy = new SeedPasswordPolicy(environment, "Fictional-seed-password");
+        boolean local = profile.equals("local") || profile.equals("test");
+        boolean deployed = profile.contains("staging") || profile.contains("prod");
+        assertThat(policy.resolve(null, false)).isNull();
+        for (boolean override : new boolean[]{false, true}) {
+            if (local || deployed && override) {
+                assertThat(policy.resolve("${SEED_PASSWORD}", override)).isEqualTo("Fictional-seed-password");
+            } else {
+                assertThatThrownBy(() -> policy.resolve("${SEED_PASSWORD}", override)).isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("--allow-seed-passwords").hasMessageNotContaining("Fictional-seed-password");
+            }
+            if (local) { assertThat(policy.resolve("Temporary-test-password", override)).isEqualTo("Temporary-test-password"); }
+            else { assertThatThrownBy(() -> policy.resolve("Temporary-test-password", override)).isInstanceOf(IllegalArgumentException.class); }
+        }
+    }
+    @Test void T_01_02_seedPasswordHasNoFallbackAndDefaultLocalProfileWorks() {
+        var environment = new MockEnvironment(); environment.setDefaultProfiles("local");
+        var policy = new SeedPasswordPolicy(environment, "");
+        assertThatThrownBy(() -> policy.resolve("${SEED_PASSWORD}", false)).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Set SEED_PASSWORD");
+        assertThat(policy.resolve(null, true)).isNull();
     }
 }

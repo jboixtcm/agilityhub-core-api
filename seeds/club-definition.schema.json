@@ -431,6 +431,12 @@
         "legalTextsVersion"
       ],
       "additionalProperties": false
+    },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/account"
+      }
     }
   },
   "required": [
@@ -540,6 +546,56 @@
         "email",
         "name",
         "locale"
+      ],
+      "additionalProperties": false
+    },
+    "account": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "locale": {
+          "type": "string",
+          "enum": [
+            "ca",
+            "es",
+            "en"
+          ]
+        },
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "INSTRUCTOR",
+              "MEMBER"
+            ]
+          }
+        },
+        "password": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Use ${SEED_PASSWORD}; literal passwords are allowed only in local/test and must never be committed."
+        },
+        "onboardingPending": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "email",
+        "name",
+        "locale",
+        "roles"
       ],
       "additionalProperties": false
     }

@@ -1,6 +1,7 @@
 package com.agilityhub.core.platform.application.definition;
 
 import com.agilityhub.core.platform.application.ClubAdminProvisioner;
+import com.agilityhub.core.platform.application.ClubAccountProvisioner;
 import com.agilityhub.core.platform.application.ParameterCatalog;
 import com.agilityhub.core.platform.application.audit.AuditAction;
 import com.agilityhub.core.platform.application.audit.Audited;
@@ -39,15 +40,17 @@ public class ClubDefinitionWriter {
     private final ParameterRepository parameters;
     private final ParameterCatalog catalog;
     private final ClubAdminProvisioner admins;
+    private final ClubAccountProvisioner accounts;
     private final EventPublisher events;
     private final ObjectMapper mapper;
     private final ClubDefinitionMapper definitions;
     private final Clock clock;
     private final boolean trustedDomains;
     public ClubDefinitionWriter(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog,
-                                ClubAdminProvisioner admins, EventPublisher events, ObjectMapper mapper,
+                                ClubAdminProvisioner admins, ClubAccountProvisioner accounts, EventPublisher events, ObjectMapper mapper,
                                 ClubDefinitionMapper definitions, Clock clock, Environment environment) {
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.admins = admins;
+        this.accounts = accounts;
         this.events = events; this.mapper = mapper; this.definitions = definitions; this.clock = clock;
         trustedDomains = environment.acceptsProfiles(Profiles.of("local", "test")) && !environment.acceptsProfiles(Profiles.of("staging", "prod"));
     }
@@ -57,15 +60,19 @@ public class ClubDefinitionWriter {
             return String.join("\n", lines) + "\n" + changes() + " changes" + (dryRun ? " (dry run)" : " (applied)");
         }
     }
-    private record Plan(Club club, List<Parameter> parameters, List<ClubAdminProvisioner.Admin> admins, Result result) { }
+    private record Plan(Club club, List<Parameter> parameters, List<ClubAdminProvisioner.Admin> admins,
+                        List<ClubAccountProvisioner.SeedAccount> accounts, Result result) { }
 
-    public Result preview(ObjectNode definition) { return plan(definition).result(); }
+    public Result preview(ObjectNode definition) { return preview(definition, false, false); }
+    public Result preview(ObjectNode definition, boolean allowSeedPasswords, boolean accountsOnly) {
+        return plan(definition, allowSeedPasswords, accountsOnly).result();
+    }
 
     @Transactional
     @Audited(action = AuditAction.CLUB_UPDATED, entityType = "'Club'", entity = "#result.id",
             reason = "#result.changes() == 0 ? null : 'source: APPLY'")
-    public Result apply(ObjectNode definition) {
-        Plan plan = plan(definition);
+    public Result apply(ObjectNode definition, boolean allowSeedPasswords, boolean accountsOnly) {
+        Plan plan = plan(definition, allowSeedPasswords, accountsOnly);
         if (plan.result().changes() == 0) { return plan.result(); }
         // Saving the club also serializes concurrent parameter/admin changes through its version.
         clubs.save(plan.club());
@@ -77,14 +84,21 @@ public class ClubDefinitionWriter {
             events.publish(new ParameterChanged(plan.club().id(), clock.instant(), payload, null, null, DomainEvent.Origin.SYSTEM));
         }
         plan.admins().forEach(admins::provision);
+        plan.accounts().forEach(account -> accounts.provision(account, allowSeedPasswords));
         events.publish(new ClubConfigChanged(plan.club().id(), clock.instant(), Map.of("diff", plan.result().summary()),
                 null, null, DomainEvent.Origin.SYSTEM));
         return plan.result();
     }
-    private Plan plan(ObjectNode definition) {
+    private Plan plan(ObjectNode definition, boolean allowSeedPasswords, boolean accountsOnly) {
         String id = TenantContext.require();
         Club old = clubs.findBySlug(definition.path("club").path("slug").asText()).orElse(null);
         if (old != null && !old.id().equals(id)) { throw new ApiException(ErrorCode.STALE_VERSION); }
+        if (accountsOnly) {
+            if (old == null) { throw new ApiException(ErrorCode.CLUB_NOT_FOUND); }
+            var lines = new ArrayList<String>(); var summary = new LinkedHashMap<String, Object>();
+            var changedAccounts = planAccounts(definition, allowSeedPasswords, lines, summary);
+            return new Plan(old, List.of(), List.of(), changedAccounts, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+        }
         Club next = definitions.merge(definition, old, id, clock.instant(), trustedDomains);
         for (var domain : next.domains()) {
             clubs.findByAnyHost(domain.host()).filter(owner -> !owner.id().equals(id)).ifPresent(owner -> {
@@ -120,9 +134,22 @@ public class ClubDefinitionWriter {
         }
         lines.add((newAdmins.isEmpty() ? old == null ? "+" : "=" : "+") + " admins: " + newAdmins.size() + " to provision");
         if (!newAdmins.isEmpty()) { summary.put("admins", newAdmins.size()); }
+        var changedAccounts = planAccounts(definition, allowSeedPasswords, lines, summary);
         lines.add((old == null ? "+" : "=") + " catalogs: schema accepted; application deferred to E2");
         lines.add((old == null ? "+" : "=") + " messageTemplates: schema accepted; application deferred to E7");
-        return new Plan(next, changed, newAdmins, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+        return new Plan(next, changed, newAdmins, changedAccounts, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+    }
+    private List<ClubAccountProvisioner.SeedAccount> planAccounts(ObjectNode definition, boolean allowSeedPasswords,
+                                                                 List<String> lines, Map<String, Object> summary) {
+        var changed = new ArrayList<ClubAccountProvisioner.SeedAccount>();
+        for (var entry : definition.path("accounts")) {
+            var account = mapper.convertValue(entry, ClubAccountProvisioner.SeedAccount.class);
+            accounts.validate(account, allowSeedPasswords);
+            if (accounts.needsProvision(account)) { changed.add(account); }
+        }
+        lines.add((changed.isEmpty() ? "=" : "+") + " accounts: " + changed.size() + " to provision");
+        if (!changed.isEmpty()) { summary.put("accounts", changed.size()); }
+        return List.copyOf(changed);
     }
     private void diff(String path, JsonNode before, JsonNode after, List<String> lines, Map<String, Object> summary) {
         if (Objects.equals(before, after)) { lines.add("= " + path + " unchanged"); return; }
