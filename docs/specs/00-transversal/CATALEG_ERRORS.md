@@ -44,7 +44,7 @@ Transversals: `VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, `UNAUTHENTICATED`, `
 
 ## 3. Regles
 
-0. **Estat HTTP dels codis sense estat explícit a §1** (regla afegida 06-09, E0-T04): mana sempre l'estat explícit de §1; per a la resta, els codis que acaben en `_EXISTS`, `_TAKEN`, `_IN_USE`, `_LOCKED`, `_OVERLAP`, `_CONFLICT` o que comencen per `ALREADY_` són **409**; qualsevol altre codi de §2 sense estat explícit és **422** (precondició de negoci). L'`ErrorCode` del core aplica exactament aquesta regla; si una spec necessita un estat diferent, l'afegeix a §1.
+0. **Estat HTTP dels codis sense estat explícit a §1** (regla afegida 06-09, E0-T04): mana sempre l'estat explícit de §1; per a la resta, els codis que acaben en `_EXISTS`, `_TAKEN`, `_IN_USE`, `_LOCKED`, `_OVERLAP`, `_CONFLICT` o que comencen per `ALREADY_` són **409**; qualsevol altre codi de §2 sense estat explícit és **422** (precondició de negoci). L'`ErrorCode` del core aplica exactament aquesta regla; si una spec necessita un estat diferent, l'afegeix a §1. **Lectura literal (confirmada 09-09, E3-T01)**: només compta el prefix `ALREADY_` i els sufixos llistats — `SIGNUP_ALREADY_PENDING`, `DOG_CHIP_ALREADY_REGISTERED`, `SIGNUP_CLOSED`, `ID_DOCUMENT_AMBIGUOUS` són **422**; `MEMBER_ALREADY_EXISTS` i `MEMBERSHIP_EXISTS` són 409 pel sufix `_EXISTS`. Els fronts mapegen per codi, no per estat.
 
 1. Un codi = un significat; el mateix codi a dues specs ha de voler dir el mateix (els reutilitzats es marquen a la spec que els reutilitza).
 2. `details` porta el que la UI necessita per decidir (p. ex. `BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], nextBookableAt}`).
