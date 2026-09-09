@@ -1,0 +1,21 @@
++ club added
+  null -> {"slug":"canic","name":"Club Agility Cànic","address":{"city":"Cabrera de Mar","country":"ES"},"contactEmail":"canic@example.test","locales":["ca","es"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":"ES","status":"ONBOARDING","template":false}
++ domains added
+  null -> [{"host":"app.agilitycanic.cat","app":"clubs","primary":true},{"host":"admin.agilitycanic.cat","app":"clubs-admin","primary":false}]
++ theme added
+  null -> {"colors":{"primary":"#E26A2A","onPrimary":"#FFFFFF","background":"#0B0B0B","surface":"#161616","surfaceAlt":"#1E1E1E","text":"#FFFFFF","textMuted":"#B5B5B5","border":"#2B2B2B","success":"#4CAF7D","warning":"#E5B93C","danger":"#E05B5B","info":"#85B8E8"},"fontFamily":"Montserrat","radius":"4px","ringPalette":["#F2B58C","#8FCE8F","#C9CDD3","#F5D67A","#85B8E8"],"mode":"dark"}
++ modules added
+  null -> ["ACTIVITIES","BILLING","COURSES","FAMILY_GROUP","FAQ","FREE_TRAINING","INACTIVITY","LEARN_LINK","PACKS","PUSH","SMS","TASKS","WAITLIST"]
++ paymentProviders added
+  null -> ["MANUAL","SEPA_XML"]
++ legal added
+  null -> {"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","imageConsentText":{"ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club","en":"I authorize publication of photos of me and my dog within club activities","es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club"},"legalTextsVersion":"1"}
++ pwa added
+  null -> {"name":"Club Agility Cànic","shortName":"Club Agility Cànic","icons":[]}
++ parameters: no declared overrides
++ admins: 0 to provision
++ accounts: 15 to provision
++ catalogs: schema accepted; application deferred to E2
++ messageTemplates: schema accepted; application deferred to E7
++ pages: 3 page changes
+9 changes (applied)

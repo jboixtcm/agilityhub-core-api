@@ -24,10 +24,10 @@ public record PlayoffInput(Map<String,List<Row>> files, List<MigrationReport.Ent
             var header = table.getFirst(); boolean valid = true;
             for (var column : schema.columns()) {
                 if (column.at() > header.size() || !column.header().equals(header.get(column.at()-1))) {
-                    incidents.add(new MigrationReport.Entry(key,1,key,"ERROR","INPUT_SCHEMA_MISMATCH")); valid = false;
+                    incidents.add(new MigrationReport.Entry(key,1,key,"ERROR","INPUT_SCHEMA_MISMATCH",column.field()+"@"+column.at())); valid = false;
                 }
             }
-            if (header.size() != schema.columns().size()) { incidents.add(new MigrationReport.Entry(key,1,key,"WARNING","INPUT_SCHEMA_MISMATCH")); }
+            if (header.size() > schema.columns().size()) { incidents.add(new MigrationReport.Entry(key,1,key,"WARNING","INPUT_SCHEMA_MISMATCH","extraColumnsFrom@"+(schema.columns().size()+1))); }
             if (!valid) { continue; }
             for (int i = 1; i < table.size(); i++) {
                 var raw = table.get(i);

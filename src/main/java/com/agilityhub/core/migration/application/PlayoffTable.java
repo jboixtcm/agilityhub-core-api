@@ -13,7 +13,9 @@ public final class PlayoffTable {
         try {
             if (file.toString().endsWith(".xlsx")) {
                 try (var stream = Files.newInputStream(file); var book = WorkbookFactory.create(stream)) {
+                    if (book.getNumberOfSheets()==0) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
                     var sheet = book.getSheetAt(0); var result = new ArrayList<List<String>>();
+                    if (sheet.getRow(0)==null || sheet.getRow(0).getLastCellNum()<1) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
                     var format = new DataFormatter(Locale.ROOT); int width = sheet.getRow(0).getLastCellNum();
                     for (var row : sheet) {
                         var values = new ArrayList<String>();

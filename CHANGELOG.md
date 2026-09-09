@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T10: Add the versioned Playoff census mapping, documented input schema,
+  deterministic anonymizer and fictional incident fixtures. Import members,
+  dogs, explicit families and identity memberships through an atomic tenant-scoped
+  apply with encrypted bank details, cutover mandates, outbox/audit and idempotent
+  source IDs. Preview reports write nothing; unresolved mappings remain warnings.
+
 - E2-T13: Count export admission on tenant/base-field matches with a maxRows + 1
   bound, skipping census enrichment while preserving joined/computed filters.
   Keep exact rendered totals and cover 5,000/5,001 and 100,000/100,001 boundaries,

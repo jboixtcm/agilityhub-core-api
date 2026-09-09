@@ -60,6 +60,9 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.content.domain.ClubPageChanged.class,
                 () -> new com.agilityhub.core.clubs.content.domain.ClubPageChanged("club-a", "RULES", Instant.parse("2030-01-01T00:00:00Z"),
                         Map.of("key", "RULES", "version", 1, "active", true), "account-a", DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.migration.domain.MigrationEvent.class,
+                () -> new com.agilityhub.core.migration.domain.MigrationEvent("MigrationRunStarted","run-a","club-a",
+                        Instant.parse("2030-01-01T00:00:00Z"),Map.of("mode","APPLY","env","STAGING")));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -72,6 +75,12 @@ class EventCatalogContractTest {
         samples.values().forEach(factory -> {
             DomainEvent event = factory.get();
             assertThat(catalog).contains(event.type());
+            if (event instanceof com.agilityhub.core.migration.domain.MigrationEvent) {
+                assertThat(catalog).contains("MigrationRunStarted","MigrationRunCompleted","MigrationRunFailed");
+                assertThat(event.aggregateType()).isEqualTo("MigrationRun");
+                assertThat(event.actorAccountId()).isNull(); assertThat(event.impersonatedMemberId()).isNull();
+                assertThat(event.origin()).isEqualTo(DomainEvent.Origin.SYSTEM); return;
+            }
             if (event instanceof com.agilityhub.core.clubs.messaging.domain.NotificationEvent notification) {
                 for (var kind : com.agilityhub.core.clubs.messaging.domain.NotificationEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
                 assertThat(notification.aggregateType()).isEqualTo("Notification");

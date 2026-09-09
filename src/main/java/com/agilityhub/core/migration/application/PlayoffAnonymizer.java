@@ -26,6 +26,7 @@ public final class PlayoffAnonymizer {
     }
     public String replace(String kind, String value) {
         if (value.isBlank() || kind.equals("keep")) { return value; }
+        if (Set.of("document","passport","phone","iban").contains(kind)) { value=value.replaceAll("[\\s.-]", ""); }
         String n = number(kind,value,8);
         return switch (kind) {
             case "id" -> "P" + number("id",value,16);
@@ -62,9 +63,12 @@ public final class PlayoffAnonymizer {
         return new BigInteger(digits.toString()).mod(BigInteger.valueOf(97)).intValue()==1;
     }
     public void anonymize(Path dir, Path out, MappingConfig mapping) {
-        if (dir.toAbsolutePath().normalize().equals(out.toAbsolutePath().normalize())) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        try {
+            if (dir.toAbsolutePath().normalize().equals(out.toAbsolutePath().normalize())
+                    || Files.exists(out) && Files.isSameFile(dir,out)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        } catch (IOException failure) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
         var input = PlayoffInput.read(dir,mapping);
-        if (input.incidents().stream().anyMatch(r -> r.outcome().equals("ERROR"))) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
+        if (!input.incidents().isEmpty()) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
         try {
             Files.createDirectories(out);
             for (var schema : mapping.files().values()) {

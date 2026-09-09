@@ -1,0 +1,4 @@
+Disposable fictional club seed exit: 0
+bin/core migration:playoff src/test/resources/fixtures/playoff --dry-run exit: 0
+All Mongo collections/documents unchanged: True
+Disposable Mongo cleanup exit: 0

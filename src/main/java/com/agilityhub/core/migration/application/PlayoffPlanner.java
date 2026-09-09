@@ -70,7 +70,7 @@ public class PlayoffPlanner {
                     String status=mapping.statuses().get(normalize(row.get("status")));
                     if (status==null) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
                     LocalDate left=date(row.get("left"));
-                    if (status.equals("SKIP") || status.equals("LEFT") && (left==null || left.isBefore(today.minusYears(config.get("migration.leftMaxYears",Integer.class))))) {
+                    if (status.equals("SKIP") || status.equals("LEFT") && (left==null || left.isBefore(today.minusYears(config.get("migration.leftMaxYears",Integer.class)).withDayOfYear(1)))) {
                         incident(row,"members","SKIPPED",""); continue;
                     }
                     LocalDate joined=date(row.get("joined"));
@@ -133,7 +133,15 @@ public class PlayoffPlanner {
                 fields.put("bookingBlock",normalize(row.get("status")).equals("bloqueado") ? object("active",true,"reason","Migrated from Playoff: blocked","since",instant(c.joined())) : object("active",false));
                 // A legacy marker records provenance; it never claims consent to a current policy.
                 if (old==null) { fields.put("consents",object("privacyPolicy",object("version","LEGACY","acceptedAt",instant(c.joined()),"source","MIGRATED"))); }
-                fields.put("paymentMethod",payment(row));
+                var payment=payment(row);
+                if ("SEPA_DD".equals(payment.get("type"))) {
+                    var previousPayment=map(old==null ? null : old.get("paymentMethod"));
+                    // Playoff exports no mandates. Preserve the first cutover mandate on reapply.
+                    payment.put("mandateRef",previousPayment.getOrDefault("mandateRef",config.club().slug()+"-"+(number==null ? memberId : number)+"-1"));
+                    payment.put("mandateSignedAt",previousPayment.getOrDefault("mandateSignedAt",instant(today)));
+                    payment.put("holderTaxId",document.isEmpty() ? null : document);
+                }
+                fields.put("paymentMethod",payment);
                 Set<String> roles=new HashSet<>(Set.of("MEMBER")); linkPlan(row,fields,roles);
                 for (var team:input.files().get("team")) {
                     if (team.get("number").equals(row.get("number"))) {
@@ -143,8 +151,10 @@ public class PlayoffPlanner {
                 }
                 if (!email.isEmpty() && validEmail(email)) {
                     var identity=identities.preview(email);
-                    if (emails.containsKey(email) && !emails.get(email).equals(memberId) || identity!=null && identity.memberId()!=null && !identity.memberId().equals(memberId)) { warn(row,"EMAIL_SHARED"); }
-                    else if (identity!=null && !identity.active()) { warn(row,"ACCOUNT_BLOCKED"); }
+                    if (emails.containsKey(email) && !emails.get(email).equals(memberId) || identity!=null && identity.memberId()!=null && !identity.memberId().equals(memberId)) {
+                        warn(row,"EMAIL_SHARED"); incident(row,"accounts","SKIPPED","");
+                    }
+                    else if (identity!=null && !identity.active()) { warn(row,"ACCOUNT_BLOCKED"); incident(row,"accounts","SKIPPED",""); }
                     else {
                         emails.put(email,memberId);
                         identityChanges.add(new Identity(memberId,email,row.get("firstName")+" "+surname,config.club().defaultLocale(),c.status().equals("ACTIVE"),roles));
@@ -203,12 +213,16 @@ public class PlayoffPlanner {
                 return object("type","SEPA_DD","iban",iban.isEmpty() ? null : iban,"holderName",row.get("holder").isEmpty() ? row.get("firstName")+" "+row.get("surname").replaceAll("\\([^()]*\\)", "").strip() : row.get("holder"));
             }
             if (!Set.of("transferència","paga en efectiu").contains(payment)) { warn(row,"CARD_NOT_MIGRATED"); }
-            return object("type","MANUAL","channel",payment.equals("transferència") ? "transfer" : "cash");
+            return object("type","MANUAL","channel",payment.equals("transferència") ? "transfer" : payment.equals("paga en efectiu") ? "cash" : null);
         }
         List<Map<String,Object>> licenses(PlayoffInput.Row row) {
             var values=new ArrayList<Map<String,Object>>();
-            for (String org:List.of("rsce","fcag")) { if (!row.get(org).isEmpty()) { values.add(object("organisation",org.toUpperCase(Locale.ROOT),"number",row.get(org),
-                    "category",row.get("category"),"grade",row.get("grade"),"division",row.get("division"))); } }
+            for (String org:List.of("rsce","fcag")) { if (!row.get(org).isEmpty()) {
+                var license=object("organisation",org.toUpperCase(Locale.ROOT),"number",row.get(org));
+                if (org.equals("rsce")) { license.putAll(object("category",row.get("category"),"grade",row.get("grade"))); }
+                else { license.put("division",row.get("division")); }
+                values.add(license);
+            } }
             return values;
         }
         void linkPlan(PlayoffInput.Row row,Map<String,Object> fields,Set<String> roles) {
@@ -217,7 +231,7 @@ public class PlayoffPlanner {
             if (matches.size()!=1) { warn(row,"PLAN_UNMAPPED"); return; }
             String key=normalize(matches.getFirst().get("plan")); String code=mapping.plans().get(key);
             if (mapping.instructorPlans().contains(key)) { roles.add("INSTRUCTOR"); }
-            if (mapping.familyPlans().contains(key)) { warn(row,"EMAIL_SHARED"); }
+            if (mapping.familyPlans().contains(key) && input.files().get("groups").stream().noneMatch(g -> g.get("id").equals(row.get("id")))) { warn(row,"MAPPING_INVALID"); }
             if (code==null) { warn(row,mapping.unresolvedPlans().contains(key) ? "PLAN_UNMAPPED" : "LEGACY_PLAN"); return; }
             var plan=plans.get(code);
             if (plan==null || !Boolean.TRUE.equals(plan.get("active"))) { warn(row,"LEGACY_PLAN"); return; }
@@ -271,7 +285,10 @@ public class PlayoffPlanner {
     static LocalDate date(String value) {
         if (value.isEmpty()) { return null; }
         try { return LocalDate.parse(value); }
-        catch (DateTimeParseException notIso) { return LocalDate.parse(value,DateTimeFormatter.ofPattern("d/M/uuuu").withResolverStyle(ResolverStyle.STRICT)); }
+        catch (DateTimeParseException notIso) {
+            try { return LocalDate.parse(value,DateTimeFormatter.ofPattern("d/M/uuuu").withResolverStyle(ResolverStyle.STRICT)); }
+            catch (DateTimeParseException invalid) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
+        }
     }
     static LocalDate businessDate(Object value) {
         return value instanceof java.util.Date date ? date.toInstant().atZone(ZoneOffset.UTC).toLocalDate() : date(value.toString());

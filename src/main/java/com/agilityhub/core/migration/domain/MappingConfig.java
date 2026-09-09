@@ -21,13 +21,20 @@ public record MappingConfig(int version, String defaultClub, int ageWarningYears
         } catch (IOException | IllegalArgumentException failure) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
     }
     public void validate() {
-        if (version != 1 || defaultClub == null || statuses == null || plans == null || levels == null
+        if (version != 1 || defaultClub == null || defaultClub.isBlank() || ageWarningYears < 1 || suspectBirthYears < 1
+                || inferredDogPrefix == null || statuses == null || plans == null || levels == null || files == null
+                || unresolvedPlans == null || familyPlans == null || instructorPlans == null || levelFlags == null || unresolvedLevels == null
+                || !Set.of("ACTIVE","LEFT","SKIP").containsAll(statuses.values())
                 || !files.keySet().equals(Set.of("members", "plans", "levels", "groups", "team"))) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
+        var names = new HashSet<String>();
         for (var file : files.values()) {
             var positions = new HashSet<Integer>(); var fields = new HashSet<String>();
-            if (!Path.of(file.name()).getFileName().toString().equals(file.name()) || file.columns().isEmpty()) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
+            if (file == null || file.name() == null || file.name().isBlank() || !names.add(file.name())
+                    || !Path.of(file.name()).getFileName().toString().equals(file.name()) || file.columns() == null || file.columns().isEmpty()) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
             for (var column : file.columns()) {
-                if (column.at() < 1 || !positions.add(column.at()) || !fields.add(column.field()) || column.header().isBlank()
+                if (column == null || column.at() < 1 || column.at() > file.columns().size() || !positions.add(column.at())
+                        || column.field() == null || column.field().isBlank() || !fields.add(column.field()) || column.header() == null || column.header().isBlank()
+                        || column.anonymize() == null
                         || !Set.of("keep", "id", "number", "redact", "name", "surname", "document", "passport", "phone", "postal", "address", "email", "iban", "dog", "chip", "license").contains(column.anonymize())) {
                     throw new ApiException(ErrorCode.MAPPING_INVALID);
                 }

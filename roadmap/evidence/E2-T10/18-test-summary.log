@@ -1,0 +1,5 @@
+surefire-reports: {'tests': 301, 'errors': 0, 'failures': 0, 'skipped': 0}
+failsafe-reports: {'tests': 400, 'errors': 0, 'failures': 0, 'skipped': 0}
+com/agilityhub/core/migration/application: BRANCH 493/563 = 87.57%, LINE 469/473 = 99.15%
+com/agilityhub/core/migration/persistence: BRANCH 4/4 = 100.00%, LINE 6/6 = 100.00%
+com/agilityhub/core/migration/domain: BRANCH 17/18 = 94.44%, LINE 23/24 = 95.83%

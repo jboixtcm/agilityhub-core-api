@@ -29,6 +29,9 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     @DynamicPropertySource static void bank(DynamicPropertyRegistry registry) { registry.add("core.migration.bank-key",() -> BANK_KEY); }
     @Autowired PlayoffImportService importer; @Autowired PlayoffPlanner planner; @Autowired MongoTemplate mongo;
     @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
+    @Autowired com.agilityhub.core.identity.application.AccountService accounts;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean MigrationBankVault vault;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.clubs.messaging.application.EmailSender mail;
     @TempDir Path temp;
     @BeforeEach void seed() {
         TenantContext.clear(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
@@ -44,7 +47,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
                     .append("validFrom","2020-01-01"),"prices");
         }
         for (String code:List.of("A","B","C","D","E","F","G","CADELLS")) {
-            mongo.insert(new Document("_id","level-"+code).append("clubId",CLUB).append("code",code).append("active",true),"levels");
+            mongo.insert(new Document("_id","level-"+code).append("clubId",CLUB).append("code",code).append("nameKeys",List.of(code.toLowerCase(Locale.ROOT))).append("active",true),"levels");
         }
     }
     PlayoffInput input() { return PlayoffInput.read(FIXTURE,MAPPING); }
@@ -67,10 +70,11 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         var licenseDog=dogs.stream().filter(d -> !((List<?>)d.get("licenses")).isEmpty()).findFirst().orElseThrow();
         assertThat(licenseDog.get("handlerName")).isNotNull();
         assertThat(((List<Document>)licenseDog.get("licenses"))).extracting(d -> d.getString("organisation")).containsExactly("RSCE","FCAG");
-        assertThat(((List<Document>)licenseDog.get("licenses")).getFirst()).containsEntry("category","L").containsEntry("grade","2").containsEntry("division","1D");
+        assertThat(((List<Document>)licenseDog.get("licenses")).getFirst()).containsEntry("category","L").containsEntry("grade","2").doesNotContainKey("division");
+        assertThat(((List<Document>)licenseDog.get("licenses")).get(1)).containsEntry("division","1D").doesNotContainKeys("category","grade");
         assertThat(licenseDog.get("levelId")).isEqualTo("level-A");
         assertThat(dogs.stream().filter(d -> d.get("levelId")==null)).isNotEmpty();
-        assertThat(rows("audit_entries")).isNotEmpty();
+        assertThat(rows("audit_entries")).hasSize(1).allMatch(d -> "MigrationRun".equals(d.get("entityType")));
     }
     @Test void T_18_02_activeNumbersWinOldLeaversAreSkippedAndNumbersReserved() {
         var report=apply(); assertThat(report.hasErrors()).isFalse(); assertThat(incidents(report,"NUMBER_CONFLICT")).isEqualTo(4);
@@ -79,21 +83,23 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         int max=input().files().get("members").stream().mapToInt(r -> Integer.parseInt(r.get("number"))).max().orElseThrow();
         assertThat(mongo.findById(CLUB,Document.class,"clubs").get("nextMemberNumber")).isEqualTo((long)max+1);
         var modified=mutate(0,Map.of("status","Bloqueado")); var plan=preview(modified);
-        assertThat((Map<?,?>)plan.changes().stream().filter(c -> c.entity().equals("members") && c.source().row()==2).findFirst().orElseThrow().fields().get("bookingBlock")).containsValue(true);
+        assertThat((Map<String,Object>)plan.changes().stream().filter(c -> c.entity().equals("members") && c.source().row()==2).findFirst().orElseThrow().fields().get("bookingBlock")).containsValue(true);
     }
-    @Test void T_18_04_explicitPayerGroupsAndEncryptedBankHandoffWithoutMandates() throws Exception {
+    @Test void T_18_04_explicitPayerGroupsEncryptedBankAndNewCutoverMandates() throws Exception {
         var report=apply(); assertThat(report.hasErrors()).isFalse(); assertThat(report.count("familyGroups","CREATED")).isEqualTo(1);
         var group=rows("family_groups").getFirst(); assertThat(group.get("holderMemberId")).isEqualTo(member(61).get("_id"));
         assertThat(member(81).get("familyGroupId")).isEqualTo(group.get("_id"));
-        var bank=(Document)member(50).get("paymentMethod"); assertThat(bank).containsKeys("ibanEncrypted","ibanLast4").doesNotContainKeys("iban","mandateRef","mandateSignedAt");
+        var bank=(Document)member(50).get("paymentMethod"); assertThat(bank).containsKeys("ibanEncrypted","ibanLast4","mandateRef","mandateSignedAt").doesNotContainKey("iban");
+        assertThat(bank.getString("mandateRef")).isEqualTo(CLUB+"-"+member(50).get("memberNumber")+"-1");
+        assertThat(bank.getDate("mandateSignedAt").toInstant()).isEqualTo(Instant.parse("2026-09-08T22:00:00Z"));
         byte[] encrypted=Base64.getDecoder().decode(bank.getString("ibanEncrypted"));
         var cipher=javax.crypto.Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(javax.crypto.Cipher.DECRYPT_MODE,new javax.crypto.spec.SecretKeySpec(Base64.getDecoder().decode(BANK_KEY),"AES"),
                 new javax.crypto.spec.GCMParameterSpec(128,Arrays.copyOfRange(encrypted,0,12)));
         cipher.updateAAD((CLUB+":"+member(50).get("_id")).getBytes(java.nio.charset.StandardCharsets.UTF_8));
         assertThat(new String(cipher.doFinal(Arrays.copyOfRange(encrypted,12,encrypted.length)),java.nio.charset.StandardCharsets.UTF_8)).isEqualTo(input().files().get("members").get(49).get("iban"));
-        assertThat((Map<?,?>)member(30).get("paymentMethod")).doesNotContainKey("ibanEncrypted");
+        assertThat((Map<String,Object>)member(30).get("paymentMethod")).doesNotContainKey("ibanEncrypted");
         assertThat(incidents(report,"IBAN_INVALID")).isEqualTo(1); assertThat(incidents(report,"CARD_NOT_MIGRATED")).isEqualTo(1);
-        assertThat((Map<?,?>)member(38).get("paymentMethod")).containsValue("MANUAL");
+        assertThat((Map<String,Object>)member(38).get("paymentMethod")).containsValue("MANUAL");
     }
     @Test void T_18_06_sharedEmailsHaveOneOwnerAndNoMailIsSent() {
         var report=apply(); assertThat(report.hasErrors()).isFalse();
@@ -101,9 +107,12 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         for (int i=1;i<=7;i++) { assertThat(member(i).get("accountId")).isNull(); }
         assertThat(rows("accounts")).allMatch(d -> Boolean.TRUE.equals(d.get("onboardingPending")) && "MIGRATION".equals(d.get("createdSource")) && d.get("passwordHash")==null);
         var membership=mongo.findOne(Query.query(Criteria.where("memberId").is(member(43).get("_id"))),Document.class,"memberships");
-        assertThat((List<?>)membership.get("roles")).contains("MEMBER","INSTRUCTOR","ADMIN");
-        assertThat((Map<?,?>)((Map<?,?>)member(43).get("consents")).get("privacyPolicy")).containsValue("LEGACY");
+        assertThat(membership.getList("roles",String.class)).contains("MEMBER","INSTRUCTOR","ADMIN");
+        assertThat((Map<String,Object>)((Map<String,Object>)member(43).get("consents")).get("privacyPolicy")).containsValue("LEGACY");
         assertThat(rows("notifications")).isEmpty(); assertThat(rows("magic_link_tokens")).isEmpty();
+        org.mockito.Mockito.verifyNoInteractions(mail);
+        assertThat(incidents(report,"EMAIL_SHARED")).isEqualTo(20);
+        assertThat(report.count("accounts","SKIPPED")).isEqualTo(27);
         assertThat(report.render()).doesNotContain("@","Surname","Example","ibanEncrypted");
     }
     @Test void T_18_08_reapplyUpdatesOnlyMappedRecordsAndDryRunWritesNothing() {
@@ -121,14 +130,29 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThatThrownBy(() -> importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,true)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
     }
     @Test void T_18_10_allWritesUseTargetTenantAndExistingGlobalAccountsArePreserved() {
+        String email=input().files().get("members").get(49).get("email");
+        var account=accounts.getOrCreate(email,"Existing Example","en",com.agilityhub.core.identity.persistence.Account.Source.SIGNUP,null,false);
+        var existing=mongo.findById(account.id(),Document.class,"accounts");
         mongo.insert(new Document("_id","foreign").append("clubId",OTHER).append("firstName","Foreign Example").append("memberNumber",100),"members");
         var foreign=mongo.findById("foreign",Document.class,"members");
         assertThat(apply().hasErrors()).isFalse(); assertThat(mongo.findById("foreign",Document.class,"members")).isEqualTo(foreign);
+        assertThat(mongo.findById(account.id(),Document.class,"accounts")).isEqualTo(existing);
+        assertThat(member(50).get("accountId")).isEqualTo(account.id());
         for (String collection:List.of("dogs","family_groups","memberships","migration_runs","audit_entries")) { assertThat(rows(collection)).allMatch(d -> CLUB.equals(d.get("clubId"))); }
-        assertThat(TenantContext.current()).isEmpty();
+        assertThat(TenantContext.current()).isNull();
+    }
+    @Test void T_18_08_failedCensusRollsBackRecordsAuditAndAccountEventsAndCanBeRetried() {
+        org.mockito.Mockito.doThrow(new IllegalStateException("Synthetic encryption failure")).when(vault).encrypt(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.anyString());
+        assertThatThrownBy(this::apply).isInstanceOf(IllegalStateException.class);
+        for(String collection:List.of("members","dogs","family_groups","memberships","accounts","audit_entries")) { assertThat(rows(collection)).isEmpty(); }
+        assertThat(rows("migration_runs")).hasSize(1).allMatch(d -> "FAILED".equals(d.get("status")));
+        assertThat(rows("domain_events")).hasSize(1).allMatch(d -> "MigrationRunFailed".equals(d.get("type")));
+        org.mockito.Mockito.reset(vault);
+        assertThat(apply().hasErrors()).isFalse();
+        assertThat(rows("migration_runs")).hasSize(2);
     }
     @Test void T_18_01_unknownAndInvalidRowsReportErrorsWithoutAnyApplyWrites() throws Exception {
-        var directory=copyFixture(); var table=PlayoffTable.read(directory.resolve("socis.csv")); table.get(1).set(4,"Unknown");
+        var directory=copyFixture(); var table=PlayoffTable.read(directory.resolve("socis.csv")); table.set(1,new ArrayList<>(table.get(1))); table.get(1).set(4,"Unknown");
         PlayoffTable.write(directory.resolve("socis.csv"),table);
         var before=snapshot(); var report=importer.importDirectory(directory,MAPPING,CLUB,false,false,false);
         assertThat(report.hasErrors()).isTrue(); assertThat(snapshot()).isEqualTo(before);
