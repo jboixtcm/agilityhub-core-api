@@ -56,6 +56,8 @@ public class AuditRepository {
         indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("at", Sort.Direction.DESC).named("audit_club_at"));
         indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("memberId", Sort.Direction.ASC)
                 .on("at", Sort.Direction.DESC).named("audit_club_member_at"));
+        indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("impersonatedMemberId", Sort.Direction.ASC)
+                .on("at", Sort.Direction.DESC).named("audit_club_impersonated_at"));
         indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("entityType", Sort.Direction.ASC)
                 .on("entityId", Sort.Direction.ASC).on("at", Sort.Direction.DESC).named("audit_club_entity_at"));
     }

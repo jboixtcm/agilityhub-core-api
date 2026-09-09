@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T09: Implement tenant-scoped admin audit lists, member impersonation history,
+  filters, detail reads and synchronous/background XLSX/PDF exports with nested
+  sensitive-value masking and localized column labels. Verify parameter/level
+  lastChange summaries and exhaustive audit-action coverage; document object
+  storage deployment and publish the updated OpenAPI contract.
+
 - E2-T12: Add tenant-scoped club pages, publication history, limited Markdown validation,
   admin editing, member/public reads, transactional audit/outbox, and idempotent
   draft-text seeds through club:apply. Publish the OpenAPI contract.

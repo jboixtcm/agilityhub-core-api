@@ -123,19 +123,20 @@ public class ExportsController {
     public org.springframework.http.ResponseEntity<?> exportDogs(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("dogs", format, columns, params); }
 
-    @GetMapping("/api/v1/audit-entries/export")
+    @RequestMapping(path = "/api/v1/audit-entries/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
-            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*"}, paged = true, exportable = false)
+            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = false)
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export audit entries",
-            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Nested sensitive details and changes are masked. Up to 5,000 rows inline; larger exports queue the existing background worker.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Disposition", schema = @Schema(type = "string")),
                             content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),
                                     @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema = @Schema(type = "string", format = "binary"))}),
                     @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
-    public org.springframework.http.ResponseEntity<byte[]> exportAuditEntries(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns) { throw new UnsupportedOperationException(); }
+    public org.springframework.http.ResponseEntity<?> exportAuditEntries(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) { return export("audit-entries", format, columns, params); }
 
     @GetMapping("/api/v1/invoices/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

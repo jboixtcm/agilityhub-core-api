@@ -44,6 +44,12 @@ public class CatalogViews {
         return last == null ? null : new LastChange(last.at(), last.actorName(), last.action().name());
     }
     CatalogResponses.Level level(String id, boolean warnings) { return level((Level) catalogs.get(CatalogKind.LEVEL, id), warnings); }
+    Map<String, Object> levelDetail(String id) {
+        var level = level(id, false);
+        Map<String, Object> result = mapper.convertValue(level, new TypeReference<>() { });
+        if (admin() && level.lastChange() == null) { result.put("lastChange", com.fasterxml.jackson.databind.node.NullNode.instance); }
+        return result;
+    }
     private CatalogResponses.Level level(Level item, boolean warnings) {
         var usage = admin() ? mapper.convertValue(catalogs.usage(CatalogKind.LEVEL, item.id()), CatalogResponses.LevelUsage.class) : null;
         return new CatalogResponses.Level(item.id(), item.code(), text(item.name()), admin() ? item.name().values() : null,

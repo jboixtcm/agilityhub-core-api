@@ -1,0 +1,327 @@
+Audit coverage: MEMBER_UPDATED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff
+Audit coverage: SIGNUP_EDITED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff
+Audit coverage: MEMBER_PAYMENT_METHOD_CHANGED -> CensusIT.T_03_13_paymentMethodsAreValidatedAndAlwaysMasked
+Audit coverage: MEMBER_STATUS_CHANGED -> CensusIT.T_03_06_T_03_31_memberLeaveDeactivatesDogsAndReactivationKeepsTheirStatus
+Audit coverage: BOOKING_BLOCK_SET -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: BOOKING_BLOCK_CLEARED -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: ACCESS_RESENT -> CensusIT.T_03_16_accessResendPublishesAndDeliversN27Once
+Audit coverage: DOG_UPDATED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: DOG_LEVEL_CHANGED -> CensusIT.T_03_19_levelChangeKeepsBookingsAndEmitsNoWarnings
+Audit coverage: DOG_FREE_TRAINING_CHANGED -> CensusIT.T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges
+Audit coverage: DOG_TRANSFERRED -> CensusIT.T_03_21_transferPreservesDogDataAndClearsSelections
+Audit coverage: DOG_DEACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_REACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_DOCUMENT_FILE_REMOVED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: FAMILY_GROUP_CHANGED -> CensusIT.T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic
+Audit coverage: MEMBER_ROLES_CHANGED -> TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: DATA_EXPORTED -> ExportEngineIT.T_14_15_localizedHeadersMaskedValuesDatesAndReadyJobs, UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+Audit coverage: CATALOG_CHANGED -> CatalogsIT.T_05_06_T_05_19_T_05_20_catalogCrudOrderVersionAuditAndOutbox, ClubPagesIT.T_05_CP_05_auditOutboxAndPageWritesCommitAndRollbackTogether, PlansIT.T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges, TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: PLATFORM_ROLES_CHANGED -> PlatformRolesIT.T_17_09_globalReadReplaceAndRemovalAuditOnlyRolePathWithoutDomainEvent
+Audit coverage: ONBOARDING_COMPLETED -> OnboardingIT.T_01_26_importedAccountAcceptsOnceWithVersionTimeAndTransactionalAudit
+Audit coverage: IMPERSONATION_STARTED -> ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation
+Audit coverage: ACCOUNT_EMAIL_STATUS_CHANGED -> SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce
+Audit coverage: PARAMETER_CHANGED -> AuditedAspectIT.T_14_12_parameterEntryCommitsAtomicallyWithAggregateAndOutboxAndCapturesMetadata, SettingsIT.T_02_08_parameterHistoryAuditOutboxCacheAndVersionedReset
+Audit coverage: CLUB_UPDATED -> AuditedAspectIT.T_14_12_manualWriterMasksAndFreezesMutableSnapshotsBeforeCommit, ClubDefinitionsIT.T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite, SettingsIT.T_02_11_clubProjectionAndAllowlistedUpdatesAuditAndRefreshBranding
+Audit coverage: CLUB_MODULES_CHANGED -> AuditedAspectIT.T_14_11_lastChangeUsesLatestTimestampAndSeparatesTenantsAndTargets, SettingsIT.T_02_09_selfServiceModulesAuditOutboxDependenciesAndBranding
+Audit coverage: CLUB_STATUS_CHANGED -> AuditedAspectIT.T_14_11_platformEntriesHaveNullClubIdAndExplicitIsolatedQuery
+21:17:11.481 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.platform.api.AuditQueriesIT]: AuditQueriesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:17:11.614 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.api.AuditQueriesIT
+21:17:11.716 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+21:17:11.718 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+21:17:11.723 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+21:17:12.105 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+21:17:12.106 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+21:17:12.119 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+21:17:12.181 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+21:17:12.288 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+21:17:12.357 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 1753…[truncated]
+21:17:12.505 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.323486S
+21:17:12.510 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+21:17:12.510 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+21:17:12.510 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+21:17:12.511 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+21:17:12.545 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: ba26…[truncated]
+21:17:12.943 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.431848S
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-09T21:17:13.690+02:00  INFO 55568 --- [agilityhub-core-api] [           main] c.a.core.platform.api.AuditQueriesIT     : Starting AuditQueriesIT using Java 21.0.12.1 with PID 55568 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-09T21:17:13.691+02:00  INFO 55568 --- [agilityhub-core-api] [           main] c.a.core.platform.api.AuditQueriesIT     : The following 1 profile is active: "test"
+2026-09-09T21:17:14.394+02:00  INFO 55568 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-09T21:17:14.423+02:00  INFO 55568 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 26 ms. Found 0 MongoDB repository interfaces.
+2026-09-09T21:17:14.845+02:00  INFO 55568 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@43c58698], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@712d42ed, com.mongodb.Jep395RecordCodecProvider@30f2e0e0, com.mongodb.KotlinCodecProvider@69d92f73]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:51498], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6479596], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-09T21:17:14.852+02:00  INFO 55568 --- [agilityhub-core-api] [localhost:51498] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:51498, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=13027916, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=ba26c066284d:27017, hosts=[ba26c066284d:27017], passives=[], arbiters=[], primary='ba26c066284d:27017', tagSet=TagSet{[]}, electionId=7fff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa1…[truncated], counter=6}, lastWriteDate=Wed Sep 09 21:17:13 CEST 2026, lastUpdateTimeNanos=125317379855541}
+2026-09-09T21:17:17.056+02:00  INFO 55568 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-09T21:17:17.056+02:00  INFO 55568 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-09T21:17:17.057+02:00  INFO 55568 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-09T21:17:17.087+02:00  INFO 55568 --- [agilityhub-core-api] [           main] c.a.core.platform.api.AuditQueriesIT     : Started AuditQueriesIT in 3.622 seconds (process running for 6.111)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e1-t09-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 7, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 9.618 s <<< FAILURE! -- in com.agilityhub.core.platform.api.AuditQueriesIT
+[ERROR] com.agilityhub.core.platform.api.AuditQueriesIT.T_14_22_everyAuditRouteEnforcesTenantRoleAndImpersonation -- Time elapsed: 0.088 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<403> but was:<401>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.agilityhub.core.platform.api.AuditQueriesIT.T_14_22_everyAuditRouteEnforcesTenantRoleAndImpersonation(AuditQueriesIT.java:145)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.platform.api.AuditQueriesIT.T_14_14_parametersAndLevelReturnLatestEntityChangeOrExplicitNull -- Time elapsed: 0.345 s <<< ERROR!
+jakarta.servlet.ServletException: Request processing failed: org.springframework.data.mapping.model.MappingInstantiationException: Failed to instantiate com.agilityhub.core.shared.domain.LocalizedText using constructor public com.agilityhub.core.shared.domain.LocalizedText(java.util.Map,java.lang.String) with arguments {en=Example, ca=Exemple},null
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1022)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestLocaleFilter.doFilterInternal(RequestLocaleFilter.java:20)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:490)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:351)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:83)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:129)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:125)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:119)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.AuthenticationFilter.doFilterInternal(AuthenticationFilter.java:177)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.identity.api.CurrentUserFilter.doFilterInternal(CurrentUserFilter.java:35)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.AccountStateFilter.doFilterInternal(AccountStateFilter.java:33)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.TenantFilter.doFilterInternal(TenantFilter.java:82)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at com.agilityhub.core.shared.api.RateLimitFilter.doFilterInternal(RateLimitFilter.java:48)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.doFilterInternal(BearerTokenAuthenticationFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:241)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:334)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:225)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:138)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:319)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$4(HandlerMappingIntrospector.java:267)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:240)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:32)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:162)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.agilityhub.core.platform.api.AuditQueriesIT.call(AuditQueriesIT.java:67)
+	at com.agilityhub.core.platform.api.AuditQueriesIT.admin(AuditQueriesIT.java:70)
+	at com.agilityhub.core.platform.api.AuditQueriesIT.T_14_14_parametersAndLevelReturnLatestEntityChangeOrExplicitNull(AuditQueriesIT.java:166)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.springframework.data.mapping.model.MappingInstantiationException: Failed to instantiate com.agilityhub.core.shared.domain.LocalizedText using constructor public com.agilityhub.core.shared.domain.LocalizedText(java.util.Map,java.lang.String) with arguments {en=Example, ca=Exemple},null
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:278)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$DefaultConversionContext.convert(MappingMongoConverter.java:2420)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$ConversionContext.convert(MappingMongoConverter.java:2232)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$MongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:1998)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2057)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter$AssociationAwareMongoDbPropertyValueProvider.getPropertyValue(MappingMongoConverter.java:2016)
+	at org.springframework.data.mapping.model.PersistentEntityParameterValueProvider.getParameterValue(PersistentEntityParameterValueProvider.java:72)
+	at org.springframework.data.mapping.model.ValueExpressionParameterValueProvider.getParameterValue(ValueExpressionParameterValueProvider.java:56)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.extractInvocationArguments(ClassGeneratingEntityInstantiator.java:301)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:273)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator.createInstance(ClassGeneratingEntityInstantiator.java:98)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:570)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.readDocument(MappingMongoConverter.java:522)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:458)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:454)
+	at org.springframework.data.mongodb.core.convert.MappingMongoConverter.read(MappingMongoConverter.java:126)
+	at org.springframework.data.mongodb.core.MongoTemplate$ReadDocumentCallback.doWith(MongoTemplate.java:3322)
+	at org.springframework.data.mongodb.core.MongoTemplate.executeFindOneInternal(MongoTemplate.java:2913)
+	at org.springframework.data.mongodb.core.MongoTemplate.doFindOne(MongoTemplate.java:2567)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:848)
+	at org.springframework.data.mongodb.core.MongoTemplate.findOne(MongoTemplate.java:835)
+	at com.agilityhub.core.shared.persistence.TenantRepository.findById(TenantRepository.java:27)
+	at com.agilityhub.core.clubs.catalogs.application.CatalogService.get(CatalogService.java:47)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.clubs.catalogs.application.CatalogService$$SpringCGLIB$$0.get(<generated>)
+	at com.agilityhub.core.clubs.catalogs.api.CatalogViews.level(CatalogViews.java:46)
+	at com.agilityhub.core.clubs.catalogs.api.CatalogsController.getLevel(CatalogsController.java:55)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.proceed(AuthorizationManagerBeforeMethodInterceptor.java:268)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.attemptAuthorization(AuthorizationManagerBeforeMethodInterceptor.java:263)
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke(AuthorizationManagerBeforeMethodInterceptor.java:196)
+	at org.springframework.security.config.annotation.method.configuration.DeferringMethodInterceptor.invoke(DeferringMethodInterceptor.java:44)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.clubs.catalogs.api.CatalogsController$$SpringCGLIB$$0.getLevel(<generated>)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	... 151 more
+Caused by: java.lang.NullPointerException
+	at java.base/java.util.Objects.requireNonNull(Objects.java:233)
+	at com.agilityhub.core.shared.domain.LocalizedText.<init>(LocalizedText.java:13)
+	at com.agilityhub.core.shared.domain.LocalizedText_Instantiator_9h1m4h.newInstance(Unknown Source)
+	at org.springframework.data.mapping.model.ClassGeneratingEntityInstantiator$EntityInstantiatorAdapter.createInstance(ClassGeneratingEntityInstantiator.java:276)
+	... 210 more
+
+[ERROR] Failures: 
+[ERROR]   AuditQueriesIT.T_14_22_everyAuditRouteEnforcesTenantRoleAndImpersonation:145 Status expected:<403> but was:<401>
+[ERROR] Errors: 
+[ERROR]   AuditQueriesIT.T_14_14_parametersAndLevelReturnLatestEntityChangeOrExplicitNull:166->admin:70->call:67 » Servlet Request processing failed: org.springframework.data.mapping.model.MappingInstantiationException: Failed to instantiate com.agilityhub.core.shared.domain.LocalizedText using constructor public com.agilityhub.core.shared.domain.LocalizedText(java.util.Map,java.lang.String) with arguments {en=Example, ca=Exemple},null
+[ERROR] Tests run: 7, Failures: 1, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

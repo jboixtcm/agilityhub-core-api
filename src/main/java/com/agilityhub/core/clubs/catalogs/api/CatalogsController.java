@@ -51,8 +51,8 @@ public class CatalogsController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @Operation(summary = "Get level",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
-            responses = @ApiResponse(responseCode = "200", description = "Level"))
-    public Level getLevel(@PathVariable String id) { return views.level(id, false); }
+            responses = @ApiResponse(responseCode = "200", description = "Level", content = @Content(schema = @Schema(implementation = Level.class))))
+    public java.util.Map<String, Object> getLevel(@PathVariable String id) { return views.levelDetail(id); }
 
     @PatchMapping("/api/v1/levels/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

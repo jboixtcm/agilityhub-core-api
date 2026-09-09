@@ -134,7 +134,7 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
                 .allowDiskUse(true).maxTime(30, TimeUnit.SECONDS).into(new ArrayList<>()));
     }
     @SuppressWarnings("unchecked")
-    private Map<String, Object> publicRow(ListDataset data, Document document) { return (Map<String, Object>) normalize(document, data.nullablePaths(), ""); }
+    private Map<String, Object> publicRow(ListDataset data, Document document) { return data.sanitize().apply((Map<String, Object>) normalize(document, data.nullablePaths(), "")); }
     private Object normalize(Object value, Set<String> nullable, String path) {
         if (value instanceof Date date) { return date.toInstant().toString(); }
         if (value instanceof Map<?, ?> map) {

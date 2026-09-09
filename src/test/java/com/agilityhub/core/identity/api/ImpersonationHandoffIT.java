@@ -97,6 +97,14 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         var issued = impersonate(admin);
         String value = issued.path("token").asText();
         String imp = "Bearer " + value;
+        // T-14-22: a validated impersonation grant cannot read or export admin audit data.
+        for (String path : List.of("/api/v1/audit-entries", "/api/v1/audit-entries/example-entry",
+                "/api/v1/audit-entries/filter-values?field=action", "/api/v1/members/member-target/audit-entries",
+                "/api/v1/audit-entries/export?format=xlsx")) {
+            mvc.perform(get(path).header("Host", HOST).header("Authorization", imp)).andExpect(status().isForbidden());
+        }
+        mvc.perform(post("/api/v1/audit-entries/export?format=xlsx").header("Host", HOST).header("Authorization", imp))
+                .andExpect(status().isForbidden());
         var claims = SignedJWT.parse(value).getJWTClaimsSet();
         assertThat(claims.getSubject()).isEqualTo("account-member");
         assertThat(claims.getStringListClaim("roles")).containsExactly("MEMBER");

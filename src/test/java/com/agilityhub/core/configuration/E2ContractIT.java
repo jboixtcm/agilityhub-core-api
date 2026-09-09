@@ -52,6 +52,8 @@ class E2ContractIT extends AbstractIntegrationTest {
 
     static Stream<Route> pendingRoutes() throws Exception {
         return routes().filter(route -> !(route.path().startsWith("/api/v1/members") && !route.path().contains("audit-entries") && !route.path().contains("data-export") && !route.path().contains("erasure"))
+                && !route.path().startsWith("/api/v1/audit-entries")
+                && !route.path().equals("/api/v1/members/{id}/audit-entries")
                 && !route.path().startsWith("/api/v1/dogs")
                 && !route.path().startsWith("/api/v1/family-groups")
                 && !route.path().startsWith("/api/v1/me/dogs")
@@ -179,7 +181,7 @@ class E2ContractIT extends AbstractIntegrationTest {
         var columns = Map.of(
                 "members", "fullName,dogs,plan,displayStatus,memberNumber,contact,paymentMethod,nextInvoiceDate,familyGroup,joinedAt,leaveDate,bookingBlocked,imageRights,roles,city,postalCode,pendingDocuments,freeTraining,birthDate,gender,idDocument",
                 "dogs", "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt",
-                "audit-entries", "at,action,entityLabel,actorName,impersonatedName,changes,origin");
+                "audit-entries", "at,action,entityLabel,actorName,impersonatedName,changes,origin,details");
         lists.forEach((resource, sort) -> {
             var operation = api.path("paths").path("/api/v1/" + resource).path("get");
             assertThat(strings(operation.path("x-sortable"))).containsExactlyElementsOf(sort);
@@ -238,6 +240,8 @@ class E2ContractIT extends AbstractIntegrationTest {
         var matcher = java.util.regex.Pattern.compile("`([A-Z][A-Z_]+)`").matcher(actionRow);
         var actions = new java.util.LinkedHashSet<String>();
         while (matcher.find()) { actions.add(matcher.group(1)); }
+        // E1-T06 already writes this task-authorized action; the read contract must represent those entries.
+        actions.add("ONBOARDING_COMPLETED");
         assertThat(java.util.Arrays.stream(com.agilityhub.core.platform.api.AuditContracts.AuditActionName.values()).map(Enum::name))
                 .containsExactlyElementsOf(actions);
     }

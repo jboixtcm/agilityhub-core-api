@@ -241,7 +241,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CATALOG_CHANGED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CATALOG_CHANGED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -371,6 +371,10 @@
           "clubId" : {
             "format" : "uuid",
             "type" : "string"
+          },
+          "details" : {
+            "additionalProperties" : { },
+            "type" : "object"
           },
           "entityId" : {
             "format" : "uuid",
@@ -2652,7 +2656,7 @@
           }
         },
         "required" : [ "action", "at" ],
-        "type" : "object"
+        "type" : [ "object", "null" ]
       },
       "Legal" : {
         "properties" : {
@@ -2997,22 +3001,18 @@
           },
           "page" : {
             "format" : "int32",
-            "minimum" : 0,
             "type" : "integer"
           },
           "size" : {
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           },
           "totalItems" : {
             "format" : "int64",
-            "minimum" : 0,
             "type" : "integer"
           },
           "totalPages" : {
             "format" : "int32",
-            "minimum" : 0,
             "type" : "integer"
           }
         },
@@ -8083,7 +8083,7 @@
     },
     "/api/v1/audit-entries" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-11. Tenant-scoped audit, newest first; ADMIN only and impersonation is rejected. Member history includes direct and impersonated entries. Sensitive details and changes are masked.",
         "operationId" : "auditEntries",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -8153,7 +8153,7 @@
                 }
               }
             },
-            "description" : "ListPage<AuditEntryListItem>"
+            "description" : "ListPage<AuditEntryListItem>; fields selects a sparse projection"
           },
           "400" : {
             "content" : {
@@ -8298,6 +8298,9 @@
         }, {
           "defaultVisible" : true,
           "key" : "origin"
+        }, {
+          "defaultVisible" : false,
+          "key" : "details"
         } ],
         "x-exportable" : true,
         "x-filter-operators" : {
@@ -8309,7 +8312,7 @@
     },
     "/api/v1/audit-entries/export" : {
       "get" : {
-        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Nested sensitive details and changes are masked. Up to 5,000 rows inline; larger exports queue the existing background worker.",
         "operationId" : "exportAuditEntries",
         "parameters" : [ {
           "in" : "query",
@@ -8564,6 +8567,276 @@
         }, {
           "defaultVisible" : true,
           "key" : "origin"
+        }, {
+          "defaultVisible" : false,
+          "key" : "details"
+        } ],
+        "x-exportable" : false,
+        "x-filter-operators" : {
+          "at" : [ "between" ]
+        },
+        "x-filterable" : [ "at", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin" ],
+        "x-sortable" : [ "at" ]
+      },
+      "post" : {
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Nested sensitive details and changes are masked. Up to 5,000 rows inline; larger exports queue the existing background worker.",
+        "operationId" : "exportAuditEntries_1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "format",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "xlsx", "pdf" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "columns",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated response column keys.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/pdf" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Export file",
+            "headers" : {
+              "Content-Disposition" : {
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExportAccepted"
+                }
+              }
+            },
+            "description" : "Queued export"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "EXPORT_TOO_LARGE, EXPORT_LIMIT"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Export audit entries",
+        "tags" : [ "clubs.common" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "at"
+        }, {
+          "defaultVisible" : true,
+          "key" : "action"
+        }, {
+          "defaultVisible" : true,
+          "key" : "entityLabel"
+        }, {
+          "defaultVisible" : true,
+          "key" : "actorName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "impersonatedName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "changes"
+        }, {
+          "defaultVisible" : true,
+          "key" : "origin"
+        }, {
+          "defaultVisible" : false,
+          "key" : "details"
         } ],
         "x-exportable" : false,
         "x-filter-operators" : {
@@ -8575,7 +8848,7 @@
     },
     "/api/v1/audit-entries/filter-values" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-11. Tenant-scoped audit, newest first; ADMIN only and impersonation is rejected. Member history includes direct and impersonated entries. Sensitive details and changes are masked.",
         "operationId" : "auditFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -8746,7 +9019,7 @@
     },
     "/api/v1/audit-entries/{id}" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-11. Tenant-scoped audit, newest first; ADMIN only and impersonation is rejected. Member history includes direct and impersonated entries. Sensitive details and changes are masked.",
         "operationId" : "auditEntry",
         "parameters" : [ {
           "in" : "path",
@@ -22479,7 +22752,7 @@
     },
     "/api/v1/members/{id}/audit-entries" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S14 R-14-11. Tenant-scoped audit, newest first; ADMIN only and impersonation is rejected. Member history includes direct and impersonated entries. Sensitive details and changes are masked.",
         "operationId" : "memberAuditEntries",
         "parameters" : [ {
           "in" : "path",
@@ -22556,7 +22829,7 @@
                 }
               }
             },
-            "description" : "ListPage<AuditEntryListItem>"
+            "description" : "ListPage<AuditEntryListItem>; fields selects a sparse projection"
           },
           "400" : {
             "content" : {
@@ -22701,6 +22974,9 @@
         }, {
           "defaultVisible" : true,
           "key" : "origin"
+        }, {
+          "defaultVisible" : false,
+          "key" : "details"
         } ],
         "x-exportable" : false,
         "x-filter-operators" : {

@@ -26,6 +26,7 @@ public final class ApiContracts {
             @Schema(requiredMode = REQUIRED) List<FilterValue> values) { }
     public record FilterValue(@Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) String label, @Schema(requiredMode = REQUIRED) long count) { }
+    @Schema(types = {"object", "null"})
     public record LastChange(@Schema(requiredMode = REQUIRED) Instant at,
             @Schema(requiredMode = NOT_REQUIRED) String actorName, @Schema(requiredMode = REQUIRED) String action) { }
     public record ExportAccepted(@Schema(requiredMode = REQUIRED, format = "uuid") String jobId,

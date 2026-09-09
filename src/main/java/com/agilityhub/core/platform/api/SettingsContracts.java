@@ -25,6 +25,7 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) Object value,
             @Schema(requiredMode = REQUIRED) boolean isOverride,
             @Schema(requiredMode = NOT_REQUIRED) String scopeRef,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
             @Schema(requiredMode = REQUIRED) ParameterEditor editableBy,
             @Schema(requiredMode = REQUIRED) Map<String, Object> constraints,
@@ -44,6 +45,7 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) List<Parameter> rows) { }
     public record Parameters(
             @Schema(requiredMode = REQUIRED) List<ParameterBlock> blocks,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
             @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange) { }
     public record ParameterDefinition(
             @Schema(requiredMode = REQUIRED) String key,

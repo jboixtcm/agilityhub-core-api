@@ -243,3 +243,44 @@ Only `AGILITYHUB_ADMIN` is supported. These global routes check the caller's liv
 stored role, require no club membership and audit changes atomically without a
 domain event. Concurrent removals preserve one ACTIVE platform admin; removing
 the last returns `409 LAST_PLATFORM_ADMIN`.
+
+## Object storage (exports and attachments)
+
+Use a private S3-compatible bucket with separate `exports/` and `attachments/`
+prefixes, or separate private buckets. Set `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION`,
+`EXPORT_S3_ACCESS_KEY`, `EXPORT_S3_SECRET_KEY` and the corresponding
+`ATTACHMENT_S3_*` variables from [.env.example](../.env.example). Both adapters
+accept an optional `*_S3_ENDPOINT` for a compatible provider. Keep credentials in
+the deployment environment. Limit the export principal to Get/Put/DeleteObject
+under `exports/`; limit the attachment principal to Get/PutObject (including HEAD)
+under `attachments/`. A shared principal needs the union of those permissions,
+restricted to those two prefixes. Public access must remain disabled.
+
+Configure the bucket's CORS allowlist for the actual HTTPS app/admin origins.
+Attachment uploads use presigned `PUT` requests binding `Content-Type`,
+`Content-Length` and `If-None-Match: *`; allow those headers and the `PUT` method
+(the browser sets Content-Length). Allow `GET`/`HEAD` if the frontend fetches
+signed downloads directly. Attachment links last five minutes. Export links expire
+with the file seven days after READY; the existing worker deletes expired export
+objects. Use lifecycle expiration on `exports/` as a crash-cleanup backstop with
+slack beyond that seven-day READY window. Abort incomplete multipart uploads as
+an additional backstop. Do not apply blanket expiry to `attachments/`: completed
+attachments remain live. The current adapter has no orphan-object tagging or
+cleanup worker; reconcile unreferenced uploads against attachment metadata before
+deleting them. Bucket age alone does not distinguish abandoned and live uploads.
+
+`staging`/`prod` require both sets of bucket, region and credentials; missing
+values fail startup with a missing-configuration error, even when `local` is also
+active. Startup checks configuration presence, not remote bucket access: verify
+an upload, completion/HEAD, signed download and export cleanup on deployment.
+
+`local` uses `EXPORT_LOCAL_DIRECTORY=./.local/exports` and
+`ATTACHMENT_LOCAL_DIRECTORY=./.local/attachments`; tests use `target/test-exports`
+and `target/test-attachments`. Both development Compose files mount named
+`export-files` and `attachment-files` volumes at `/app/exports` and
+`/app/attachments`, writable by the image's UID 10001. Files use private
+permissions (directories 0700, files 0600). Local signed URLs also require bearer
+authentication. Optional `EXPORT_SIGNING_KEY` (base64, at least 32 bytes) preserves
+export signatures over restarts; otherwise it is ephemeral. Attachment signatures
+are always ephemeral, so obtain fresh links after a restart. Retain these volumes
+when recreating containers; removing volumes deletes their stored files.

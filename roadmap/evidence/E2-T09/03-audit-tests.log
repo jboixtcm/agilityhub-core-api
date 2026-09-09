@@ -1,0 +1,33 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[103,44] cannot find symbol
+  symbol:   method isArray()
+  location: class org.assertj.core.api.IterableAssert<com.fasterxml.jackson.databind.JsonNode>
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[125,27] cannot find symbol
+  symbol:   method path(java.lang.String)
+  location: variable row of type java.lang.Iterable<? extends com.fasterxml.jackson.databind.JsonNode>
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[126,27] cannot find symbol
+  symbol:   method path(java.lang.String)
+  location: variable row of type java.lang.Iterable<? extends com.fasterxml.jackson.databind.JsonNode>
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[127,27] cannot find symbol
+  symbol:   method path(java.lang.String)
+  location: variable row of type java.lang.Iterable<? extends com.fasterxml.jackson.databind.JsonNode>
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:testCompile (default-testCompile) on project agilityhub-core-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[103,44] cannot find symbol
+[ERROR]   symbol:   method isArray()
+[ERROR]   location: class org.assertj.core.api.IterableAssert<com.fasterxml.jackson.databind.JsonNode>
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[125,27] cannot find symbol
+[ERROR]   symbol:   method path(java.lang.String)
+[ERROR]   location: variable row of type java.lang.Iterable<? extends com.fasterxml.jackson.databind.JsonNode>
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[126,27] cannot find symbol
+[ERROR]   symbol:   method path(java.lang.String)
+[ERROR]   location: variable row of type java.lang.Iterable<? extends com.fasterxml.jackson.databind.JsonNode>
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/platform/api/AuditQueriesIT.java:[127,27] cannot find symbol
+[ERROR]   symbol:   method path(java.lang.String)
+[ERROR]   location: variable row of type java.lang.Iterable<? extends com.fasterxml.jackson.databind.JsonNode>
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

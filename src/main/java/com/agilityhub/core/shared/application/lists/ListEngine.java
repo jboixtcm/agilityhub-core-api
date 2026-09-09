@@ -22,12 +22,16 @@ public class ListEngine {
         return provider.dataset(key);
     }
     public ListPage<Map<String, Object>> list(String key, MultiValueMap<String, String> params) {
-        var dataset = dataset(key);
+        return list(dataset(key), params);
+    }
+    public ListPage<Map<String, Object>> list(ListDataset dataset, MultiValueMap<String, String> params) {
         var query = ListQuery.parse(dataset.definition(), params);
         return repository.page(dataset, query);
     }
     public FilterValues facets(String key, String field, MultiValueMap<String, String> params) {
-        var dataset = dataset(key);
+        return facets(dataset(key), field, params);
+    }
+    public FilterValues facets(ListDataset dataset, String field, MultiValueMap<String, String> params) {
         dataset.definition().field(field);
         var query = ListQuery.parse(dataset.definition(), params).withoutField(field);
         return new FilterValues(field, repository.facets(dataset, query, field));

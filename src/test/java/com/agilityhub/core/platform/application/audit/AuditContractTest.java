@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AuditContractTest {
     @Test void T_14_12_everyActionHasAnAnnotatedExecutableTest() {
         var covered = EnumSet.noneOf(AuditAction.class);
+        var evidence = new java.util.TreeMap<AuditAction, java.util.SortedSet<String>>();
         for (Class<?> type : ReflectionSupport.findAllClassesInPackage("com.agilityhub.core", candidate -> true, name -> true)) {
             for (Method method : type.getDeclaredMethods()) {
                 AuditCovers annotation = method.getAnnotation(AuditCovers.class);
@@ -25,8 +26,12 @@ class AuditContractTest {
                         || AnnotationSupport.isAnnotated(type, org.junit.jupiter.api.Disabled.class))
                         .as("@AuditCovers test must not be disabled: %s", method).isFalse();
                 covered.addAll(Arrays.asList(annotation.value()));
+                for (AuditAction action : annotation.value()) {
+                    evidence.computeIfAbsent(action, ignored -> new java.util.TreeSet<>()).add(type.getSimpleName() + "." + method.getName());
+                }
             }
         }
+        evidence.forEach((action, tests) -> System.out.println("Audit coverage: " + action + " -> " + String.join(", ", tests)));
         var uncovered = EnumSet.allOf(AuditAction.class);
         uncovered.removeAll(covered);
         assertThat(uncovered).as("AuditAction values without @AuditCovers tests: %s", uncovered).isEmpty();

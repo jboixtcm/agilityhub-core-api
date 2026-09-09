@@ -46,6 +46,23 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(document.path("paths").path("/api/v1/club-pages/{key}").path("patch").path("responses").has("409")).isTrue();
     }
 
+    @Test void T_14_13_auditReadAndExportSchemasRetainTypedUniversalContracts() throws Exception {
+        var document = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var paths = document.path("paths");
+        assertThat(strings(document.at("/components/schemas/LastChange/type"))).containsExactlyInAnyOrder("object", "null");
+        for (String path : List.of("/api/v1/audit-entries", "/api/v1/members/{id}/audit-entries")) {
+            assertThat(paths.path(path).at("/get/responses/200/content/application~1json/schema/$ref").asText()).endsWith("/ListPageAuditEntryListItem");
+            assertThat(paths.path(path).path("get").path("parameters").findValuesAsText("name")).contains("filter", "q", "sort", "fields");
+        }
+        assertThat(paths.path("/api/v1/audit-entries").path("get").path("x-exportable").asBoolean()).isTrue();
+        assertThat(paths.path("/api/v1/audit-entries/{id}").at("/get/responses/200/content/application~1json/schema/$ref").asText()).endsWith("/AuditEntry");
+        assertThat(names(document.at("/components/schemas/AuditEntryListItem/properties"))).contains("changes", "details", "impersonatedMemberId");
+        assertThat(strings(document.at("/components/schemas/AuditAction/enum"))).contains("ONBOARDING_COMPLETED");
+        for (String method : List.of("get", "post")) {
+            assertThat(names(paths.path("/api/v1/audit-entries/export").path(method).path("responses"))).contains("200", "202", "403", "422");
+        }
+    }
+
     @Test void E0_T12_downloadAndWriteStableOpenApi31Contract() throws Exception {
         var client = HttpClient.newHttpClient();
         var response = client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/v1/openapi.json"))

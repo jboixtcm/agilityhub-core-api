@@ -78,7 +78,8 @@ public final class AuditContracts {
         ERASURE_REQUESTED,
         ERASURE_CANCELLED,
         MEMBER_ERASED,
-        ACCOUNT_ERASED
+        ACCOUNT_ERASED,
+        ONBOARDING_COMPLETED
     }
     public enum AuditActorRole { ADMIN, INSTRUCTOR, MEMBER, SYSTEM, PLATFORM, WEBHOOK }
     public enum AuditOrigin { APP, BACKOFFICE, SYSTEM, WEBHOOK }
@@ -87,6 +88,9 @@ public final class AuditContracts {
             @Schema(requiredMode = REQUIRED) String path,
             @Schema(requiredMode = REQUIRED) Object before,
             @Schema(requiredMode = REQUIRED) Object after) { }
+    @Schema(name = "ListPageAuditEntryListItem")
+    public record AuditPage(List<AuditEntryListItem> items, int page, int size, long totalItems,
+            int totalPages, List<Filter> appliedFilters) { }
     public record AuditEntryListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,
@@ -103,7 +107,8 @@ public final class AuditContracts {
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String memberId,
             @Schema(requiredMode = REQUIRED) AuditActionName action,
             @Schema(requiredMode = REQUIRED) List<AuditChange> changes,
-            @Schema(requiredMode = NOT_REQUIRED) String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED) String reason,
+            @Schema(requiredMode = NOT_REQUIRED) Map<String, Object> details) { }
     public record AuditEntry(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,
