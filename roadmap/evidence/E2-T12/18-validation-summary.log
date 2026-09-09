@@ -1,0 +1,9 @@
+surefire: {'tests': 294, 'failures': 0, 'errors': 0, 'skipped': 0}
+failsafe: {'tests': 387, 'failures': 0, 'errors': 0, 'skipped': 0}
+com/agilityhub/core/clubs/content/domain: {'BRANCH': 97.62, 'LINE': 100.0}
+com/agilityhub/core/clubs/content/api: {'BRANCH': 100.0, 'LINE': 100.0}
+com/agilityhub/core/clubs/content/persistence: {'BRANCH': 100.0, 'LINE': 100.0}
+com/agilityhub/core/platform/application/definition: {'BRANCH': 95.28, 'LINE': 97.2}
+com/agilityhub/core/clubs/content/application: {'BRANCH': 94.19, 'LINE': 94.44}
+paths removed: [] changed: [] added: ['/api/v1/club-pages', '/api/v1/club-pages/{key}', '/api/v1/public/{clubSlug}/pages/{key}']
+schemas removed: [] changed: [] added: ['CatalogItemsClubPage', 'ClubPage', 'ClubPageCreate', 'ClubPageHistory', 'ClubPageLastChange', 'ClubPagePatch', 'PublicClubPage']

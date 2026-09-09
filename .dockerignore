@@ -9,3 +9,5 @@
 !seeds/club-definition.schema.json
 !seeds/club-canic-consumer.yaml
 !seeds/club-minim.yaml
+!seeds/pages/
+!seeds/pages/**

@@ -437,6 +437,12 @@
       "items": {
         "$ref": "#/$defs/account"
       }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/page"
+      }
     }
   },
   "required": [
@@ -596,6 +602,61 @@
         "name",
         "locale",
         "roles"
+      ],
+      "additionalProperties": false
+    },
+    "page": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^(RULES|PRIVACY|IMAGE_CONSENT|WELCOME_GUIDE|[a-z0-9-]{2,40})$"
+        },
+        "title": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "body": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "bodyFile": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "ca": {
+              "type": "string",
+              "minLength": 1
+            },
+            "es": {
+              "type": "string",
+              "minLength": 1
+            },
+            "en": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key",
+        "title",
+        "active"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "body"
+          ]
+        },
+        {
+          "required": [
+            "bodyFile"
+          ]
+        }
       ],
       "additionalProperties": false
     }

@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E2-T12 · Club pages
+
+- Add GET/POST `/club-pages`, GET/PATCH `/club-pages/{key}` and key-authenticated
+  GET `/public/{clubSlug}/pages/{key}`. Authenticated responses retain translation
+  maps; public responses resolve them using Accept-Language and the club default.
+- `ClubPage` includes key, title, body, version, publishedAt, active and lastChange.
+  Admins also receive the last ten published snapshots. Draft publication timestamps
+  and non-admin lastChange.by are explicitly nullable. Non-admins see active pages only.
+- Publication starts at version 1; activation or an active body edit advances it.
+  PATCH requires version; draft and title-only edits preserve the publication version.
+  Translation maps replace the supplied field. Markdown permits headings, paragraphs,
+  emphasis, lists and safe links, with at most 20000 body characters per locale.
+
 ## 2026-09-09 · E2-T08 · Export lifecycle
 
 - Implement caller-owned `GET /exports` and `GET /exports/{id}`. List at most 100

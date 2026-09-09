@@ -19,7 +19,7 @@ final class ArchitectureRules {
 
     static final String BASE_PACKAGE = "com.agilityhub.core.";
     static final List<String> CONTEXTS = List.of(
-            "shared", "platform", "identity", "clubs.census", "clubs.catalogs",
+            "shared", "platform", "identity", "clubs.census", "clubs.catalogs", "clubs.content",
             "clubs.scheduling", "clubs.activities", "clubs.bookings", "clubs.training",
             "clubs.followup", "clubs.messaging", "clubs.common", "courses", "payments", "migration");
 
@@ -41,7 +41,7 @@ final class ArchitectureRules {
 
         @Override
         public String getDescription() {
-            return "the 15 bounded contexts, with separate clubs sub-contexts";
+            return "the bounded contexts, with separate clubs sub-contexts";
         }
     }).should().beFreeOfCycles();
 

@@ -20,6 +20,7 @@ WORKDIR /app
 COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
 COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
 USER agilityhub
 EXPOSE 8080
 HEALTHCHECK --interval=5s --timeout=3s --start-period=40s --retries=12 \

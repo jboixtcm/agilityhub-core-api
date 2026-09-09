@@ -159,3 +159,29 @@ legal:
     es: "Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club"
     en: "I authorize publication of photos of me and my dog within club activities"
   legalTextsVersion: "1"
+
+# Draft source texts: docs/legal/*.md, adapted to the limited Markdown allow-list.
+# bodyFile paths are relative to this definition; body/bodyFile locales must not overlap.
+# ${PROVISIONAL_TEXT} expands to ProvisionalText.MARKER.
+pages:
+  - key: RULES
+    title: {ca: Normes del club, es: Normas del club, en: Club rules}
+    bodyFile: {ca: pages/rules.ca.md}
+    body:
+      es: "${PROVISIONAL_TEXT}"
+      en: "${PROVISIONAL_TEXT}"
+    active: true
+  - key: IMAGE_CONSENT
+    title: {ca: Autorització d'imatge, es: Autorización de imagen, en: Image consent}
+    bodyFile: {ca: pages/image-consent.ca.md}
+    body:
+      es: "${PROVISIONAL_TEXT}"
+      en: "${PROVISIONAL_TEXT}"
+    active: true
+  - key: PRIVACY
+    title: {ca: Política de privacitat, es: Política de privacidad, en: Privacy policy}
+    bodyFile: {ca: pages/privacy.ca.md}
+    body:
+      es: "${PROVISIONAL_TEXT}"
+      en: "${PROVISIONAL_TEXT}"
+    active: false

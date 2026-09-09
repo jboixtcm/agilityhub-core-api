@@ -20,3 +20,6 @@ __pycache__/
 
 # Private local export files must never enter Git or image build contexts.
 .local/exports/
+
+# Commit the task verification evidence required by the roadmap protocol.
+!roadmap/evidence/E2-T12/*.log

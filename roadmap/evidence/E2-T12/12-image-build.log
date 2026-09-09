@@ -1,0 +1,1 @@
+ERROR: failed to build: failed to update builder last activity time: open /Users/jordib/.docker/buildx/activity/.tmp-desktop-linux1212355574: operation not permitted

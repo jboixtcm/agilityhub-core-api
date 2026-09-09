@@ -57,6 +57,9 @@ class EventCatalogContractTest {
                 "MemberUpdated", "club-a", "Member", "member-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("memberId", "member-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         samples.put(com.agilityhub.core.clubs.followup.domain.AttachmentAdded.class, () -> new com.agilityhub.core.clubs.followup.domain.AttachmentAdded(
                 "club-a", "attachment-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("attachmentId", "attachment-a", "entityType", "INSTRUCTOR_NOTE", "entityId", "dog-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.content.domain.ClubPageChanged.class,
+                () -> new com.agilityhub.core.clubs.content.domain.ClubPageChanged("club-a", "RULES", Instant.parse("2030-01-01T00:00:00Z"),
+                        Map.of("key", "RULES", "version", 1, "active", true), "account-a", DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -94,6 +97,8 @@ class EventCatalogContractTest {
             if (event instanceof com.agilityhub.core.clubs.common.domain.DataExported exported) {
                 assertThat(exported.aggregateType()).isEqualTo("ExportJob");
                 assertThat(exported.payload()).containsEntry("rows", 2L).containsEntry("by", "account-a");
+            } else if (event instanceof com.agilityhub.core.clubs.content.domain.ClubPageChanged) {
+                assertThat(event.aggregateType()).isEqualTo("ClubPage"); assertThat(event.payload()).containsKeys("key", "version", "active");
             } else if (event instanceof com.agilityhub.core.clubs.census.domain.CensusEvent) {
                 assertThat(event.aggregateType()).isEqualTo("Member"); assertThat(event.payload()).containsKeys("memberId", "diff");
             } else if (event instanceof com.agilityhub.core.clubs.followup.domain.AttachmentAdded) {

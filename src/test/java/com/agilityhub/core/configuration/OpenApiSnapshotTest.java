@@ -33,6 +33,19 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
     @Autowired ObjectMapper mapper;
     @Autowired MockMvc mvc;
 
+    @Test void T_05_CP_01_clubPagesPublishTypedVersionedContracts() throws Exception {
+        var document = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var schema = document.at("/components/schemas/ClubPage");
+        assertThat(names(schema.path("properties"))).contains("key", "title", "body", "version", "publishedAt", "active", "lastChange", "history");
+        assertThat(strings(schema.path("required"))).contains("key", "title", "body", "version", "publishedAt", "active", "lastChange").doesNotContain("history");
+        assertThat(strings(document.at("/components/schemas/ClubPagePatch/required"))).containsExactly("version");
+        var publicRoute = document.path("paths").path("/api/v1/public/{clubSlug}/pages/{key}").path("get");
+        assertThat(publicRoute.at("/security/0/clubApiKey").isArray()).isTrue();
+        assertThat(publicRoute.path("parameters").findValuesAsText("name")).contains("X-Api-Key", "Accept-Language");
+        assertThat(document.path("paths").path("/api/v1/club-pages").path("post").path("responses").has("201")).isTrue();
+        assertThat(document.path("paths").path("/api/v1/club-pages/{key}").path("patch").path("responses").has("409")).isTrue();
+    }
+
     @Test void E0_T12_downloadAndWriteStableOpenApi31Contract() throws Exception {
         var client = HttpClient.newHttpClient();
         var response = client.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/v1/openapi.json"))

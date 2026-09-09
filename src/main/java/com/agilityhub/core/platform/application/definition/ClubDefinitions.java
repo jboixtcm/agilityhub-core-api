@@ -26,11 +26,12 @@ public class ClubDefinitions {
     private final ClubConfigService configs;
     private final HostTenantResolver hosts;
     private final ObjectMapper mapper;
+    private final com.agilityhub.core.platform.application.ClubPageProvisioner pages;
     public ClubDefinitions(ClubDefinitionCodec codec, ClubDefinitionWriter writer, ClubDefinitionMapper definitions,
                            ClubRepository clubs, ParameterRepository parameters, ClubAccountProvisioner accounts,
-                           ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper) {
+                           ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper, com.agilityhub.core.platform.application.ClubPageProvisioner pages) {
         this.codec = codec; this.writer = writer; this.definitions = definitions; this.clubs = clubs;
-        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper;
+        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper; this.pages = pages;
     }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun) { return apply(codec.read(file), dryRun); }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun, boolean allowSeedPasswords) {
@@ -78,6 +79,7 @@ public class ClubDefinitions {
             var catalogs = definition.putObject("catalogs");
             for (String part : java.util.List.of("levels", "rings", "instructors", "plans", "prices", "faq")) { catalogs.putArray(part); }
             definition.putArray("messageTemplates");
+            definition.set("pages", mapper.valueToTree(pages.list()));
             return definition;
         }
     }

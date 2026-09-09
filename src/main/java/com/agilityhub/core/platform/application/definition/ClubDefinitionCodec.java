@@ -39,7 +39,22 @@ public class ClubDefinitionCodec {
     public ObjectNode read(Path path) {
         try (var input = Files.newInputStream(path)) {
             var options = new LoaderOptions(); options.setAllowDuplicateKeys(false);
-            return validate(mapper.valueToTree(new Yaml(new SafeConstructor(options)).load(input)));
+            ObjectNode definition = validate(mapper.valueToTree(new Yaml(new SafeConstructor(options)).load(input)));
+            for (var page : definition.path("pages")) {
+                if (!page.has("bodyFile")) { continue; }
+                var body = ((ObjectNode) page).withObject("body");
+                var files = page.path("bodyFile").fields();
+                while (files.hasNext()) {
+                    var file = files.next();
+                    Path relative = Path.of(file.getValue().asText());
+                    if (relative.isAbsolute() || body.has(file.getKey())) { throw pageFileError(); }
+                    Path source = path.toAbsolutePath().getParent().resolve(relative).normalize();
+                    if (Files.size(source) > 80000) { throw pageFileError(); }
+                    body.put(file.getKey(), Files.readString(source));
+                }
+                ((ObjectNode) page).remove("bodyFile");
+            }
+            return validate(definition);
         } catch (IOException | org.yaml.snakeyaml.error.YAMLException invalid) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, java.util.Map.of("reason", "Unreadable or invalid YAML"));
         }
@@ -85,7 +100,22 @@ public class ClubDefinitionCodec {
                 ((ObjectNode) account).put("email", email);
             }
         }
+        for (var page : definition.path("pages")) {
+            var body = page.path("body");
+            if (body.isObject()) {
+                var fields = body.fields();
+                while (fields.hasNext()) {
+                    var entry = fields.next();
+                    ((ObjectNode) body).put(entry.getKey(), entry.getValue().asText().replace("${PROVISIONAL_TEXT}",
+                            com.agilityhub.core.shared.domain.ProvisionalText.MARKER));
+                }
+            }
+        }
         return definition;
+    }
+    private ApiException pageFileError() {
+        return new ApiException(ErrorCode.VALIDATION_ERROR, java.util.Map.of("fieldErrors",
+                java.util.List.of(java.util.Map.of("field", "pages.bodyFile", "code", "VALIDATION_ERROR"))));
     }
     public String write(ObjectNode definition) {
         var options = new DumperOptions(); options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); options.setPrettyFlow(true);

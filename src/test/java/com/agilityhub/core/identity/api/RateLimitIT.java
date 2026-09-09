@@ -122,6 +122,17 @@ class RateLimitIT extends IdentityIntegrationSupport {
                 .andExpect(status().isOk());
     }
 
+    @Test void T_05_CP_03_publicPagesAndPlansShareThePublicIpQuota() throws Exception {
+        for (int index = 0; index < 60; index++) {
+            String route = index % 2 == 0 ? "/api/v1/public/absent/pages/RULES" : "/api/v1/public/absent/plans";
+            mvc.perform(get(route).with(request -> { request.setRemoteAddr("203.0.113.31"); return request; }))
+                    .andExpect(jsonPath("$.code").value("CLUB_NOT_FOUND"));
+        }
+        mvc.perform(get("/api/v1/public/absent/pages/RULES").with(request -> {
+            request.setRemoteAddr("203.0.113.31"); return request;
+        })).andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+    }
+
     @Test void T_01_15_meUsesAccountAcrossIpsAndChildRoutesWithoutSharingOtherAccounts() throws Exception {
         for (int index = 0; index < 600; index++) {
             // A missing child route exercises the quota without performing 600 password grants.

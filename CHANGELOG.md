@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T12: Add tenant-scoped club pages, publication history, limited Markdown validation,
+  admin editing, member/public reads, transactional audit/outbox, and idempotent
+  draft-text seeds through club:apply. Publish the OpenAPI contract.
+
 - E2-T06: Implement the S03 census with tenant-scoped members, dogs, family groups,
   document uploads, booking blocks, payment-method masking, owner profiles, tasks
   projections and audited outbox consumers. Preserve identity/onboarding compatibility,

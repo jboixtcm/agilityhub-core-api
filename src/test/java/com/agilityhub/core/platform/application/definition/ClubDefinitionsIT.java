@@ -62,7 +62,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
 
     @BeforeEach void emptyDatabase() {
         reset(audits);
-        for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries")) {
+        for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries", "club_pages")) {
             mongo.remove(new Query(), collection);
         }
         hosts.invalidate();
@@ -79,21 +79,21 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var definition = seed("canic");
         var preview = definitions.apply(Path.of("seeds/club-canic.yaml"), true);
         assertThat(preview.changes()).isPositive(); assertThat(preview.render(true)).contains("+ club", "+ domains", "+ theme", "+ admins", "dry run");
-        for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries")) { assertThat(count(collection)).isZero(); }
+        for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries", "club_pages")) { assertThat(count(collection)).isZero(); }
         var first = definitions.apply(definition, false);
         var original = clubs.findBySlug("canic").orElseThrow();
         var response = mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse();
         assertThat(mapper.readTree(response.getContentAsString())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/branding-canic.json").toFile()));
         assertThat(mapper.<com.fasterxml.jackson.databind.JsonNode>valueToTree(configs.get(first.id()).parameters())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/parameters-canic.json").toFile()));
-        assertThat(count("domain_events")).isEqualTo(31); assertThat(count("audit_entries")).isEqualTo(1);
-        assertThat(mongo.findAll(AuditEntry.class).getFirst().action()).isEqualTo(AuditAction.CLUB_UPDATED);
-        assertThat(mongo.findAll(AuditEntry.class).getFirst().clubId()).isEqualTo(first.id());
-        assertThat(mongo.findAll(AuditEntry.class).getFirst().reason()).isEqualTo("source: APPLY");
+        assertThat(count("domain_events")).isEqualTo(34); assertThat(count("audit_entries")).isEqualTo(4);
+        assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().action()).isEqualTo(AuditAction.CLUB_UPDATED);
+        assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().clubId()).isEqualTo(first.id());
+        assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().reason()).isEqualTo("source: APPLY");
         assertThat(mongo.findAll(Account.class).getFirst().passwordHash()).startsWith("$argon2id$");
         var second = definitions.apply(definition, false);
         assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("0 changes");
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(original);
-        assertThat(count("domain_events")).isEqualTo(31); assertThat(count("audit_entries")).isEqualTo(1);
+        assertThat(count("domain_events")).isEqualTo(34); assertThat(count("audit_entries")).isEqualTo(4);
         assertThat(count("accounts")).isEqualTo(15); assertThat(count("memberships")).isEqualTo(15);
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero();
@@ -120,7 +120,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
             assertThat(saved.history()).hasSize(2); assertThat(saved.history().getLast().value()).isEqualTo(3);
         }
         assertThat(mongo.findAll(org.bson.Document.class, "domain_events").stream().map(event -> event.getString("type")))
-                .containsOnly("ClubUpdated", "ParameterChanged", "AccountCreated", "MembershipChanged");
+                .containsOnly("ClubUpdated", "ParameterChanged", "AccountCreated", "MembershipChanged", "ClubPageChanged");
         long events = count("domain_events"), auditCount = count("audit_entries");
         assertThat(definitions.apply(definition, false).changes()).isZero();
         assertThat(count("domain_events")).isEqualTo(events); assertThat(count("audit_entries")).isEqualTo(auditCount);
@@ -146,7 +146,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     @Test void T_17_01_auditFailureRollsBackClubParametersAdminsAndOutboxTogether() {
         var definition = seed("minim"); doThrow(new IllegalStateException("injected audit failure")).when(audits).append(any());
         assertThatThrownBy(() -> definitions.apply(definition, false)).isInstanceOf(IllegalStateException.class);
-        for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries")) { assertThat(count(collection)).as(collection).isZero(); }
+        for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries", "club_pages")) { assertThat(count(collection)).as(collection).isZero(); }
         assertThat(TenantContext.current()).isNull();
     }
     @Test void T_17_01_templatePartialDefinitionAndExistingAdminPreserveIdentity() {
