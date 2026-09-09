@@ -21,7 +21,7 @@
         <icu4j.version>77.1</icu4j.version>
         <bucket4j.version>8.14.0</bucket4j.version>
         <json-schema-validator.version>1.5.9</json-schema-validator.version>
-        <archunit.version>1.4.2</archunit.version>
+        <archunit.version>1.5.0</archunit.version>
         <jacoco.version>0.8.14</jacoco.version>
         <pitest.version>1.21.0</pitest.version>
         <pitest-junit5.version>1.2.3</pitest-junit5.version>
