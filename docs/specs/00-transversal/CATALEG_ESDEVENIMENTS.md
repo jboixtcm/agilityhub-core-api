@@ -71,6 +71,7 @@
 | `LeaveRequested` / `LeaveResolved` | requestId, memberId, requestedDate, effectiveDate | S13 | N-14/N-28, `MemberStatusChanged` amb data futura |
 | **Comunicacions** | | | |
 | `NotificationQueued` / `NotificationSent` / `NotificationFailed` | notificationId, channel | S11 | log |
+| `ClubPageChanged` | key, version, active | S05 (afegit 09-09) | log; S11 refresca la pàgina «Info» |
 | `AnnouncementSent` | templateId, recipientCount, filters | S11 | N-24 |
 | `PushSubscribed` / `PushUnsubscribed` | accountId, endpoint | S11 | — |
 | `ReminderDue` | bookingId/trainingBookingId, memberId | S15 | N-13 |

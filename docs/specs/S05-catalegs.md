@@ -208,6 +208,9 @@ Base `CONVENCIONS_API` §1–§2; `clubId` sempre del JWT. Llistats de catàleg:
 | DELETE | `/prices/{id}` | ADMIN | `BILLING` | sí | només `SCHEDULED` no referenciat | | 204 · 409 `PRICE_LOCKED` |
 | GET | `/faq-entries` | MEMBER, INSTRUCTOR, ADMIN | `FAQ` | sí | actives ordenades (R-05-22) | `includeInactive` | 200 · 404 `MODULE_DISABLED` |
 | POST/PATCH/DELETE | `/faq-entries[/{id}]` · PUT `/faq-entries/order` | ADMIN | `FAQ` | — | CRUD + ordre | §3 · `{faqEntryIds[]}` | 201/200/204 · 409 `STALE_VERSION` |
+| GET | `/club-pages` · `/club-pages/{key}` | MEMBER, INSTRUCTOR, ADMIN | — | sí | pàgines del club (`ClubPage`, 05-09; files afegides a §6 el 09-09): `?active=true` per a l'app (30 «Info»: pestanyes FAQ · Normes · altres actives) | `active?` | 200 `ClubPage {key, title: LocalizedText, body: LocalizedText (Markdown limitat), version, publishedAt, active}` · 404 |
+| POST / PATCH | `/club-pages` · `/club-pages/{key}` | ADMIN | — | — | crea/edita (`key` `RULES · PRIVACY · IMAGE_CONSENT · WELCOME_GUIDE · lliure`); `PATCH` amb `version` → `STALE_VERSION`; publicar = `active=true` + `publishedAt`; cada edició publicada incrementa `version` (els consentiments guarden la versió acceptada, S04/S01 §14) · audit `CATALOG_CHANGED` · event `ClubPageChanged` (proposta §13) | `{title, body, active}` + `version` | 201/200 · 409 `STALE_VERSION` · 400 `VALIDATION_ERROR` (Markdown no permès, mida) |
+| GET | `/public/{clubSlug}/pages/{key}` | ANON (`X-Api-Key`) | — | sí | pàgina publicada (web del club, enllaç de l'alta 19 «Normes del club») | `Accept-Language` | 200 · 404 |
 | GET | `/faq-entries/filter-values?field=category` | ADMIN | `FAQ` | sí | categories existents amb recompte (§4 de les convencions) | | 200 |
 | GET | `/public/{clubSlug}/plans` | ANON | `BILLING` per als preus | sí | R-05-21 | header `X-Api-Key`, `Accept-Language` | 200 `{club: {slug, name, currency}, plans[]}` · 401 `INVALID_API_KEY` · 404 club inexistent · 429 |
 
