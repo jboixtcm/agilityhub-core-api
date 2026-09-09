@@ -32,6 +32,9 @@
          Spring Security, Caffeine, Testcontainers and their dependencies. -->
     <dependencies>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId><artifactId>s3</artifactId><version>2.54.14</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.poi</groupId><artifactId>poi-ooxml</artifactId><version>5.5.1</version>
         </dependency>
         <dependency>
@@ -159,12 +162,14 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <excludes><exclude>**/OpenApiSnapshotTest.java</exclude></excludes>
+                    <systemPropertyVariables><java.awt.headless>true</java.awt.headless></systemPropertyVariables>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
+                    <systemPropertyVariables><java.awt.headless>true</java.awt.headless></systemPropertyVariables>
                     <includes>
                         <include>**/IT*.java</include>
                         <include>**/*IT.java</include>

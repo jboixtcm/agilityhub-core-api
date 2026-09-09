@@ -157,7 +157,7 @@ class UniversalListsIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store")).andReturn().getResponse();
         try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(response.getContentAsByteArray()))) {
             var sheet = workbook.getSheetAt(0); assertThat(sheet.getLastRowNum()).isEqualTo(2);
-            assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("fullName");
+            assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("Socio");
             assertThat(sheet.getRow(1).getCell(1).getStringCellValue()).contains("···· 2231").doesNotContain("ES0000");
         }
         var event = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("DataExported")), Document.class, "domain_events");

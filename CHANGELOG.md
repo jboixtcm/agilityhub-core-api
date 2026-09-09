@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T08: Complete asynchronous list exports with tenant-scoped claims, per-club
+  concurrency and account rate limits, streamed XLSX/PDF rendering, localized
+  headers, masked values, seven-day signed downloads, retries and file cleanup.
+  Add local/S3 storage with persistent development volumes, caller-owned job
+  endpoints and POST export aliases;
+  retain transactional completion audit/outbox and refresh OpenAPI.
+
 - E2-T05: Implement tenant-scoped plans and dated prices, monthly billing modes,
   atomic price supersession and invoice locks, entry-fee and discount proposals,
   and localized public plans with club-key access. Add role, tenant, concurrency

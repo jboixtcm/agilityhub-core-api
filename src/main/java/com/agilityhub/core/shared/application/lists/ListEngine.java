@@ -36,4 +36,8 @@ public class ListEngine {
     public List<Map<String, Object>> exportRows(ListDataset dataset, ListQuery query, List<String> columns) {
         return repository.rows(dataset, query, 0, 5001, columns);
     }
+    public long exportCount(ListDataset dataset, ListQuery query) { return repository.exportCount(dataset, query, 100001); }
+    public java.util.stream.Stream<Map<String, Object>> exportStream(ListDataset dataset, ListQuery query, List<String> columns) {
+        return repository.exportStream(dataset, query, columns, 100001);
+    }
 }

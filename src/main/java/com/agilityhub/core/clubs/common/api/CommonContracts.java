@@ -22,7 +22,7 @@ public final class CommonContracts {
     public record ExportError(
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String message) { }
-    @Schema(description = "Only caller-owned jobs; signed download URLs last five minutes. No storage keys or query credentials.")
+    @Schema(description = "Only caller-owned jobs; signed download URLs expire with the file after seven days. No storage keys or query credentials.")
     public record ExportJob(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) ExportKind kind,

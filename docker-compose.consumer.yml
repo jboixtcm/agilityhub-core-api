@@ -2,6 +2,7 @@ name: agilityhub-consumer
 
 x-core-environment: &core-environment
   SPRING_PROFILES_ACTIVE: local
+  EXPORT_LOCAL_DIRECTORY: /app/exports
   MONGODB_HOST: mongo
   MONGODB_PORT: 27017
   MONGODB_DATABASE: ${CONSUMER_DATABASE:-agilityhub}
@@ -46,6 +47,8 @@ services:
       retries: 12
 
   seed:
+    volumes:
+      - export-files:/app/exports
     image: ${CORE_IMAGE:-ghcr.io/jboixtcm/agilityhub-core-api:main}
     environment:
       <<: *core-environment
@@ -72,6 +75,7 @@ services:
       - "127.0.0.1:${CONSUMER_PORT:-8080}:8080"
     volumes:
       - mailbox:/app/mailbox
+      - export-files:/app/exports
     depends_on:
       mongo:
         condition: service_healthy
@@ -81,3 +85,4 @@ services:
 volumes:
   mongo-data:
   mailbox:
+  export-files:

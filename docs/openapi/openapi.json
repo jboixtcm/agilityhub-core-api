@@ -1657,7 +1657,7 @@
         "type" : "object"
       },
       "ExportJob" : {
-        "description" : "Only caller-owned jobs; signed download URLs last five minutes. No storage keys or query credentials.",
+        "description" : "Only caller-owned jobs; signed download URLs expire with the file after seven days. No storage keys or query credentials.",
         "properties" : {
           "createdAt" : {
             "format" : "date-time",
@@ -10479,8 +10479,302 @@
     },
     "/api/v1/dogs/export" : {
       "get" : {
-        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests persist a QUEUED handoff for E2-T08.",
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
         "operationId" : "exportDogs",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "format",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "xlsx", "pdf" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "columns",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated response column keys.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/pdf" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Export file",
+            "headers" : {
+              "Content-Disposition" : {
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExportAccepted"
+                }
+              }
+            },
+            "description" : "Queued export"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "EXPORT_TOO_LARGE, EXPORT_LIMIT"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Export dogs",
+        "tags" : [ "clubs.common" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "name"
+        }, {
+          "defaultVisible" : true,
+          "key" : "breed"
+        }, {
+          "defaultVisible" : true,
+          "key" : "level",
+          "parameter" : "levels.enabled"
+        }, {
+          "defaultVisible" : true,
+          "key" : "owner"
+        }, {
+          "defaultVisible" : false,
+          "key" : "handler"
+        }, {
+          "defaultVisible" : true,
+          "key" : "freeTraining",
+          "module" : "FREE_TRAINING"
+        }, {
+          "defaultVisible" : true,
+          "key" : "licenses"
+        }, {
+          "defaultVisible" : true,
+          "key" : "displayStatus"
+        }, {
+          "defaultVisible" : false,
+          "key" : "sex"
+        }, {
+          "defaultVisible" : false,
+          "key" : "age"
+        }, {
+          "defaultVisible" : false,
+          "key" : "chip"
+        }, {
+          "defaultVisible" : false,
+          "key" : "pendingDocuments"
+        }, {
+          "defaultVisible" : false,
+          "key" : "levelAssignedAt"
+        }, {
+          "defaultVisible" : false,
+          "key" : "pack",
+          "module" : "PACKS"
+        }, {
+          "defaultVisible" : false,
+          "key" : "registeredAt"
+        } ],
+        "x-exportable" : false,
+        "x-filter-operators" : {
+          "breed" : [ "contains" ],
+          "handlerName" : [ "contains" ],
+          "name" : [ "contains" ],
+          "ownerName" : [ "contains" ]
+        },
+        "x-filterable" : [ "id", "name", "breed", "levelId", "memberId", "ownerName", "handlerName", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt" ],
+        "x-sortable" : [ "name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt" ]
+      },
+      "post" : {
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
+        "operationId" : "exportDogs_1",
         "parameters" : [ {
           "in" : "query",
           "name" : "format",
@@ -12816,7 +13110,7 @@
     },
     "/api/v1/exports" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Up to 100 recent caller-owned jobs, newest first. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
         "operationId" : "exports",
         "parameters" : [ {
           "in" : "query",
@@ -13141,6 +13435,169 @@
           }
         },
         "summary" : "Export job",
+        "tags" : [ "clubs.common" ]
+      }
+    },
+    "/api/v1/exports/{id}/download" : {
+      "get" : {
+        "description" : "Local/test storage: caller-owned job, bearer authentication and signed URL required. Expires with the file after seven days. S3 deployments return a direct signed URL instead.",
+        "operationId" : "download",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "expires",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "signature",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Export file"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_STATE"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "EXPORT_EXPIRED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Download a local export",
         "tags" : [ "clubs.common" ]
       }
     },
@@ -19465,8 +19922,319 @@
     },
     "/api/v1/members/export" : {
       "get" : {
-        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests persist a QUEUED handoff for E2-T08.",
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
         "operationId" : "exportMembers",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "format",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "xlsx", "pdf" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "columns",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated response column keys.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/pdf" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Export file",
+            "headers" : {
+              "Content-Disposition" : {
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExportAccepted"
+                }
+              }
+            },
+            "description" : "Queued export"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "EXPORT_TOO_LARGE, EXPORT_LIMIT"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Export members",
+        "tags" : [ "clubs.common" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "fullName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "dogs"
+        }, {
+          "defaultVisible" : true,
+          "key" : "plan"
+        }, {
+          "defaultVisible" : true,
+          "key" : "displayStatus"
+        }, {
+          "defaultVisible" : false,
+          "key" : "memberNumber"
+        }, {
+          "defaultVisible" : false,
+          "key" : "contact"
+        }, {
+          "defaultVisible" : false,
+          "key" : "paymentMethod",
+          "module" : "BILLING"
+        }, {
+          "defaultVisible" : false,
+          "key" : "nextInvoiceDate",
+          "module" : "BILLING"
+        }, {
+          "defaultVisible" : false,
+          "key" : "familyGroup",
+          "module" : "FAMILY_GROUP"
+        }, {
+          "defaultVisible" : false,
+          "key" : "joinedAt"
+        }, {
+          "defaultVisible" : false,
+          "key" : "leaveDate"
+        }, {
+          "defaultVisible" : false,
+          "key" : "bookingBlocked"
+        }, {
+          "defaultVisible" : false,
+          "key" : "imageRights"
+        }, {
+          "defaultVisible" : false,
+          "key" : "roles"
+        }, {
+          "defaultVisible" : false,
+          "key" : "city"
+        }, {
+          "defaultVisible" : false,
+          "key" : "postalCode"
+        }, {
+          "defaultVisible" : false,
+          "key" : "pendingDocuments"
+        }, {
+          "defaultVisible" : false,
+          "key" : "freeTraining",
+          "module" : "FREE_TRAINING"
+        }, {
+          "defaultVisible" : false,
+          "key" : "birthDate"
+        }, {
+          "defaultVisible" : false,
+          "key" : "gender"
+        }, {
+          "defaultVisible" : false,
+          "key" : "idDocument"
+        } ],
+        "x-exportable" : false,
+        "x-filter-operators" : {
+          "dogName" : [ "contains" ],
+          "fullName" : [ "contains" ]
+        },
+        "x-filterable" : [ "id", "memberNumber", "lastName", "fullName", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate" ],
+        "x-sortable" : [ "lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city" ]
+      },
+      "post" : {
+        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
+        "operationId" : "exportMembers_1",
         "parameters" : [ {
           "in" : "query",
           "name" : "format",

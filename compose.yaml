@@ -18,8 +18,11 @@ services:
 
   api:
     build: .
+    volumes:
+      - export-files:/app/exports
     environment:
       SPRING_PROFILES_ACTIVE: local
+      EXPORT_LOCAL_DIRECTORY: /app/exports
       SERVER_PORT: ${SERVER_PORT:-8080}
       AUTH_ISSUER: ${AUTH_ISSUER:-https://id.agilitydoghub.com}
       OIDC_MASTER_KEY: ${OIDC_MASTER_KEY:-}
@@ -47,3 +50,4 @@ services:
 
 volumes:
   mongo-data:
+  export-files:

@@ -2,6 +2,18 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E2-T08 · Export lifecycle
+
+- Implement caller-owned `GET /exports` and `GET /exports/{id}`. List at most 100
+  recent jobs; detail adds a signed URL when READY. Files and links expire after
+  seven days. Local downloads require the bearer token and signed query parameters
+  at `GET /exports/{id}/download`; S3 returns a direct signed object URL.
+- Add POST aliases for `/members/export` and `/dogs/export` with the same query
+  parameters and binary/202 responses as GET. Inline exports also retain READY
+  jobs. Freeze locale, timezone, query and filenames at submission.
+- Preserve catalog HTTP 422 for EXPORT_LIMIT and EXPORT_EXPIRED; rate limiting
+  returns 429 RATE_LIMITED and oversized requests return 422 EXPORT_TOO_LARGE.
+
 ## 2026-09-09 · E2-T05 · Plans and dated prices
 
 - Implement `/plans*`, `/prices*` and public plans. Add `billingMode` to monthly plan

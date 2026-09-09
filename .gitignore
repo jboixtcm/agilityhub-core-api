@@ -17,3 +17,6 @@
 .DS_Store
 __pycache__/
 *.pyc
+
+# Private local export files must never enter Git or image build contexts.
+.local/exports/

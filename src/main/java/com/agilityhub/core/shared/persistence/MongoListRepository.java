@@ -40,6 +40,24 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         pipeline.add(project(data, fields));
         return aggregate(data, pipeline).stream().map(row -> publicRow(data, row)).toList();
     }
+    public long exportCount(ListDataset data, ListQuery query, int limit) {
+        var stages = pipeline(data, query);
+        stages.add(new Document("$limit", limit));
+        stages.add(new Document("$count", "count"));
+        var result = aggregate(data, stages);
+        return result.isEmpty() ? 0 : ((Number) result.getFirst().get("count")).longValue();
+    }
+    /** The cursor owns its server resources and must be closed by the renderer's caller. */
+    public java.util.stream.Stream<Map<String, Object>> exportStream(ListDataset data, ListQuery query, List<String> fields, int limit) {
+        var stages = pipeline(data, query);
+        stages.add(new Document("$sort", sort(data, query)));
+        stages.add(new Document("$limit", limit));
+        stages.add(project(data, fields));
+        var cursor = mongo.getCollection(data.collection()).aggregate(stages).allowDiskUse(true)
+                .maxTime(5, TimeUnit.MINUTES).batchSize(200).iterator();
+        return java.util.stream.StreamSupport.stream(java.util.Spliterators.spliteratorUnknownSize(cursor, Spliterator.ORDERED), false)
+                .map(row -> publicRow(data, row)).onClose(cursor::close);
+    }
     public List<FilterValue> facets(ListDataset data, ListQuery query, String field) {
         var pipeline = pipeline(data, query);
         String path = "$" + data.definition().field(field).path();
