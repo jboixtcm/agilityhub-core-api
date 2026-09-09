@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class AuditReadMaskerTest {
-    @Test void T_14_10_masksWholeObjectDiffsNestedDetailsAndSensitivePathsIdempotently() {
+    @Test void T_14_07_masksWholeObjectDiffsNestedDetailsAndSensitivePathsIdempotently() {
         var row = new LinkedHashMap<String, Object>();
         row.put("details", Map.of("apiKey", "fictional-key", "privateKey", "fictional-private", "clientSecret", "fictional-secret",
                 "iban", "123", "holderTaxId", "123", "passwordHash", Map.of("encoded", "fictional-password"),
@@ -20,7 +20,7 @@ class AuditReadMaskerTest {
         assertThat(row.toString()).contains("fictional-private", "ES0000");
         assertThat(AuditReadMasker.sanitize(Map.of("id", "entry"))).containsOnlyKeys("id");
     }
-    @Test void T_14_10_preservesNullsAndOrdinaryDetailValues() {
+    @Test void T_14_07_preservesNullsAndOrdinaryDetailValues() {
         var details = new LinkedHashMap<String, Object>(); details.put("iban", null); details.put("count", 3);
         details.put("unknown", com.fasterxml.jackson.databind.node.NullNode.instance);
         details.put("nested", List.of(Map.of("after", "plain text")));

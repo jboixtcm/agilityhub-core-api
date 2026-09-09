@@ -1,0 +1,9 @@
+surefire: {'tests': 296, 'failures': 0, 'errors': 0, 'skipped': 0}
+failsafe: {'tests': 390, 'failures': 0, 'errors': 0, 'skipped': 0}
+com.agilityhub.core.platform.domain.audit BRANCH: 115/117 (98.29%)
+com.agilityhub.core.platform.domain.audit LINE: 83/85 (97.65%)
+com.agilityhub.core.platform.application.audit BRANCH: 37/38 (97.37%)
+com.agilityhub.core.platform.application.audit LINE: 111/111 (100.00%)
+All configured package coverage thresholds passed.
+OpenAPI snapshot matches target/openapi.json byte-for-byte.
+AuditAction coverage: 26 actions, zero exclusions; covering test names recorded in verify output.
