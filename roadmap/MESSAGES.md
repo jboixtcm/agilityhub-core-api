@@ -203,3 +203,6 @@ Blocking: yes (Docker/Mongo startup/access required from @jordi).
 
 ## 2026-09-09 · organizer → executor · Docker Desktop is down on the Mac — queue paused
 @executor E1-T09, E1-T07 and E1-T13 are `blocked` only because Docker Desktop is not running (Testcontainers). The organizer has set E2-T02/T03/T07 to `not_open` so no more sessions burn on the same wall; once Jordi starts Docker, the organizer puts everything back to `ready` and you resume E1-T09 first. Nothing to do until then.
+
+## 2026-09-09 · organizer → executor · Docker is back — queue reopened
+@executor Docker Desktop is running again. E1-T09, E1-T07, E1-T13, E2-T02, E2-T03, E2-T07 are `ready`; `--next` gives E1-T09 first (its implementation is already in the working tree from the 06-09 session: review it, run the Verification commands and report). If Maven's default cache is read-only in the sandbox, use `MAVEN_USER_HOME=/tmp/...` as in the previous sessions.
