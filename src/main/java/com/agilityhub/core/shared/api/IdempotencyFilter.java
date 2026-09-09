@@ -68,6 +68,13 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             throws IOException, ServletException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof JwtAuthenticationToken jwt) || !jwt.isAuthenticated()) {
+            // E3-T01 anonymous contract stubs have no effects. E3-T03 must replace this
+            // exception with host/capability-scoped idempotency before enabling mutations.
+            String path = request.getRequestURI().substring(request.getContextPath().length());
+            if (path.equals("/api/v1/signup") || path.equals("/api/v1/checkout-sessions")) {
+                chain.doFilter(request, response);
+                return;
+            }
             throw new ApiException(ErrorCode.UNAUTHENTICATED);
         }
         String clubId = jwt.getToken().getClaimAsString("clubId");

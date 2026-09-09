@@ -51,7 +51,8 @@ public class TenantFilter extends OncePerRequestFilter {
                     || "authorization_code".equals(request.getParameter("grant_type"))));
             boolean publicRoute = path.equals("/api/v1/branding") || path.equals("/api/v1/manifest.webmanifest")
                     || path.startsWith("/api/v1/public/") || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/postal-codes/")
-                    || path.startsWith("/oauth2/") || optionalHost;
+                    || path.equals("/api/v1/signup") || path.startsWith("/api/v1/signup/")
+                    || path.equals("/api/v1/checkout-sessions") || path.startsWith("/oauth2/") || optionalHost;
             if (!global) {
                 var authentication = SecurityContextHolder.getContext().getAuthentication();
                 boolean authenticatedJwt = authentication instanceof JwtAuthenticationToken jwt && jwt.isAuthenticated();

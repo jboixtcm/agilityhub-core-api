@@ -2,6 +2,50 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+
+## 2026-09-09 · E3-T01 · Signup and dashboard contract
+
+All new operations are standard `501 NOT_IMPLEMENTED` stubs under `/api/v1`:
+
+- GET `/signup`: anonymous or MEMBER configuration; optional bearer authentication,
+  country profile, resolved texts/legal content, first-month options, masked member mode.
+- POST `/signup/identity-checks`: anonymous recognition result and masked email.
+- GET `/signup/towns?postalCode=`: anonymous country-profile town/region array.
+- POST `/signup/upload-urls`: anonymous or MEMBER signed upload contract.
+- POST `/signup/family-group-lookups`: anonymous holder lookup; requires FAMILY_GROUP.
+- POST `/signup`: anonymous submission; required UUID Idempotency-Key, fictional
+  request example, 201 result and the later 202 honeypot response.
+- POST `/checkout-sessions`: anonymous capability or MEMBER/ADMIN bearer; BILLING
+  and Idempotency-Key required; 201 checkout URL/session contract.
+- POST `/me/dogs/signup`: MEMBER, including valid impersonation; Idempotency-Key required.
+- GET `/members/{id}/signup`: ADMIN D2 aggregate with documents, warnings and proposals.
+- POST `/members/{id}/validation?dryRun=`: ADMIN; version required; 200 oneOf
+  ValidationDryRun/ValidationResult (dryRun defaults to false).
+- POST `/members/{id}/rejection`: ADMIN; version/reason required; typed member/dog outcome.
+
+`MemberListItem` gains optional `signupPending`, `pendingDogs`, `warnings` and
+`signup{submittedAt}`. GET `/members` reserves the three virtual filter fields
+(`x-filterable`) and `signup.submittedAt` (`x-sortable`) for E3-T03; runtime evaluation
+and projection remain deferred. Existing census list behavior is unchanged.
+
+`Dashboard` and `DashboardKpis` module/parameter-controlled blocks are required
+nullable properties, serialized as null when disabled. Risk status is the closed
+CANCELLED/AT_RISK/WILL_CANCEL/PENDING_DECISION enum. D1 and D2 share `SignupWarning`;
+payment method and notified gender enums are explicit. All S14 §6 fields are checked.
+
+The catalog's §3 rule 0 overrides the illustrative S04/task statuses: SIGNUP_CLOSED,
+SIGNUP_ALREADY_PENDING and ID_DOCUMENT_AMBIGUOUS are 422; MEMBER_ALREADY_EXISTS and
+MEMBERSHIP_EXISTS are 409. Correct existing SIGNUP_ALREADY_PENDING (409→422) and
+DOG_CHIP_ALREADY_REGISTERED (409→422). All 19 errors already have ca/es/en messages.
+
+Contract-only boundaries: R-04-20 per-club/IP limits, 64 KB/10-file limits, anonymous
+idempotency, signupToken/ownership/redirect checks, calculations, persistence and
+notifications are E3-T02/T03. The JWT idempotency filter lets only anonymous POST
+/signup and /checkout-sessions reach these effect-free stubs; E3-T03 must replace
+that exception before implementing their mutations. Tests verify no signup writes.
+Six S04 event payload fixtures and N-01/02/03/37/39 notification fixtures are published
+for the implementation tests; no sending or new catalog entries are introduced.
+
 ## 2026-09-09 · E2-T12 · Club pages
 
 - Add GET/POST `/club-pages`, GET/PATCH `/club-pages/{key}` and key-authenticated

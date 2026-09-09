@@ -1,0 +1,393 @@
+{
+  "SignupConfig": {
+    "enabled": true,
+    "closedText": "Example closed text",
+    "steps": [
+      "PERSON",
+      "DOG",
+      "FAMILY_GROUP",
+      "PAYMENT"
+    ],
+    "plans": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "type": "MONTHLY",
+        "billingMode": "MONTHLY_FEE",
+        "name": "Example Plan",
+        "description": "Example description",
+        "conditions": "Example conditions",
+        "offerLabel": "Example offer",
+        "price": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "amount": {
+            "amountMinor": 6000,
+            "currency": "EUR"
+          },
+          "periodicity": "MONTHLY"
+        },
+        "entryFee": {
+          "amountMinor": 6000,
+          "currency": "EUR"
+        },
+        "pack": {
+          "sessions": 6,
+          "validityMonths": 3
+        },
+        "maintenanceFee": {
+          "amountMinor": 6000,
+          "currency": "EUR"
+        }
+      }
+    ],
+    "paymentMethods": [
+      {
+        "type": "SEPA_DD",
+        "label": "Direct debit",
+        "mandateText": "Example mandate",
+        "instructions": "Example instructions"
+      }
+    ],
+    "texts": {
+      "freeTrainingConditions": "Example text",
+      "therapyIntro": "Example text",
+      "familyGroupIntro": "Example text",
+      "monthlyPaymentIntro": "Example text",
+      "paymentDay": "Example text",
+      "cashConditions": "Example text",
+      "imageConsent": "Example text"
+    },
+    "legal": {
+      "privacyPolicyUrl": "https://club.example.test/privacy",
+      "legalTextsVersion": "2026-09",
+      "imageConsentText": "Example consent"
+    },
+    "countryProfile": {
+      "code": "ES",
+      "idDocumentTypes": [
+        "DNI",
+        "NIE",
+        "PASSPORT"
+      ],
+      "postalCodeLookup": true,
+      "phonePrefix": "+34",
+      "dateFormat": "dd/MM/yyyy",
+      "timeFormat": "HH:mm"
+    },
+    "upfront": {
+      "firstMonthSplitDay": 16,
+      "today": "2026-09-09",
+      "firstMonthOptions": [
+        {
+          "option": "TODAY",
+          "startDate": "2026-09-09",
+          "amountDue": {
+            "amountMinor": 6000,
+            "currency": "EUR"
+          }
+        }
+      ]
+    },
+    "member": {
+      "planId": "11111111-1111-4111-8111-111111111111",
+      "paymentMethodMasked": {
+        "type": "SEPA_DD",
+        "maskedAccount": "···· 0000",
+        "holderName": "Example Member"
+      },
+      "consentsUpToDate": true
+    }
+  },
+  "IdentityCheckResult": {
+    "result": "VERIFICATION_SENT",
+    "maskedEmail": "m***@example.test"
+  },
+  "Town": {
+    "name": "Example Town",
+    "region": "Example Region"
+  },
+  "UploadUrl": {
+    "uploadUrl": "https://files.example.test/upload",
+    "fileKey": "signup/fictional/vaccination.jpg",
+    "expiresAt": "2026-09-09T10:30:00Z"
+  },
+  "FamilyGroupLookupResult": {
+    "result": "FOUND",
+    "holderDisplayName": "Example H."
+  },
+  "SignupResult": {
+    "memberId": "11111111-1111-4111-8111-111111111111",
+    "signupToken": "fictional-capability",
+    "upfront": {
+      "lines": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "concept": "FIRST_MONTH",
+          "amount": {
+            "amountMinor": 6000,
+            "currency": "EUR"
+          },
+          "status": "PARTIAL",
+          "paidAmount": {
+            "amountMinor": 0,
+            "currency": "EUR"
+          },
+          "provider": "MANUAL"
+        }
+      ],
+      "totalDue": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      }
+    },
+    "checkout": {
+      "required": false
+    }
+  },
+  "AddDogSignupResult": {
+    "dogId": "11111111-1111-4111-8111-111111111111",
+    "upfront": {
+      "lines": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "concept": "FIRST_MONTH",
+          "amount": {
+            "amountMinor": 6000,
+            "currency": "EUR"
+          },
+          "status": "PARTIAL",
+          "paidAmount": {
+            "amountMinor": 0,
+            "currency": "EUR"
+          },
+          "provider": "MANUAL"
+        }
+      ],
+      "totalDue": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      }
+    },
+    "checkout": {
+      "required": false
+    }
+  },
+  "MemberSignupView": {
+    "member": {
+      "id": "member-a",
+      "accountId": "account-a",
+      "memberNumber": 1,
+      "idDocument": {
+        "type": "PASSPORT",
+        "number": "fictional-document"
+      },
+      "firstName": "Example",
+      "lastName1": "Member",
+      "fullName": "Example Member",
+      "gender": "OTHER",
+      "birthDate": "2000-01-01",
+      "contactEmails": [
+        {
+          "email": "member@example.test",
+          "bounced": false
+        }
+      ],
+      "phones": [
+        {
+          "prefix": "+34",
+          "number": "900000000",
+          "label": "Home"
+        }
+      ],
+      "address": {
+        "street": "Example street",
+        "postalCode": "08001",
+        "city": "Example",
+        "province": "Example",
+        "country": "ES"
+      },
+      "paymentMethod": {
+        "type": "SEPA_DD",
+        "maskedAccount": "••••1234",
+        "holderName": "Example Member"
+      },
+      "maskedAccount": "••••1234",
+      "consents": {
+        "privacyPolicy": {
+          "acceptedAt": "2026-09-06T10:00:00Z",
+          "version": "v1"
+        },
+        "imageRights": {
+          "granted": true,
+          "at": "2026-09-06T10:00:00Z",
+          "version": "v1",
+          "byAccountId": "account-a"
+        }
+      },
+      "status": "ACTIVE",
+      "displayStatus": {
+        "kind": "ACTIVE",
+        "label": "Active"
+      },
+      "bookingBlock": {
+        "active": false
+      },
+      "roles": [
+        "MEMBER"
+      ],
+      "version": 1,
+      "accountMissing": false
+    },
+    "dogs": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Example Dog",
+        "sex": "FEMALE",
+        "breed": "Whippet",
+        "birthMonth": "2024-04",
+        "chip": "941000000000001",
+        "notesToInstructors": "Example note",
+        "status": "PENDING",
+        "levelId": "11111111-1111-4111-8111-111111111111",
+        "documents": [
+          {
+            "type": "VACCINATION_CARD",
+            "state": "RECEIVED",
+            "files": [
+              {
+                "name": "vaccination.jpg",
+                "downloadUrl": "https://files.example.test/vaccination.jpg"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "signup": {
+      "submittedAt": "2026-09-09T10:00:00Z",
+      "pendingDays": 0,
+      "readmission": false,
+      "source": "PUBLIC",
+      "locale": "en",
+      "planIdRequested": "11111111-1111-4111-8111-111111111111"
+    },
+    "familyGroupClaim": {
+      "status": "FOUND",
+      "holderName": "Example Holder",
+      "dogName": "Example Dog",
+      "holder": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "fullName": "Example Holder",
+        "memberNumber": 1,
+        "dogs": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "name": "Example Dog",
+            "levelCode": "A"
+          }
+        ]
+      }
+    },
+    "upfront": {
+      "lines": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "concept": "FIRST_MONTH",
+          "amount": {
+            "amountMinor": 6000,
+            "currency": "EUR"
+          },
+          "status": "PARTIAL",
+          "paidAmount": {
+            "amountMinor": 0,
+            "currency": "EUR"
+          },
+          "provider": "MANUAL"
+        }
+      ],
+      "totalDue": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      },
+      "totalPaid": {
+        "amountMinor": 0,
+        "currency": "EUR"
+      }
+    },
+    "proposals": {
+      "nextInvoiceDate": "2026-10-01",
+      "planId": "11111111-1111-4111-8111-111111111111",
+      "priceId": "11111111-1111-4111-8111-111111111111",
+      "familyGroupId": "11111111-1111-4111-8111-111111111111",
+      "levels": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "code": "A",
+          "name": "Example Level",
+          "color": "#123456"
+        }
+      ]
+    },
+    "warnings": [
+      "NO_IMAGE_CONSENT",
+      "ACCOUNT_NOT_PROVIDED",
+      "DOCUMENT_PENDING",
+      "FAMILY_HOLDER_NOT_FOUND",
+      "UPFRONT_UNPAID",
+      "READMISSION"
+    ],
+    "version": 1
+  },
+  "ValidationDryRun": {
+    "upfront": {
+      "lines": [
+        {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "concept": "FIRST_MONTH",
+          "amount": {
+            "amountMinor": 6000,
+            "currency": "EUR"
+          },
+          "status": "PARTIAL",
+          "paidAmount": {
+            "amountMinor": 0,
+            "currency": "EUR"
+          },
+          "provider": "MANUAL"
+        }
+      ],
+      "totalDue": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      },
+      "totalPaid": {
+        "amountMinor": 0,
+        "currency": "EUR"
+      }
+    },
+    "price": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "amount": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      },
+      "periodicity": "MONTHLY"
+    },
+    "nextInvoiceDate": "2026-10-01",
+    "warnings": []
+  },
+  "ValidationResult": {
+    "memberId": "11111111-1111-4111-8111-111111111111",
+    "number": 42,
+    "accountId": "11111111-1111-4111-8111-111111111111",
+    "dogIds": [
+      "11111111-1111-4111-8111-111111111111"
+    ]
+  },
+  "RejectionResult": {
+    "memberId": "11111111-1111-4111-8111-111111111111",
+    "status": "LEFT",
+    "dogIds": [
+      "11111111-1111-4111-8111-111111111111"
+    ]
+  }
+}

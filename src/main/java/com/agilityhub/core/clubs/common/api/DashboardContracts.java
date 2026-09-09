@@ -1,14 +1,11 @@
 package com.agilityhub.core.clubs.common.api;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import com.agilityhub.core.shared.domain.Money;
-import static com.agilityhub.core.shared.application.contract.ApiContracts.*;
+import com.agilityhub.core.shared.application.contract.SignupWarning;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 
@@ -16,15 +13,16 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIR
 public final class DashboardContracts {
     private DashboardContracts() { }
 
-    @Schema(description = "S14 §6: module/parameter-controlled blocks may be null; contract only.")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @Schema(description = "S14 §6: module/parameter-controlled blocks are explicitly null when disabled; contract only.")
     public record Dashboard(
             @Schema(requiredMode = REQUIRED) Instant generatedAt,
             @Schema(requiredMode = REQUIRED) LocalDate today,
             @Schema(requiredMode = REQUIRED) DashboardWeek week,
             @Schema(requiredMode = REQUIRED) DashboardKpis kpis,
-            @Schema(requiredMode = NOT_REQUIRED) RiskReview riskReview,
-            @Schema(requiredMode = NOT_REQUIRED) PendingSignups pendingSignups,
-            @Schema(requiredMode = NOT_REQUIRED) DogsByLevel dogsByLevel) { }
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) RiskReview riskReview,
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) PendingSignups pendingSignups,
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) DogsByLevel dogsByLevel) { }
     public record DashboardWeek(
             @Schema(requiredMode = REQUIRED) LocalDate start,
             @Schema(requiredMode = REQUIRED) LocalDate end) { }
@@ -32,11 +30,12 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) int pendingSignups,
             @Schema(requiredMode = REQUIRED) int pendingRequests,
             @Schema(requiredMode = REQUIRED) int followUpUnread) { }
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     public record DashboardKpis(
-            @Schema(requiredMode = NOT_REQUIRED) ActiveMembersKpi activeMembers,
-            @Schema(requiredMode = NOT_REQUIRED) ClassOccupancyKpi classOccupancy,
-            @Schema(requiredMode = NOT_REQUIRED) TrainingBookingsKpi trainingBookings,
-            @Schema(requiredMode = NOT_REQUIRED) PendingSignupsKpi pendingSignups) { }
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) ActiveMembersKpi activeMembers,
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) ClassOccupancyKpi classOccupancy,
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) TrainingBookingsKpi trainingBookings,
+            @Schema(requiredMode = REQUIRED, types = {"object", "null"}) PendingSignupsKpi pendingSignups) { }
     public record ActiveMembersKpi(
             @Schema(requiredMode = REQUIRED) int value,
             @Schema(requiredMode = REQUIRED) int deltaThisMonth) { }
@@ -58,6 +57,7 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) boolean autoCancelSameDay,
             @Schema(requiredMode = REQUIRED) int count,
             @Schema(requiredMode = REQUIRED) List<RiskItem> items) { }
+    public enum RiskStatus { CANCELLED, AT_RISK, WILL_CANCEL, PENDING_DECISION }
     public record RiskItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String classSessionId,
             @Schema(requiredMode = REQUIRED) LocalDate date,
@@ -65,12 +65,12 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) String displayDescription,
             @Schema(requiredMode = REQUIRED) String ringName,
             @Schema(requiredMode = REQUIRED) int booked,
-            @Schema(requiredMode = REQUIRED) String status,
+            @Schema(requiredMode = REQUIRED) RiskStatus status,
             @Schema(requiredMode = REQUIRED) List<RiskNotified> notified,
             @Schema(requiredMode = REQUIRED) Instant reviewAt) { }
     public record RiskNotified(
             @Schema(requiredMode = REQUIRED) String memberFirstName,
-            @Schema(requiredMode = REQUIRED) String gender,
+            @Schema(requiredMode = REQUIRED, allowableValues = {"MALE", "FEMALE", "OTHER"}) String gender,
             @Schema(requiredMode = REQUIRED) String dogName) { }
     public record PendingSignups(
             @Schema(requiredMode = REQUIRED) int count,
@@ -80,8 +80,8 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) List<PendingSignupDog> dogs,
             @Schema(requiredMode = REQUIRED) String planName,
-            @Schema(requiredMode = NOT_REQUIRED) String paymentMethodType,
-            @Schema(requiredMode = REQUIRED) List<String> warnings,
+            @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"SEPA_DD", "CARD", "MANUAL"}) String paymentMethodType,
+            @Schema(requiredMode = REQUIRED) List<SignupWarning> warnings,
             @Schema(requiredMode = REQUIRED) Instant submittedAt,
             @Schema(requiredMode = REQUIRED) int pendingDays) { }
     public record PendingSignupDog(

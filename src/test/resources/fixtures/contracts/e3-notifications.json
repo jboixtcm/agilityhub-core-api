@@ -1,0 +1,45 @@
+{
+  "N-01": {
+    "event": "SignupSubmitted",
+    "variables": [
+      "member_name",
+      "dogs",
+      "plan_name",
+      "club_name",
+      "upfront_total",
+      "payment_instructions",
+      "pay_link"
+    ]
+  },
+  "N-02": {
+    "event": "MemberValidated",
+    "variables": [
+      "member_first_name",
+      "gender",
+      "club_name",
+      "link"
+    ]
+  },
+  "N-03": {
+    "event": "SignupRejected",
+    "variables": [
+      "member_name",
+      "reason",
+      "club_name"
+    ]
+  },
+  "N-37": {
+    "event": "DogRegistered",
+    "variables": [
+      "dog_name"
+    ]
+  },
+  "N-39": {
+    "event": "SignupRecognitionRequested",
+    "variables": [
+      "link",
+      "expires_minutes",
+      "club_name"
+    ]
+  }
+}

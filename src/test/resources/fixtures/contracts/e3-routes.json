@@ -1,0 +1,272 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/signup",
+    "roles": [
+      "ANON",
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "module": null
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/signup/identity-checks",
+    "roles": [
+      "ANON"
+    ],
+    "body": {
+      "idDocument": {
+        "type": "DNI",
+        "value": "12345678Z"
+      },
+      "emails": [
+        "member@example.test"
+      ]
+    },
+    "params": {},
+    "idempotency": false,
+    "module": null
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/signup/towns",
+    "roles": [
+      "ANON"
+    ],
+    "body": null,
+    "params": {
+      "postalCode": "08001"
+    },
+    "idempotency": false,
+    "module": null
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/signup/upload-urls",
+    "roles": [
+      "ANON",
+      "MEMBER"
+    ],
+    "body": {
+      "fileName": "vaccination.jpg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 100
+    },
+    "params": {},
+    "idempotency": false,
+    "module": null
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/signup/family-group-lookups",
+    "roles": [
+      "ANON"
+    ],
+    "body": {
+      "holderName": "Example Holder",
+      "dogName": "Example Dog"
+    },
+    "params": {},
+    "idempotency": false,
+    "module": "FAMILY_GROUP"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/signup",
+    "roles": [
+      "ANON"
+    ],
+    "body": {
+      "locale": "en",
+      "website": "",
+      "person": {
+        "idDocument": {
+          "type": "DNI",
+          "value": "12345678Z"
+        },
+        "firstName": "Example",
+        "lastName1": "Member",
+        "lastName2": "Second",
+        "birthDate": "1991-05-08",
+        "gender": "FEMALE",
+        "emails": [
+          "member@example.test"
+        ],
+        "phones": [
+          {
+            "prefix": "+34",
+            "number": "600000001",
+            "label": "Primary"
+          }
+        ],
+        "address": {
+          "street": "1 Example Street",
+          "postalCode": "08001",
+          "town": "Example Town"
+        }
+      },
+      "dog": {
+        "name": "Example Dog",
+        "sex": "FEMALE",
+        "breed": "Whippet",
+        "birthMonth": "2024-04",
+        "chip": "941000000000001",
+        "notesToInstructors": "Example note",
+        "documents": [
+          {
+            "type": "VACCINATION_CARD",
+            "files": [
+              {
+                "fileKey": "signup/fictional/vaccination.jpg",
+                "name": "vaccination.jpg"
+              }
+            ]
+          }
+        ]
+      },
+      "planId": "11111111-1111-4111-8111-111111111111",
+      "familyGroupClaim": {
+        "holderName": "Example Holder",
+        "dogName": "Example Dog",
+        "leavePending": false
+      },
+      "payment": {
+        "type": "SEPA_DD",
+        "iban": "ES0000000000000000000000",
+        "holderName": "Example Member",
+        "holderTaxId": null,
+        "firstMonthOption": "TODAY"
+      },
+      "consents": {
+        "privacyPolicy": {
+          "accepted": true,
+          "version": "2026-09"
+        },
+        "imageUse": {
+          "granted": false,
+          "version": "2026-09"
+        }
+      }
+    },
+    "params": {},
+    "idempotency": true,
+    "module": null
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/checkout-sessions",
+    "roles": [
+      "ANON",
+      "MEMBER",
+      "ADMIN"
+    ],
+    "body": {
+      "memberId": "11111111-1111-4111-8111-111111111111",
+      "signupToken": "fictional-capability",
+      "successUrl": "https://club.example.test/signup/success",
+      "cancelUrl": "https://club.example.test/signup/cancel"
+    },
+    "params": {},
+    "idempotency": true,
+    "module": "BILLING"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/me/dogs/signup",
+    "roles": [
+      "MEMBER"
+    ],
+    "body": {
+      "dog": {
+        "name": "Example Dog",
+        "sex": "FEMALE",
+        "breed": "Whippet",
+        "birthMonth": "2024-04",
+        "chip": "941000000000001",
+        "notesToInstructors": "Example note"
+      },
+      "documents": [
+        {
+          "type": "VACCINATION_CARD",
+          "files": [
+            {
+              "fileKey": "signup/fictional/vaccination.jpg",
+              "name": "vaccination.jpg"
+            }
+          ]
+        }
+      ],
+      "planIdRequested": "11111111-1111-4111-8111-111111111111",
+      "consents": {
+        "privacyPolicy": {
+          "accepted": true,
+          "version": "2026-09"
+        },
+        "imageUse": {
+          "granted": false,
+          "version": "2026-09"
+        }
+      }
+    },
+    "params": {},
+    "idempotency": true,
+    "module": null
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/members/{id}/signup",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "module": null
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/validation",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1,
+      "dogs": [
+        {
+          "dogId": "11111111-1111-4111-8111-111111111111",
+          "levelId": "11111111-1111-4111-8111-111111111111"
+        }
+      ],
+      "planId": "11111111-1111-4111-8111-111111111111",
+      "priceId": "11111111-1111-4111-8111-111111111111",
+      "nextInvoiceDate": "2026-10-01",
+      "familyGroupId": "11111111-1111-4111-8111-111111111111",
+      "upfrontAmountPaid": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      }
+    },
+    "params": {
+      "dryRun": "false"
+    },
+    "idempotency": false,
+    "module": null
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/members/{id}/rejection",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1,
+      "reason": "Example reason"
+    },
+    "params": {},
+    "idempotency": false,
+    "module": null
+  }
+]

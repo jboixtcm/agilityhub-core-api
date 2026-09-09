@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E3-T01: Publish eleven S04 signup, checkout, add-dog and validation contract
+  stubs with tenant/role/module guards, typed request/response schemas and fictional
+  fixtures. Reserve signup list fields, align dashboard enums and nullable blocks,
+  and correct signup error mappings to the closed catalog's canonical status rule.
+
 - E2-T11: Apply and export typed club catalogs with idempotent references, audited
   updates and protected price history. Seed the Cànic levels, rings, plans, prices,
   provisional FAQ and cleaned page text. Add the deterministic local demo census

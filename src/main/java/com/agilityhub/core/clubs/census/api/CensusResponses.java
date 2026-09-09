@@ -160,7 +160,12 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = NOT_REQUIRED) Gender gender,
             @Schema(requiredMode = NOT_REQUIRED) String idDocument,
-            @Schema(requiredMode = REQUIRED) long version) { }
+            @Schema(requiredMode = REQUIRED) long version,
+            @Schema(requiredMode = NOT_REQUIRED, description = "S04 virtual field; E3-T03 projection") Boolean signupPending,
+            @Schema(requiredMode = NOT_REQUIRED) List<DogSummary> pendingDogs,
+            @Schema(requiredMode = NOT_REQUIRED) List<com.agilityhub.core.shared.application.contract.SignupWarning> warnings,
+            @Schema(requiredMode = NOT_REQUIRED) MemberListSignup signup) { }
+    public record MemberListSignup(@Schema(requiredMode = REQUIRED) Instant submittedAt) { }
     public record License(
             @Schema(requiredMode = REQUIRED, maxLength = 20) String organisation,
             @Schema(requiredMode = REQUIRED, maxLength = 30) String number,

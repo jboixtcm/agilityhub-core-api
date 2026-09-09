@@ -1,0 +1,26 @@
+OpenAPI: 123 paths, 167 operations, 298 schemas
+Added operations: 11
+POST /api/v1/checkout-sessions
+POST /api/v1/me/dogs/signup
+POST /api/v1/members/{id}/rejection
+GET /api/v1/members/{id}/signup
+POST /api/v1/members/{id}/validation
+GET /api/v1/signup
+POST /api/v1/signup
+POST /api/v1/signup/family-group-lookups
+POST /api/v1/signup/identity-checks
+GET /api/v1/signup/towns
+POST /api/v1/signup/upload-urls
+Removed operations: 0
+Added schemas: 55
+AddDogSignupRequest, AddDogSignupResult, CheckoutSession, CheckoutSessionRequest, FamilyGroupLookupRequest, FamilyGroupLookupResult, IdentityCheckRequest, IdentityCheckResult, MemberListSignup, MemberSignupView, RejectionRequest, RejectionResult, SignupAddress, SignupCheckout, SignupConfig, SignupConsents, SignupCountryProfile, SignupDocument, SignupDocumentFile, SignupDocumentView, SignupDog, SignupDogView, SignupFamilyGroupClaim, SignupFamilyGroupView, SignupFile, SignupFirstMonthChoice, SignupIdDocument, SignupImageConsent, SignupLegal, SignupMember, SignupPack, SignupPayment, SignupPaymentMethod, SignupPerson, SignupPhone, SignupPlan, SignupPrice, SignupPrivacyConsent, SignupProposals, SignupRequest, SignupResult, SignupSubmission, SignupTexts, SignupUpfront, SignupUpfrontConfig, SignupUpfrontReview, SignupWarning, Town, UpfrontLine, UploadUrl, UploadUrlRequest, ValidationDog, ValidationDryRun, ValidationRequest, ValidationResult
+Removed schemas: none
+Changed existing schemas: Dashboard, DashboardKpis, MemberListItem, PendingSignup, RiskItem, RiskNotified
+surefire-reports {'tests': 308, 'failures': 0, 'errors': 0, 'skipped': 0}
+failsafe-reports {'tests': 424, 'failures': 0, 'errors': 0, 'skipped': 0}
+com/agilityhub/core/clubs/census/api BRANCH 10/10 100.00%
+com/agilityhub/core/clubs/census/api LINE 188/203 92.61%
+com/agilityhub/core/clubs/common/api BRANCH 9/10 90.00%
+com/agilityhub/core/clubs/common/api LINE 65/66 98.48%
+com/agilityhub/core/payments/api LINE 4/4 100.00%
+com/agilityhub/core/shared/application/contract LINE 11/11 100.00%

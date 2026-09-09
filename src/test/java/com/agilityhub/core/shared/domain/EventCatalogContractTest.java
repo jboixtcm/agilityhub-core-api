@@ -141,4 +141,29 @@ class EventCatalogContractTest {
             assertThat(event.occurredAt()).isNotNull();
         });
     }
+    @Test void T_04_11_T_04_17_T_04_19_T_04_21_signupEventsKeepS04PayloadContracts() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ESDEVENIMENTS.md"));
+        var spec = Files.readString(Path.of("docs/specs/S04-alta-publica-i-validacio.md"));
+        Map<String, String> expected = Map.of(
+                "SignupSubmitted", "memberId,dogIds,planId,paymentMethodType,source,readmission,checkoutRequired",
+                "SignupEdited", "memberId,dogId,diff",
+                "MemberValidated", "memberId,memberNumber,dogs,nextInvoiceDate,upfrontPaymentIds,familyGroupId,readmission",
+                "SignupRejected", "memberId,dogIds,reason,memberWasActive",
+                "DogRegistered", "dogId,memberId,levelId",
+                "SignupRecognitionRequested", "memberId,accountId,redirect");
+        try (var input = getClass().getResourceAsStream("/fixtures/contracts/e3-events.json")) {
+            var fixtures = mapper.readTree(input);
+            assertThat(fixtures.fieldNames()).toIterable().containsExactlyInAnyOrderElementsOf(expected.keySet());
+            expected.forEach((name, fields) -> {
+                assertThat(catalog).contains("`" + name);
+                String row = spec.lines().filter(line -> line.startsWith("| `" + name + "`")).findFirst().orElseThrow();
+                assertThat(fixtures.path(name).fieldNames()).toIterable().as(name).containsExactlyInAnyOrder(fields.split(","));
+                for (String field : fields.split(",")) { assertThat(row).as(name).contains(field); }
+            });
+            assertThat(fixtures.at("/MemberValidated/dogs/0").fieldNames()).toIterable().containsExactly("dogId", "levelId");
+            assertThat(fixtures.at("/SignupSubmitted/source").asText()).isEqualTo("PUBLIC");
+        }
+    }
+
 }
