@@ -105,9 +105,10 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) int order,
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = REQUIRED) long version) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Instructor(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            @Schema(requiredMode = REQUIRED, format = "uuid") String memberId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String memberId,
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) boolean active,

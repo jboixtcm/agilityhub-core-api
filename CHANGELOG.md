@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T04: Implement instructor and administrator profiles, shared member-role
+  assignment, tenant-scoped usage guards and concurrent last-administrator
+  protection. Process member leave through the outbox, retain the last admin
+  with an audit reason, and publish audited membership/profile changes atomically.
+  Add team integration tests and update the OpenAPI snapshot.
+
 - E2-T07: Implement reusable tenant-scoped member/dog lists, typed filters,
   facets, sparse fields, saved-view CRUD and masked XLSX/PDF exports. Queue
   exports above 5,000 rows for E2-T08, record completed exports in audit and the outbox,

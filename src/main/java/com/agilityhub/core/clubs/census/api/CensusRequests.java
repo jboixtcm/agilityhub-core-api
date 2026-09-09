@@ -61,7 +61,7 @@ public final class CensusRequests {
     public record ReasonRequest(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 500) String reason) { }
     public record RolesRequest(
-            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1) List<MemberRole> roles) { }
+            @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1) List<@NotNull MemberRole> roles) { }
     public record DogPatch(
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) String name,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String breed,

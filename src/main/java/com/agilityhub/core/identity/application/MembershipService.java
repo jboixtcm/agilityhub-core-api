@@ -58,7 +58,9 @@ public class MembershipService {
         Role profile = old != null && old.defaultProfile() != null && roles.contains(old.defaultProfile()) ? old.defaultProfile() : null;
         var next = new Membership(old == null ? UUID.randomUUID().toString() : old.id(), accountId, TenantContext.require(),
                 old == null ? null : old.memberId(), roles, status, profile, profile != null && old.rememberProfile(),
-                old == null ? null : old.instructorId(), old == null ? clock.instant() : old.createdAt(), old == null ? null : old.lastAccessAt());
+                old == null ? null : old.instructorId(), old == null ? clock.instant() : old.createdAt(), old == null ? null : old.lastAccessAt(),
+                old == null ? null : old.adminProfile(), old == null ? 0 : old.version() + 1, clock.instant(),
+                old == null ? null : old.createdByAccountId(), old == null ? null : old.updatedByAccountId());
         memberships.replace(next);
         if (status == Membership.Status.SUSPENDED) { sessions.revokeClub(accountId, next.clubId(), clock.instant()); }
         events.publish(new IdentityEvent(IdentityEvent.Kind.MembershipChanged, next.clubId(), next.id(), clock.instant(), Map.of(

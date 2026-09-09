@@ -23,7 +23,7 @@ class EventCatalogContractTest {
             var matcher = pattern.matcher(row.split("\\|", -1)[1]);
             while (matcher.find()) { catalog.add(matcher.group(1)); }
         }
-        Map<Class<?>, Supplier<DomainEvent>> samples = Map.of(
+        Map<Class<?>, Supplier<DomainEvent>> samples = new java.util.HashMap<>(Map.of(
                 com.agilityhub.core.clubs.common.domain.DataExported.class, () -> new com.agilityhub.core.clubs.common.domain.DataExported("club-a", "export-a", Instant.parse("2030-01-01T00:00:00Z"), "account-a", "members", "xlsx", 2),
                 com.agilityhub.core.clubs.catalogs.domain.CatalogEvent.class, () -> new com.agilityhub.core.clubs.catalogs.domain.CatalogEvent(
                         com.agilityhub.core.clubs.catalogs.domain.CatalogKind.LEVEL, "club-a", "level-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "level-a", "diff", Map.of()), "account-a"),
@@ -40,7 +40,16 @@ class EventCatalogContractTest {
                         "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("key", "signup.enabled", "before", true, "after", false),
                         "account-a", null, DomainEvent.Origin.BACKOFFICE), ClubConfigChanged.class, () -> new ClubConfigChanged(
                 "club-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("diff", Map.of("name", "Example")),
-                "account-a", null, DomainEvent.Origin.BACKOFFICE));
+                "account-a", null, DomainEvent.Origin.BACKOFFICE)));
+        samples.put(com.agilityhub.core.shared.domain.events.MemberStatusChanged.class,
+                () -> new com.agilityhub.core.shared.domain.events.MemberStatusChanged("club-a", "member-a", Instant.parse("2030-01-01T00:00:00Z"),
+                        Map.of("memberId", "member-a", "before", "ACTIVE", "after", "LEFT", "effectiveDate", "2030-01-01"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.catalogs.domain.InstructorChanged.class,
+                () -> new com.agilityhub.core.clubs.catalogs.domain.InstructorChanged("club-a", "instructor-a", Instant.parse("2030-01-01T00:00:00Z"),
+                        Map.of("id", "instructor-a", "diff", Map.of()), "account-a", DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.identity.domain.TeamMembershipChanged.class,
+                () -> new com.agilityhub.core.identity.domain.TeamMembershipChanged("club-a", "membership-a", Instant.parse("2030-01-01T00:00:00Z"),
+                        Map.of("accountId", "account-a", "clubId", "club-a", "rolesBefore", Set.of("MEMBER"), "rolesAfter", Set.of("MEMBER", "INSTRUCTOR")), "account-a", DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -83,6 +92,12 @@ class EventCatalogContractTest {
                 assertThat(changed.aggregateType()).isEqualTo("Level");
                 assertThat(changed.aggregateId()).isEqualTo("level-a");
                 assertThat(changed.payload()).containsKeys("id", "diff");
+            } else if (event instanceof com.agilityhub.core.shared.domain.events.MemberStatusChanged) {
+                assertThat(event.aggregateType()).isEqualTo("Member"); assertThat(event.payload()).containsKeys("memberId", "before", "after", "effectiveDate");
+            } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.InstructorChanged) {
+                assertThat(event.aggregateType()).isEqualTo("Instructor"); assertThat(event.payload()).containsKeys("id", "diff");
+            } else if (event instanceof com.agilityhub.core.identity.domain.TeamMembershipChanged) {
+                assertThat(event.aggregateType()).isEqualTo("Membership"); assertThat(event.payload()).containsKeys("accountId", "clubId", "rolesBefore", "rolesAfter");
             } else if (event instanceof ClubConfigChanged || event instanceof com.agilityhub.core.platform.domain.events.ClubModulesChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());

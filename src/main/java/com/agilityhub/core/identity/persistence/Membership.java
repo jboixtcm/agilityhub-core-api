@@ -10,7 +10,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("memberships")
 public record Membership(@Id String id, String accountId, String clubId, String memberId,
                          Set<Role> roles, Status status, Role defaultProfile, boolean rememberProfile,
-                         String instructorId, Instant createdAt, Instant lastAccessAt) implements TenantEntity {
+                         String instructorId, Instant createdAt, Instant lastAccessAt,
+                         AdminProfile adminProfile, long version, Instant updatedAt,
+                         String createdByAccountId, String updatedByAccountId) implements TenantEntity {
+    public record AdminProfile(String shortName, java.time.LocalDate since, boolean active) { }
+    public Membership(String id, String accountId, String clubId, String memberId, Set<Role> roles, Status status,
+                      Role defaultProfile, boolean rememberProfile, String instructorId, Instant createdAt, Instant lastAccessAt) {
+        this(id, accountId, clubId, memberId, roles, status, defaultProfile, rememberProfile, instructorId, createdAt,
+                lastAccessAt, null, 0, null, null, null);
+    }
     public Membership(String id, String accountId, String clubId, String memberId, Set<Role> roles, Status status, Role defaultProfile) {
         this(id, accountId, clubId, memberId, roles, status, defaultProfile, false, null, null, null);
     }

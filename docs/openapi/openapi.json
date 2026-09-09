@@ -2258,7 +2258,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "active", "color", "id", "memberId", "shortName", "version" ],
+        "required" : [ "active", "color", "id", "shortName", "version" ],
         "type" : "object"
       },
       "InstructorCreate" : {
@@ -7031,7 +7031,7 @@
     },
     "/api/v1/administrators/{membershipId}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S05 team mutation. Tenant comes from the JWT; ADMIN endpoints reject impersonation.",
         "operationId" : "deleteAdministrator",
         "parameters" : [ {
           "in" : "path",
@@ -7169,7 +7169,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S05 team mutation. Tenant comes from the JWT; ADMIN endpoints reject impersonation.",
         "operationId" : "updateAdministrator",
         "parameters" : [ {
           "in" : "path",
@@ -15059,7 +15059,7 @@
     },
     "/api/v1/instructors/{id}" : {
       "delete" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S05 team mutation. Tenant comes from the JWT; ADMIN endpoints reject impersonation.",
         "operationId" : "deleteInstructor",
         "parameters" : [ {
           "in" : "path",
@@ -15197,7 +15197,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S05 team mutation. Tenant comes from the JWT; ADMIN endpoints reject impersonation.",
         "operationId" : "updateInstructor",
         "parameters" : [ {
           "in" : "path",
@@ -22103,7 +22103,7 @@
     },
     "/api/v1/members/{id}/roles" : {
       "put" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "S03 R-03-10. Synchronizes S05 profiles; MEMBER is required and ADMIN cannot be removed from oneself.",
         "operationId" : "updateMemberRoles",
         "parameters" : [ {
           "in" : "path",

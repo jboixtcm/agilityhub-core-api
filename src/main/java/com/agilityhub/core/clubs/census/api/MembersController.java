@@ -22,7 +22,9 @@ import static com.agilityhub.core.clubs.census.api.CensusRequests.*;
 @RestController
 public class MembersController {
     private final com.agilityhub.core.shared.application.lists.ListEngine lists;
-    public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists) { this.lists = lists; }
+    private final com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles;
+    public MembersController(com.agilityhub.core.shared.application.lists.ListEngine lists,
+                             com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService roles) { this.lists = lists; this.roles = roles; }
     @GetMapping("/api/v1/members")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city"},
@@ -110,8 +112,11 @@ public class MembersController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({MEMBER_NOT_ACTIVE, ROLE_MEMBER_REQUIRED, LAST_ADMIN, CANNOT_CHANGE_OWN_ADMIN_ROLE})
     @Operation(summary = "Update member roles",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "S03 R-03-10. Synchronizes S05 profiles; MEMBER is required and ADMIN cannot be removed from oneself.",
             responses = @ApiResponse(responseCode = "200", description = "RolesResponse"))
-    public RolesResponse updateMemberRoles(@PathVariable String id, @Valid @RequestBody RolesRequest request) { throw new UnsupportedOperationException(); }
+    public RolesResponse updateMemberRoles(@PathVariable String id, @Valid @RequestBody RolesRequest request) {
+        var assigned = roles.setRoles(id, request.roles().stream().map(Enum::name).collect(java.util.stream.Collectors.toSet()));
+        return new RolesResponse(assigned.stream().map(MemberRole::valueOf).sorted().toList());
+    }
 
 }
