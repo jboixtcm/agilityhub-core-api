@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E1-T13 (blocked before implementation): Recorded the missing Docker daemon and
+  Maven cache permission failure; cookie refresh and platform roles remain pending.
+
 - E1-T11: Make OpenAPI model properties required by default, with explicit optional
   fields across existing contracts, preserved empty required arrays, and regression
   checks for model annotations and byte-identical snapshot regeneration.
