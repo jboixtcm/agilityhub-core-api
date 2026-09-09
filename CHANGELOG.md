@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E1-T07 (blocked before implementation): Recorded missing Docker/Mongo access and
+  full verification failures; the Learn import CLI and T-01-14 remain pending.
+
 - E1-T13 (blocked before implementation): Recorded the missing Docker daemon and
   Maven cache permission failure; cookie refresh and platform roles remain pending.
 
