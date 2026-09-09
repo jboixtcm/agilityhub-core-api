@@ -23,6 +23,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E1-T09 (verification pending): Fictional Cànic/minimal account definitions,
+  tenant role reconciliation, insert-only credentials and onboarding defaults,
+  environment password guards, and an accounts-only identity seed alias.
+  Updated seed schema, regression tests and local setup instructions.
+
 - E1-T06: First-access onboarding with versioned platform and tenant-specific club
   consent history, configurable profile fields, mandatory initial acceptance and bounded
   postponements for policy renewals. Account/member updates and completion audits share

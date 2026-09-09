@@ -213,29 +213,34 @@ and custom grant provider. OAuth failures use the localized
 as `details.oauth2Error` under the existing `VALIDATION_ERROR` catalog code.
 Omitted `client_id` retains the development compatibility default `clubs-app`.
 
-First create a club with a verified host using `bin/core club:apply`.
-Then seed fictional accounts for its slug:
+Apply the Cànic definition to create the club and its fictional accounts:
 
 ```sh
 export SEED_PASSWORD='<choose a local test password>'
-bin/core identity:seed-test-accounts --club=<existing-slug>
+bin/core club:apply seeds/club-canic.yaml
+# Apply only its accounts section after the club exists:
+bin/core identity:seed-test-accounts --club=canic
 ```
 
-Only `local`/`test` expose this command. It creates `admin@example.test`,
-`instructor@example.test`, and `member@example.test` with argon2id passwords;
-repeat runs preserve existing credentials and memberships. Admin/instructor
-memberships also have `MEMBER`. Member IDs remain empty pending census setup.
-`SEED_PASSWORD` has no default and is never printed.
+The definition contains 2 admins (including `admin@example.test`), 3 instructors
+and 10 members with their declared roles and argon2id passwords. The minimal
+definition has 1 admin and 2 members with separate emails. Repeat runs preserve
+existing global account details and credentials and reconcile the declared tenant
+roles. Member/instructor IDs remain empty pending census/team setup.
+`SEED_PASSWORD` has no default and is never printed. Passwords require local/test;
+staging/prod require environment references plus `--allow-seed-passwords`.
+Omitting `accounts[].password` creates passwordless accounts. See
+[seed conventions](seeds/README.md) for the schema and alias options.
 
 ```sh
 curl -s localhost:8080/oauth2/token \
-  -H 'X-Club-Host: app.example.test' \
+  -H 'X-Club-Host: app.agilitycanic.cat' \
   -d grant_type=password -d client_id=clubs-app \
   -d username=admin@example.test --data-urlencode "password=$SEED_PASSWORD"
 curl -s localhost:8080/api/v1/me \
-  -H 'X-Club-Host: app.example.test' -H "Authorization: Bearer $ACCESS_TOKEN"
+  -H 'X-Club-Host: app.agilitycanic.cat' -H "Authorization: Bearer $ACCESS_TOKEN"
 curl -s localhost:8080/oauth2/token \
-  -H 'X-Club-Host: app.example.test' \
+  -H 'X-Club-Host: app.agilitycanic.cat' \
   -d grant_type=refresh_token -d client_id=clubs-app \
   --data-urlencode "refresh_token=$REFRESH_TOKEN"
 ```
