@@ -29,8 +29,9 @@ public class MigrationApplyService {
     public void validate(PlayoffPlanner.Plan plan) {
         if (plan.changes().stream().anyMatch(c -> map(c.fields().get("paymentMethod")).get("iban")!=null)) { vault.requireKey(); }
     }
-    @Audited(action=AuditAction.CATALOG_CHANGED,entityType="'MigrationRun'",entity="#result.id",reason="'MIGRATED'")
-    public MigrationRun apply(MigrationRun run, PlayoffPlanner.Plan plan) {
+    public record Applied(String id, @com.agilityhub.core.shared.domain.audit.AuditField Map<String,Object> details) { }
+    @Audited(action=AuditAction.MIGRATION_APPLIED,entityType="'MigrationRun'",entity="#result.id",reason="'MIGRATED'")
+    public Applied apply(MigrationRun run, PlayoffPlanner.Plan plan) {
         validate(plan);
         for (var change:plan.changes()) {
             var fields=new LinkedHashMap<>(change.fields());
@@ -59,6 +60,6 @@ public class MigrationApplyService {
                 "COMPLETED",run.startedAt(),clock.instant(),counters);
         runs.replace(completed);
         events.publish(new MigrationEvent("MigrationRunCompleted",run.id(),run.clubId(),clock.instant(),Map.of("counters",counters)));
-        return completed;
+        return new Applied(completed.id(), Map.of("counters", counters));
     }
 }

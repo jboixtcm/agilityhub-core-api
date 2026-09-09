@@ -111,7 +111,22 @@ public class ClubDefinitionCodec {
                 }
             }
         }
+        canonicalIntegers(definition);
+        // YAML parsers and Jackson can choose different numeric node types for the same tax value.
+        for (var price : definition.path("catalogs").path("prices")) {
+            ((ObjectNode) price).put("taxPercent", price.path("taxPercent").decimalValue());
+        }
         return definition;
+    }
+    private void canonicalIntegers(com.fasterxml.jackson.databind.JsonNode node) {
+        if (node.isObject()) {
+            var fields = node.fields();
+            while (fields.hasNext()) {
+                var entry = fields.next(); var value = entry.getValue();
+                if (value.isIntegralNumber() && value.canConvertToInt()) { ((ObjectNode) node).put(entry.getKey(), value.intValue()); }
+                else { canonicalIntegers(value); }
+            }
+        } else if (node.isArray()) { node.forEach(this::canonicalIntegers); }
     }
     private ApiException pageFileError() {
         return new ApiException(ErrorCode.VALIDATION_ERROR, java.util.Map.of("fieldErrors",

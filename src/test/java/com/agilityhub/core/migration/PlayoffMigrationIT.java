@@ -56,7 +56,8 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     long incidents(MigrationReport report,String code) { return report.rows().stream().filter(r -> r.code().equals(code)).count(); }
     Document member(int ordinal) { String source=input().files().get("members").get(ordinal-1).get("id"); return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source)),Document.class,"members"); }
     List<Document> rows(String collection) { return mongo.find(new Query(),Document.class,collection); }
-    @Test void T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections() {
+    @Test @com.agilityhub.core.support.AuditCovers(com.agilityhub.core.platform.application.audit.AuditAction.MIGRATION_APPLIED)
+    void T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections() {
         var report=apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
         assertThat(report.count("members","CREATED")).isEqualTo(188); assertThat(report.count("dogs","CREATED")).isEqualTo(189);
         assertThat(incidents(report,"DOG_INFERRED")).isEqualTo(9); assertThat(incidents(report,"CHIP_MISSING")).isEqualTo(16);
@@ -74,7 +75,9 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(((List<Document>)licenseDog.get("licenses")).get(1)).containsEntry("division","1D").doesNotContainKeys("category","grade");
         assertThat(licenseDog.get("levelId")).isEqualTo("level-A");
         assertThat(dogs.stream().filter(d -> d.get("levelId")==null)).isNotEmpty();
-        assertThat(rows("audit_entries")).hasSize(1).allMatch(d -> "MigrationRun".equals(d.get("entityType")));
+        assertThat(rows("audit_entries")).hasSize(1).allMatch(d -> "MigrationRun".equals(d.get("entityType")) && "MIGRATION_APPLIED".equals(d.get("action")));
+        assertThat(rows("audit_entries").getFirst().getList("changes", Document.class))
+                .anyMatch(change -> "details.counters.membersCREATED".equals(change.get("path")) && Long.valueOf(188).equals(change.get("after")));
     }
     @Test void T_18_02_activeNumbersWinOldLeaversAreSkippedAndNumbersReserved() {
         var report=apply(); assertThat(report.hasErrors()).isFalse(); assertThat(incidents(report,"NUMBER_CONFLICT")).isEqualTo(4);

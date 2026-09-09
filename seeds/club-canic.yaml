@@ -144,13 +144,480 @@ accounts:
     roles: ["MEMBER"]
     password: "${SEED_PASSWORD}"
     onboardingPending: false
-catalogs:
-  levels: []
-  rings: []
-  instructors: []
-  plans: []
-  prices: []
-  faq: []
+# S05 §12 / D8. Therapy maintenance price is provisional; taxPercent is assumed zero.
+# Task E2-T11 / B22: seven questions, every answer uses the provisional marker.
+catalogs: {
+  "levels": [
+    {
+      "code": "CAD",
+      "name": {
+        "ca": "Cadells",
+        "es": "Cachorros"
+      },
+      "order": 0,
+      "color": "#F5D67A",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "active": true
+    },
+    {
+      "code": "A",
+      "name": {
+        "ca": "A",
+        "es": "A"
+      },
+      "order": 10,
+      "color": "#C9E4F5",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "active": true
+    },
+    {
+      "code": "B",
+      "name": {
+        "ca": "B",
+        "es": "B"
+      },
+      "order": 20,
+      "color": "#A9D3F0",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "active": true
+    },
+    {
+      "code": "C",
+      "name": {
+        "ca": "C",
+        "es": "C"
+      },
+      "order": 30,
+      "color": "#85B8E8",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "active": true
+    },
+    {
+      "code": "D",
+      "name": {
+        "ca": "D",
+        "es": "D"
+      },
+      "order": 40,
+      "color": "#8FCE8F",
+      "capacity": 5,
+      "grantsFreeTraining": true,
+      "active": true
+    },
+    {
+      "code": "E",
+      "name": {
+        "ca": "E",
+        "es": "E"
+      },
+      "order": 50,
+      "color": "#F2B58C",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "active": true
+    },
+    {
+      "code": "F",
+      "name": {
+        "ca": "F",
+        "es": "F"
+      },
+      "order": 60,
+      "color": "#E8A070",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "active": true
+    },
+    {
+      "code": "G",
+      "name": {
+        "ca": "G",
+        "es": "G"
+      },
+      "order": 70,
+      "color": "#E26A2A",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "active": true
+    },
+    {
+      "code": "TER",
+      "name": {
+        "ca": "Teràpia",
+        "es": "Terapia"
+      },
+      "order": 80,
+      "color": "#C9CDD3",
+      "capacity": 1,
+      "grantsFreeTraining": false,
+      "active": true
+    }
+  ],
+  "rings": [
+    {
+      "name": "Muntanya",
+      "shortName": "MUN",
+      "color": "#F2B58C",
+      "allowsFreeTraining": true,
+      "trainingCapacity": null,
+      "order": 0,
+      "active": true
+    },
+    {
+      "name": "Central",
+      "shortName": "CEN",
+      "color": "#8FCE8F",
+      "allowsFreeTraining": true,
+      "trainingCapacity": null,
+      "order": 10,
+      "active": true
+    },
+    {
+      "name": "Carretera",
+      "shortName": "CAR",
+      "color": "#C9CDD3",
+      "allowsFreeTraining": true,
+      "trainingCapacity": null,
+      "order": 20,
+      "active": true
+    },
+    {
+      "name": "Cadells",
+      "shortName": "CAD",
+      "color": "#F5D67A",
+      "allowsFreeTraining": false,
+      "trainingCapacity": null,
+      "order": 30,
+      "active": true
+    },
+    {
+      "name": "Petita",
+      "shortName": "PET",
+      "color": "#85B8E8",
+      "allowsFreeTraining": false,
+      "trainingCapacity": null,
+      "order": 40,
+      "active": true
+    }
+  ],
+  "instructors": [],
+  "plans": [
+    {
+      "code": "ABONAT",
+      "name": {
+        "ca": "Abonat",
+        "es": "Abonado"
+      },
+      "type": "MONTHLY",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "STANDARD"
+      },
+      "conditions": {
+        "ca": "fins a dues classes per setmana",
+        "es": "hasta dos clases por semana"
+      },
+      "showOnSignup": true,
+      "showOnWeb": true,
+      "order": 0,
+      "active": true,
+      "billingMode": "MONTHLY_FEE",
+      "texts": {
+        "description": {
+          "ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.",
+          "es": "Las clases son siempre con instructor y puedes hacer hasta dos por semana. Además puedes entrenar libremente fuera del horario de clases a partir del nivel D con licencia deportiva."
+        },
+        "offerLabel": {
+          "ca": "Ofertes si es porta més d'un gos per família",
+          "es": "Ofertas por más de un perro por familia"
+        }
+      }
+    },
+    {
+      "code": "ABONAT_FAMILIAR",
+      "name": {
+        "ca": "Abonat · 2 gossos (familiar)",
+        "es": "Abonado · 2 perros (familiar)"
+      },
+      "type": "MONTHLY",
+      "dogsIncluded": 2,
+      "entryFee": {
+        "mode": "STANDARD"
+      },
+      "conditions": {
+        "ca": "50% de la quota a partir del 2n gos · pagador únic del grup",
+        "es": "50% de la cuota a partir del segundo perro · pagador único del grupo"
+      },
+      "showOnSignup": false,
+      "showOnWeb": true,
+      "order": 10,
+      "active": true,
+      "billingMode": "MONTHLY_FEE"
+    },
+    {
+      "code": "PACK6",
+      "name": {
+        "ca": "Pack 6",
+        "es": "Pack 6"
+      },
+      "type": "PACK",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "NONE"
+      },
+      "conditions": {
+        "ca": "només un cop",
+        "es": "solo una vez"
+      },
+      "showOnSignup": true,
+      "showOnWeb": true,
+      "order": 20,
+      "active": true,
+      "pack": {
+        "sessions": 6,
+        "validityMonths": 3
+      }
+    },
+    {
+      "code": "PACK10",
+      "name": {
+        "ca": "Pack 10",
+        "es": "Pack 10"
+      },
+      "type": "PACK",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "NONE"
+      },
+      "conditions": {
+        "ca": "només un cop · després 40% dte. en matrícula",
+        "es": "solo una vez · después 40% de descuento en matrícula"
+      },
+      "showOnSignup": true,
+      "showOnWeb": true,
+      "order": 30,
+      "active": true,
+      "pack": {
+        "sessions": 10,
+        "validityMonths": 5
+      }
+    },
+    {
+      "code": "TERAPIA",
+      "name": {
+        "ca": "Teràpia",
+        "es": "Terapia"
+      },
+      "type": "MONTHLY",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "PERCENT",
+        "percent": 50
+      },
+      "conditions": {
+        "ca": "pagament inicial a compte del 50% de l'entrada i quota manteniment en tant no es faci classe en grup",
+        "es": "pago inicial a cuenta del 50% de la entrada y cuota de mantenimiento mientras no se hagan clases en grupo"
+      },
+      "showOnSignup": true,
+      "showOnWeb": true,
+      "order": 40,
+      "active": true,
+      "billingMode": "MAINTENANCE",
+      "texts": {
+        "description": {
+          "ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.",
+          "es": "También puedes hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si combinas terapia y grupo, selecciona Abonado o Pack; si inicialmente no harás clases en grupo, selecciona Terapia."
+        },
+        "priceLabel": {
+          "ca": "condicions i cost segons cada cas",
+          "es": "condiciones y coste según cada caso"
+        }
+      }
+    }
+  ],
+  "prices": [
+    {
+      "planCode": "ABONAT",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 6000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    {
+      "planCode": "ABONAT_FAMILIAR",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 9000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    {
+      "planCode": "PACK6",
+      "concept": "PACK",
+      "amount": {
+        "amountMinor": 13500,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    {
+      "planCode": "PACK10",
+      "concept": "PACK",
+      "amount": {
+        "amountMinor": 18000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    {
+      "planCode": "TERAPIA",
+      "concept": "MAINTENANCE_FEE",
+      "amount": {
+        "amountMinor": 1000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    }
+  ],
+  "faq": [
+    {
+      "code": "FAQ_1",
+      "category": {
+        "ca": "Convivència al club",
+        "es": "Convivencia en el club"
+      },
+      "question": {
+        "ca": "Puc venir amb més gent al club?",
+        "es": "¿Puedo venir con más gente al club?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 0,
+      "active": true
+    },
+    {
+      "code": "FAQ_2",
+      "category": {
+        "ca": "Convivència al club",
+        "es": "Convivencia en el club"
+      },
+      "question": {
+        "ca": "El gos pot anar deslligat pel club?",
+        "es": "¿Puede ir el perro suelto por el club?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 10,
+      "active": true
+    },
+    {
+      "code": "FAQ_3",
+      "category": {
+        "ca": "Convivència al club",
+        "es": "Convivencia en el club"
+      },
+      "question": {
+        "ca": "Què faig si la meva gossa té el zel?",
+        "es": "¿Qué hago si mi perra está en celo?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 20,
+      "active": true
+    },
+    {
+      "code": "FAQ_4",
+      "category": {
+        "ca": "Reserves de classe",
+        "es": "Reservas de clase"
+      },
+      "question": {
+        "ca": "Quantes classes puc reservar i en quin moment?",
+        "es": "¿Cuántas clases puedo reservar y cuándo?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 30,
+      "active": true
+    },
+    {
+      "code": "FAQ_5",
+      "category": {
+        "ca": "Reserves de classe",
+        "es": "Reservas de clase"
+      },
+      "question": {
+        "ca": "Què he de fer si no puc venir a una classe?",
+        "es": "¿Qué debo hacer si no puedo venir a una clase?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 40,
+      "active": true
+    },
+    {
+      "code": "FAQ_6",
+      "category": {
+        "ca": "Reserves de classe",
+        "es": "Reservas de clase"
+      },
+      "question": {
+        "ca": "Què passa si el dia de classe plou?",
+        "es": "¿Qué pasa si llueve el día de clase?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 50,
+      "active": true
+    },
+    {
+      "code": "FAQ_7",
+      "category": {
+        "ca": "Competicions",
+        "es": "Competiciones"
+      },
+      "question": {
+        "ca": "Què cal per poder participar a competicions d'agility?",
+        "es": "¿Qué necesito para participar en competiciones de agility?"
+      },
+      "answer": {
+        "ca": "[Text pendent — el club l'omplirà des de Paràmetres]",
+        "es": "[Text pendent — el club l'omplirà des de Paràmetres]"
+      },
+      "order": 60,
+      "active": true
+    }
+  ]
+}
 messageTemplates: []
 legal:
   privacyPolicyUrl: "https://agilitycanic.cat/ca/politica-de-privacidad/"

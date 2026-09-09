@@ -1,0 +1,47 @@
+[
+  {
+    "command": "bin/core club:apply seeds/club-canic.yaml",
+    "exit_code": 0,
+    "log": "07-club-apply-first.log"
+  },
+  {
+    "command": "bin/core club:apply seeds/club-canic.yaml",
+    "exit_code": 0,
+    "log": "08-club-apply-second.log"
+  },
+  {
+    "command": "bin/core seed:demo --club=canic",
+    "exit_code": 0,
+    "log": "09-demo-first.log"
+  },
+  {
+    "command": "bin/core seed:demo --club=canic --seed=42",
+    "exit_code": 0,
+    "log": "10-demo-second.log"
+  },
+  {
+    "command": "curl --fail-with-body -sS --config - 'http://127.0.0.1:56069/api/v1/members?size=1'",
+    "exit_code": 22,
+    "log": "11-members-size-one.log"
+  },
+  {
+    "command": "curl --fail-with-body -sS --config - 'http://127.0.0.1:56069/api/v1/members?size=20&filter=status:eq:ACTIVE&fields=id'",
+    "exit_code": 0,
+    "log": "12-members-active.log"
+  },
+  {
+    "command": "curl --fail-with-body -sS --config - 'http://127.0.0.1:56069/api/v1/members?size=20&fields=id'",
+    "exit_code": 0,
+    "log": "13-members-all.log"
+  },
+  {
+    "command": "curl --fail-with-body -sS --config - http://127.0.0.1:56069/api/v1/dogs/06e032b2-0554-324b-b474-b55ae0311588/documents",
+    "exit_code": 0,
+    "log": "17-dog-documents.log"
+  },
+  {
+    "command": "curl --fail-with-body -sS --config - 'http://127.0.0.1:56069/api/v1/attachments/files/de350d83-1fc4-4203-aa54-5c7e5c272837?expires=1788988133&signature=[truncated]' --output /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e2-t11-smoke-16j6aaqt/download.pdf",
+    "exit_code": 0,
+    "log": "18-document-download.log"
+  }
+]

@@ -32,7 +32,12 @@ public class ClubConfigService implements TimeZoneProvider {
     }
     public java.util.Optional<String> findClubIdBySlug(String slug) { return clubs.findBySlug(slug).map(club -> club.id()); }
     public ClubConfig get(String clubId) {
-        try (var scope = TenantContext.open(clubId)) { return cache.get(clubId, this::load); }
+        try (var scope = TenantContext.open(clubId)) {
+            // Declarative applies validate dependent catalogs against the same transaction's club and parameters.
+            // Uncommitted configuration must never enter the shared cache.
+            if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) { return load(clubId); }
+            return cache.get(clubId, this::load);
+        }
     }
     public void invalidate(String clubId) { cache.invalidate(clubId); }
     public void invalidateAfterCommit(String clubId) {

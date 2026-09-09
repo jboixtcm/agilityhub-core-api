@@ -72,6 +72,7 @@ public final class AuditContracts {
         CLUB_MODULES_CHANGED,
         CLUB_STATUS_CHANGED,
         CATALOG_CHANGED,
+        MIGRATION_APPLIED,
         ANNOUNCEMENT_SENT,
         DATA_EXPORTED,
         MEMBER_DATA_EXPORTED,

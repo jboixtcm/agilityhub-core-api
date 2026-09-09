@@ -42,6 +42,7 @@ public class ClubDefinitionWriter {
     private final ClubAdminProvisioner admins;
     private final ClubAccountProvisioner accounts;
     private final com.agilityhub.core.platform.application.ClubPageProvisioner pages;
+    private final com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs;
     private final EventPublisher events;
     private final ObjectMapper mapper;
     private final ClubDefinitionMapper definitions;
@@ -49,9 +50,9 @@ public class ClubDefinitionWriter {
     private final boolean trustedDomains;
     public ClubDefinitionWriter(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog,
                                 ClubAdminProvisioner admins, ClubAccountProvisioner accounts, EventPublisher events, ObjectMapper mapper,
-                                ClubDefinitionMapper definitions, Clock clock, Environment environment, com.agilityhub.core.platform.application.ClubPageProvisioner pages) {
+                                ClubDefinitionMapper definitions, Clock clock, Environment environment, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs) {
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.admins = admins;
-        this.accounts = accounts; this.pages = pages;
+        this.accounts = accounts; this.pages = pages; this.catalogs = catalogs;
         this.events = events; this.mapper = mapper; this.definitions = definitions; this.clock = clock;
         trustedDomains = environment.acceptsProfiles(Profiles.of("local", "test")) && !environment.acceptsProfiles(Profiles.of("staging", "prod"));
     }
@@ -62,7 +63,7 @@ public class ClubDefinitionWriter {
         }
     }
     private record Plan(Club club, List<Parameter> parameters, List<ClubAdminProvisioner.Admin> admins,
-                        List<ClubAccountProvisioner.SeedAccount> accounts, List<com.agilityhub.core.platform.application.ClubPageProvisioner.Page> pages, Result result) { }
+                        List<ClubAccountProvisioner.SeedAccount> accounts, List<com.agilityhub.core.platform.application.ClubPageProvisioner.Page> pages, List<com.agilityhub.core.platform.application.ClubCatalogProvisioner.Change> catalogs, Result result) { }
 
     public Result preview(ObjectNode definition) { return preview(definition, false, false); }
     public Result preview(ObjectNode definition, boolean allowSeedPasswords, boolean accountsOnly) {
@@ -86,6 +87,7 @@ public class ClubDefinitionWriter {
         }
         plan.admins().forEach(admins::provision);
         plan.accounts().forEach(account -> accounts.provision(account, allowSeedPasswords));
+        catalogs.provision(plan.catalogs());
         plan.pages().forEach(page -> pages.provision(page, plan.club().defaultLocale(), plan.club().locales()));
         events.publish(new ClubConfigChanged(plan.club().id(), clock.instant(), Map.of("diff", plan.result().summary()),
                 null, null, DomainEvent.Origin.SYSTEM));
@@ -99,7 +101,7 @@ public class ClubDefinitionWriter {
             if (old == null) { throw new ApiException(ErrorCode.CLUB_NOT_FOUND); }
             var lines = new ArrayList<String>(); var summary = new LinkedHashMap<String, Object>();
             var changedAccounts = planAccounts(definition, allowSeedPasswords, lines, summary);
-            return new Plan(old, List.of(), List.of(), changedAccounts, List.of(), new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+            return new Plan(old, List.of(), List.of(), changedAccounts, List.of(), List.of(), new Result(id, List.copyOf(lines), Map.copyOf(summary)));
         }
         Club next = definitions.merge(definition, old, id, clock.instant(), trustedDomains);
         for (var domain : next.domains()) {
@@ -137,7 +139,10 @@ public class ClubDefinitionWriter {
         lines.add((newAdmins.isEmpty() ? old == null ? "+" : "=" : "+") + " admins: " + newAdmins.size() + " to provision");
         if (!newAdmins.isEmpty()) { summary.put("admins", newAdmins.size()); }
         var changedAccounts = planAccounts(definition, allowSeedPasswords, lines, summary);
-        lines.add((old == null ? "+" : "=") + " catalogs: schema accepted; application deferred to E2");
+        var changedCatalogs = catalogs.plan(definition.path("catalogs"));
+        for (var change : changedCatalogs) { lines.add((change.id() == null ? "+ " : "~ ") + "catalogs." + change.section() + "." + change.key()); }
+        lines.add((changedCatalogs.isEmpty() ? "=" : "+") + " catalogs: " + changedCatalogs.size() + " catalog changes");
+        if (!changedCatalogs.isEmpty()) { summary.put("catalogs", changedCatalogs.size()); }
         lines.add((old == null ? "+" : "=") + " messageTemplates: schema accepted; application deferred to E7");
         var changedPages = new ArrayList<com.agilityhub.core.platform.application.ClubPageProvisioner.Page>();
         var pageKeys = new java.util.HashSet<String>();
@@ -149,7 +154,7 @@ public class ClubDefinitionWriter {
         }
         lines.add((changedPages.isEmpty() ? "=" : "+") + " pages: " + changedPages.size() + " page changes");
         if (!changedPages.isEmpty()) { summary.put("pages", changedPages.size()); }
-        return new Plan(next, changed, newAdmins, changedAccounts, changedPages, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
+        return new Plan(next, changed, newAdmins, changedAccounts, changedPages, changedCatalogs, new Result(id, List.copyOf(lines), Map.copyOf(summary)));
     }
     private List<ClubAccountProvisioner.SeedAccount> planAccounts(ObjectNode definition, boolean allowSeedPasswords,
                                                                  List<String> lines, Map<String, Object> summary) {

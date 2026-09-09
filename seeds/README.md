@@ -51,11 +51,53 @@ Staging/prod domains are PENDING until the domain-verification vertical is
 implemented. A template cannot declare domains. The template seed is not an
 operational club.
 
-Catalog entries use stable `code` identifiers. Their vertical-specific fields
-remain extensible in the schema. Catalogs and message templates are validated but
-are not persisted in E0; command output explicitly reports their deferred status.
-They will be applied in E2 and E7. Export consequently returns empty sections for
-those parts. Keep their source YAML until those stages implement persistence.
+Catalogs are applied transactionally with the club definition. The schema closes each
+catalog shape. Levels and plans match by `code`, rings by `shortName`, FAQ by a stable
+seed `code` (stored separately from its editable question), and prices by
+`planCode` + `concept` + `validFrom`. Omitted entries and fields are preserved; exports
+include current catalogs and all price history. Editing an existing price obeys the
+normal immutable-history rules. Only the first price of an unused plan can bootstrap
+historical validity (the seed uses 2026-01-01); subsequent prices use ordinary date
+and overlap validation. Team rows require census members and belong to `seed:demo`;
+`catalogs.instructors` must be empty. Message templates remain deferred to E7.
+
+The Cànic has nine levels (including TER), five rings, five plans/current prices,
+and seven active FAQ entries. All FAQ answers retain the provisional marker. D8
+supplies the amounts; the EUR 10 therapy maintenance price and zero tax are the
+provisional S05 §12 assumptions. Only enabled ca/es locales are stored in catalogs;
+pages keep their existing ca/es/en placeholder translations. The consumer variant
+has identical content with local routing hosts.
+
+```sh
+bin/core seed:demo --club=canic --seed=42
+```
+
+Demo generation requires local/test, an applied club definition and empty census
+collections. `seeds/demo-canic.yaml` supplies all club-specific counts, names, catalog
+codes and a fixed business reference date. The default seed is 42. It creates 184
+ACTIVE, 3 PENDING, 4 INACTIVE and 3 LEFT members (194 total), 242 ACTIVE dogs,
+12 two-person families, 3 instructors and 2 admins. Six dogs have downloadable
+fictional PDF documents; the remaining vaccination documents are pending. The first
+15 members link to the existing seed login accounts, preserving passwords and roles;
+new `@example.test` accounts are passwordless. IBANs use fictional bank/branch 0000
+and valid domestic/mod-97 check digits. No real data is read and no welcome mail is sent.
+Member numbers are reserved for later signups.
+
+Generation is deterministic for the same seed/specification/tenant; census IDs stay
+stable. Infrastructure timestamps and account/attachment IDs are allocated when
+persisting. A completed run makes subsequent runs no-ops and preserves manual demo
+edits. A changed seed/specification or preexisting census is rejected with
+`CLUB_NOT_EMPTY`; use a fresh disposable database for another dataset. Do not remove
+the completion record to reset a live demo. Local document files use the configured
+attachment directory; as with normal uploads, a failed transaction can leave an
+unclaimed local file. Use a disposable attachment directory for test rehearsals.
+
+To reproduce D1's active-member count, use
+`GET /api/v1/members?size=20&filter=status:eq:ACTIVE` and inspect `totalItems` (184).
+The universal list contract rejects size=1; an unfiltered list includes all 194
+members. D1's occupancy and training counts (142/163, 56/38) need the later
+scheduling/training fixtures and are not fabricated in this census seed.
+
 Export includes account metadata and membership roles, excluding passwords and hashes.
 
 The Cànic parameter catalog values are all product defaults, so its seed has an

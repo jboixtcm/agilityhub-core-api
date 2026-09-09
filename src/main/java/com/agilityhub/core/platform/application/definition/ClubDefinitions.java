@@ -25,13 +25,14 @@ public class ClubDefinitions {
     private final ClubAccountProvisioner accounts;
     private final ClubConfigService configs;
     private final HostTenantResolver hosts;
+    private final com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs;
     private final ObjectMapper mapper;
     private final com.agilityhub.core.platform.application.ClubPageProvisioner pages;
     public ClubDefinitions(ClubDefinitionCodec codec, ClubDefinitionWriter writer, ClubDefinitionMapper definitions,
                            ClubRepository clubs, ParameterRepository parameters, ClubAccountProvisioner accounts,
-                           ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper, com.agilityhub.core.platform.application.ClubPageProvisioner pages) {
+                           ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs) {
         this.codec = codec; this.writer = writer; this.definitions = definitions; this.clubs = clubs;
-        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper; this.pages = pages;
+        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper; this.pages = pages; this.catalogs = catalogs;
     }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun) { return apply(codec.read(file), dryRun); }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun, boolean allowSeedPasswords) {
@@ -60,7 +61,7 @@ public class ClubDefinitions {
                 }
             }
             throw new ApiException(ErrorCode.SLUG_TAKEN);
-        }
+        } finally { if (!dryRun) { configs.invalidate(id); } }
     }
     public ObjectNode export(String slug) {
         var club = clubs.findBySlug(slug).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
@@ -76,8 +77,7 @@ public class ClubDefinitions {
                 entry.remove("password");
                 exportedAccounts.add(entry);
             }
-            var catalogs = definition.putObject("catalogs");
-            for (String part : java.util.List.of("levels", "rings", "instructors", "plans", "prices", "faq")) { catalogs.putArray(part); }
+            definition.set("catalogs", mapper.valueToTree(catalogs.export()));
             definition.putArray("messageTemplates");
             definition.set("pages", mapper.valueToTree(pages.list()));
             return definition;

@@ -1,8 +1,6 @@
 ${PROVISIONAL_TEXT}
 
-# Política de privacitat del club — plantilla per a clubs que usen AgilityHub Clubs
-
-**Versió:** 1.0 (esborrany del 05-09-2026 — pendent de revisió legal) · Els marcadors […] els omple cada club des de la consola/pàgines del club (S17/S05). El Cànic pot mantenir la seva política actual (agilitycanic.cat) o adoptar aquesta.
+# Política de privacitat
 
 ## 1. Responsable del tractament
 

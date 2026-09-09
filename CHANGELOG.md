@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E2-T11: Apply and export typed club catalogs with idempotent references, audited
+  updates and protected price history. Seed the Cànic levels, rings, plans, prices,
+  provisional FAQ and cleaned page text. Add the deterministic local demo census
+  (184 active members, 242 dogs), family/team/document fixtures and repeat-run guards.
+  Adopt the approved MIGRATION_APPLIED audit action with migration counters and
+  update its public contract.
+
 - E2-T10: Add the versioned Playoff census mapping, documented input schema,
   deterministic anonymizer and fictional incident fixtures. Import members,
   dogs, explicit families and identity memberships through an atomic tenant-scoped

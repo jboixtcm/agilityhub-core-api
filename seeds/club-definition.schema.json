@@ -308,37 +308,36 @@
         "levels": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/catalogEntry"
+            "$ref": "#/$defs/level"
           }
         },
         "rings": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/catalogEntry"
+            "$ref": "#/$defs/ring"
           }
         },
         "instructors": {
           "type": "array",
-          "items": {
-            "$ref": "#/$defs/catalogEntry"
-          }
+          "maxItems": 0,
+          "description": "Team members are provisioned by seed:demo after the census exists."
         },
         "plans": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/catalogEntry"
+            "$ref": "#/$defs/plan"
           }
         },
         "prices": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/catalogEntry"
+            "$ref": "#/$defs/price"
           }
         },
         "faq": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/catalogEntry"
+            "$ref": "#/$defs/faq"
           }
         }
       },
@@ -493,41 +492,6 @@
       },
       "additionalProperties": false
     },
-    "catalogEntry": {
-      "type": "object",
-      "required": [
-        "code"
-      ],
-      "properties": {
-        "code": {
-          "type": "string",
-          "minLength": 1
-        },
-        "name": {
-          "type": "object",
-          "minProperties": 1,
-          "properties": {
-            "ca": {
-              "type": "string",
-              "minLength": 1
-            },
-            "es": {
-              "type": "string",
-              "minLength": 1
-            },
-            "en": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "additionalProperties": false
-        },
-        "active": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": true
-    },
     "admin": {
       "type": "object",
       "properties": {
@@ -657,6 +621,347 @@
             "bodyFile"
           ]
         }
+      ],
+      "additionalProperties": false
+    },
+    "level": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]{1,16}$"
+        },
+        "name": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "capacity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "grantsFreeTraining": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "color",
+        "capacity",
+        "grantsFreeTraining",
+        "order",
+        "active"
+      ],
+      "additionalProperties": false
+    },
+    "ring": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "shortName": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{1,6}$"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "allowsFreeTraining": {
+          "type": "boolean"
+        },
+        "trainingCapacity": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "name",
+        "shortName",
+        "color",
+        "allowsFreeTraining",
+        "order",
+        "active"
+      ],
+      "additionalProperties": false
+    },
+    "money": {
+      "type": "object",
+      "properties": {
+        "amountMinor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      },
+      "required": [
+        "amountMinor",
+        "currency"
+      ],
+      "additionalProperties": false
+    },
+    "plan": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]{1,16}$"
+        },
+        "name": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "MONTHLY",
+            "PACK",
+            "SINGLE_CLASS"
+          ]
+        },
+        "billingMode": {
+          "type": "string",
+          "enum": [
+            "MONTHLY_FEE",
+            "MAINTENANCE"
+          ]
+        },
+        "dogsIncluded": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "entryFee": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "STANDARD",
+                "AMOUNT",
+                "PERCENT",
+                "NONE"
+              ]
+            },
+            "amount": {
+              "$ref": "#/$defs/money"
+            },
+            "percent": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        "pack": {
+          "type": "object",
+          "properties": {
+            "sessions": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "validityMonths": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120
+            }
+          },
+          "required": [
+            "sessions",
+            "validityMonths"
+          ],
+          "additionalProperties": false
+        },
+        "singleClass": {
+          "type": "object",
+          "properties": {
+            "chargeMode": {
+              "type": "string",
+              "enum": [
+                "CHARGE_ON_ATTENDANCE",
+                "PAY_TO_BOOK"
+              ]
+            },
+            "cancelPolicy": {
+              "type": "string",
+              "enum": [
+                "REFUND",
+                "CREDIT",
+                "NONE"
+              ]
+            }
+          },
+          "required": [
+            "chargeMode",
+            "cancelPolicy"
+          ],
+          "additionalProperties": false
+        },
+        "conditions": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "texts": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "$ref": "#/$defs/localizedText"
+            },
+            "offerLabel": {
+              "$ref": "#/$defs/localizedText"
+            },
+            "priceLabel": {
+              "$ref": "#/$defs/localizedText"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "showOnSignup": {
+          "type": "boolean"
+        },
+        "showOnWeb": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "type",
+        "dogsIncluded",
+        "entryFee",
+        "order",
+        "active",
+        "showOnSignup",
+        "showOnWeb"
+      ],
+      "additionalProperties": false
+    },
+    "price": {
+      "type": "object",
+      "properties": {
+        "planCode": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]{1,16}$"
+        },
+        "concept": {
+          "type": "string",
+          "enum": [
+            "MONTHLY_FEE",
+            "MAINTENANCE_FEE",
+            "PACK",
+            "SINGLE_CLASS"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/money"
+        },
+        "taxPercent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "multipleOf": 0.01
+        },
+        "validFrom": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "validTo": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "planCode",
+        "concept",
+        "amount",
+        "taxPercent",
+        "validFrom"
+      ],
+      "additionalProperties": false
+    },
+    "faq": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "category": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "question": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "answer": {
+          "$ref": "#/$defs/localizedText"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "question",
+        "answer",
+        "order",
+        "active"
       ],
       "additionalProperties": false
     }

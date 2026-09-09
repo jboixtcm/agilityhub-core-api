@@ -91,6 +91,17 @@ public class PriceService {
             save(null, next, "CREATED"); return new Created(next.id(), open == null ? null : open.id());
         });
     }
+    /** Initial catalog history may predate today; existing histories always use the ordinary price rules. */
+    public Created seed(Map<String, Object> request) {
+        billing();
+        return transactions.run(() -> {
+            planRepository.lock(); var next = build(null, request);
+            if (!prices.forPlan(next.planId()).isEmpty() || usage.plan(next.planId()).values().stream().anyMatch(count -> count > 0)) {
+                return create(request);
+            }
+            save(null, next, "CREATED"); return new Created(next.id(), null);
+        });
+    }
     public void update(String id, Map<String, Object> request) {
         billing();
         transactions.run(() -> {
