@@ -128,7 +128,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | Clau | Tipus | Cànic | Notes |
 |---|---|---|---|
 | `history.monthsVisible` | int | 2 | pantalla 25 |
-| `dashboard.pendingSignupAgeWarnDays` | int | 7 | D1: antiguitat destacada |
+| `dashboard.pendingSignupAgeWarnDays` | int | 2 | D1: antiguitat destacada (Jordi 06-09, A17b: mana el mockup «més de 2 dies»; abans 7) |
 
 ## Recorreguts (`courses.*`) — bloc Recorreguts
 | Clau | Tipus | Cànic | Notes |
@@ -162,7 +162,7 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `signup.text.therapyIntro` | localizedText | `{"ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.", "es": "También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.", "en": "Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy."}` | Alta i consentiments | S04 |
 | `signup.text.familyGroupIntro` | localizedText | `{"ca": "Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de {twoDogsMonthlyFee}. L'entrada sí que és per cada gos.", "es": "Si en casa ya hay alguien abonado, podéis formar un grupo familiar con un único responsable del pago: la cuota mensual se reduce a partir del segundo perro. Así, para dos perros la cuota mensual sería de {twoDogsMonthlyFee}. La matrícula sí es por cada perro.", "en": "If someone in your household is already a member, you can form a family group with one person responsible for payment: the monthly fee is reduced from the second dog. For two dogs, the monthly fee would be {twoDogsMonthlyFee}. The joining fee still applies to each dog."}` | Alta i consentiments | S04 |
 | `signup.rateLimit` | json | `{"identityChecksPerHour": 10, "familyGroupLookupsPerHour": 20, "uploadUrlsPerHour": 30, "signupPerHour": 5, "signupPerDay": 20, "checkoutSessionsAnonymousPerHour": 10, "townsPerHour": 60}` | sistema | S04 |
-| `activities.cancelDeadline` | enum `REGISTRATION_CLOSE · EVENT_START` | REGISTRATION_CLOSE | Classes | S07 |
+| `activities.cancelDeadline` | enum `REGISTRATION_CLOSE · EVENT_START` | **EVENT_START** (Josep 08-09: es pot anul·lar fins a l'hora d'inici) | Classes | S07 |
 | `activities.publicUrlTemplate` | string | `{websiteUrl}/activitat/{slug}` | Club i pistes | S07 |
 | `bookings.paymentPendingMinutes` | int | 30 | Classes | S08 |
 | `ringBlocks.maxHorizonDays` | int | 60 | Entrenaments | S09 |
@@ -171,16 +171,18 @@ Totes entren a `ParameterCatalog` amb el mateix criteri (default de producte = v
 | `messaging.sms.transliterateToGsm7` | bool | true | Comunicacions | S11 |
 | `messaging.push.ttlMinutes` | int | 1440 | sistema | S11 |
 | `billing.invoiceSeriesPattern` · `billing.invoiceResetYearly` | string · bool | `{YYYY}` · true | Quotes i remesa | S12 |
-| `billing.cashInvoicing` | enum `MONTHLY · SEMESTER` | MONTHLY (confirmat Jordi 05-09) | Quotes i remesa | S12 |
+| `billing.cashInvoicing` | enum `MONTHLY · SEMESTER` | **SEMESTER** (Josep 08-09: en efectiu no hi ha quota mensual; primera fracció en mesos fins a final de semestre natural i després semestres complets — supera el «mensual» de Jordi 05-09) | Quotes i remesa | S12 |
 | `billing.taxIncluded` | bool | true | Quotes i remesa | S12 |
-| `billing.sepa.useFrst` · `billing.sepa.schema` · `billing.sepa.collectionDayOfMonth` | bool · enum · int (1–28 o `0` = últim dia del mes) | false · `pain.008.001.02` · **0** (últim dia del mes, Jordi 05-09) | Quotes i remesa | S12 |
+| `billing.sepa.useFrst` · `billing.sepa.schema` · `billing.sepa.collectionDayOfMonth` | bool · enum · int (dia **del mes que es factura**: 1–28, o `0` = últim dia) | false (Josep 08-09: el banc accepta `RCUR` per a tot) · `pain.008.001.02` · **1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior — supera l'«últim dia» de Jordi 05-09) | Quotes i remesa | S12 |
+| `billing.upfrontCutoffDay` | int | 25 | dia límit per demanar una alta o un gos nou «per al mes següent» i pagar només l'entrada (Josep 08-09); coincideix amb `inactivity.requestDeadlineDay` | Quotes i remesa | S04, S12 |
+| `billing.packToMemberEntryDiscountPercent` · `billing.packToMemberMinSessions` | int · int | 40 · 10 | descompte d'entrada en passar de pack a abonat, si el pack tenia ≥ 10 sessions (Josep 08-09) | Quotes i remesa | S05, S04 |
 | `billing.stripeMaxAttempts` | int | 3 | Quotes i remesa | S12 |
 | `billing.remittanceReminderDay` | int (0 = mai) | 22 | Quotes i remesa | S12/S15 |
 | `inactivity.maxStartMonthsAhead` | int | 12 | Quotes i remesa | S13 |
 | `leave.packExpiryGraceDays` | int | 30 | Quotes i remesa | S13 |
 | `leave.reasons` (canvi de tipus) | json `[{key, label: localizedText, audience}]` | `[{"key": "LEARNED_ENOUGH", "label": {"ca": "He après el que volia", "es": "He aprendido lo que quería", "en": "I have learned what I wanted"}, "audience": "MEMBER"}, {"key": "NO_TIME", "label": {"ca": "No trobo temps", "es": "No encuentro tiempo", "en": "I cannot find the time"}, "audience": "MEMBER"}, {"key": "NOT_EXPECTED", "label": {"ca": "No és el que esperava", "es": "No es lo que esperaba", "en": "It is not what I expected"}, "audience": "MEMBER"}, {"key": "EXTERNAL", "label": {"ca": "Condicionants aliens", "es": "Circunstancias ajenas", "en": "External circumstances"}, "audience": "MEMBER"}, {"key": "OTHER", "label": {"ca": "Altres", "es": "Otros", "en": "Other"}, "audience": "MEMBER"}, {"key": "CLUB_DECISION", "label": {"ca": "Decisió del club", "es": "Decisión del club", "en": "Club decision"}, "audience": "ADMIN"}, {"key": "PACK_EXPIRED", "label": {"ca": "Pack caducat", "es": "Pack caducado", "en": "Expired pack"}, "audience": "SYSTEM"}]` | Quotes i remesa | S13 |
 | `audit.retentionYears` | int | 6 | Privacitat i auditoria | S14 |
-| `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 5 · 365 | Privacitat i auditoria | S14 |
+| `rgpd.erasureMinDaysAfterLeave` · `rgpd.retentionYearsAfterLeave` · `rgpd.rejectedSignupRetentionDays` | int | 30 · 6 · 365 | Privacitat i auditoria (retenció 6 anys: Jordi 06-09, A16, Codi de Comerç art. 30; abans 5) | S14 |
 | `security.eventRetentionDays` | int | 90 | sistema | S14 |
 | `jobs.<nom>.enabled` (weekOpening · riskReview · noShowNotices · reminders · expirations · waitlistFifo · paymentTimeouts · classFinishing · cleanup · billingReminder) | bool | true | Processos automàtics | S15 |
 | `jobs.dailyTime` | time | 06:00 | Processos automàtics | S15 |

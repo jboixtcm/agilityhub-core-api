@@ -991,7 +991,7 @@ parameters:
     documentDefault: "2"
   - key: "dashboard.pendingSignupAgeWarnDays"
     type: "int"
-    default: 7
+    default: 2
     block: "system"
     labelKey: "admin-settings:param.dashboard.pendingSignupAgeWarnDays.label"
     helpKey: "admin-settings:param.dashboard.pendingSignupAgeWarnDays.help"
@@ -1001,7 +1001,7 @@ parameters:
     editableBy: "PLATFORM"
     restartRequired: false
     documentType: "int"
-    documentDefault: "7"
+    documentDefault: "2"
   - key: "courses.setupAutoExpireDays"
     type: "int"
     default: 7
@@ -1199,7 +1199,7 @@ parameters:
     documentDefault: "`{\"identityChecksPerHour\": 10, \"familyGroupLookupsPerHour\": 20, \"uploadUrlsPerHour\": 30, \"signupPerHour\": 5, \"signupPerDay\": 20, \"checkoutSessionsAnonymousPerHour\": 10, \"townsPerHour\": 60}`"
   - key: "activities.cancelDeadline"
     type: "enum"
-    default: "REGISTRATION_CLOSE"
+    default: "EVENT_START"
     block: "classes"
     labelKey: "admin-settings:param.activities.cancelDeadline.label"
     helpKey: "admin-settings:param.activities.cancelDeadline.help"
@@ -1209,7 +1209,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "enum `REGISTRATION_CLOSE · EVENT_START`"
-    documentDefault: "REGISTRATION_CLOSE"
+    documentDefault: "**EVENT_START** (Josep 08-09: es pot anul·lar fins a l'hora d'inici)"
   - key: "activities.publicUrlTemplate"
     type: "string"
     default: "{websiteUrl}/activitat/{slug}"
@@ -1329,7 +1329,7 @@ parameters:
     documentDefault: "true"
   - key: "billing.cashInvoicing"
     type: "enum"
-    default: "MONTHLY"
+    default: "SEMESTER"
     block: "billing"
     labelKey: "admin-settings:param.billing.cashInvoicing.label"
     helpKey: "admin-settings:param.billing.cashInvoicing.help"
@@ -1339,7 +1339,50 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "enum `MONTHLY · SEMESTER`"
-    documentDefault: "MONTHLY (confirmat Jordi 05-09)"
+    documentDefault: "**SEMESTER** (Josep 08-09: en efectiu no hi ha quota mensual; primera fracció en mesos fins a final de semestre natural i després semestres complets — supera el «mensual» de Jordi 05-09)"
+
+  - key: "billing.upfrontCutoffDay"
+    type: "int"
+    default: 25
+    block: "billing"
+    labelKey: "admin-settings:param.billing.upfrontCutoffDay.label"
+    helpKey: "admin-settings:param.billing.upfrontCutoffDay.help"
+    constraints: {"min": 1, "max": 28}
+    modules: ["BILLING"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "25"
+
+  - key: "billing.packToMemberEntryDiscountPercent"
+    type: "int"
+    default: 40
+    block: "billing"
+    labelKey: "admin-settings:param.billing.packToMemberEntryDiscountPercent.label"
+    helpKey: "admin-settings:param.billing.packToMemberEntryDiscountPercent.help"
+    constraints: {"min": 0, "max": 100}
+    modules: ["BILLING", "PACKS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "40"
+
+  - key: "billing.packToMemberMinSessions"
+    type: "int"
+    default: 10
+    block: "billing"
+    labelKey: "admin-settings:param.billing.packToMemberMinSessions.label"
+    helpKey: "admin-settings:param.billing.packToMemberMinSessions.help"
+    constraints: {"min": 1}
+    modules: ["BILLING", "PACKS"]
+    scope: "club"
+    editableBy: "CLUB"
+    restartRequired: false
+    documentType: "int"
+    documentDefault: "10"
+
   - key: "billing.taxIncluded"
     type: "bool"
     default: true
@@ -1365,7 +1408,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "bool"
-    documentDefault: "false"
+    documentDefault: "false (Josep 08-09: el banc accepta `RCUR` per a tot)"
   - key: "billing.sepa.schema"
     type: "enum"
     default: "pain.008.001.02"
@@ -1381,7 +1424,7 @@ parameters:
     documentDefault: "`pain.008.001.02`"
   - key: "billing.sepa.collectionDayOfMonth"
     type: "int"
-    default: 0
+    default: 1
     block: "billing"
     labelKey: "admin-settings:param.billing.sepa.collectionDayOfMonth.label"
     helpKey: "admin-settings:param.billing.sepa.collectionDayOfMonth.help"
@@ -1390,8 +1433,8 @@ parameters:
     scope: "club"
     editableBy: "CLUB"
     restartRequired: false
-    documentType: "int (1–28 o `0` = últim dia del mes)"
-    documentDefault: "**0** (últim dia del mes, Jordi 05-09)"
+    documentType: "int (dia **del mes que es factura**: 1–28, o `0` = últim dia)"
+    documentDefault: "**1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior — supera l'«últim dia» de Jordi 05-09)"
   - key: "billing.stripeMaxAttempts"
     type: "int"
     default: 3
@@ -1472,7 +1515,7 @@ parameters:
     documentDefault: "30"
   - key: "rgpd.retentionYearsAfterLeave"
     type: "int"
-    default: 5
+    default: 6
     block: "privacy"
     labelKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.label"
     helpKey: "admin-settings:param.rgpd.retentionYearsAfterLeave.help"
@@ -1482,7 +1525,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "int"
-    documentDefault: "5"
+    documentDefault: "6"
   - key: "rgpd.rejectedSignupRetentionDays"
     type: "int"
     default: 365

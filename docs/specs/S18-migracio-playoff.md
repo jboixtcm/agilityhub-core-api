@@ -31,22 +31,44 @@ Cap pantalla obligatòria. CLI al core API (`migration:*`) executada des del run
 
 ### `MappingConfig` (YAML versionat al repo, sense dades personals)
 ```yaml
-version: 3
-statuses: { Alta: ACTIVE, Baja: LEFT, Simpatizante: SKIP, "Personal laboral": ACTIVE_STAFF, Bloqueado: ACTIVE_BLOCKED }
-plans:   # categoria «Tipologia» de Playoff → Plan.code (S05) [+ efectes]
-  "Abonat": { plan: ABONAT }
-  "Abonat 2 gossos": { plan: ABONAT_2, familyGroup: true }
-  "Abonat 3 gossos": { plan: ABONAT_3, familyGroup: true }
-  "Competició 1 gos": { plan: COMPETICIO_1 }        # a crear al seed si el Cànic la manté (§13)
-  "Familiar Abonat": { plan: FAMILIAR }
-  "Manteniment": { plan: ABONAT, billingMode: MAINTENANCE }
-  "Instructors": { plan: INSTRUCTOR_FREE, role: INSTRUCTOR }
-  "Abonat Plus": { plan: ABONAT_PLUS }
-  "Quota COVID *": { plan: null, warn: LEGACY_PLAN }
-levels:  # categoria «Nivell» → Level.code
-  Cadells: CADELLS, A: A, B: B, C: C, D: D, E: E, F: F, G: G, Llicència: { flag: LICENSE_HOLDER }, Teràpies: { flag: THERAPY }
-customFields: { dogName: "Nom del gos", dogSex: "Sexe", dogBirth: "Data naixement", breed: "Raça", chip: "Núm. de xip", guideName: "Nom del guia", rsceLicense: "Llicència RSCE", fcagLicense: "Llicència FCAG", rsceCategory: "Categoria RSCE", grade: "Grau", division: "Divisió", hasKey: "Té clau" }
-history: { receiptsMonths: 24, migrateFutureTrainingBookings: false, migrateActivities: false }
+version: 4          # 09-09-2026 · ajustat als tres exports reals del 07-09-2026 (vegeu MAPATGE_CAMPS_PLAYOFF.md)
+normalize: { trim: true, collapseSpaces: true, caseInsensitive: true }   # «Abonat », «abonat » i «Abonat» són la mateixa clau
+statuses: { Alta: ACTIVE, Baixa: LEFT }        # únics valors de l'export (llegat cast.: Baja/Simpatizante/Personal laboral/Bloqueado)
+
+plans:   # «Tipologia» → Plan.code (S05); el comentari és el recompte real d'abonats d'alta el 07-09-2026
+  "abonat":                { plan: ABONAT }                              # 96
+  "familiar abonat":       { plan: ABONAT_FAMILIAR, familyGroup: true }  # 37
+  "abonat 2 gossos":       { plan: ABONAT_FAMILIAR }                     # 14 (dogsIncluded 2)
+  "manteniment":           { plan: TERAPIA }                             # 12 · la modalitat porta billingMode MAINTENANCE
+  "pack 10 classes":       { plan: PACK10 }                              # 7
+  "quota reduïda":         { plan: null, warn: PLAN_UNMAPPED }           # 4 · dubte B30
+  "instructors":           { plan: INSTRUCTOR_FREE, role: INSTRUCTOR }   # 4 · quadra amb la llista d'accessos
+  "familiar abonat/curs":  { plan: null, warn: PLAN_UNMAPPED }           # 3 · dubte B31
+  "competició 1 gos":      { plan: COMPETICIO_1 }                        # 3 · cal crear-la al seed (preu pendent)
+  "pack 6 classes":        { plan: PACK6 }                               # 2
+  "*":                     { plan: null, warn: LEGACY_PLAN }             # tipologies antigues que només surten en baixes
+
+levels:  # «Nivell» → Level.code; un associat pot tenir-ne dues files (nivell + marca)
+  cadells: CADELLS
+  a: A · b: B · c: C · d: D · e: E · f: F · g: G                          # 38·21·22·20·12·27·23
+  pendent:   { level: PENDENT, warn: LEVEL_PENDING }                     # 6 · dubte B32
+  llicencia: { flag: LICENSE_HOLDER }                                    # 58 · marca, no nivell (sempre amb D–G)
+  terapies:  { flag: THERAPY }                                           # 1
+
+columns:  # columna de la fitxa de soci → camp del model (taula completa a MAPATGE_CAMPS_PLAYOFF.md)
+  memberBirthDate: { at: 11 }        # ⚠️ hi ha DUES columnes «Data naixement»: es llegeixen per POSICIÓ
+  dogBirthDate:    { at: 41 }
+  dogName: "Nom del gos" · dogSex: "Sexe del gos" · breed: "Raça del gos" · chip: "Numero de xip"
+  handlerName: "Nom del guia"        # → Dog.handlerName (camp nou, Jordi 09-09)
+  objectives:  "Objectius"           # → Dog.instructorNote
+  photo: "Foto"                      # → Dog.photoFileKey (dubte B29)
+  rsceLicense: "Llicencia RSCE" · fcagLicense: "Llicencia FCAG"
+  rsceCategory: "Categoria RSCE" · grade: "Grau" · division: "Divisió"   # → licenses[].category/grade/division
+  ignored: ["ID subcategoria", "Edat", "Estat civil", "Nacionalitat", "Web", "Adjunts", "Te clau"]
+
+history: { receiptsMonths: 24, leaversSinceYears: 5, migrateFutureTrainingBookings: false, migrateActivities: false }
+# 24 mesos i impagats confirmats pel Josep (08-09); a l'export no hi ha CAP impagat ni pendent (columnes 32-36 buides o 0 €)
+# volum real: 1.436 fitxes = 184 altes + 1.252 baixes, de les quals 880 són del 2021 ençà (les que es migren)
 ```
 
 ## 4. Regles de negoci
@@ -60,9 +82,10 @@ history: { receiptsMonths: 24, migrateFutureTrainingBookings: false, migrateActi
 | **R-18-05 Número d'abonat** | `memberNumber` = número de Playoff dels d'`Alta` (**es conserva**); les fitxes de `Baja` sense número reben `null` (es numeraran si es readmeten, S04) — `Club.nextMemberNumber` = màxim + 1. Col·lisions (Playoff «Recalcular números» pot haver reassignat): la fitxa d'alta guanya; l'altra → avís `NUMBER_CONFLICT`. | — |
 | **R-18-06 Estats** | `Alta` → `ACTIVE` (`joinedAt` = data d'alta de Playoff); `Baja` → `LEFT` (`leaveDate`/`leftAt` = data de baixa si existeix, si no data de l'export; `leftReason = MIGRATED`); `Bloqueado` → `ACTIVE` + `bookingBlock {reason: «migrat de Playoff: bloquejat»}`; `Simpatizante` → no es migra (llistat a l'informe); `Personal laboral` → `ACTIVE` + rol segons `mapping.plans` (instructors). Fitxes de `Baja` de fa més de `migration.leftMaxYears` (5) **no** es migren (RGPD: minimització) — només el seu número queda reservat. | — |
 | **R-18-07 Modalitat, grup familiar i pagador** | «Tipologia» → `Plan` per `mapping.plans` (sense correspondència → `LEGACY_PLAN` i pla `null`: incidència a D6 fins que l'admin l'assigni); «Abonat 2/3 gossos» amb fitxes enllaçades per «Grupo familiar» → `FamilyGroup` amb `holderMemberId` = «qui paga els rebuts» de Playoff; sense grup explícit però dues fitxes del mateix DNI → la mateixa persona té dos gossos (no cal grup); grup de Playoff amb DNI diferents → `FamilyGroup` real. `nextInvoiceDate` = dia 1 del mes següent al tall (R-18-13). Preu = vigent del pla al tall (S05). | «Abonat 2 gossos» + grup {Laura, Joan Antoni} → grup familiar, titular Laura. |
-| **R-18-08 Mètode de pagament i mandats** | Domiciliació → `paymentMethod.SEPA_DD {iban, holderName, holderTaxId}`; IBAN invàlid (mod-97) → `iban = null` + avís `IBAN_INVALID` («Compte no informat»); titular buit → nom de l'abonat. **Referència de mandat**: si Playoff l'exporta (referència + data de signatura) → es migra i la primera remesa nova va com a `RCUR`; si no → `mandateRef` nou `{clubSlug}-{memberNumber}-1` amb `mandateSignedAt` = data d'alta i **avís al club** que caldrà `FRST` o comunicació al banc (§13, S12 R-12-12). Efectiu/transferència → `MANUAL`; targeta (Redsys/Playoff Pay) → `MANUAL` + avís `CARD_NOT_MIGRATED` (l'abonat haurà de tornar a donar la targeta a Stripe si el club activa `STRIPE`). | — |
+| **R-18-08 Mètode de pagament i mandats** | Domiciliació → `paymentMethod.SEPA_DD {iban, holderName, holderTaxId}`; IBAN invàlid (mod-97) → `iban = null` + avís `IBAN_INVALID` («Compte no informat»); titular buit → nom de l'abonat. **Referència de mandat** (resolt Josep 08-09: Playoff **no** exporta mandats): es genera un `mandateRef` nou per a tothom, `{clubSlug}-{memberNumber}-1`, amb `mandateSignedAt` = **data del tall** (no la d'alta: és quan el club comunica els mandats nous), i totes les remeses van **`RCUR`** (`billing.sepa.useFrst = false`, Josep 08-09) amb comunicació prèvia al banc. La branca «mandat exportat» es conserva al codi per a altres clubs. Efectiu/transferència → `MANUAL`; targeta (Redsys/Playoff Pay) → `MANUAL` + avís `CARD_NOT_MIGRATED` (l'abonat haurà de tornar a donar la targeta a Stripe si el club activa `STRIPE`). | — |
 | **R-18-09 Rebuts històrics** | Últims `history.receiptsMonths` (24) rebuts → `Invoice {kind: MIGRATED, series: "PLAYOFF", number: original, displayNumber: original, period: del concepte («Febrer 2026 …») o de la data, total, status: Pagado → PAID · Pendiente/Vencido → PENDING · Impagado → FAILED, paymentMethod segons el rebut, lines: [{origin: MIGRATED, description: concepte original, total}]}` sense línies detallades ni impostos desglossats (si l'export els porta, es guarden). Serveixen per a la fitxa D10 i l'export comptable; **no** entren a cap remesa. La numeració nova comença a `{YYYY}-0001` (S12) — sèrie diferent, sense col·lisió (§13). | «2026-0871 · Quota Abonat — Agost 2026 · 60 € · impagat» → `FAILED`. |
 | **R-18-10 Packs en curs** | «Control packs» → `PackBalance {planId (Pack 6/10), sessionsTotal, consumed, openedOn (data de compra), expiresOn = openedOn + validityMonths − 1 dia, state: ACTIVE si expiresOn ≥ tall i remaining > 0}` per **gos** (si la fitxa té un sol gos; amb més d'un → avís `PACK_DOG_AMBIGUOUS` i s'assigna al primer, revisable des de D10 amb un ajust). Moviment inicial `OPEN` amb `reason: MIGRATED`. | Pack 10 comprat 12-06, 6 consumides → `remaining 4`, caduca 11-11. |
+| **R-18-11b Qualitat de dades de l'export real** (mesurada el 07-09-2026 sobre les 184 altes; `MAPATGE_CAMPS_PLAYOFF.md` §6) | L'importador **no rebutja mai** una fitxa per aquests motius: hi posa un avís i continua. (a) **26 domiciliacions sense IBAN** → `NO_BANK_ACCOUNT`: `iban = null`, l'abonat queda fora de la primera remesa i surt a la llista d'incidències de D6. (b) **16 gossos sense xip** → `CHIP_MISSING`: el camp es carrega buit tot i ser obligatori a l'alta nova; D15 té el filtre per reclamar-los. (c) **7 altes sense email** → membre sense `Account` (R-18-12) fins que el club l'aconsegueixi. (d) **~20 altes comparteixen l'email amb un altre abonat**: un `Account` per adreça → el primer (per data d'alta) es queda l'adreça i la resta es migren **sense compte** amb `EMAIL_SHARED` i proposta de grup familiar per revisar (dubte B33). (e) **2 altes amb edat per sota del mínim** (0 i 11 anys): la validació d'edat de l'alta pública **no s'aplica als migrats** → `AGE_SUSPECT`. (f) 9 sense telèfon i 8–10 sense adreça completa → s'accepten amb avís. (g) claus de categoria amb majúscules i espais irregulars → `mapping.normalize` (trim + espais + minúscules) abans de buscar-les. | 26 sense IBAN, 16 sense xip, 20 emails compartits → l'informe els llista per número d'abonat perquè el club els completi abans del tall. |
 | **R-18-11 Inactivitats, baixes previstes i bloquejos** | Si Playoff té una data de baixa futura → `Member.leaveDate` + `LeaveRequest {APPROVED, source: MIGRATED}`; «Manteniment» amb període conegut → `InactivityPeriod {ACTIVE}` només si el club aporta la llista (fitxer auxiliar `inactivitats.csv` amb número d'abonat i mesos; opcional). | — |
 | **R-18-12 Comptes i membresies** | Per a cada `Member` amb email vàlid: `Account` (`getOrCreate`, `MIGRATION`, `locale = ca`, sense contrasenya) + `Membership {roles}` (MEMBER; + INSTRUCTOR/ADMIN segons la llista que aporta el Josep: `equip.csv` amb número d'abonat i rol). **Cap correu** durant la càrrega. Sense email → sense compte, llistat «Abonats sense correu» per al club (S03 «Reenvia accés» quan el tinguin). Email duplicat entre persones diferents (mare i fill) → el compte és de la primera; l'altra queda sense compte + avís `EMAIL_SHARED`. Consentiments: `consents[] = [{type: PRIVACY, version: LEGACY, acceptedAt: joinedAt, source: MIGRATED}, {type: IMAGE, granted: «drets d'imatge» de Playoff}]`; a la primera entrada l'app demana acceptar la política vigent (bàner, sense bloquejar — §13). | — |
 | **R-18-13 Dates de facturació al tall** | El tall es fa **després** de l'última remesa de Playoff del mes `M` i **abans** de generar la primera del nou sistema: `nextInvoiceDate = 01 de M+1` per a tots els `ACTIVE` amb pla mensual (packs: sense). Informe de conciliació: suma prevista del mes `M+1` (nou simulador, S12) vs «Informe de previsión» de Playoff per a `M+1`: diferència ≤ `migration.reconciliationTolerancePct` (1 %) o justificació línia a línia. | Playoff preveu 6.760 € per a novembre; simulació nova 6.700 € → 1 abonat sense pla (`LEGACY_PLAN`) explica la diferència. |
@@ -151,7 +174,7 @@ Ordre: A → B → C → D → E. Fils: (1) A+B, (2) C (quan S12 existeixi).
 | # | Dubte | Qui | Assumpció mentrestant |
 |---|---|---|---|
 | 1 | Quines «Tipologies» de Playoff segueixen vives (Competició, Abonat Plus, Familiar…) i quina modalitat nova els correspon | Josep | mapatge de §3; les no mapejades → `LEGACY_PLAN` |
-| 2 | Playoff exporta la referència i la data del mandat SEPA? | Josep/Playoff | si no: mandats nous + `FRST` (S12 R-12-12) o carta al banc |
+| 2 | ~~Playoff exporta la referència i la data del mandat SEPA?~~ **Resolt (Josep 08-09): no; mandats nous per a tothom** i tot `RCUR` (el banc ho accepta), amb comunicació al banc. | — | — |
 | 3 | Rebuts històrics: 24 mesos són suficients? Cal importar els impagats pendents com a `FAILED`? | Josep/comptabilitat | 24 mesos; impagats → `FAILED` |
 | 4 | Re-consentiment de la política de privacitat a la primera entrada: bàner o bloqueig? | Jordi (legal) | bàner sense bloqueig |
 | 5 | Reserves d'entrenament futures i inscripcions a classes de la setmana del tall | Josep | no es migren; el tall es fa en diumenge abans de les 20:00 amb la setmana nova generada al nou sistema |
@@ -166,3 +189,5 @@ Ordre: A → B → C → D → E. Fils: (1) A+B, (2) C (quan S12 existeixi).
 
 - 03-09-2026 · v0.1 · esborrany inicial a partir de l'auditoria de Playoff (estructura), PLATAFORMA §0–§4 i les specs S01/S03/S04/S05/S12/S13.
 - 05-09-2026 · §13-4 resolt (Jordi): el primer accés d'un abonat migrat mostra la pantalla **«Completa el teu perfil»** amb la casella obligatòria de la política de privacitat (S01 §14), no un bàner; `Account.onboardingPending = true` per a tots els comptes creats per la migració.
+- 08-09-2026 · respostes del Josep (B6, B7, B8, B9): Playoff **no** exporta mandats → mandats nous per a tothom amb `mandateSignedAt` = data del tall i tot `RCUR` · mapatge de tipologies a partir de l'Excel del Josep (fora del Dropbox) · 24 mesos de rebuts i cap impagat pendent · tall en diumenge abans de les 20:00 confirmat.
+- 09-09-2026 · exports reals del 07-09 (Jordi): `MappingConfig` v4 amb les tipologies i els nivells vius i els seus recomptes, normalització de claus, lectura per posició de les dues columnes «Data naixement», columnes noves (`Nom del guia` → `Dog.handlerName`, `Objectius`, `Foto`, `Categoria RSCE`/`Divisió`) i **R-18-11b** amb les incidències reals (26 sense IBAN, 16 sense xip, 20 emails compartits, 2 edats sospitoses). Taula completa a `MAPATGE_CAMPS_PLAYOFF.md`.

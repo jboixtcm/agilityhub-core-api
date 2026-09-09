@@ -36,6 +36,7 @@
 | `ClassCancelledByClub` | classId, reason, adminText, affected[{bookingId, memberId, dogId}], waitlistIds[] | S06/S15 | N-08a, bookings → CANCELLED_BY_CLUB, waitlist → CANCELLED, packs retornats, comptadors |
 | `ClassAutoCancelled` | classId, dogsCount | S15 | N-17 (+ N-08a als inscrits) |
 | `ClassAtRisk` | classId, dogsCount, reviewAt | S15 | N-16, D1 targeta |
+| `ClassBelowMinimum` | classId, countedDogs, minDogs | S15 (R-15-12b) | N-54 (instructors + admins; cap efecte sobre la classe) |
 | `ClassRiskExemptionChanged` | classId, exempt | S06 | scheduler |
 | `RingBlockCreated` / `RingBlockCancelled` | blockId, ringId, from, to, reason, activityId? | S06/S09 | slots d'entrenament → bloquejats, quadres |
 | `ActivityPublished` / `ActivityUpdated` / `ActivityCancelled` / `ActivityFinished` | activityId | S06 | N-32, bloquejos de pista, web pública |

@@ -91,6 +91,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-50 | Les teves dades estan a punt | `ExportJob{MEMBER_DATA} → READY` | PERSONAL | MEMBER → APP+EMAIL | link, expires_days | OPEN_EXPORT | S14 |
 | N-51 | Correu rebotat | `EmailBounced` | OPERATIONAL | ADMINS → APP | member_name, email | OPEN_MEMBER | S11 |
 | N-52 | Hem rebut la teva sol·licitud de supressió | `AccountErasureRequested{source ≠ RETENTION}` | SYSTEM | compte → EMAIL | execute_date, club_name | — | S14 |
+| N-54 | **Classe amb pocs alumnes** (per sota del mínim) | `ClassBelowMinimum` (anul·lació dins termini) | OPERATIONAL | INSTRUCTORS de la classe + ADMINS → APP+EMAIL | class_date, class_time, class_description, ring_name, dogs_count | CHANGE_CLASS | S15 |
 | N-53 | Invitació com a administrador del club | `POST /platform/clubs/{id}/admins` | SYSTEM | compte convidat → EMAIL | club_name, link, inviter_name | — | S17 |
 
 Variants: N-02 `MIGRATED` (S18, benvinguda dels abonats migrats) · N-32b amb `origin=BACKOFFICE` → CLUB_CHANGES (S07) · N-36 cobreix també les reserves de classe fetes/anul·lades pel club. Accions natives noves: `OPEN_JOBS`, `OPEN_EXPORT`, `OPEN_CHALLENGE`, `OPEN_MEMBER`, `OPEN_SIGNUP`. Variables noves: `upfront_total`, `payment_instructions`, `pay_link` (N-01), `member_last_names`, `dog_name_article`, `kind` (N-13), `class_description` (N-19), `admin_text`/`cancelled_count` (N-18b/N-28), `auto_cancel` (N-16/N-17).

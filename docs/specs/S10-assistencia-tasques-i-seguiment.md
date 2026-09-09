@@ -75,6 +75,8 @@ Escriu: `Dog.remarks` (observacions privades, S03 §3) + `Dog.remarksMeta {updat
 
 ## 4. Regles de negoci
 
+**R-10-00 Qui és el «guia».** A totes les pantalles d'aquesta spec, «{guia} + {gos}» resol `Dog.handlerName ?? Member.firstName` (S03 R-03-19b): quan el gos el condueix algú que no és l'abonat, l'instructor veu qui vindrà. Si difereixen, la fitxa (22/D13) i les llistes hi afegeixen «(abonat: {nom i cognom})». El guia és només un nom: totes les accions (reservar, anul·lar, avisar) continuen sent de l'abonat.
+
 **R-10-01 Visió global i filtre per defecte.** Qualsevol `INSTRUCTOR` o `ADMIN` veu totes les classes, alumnes i gossos (MATRIU regla 1), mai dades bancàries. A 20 el desplegable llista els `Instructor` actius i preselecciona `Membership.instructorId` del qui crida; un `ADMIN` sense perfil d'instructor rep el primer per ordre alfabètic de `shortName` (assumpció). A D12 el filtre per defecte és «Tots» (mockup V2); «Els meus» = `instructorId` del qui crida. Els bloquejos de pista es mostren sempre, siguin de qui siguin. *Exemple:* l'Estel obre 20 → «Estel ▾» amb les seves 3 classes de dl 3 i el bloqueig de Carretera creat per en Marc.
 
 **R-10-02 Composició de la llista d'assistència.** Files de 21/D12 = `Booking` de la classe amb `state ∈ {ACTIVE, PAYMENT_PENDING}` ∪ les que tenen `Attendance.state = NOTIFIED` (anul·lades per «ha avisat»; queden visibles i fixades). Les anul·lades per l'alumne, pel club o pel sistema **no** hi surten (han alliberat la plaça; el «n/n» ja ho reflecteix). Ordre: `bookedAt` ascendent (assumpció). Cada fila porta `pendingTasksCount` (`TASKS`). Sense document d'`Attendance` → `PENDING`. *Exemple:* classe 4/5 amb Laura+Duna (present), Marc+Chun-li (pendent), Anna+Nass (ha avisat, plaça alliberada → ara 3/5 amb 4 files) i Eva+Fish (no presentat).
@@ -403,3 +405,4 @@ Ordre: A → (B ∥ C ∥ D/E/F contra mocks) → G. Tres fils: back-B, back-C, 
 ## Canvis
 
 - 03-09-2026 · v0.1 · esborrany inicial a partir dels mockups V8 (20, 21, 22, 25, 26) i V7 (D12, D13, D14), model v1.6 + PLATAFORMA v1.7-ext, DETALL_FUNCIONAL §I i catàlegs transversals v1.0; alineada amb S03, S06, S08 i S09.
+- 09-09-2026 · Jordi: **R-10-00** — «{guia} + {gos}» resol `Dog.handlerName ?? Member.firstName`; quan difereixen, el backoffice hi afegeix «(abonat: {nom})».

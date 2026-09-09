@@ -131,7 +131,9 @@ Cada procés implementa `Job { plan(ctx): List<Item>; apply(ctx, item): Effect }
 | Exemple | dl 05-10 07:30, `minDogs=2`, lookahead 2: c1 dl 9:30 Cadells 0 inscrits → anul·lada, N-17 a admins+Núria, cap N-08a; c2 dl 17:40 Petita 1 inscrit (Laura + Duna) → anul·lada, N-17 + N-08a a Laura amb SMS; c3 dt 20:00 Carretera 1 inscrit (Pau + Blat) → N-16 a Pau i admins, `risk.notifiedBookingIds=[b3]`; c4 dc 9:30 Cadells 0 inscrits → N-16 només a admins; dt 06-10 07:30: c3 segueix amb 1 → cap N-16 nou a Pau (ja avisat); dc 07-10 07:30: c3 anul·lada si ningú s'hi ha apuntat; c4 anul·lada en silenci |
 | Tests | T-15-13, T-15-14, T-15-15 |
 
-Decisió (assumpció, §13): **no** hi ha revisió immediata quan un alumne anul·la (spec v1.6 F8 pas 6): només a l'hora de revisió, com diu el model i el globus de la pantalla 10 («com a màxim a les 7:30 de {dia}»).
+**R-15-12b · Avís immediat de classe sota mínim** (Josep 08-09). La **revisió** (anul·lar, avisar els alumnes) segueix sent només el procés de les 7:30: cap anul·lació automàtica fora d'hora. Però un consumidor de `BookingCancelled{late: false}` (i de `WaitlistExpired` que deixi la classe igual) comprova, dins la mateixa transacció, si la classe és `ACTIVE`, futura, `riskExempt = false` i `countedDogs < classes.minDogs`; si és així emet `ClassBelowMinimum{classSessionId, countedDogs}` → **N-54** als **INSTRUCTORS de la classe i als ADMINS** (APP+EMAIL), i **res més**: els alumnes no reben cap avís i la classe no es toca. Idempotència: `risk.lowAlertSentAt` a la `ClassSession`, que es **neteja** quan `countedDogs` torna a arribar a `minDogs` (així una segona baixada torna a avisar). Amb `date == today` i `startsAt ≤ now` no s'envia res. *Exemple:* classe de dijous a les 18:50 amb 2 inscrits; dimecres a les 10:00 la Laura anul·la dins termini → queda 1 → N-54 a l'Estel (instructora) i als admins; a les 7:30 de dijous, la revisió decidirà segons `riskAutoCancelSameDay`.
+
+Decisió (§13, actualitzada 08-09): no hi ha **revisió** immediata quan un alumne anul·la (spec v1.6 F8 pas 6) — només l'**avís** de R-15-12b; l'acció continua a l'hora de revisió, com diuen el model i el globus de la pantalla 10 («com a màxim a les 7:30 de {dia}»).
 
 **R-15-13 · P3 `no-show-notices`.**
 
@@ -390,3 +392,4 @@ Ordre: A → B ∥ C ∥ D → E. Tres fils en paral·lel després d'A: B (contr
 
 - 03-09-2026 · v1.0 · esborrany inicial a partir de DETALL_FUNCIONAL §M, PLA_BACKEND §5/§9.5, model v1.6 (7:30, mínim 2 gossos, 8:00, recordatori per abonat), S06/S08/S09 (contractes), ADR-011/012 i catàlegs transversals v1.0.
 - 03-09-2026 · revisió: la baixa prevista per caducitat de pack usa `leave.packExpiryGraceDays` (S13 R-13-14).
+- 08-09-2026 · respostes del Josep (B17): nova **R-15-12b** — una anul·lació dins termini que deixi la classe per sota del mínim avisa **instructors i admins** (N-54, `ClassBelowMinimum`) i no fa res més; la revisió i l'anul·lació continuen només a les 7:30.
