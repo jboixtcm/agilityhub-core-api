@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E1-T10: Widen identity account locales to all seven product languages and
+  interpret timezone-free Learn imports in Europe/Madrid. Add regression tests,
+  an opt-in private local email mailbox and a disposable E1 identity smoke script;
+  refresh local authentication documentation and the OpenAPI snapshot.
+
 - E1-T13: Browser refresh tokens now use host-only HttpOnly cookies with rotation,
   same-host request validation and logout/revocation clearing. BODY clients retain
   their token responses. Added audited platform-role GET/PUT endpoints with a

@@ -250,6 +250,15 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertIdentityContract(mapper.readTree(response.getContentAsString()));
     }
 
+    @Test void T_01_23_identityLocaleSchemasExposeAllSevenProductLanguages() throws Exception {
+        var response = mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse();
+        var document = mapper.readTree(response.getContentAsString());
+        for (String schema : List.of("MeAccount", "AccountSummary", "AccountPatchRequest", "OnboardingFields", "PlatformAccountRequest")) {
+            assertThat(strings(document.at("/components/schemas/" + schema + "/properties/locale/enum")))
+                    .as(schema).containsExactly("ca", "es", "en", "fr", "de", "no", "pt");
+        }
+    }
+
     private JsonNode sorted(JsonNode node) {
         if (node.isObject()) {
             var result = mapper.createObjectNode();

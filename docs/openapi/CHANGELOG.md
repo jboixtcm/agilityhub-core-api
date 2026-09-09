@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E1-T10 · identity locale contract and integration rehearsal
+
+`MeAccount`, `AccountSummary`, `AccountPatchRequest`, `OnboardingFields` and
+`PlatformAccountRequest` now declare `ca es en fr de no pt` for `locale`.
+The account validator, PATCH `/me` and onboarding persist all seven languages;
+unsupported values retain `LOCALE_NOT_SUPPORTED`. UI translations remain
+`ca/es/en`, with English fallback in the apps. No routes or catalog items were added.
+The snapshot is regenerated and the enum set has a T-01-23 contract regression.
+`bin/e1-smoke` exercises the current cookie grant/revocation contract end to end.
+
 ## 2026-09-09 · E2-T02 · Club settings and parameters implementation
 
 - Settings routes now execute their S02 use cases, including scoped parameter history/reset, self-service modules and the global parameter catalog.

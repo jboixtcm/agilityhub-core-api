@@ -68,7 +68,7 @@ public class AccountService implements com.agilityhub.core.shared.application.Ac
                 && (issuedAt == null || !issuedAt.isAfter(account.security().accessRevokedAt())))).orElse(false);
     }
     private void validate(String locale, String name) {
-        if (locale != null && !Set.of("ca", "es", "en").contains(locale)) { throw new ApiException(ErrorCode.LOCALE_NOT_SUPPORTED); }
+        if (locale != null && !Set.of("ca", "es", "en", "fr", "de", "no", "pt").contains(locale)) { throw new ApiException(ErrorCode.LOCALE_NOT_SUPPORTED); }
         if (name != null && (name.isBlank() || name.length() > 200)) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
     }
 }

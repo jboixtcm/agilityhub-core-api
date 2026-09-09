@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""Rehearse E1 on a disposable local API/Mongo stack with fictional seed accounts."""
+import base64
+import hashlib
+import http.cookies
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+def free_port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def command(args, *, env=None, input=None):
+    result = subprocess.run(args, cwd=ROOT, env=env, input=input, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180)
+    if result.returncode != 0:
+        classes = sorted(set(re.findall(r"(?:Caused by: |Exception in thread \"[^\"]+\" )([A-Za-z0-9_.$]+)", result.stdout)))
+        raise AssertionError(f"{Path(args[0]).name} failed (exit {result.returncode}; exception classes: {', '.join(classes) or 'none'}; output withheld to protect credentials)")
+    return result.stdout
+
+
+def eventually(action, message, timeout=60):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            value = action()
+            if value:
+                return value
+        except (AssertionError, urllib.error.URLError, ConnectionError, OSError):
+            pass
+        time.sleep(0.25)
+    raise AssertionError(message)
+
+
+def jwt_claims(token):
+    payload = token.split(".")[1]
+    return json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+
+
+class Api:
+    def __init__(self, port):
+        self.base = f"http://127.0.0.1:{port}"
+        self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect)
+
+    def call(self, path, expected=200, *, host=None, method=None, form=None, body=None,
+             access=None, cookie=None, origin=None, error=None):
+        headers = {"User-Agent": "AgilityHub-E1-Smoke"}
+        for name, value in (("Host", host), ("Origin", origin), ("Cookie", cookie)):
+            if value:
+                headers[name] = value
+        if access:
+            headers["Authorization"] = "Bearer " + access
+        data = None
+        if form is not None:
+            headers["Content-Type"] = "application/x-www-form-urlencoded"
+            data = urllib.parse.urlencode(form).encode()
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+            data = json.dumps(body).encode()
+        request = urllib.request.Request(self.base + path, data=data, headers=headers, method=method)
+        try:
+            response = self.opener.open(request, timeout=15)
+        except urllib.error.HTTPError as failure:
+            response = failure
+        with response:
+            require(response.status == expected, f"{request.get_method()} {path.split('?')[0]}: expected HTTP {expected}, got {response.status}")
+            raw = response.read()
+            result = json.loads(raw) if raw else None
+            if error:
+                require(result.get("code") == error, f"{path.split('?')[0]}: expected {error}")
+            return result, response.headers
+
+    def grant(self, host, form, expected=200, **kwargs):
+        result, headers = self.call("/oauth2/token", expected, host=host, form=form, **kwargs)
+        if expected == 200:
+            require(result.get("access_token") and "refresh_token" not in result, "COOKIE grant must omit refresh_token JSON")
+            cookie = read_cookie(headers, "ah_refresh")
+            require(cookie and all(flag in cookie[1] for flag in ("HttpOnly", "SameSite=Strict", "Path=/oauth2/token")), "Refresh cookie attributes missing")
+            require("Domain=" not in cookie[1], "Refresh cookie must be host-only")
+            return result, cookie[0]
+        return result, headers
+
+
+def read_cookie(headers, name):
+    for value in headers.get_all("Set-Cookie", []):
+        cookie = http.cookies.SimpleCookie(value).get(name)
+        if cookie is not None:
+            return f"{cookie.key}={cookie.value}", value
+    return None
+
+
+def main():
+    require(len(sys.argv) == 1, "Usage: bin/e1-smoke (disposable local stack only)")
+    jars = list((ROOT / "target").glob("agilityhub-core-api-*.jar"))
+    require(len(jars) == 1, "Build first with ./mvnw -q -DskipTests package")
+    container = "e1-smoke-" + secrets.token_hex(6)
+    app = None
+    started = False
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e1-") as temporary:
+        directory = Path(temporary)
+        # Do not inherit deployment credentials, Spring overrides or external email settings.
+        env = {key: os.environ[key] for key in ("PATH", "JAVA_HOME", "TMPDIR", "LANG") if key in os.environ}
+        env.update(SPRING_PROFILES_ACTIVE="local", SEED_PASSWORD=secrets.token_urlsafe(32),
+                   LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off",
+                   MANAGEMENT_SERVER_PORT="0", MANAGEMENT_SERVER_ADDRESS="127.0.0.1",
+                   SERVER_ADDRESS="127.0.0.1", SHARED_SCHEDULING_ENABLED="false", MONGODB_DATABASE="e1_smoke",
+                   MAIL_LOCAL_DIRECTORY=str(directory / "mailbox"), AUTH_ISSUER="https://id.example.test",
+                   OIDC_LOGIN_URL="https://id.example.test/login",
+                   OIDC_ID_WEB_REDIRECT_URI="https://id.example.test/oidc/callback",
+                   OIDC_ID_WEB_LOGOUT_URI="https://id.example.test/",
+                   CORE_SECURITY_CORS_PLATFORM_HOSTS="id.example.test")
+        api = Api(free_port())
+        env["SERVER_PORT"] = api.base.rsplit(":", 1)[1]
+
+        def mongo(script):
+            raw = command(["docker", "exec", container, "mongosh", "--quiet", "e1_smoke", "--eval", script])
+            return json.loads(raw.strip().splitlines()[-1])
+
+        def cli(*args):
+            return command([str(ROOT / "bin/core"), *args], env=env)
+
+        def mailbox_token():
+            for file in (directory / "mailbox").glob("local-*.json"):
+                mail = json.loads(file.read_text())
+                if mail["to"] == fixture["memberEmail"]:
+                    match = re.search(r"[?]t=([A-Za-z0-9_-]{43})", mail["text"])
+                    if match:
+                        file.unlink()
+                        return match[1]
+            return None
+
+        def magic():
+            api.call("/api/v1/auth/magic-link", 202, host=host,
+                     body=dict(email=fixture["memberEmail"], purpose="LOGIN", client_id="clubs-app"))
+            token = eventually(mailbox_token, "Magic link did not reach the private local mailbox")
+            return api.grant(host, dict(grant_type="urn:agilityhub:grant:magic-link", client_id="clubs-app", token=token))
+
+        def password_login(email, password, target=None, client="clubs-app", expected=200, **kwargs):
+            return api.grant(target or host, dict(grant_type="password", client_id=client,
+                             username=email, password=password), expected, **kwargs)
+
+        try:
+            command(["docker", "run", "--detach", "--rm", "--name", container, "--publish", "127.0.0.1::27017",
+                     "mongo:7.0", "--replSet", "rs0", "--bind_ip_all"])
+            started = True
+            address = command(["docker", "port", container, "27017/tcp"]).strip()
+            env.update(MONGODB_HOST="127.0.0.1", MONGODB_PORT=address.rsplit(":", 1)[1])
+            eventually(lambda: mongo('print(JSON.stringify(db.adminCommand({ping:1}).ok))'), "Mongo did not start")
+            mongo('print(JSON.stringify(rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}).ok))')
+            eventually(lambda: mongo('print(JSON.stringify(db.hello().isWritablePrimary))'), "Replica set has no primary")
+            print("PASS disposable MongoDB 7 replica set ready", flush=True)
+            cli("club:apply", "seeds/club-canic.yaml")
+            fixture = mongo('''
+                const club = db.clubs.findOne({});
+                const member = db.memberships.findOne({clubId:club._id,roles: "MEMBER"});
+                const admin = db.memberships.findOne({clubId:club._id,roles: "ADMIN"});
+                const account = db.accounts.findOne({_id:member.accountId});
+                const memberId = "e1-smoke-member";
+                db.accounts.updateOne({_id:account._id},{$unset:{passwordHash:""}});
+                db.memberships.updateOne({_id:member._id},{$set:{memberId:memberId}});
+                db.members.insertOne({_id:memberId,clubId:club._id,accountId:account._id,status:"ACTIVE",version:NumberLong("0")});
+                print(JSON.stringify({host:club.domains.find(d=>d.app==="clubs").host,
+                    adminHost:club.domains.find(d=>d.app==="clubs-admin").host, memberEmail:account.email,
+                    memberId:memberId, adminEmail:db.accounts.findOne({_id:admin.accountId}).email}));
+            ''')
+            host = fixture["host"]
+            require(all(fixture[key].endswith("@example.test") for key in ("memberEmail", "adminEmail")), "Smoke requires fictional seed accounts")
+            cli("club:apply", "seeds/club-minim.yaml")
+            print("PASS Cànic and minimal seeds applied; disposable passwordless member projection prepared", flush=True)
+            with (directory / "api.log").open("w") as log:
+                app = subprocess.Popen(["java", "-jar", str(jars[0])], cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
+            eventually(lambda: api.call("/api/v1/health")[0].get("status") == "UP", "Local API did not become healthy", 90)
+            print("PASS local API health UP", flush=True)
+
+            member, refresh = magic()
+            print("PASS magic link delivered through local mailbox and exchanged for cookie session", flush=True)
+            me, _ = api.call("/api/v1/me", host=host, access=member["access_token"])
+            require(me["membership"]["roles"] == ["MEMBER"] and me["account"]["hasPassword"] is False, "Seeded passwordless member bootstrap mismatch")
+            print("PASS /me exposes the seeded member and tenant", flush=True)
+            profile, _ = api.call("/api/v1/me/profile", host=host, method="PUT", access=member["access_token"],
+                                  body=dict(activeProfile="MEMBER", remember=True))
+            me, _ = api.call("/api/v1/me", host=host, access=profile["access_token"])
+            require(me["membership"]["activeProfile"] == "MEMBER" and me["membership"]["rememberProfile"], "Profile preference not persisted")
+            print("PASS PUT /me/profile persists MEMBER and remember=true", flush=True)
+            rotated, next_refresh = api.grant(host, dict(grant_type="refresh_token", client_id="clubs-app"),
+                                             cookie=refresh, origin="http://" + host)
+            require(next_refresh != refresh, "Refresh did not rotate")
+            print("PASS refresh rotation replaces the HttpOnly host-only cookie", flush=True)
+            api.grant(host, dict(grant_type="refresh_token", client_id="clubs-app"), 400,
+                      cookie=refresh, origin="http://" + host, error="REFRESH_REUSED")
+            api.grant(host, dict(grant_type="refresh_token", client_id="clubs-app"), 400,
+                      cookie=next_refresh, origin="http://" + host, error="REFRESH_EXPIRED")
+            print("PASS reuse rejected with REFRESH_REUSED; replacement family also rejected", flush=True)
+
+            member, refresh = magic()
+            new_password = secrets.token_urlsafe(32)
+            api.call("/api/v1/me/password", host=host, method="PUT", access=member["access_token"], body={"new":new_password,"repeat":new_password})
+            member, refresh = password_login(fixture["memberEmail"], new_password)
+            me, _ = api.call("/api/v1/me", host=host, access=member["access_token"])
+            require(me["account"]["hasPassword"], "Password was not set")
+            print("PASS first password set and password login succeeds", flush=True)
+            for locale in ("ca", "es", "en", "fr", "de", "no", "pt"):
+                changed, _ = api.call("/api/v1/me", host=host, method="PATCH", access=member["access_token"], body={"locale":locale})
+                require(changed["account"]["locale"] == locale, "Locale not persisted")
+            api.call("/api/v1/me", 400, host=host, method="PATCH", access=member["access_token"], body={"locale":"xx"}, error="LOCALE_NOT_SUPPORTED")
+            print("PASS all seven product locales persist; unsupported locale rejected", flush=True)
+            for attempt in range(1, 6):
+                expected = 401 if attempt < 5 else 429
+                error = "INVALID_CREDENTIALS" if attempt < 5 else "LOGIN_LOCKED"
+                _, headers = password_login(fixture["memberEmail"], secrets.token_urlsafe(32), expected=expected, error=error)
+                if attempt == 5:
+                    require(int(headers["Retry-After"]) > 0, "Lockout Retry-After missing")
+                print(f"PASS password failure {attempt}/5 -> {expected} {error}", flush=True)
+            password_login(fixture["memberEmail"], new_password, expected=429, error="LOGIN_LOCKED")
+            print("PASS correct password also denied while locked", flush=True)
+
+            admin, _ = password_login(fixture["adminEmail"], env["SEED_PASSWORD"])
+            path = "/api/v1/members/" + fixture["memberId"] + "/impersonation-token"
+            impersonation, _ = api.call(path, 201, host=host, access=admin["access_token"], body={"reason":"E1 fictional smoke"})
+            me, _ = api.call("/api/v1/me", host=host, access=impersonation["token"])
+            require(me["impersonation"] and me["membership"]["roles"] == ["MEMBER"], "Impersonation identity mismatch")
+            api.call("/api/v1/me/password", 403, host=host, method="PUT", access=impersonation["token"], body={"new":new_password,"repeat":new_password})
+            api.call("/oauth2/revoke", host=host, access=admin["access_token"], body={"token":impersonation["token"]})
+            api.call("/api/v1/me", 401, host=host, access=impersonation["token"])
+            print("PASS admin impersonation, forbidden password change and grant revocation", flush=True)
+            handoff, _ = api.call("/api/v1/auth/handoff", 201, host=host, access=admin["access_token"], body={"targetClientId":"clubs-admin"})
+            require(urllib.parse.urlsplit(handoff["url"]).hostname == fixture["adminHost"], "Handoff destination is not the seeded admin host")
+            form = dict(grant_type="urn:agilityhub:grant:handoff", client_id="clubs-admin", token=handoff["code"])
+            destination, destination_refresh = api.grant(fixture["adminHost"], form)
+            me, _ = api.call("/api/v1/me", host=fixture["adminHost"], access=destination["access_token"])
+            require(me["membership"]["roles"] == ["ADMIN"], "Destination admin roles mismatch")
+            api.grant(fixture["adminHost"], form, 400, error="HANDOFF_INVALID")
+            print("PASS clubs-admin handoff restores admin context; replay rejected", flush=True)
+
+            discovery, _ = api.call("/.well-known/openid-configuration")
+            issuer = discovery["issuer"]
+            id_host = urllib.parse.urlsplit(issuer).netloc
+            verifier, nonce, state = (secrets.token_urlsafe(48) for _ in range(3))
+            challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+            params = dict(response_type="code", client_id="id-web", redirect_uri=env["OIDC_ID_WEB_REDIRECT_URI"],
+                          scope="openid profile email memberships offline_access", nonce=nonce, state=state)
+            api.call("/oauth2/authorize?" + urllib.parse.urlencode(params), 400, host=id_host, error="VALIDATION_ERROR")
+            params.update(code_challenge=challenge, code_challenge_method="S256")
+            _, headers = api.call("/oauth2/authorize?" + urllib.parse.urlencode(params), 302, host=id_host)
+            browser_cookie, cookie_header = read_cookie(headers, "__Host-agilityhub-id")
+            require(all(flag in cookie_header for flag in ("Secure", "HttpOnly", "SameSite=Lax")), "OIDC cookie attributes missing")
+            flow = urllib.parse.parse_qs(urllib.parse.urlsplit(headers["Location"]).query)["flow"][0]
+            login, _ = password_login(fixture["adminEmail"], env["SEED_PASSWORD"], target=id_host, client="id-web")
+            continuation, headers = api.call("/oauth2/session", host=id_host, access=login["access_token"], cookie=browser_cookie, origin=issuer, body={"flow":flow})
+            browser_cookie, _ = read_cookie(headers, "__Host-agilityhub-id")
+            callback = urllib.parse.parse_qs(urllib.parse.urlsplit(continuation["redirectUrl"]).query)
+            require(callback["state"] == [state], "OIDC state mismatch")
+            form = dict(grant_type="authorization_code", client_id="id-web", redirect_uri=env["OIDC_ID_WEB_REDIRECT_URI"], code=callback["code"][0], code_verifier=verifier)
+            oidc, oidc_refresh = api.grant(id_host, form)
+            claims = jwt_claims(oidc["id_token"])
+            info, _ = api.call("/oauth2/userinfo", host=id_host, access=oidc["access_token"])
+            require(claims["nonce"] == nonce and claims["iss"] == issuer and claims["aud"] in ("id-web", ["id-web"]), "ID token claims mismatch")
+            require(info["sub"] == claims["sub"] and info["email"] == fixture["adminEmail"] and info["memberships"], "Scoped userinfo mismatch")
+            api.grant(id_host, form, 400, error="VALIDATION_ERROR")
+            print("PASS OIDC discovery, required S256 PKCE, fresh cookie-bound login, code exchange, ID claims, userinfo and replay rejection", flush=True)
+            api.call("/oauth2/revoke", host=id_host, access=oidc["access_token"], body={})
+            api.grant(id_host, dict(grant_type="refresh_token", client_id="id-web"), 400,
+                      cookie=oidc_refresh, origin=issuer, error="REFRESH_EXPIRED")
+            api.call("/oauth2/revoke", host=fixture["adminHost"], access=destination["access_token"], body={})
+            api.grant(fixture["adminHost"], dict(grant_type="refresh_token", client_id="clubs-admin"), 400,
+                      cookie=destination_refresh, origin="http://" + fixture["adminHost"], error="REFRESH_EXPIRED")
+            print("PASS OIDC and handoff cookie sessions revoked; subsequent refresh denied", flush=True)
+
+            snapshot = 'print(JSON.stringify(["accounts","memberships","audit_entries","domain_events"].map(c=>db.getCollection(c).find().sort({_id:1}).toArray())))'
+            before = mongo(snapshot)
+            output = cli("identity:import-learn", "src/test/resources/fixtures/learn-users.csv", "--dry-run")
+            require(mongo(snapshot) == before, "Learn dry-run changed identity/audit/outbox documents")
+            require("50 would create, 0 would link, 0 skipped, 0 errors" in output, "Learn dry-run counts mismatch")
+            print(output.strip(), flush=True)
+            print("PASS Learn fixture dry-run proposes 50 accounts and leaves accounts, memberships, audits and outbox unchanged", flush=True)
+            print("E1 smoke passed. Staging/real delivery and the Learn adapter remain separate gate evidence.", flush=True)
+        finally:
+            if app is not None:
+                app.terminate()
+                try:
+                    app.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    app.kill()
+                    app.wait(timeout=10)
+            if started:
+                command(["docker", "rm", "--force", container])
+            print("CLEANUP local API stopped; disposable Mongo and private mailbox removed", flush=True)
+
+
+if __name__ == "__main__":
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, interrupted)
+    try:
+        main()
+    except (AssertionError, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, urllib.error.URLError, KeyboardInterrupt) as failure:
+        detail = str(failure) if isinstance(failure, AssertionError) else type(failure).__name__
+        print("E1 smoke failed: " + detail, file=sys.stderr)
+        sys.exit(1)

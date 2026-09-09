@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LearnImportIT extends IdentityIntegrationSupport {
     static final String HEADER = "id,email,password,name,role,created_at\n";
     static final String FIXTURE_PASSWORD = "Fictional-Learn-password";
-    static final Instant CREATED = Instant.parse("2023-04-05T06:07:08Z");
+    static final Instant CREATED = Instant.parse("2023-04-05T04:07:08Z");
     static List<String> hashes;
     static String fixture;
     @Autowired LearnImportService importer;
@@ -87,6 +87,17 @@ class LearnImportIT extends IdentityIntegrationSupport {
         assertThat(events.stream().filter(event -> "LearnAccountsImported".equals(event.getString("type")))).hasSize(1);
         String report = mapper.writeValueAsString(first) + first.render();
         assertThat(report).doesNotContain("@", "Example", "$2y$", FIXTURE_PASSWORD, "learnUserId");
+    }
+    @Test void T_01_14_exportTimestampsUseMadridSeasonalOffsetsAndPreserveExplicitOffsets() throws Exception {
+        var values = List.of("2023-01-05 06:07:08", "2023-07-05 06:07:08", "2023-04-05T06:07:08Z", "2023-04-05T06:07:08+03:00");
+        var expected = List.of("2023-01-05T05:07:08Z", "2023-07-05T04:07:08Z", "2023-04-05T06:07:08Z", "2023-04-05T03:07:08Z");
+        for (int n = 0; n < values.size(); n++) {
+            var input = file(HEADER + row(n + 1, "time" + n + "@example.test", hashes.get(n), "user")
+                    .replace("2023-04-05 06:07:08", values.get(n)));
+            assertThat(run(input, true).created()).isEqualTo(1);
+            assertThat(run(input, false).created()).isEqualTo(1);
+            assertThat(accounts.findByLearnUserId("" + (n + 1)).orElseThrow().createdAt()).isEqualTo(Instant.parse(expected.get(n)));
+        }
     }
     @Test void T_01_14_existingAccountsKeepProfileSecurityAndOtherExternalIdsAndOnlyAdoptMissingHash() throws Exception {
         var existing = accountService.getOrCreate("kept@example.test", "Existing Name", "ca", Account.Source.CONSOLE, passwords.hash(PASSWORD), false);

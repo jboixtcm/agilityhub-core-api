@@ -24,7 +24,7 @@
       "AccountPatchRequest" : {
         "properties" : {
           "locale" : {
-            "enum" : [ "ca", "es", "en" ],
+            "enum" : [ "ca", "es", "en", "fr", "de", "no", "pt" ],
             "type" : "string"
           },
           "name" : {
@@ -45,7 +45,7 @@
             "type" : "string"
           },
           "locale" : {
-            "enum" : [ "ca", "es", "en" ],
+            "enum" : [ "ca", "es", "en", "fr", "de", "no", "pt" ],
             "type" : "string"
           },
           "name" : {
@@ -3072,7 +3072,7 @@
             "type" : "string"
           },
           "locale" : {
-            "enum" : [ "ca", "es", "en" ],
+            "enum" : [ "ca", "es", "en", "fr", "de", "no", "pt" ],
             "type" : "string"
           },
           "name" : {
@@ -3799,7 +3799,7 @@
       "OnboardingFields" : {
         "properties" : {
           "locale" : {
-            "enum" : [ "ca", "es", "en" ],
+            "enum" : [ "ca", "es", "en", "fr", "de", "no", "pt" ],
             "type" : "string"
           },
           "name" : {
@@ -4760,7 +4760,7 @@
             "type" : "string"
           },
           "locale" : {
-            "enum" : [ "ca", "es", "en" ],
+            "enum" : [ "ca", "es", "en", "fr", "de", "no", "pt" ],
             "minLength" : 1,
             "type" : "string"
           },

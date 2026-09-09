@@ -26,12 +26,15 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 @Configuration(proxyBeanMethods = false)
 public class EmailConfiguration {
     @Bean EmailSender emailSender(Environment environment, ObjectMapper mapper,
-            @Value("${email.sendgrid.api-key:}") String key, @Value("${email.platform-from:}") String from) {
+            @Value("${email.sendgrid.api-key:}") String key, @Value("${email.platform-from:}") String from,
+            @Value("${email.local-mailbox-directory:}") String mailbox) {
         if (environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
             if (key.isBlank()) { throw new IllegalStateException("SENDGRID_API_KEY is required in staging/prod"); }
             if (from.isBlank()) { throw new IllegalStateException("MAIL_FROM_PLATFORM is required in staging/prod"); }
         } else if (environment.acceptsProfiles(Profiles.of("test"))) { return new FakeEmailSender(); }
-        else if (key.isBlank() && environment.acceptsProfiles(Profiles.of("local"))) { return new LogEmailSender(); }
+        else if (key.isBlank() && environment.acceptsProfiles(Profiles.of("local"))) {
+            return new LogEmailSender(mailbox.isBlank() ? null : java.nio.file.Path.of(mailbox), mapper);
+        }
         if (key.isBlank()) { throw new IllegalStateException("SENDGRID_API_KEY is required outside local/test"); }
         return new SendGridEmailSender(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), mapper,
                 URI.create("https://api.sendgrid.com/v3/mail/send"), key, Duration.ofSeconds(10));

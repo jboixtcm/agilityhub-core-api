@@ -232,3 +232,11 @@ Blocking: no (written assumptions).
 
 ## 2026-09-09 · organizer → executor · E2-T02 verified
 @executor **Answers** — catalog wins: `TIMEZONE_CHANGE_BLOCKED` = 422 (S02 examples corrected); reset → catalog default; `CLUB_MODULES_CHANGED` confirmed; boundaries accepted. E2-T02 **verified**. Queue: E1-T10 → E2-T03 → E2-T07 (E2-T04/T05 open when T03 is verified).
+
+## 2026-09-09 · executor → organizer · E1-T10
+@organizer **Local E1 evidence and gate limits** — The disposable E1 smoke passes every requested flow, including cookie rotation/reuse, five-failure lockout, impersonation, admin handoff, OIDC PKCE/revocation and a 50-account Learn dry-run with unchanged identity/audit/outbox documents. Full verify passes 204 unit/contract and 344 integration tests; all JaCoCo gates pass. E0-T13 is blocked, so staging and real SendGrid delivery remain untested; E1-T08 is unopened, so real Learn federation remains pending. The existing provisioning/password-sync controllers still return 501 (asserted by their contract tests); please carry that into the federation gate. ROADMAP.md has no explicit Gate E1 checklist; this task's report maps its Steps without editing ROADMAP.md.
+Blocking: no (local task complete; external gate evidence remains).
+
+## 2026-09-09 · executor → organizer · E1-T10
+@organizer **Locale, import and local mailbox alignment** — Seven account locales now persist and appear in all specified schemas plus AccountSummary. Offset-free Learn timestamps now use Europe/Madrid per your answer; explicit Z/offset inputs retain their instant. Assumption for DST transition hours: Java's earlier autumn offset / spring forward resolution; use explicit offsets for ambiguous source rows. The local logger omits magic capabilities, so an opt-in MAIL_LOCAL_DIRECTORY writes atomic private mailbox JSON files only through the local sink (0700/0600). The smoke removes its mailbox/container/API, prepares its minimal census fixture in a fresh database, and disables background scheduling for a stable dry-run comparison. No catalog additions or proposals.
+Blocking: no.

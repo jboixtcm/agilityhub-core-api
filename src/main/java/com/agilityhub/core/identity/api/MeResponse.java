@@ -18,7 +18,7 @@ public record MeResponse(@Schema(requiredMode = REQUIRED) MeAccount account,
     public record MeAccount(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED, format = "email") String email,
             @Schema(requiredMode = REQUIRED) String name,
-            @Schema(requiredMode = REQUIRED, allowableValues = {"ca", "es", "en"}) String locale,
+            @Schema(requiredMode = REQUIRED, allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale,
             @Schema(requiredMode = REQUIRED) Set<PlatformRole> platformRoles,
             @Schema(requiredMode = REQUIRED) boolean hasPassword, @Schema(requiredMode = NOT_REQUIRED) Instant emailVerifiedAt,
             @Schema(requiredMode = REQUIRED) boolean onboardingPending) { }

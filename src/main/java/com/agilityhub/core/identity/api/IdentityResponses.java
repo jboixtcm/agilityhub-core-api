@@ -31,7 +31,7 @@ public final class IdentityResponses {
     public record AccountSummary(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED, format = "email") String email,
             @Schema(requiredMode = REQUIRED) String name,
-            @Schema(requiredMode = REQUIRED, allowableValues = {"ca", "es", "en"}) String locale,
+            @Schema(requiredMode = REQUIRED, allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale,
             @Schema(requiredMode = REQUIRED) Set<PlatformRole> platformRoles) { }
     public enum PlatformRole { AGILITYHUB_ADMIN }
 

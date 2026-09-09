@@ -18,6 +18,43 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 class EmailConfigurationTest {
+    @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory;
+
+    @Test void T_01_08_localMailboxIsOptInPrivateAndAtomicallyPublished() throws Exception {
+        var mailbox = directory.resolve("mailbox");
+        runner("local").withPropertyValues("email.local-mailbox-directory=" + mailbox).run(context -> {
+            var message = new EmailMessage("fixture@example.test", "Subject", "HTML", "Text", new EmailMessage.Address("sender@example.test", "Example"),
+                    null, Locale.ENGLISH, Map.of("notificationId", "fixture"));
+            var sender = context.getBean(EmailSender.class);
+            assertThat(sender.send(message).sent()).isTrue();
+            assertThat(sender.send(message).sent()).isTrue();
+        });
+        assertThat(java.nio.file.Files.getPosixFilePermissions(mailbox)).isEqualTo(java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));
+        try (var files = java.nio.file.Files.list(mailbox)) {
+            var messages = files.toList(); assertThat(messages).hasSize(2);
+            for (var file : messages) {
+                assertThat(file.getFileName().toString()).startsWith("local-").endsWith(".json");
+                assertThat(java.nio.file.Files.getPosixFilePermissions(file)).isEqualTo(java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
+                assertThat(new ObjectMapper().readTree(file.toFile()).path("to").asText()).isEqualTo("fixture@example.test");
+            }
+        }
+        runner("test").withPropertyValues("email.local-mailbox-directory=" + directory.resolve("unused"))
+                .run(context -> assertThat(context.getBean(EmailSender.class)).isInstanceOf(FakeEmailSender.class));
+        assertThat(directory.resolve("unused")).doesNotExist();
+    }
+
+    @Test void T_01_08_localMailboxFailureDoesNotClaimDeliveryOrExposeMessage() throws Exception {
+        var file = java.nio.file.Files.writeString(directory.resolve("file"), "fixture");
+        var message = new EmailMessage("fixture@example.test", "Subject", "HTML", "Text", new EmailMessage.Address("sender@example.test", "Example"),
+                null, Locale.ENGLISH, Map.of());
+        assertThat(new LogEmailSender(file, new ObjectMapper()).send(message)).isEqualTo(EmailSender.SendResult.failed("Local mailbox write failed"));
+        var mapper = mock(ObjectMapper.class);
+        org.mockito.Mockito.doThrow(new java.io.IOException("private message")).when(mapper).writeValue(org.mockito.ArgumentMatchers.any(java.io.File.class), org.mockito.ArgumentMatchers.any());
+        var mailbox = directory.resolve("failed");
+        assertThat(new LogEmailSender(mailbox, mapper).send(message)).isEqualTo(EmailSender.SendResult.failed("Local mailbox write failed"));
+        try (var files = java.nio.file.Files.list(mailbox)) { assertThat(files).isEmpty(); }
+    }
+
     private ApplicationContextRunner runner(String... profiles) {
         return new ApplicationContextRunner().withUserConfiguration(EmailConfiguration.class)
                 .withInitializer(context -> context.getEnvironment().setActiveProfiles(profiles))

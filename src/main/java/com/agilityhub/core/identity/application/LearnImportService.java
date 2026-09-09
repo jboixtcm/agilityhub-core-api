@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -121,10 +121,10 @@ public class LearnImportService {
     }
     // Match the API's syntactic email contract without requiring a public TLD (fixtures use example.test).
     static boolean validEmail(String email) { return email.length() <= 254 && email.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+"); }
-    /** Learn's timezone-free MySQL export is interpreted as UTC. Offset timestamps retain their instant. */
+    /** Learn's timezone-free MySQL export uses Europe/Madrid (organizer decision, S01 §14). Offset timestamps retain their instant. */
     private Instant createdAt(String value) {
         var normalized = value.replace(' ', 'T');
         try { return Instant.parse(normalized); }
-        catch (DateTimeParseException noOffset) { return LocalDateTime.parse(normalized).toInstant(ZoneOffset.UTC); }
+        catch (DateTimeParseException noOffset) { return LocalDateTime.parse(normalized).atZone(ZoneId.of("Europe/Madrid")).toInstant(); }
     }
 }

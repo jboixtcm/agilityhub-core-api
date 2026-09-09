@@ -128,10 +128,9 @@ rollback using the application's `MongoTransactionManager`.
 Dependency versions are fixed by the Spring Boot 3.5.16 parent or explicit
 properties in `pom.xml`; the Maven wrapper also checks its distribution SHA-256.
 
-`bin/openapi-snapshot` requires the local API running on port 8080 and Python 3;
-it writes the generated API contract to `docs/openapi/openapi.json`. The CI
-diff hook runs when the snapshot exists; automatic contract generation before
-that hook and full OpenAPI conventions belong to E0-T12.
+`bin/openapi-snapshot` starts an isolated test server with Testcontainers and
+requires Java, Docker and Python 3. It writes the generated contract to
+`docs/openapi/openapi.json`; verification compares it against the committed snapshot.
 
 ## Continuous integration and branch protection
 
@@ -232,25 +231,72 @@ staging/prod require environment references plus `--allow-seed-passwords`.
 Omitting `accounts[].password` creates passwordless accounts. See
 [seed conventions](seeds/README.md) for the schema and alias options.
 
+For a repeatable E1 rehearsal, build the current jar and run:
+
 ```sh
-curl -s localhost:8080/oauth2/token \
-  -H 'X-Club-Host: app.agilitycanic.cat' \
-  -d grant_type=password -d client_id=clubs-app \
-  -d username=admin@example.test --data-urlencode "password=$SEED_PASSWORD"
-curl -s localhost:8080/api/v1/me \
-  -H 'X-Club-Host: app.agilitycanic.cat' -H "Authorization: Bearer $ACCESS_TOKEN"
-curl -s localhost:8080/oauth2/token \
-  -H 'X-Club-Host: app.agilitycanic.cat' \
-  -d grant_type=refresh_token -d client_id=clubs-app \
-  --data-urlencode "refresh_token=$REFRESH_TOKEN"
+./mvnw -q -DskipTests package
+bin/e1-smoke
 ```
 
-Set `ACCESS_TOKEN` and `REFRESH_TOKEN` from the sign-in response. Access JWTs
-expire after 15 minutes, use RS256 with a rotating `kid`, and
-carry account/tenant/role/profile/locale claims. `/me` selects explicit public
-fields and rechecks the current account and membership. A known different
-host returns `TENANT_MISMATCH`; an unknown gateway host retains the existing
-JWT tenant fallback. `X-Club-Host` is accepted only under `local`.
+The script starts its own MongoDB 7 replica set and local API on random loopback
+ports, applies the fictional Cànic/minimal seeds, and removes the temporary stack
+on completion or failure. It requires Python 3, Java 21 and Docker. It generates
+passwords in memory, retrieves magic links from a private local mailbox, and
+prints assertions without credentials. The member's passwordless state and minimal
+census link are fixtures in the disposable database; the seed files stay unchanged.
+The rehearsal covers magic login, `/me`, profile choice, cookie rotation/reuse,
+first password, seven locales, five-failure lockout, impersonation, admin handoff,
+OIDC code + S256 PKCE, revocation and the Learn fixture dry-run. HIBP retains its
+normal enabled setting and A2 availability fallback. Background scheduling is
+disabled so the dry-run comparison is unaffected by outbox dispatch. No real email
+is sent. Run the smoke after the build finishes; it uses the packaged target jar.
+
+For manual browser-client requests, keep the host-only `ah_refresh` cookie in a
+private jar. `clubs-app`, `clubs-admin` and `id-web` omit `refresh_token` from JSON:
+
+```sh
+umask 077
+AUTH_WORK=$(mktemp -d)
+curl -fsS localhost:8080/oauth2/token \
+  -H 'Host: app.agilitycanic.cat' -c "$AUTH_WORK/cookies" \
+  -d grant_type=password -d client_id=clubs-app \
+  -d username=admin@example.test --data-urlencode "password=$SEED_PASSWORD" \
+  > "$AUTH_WORK/tokens.json"
+ACCESS_TOKEN=$(jq -r .access_token "$AUTH_WORK/tokens.json")
+curl -fsS localhost:8080/api/v1/me \
+  -H 'Host: app.agilitycanic.cat' -H "Authorization: Bearer $ACCESS_TOKEN"
+curl -fsS localhost:8080/oauth2/token \
+  -H 'Host: app.agilitycanic.cat' -H 'Origin: http://app.agilitycanic.cat' \
+  -b "$AUTH_WORK/cookies" -c "$AUTH_WORK/cookies" \
+  -d grant_type=refresh_token -d client_id=clubs-app > "$AUTH_WORK/tokens.json"
+ACCESS_TOKEN=$(jq -r .access_token "$AUTH_WORK/tokens.json")
+curl -fsS localhost:8080/oauth2/revoke \
+  -H 'Host: app.agilitycanic.cat' -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' -c "$AUTH_WORK/cookies" -d '{}'
+rm -r "$AUTH_WORK"
+unset ACCESS_TOKEN AUTH_WORK
+```
+
+Refresh requires a matching `Origin` or `Referer`. The cookie is HttpOnly,
+SameSite=Strict, host-only and scoped to `/oauth2/token`; Secure is relaxed for
+local HTTP only. The revoke body is `{}` with the latest bearer because the cookie
+path excludes `/oauth2/revoke`. BODY clients (`learn`, `ar-app`) retain JSON refresh
+tokens. Use the actual `Host` for cookie requests; `X-Club-Host` alone does not
+change the browser's cookie origin.
+
+Local magic-link inspection is opt-in: set `MAIL_LOCAL_DIRECTORY` to a dedicated
+private directory before starting a local API without SendGrid credentials.
+`LogEmailSender` writes each message as an atomic JSON file (directory mode 0700,
+file mode 0600) and keeps links/recipients out of logs. These files contain login
+credentials: remove them after use. The option is ignored outside the local sink.
+The smoke creates and deletes its own mailbox automatically.
+
+Identity account locales are `ca es en fr de no pt`; PATCH `/me`, onboarding and
+account provisioning schemas share that set. App UI translations remain
+`ca/es/en`, with `en` fallback for the other account languages. Access JWTs expire
+after 15 minutes and carry current account/tenant/role/profile/locale claims;
+refresh is required to update an existing token's locale. `/me` rechecks the
+current account and membership. A known different host returns `TENANT_MISMATCH`.
 
 Refresh tokens contain 32 random bytes; Mongo stores only SHA-256 hashes.
 Each use atomically consumes and replaces the token within a Mongo transaction.
@@ -344,3 +390,19 @@ wall-clock timing across algorithms. The PHP fixture was generated with
 `password_hash("Learn-fixture-password", PASSWORD_BCRYPT, ["cost" => 12])`
 using the local `laravelsail/php83-composer` PHP runtime; it contains fictional
 test credentials only.
+
+## Learn import rehearsal
+
+```sh
+bin/core identity:import-learn src/test/resources/fixtures/learn-users.csv --dry-run
+```
+
+The fictional fixture proposes 50 accounts. Dry-run reports counts/reasons and
+writes no account, membership, audit, outbox or report file. The six export columns
+are `id,email,password,name,role,created_at`. Bcrypt credentials are preserved;
+new imported accounts use `locale=es` and pending onboarding. Timestamps without
+an offset are Europe/Madrid local time (including summer/winter offsets); explicit
+`Z` or offsets preserve their instant. Ambiguous autumn timestamps use Java's
+earlier offset, and nonexistent spring times shift forward; exports should use
+explicit offsets to disambiguate those transition hours. The real Laravel adapter
+and staging/email delivery still require their separate roadmap tasks.

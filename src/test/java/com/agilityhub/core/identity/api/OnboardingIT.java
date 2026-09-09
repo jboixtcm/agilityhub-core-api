@@ -47,6 +47,14 @@ class OnboardingIT extends IdentityIntegrationSupport {
     @Autowired ImpersonationService impersonations;
     @Autowired ConfigurableEnvironment environment;
 
+    @ParameterizedTest @ValueSource(strings = {"ca", "es", "en", "fr", "de", "no", "pt"})
+    void T_01_23_onboardingAcceptsEveryProductLocale(String locale) throws Exception {
+        call(put(PATH).contentType("application/json").content(mapper.writeValueAsString(Map.of(
+                "consentAccepted", true, "consentVersion", "platform-v1", "fields", Map.of("locale", locale)))), "club-a", "MEMBER")
+                .andExpect(status().isOk());
+        assertThat(accounts.findById("account-a").orElseThrow().locale()).isEqualTo(locale);
+    }
+
     @BeforeEach void onboardingFixture() {
         platformVersion("platform-v1");
         for (String collection : List.of("members", "audit_entries", "impersonation_grants")) { mongo.remove(new Query(), collection); }

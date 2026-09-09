@@ -29,7 +29,7 @@ public final class IdentityRequests {
             @JsonProperty("redirect_uri") @Schema(requiredMode = NOT_REQUIRED, format = "uri") String redirectUri) { }
     public record RevokeRequest(@Schema(requiredMode = NOT_REQUIRED, description = "BODY refresh token or impersonation JWT. Omit for COOKIE clients to revoke the bearer session.", accessMode = Schema.AccessMode.WRITE_ONLY) String token) { }
     public record HandoffRequest(@NotBlank String targetClientId) { }
-    public record AccountPatchRequest(@Schema(requiredMode = NOT_REQUIRED, allowableValues = {"ca", "es", "en"}) String locale, @Schema(requiredMode = NOT_REQUIRED) String name) { }
+    public record AccountPatchRequest(@Schema(requiredMode = NOT_REQUIRED, allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale, @Schema(requiredMode = NOT_REQUIRED) String name) { }
     public record PasswordRequest(
             @Schema(requiredMode = NOT_REQUIRED, format = "password", accessMode = Schema.AccessMode.WRITE_ONLY) String current,
             @NotBlank @JsonProperty("new") @Schema(format = "password", accessMode = Schema.AccessMode.WRITE_ONLY) String newPassword,
@@ -37,12 +37,12 @@ public final class IdentityRequests {
     public record ProfileRequest(@NotNull IdentityResponses.Profile activeProfile, @NotNull Boolean remember) { }
     public record ImpersonationRequest(@Schema(requiredMode = NOT_REQUIRED) String reason) { }
     public record PlatformAccountRequest(@NotBlank @Email String email, @NotBlank String name,
-            @NotBlank @Schema(allowableValues = {"ca", "es", "en"}) String locale,
+            @NotBlank @Schema(allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale,
             @Schema(requiredMode = NOT_REQUIRED, description = "Existing Learn bcrypt hash, preserved on import", accessMode = Schema.AccessMode.WRITE_ONLY)
             String passwordHash) { }
     public record AccountPasswordRequest(@NotBlank @Schema(accessMode = Schema.AccessMode.WRITE_ONLY) String passwordHash) { }
     public record OnboardingRequest(@NotNull @AssertTrue Boolean consentAccepted, @NotBlank String consentVersion,
             @Schema(requiredMode = NOT_REQUIRED) OnboardingFields fields, @Schema(requiredMode = NOT_REQUIRED) Boolean imageConsent) { }
-    public record OnboardingFields(@Schema(requiredMode = NOT_REQUIRED) String name, @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"ca", "es", "en"}) String locale,
+    public record OnboardingFields(@Schema(requiredMode = NOT_REQUIRED) String name, @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"ca", "es", "en", "fr", "de", "no", "pt"}) String locale,
             @Schema(requiredMode = NOT_REQUIRED, description = "Requested only when configured by the club") String phone) { }
 }

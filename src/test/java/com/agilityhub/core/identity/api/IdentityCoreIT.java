@@ -83,7 +83,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         for (Account.Source source : List.of(Account.Source.IMPORT_LEARN, Account.Source.MIGRATION)) {
             assertThat(accountService.getOrCreate(source.name() + "@example.test", "Example", "ca", source).onboardingPending()).isTrue();
         }
-        assertThatThrownBy(() -> accountService.getOrCreate("bad@example.test", "Example", "fr", Account.Source.CONSOLE)).hasMessage("LOCALE_NOT_SUPPORTED");
+        assertThatThrownBy(() -> accountService.getOrCreate("bad@example.test", "Example", "xx", Account.Source.CONSOLE)).hasMessage("LOCALE_NOT_SUPPORTED");
         assertThatThrownBy(() -> accountService.getOrCreate("bad@example.test", " ", "en", Account.Source.CONSOLE)).hasMessage("VALIDATION_ERROR");
         assertThatThrownBy(() -> accountService.getOrCreate("bad@example.test", "Example", "en", null)).hasMessage("VALIDATION_ERROR");
         assertThatThrownBy(() -> transactions.run(() -> {
@@ -270,6 +270,21 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         assertThatThrownBy(() -> membershipService.setRoles("account-a", Set.of(Role.MEMBER))).hasMessage("NO_MEMBERSHIP");
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"ca", "es", "en", "fr", "de", "no", "pt"})
+    void T_01_23_productLocalesPersistAndReachRefreshedClaims(String locale) throws Exception {
+        var first = login();
+        mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json")
+                .content(mapper.writeValueAsString(Map.of("locale", locale))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.account.locale").value(locale));
+        assertThat(accounts.findById("account-a").orElseThrow().locale()).isEqualTo(locale);
+        var refreshed = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        assertThat(SignedJWT.parse(refreshed.path("access_token").asText()).getJWTClaimsSet().getStringClaim("locale")).isEqualTo(locale);
+        assertThat(accountService.getOrCreate("locale@example.test", "Locale Example", locale, Account.Source.CONSOLE).locale()).isEqualTo(locale);
+        assertThatThrownBy(() -> accountService.getOrCreate("invalid@example.test", "Example", "xx", Account.Source.CONSOLE))
+                .isInstanceOf(ApiException.class).hasMessage("LOCALE_NOT_SUPPORTED");
+    }
+
     @Test void T_01_17_accountPatchAndDeviceSessionsRespectEveryRoleOwnerAndHost() throws Exception {
         membership("club-b", Set.of(Role.MEMBER), null, "member-b");
         var first = login();
@@ -277,7 +292,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                         .content("{\"locale\":\"es\",\"name\":\"Changed Example\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.account.name").value("Changed Example"))
                 .andExpect(jsonPath("$.account.locale").value("es"));
-        mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json").content("{\"locale\":\"fr\"}"))
+        mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json").content("{\"locale\":\"xx\"}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("LOCALE_NOT_SUPPORTED"));
         mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json").content("{}"))
                 .andExpect(status().isOk());
