@@ -50,6 +50,13 @@ Added 09-09: **E1-T14** CI publishes the api image to GHCR + `docker-compose.con
 ## E2 · Census and catalogs (thread A) — opens after gate E0 (front with mocks; integration needs E1)
 Planned tasks: E2-T01 contracts (S02-B, S03, S05, S14) · E2-T02 parameters API (`/parameters*`, `/club*`, holidays, postal codes) · E2-T03 levels, rings, FAQ + `CapacityCalculator` · E2-T04 team and roles · E2-T05 plans and prices · E2-T06 census domain + endpoints (members, dogs, family groups, documents, booking block) · E2-T07 universal list + saved views + sync exports · E2-T08 async export engine · E2-T09 audit queries · E2-T10 Playoff mapping + census importer (dry-run on anonymised fixtures) · E2-T11 seeds (Cànic catalogs + `demo-seed` 184 members / 242 dogs) · E2-T12 club pages (`ClubPage`: rules, privacy, image consent, welcome guide; added 09-09). · E2-T13 CI stability: bounded export size check (added 09-09 after the first red CI post-E2-T06).
 
+### Gate E2 (back) — checked by the organizer 09-09 23:20
+- [x] Census complete (members, dogs, family groups, documents/attachments, booking block, roles), universal lists with saved views and sync/async exports; INSTRUCTOR projection without financial fields (E2-T06/T07/T08).
+- [x] Catalogs (levels, rings, FAQ, plans/prices, team) and parameters generated from the catalog with `lastChange`; club pages (E2-T02…T05, T09, T12).
+- [x] `migration:playoff --dry-run` on anonymised fixtures: report without errors, no real data in the repo (E2-T10).
+- [x] `club:apply` + `seed:demo` idempotent: 184 active / 194 members, 242 dogs (E2-T11) — local stack; the staging load waits for E0-T13.
+- [ ] D5/D15 < 500 ms with two filters on the demo seed — measured by the web integration task E2-W07.
+
 ## E3 · Public signup + dashboard (thread A) — task files installed 09-09 (`not_open`; the organizer opens E3-T01 at gate E2)
 Planned tasks: E3-T01 contract S04 (`/signup*`, `/checkout-sessions`, `/me/dogs/signup`, `/members/{id}/signup|validation|rejection`, virtual list fields) + dashboard schema check against S14 §6 · E3-T02 signup domain (id documents/phones/postal codes per country profile, `FirstMonthCalculator`, `UpfrontAllocator`, `FamilyHolderMatcher`, `SignupPlanCatalog`, upfront lines, state machines; T-04-01…10) · E3-T03 signup endpoints (public flow, identity checks, uploads, family lookups, D2 validation/rejection, add-dog, `PaymentProvider` + `FakeCheckoutGateway`, rate limits, N-01/02/03/37/39, seeds; T-04-11…28) · E3-T04 dashboard back (`DashboardQuery` + cache/invalidation, `RiskCardBuilder` over S06 ports, `DogActivityQuery`, `/dashboard`, `/dashboard/counters`; T-14-01…06, 11, 22, 23) · E3-T05 integration (`bin/e3-smoke`, D1 seed values, DEPLOY, gate checklist).
 
