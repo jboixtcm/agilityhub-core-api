@@ -120,7 +120,7 @@ parameters:
     documentDefault: "true"
   - key: "signup.text.paymentDay"
     type: "localizedText"
-    default: {"ca": "El rebut es carrega normalment l'últim dia de cada mes. Tens fins al dia {deadlineDay} per modificar l'emissió de rebuts del mes següent, des de la teva fitxa o posant-te en contacte amb el club.", "es": "El recibo se carga normalmente el último día de cada mes. Tienes hasta el día {deadlineDay} para modificar la emisión de recibos del mes siguiente, desde tu ficha o poniéndote en contacto con el club.", "en": "Payment is normally collected on the last day of each month. You have until day {deadlineDay} to change billing for the following month, from your profile or by contacting the club."}
+    default: {"ca": "Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia {deadlineDay} per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.", "es": "Cuando ya no quieras seguir haciendo actividades en el club o quieras estar un tiempo sin venir, indícanoslo antes del día {deadlineDay} para modificar la emisión de recibos del mes siguiente. Puedes hacerlo desde tu ficha o contactando con nosotros directamente.", "en": "When you no longer want to train at the club, or you want to take a break, let us know before day {deadlineDay} so we can change the following month's billing. You can do it from your profile or by contacting us."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.paymentDay.label"
     helpKey: "admin-settings:param.signup.text.paymentDay.help"
@@ -130,10 +130,10 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "`{\"ca\": \"El rebut es carrega normalment l'últim dia de cada mes. Tens fins al dia {deadlineDay} per modificar l'emissió de rebuts del mes següent, des de la teva fitxa o posant-te en contacte amb el club.\", \"es\": \"El recibo se carga normalmente el último día de cada mes. Tienes hasta el día {deadlineDay} para modificar la emisión de recibos del mes siguiente, desde tu ficha o poniéndote en contacto con el club.\", \"en\": \"Payment is normally collected on the last day of each month. You have until day {deadlineDay} to change billing for the following month, from your profile or by contacting the club.\"}`"
+    documentDefault: "`{\"ca\": \"Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia {deadlineDay} per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.\", \"es\": \"Cuando ya no quieras seguir haciendo actividades en el club o quieras estar un tiempo sin venir, indícanoslo antes del día {deadlineDay} para modificar la emisión de recibos del mes siguiente. Puedes hacerlo desde tu ficha o contactando con nosotros directamente.\", \"en\": \"When you no longer want to train at the club, or you want to take a break, let us know before day {deadlineDay} so we can change the following month's billing. You can do it from your profile or by contacting us.\"}`"
   - key: "signup.text.cashConditions"
     type: "localizedText"
-    default: {"ca": "Pagament en efectiu: la quota es paga mensualment al club. Posa't en contacte amb el club per coordinar-ho.", "es": "Pago en efectivo: la cuota se paga mensualmente en el club. Ponte en contacto con el club para coordinarlo.", "en": "Cash payment: the fee is paid monthly at the club. Contact the club to arrange this."}
+    default: {"ca": "Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.", "es": "Pago en efectivo: la cuota se paga por semestres naturales completos en el club. Ponte en contacto con el club para coordinarlo.", "en": "Cash payment: the fee is paid at the club in full calendar half-years. Contact the club to arrange this."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.cashConditions.label"
     helpKey: "admin-settings:param.signup.text.cashConditions.help"
@@ -143,7 +143,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "`{\"ca\": \"Pagament en efectiu: la quota es paga mensualment al club. Posa't en contacte amb el club per coordinar-ho.\", \"es\": \"Pago en efectivo: la cuota se paga mensualmente en el club. Ponte en contacto con el club para coordinarlo.\", \"en\": \"Cash payment: the fee is paid monthly at the club. Contact the club to arrange this.\"}`"
+    documentDefault: "`{\"ca\": \"Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.\", \"es\": \"Pago en efectivo: la cuota se paga por semestres naturales completos en el club. Ponte en contacto con el club para coordinarlo.\", \"en\": \"Cash payment: the fee is paid at the club in full calendar half-years. Contact the club to arrange this.\"}`"
   - key: "signup.text.freeTrainingConditions"
     type: "localizedText"
     default: {"ca": "Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.", "es": "Las clases son siempre con instructor y se pueden hacer hasta dos por semana. Además, existe la posibilidad de entrenamiento libre fuera del horario de clases a partir del nivel D con licencia deportiva.", "en": "Classes always have an instructor, with up to two classes per week. Free training outside class hours is also available from level D with a sports licence."}
@@ -1147,7 +1147,7 @@ parameters:
     documentDefault: "rebut impagat · cartilla pendent · decisió del club"
   - key: "signup.text.monthlyPaymentIntro"
     type: "localizedText"
-    default: {"ca": "La quota mensual per abonats es cobrarà normalment l'últim dia de cada mes. En el cas de packs no es genera cap càrrec mensual.", "es": "La cuota mensual para abonados se cobrará normalmente el último día de cada mes. En el caso de packs no se genera ningún cargo mensual.", "en": "The monthly membership fee is normally collected on the last day of each month. Packs do not generate a monthly charge."}
+    default: {"ca": "La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.", "es": "La cuota mensual para abonados se cobrará normalmente el día 1. En el caso de packs no se genera ningún cargo.", "en": "The monthly membership fee is normally collected on the 1st. Packs do not generate a monthly charge."}
     block: "signup"
     labelKey: "admin-settings:param.signup.text.monthlyPaymentIntro.label"
     helpKey: "admin-settings:param.signup.text.monthlyPaymentIntro.help"
@@ -1157,7 +1157,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "localizedText"
-    documentDefault: "`{\"ca\": \"La quota mensual per abonats es cobrarà normalment l'últim dia de cada mes. En el cas de packs no es genera cap càrrec mensual.\", \"es\": \"La cuota mensual para abonados se cobrará normalmente el último día de cada mes. En el caso de packs no se genera ningún cargo mensual.\", \"en\": \"The monthly membership fee is normally collected on the last day of each month. Packs do not generate a monthly charge.\"}`"
+    documentDefault: "`{\"ca\": \"La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.\", \"es\": \"La cuota mensual para abonados se cobrará normalmente el día 1. En el caso de packs no se genera ningún cargo.\", \"en\": \"The monthly membership fee is normally collected on the 1st. Packs do not generate a monthly charge.\"}`"
   - key: "signup.text.therapyIntro"
     type: "localizedText"
     default: {"ca": "Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.", "es": "También se pueden hacer clases de terapia individual, combinadas con las clases en grupo o como paso previo. Si la terapia se combina con clases en grupo, selecciona la opción de Abonado o Pack; si inicialmente no harás clases en grupo, selecciona la opción Terapia.", "en": "Individual therapy classes are also available, alongside group classes or as a preliminary step. If therapy is combined with group classes, select Membership or Pack; if you will not initially attend group classes, select Therapy."}
@@ -1339,7 +1339,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "enum `MONTHLY · SEMESTER`"
-    documentDefault: "**SEMESTER** (Josep 08-09: en efectiu no hi ha quota mensual; primera fracció en mesos fins a final de semestre natural i després semestres complets — supera el «mensual» de Jordi 05-09)"
+    documentDefault: "**SEMESTER** (Josep 08-09: en efectiu no hi ha quota mensual; primera fracció en mesos fins a final de semestre natural i després semestres complets). `MONTHLY` és igualment de producte: la clau **s'edita des de D11** i les dues branques estan provades (Jordi 09-09, A29); en canviar-la, repassa `signup.text.cashConditions`"
 
   - key: "billing.upfrontCutoffDay"
     type: "int"
@@ -1434,7 +1434,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "int (dia **del mes que es factura**: 1–28, o `0` = últim dia)"
-    documentDefault: "**1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior — supera l'«últim dia» de Jordi 05-09)"
+    documentDefault: "**1** (Josep 08-09: «la quota d'octubre es cobra l'1 d'octubre»; la remesa es genera el mes anterior). Les dues semàntiques (`1–28` i `0` = últim dia) són de producte, la clau **s'edita des de D11** i totes dues estan provades (Jordi 09-09, A28); en canviar-la, repassa `signup.text.paymentDay`"
   - key: "billing.stripeMaxAttempts"
     type: "int"
     default: 3
