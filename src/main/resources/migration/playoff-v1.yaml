@@ -1,0 +1,100 @@
+version: 1
+defaultClub: canic
+statuses: {alta: ACTIVE, baixa: LEFT, baja: LEFT, bloqueado: ACTIVE, "personal laboral": ACTIVE, simpatizante: SKIP}
+plans:
+  "abonat": ABONAT
+  "familiar abonat": ABONAT_FAMILIAR
+  "abonat 2 gossos": ABONAT_FAMILIAR
+  "manteniment": TERAPIA
+  "pack 10 classes": PACK10
+  "instructors": INSTRUCTOR_FREE
+  "competició 1 gos": COMPETICIO_1
+  "pack 6 classes": PACK6
+unresolvedPlans: ["quota reduïda", "familiar abonat/curs"]
+familyPlans: ["familiar abonat"]
+instructorPlans: [instructors]
+levels: {a: A, b: B, c: C, d: D, e: E, f: F, g: G, cadells: CADELLS}
+levelFlags: {llicencia: LICENSE_HOLDER, teràpies: THERAPY, terapies: THERAPY}
+unresolvedLevels: [pendent]
+files:
+  members:
+    name: socis.csv
+    required: true
+    columns:
+      - {at: 1, header: "ID associat", field: id, anonymize: id}
+      - {at: 2, header: "ID subcategoria", field: subcategoryId, anonymize: id}
+      - {at: 3, header: "Foto", field: photo, anonymize: redact}
+      - {at: 4, header: "Núm. assoc.", field: number, anonymize: number}
+      - {at: 5, header: "Estat", field: status, anonymize: keep}
+      - {at: 6, header: "Nom", field: firstName, anonymize: name}
+      - {at: 7, header: "Cognoms", field: surname, anonymize: surname}
+      - {at: 8, header: "NIF", field: document, anonymize: document}
+      - {at: 9, header: "Passaport", field: passport, anonymize: passport}
+      - {at: 10, header: "Té passaport?", field: hasPassport, anonymize: keep}
+      - {at: 11, header: "Data naixement", field: birthDate, anonymize: keep}
+      - {at: 12, header: "Edat", field: age, anonymize: keep}
+      - {at: 13, header: "Gènere", field: gender, anonymize: keep}
+      - {at: 14, header: "Estat civil", field: civilStatus, anonymize: keep}
+      - {at: 15, header: "Telèfon principal", field: phone, anonymize: phone}
+      - {at: 16, header: "Telèfon secundari", field: phone2, anonymize: phone}
+      - {at: 17, header: "Codi postal", field: postalCode, anonymize: postal}
+      - {at: 18, header: "Domicili", field: street, anonymize: address}
+      - {at: 19, header: "Municipi", field: city, anonymize: address}
+      - {at: 20, header: "Província", field: province, anonymize: address}
+      - {at: 21, header: "País", field: country, anonymize: keep}
+      - {at: 22, header: "Nacionalitat", field: nationality, anonymize: keep}
+      - {at: 23, header: "Email principal", field: email, anonymize: email}
+      - {at: 24, header: "Email secundari", field: email2, anonymize: email}
+      - {at: 25, header: "Web", field: web, anonymize: redact}
+      - {at: 26, header: "Data alta", field: joined, anonymize: keep}
+      - {at: 27, header: "Data baixa", field: left, anonymize: keep}
+      - {at: 28, header: "IBAN", field: iban, anonymize: iban}
+      - {at: 29, header: "Titular banc", field: holder, anonymize: name}
+      - {at: 30, header: "App+Notificacions", field: notifications, anonymize: keep}
+      - {at: 31, header: "Observacions", field: notes, anonymize: redact}
+      - {at: 32, header: "Impagats", field: unpaid, anonymize: keep}
+      - {at: 33, header: "Import impagats", field: unpaidAmount, anonymize: keep}
+      - {at: 34, header: "Data impagat", field: unpaidDate, anonymize: keep}
+      - {at: 35, header: "Pendents", field: pending, anonymize: keep}
+      - {at: 36, header: "Import pendents", field: pendingAmount, anonymize: keep}
+      - {at: 37, header: "Mètode pagament", field: payment, anonymize: keep}
+      - {at: 38, header: "Adjunts", field: attachments, anonymize: redact}
+      - {at: 39, header: "Nom del gos", field: dogName, anonymize: dog}
+      - {at: 40, header: "Sexe del gos", field: dogSex, anonymize: keep}
+      - {at: 41, header: "Data naixement", field: dogBirth, anonymize: keep}
+      - {at: 42, header: "Raça del gos", field: breed, anonymize: keep}
+      - {at: 43, header: "Numero de xip", field: chip, anonymize: chip}
+      - {at: 44, header: "Nom del guia", field: handler, anonymize: name}
+      - {at: 45, header: "Objectius", field: objectives, anonymize: redact}
+      - {at: 46, header: "Llicencia RSCE", field: rsce, anonymize: license}
+      - {at: 47, header: "Llicencia FCAG", field: fcag, anonymize: license}
+      - {at: 48, header: "Categoria RSCE", field: category, anonymize: keep}
+      - {at: 49, header: "Grau", field: grade, anonymize: keep}
+      - {at: 50, header: "Divisió", field: division, anonymize: keep}
+      - {at: 51, header: "Te clau", field: key, anonymize: keep}
+  plans:
+    name: tipologia.csv
+    required: true
+    columns:
+      - {at: 1, header: "ID associat", field: id, anonymize: id}
+      - {at: 2, header: "Tipologia", field: plan, anonymize: keep}
+  levels:
+    name: nivell.csv
+    required: true
+    columns:
+      - {at: 1, header: "ID associat", field: id, anonymize: id}
+      - {at: 2, header: "Subcategoria", field: level, anonymize: keep}
+      - {at: 3, header: "Data assignació", field: assigned, anonymize: keep}
+  groups:
+    name: family_groups.csv
+    required: false
+    columns:
+      - {at: 1, header: "ID grup", field: groupId, anonymize: id}
+      - {at: 2, header: "ID associat", field: id, anonymize: id}
+      - {at: 3, header: "ID titular", field: holderId, anonymize: id}
+  team:
+    name: equip.csv
+    required: false
+    columns:
+      - {at: 1, header: "Núm. assoc.", field: number, anonymize: number}
+      - {at: 2, header: "Rol", field: role, anonymize: keep}

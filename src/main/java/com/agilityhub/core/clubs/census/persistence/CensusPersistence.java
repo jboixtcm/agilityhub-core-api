@@ -9,14 +9,14 @@ public class CensusPersistence {
     @Bean public CensusRepository<Member> members(MongoTemplate mongo, Clock clock) {
         var repo = new CensusRepository<>(mongo, Member.class, clock);
         repo.ensureIndexes("memberNumber", "number", "member_number"); repo.ensureIndexes("idDocument.number", "string", "member_id_document");
-        repo.ensureLookup("accountId"); return repo;
+        repo.ensureLookup("accountId"); repo.ensureIndexes("externalIds.playoff", "array", "member_playoff_ids"); return repo;
     }
     @Bean public CensusRepository<Dog> dogs(MongoTemplate mongo, Clock clock) {
         var repo = new CensusRepository<>(mongo, Dog.class, clock); repo.ensureIndexes("chip", "string", "dog_chip");
-        repo.ensureLookup("memberId"); repo.ensureLookup("levelId"); return repo;
+        repo.ensureLookup("memberId"); repo.ensureLookup("levelId"); repo.ensureIndexes("sourceIds.playoffMemberId", "string", "dog_playoff_id"); return repo;
     }
     @Bean public CensusRepository<FamilyGroup> familyGroups(MongoTemplate mongo, Clock clock) {
-        var repo = new CensusRepository<>(mongo, FamilyGroup.class, clock); repo.ensureLookup("memberIds"); return repo;
+        var repo = new CensusRepository<>(mongo, FamilyGroup.class, clock); repo.ensureLookup("memberIds"); repo.ensureIndexes("sourceIds.playoffGroupId", "string", "group_playoff_id"); return repo;
     }
     @Bean public CensusRepository<DogDocument> dogDocuments(MongoTemplate mongo, Clock clock) {
         var repo = new CensusRepository<>(mongo, DogDocument.class, clock); repo.documentIndex(); return repo;

@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document("members")
 public class Member extends CensusEntity {
+    public Map<String,Object> sourceIds;
+    public Map<String,Object> externalIds;
     public String accountId;
     public Integer memberNumber;
     public Map<String,Object> idDocument;
@@ -30,6 +32,8 @@ public class Member extends CensusEntity {
     public Instant joinedAt;
     @org.springframework.data.convert.ValueConverter(CensusDateConverter.class)
     public LocalDate leaveDate;
+    public Instant leftAt;
+    public String leftReason;
     public String leaveRequestId;
     public Map<String,Object> bookingBlock;
     public String lastDogForClass;
