@@ -26,6 +26,7 @@ updated: 2026-09-05
 import sys, re, os, datetime, io
 
 STATES = ["not_open", "ready", "in_progress", "awaiting_verification", "changes_requested", "blocked", "verified"]
+MAX_TASK_BYTES = 120 * 1024  # evidence rule: long outputs live in roadmap/evidence/<ID>/
 ICON = {"not_open": "—", "ready": "☐", "in_progress": "▶", "awaiting_verification": "🔎",
         "changes_requested": "🔁", "blocked": "⛔", "verified": "✅"}
 NEXT = {"not_open": "organizer opens it", "ready": "executor: start", "in_progress": "executor: resume + report",
@@ -124,6 +125,9 @@ def validate(tasks):
         ver = section(t["_body"], "Organizer verification")
         if st == "awaiting_verification" and ("_(not started)_" in rep or len(rep.strip()) < 200):
             errors.append(f"{tid}: awaiting_verification but the Executor report is empty (evidence required)")
+        if st == "awaiting_verification" and len(t["_text"].encode("utf-8")) > MAX_TASK_BYTES:
+            errors.append(f"{tid}: task file is {len(t['_text'].encode('utf-8')) // 1024} KB (max {MAX_TASK_BYTES // 1024} KB) — "
+                          f"move long outputs to roadmap/evidence/{tid}/NN-<name>.log and keep the last 40 lines of each in the report")
         if st == "verified" and "Result: verified" not in ver:
             errors.append(f"{tid}: status verified but the Organizer verification section has no 'Result: verified'")
         if st == "changes_requested" and "Result: changes_requested" not in ver:
