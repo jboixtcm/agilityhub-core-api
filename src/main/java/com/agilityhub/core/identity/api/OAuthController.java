@@ -21,8 +21,10 @@ public class OAuthController {
     private final com.agilityhub.core.identity.application.OidcService oidc;
     private final com.agilityhub.core.identity.application.SigningKeys keys;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    private final RefreshCookies refreshCookies;
     public OAuthController(com.agilityhub.core.identity.application.TokenService tokens, com.agilityhub.core.identity.application.ImpersonationService impersonations,
-            com.agilityhub.core.identity.application.OidcService oidc, com.agilityhub.core.identity.application.SigningKeys keys, com.fasterxml.jackson.databind.ObjectMapper mapper) {
+            com.agilityhub.core.identity.application.OidcService oidc, com.agilityhub.core.identity.application.SigningKeys keys, com.fasterxml.jackson.databind.ObjectMapper mapper, RefreshCookies refreshCookies) {
+        this.refreshCookies = refreshCookies;
         this.oidc = oidc; this.keys = keys; this.mapper = mapper; this.tokens = tokens; this.impersonations = impersonations;
     }
     @PostMapping(value = "/oauth2/token", consumes = "application/x-www-form-urlencoded")
@@ -31,6 +33,8 @@ public class OAuthController {
             description = "ANON with client authentication. Club context comes from the host, never request data. "
                     + "Password and magic-link grants issue sessions; refresh tokens rotate on every use. "
                     + "Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. "
+                    + "COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. "
+                    + "Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. "
                     + "client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
                     content = @Content(mediaType = "application/x-www-form-urlencoded", schema = @Schema(implementation = TokenRequest.class))),
@@ -39,9 +43,10 @@ public class OAuthController {
                     @ExtensionProperty(name = "urn:agilityhub:grant:magic-link", value = "{\"required\":[\"client_id\",\"token\"],\"optional\":[\"client_secret\",\"scope\"]}", parseValue = true),
                     @ExtensionProperty(name = "urn:agilityhub:grant:handoff", value = "{\"required\":[\"client_id\",\"token\"],\"optional\":[\"client_secret\",\"scope\"]}", parseValue = true),
                     @ExtensionProperty(name = "authorization_code", value = "{\"required\":[\"client_id\",\"code\",\"redirect_uri\"],\"optional\":[\"client_secret\",\"code_verifier\",\"scope\"]}", parseValue = true),
-                    @ExtensionProperty(name = "refresh_token", value = "{\"required\":[\"client_id\",\"refresh_token\"],\"optional\":[\"client_secret\",\"scope\"]}", parseValue = true)}),
+                    @ExtensionProperty(name = "refresh_token", value = "{\"required\":[\"client_id\"],\"optional\":[\"refresh_token\",\"client_secret\",\"scope\"],\"cookie\":\"ah_refresh for COOKIE clients; refresh_token required for BODY clients\"}", parseValue = true)}),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "TokenResponse; refresh_token and id_token depend on grant and scope"),
+                    @ApiResponse(responseCode = "200", description = "TokenResponse; refresh_token only for BODY clients; id_token depends on grant and scope",
+                            headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Set-Cookie", description = "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=auth.sessionDays in seconds. Secure relaxed only for local HTTP.", schema = @Schema(type = "string"))),
                     @ApiResponse(responseCode = "400", description = "Invalid grant: MAGIC_LINK_INVALID, HANDOFF_INVALID, REFRESH_EXPIRED, REFRESH_REUSED; malformed form: VALIDATION_ERROR"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS"),
                     @ApiResponse(responseCode = "403", description = "NO_MEMBERSHIP, MEMBERSHIP_SUSPENDED, ACCOUNT_BLOCKED"),
@@ -138,15 +143,23 @@ public class OAuthController {
     @PostMapping("/oauth2/revoke")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Revoke a refresh session or impersonation grant",
-            description = "Any valid account token. R-01-10. Idempotent; JSON body as specified in S01 §6.",
+            description = "Any valid account token. R-01-10. Idempotent. JSON token is optional for COOKIE clients: {} revokes the bearer sid because the refresh cookie path excludes this route. Clears ah_refresh.",
             responses = @ApiResponse(responseCode = "200", description = "Revoked (also when already revoked)", content = @Content))
     public ResponseEntity<Void> revoke(@jakarta.validation.Valid @RequestBody RevokeRequest request,
-            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, jakarta.servlet.http.HttpServletRequest servletRequest) {
+        if (request.token() == null && !Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp"))
+                && refreshCookies.cookieClient(jwt.getClaimAsString("azp"))) {
+            tokens.revokeSession(jwt.getSubject(), jwt.getClaimAsString("sid"));
+            return ResponseEntity.ok().header("Set-Cookie", refreshCookies.clearHeader(servletRequest)).build();
+        }
+        if (request.token() == null || request.token().isBlank()) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.VALIDATION_ERROR);
+        }
         if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("imp")) && !jwt.getTokenValue().equals(request.token())) {
             throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.IMPERSONATION_DENIED);
         }
         if (!impersonations.revoke(jwt.getSubject(), request.token())) { tokens.revoke(jwt.getSubject(), request.token()); }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().header("Set-Cookie", refreshCookies.clearHeader(servletRequest)).build();
     }
 
     @GetMapping("/oauth2/userinfo")
@@ -168,6 +181,6 @@ public class OAuthController {
             @RequestParam(required = false) String state, jakarta.servlet.http.HttpServletRequest request) {
         String destination = oidc.logout(id_token_hint, post_logout_redirect_uri, state, cookie(request));
         return ResponseEntity.status(302).location(java.net.URI.create(destination)).cacheControl(org.springframework.http.CacheControl.noStore())
-                .header("Set-Cookie", sessionCookie("", 0)).build();
+                .header("Set-Cookie", sessionCookie("", 0), refreshCookies.clearHeader(request)).build();
     }
 }

@@ -20,7 +20,7 @@ public final class IdentityResponses {
             @Schema(requiredMode = REQUIRED) String access_token,
             @Schema(requiredMode = REQUIRED, allowableValues = "Bearer") String token_type,
             @Schema(requiredMode = REQUIRED, minimum = "1") long expires_in,
-            @Schema(requiredMode = NOT_REQUIRED) String refresh_token, @Schema(requiredMode = NOT_REQUIRED) String id_token, @Schema(requiredMode = REQUIRED) String scope) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only BODY clients; COOKIE clients receive ah_refresh in Set-Cookie, never JSON") String refresh_token, @Schema(requiredMode = NOT_REQUIRED) String id_token, @Schema(requiredMode = REQUIRED) String scope) { }
     public record ProfileResponse(@Schema(requiredMode = REQUIRED) String access_token) { }
     public record HandoffResponse(@Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED, format = "uri") String url) { }

@@ -75,6 +75,18 @@ public class AccountRepository extends GlobalRepository<Account> {
     public void revokeAll(String id, Instant now) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().inc("security.tokenFamilyVersion", 1).set("security.accessRevokedAt", now), Account.class);
     }
+    /** Shared writes prevent concurrent removals from observing two admins and leaving zero. */
+    public void serializePlatformRoles() {
+        mongo.updateMulti(Query.query(Criteria.where("platformRoles").is(Account.PlatformRole.AGILITYHUB_ADMIN)),
+                new Update().inc("platformRolesSequence", 1), Account.class);
+    }
+    public long activePlatformAdmins() {
+        return mongo.count(Query.query(Criteria.where("platformRoles").is(Account.PlatformRole.AGILITYHUB_ADMIN)
+                .and("status").is(Account.Status.ACTIVE)), Account.class);
+    }
+    public void platformRoles(String id, java.util.Set<Account.PlatformRole> roles) {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("platformRoles", roles), Account.class);
+    }
     public void ensureIndexes() {
         mongo.indexOps(Account.class).ensureIndex(new Index().on("email", Direction.ASC).unique().named("account_email"));
     }

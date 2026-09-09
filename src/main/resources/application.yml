@@ -50,26 +50,31 @@ core:
     login-url: ${OIDC_LOGIN_URL:https://id.agilitydoghub.com/login}
     clients:
       - id: clubs-app
+        token-delivery: COOKIE
         redirect-uris: ["${OIDC_CLUBS_APP_REDIRECT_URI:https://clubs.agilitydoghub.com/oidc/callback}"]
         post-logout-redirect-uris: ["${OIDC_CLUBS_APP_LOGOUT_URI:https://clubs.agilitydoghub.com/}"]
         scopes: [openid, profile, email, memberships, offline_access]
         grants: [authorization_code, password, "urn:agilityhub:grant:magic-link", "urn:agilityhub:grant:handoff", refresh_token]
       - id: clubs-admin
+        token-delivery: COOKIE
         redirect-uris: ["${OIDC_CLUBS_ADMIN_REDIRECT_URI:https://clubsadmin.agilitydoghub.com/oidc/callback}"]
         post-logout-redirect-uris: ["${OIDC_CLUBS_ADMIN_LOGOUT_URI:https://clubsadmin.agilitydoghub.com/}"]
         scopes: [openid, profile, email, memberships, offline_access]
         grants: [authorization_code, password, "urn:agilityhub:grant:magic-link", "urn:agilityhub:grant:handoff", refresh_token]
       - id: id-web
+        token-delivery: COOKIE
         redirect-uris: ["${OIDC_ID_WEB_REDIRECT_URI:https://id.agilitydoghub.com/oidc/callback}"]
         post-logout-redirect-uris: ["${OIDC_ID_WEB_LOGOUT_URI:https://id.agilitydoghub.com/}"]
         scopes: [openid, profile, email, memberships, offline_access]
         grants: [authorization_code, password, "urn:agilityhub:grant:magic-link", refresh_token]
       - id: ar-app
+        token-delivery: BODY
         redirect-uris: ["${OIDC_AR_APP_REDIRECT_URI:https://ar.agilitydoghub.com/oidc/callback}"]
         post-logout-redirect-uris: ["${OIDC_AR_APP_LOGOUT_URI:https://ar.agilitydoghub.com/}"]
         scopes: [openid, profile, email, memberships, offline_access]
         grants: [authorization_code, refresh_token]
       - id: learn
+        token-delivery: BODY
         confidential: true
         secret: ${OIDC_LEARN_CLIENT_SECRET:}
         redirect-uris: ["${OIDC_LEARN_REDIRECT_URI:https://learn.agilitydoghub.com/oidc/callback}"]

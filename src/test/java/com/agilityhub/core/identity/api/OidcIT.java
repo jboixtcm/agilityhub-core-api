@@ -78,7 +78,7 @@ class OidcIT extends IdentityIntegrationSupport {
         return request;
     }
     JsonNode exchange(String client, Code code) throws Exception {
-        return mapper.readTree(mvc.perform(exchange(client, code.value(), VERIFIER)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        return readTokens(mvc.perform(exchange(client, code.value(), VERIFIER)).andExpect(status().isOk()).andReturn().getResponse());
     }
     @Test void T_01_13_discoveryPublicClientsPkceFullFlowScopedClaimsAndRefresh() throws Exception {
         mvc.perform(get("/.well-known/openid-configuration").header("Host", "unknown.example.test"))
@@ -95,7 +95,7 @@ class OidcIT extends IdentityIntegrationSupport {
         var flow = start("ar-app", "openid profile email memberships offline_access");
         var code = complete(flow);
         var result = exchange("ar-app", code);
-        assertThat(result.get("refresh_token").asText()).isNotBlank();
+        assertThat(refreshValue(result)).isNotBlank();
         var access = decoder.decode(result.get("access_token").asText());
         assertThat(access.getClaimAsString("clubId")).isNull();
         var id = com.nimbusds.jwt.SignedJWT.parse(result.get("id_token").asText());
@@ -108,12 +108,12 @@ class OidcIT extends IdentityIntegrationSupport {
         mvc.perform(get("/oauth2/userinfo").header("Authorization", "Bearer " + result.get("access_token").asText()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.memberships.length()").value(2)).andExpect(jsonPath("$.locale").value("en"));
         mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + result.get("id_token").asText())).andExpect(status().isUnauthorized());
-        var refreshed = mapper.readTree(refresh(result.get("refresh_token").asText(), "id.agilitydoghub.com", "ar-app")
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var refreshed = readTokens(refresh(refreshValue(result), "id.agilitydoghub.com", "ar-app")
+                .andExpect(status().isOk()).andReturn().getResponse());
         assertThat(refreshed.get("scope")).isEqualTo(result.get("scope"));
         assertThat(refreshed.get("id_token").asText()).isNotBlank();
-        refresh(result.get("refresh_token").asText(), "id.agilitydoghub.com", "ar-app").andExpect(status().isBadRequest());
-        refresh(refreshed.get("refresh_token").asText(), "id.agilitydoghub.com", "ar-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(result), "id.agilitydoghub.com", "ar-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(refreshed), "id.agilitydoghub.com", "ar-app").andExpect(status().isBadRequest());
         mvc.perform(exchange("ar-app", code.value(), VERIFIER)).andExpect(status().isBadRequest());
         assertThat(mongo.findAll(OidcState.Flow.class)).noneMatch(f -> f.id().equals(flow.value()));
     }
@@ -149,14 +149,14 @@ class OidcIT extends IdentityIntegrationSupport {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
         assertThat(decoder.decode(profileToken.get("access_token").asText()).getClaimAsString("scope").split(" "))
                 .containsExactlyInAnyOrder("openid", "profile", "offline_access");
-        var refreshed = mapper.readTree(refresh(clubToken.get("refresh_token").asText(), "id.agilitydoghub.com", "clubs-app")
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var refreshed = readTokens(refresh(refreshValue(clubToken), "id.agilitydoghub.com", "clubs-app")
+                .andExpect(status().isOk()).andReturn().getResponse());
         assertThat(decoder.decode(refreshed.get("access_token").asText()).getClaimAsString("clubId")).isEqualTo("club-a");
         mvc.perform(post("/oauth2/token").header("Host", "id.agilitydoghub.com").param("grant_type", "refresh_token")
-                .param("client_id", "clubs-app").param("refresh_token", refreshed.get("refresh_token").asText()).param("scope", "openid email"))
+                .param("client_id", "clubs-app").param("refresh_token", refreshValue(refreshed)).param("scope", "openid email"))
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/oauth2/token").header("Host", "id.agilitydoghub.com").param("grant_type", "refresh_token")
-                .param("client_id", "clubs-app").param("refresh_token", refreshed.get("refresh_token").asText()).param("scope", "openid offline_access"))
+                .param("client_id", "clubs-app").param("refresh_token", refreshValue(refreshed)).param("scope", "openid offline_access"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.scope").value(org.hamcrest.Matchers.matchesPattern("(offline_access openid|openid offline_access)")));
         mvc.perform(get("/oauth2/userinfo").header("Host", "b.example.test").header("Authorization", "Bearer " + clubToken.get("access_token").asText()))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("TENANT_MISMATCH"));
@@ -174,7 +174,8 @@ class OidcIT extends IdentityIntegrationSupport {
         // The client id is in Basic auth; the global identity host still determines the request context.
         mvc.perform(post("/oauth2/token").header("Host", "id.agilitydoghub.com").header("Authorization", "Basic " + basic)
                 .param("grant_type", "password").param("username", "admin@example.test").param("password", PASSWORD).param("scope", "accounts:write"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.scope").value("accounts:write"));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.scope").value("accounts:write"))
+                .andExpect(jsonPath("$.refresh_token").isNotEmpty()).andExpect(header().doesNotExist("Set-Cookie"));
         var response = mvc.perform(get("/oauth2/authorize").header("Host", "id.agilitydoghub.com").param("response_type", "code")
                 .param("client_id", "learn").param("redirect_uri", redirect("learn")).param("scope", "openid email").param("state", "state & equals=preserved"))
                 .andExpect(status().isFound()).andReturn().getResponse();
@@ -227,7 +228,8 @@ class OidcIT extends IdentityIntegrationSupport {
                 .andExpect(status().isBadRequest());
         mvc.perform(get("/connect/logout").param("id_token_hint", hint).param("post_logout_redirect_uri", ID + "/").param("state", "done").cookie(code.cookie()))
                 .andExpect(status().isFound()).andExpect(redirectedUrl(ID + "/?state=done"))
-                .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")));
+                .andExpect(header().stringValues("Set-Cookie", org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.allOf(
+                        org.hamcrest.Matchers.containsString("ah_refresh="), org.hamcrest.Matchers.containsString("Max-Age=0")))));
         mvc.perform(authorize("id-web", "openid").param("prompt", "none").cookie(code.cookie())).andExpect(status().isFound())
                 .andExpect(redirectedUrlPattern(ID + "/oidc/callback?error=login_required*"));
         var revoked = complete(start("id-web", "openid"));

@@ -11,8 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - E1-T07 (blocked before implementation): Recorded missing Docker/Mongo access and
   full verification failures; the Learn import CLI and T-01-14 remain pending.
 
-- E1-T13 (blocked before implementation): Recorded the missing Docker daemon and
-  Maven cache permission failure; cookie refresh and platform roles remain pending.
+- E1-T13: Browser refresh tokens now use host-only HttpOnly cookies with rotation,
+  same-host request validation and logout/revocation clearing. BODY clients retain
+  their token responses. Added audited platform-role GET/PUT endpoints with a
+  concurrent last-admin guard, an idempotent deployment bootstrap CLI, proxy
+  recipes, regression tests and the regenerated OpenAPI contract.
 
 - E1-T11: Make OpenAPI model properties required by default, with explicit optional
   fields across existing contracts, preserved empty required arrays, and regression

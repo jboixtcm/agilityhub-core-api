@@ -70,11 +70,28 @@ abstract class IdentityIntegrationSupport extends AbstractIntegrationTest {
         return mvc.perform(post("/oauth2/token").header("Host", host).contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .param("grant_type", "password").param("username", email).param("password", password));
     }
+    private final Map<JsonNode, String> responseCookies = new java.util.IdentityHashMap<>();
+    JsonNode readTokens(org.springframework.mock.web.MockHttpServletResponse response) throws Exception {
+        var body = mapper.readTree(response.getContentAsString());
+        var cookie = response.getCookie(RefreshCookies.NAME);
+        if (cookie != null) {
+            org.assertj.core.api.Assertions.assertThat(body.has("refresh_token")).isFalse();
+            responseCookies.put(body, cookie.getValue());
+        }
+        return body;
+    }
+    String refreshValue(JsonNode response) {
+        return responseCookies.getOrDefault(response, response.path("refresh_token").asText());
+    }
     JsonNode login() throws Exception {
-        return mapper.readTree(login(HOST, "admin@example.test", PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        return readTokens(login(HOST, "admin@example.test", PASSWORD).andExpect(status().isOk()).andReturn().getResponse());
     }
     ResultActions refresh(String value, String host, String client) throws Exception {
-        return mvc.perform(post("/oauth2/token").header("Host", host).contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .param("grant_type", "refresh_token").param("client_id", client).param("refresh_token", value));
+        var request = post("/oauth2/token").header("Host", host).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("grant_type", "refresh_token").param("client_id", client);
+        if (java.util.Set.of("clubs-app", "clubs-admin", "id-web").contains(client)) {
+            request.header("Origin", "https://" + host).cookie(new jakarta.servlet.http.Cookie(RefreshCookies.NAME, value));
+        } else { request.param("refresh_token", value); }
+        return mvc.perform(request);
     }
 }

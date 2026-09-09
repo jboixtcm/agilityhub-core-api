@@ -132,6 +132,11 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
             mvc.perform(get(path).header("Host", HOST).header("Authorization", imp))
                     .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
         }
+        mvc.perform(get("/api/v1/platform/accounts/account-a/platform-roles").header("Host", HOST).header("Authorization", imp))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        mvc.perform(put("/api/v1/platform/accounts/account-a/platform-roles").header("Host", HOST).header("Authorization", imp)
+                .contentType("application/json").content("{\"platformRoles\":[\"AGILITYHUB_ADMIN\"]}"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
         create(imp, "member-target", HOST).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("IMPERSONATION_DENIED"));
         requestHandoff(imp, "clubs-admin", HOST).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("IMPERSONATION_DENIED"));
         mvc.perform(put("/api/v1/me/profile").header("Host", HOST).header("Authorization", imp).contentType("application/json")
@@ -193,13 +198,14 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         assertThat(mongo.getCollection("handoff_codes").find().first().toJson()).doesNotContain(code);
         exchange(code, "clubs-app", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
         exchange(code, "clubs-admin", "b.example.test").andExpect(status().isBadRequest());
-        var result = mapper.readTree(exchange(code, "clubs-admin", ADMIN_HOST).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var result = readTokens(exchange(code, "clubs-admin", ADMIN_HOST).andExpect(status().isOk())
+                .andExpect(cookie().exists(RefreshCookies.NAME)).andExpect(jsonPath("$.refresh_token").doesNotExist()).andReturn().getResponse());
         assertThat(SignedJWT.parse(result.path("access_token").asText()).getJWTClaimsSet().getAudience()).containsExactly("clubs-admin");
-        assertThat(result.path("refresh_token").asText()).isNotBlank();
+        assertThat(refreshValue(result)).isNotBlank();
         exchange(code, "clubs-admin", ADMIN_HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
-        refresh(source.path("refresh_token").asText(), HOST, "clubs-admin").andExpect(status().isBadRequest());
-        refresh(result.path("refresh_token").asText(), ADMIN_HOST, "clubs-app").andExpect(status().isBadRequest());
-        refresh(result.path("refresh_token").asText(), ADMIN_HOST, "clubs-admin").andExpect(status().isOk());
+        refresh(refreshValue(source), HOST, "clubs-admin").andExpect(status().isBadRequest());
+        refresh(refreshValue(result), ADMIN_HOST, "clubs-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(result), ADMIN_HOST, "clubs-admin").andExpect(status().isOk());
         var back = handoff(bearer(result), "clubs-app");
         assertThat(back.path("url").asText()).startsWith("https://" + HOST + "/entrar?handoff=");
         exchange(back.path("code").asText(), "clubs-app", "id.agilitydoghub.com").andExpect(status().isOk());
@@ -221,7 +227,7 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         requestHandoff(admin, "clubs-admin", HOST).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NO_MEMBERSHIP"));
         exchange(code, "clubs-admin", HOST).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("NO_MEMBERSHIP"));
         membership("club-a", Set.of(Role.ADMIN), Role.ADMIN, "member-a");
-        revoke(admin, source.path("refresh_token").asText());
+        revoke(admin, refreshValue(source));
         exchange(code, "clubs-admin", HOST).andExpect(status().isBadRequest());
         assertThat(mongo.findAll(HandoffCode.class)).allMatch(c -> c.usedAt() == null);
         var fresh = login(); code = handoff(bearer(fresh), "clubs-admin").path("code").asText();

@@ -111,7 +111,8 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         assertThat(mongo.getCollection("notifications").find(new org.bson.Document("code", "N-25")).first().getString("status")).isEqualTo("SENT");
         magic(value, "clubs-admin", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MAGIC_LINK_INVALID"));
         magic(value, "clubs-app", "b.example.test").andExpect(status().isBadRequest());
-        var result = mapper.readTree(magic(value, "clubs-app", HOST).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var result = readTokens(magic(value, "clubs-app", HOST).andExpect(status().isOk())
+                .andExpect(cookie().exists(RefreshCookies.NAME)).andExpect(jsonPath("$.refresh_token").doesNotExist()).andReturn().getResponse());
         mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", bearer(result)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.account.emailVerifiedAt").value(clock.instant().toString()))
                 .andExpect(jsonPath("$.account.hasPassword").value(true));
@@ -162,7 +163,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
     }
 
     @Test void T_01_04_simultaneousRefreshOnlyRotatesOnceAndCommitsFamilyRevocationOnReuse() throws Exception {
-        String value = login().path("refresh_token").asText();
+        String value = refreshValue(login());
         try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
             var gate = new java.util.concurrent.CyclicBarrier(2);
             Callable<String> attempt = () -> {
@@ -190,8 +191,8 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         verify(compromised).contains("Fictional new password");
         assertThat(events("PasswordChanged")).isNotEmpty();
         assertThat(((FakeEmailSender) emailSender).lastTo(account.email()).text()).doesNotContain("Fictional new password");
-        refresh(other.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest());
-        refresh(first.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isOk());
+        refresh(refreshValue(other), HOST, "clubs-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk());
     }
 
     @Test void T_01_09_optionalPasswordCurrentMismatchMinimumLengthEmailAndCompromisedPolicy() throws Exception {
@@ -230,7 +231,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.membership.rememberProfile").value(true))
                 .andExpect(jsonPath("$.membership.defaultProfile").value("INSTRUCTOR"));
         assertThat(SignedJWT.parse(login().path("access_token").asText()).getJWTClaimsSet().getStringClaim("activeProfile")).isEqualTo("INSTRUCTOR");
-        var refreshed = mapper.readTree(refresh(first.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var refreshed = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
         assertThat(SignedJWT.parse(refreshed.path("access_token").asText()).getJWTClaimsSet().getStringClaim("activeProfile")).isEqualTo("INSTRUCTOR");
         mvc.perform(put("/api/v1/me/profile").header("Host", HOST).header("Authorization", bearer(refreshed)).contentType("application/json")
                         .content("{\"activeProfile\":\"MEMBER\",\"remember\":false}"))
@@ -239,7 +240,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
             assertThat(memberships.findByAccountId("account-a").orElseThrow().defaultProfile()).isNull();
             membershipService.setRoles("account-a", Set.of(Role.INSTRUCTOR));
         }
-        var fallback = mapper.readTree(refresh(refreshed.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var fallback = readTokens(refresh(refreshValue(refreshed), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
         assertThat(SignedJWT.parse(fallback.path("access_token").asText()).getJWTClaimsSet().getStringClaim("activeProfile")).isEqualTo("INSTRUCTOR");
     }
 
@@ -280,7 +281,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("LOCALE_NOT_SUPPORTED"));
         mvc.perform(patch("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json").content("{}"))
                 .andExpect(status().isOk());
-        var other = mapper.readTree(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var other = readTokens(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk()).andReturn().getResponse());
         for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
             mvc.perform(get("/api/v1/me/sessions").header("Host", HOST).with(jwt().jwt(j -> j.subject("account-a").claim("clubId", "club-a"))
                             .authorities(() -> "ROLE_" + role)))
@@ -288,7 +289,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         }
         var list = mapper.readTree(mvc.perform(get("/api/v1/me/sessions").header("Host", HOST).header("Authorization", bearer(first)))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(list.toString()).doesNotContain("tokenHash", "passwordHash", "security", "replacedByHash", first.path("refresh_token").asText());
+        assertThat(list.toString()).doesNotContain("tokenHash", "passwordHash", "security", "replacedByHash", refreshValue(first));
         String family = list.get(0).path("id").asText();
         for (var call : List.of(get("/api/v1/me/sessions"), delete("/api/v1/me/sessions/" + family),
                 post("/oauth2/revoke").contentType("application/json").content("{\"token\":\"fictional\"}"),
@@ -300,7 +301,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
                     .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("TENANT_MISMATCH"));
         }
         mvc.perform(delete("/api/v1/me/sessions/" + family).header("Host", "b.example.test").header("Authorization", bearer(other))).andExpect(status().isOk());
-        refresh(first.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isOk());
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk());
         mvc.perform(delete("/api/v1/me/sessions/" + family).header("Host", HOST).header("Authorization", bearer(first))).andExpect(status().isOk());
         mvc.perform(delete("/api/v1/me/sessions/" + family).header("Host", HOST).header("Authorization", bearer(first))).andExpect(status().isOk());
         assertThat(events("SessionRevoked")).isNotEmpty();
@@ -309,14 +310,14 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
     @Test void T_01_10_revokeIsIdempotentAndCannotRevokeAnotherAccount() throws Exception {
         var first = login();
         var request = post("/oauth2/revoke").header("Host", HOST).contentType("application/json")
-                .content(mapper.writeValueAsString(Map.of("token", first.path("refresh_token").asText())));
+                .content(mapper.writeValueAsString(Map.of("token", refreshValue(first))));
         accountService.getOrCreate("other@example.test", "Other Example", "en", Account.Source.CONSOLE);
         String other = accounts.findByEmail("other@example.test").orElseThrow().id();
         try (var scope = TenantContext.open("club-a")) { membershipService.setRoles(other, Set.of(Role.MEMBER)); }
         mvc.perform(request.with(jwt().jwt(j -> j.subject(other).claim("clubId", "club-a")))).andExpect(status().isOk());
         mvc.perform(request.header("Authorization", bearer(first))).andExpect(status().isOk());
         mvc.perform(request.header("Authorization", bearer(first))).andExpect(status().isOk());
-        refresh(first.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest());
     }
 
     @Test void T_01_06_maximumSessionsRevokesOldestAndDeviceMetadataIsBounded() throws Exception {
@@ -339,13 +340,13 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         mongo.remove(new Query(), DomainEventRecord.class);
         membership("club-b", Set.of(Role.MEMBER), null, "member-b");
         var first = login();
-        var other = mapper.readTree(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var other = readTokens(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk()).andReturn().getResponse());
         transactions.run(() -> events.publish(new IdentityEvent(IdentityEvent.Kind.AccountErasureRequested, null, "account-a", clock.instant(), Map.of("accountId", "account-a"))));
         dispatcher.dispatch(); dispatcher.dispatch();
         assertThat(accounts.findById("account-a").orElseThrow().familyVersion()).isEqualTo(1);
         assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.revokedAt() != null);
-        refresh(first.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest());
-        refresh(other.path("refresh_token").asText(), "b.example.test", "clubs-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(other), "b.example.test", "clubs-app").andExpect(status().isBadRequest());
         mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", bearer(first))).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/me/missing").header("Host", HOST).header("Authorization", bearer(first))).andExpect(status().isForbidden());
     }
@@ -353,27 +354,27 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
     @Test void T_01_17_globalMagicSessionHasNoClubClaimsAndListsOnlyItsAccountSessions() throws Exception {
         String host = "id.agilitydoghub.com";
         magicLinks.createAndSend("admin@example.test", MagicLinkToken.Purpose.LOGIN, "id-web", null, host, null, null);
-        var global = mapper.readTree(magic(linkToken(), "id-web", host).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var global = readTokens(magic(linkToken(), "id-web", host).andExpect(status().isOk()).andReturn().getResponse());
         assertThat(SignedJWT.parse(global.path("access_token").asText()).getJWTClaimsSet().getClaim("clubId")).isNull();
         mvc.perform(get("/api/v1/me").header("Host", host).header("Authorization", bearer(global)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.membership").doesNotExist()).andExpect(jsonPath("$.features").isEmpty());
         mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", bearer(global))).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/me/sessions").header("Host", host).header("Authorization", bearer(global)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
-        refresh(global.path("refresh_token").asText(), host, "id-web").andExpect(status().isOk());
+        refresh(refreshValue(global), host, "id-web").andExpect(status().isOk());
     }
 
     @Test void T_01_16_suspensionRevokesOnlyThatClubsSessionsAndResumeRequiresNewLogin() throws Exception {
         membership("club-b", Set.of(Role.MEMBER), null, "member-b");
         var first = login();
-        var other = mapper.readTree(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString());
+        var other = readTokens(login("b.example.test", "admin@example.test", PASSWORD).andExpect(status().isOk())
+                .andReturn().getResponse());
         try (var scope = TenantContext.open("club-a")) { membershipService.suspend("account-a"); }
-        refresh(first.path("refresh_token").asText(), HOST, "clubs-app")
+        refresh(refreshValue(first), HOST, "clubs-app")
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("MEMBERSHIP_SUSPENDED"));
-        refresh(other.path("refresh_token").asText(), "b.example.test", "clubs-app").andExpect(status().isOk());
+        refresh(refreshValue(other), "b.example.test", "clubs-app").andExpect(status().isOk());
         try (var scope = TenantContext.open("club-a")) { membershipService.resume("account-a"); }
-        refresh(first.path("refresh_token").asText(), HOST, "clubs-app")
+        refresh(refreshValue(first), HOST, "clubs-app")
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
         login();
     }
@@ -393,14 +394,14 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(first)).contentType("application/json")
                 .content(mapper.writeValueAsString(Map.of("current", PASSWORD, "new", "Fictional role password", "repeat", "Fictional role password"))))
                 .andExpect(status().isOk());
-        var renewed = mapper.readTree(refresh(first.path("refresh_token").asText(), HOST, "clubs-app")
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var renewed = readTokens(refresh(refreshValue(first), HOST, "clubs-app")
+                .andExpect(status().isOk()).andReturn().getResponse());
         assertThat(SignedJWT.parse(renewed.path("access_token").asText()).getJWTClaimsSet().getStringClaim("locale")).isEqualTo("es");
         mvc.perform(post("/oauth2/revoke").header("Host", HOST).header("Authorization", bearer(renewed)).contentType("application/json")
-                .content(mapper.writeValueAsString(Map.of("token", other.path("refresh_token").asText())))).andExpect(status().isOk());
+                .content(mapper.writeValueAsString(Map.of("token", refreshValue(other))))).andExpect(status().isOk());
         String family = SignedJWT.parse(renewed.path("access_token").asText()).getJWTClaimsSet().getStringClaim("sid");
         mvc.perform(delete("/api/v1/me/sessions/" + family).header("Host", HOST).header("Authorization", bearer(renewed)))
                 .andExpect(status().isOk());
-        refresh(renewed.path("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest());
+        refresh(refreshValue(renewed), HOST, "clubs-app").andExpect(status().isBadRequest());
     }
 }

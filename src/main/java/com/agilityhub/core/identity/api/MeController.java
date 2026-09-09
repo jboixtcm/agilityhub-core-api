@@ -19,6 +19,7 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 
 @RestController
 public class MeController {
+    private final RefreshCookies refreshCookies;
     private final IdentityService identities;
     private final ClubConfigService clubs;
     private final com.agilityhub.core.identity.application.AccountService accounts;
@@ -28,7 +29,8 @@ public class MeController {
     private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
     public MeController(IdentityService identities, ClubConfigService clubs, com.agilityhub.core.identity.application.AccountService accounts,
             com.agilityhub.core.identity.application.PasswordService passwords, com.agilityhub.core.identity.application.TokenService tokens,
-            com.agilityhub.core.identity.application.OnboardingService onboarding, com.agilityhub.core.identity.application.IdentityTransactions transactions) {
+            com.agilityhub.core.identity.application.OnboardingService onboarding, com.agilityhub.core.identity.application.IdentityTransactions transactions, RefreshCookies refreshCookies) {
+        this.refreshCookies = refreshCookies;
         this.identities = identities; this.clubs = clubs; this.accounts = accounts; this.passwords = passwords; this.tokens = tokens;
         this.onboarding = onboarding; this.transactions = transactions;
     }
@@ -113,9 +115,11 @@ public class MeController {
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Revoke one of the current account's sessions", description = "Any valid account token. R-01-10. The session must belong to this account.",
             responses = @ApiResponse(responseCode = "200", description = "Session revoked", content = @Content))
-    public ResponseEntity<Void> deleteSession(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<Void> deleteSession(@PathVariable String id, @AuthenticationPrincipal Jwt jwt, jakarta.servlet.http.HttpServletRequest request) {
         tokens.revokeSession(jwt.getSubject(), id);
-        return ResponseEntity.ok().build();
+        var response = ResponseEntity.ok();
+        if (id.equals(jwt.getClaimAsString("sid"))) { response.header("Set-Cookie", refreshCookies.clearHeader(request)); }
+        return response.build();
     }
 
     @GetMapping("/api/v1/me/onboarding")

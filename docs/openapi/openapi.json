@@ -4689,6 +4689,20 @@
         "required" : [ "email", "locale", "name" ],
         "type" : "object"
       },
+      "PlatformRoles" : {
+        "properties" : {
+          "platformRoles" : {
+            "items" : {
+              "enum" : [ "AGILITYHUB_ADMIN" ],
+              "type" : "string"
+            },
+            "type" : "array",
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "platformRoles" ],
+        "type" : "object"
+      },
       "PostalTown" : {
         "properties" : {
           "region" : {
@@ -5016,12 +5030,12 @@
       "RevokeRequest" : {
         "properties" : {
           "token" : {
-            "minLength" : 1,
+            "description" : "BODY refresh token or impersonation JWT. Omit for COOKIE clients to revoke the bearer session.",
             "type" : "string",
             "writeOnly" : true
           }
         },
-        "required" : [ "token" ],
+        "required" : [ ],
         "type" : "object"
       },
       "Ring" : {
@@ -5699,6 +5713,7 @@
             "type" : "string"
           },
           "refresh_token" : {
+            "description" : "Only BODY clients; COOKIE clients receive ah_refresh in Set-Cookie, never JSON",
             "type" : "string"
           },
           "scope" : {
@@ -23706,6 +23721,308 @@
         "tags" : [ "identity" ]
       }
     },
+    "/api/v1/platform/accounts/{id}/platform-roles" : {
+      "get" : {
+        "description" : "AGILITYHUB_ADMIN only; global, independent of club membership. R-17-09.",
+        "operationId" : "platformRoles",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformRoles"
+                }
+              }
+            },
+            "description" : "Platform roles"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Get global account platform roles",
+        "tags" : [ "identity" ]
+      },
+      "put" : {
+        "description" : "AGILITYHUB_ADMIN only. R-17-09: preserves the last active platform admin; audited atomically, no domain event.",
+        "operationId" : "platformRoles_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlatformRoles"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlatformRoles"
+                }
+              }
+            },
+            "description" : "Updated platform roles"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN or ACCOUNT_BLOCKED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "LAST_PLATFORM_ADMIN"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "Replace global account platform roles",
+        "tags" : [ "identity" ]
+      }
+    },
     "/api/v1/platform/audit-entries" : {
       "get" : {
         "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
@@ -27530,7 +27847,7 @@
     },
     "/oauth2/revoke" : {
       "post" : {
-        "description" : "Any valid account token. R-01-10. Idempotent; JSON body as specified in S01 §6.",
+        "description" : "Any valid account token. R-01-10. Idempotent. JSON token is optional for COOKIE clients: {} revokes the bearer sid because the refresh cookie path excludes this route. Clears ah_refresh.",
         "operationId" : "revoke",
         "requestBody" : {
           "content" : {
@@ -27821,7 +28138,7 @@
     },
     "/oauth2/token" : {
       "post" : {
-        "description" : "ANON with client authentication. Club context comes from the host, never request data. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
+        "description" : "ANON with client authentication. Club context comes from the host, never request data. Password and magic-link grants issue sessions; refresh tokens rotate on every use. Handoff codes issue a destination session once within 60 seconds. Authorization-code grants support S256 PKCE, scoped claims and confidential clients. COOKIE clients receive ah_refresh (HttpOnly, Secure, SameSite=Strict, host-only, Path=/oauth2/token); refresh_token is omitted from JSON. Cookie refresh requires explicit client_id and a same-host Origin or Referer. BODY clients retain JSON refresh tokens. client_secret is required for confidential clients; code_verifier for public authorization-code clients.",
         "operationId" : "token",
         "requestBody" : {
           "content" : {
@@ -27842,7 +28159,16 @@
                 }
               }
             },
-            "description" : "TokenResponse; refresh_token and id_token depend on grant and scope"
+            "description" : "TokenResponse; refresh_token only for BODY clients; id_token depends on grant and scope",
+            "headers" : {
+              "Set-Cookie" : {
+                "description" : "COOKIE clients: ah_refresh; HttpOnly; Secure; SameSite=Strict; Path=/oauth2/token; Max-Age=auth.sessionDays in seconds. Secure relaxed only for local HTTP.",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
           },
           "400" : {
             "content" : {
@@ -27977,8 +28303,9 @@
             "required" : [ "client_id", "username", "password" ]
           },
           "refresh_token" : {
-            "optional" : [ "client_secret", "scope" ],
-            "required" : [ "client_id", "refresh_token" ]
+            "cookie" : "ah_refresh for COOKIE clients; refresh_token required for BODY clients",
+            "optional" : [ "refresh_token", "client_secret", "scope" ],
+            "required" : [ "client_id" ]
           },
           "urn:agilityhub:grant:handoff" : {
             "optional" : [ "client_secret", "scope" ],

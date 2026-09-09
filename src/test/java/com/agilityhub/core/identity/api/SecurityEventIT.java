@@ -59,7 +59,7 @@ class SecurityEventIT extends IdentityIntegrationSupport {
     }
 
     @Test void T_01_15_refreshReuseEventSurvivesCommittedFamilyRevocationAndTestProfileDisablesLimits() throws Exception {
-        String first = login().get("refresh_token").asText();
+        String first = refreshValue(login());
         refresh(first, HOST, "clubs-app").andExpect(status().isOk());
         refresh(first, HOST, "clubs-app").andExpect(status().isBadRequest());
         assertThat(mongo.findAll(SecurityEvent.class)).singleElement().satisfies(event -> {

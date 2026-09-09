@@ -2,6 +2,12 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-09 · E1-T13 · Cookie refresh and platform roles
+
+- `POST /oauth2/token`: COOKIE clients omit `refresh_token` from JSON and issue/rotate `ah_refresh`; refresh accepts the cookie with explicit client_id and a same-host Origin/Referer. BODY delivery remains unchanged. The contract documents Set-Cookie and conditional form requirements.
+- `POST /oauth2/revoke`: optional JSON `token`; COOKIE clients may send `{}` to revoke the bearer session, because the refresh cookie path excludes this route. Successful revoke and `/connect/logout` expire the refresh cookie; deleting the current device session does too.
+- `GET/PUT /api/v1/platform/accounts/{id}/platform-roles`: `{platformRoles[]}`, live AGILITYHUB_ADMIN authorization, global account scope, `409 LAST_PLATFORM_ADMIN`, atomic `PLATFORM_ROLES_CHANGED` audit and no domain event.
+
 ## 2026-09-06 · E1-T06 · Onboarding implementation
 
 - `GET /api/v1/me/onboarding`: active platform-first consent selection, club-scoped policy renewal, and configured prefilled profile fields; existing response shape retained.

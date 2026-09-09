@@ -20,6 +20,7 @@ public class AccountEmailService implements NotificationAccounts, AuditableLoade
     @Override public Object load(String accountId) {
         return accounts.findById(accountId).map(account -> {
             var snapshot = new java.util.LinkedHashMap<String, Object>();
+            snapshot.put("platformRoles", account.platformRoles().stream().map(Enum::name).sorted().toList());
             snapshot.put("emailStatus", account.emailStatus());
             snapshot.put("name", account.name());
             snapshot.put("locale", account.locale());

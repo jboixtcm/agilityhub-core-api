@@ -42,23 +42,23 @@ class IdentityCurlIT extends IdentityIntegrationSupport {
                     "grant_type=" + MagicLinkService.GRANT + "&client_id=clubs-app&token=" + magic, null);
             assertThat(granted.status()).isEqualTo(200);
             String access = granted.json().path("access_token").asText();
-            String first = granted.json().path("refresh_token").asText();
+            String first = granted.cookie();
             var me = curl("GET", "/api/v1/me", null, null, access);
             assertThat(me.status()).isEqualTo(200);
             assertThat(me.json().at("/account/emailVerifiedAt").asText()).isEqualTo(clock.instant().toString());
             assertThat(me.json().at("/membership/clubId").asText()).isEqualTo("club-a");
             var rotated = curl("POST", "/oauth2/token", "application/x-www-form-urlencoded",
-                    "grant_type=refresh_token&client_id=clubs-app&refresh_token=" + first, null);
+                    "grant_type=refresh_token&client_id=clubs-app", null, first);
             assertThat(rotated.status()).isEqualTo(200);
-            String next = rotated.json().path("refresh_token").asText();
+            String next = rotated.cookie();
             assertThat(first.equals(next)).isFalse();
             var reused = curl("POST", "/oauth2/token", "application/x-www-form-urlencoded",
-                    "grant_type=refresh_token&client_id=clubs-app&refresh_token=" + first, null);
+                    "grant_type=refresh_token&client_id=clubs-app", null, first);
             // The closed catalog assigns 400 to REFRESH_REUSED (the task's curl line says 401).
             assertThat(reused.status()).isEqualTo(400);
             assertThat(reused.json().path("code").asText()).isEqualTo("REFRESH_REUSED");
             var revoked = curl("POST", "/oauth2/token", "application/x-www-form-urlencoded",
-                    "grant_type=refresh_token&client_id=clubs-app&refresh_token=" + next, null);
+                    "grant_type=refresh_token&client_id=clubs-app", null, next);
             assertThat(revoked.status()).isEqualTo(400);
             assertThat(revoked.json().path("code").asText()).isEqualTo("REFRESH_EXPIRED");
             assertThat(mongo.findAll(RefreshToken.class)).hasSize(2).allMatch(t -> t.status() == RefreshToken.Status.REVOKED);
@@ -70,9 +70,33 @@ class IdentityCurlIT extends IdentityIntegrationSupport {
         }
     }
 
+    @Test void T_01_27_curlPasswordAndRefreshWithOnlyCookie() throws Exception {
+        secrets.add(PASSWORD);
+        try {
+            var granted = curl("POST", "/oauth2/token", "application/x-www-form-urlencoded",
+                    "grant_type=password&client_id=clubs-app&username=admin%40example.test&password=" + PASSWORD, null);
+            assertThat(granted.status()).isEqualTo(200);
+            assertThat(granted.json().has("refresh_token")).isFalse();
+            assertThat(granted.cookie()).hasSize(43);
+            var rotated = curl("POST", "/oauth2/token", "application/x-www-form-urlencoded",
+                    "grant_type=refresh_token&client_id=clubs-app", null, granted.cookie());
+            assertThat(rotated.status()).isEqualTo(200);
+            assertThat(rotated.json().has("refresh_token")).isFalse();
+            assertThat(rotated.cookie()).hasSize(43).isNotEqualTo(granted.cookie());
+        } finally {
+            Files.writeString(Path.of("target/E1-T13-curl-evidence.txt"), redact(evidence.toString()));
+        }
+    }
+
     private Response curl(String method, String path, String contentType, String body, String access) throws Exception {
+        return curl(method, path, contentType, body, access, null);
+    }
+    private Response curl(String method, String path, String contentType, String body, String access, String cookie) throws Exception {
         var command = new ArrayList<>(List.of("curl", "--silent", "--show-error", "--include", "--max-time", "10",
                 "--request", method, "--header", "Host: " + HOST));
+        if (cookie != null) {
+            command.addAll(List.of("--header", "Cookie: ah_refresh=" + cookie, "--header", "Origin: https://" + HOST));
+        }
         if (contentType != null) { command.addAll(List.of("--header", "Content-Type: " + contentType)); }
         if (access != null) { command.addAll(List.of("--header", "Authorization: Bearer " + access)); }
         if (body != null) { command.addAll(List.of("--data-raw", body)); }
@@ -87,9 +111,12 @@ class IdentityCurlIT extends IdentityIntegrationSupport {
             for (String field : List.of("access_token", "refresh_token", "id_token")) {
                 if (json.hasNonNull(field)) { secrets.add(json.path(field).asText()); }
             }
+            var cookieMatcher = Pattern.compile("(?im)^Set-Cookie: ah_refresh=([^;\\n]*)").matcher(output);
+            String refreshCookie = cookieMatcher.find() ? cookieMatcher.group(1) : null;
+            if (refreshCookie != null && !refreshCookie.isEmpty()) { secrets.add(refreshCookie); }
             evidence.append("$ ").append(redact(command.stream().map(value -> "'" + value.replace("'", "'\\''") + "'")
                     .collect(java.util.stream.Collectors.joining(" ")))).append('\n').append(redact(output)).append("\n\n");
-            return new Response(Integer.parseInt(output.split(" ", 3)[1]), json);
+            return new Response(Integer.parseInt(output.split(" ", 3)[1]), json, refreshCookie);
         } finally { if (process.isAlive()) { process.destroyForcibly(); } }
     }
 
@@ -97,5 +124,5 @@ class IdentityCurlIT extends IdentityIntegrationSupport {
         for (String secret : secrets) { value = value.replace(secret, secret.substring(0, 3) + "…[truncated]"); }
         return value;
     }
-    private record Response(int status, JsonNode json) { }
+    private record Response(int status, JsonNode json, String cookie) { }
 }

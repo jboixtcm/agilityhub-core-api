@@ -27,7 +27,7 @@ public final class IdentityRequests {
     public record MagicLinkRequest(@NotBlank @Email String email, @NotNull MagicLinkPurpose purpose,
             @NotBlank @JsonProperty("client_id") String clientId,
             @JsonProperty("redirect_uri") @Schema(requiredMode = NOT_REQUIRED, format = "uri") String redirectUri) { }
-    public record RevokeRequest(@NotBlank @Schema(accessMode = Schema.AccessMode.WRITE_ONLY) String token) { }
+    public record RevokeRequest(@Schema(requiredMode = NOT_REQUIRED, description = "BODY refresh token or impersonation JWT. Omit for COOKIE clients to revoke the bearer session.", accessMode = Schema.AccessMode.WRITE_ONLY) String token) { }
     public record HandoffRequest(@NotBlank String targetClientId) { }
     public record AccountPatchRequest(@Schema(requiredMode = NOT_REQUIRED, allowableValues = {"ca", "es", "en"}) String locale, @Schema(requiredMode = NOT_REQUIRED) String name) { }
     public record PasswordRequest(

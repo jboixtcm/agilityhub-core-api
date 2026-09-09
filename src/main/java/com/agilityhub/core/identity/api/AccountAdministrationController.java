@@ -16,7 +16,39 @@ import static com.agilityhub.core.identity.api.IdentityResponses.*;
 @RestController
 public class AccountAdministrationController {
     private final com.agilityhub.core.identity.application.ImpersonationService impersonations;
-    public AccountAdministrationController(com.agilityhub.core.identity.application.ImpersonationService impersonations) { this.impersonations = impersonations; }
+    private final com.agilityhub.core.identity.application.PlatformRoleService roles;
+    private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
+    public AccountAdministrationController(com.agilityhub.core.identity.application.ImpersonationService impersonations,
+            com.agilityhub.core.identity.application.PlatformRoleService roles,
+            com.agilityhub.core.identity.application.IdentityTransactions transactions) {
+        this.impersonations = impersonations; this.roles = roles; this.transactions = transactions;
+    }
+    public record PlatformRoles(@jakarta.validation.constraints.NotNull
+            java.util.Set<@jakarta.validation.constraints.NotNull PlatformRole> platformRoles) { }
+
+    @GetMapping("/api/v1/platform/accounts/{id}/platform-roles")
+    @PreAuthorize("principal.claims['imp'] != true and hasRole('AGILITYHUB_ADMIN')")
+    @Operation(summary = "Get global account platform roles", description = "AGILITYHUB_ADMIN only; global, independent of club membership. R-17-09.",
+            responses = {@ApiResponse(responseCode = "200", description = "Platform roles"),
+                    @ApiResponse(responseCode = "403", description = "FORBIDDEN"), @ApiResponse(responseCode = "404", description = "NOT_FOUND")})
+    public PlatformRoles platformRoles(@PathVariable String id, Authentication authentication) {
+        return platformRoles(roles.get(authentication.getName(), id));
+    }
+
+    @PutMapping("/api/v1/platform/accounts/{id}/platform-roles")
+    @PreAuthorize("principal.claims['imp'] != true and hasRole('AGILITYHUB_ADMIN')")
+    @Operation(summary = "Replace global account platform roles", description = "AGILITYHUB_ADMIN only. R-17-09: preserves the last active platform admin; audited atomically, no domain event.",
+            responses = {@ApiResponse(responseCode = "200", description = "Updated platform roles"),
+                    @ApiResponse(responseCode = "403", description = "FORBIDDEN or ACCOUNT_BLOCKED"),
+                    @ApiResponse(responseCode = "404", description = "NOT_FOUND"),
+                    @ApiResponse(responseCode = "409", description = "LAST_PLATFORM_ADMIN")})
+    public PlatformRoles platformRoles(@PathVariable String id, @Valid @RequestBody PlatformRoles request, Authentication authentication) {
+        return platformRoles(transactions.run(() -> roles.replace(authentication.getName(), id,
+                request.platformRoles().stream().map(Enum::name).collect(java.util.stream.Collectors.toSet()))));
+    }
+    private PlatformRoles platformRoles(java.util.Set<String> values) {
+        return new PlatformRoles(values.stream().map(PlatformRole::valueOf).collect(java.util.stream.Collectors.toSet()));
+    }
     @PostMapping("/api/v1/members/{id}/impersonation-token")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")

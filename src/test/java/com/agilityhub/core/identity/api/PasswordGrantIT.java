@@ -32,9 +32,9 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         assertThat(claims.getStringClaim("locale")).isEqualTo("en");
         assertThat(claims.getExpirationTime().toInstant()).isEqualTo(clock.instant().plus(Duration.ofMinutes(15)));
         assertThat(result.get("expires_in").asLong()).isBetween(899L, 900L);
-        assertThat(result.get("refresh_token").asText()).hasSize(43);
+        assertThat(refreshValue(result)).hasSize(43);
         assertThat(mongo.getCollection("refresh_tokens").find().first().toJson())
-                .doesNotContain(result.get("refresh_token").asText()).contains(TokenService.digest(result.get("refresh_token").asText()));
+                .doesNotContain(refreshValue(result)).contains(TokenService.digest(refreshValue(result)));
         assertThat(mongo.getCollection("accounts").find().first().getDate("lastLoginAt").toInstant()).isEqualTo(clock.instant());
         assertThat(TenantContext.current()).isNull();
     }
@@ -64,9 +64,9 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         membership("club-a", Set.of(Role.MEMBER), null, null);
         var originalExpiry = mongo.findAll(RefreshToken.class).getFirst().expiresAt();
         clock.advance(Duration.ofMinutes(2));
-        var next = mapper.readTree(refresh(first.get("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString());
-        assertThat(next.get("refresh_token")).isNotEqualTo(first.get("refresh_token"));
+        var next = readTokens(refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isOk())
+                .andReturn().getResponse());
+        assertThat(refreshValue(next)).isNotEqualTo(refreshValue(first));
         var claims = SignedJWT.parse(next.get("access_token").asText()).getJWTClaimsSet();
         assertThat(claims.getStringListClaim("roles")).containsExactly("MEMBER");
         assertThat(claims.getStringClaim("activeProfile")).isEqualTo("MEMBER");
@@ -74,12 +74,12 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         var records = mongo.findAll(RefreshToken.class);
         assertThat(records).hasSize(2);
         assertThat(records).allMatch(record -> record.expiresAt().equals(originalExpiry.plus(Duration.ofMinutes(2))));
-        refresh(first.get("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
+        refresh(refreshValue(first), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_REUSED"));
         assertThat(mongo.findAll(RefreshToken.class)).allMatch(token -> token.revokedAt() != null);
-        refresh(next.get("refresh_token").asText(), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
+        refresh(refreshValue(next), HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
     }
     @Test void T_01_07_refreshRejectsOtherTenantClientUnknownExpiredAndRevokedVersion() throws Exception {
-        String refresh = login().get("refresh_token").asText();
+        String refresh = refreshValue(login());
         refresh(refresh, "b.example.test", "clubs-app").andExpect(status().isBadRequest());
         refresh(refresh, HOST, "clubs-admin").andExpect(status().isBadRequest());
         refresh("unknown", HOST, "clubs-app").andExpect(status().isBadRequest());
@@ -90,7 +90,7 @@ class PasswordGrantIT extends IdentityIntegrationSupport {
         refresh(refresh, HOST, "clubs-app").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("REFRESH_EXPIRED"));
     }
     @Test void T_01_07_invalidOAuthRequestsUseOnlyCatalogErrors() throws Exception {
-        for (String grant : new String[]{"unsupported", "password", "refresh_token"}) {
+        for (String grant : new String[]{"unsupported", "password"}) {
             mvc.perform(post("/oauth2/token").header("Host", HOST).param("grant_type", grant))
                     .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
         }

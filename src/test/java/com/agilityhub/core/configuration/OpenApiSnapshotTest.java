@@ -226,6 +226,18 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(names(token.path("x-grants"))).containsExactlyInAnyOrder("password", "urn:agilityhub:grant:magic-link",
                 "urn:agilityhub:grant:handoff", "authorization_code", "refresh_token");
         assertThat(strings(token.at("/x-grants/urn:agilityhub:grant:handoff/required"))).contains("client_id", "token");
+        assertThat(token.at("/responses/200/headers/Set-Cookie/description").asText()).contains("HttpOnly", "SameSite=Strict", "Path=/oauth2/token");
+        assertThat(strings(token.at("/x-grants/refresh_token/required"))).containsExactly("client_id");
+        assertThat(strings(document.at("/components/schemas/TokenResponse/required"))).doesNotContain("refresh_token");
+        assertThat(document.at("/components/schemas/RevokeRequest/required")).isEmpty();
+        var platformRoles = document.path("paths").path("/api/v1/platform/accounts/{id}/platform-roles");
+        for (String method : List.of("get", "put")) {
+            assertThat(platformRoles.path(method).at("/responses/200/content/application~1json/schema/$ref").asText())
+                    .isEqualTo("#/components/schemas/PlatformRoles");
+            assertThat(platformRoles.path(method).path("description").asText()).contains("AGILITYHUB_ADMIN");
+        }
+        assertThat(platformRoles.path("put").at("/responses/409/description").asText()).contains("LAST_PLATFORM_ADMIN");
+        assertThat(strings(document.at("/components/schemas/PlatformRoles/required"))).containsExactly("platformRoles");
         assertThat(token.at("/responses/429/headers/Retry-After")).isNotEmpty();
         assertThat(document.path("paths").path("/api/v1/auth/magic-link").at("/post/responses/202/content")).isEmpty();
         assertThat(document.path("paths").path("/api/v1/auth/magic-link").at("/post/responses/429/headers/Retry-After")).isNotEmpty();

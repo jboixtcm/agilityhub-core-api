@@ -18,14 +18,17 @@ public class OidcClientConfiguration {
     @ConfigurationProperties("core.oidc")
     public record Properties(List<Client> clients, String loginUrl) { }
     public record Client(String id, String secret, List<String> redirectUris, List<String> postLogoutRedirectUris,
-                         Set<String> scopes, Set<String> grants, boolean confidential) {
+                         Set<String> scopes, Set<String> grants, boolean confidential,
+                         com.agilityhub.core.identity.application.TokenDelivery tokenDelivery) {
         @Override public String toString() { return "OidcClient[" + id + "]"; }
     }
     @Bean RegisteredClientRepository registeredClients(Properties properties, org.springframework.core.env.Environment environment) {
         var bcrypt = new BCryptPasswordEncoder();
         return new InMemoryRegisteredClientRepository(properties.clients().stream().map(source -> {
             var client = RegisteredClient.withId(source.id()).clientId(source.id())
-                    .clientSettings(ClientSettings.builder().requireProofKey(!source.confidential()).requireAuthorizationConsent(false).build());
+                    .clientSettings(ClientSettings.builder().requireProofKey(!source.confidential()).requireAuthorizationConsent(false)
+                            .setting(com.agilityhub.core.identity.application.TokenDelivery.SETTING,
+                                    java.util.Objects.requireNonNull(source.tokenDelivery(), "OIDC tokenDelivery is required").name()).build());
             if (source.confidential()) {
                 if ((source.secret() == null || source.secret().isBlank())
                         && environment.acceptsProfiles(org.springframework.core.env.Profiles.of("staging", "prod"))) {

@@ -12,9 +12,9 @@ class PasswordGrantConverterTest {
     @Test void T_01_07_conflictingAuthAndDuplicateClientAreRejectedAndCredentialsAreErasable() {
         var request = new MockHttpServletRequest(); request.addParameter("grant_type", "password");
         request.addHeader("Authorization", "Basic invalid");
-        assertThatThrownBy(() -> new PasswordGrantConverter().convert(request)).isInstanceOf(OAuth2AuthenticationException.class);
+        assertThatThrownBy(() -> new PasswordGrantConverter(mock(RefreshCookies.class)).convert(request)).isInstanceOf(OAuth2AuthenticationException.class);
         request.removeHeader("Authorization"); request.addParameter("client_id", "a", "b");
-        assertThatThrownBy(() -> new PasswordGrantConverter().convert(request)).isInstanceOf(OAuth2AuthenticationException.class);
+        assertThatThrownBy(() -> new PasswordGrantConverter(mock(RefreshCookies.class)).convert(request)).isInstanceOf(OAuth2AuthenticationException.class);
         var provider = new PasswordGrantProvider(mock(TokenService.class), mock(RegisteredClientRepository.class), mock(com.agilityhub.core.identity.application.HandoffService.class), mock(com.agilityhub.core.identity.application.OidcService.class));
         assertThat(provider.supports(PasswordGrantAuthenticationToken.class)).isTrue();
         assertThat(provider.supports(String.class)).isFalse();
