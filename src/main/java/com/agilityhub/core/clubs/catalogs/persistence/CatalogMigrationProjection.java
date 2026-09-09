@@ -17,7 +17,7 @@ public class CatalogMigrationProjection extends TenantRepository<Level> {
     }
     public void lock() {
         for (String type:List.of("Level","Plan")) {
-            mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(TenantContext.require()+":"+type)),new Update().inc("sequence",1),"catalog_write_locks");
+            mongo.upsert(tenantQuery().addCriteria(Criteria.where("catalog").is(type)),new Update().inc("sequence",1),"catalog_write_locks");
         }
     }
 }

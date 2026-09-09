@@ -56,6 +56,8 @@ management:
       show-details: never
 
 core:
+  migration:
+    bank-key: ${MIGRATION_BANK_KEY:}
   oidc:
     master-key: ${OIDC_MASTER_KEY:}
     login-url: ${OIDC_LOGIN_URL:https://id.agilitydoghub.com/login}

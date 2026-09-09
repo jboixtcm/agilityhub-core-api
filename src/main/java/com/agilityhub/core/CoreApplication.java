@@ -12,6 +12,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CoreApplication {
     public static void main(String[] args) {
         boolean command = Arrays.stream(args).anyMatch(arg -> arg.equals("--core.command") || arg.startsWith("--core.command="));
+        if (Arrays.asList(args).contains("--core.command=migration:anonymize")) {
+            try { com.agilityhub.core.migration.application.AnonymizeCommand.run(new DefaultApplicationArguments(args), System.getenv("MIGRATION_ANONYMIZE_KEY")); }
+            catch (RuntimeException failure) { System.err.println("Anonymization failed (" + failure.getClass().getSimpleName() + ")"); System.exit(1); }
+            return;
+        }
         var app = new SpringApplication(CoreApplication.class);
         if (!command) { app.run(args); return; }
         app.setWebApplicationType(WebApplicationType.NONE);

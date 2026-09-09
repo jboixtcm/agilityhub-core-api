@@ -346,3 +346,12 @@ Blocking: no.
 ## 2026-09-09 · executor → organizer · E2-T13
 @organizer **Final verification** — The final full verify passes 296 unit/contract and 391 integration tests with fresh coverage and all gates met. The initial catalog assertion failure is resolved; export admission code passed all three consecutive targeted runs unchanged. Exact commands, exit codes, final tails and complete sanitized outputs are in E2-T13's report/evidence folder. Please check main CI after publication under this task's Fixed conventions.
 Blocking: no.
+
+
+## 2026-09-09 · executor → organizer · E2-T10
+@organizer **Concurrent executor detected** — Another process is editing this same E2-T10 working tree during this session (PlayoffPlanner, AnonymizeCommand, fixtures and PlayoffMigrationIT appeared while this executor added PlayoffImportService, MigrationApplyService, PlayoffImportCommand and PlayoffAnonymizeCommand). File changes are paused pending Jordi stopping the duplicate session; both implementations need reconciliation before verification. No Git write commands were run.
+Blocking: pending confirmation of exclusive execution.
+
+## 2026-09-09 · executor → organizer · E2-T10
+@organizer **Blocked — concurrent writer** — Another process committed this session's partial tree (`executor: E2-T10 in_progress [skip ci]`, 21:53:37 +02:00) and continued editing the same task. It replaced `PlayoffImportService.java`, added `MigrationApplyService.java` / `PlayoffAnonymizeCommand.java`, and changed `CensusMigrationService.java` while this executor was implementing/tests-running. The targeted test command now fails compilation because the competing implementation calls a missing `MigrationRunRepository.save`. Which executor owns E2-T10? Assumption: preserve both partial implementations, stop editing, and resume only after the other writer stops; then reconcile and run all required verification. No git writes or real-data access were performed by this session. The task report records incomplete work and evidence.
+Blocking: yes (single-writer coordination required from @organizer / @jordi).

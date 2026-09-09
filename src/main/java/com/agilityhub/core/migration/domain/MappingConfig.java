@@ -8,7 +8,7 @@ import java.nio.file.*;
 import java.util.*;
 
 /** Versioned adapter: positions disambiguate Playoff's duplicate birth-date headings. */
-public record MappingConfig(int version, String defaultClub, Map<String,String> statuses, Map<String,String> plans,
+public record MappingConfig(int version, String defaultClub, int ageWarningYears, int suspectBirthYears, String inferredDogPrefix, Map<String,String> statuses, Map<String,String> plans,
         Set<String> unresolvedPlans, Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels,
         Map<String,String> levelFlags, Set<String> unresolvedLevels, Map<String,InputFile> files) {
     public record Column(int at, String header, String field, String anonymize) { }

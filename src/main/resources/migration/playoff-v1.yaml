@@ -1,5 +1,8 @@
 version: 1
 defaultClub: canic
+ageWarningYears: 16
+suspectBirthYears: 10
+inferredDogPrefix: "Gos de "
 statuses: {alta: ACTIVE, baixa: LEFT, baja: LEFT, bloqueado: ACTIVE, "personal laboral": ACTIVE, simpatizante: SKIP}
 plans:
   "abonat": ABONAT
