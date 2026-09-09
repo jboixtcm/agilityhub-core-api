@@ -1,10 +1,10 @@
 # S19 — Integració amb AgilityHub Learn (R2: SSO, selector de productes, contingut per nivell, challenges)
 
-**Etapa:** R2 (després del go-live del Cànic); a R1 només el que s'indica com a «preparat a R1» · **Mòduls:** `LEARN_LINK` (R1), `COURSES` (challenges) · **Pantalles:** entrada «Aprèn amb AgilityHub» a l'app (R1, sense mockup), selector de productes a `apps/id` i a les barres de Clubs/Learn (R2), bloc «Contingut recomanat» a 13 (R2), pantalla de challenge (R2) · **Model:** PLATAFORMA §1 (ACCOUNT, MEMBERSHIP), §3 (`Level.agilityhubLevel`), §5 (CHALLENGE/ATTEMPT) · ADR-010, ADR-013 · VISIO §3/§5/§6 · **Estat:** esborrany (03-09-2026) — **contracte a validar quan s'obri R2; requereix revisar el codi de Learn (`AH_LearnPlatform`)** · **Versió:** 0.2 (05-09: revisió del codi de Learn, §14)
+**Etapa:** R2 (després del go-live del Cànic); a R1 només el que s'indica com a «preparat a R1» · **Mòduls:** `LEARN_LINK` (R1), `COURSES` (challenges) · **Pantalles:** entrada «Aprèn amb AgilityHub» a l'app (R1, sense mockup), selector de productes a `apps/id` i a les barres de Clubs/Learn (R2), bloc «Contingut recomanat» a 13 (R2), pantalla de challenge (R2) · **Model:** PLATAFORMA §1 (ACCOUNT, MEMBERSHIP), §5 (CHALLENGE/ATTEMPT) · ADR-010, ADR-013 · VISIO §3/§5/§6 · **Estat:** esborrany (03-09-2026) — **contracte a validar quan s'obri R2; requereix revisar el codi de Learn (`AH_LearnPlatform`)** · **Versió:** 0.2 (05-09: revisió del codi de Learn, §14)
 
 ## 1. Propòsit i abast
 
-Defineix la **cola** entre Clubs i Learn: (1) **identitat compartida** (R1: mateixes credencials via importació + adaptador de login, S01; R2: **SSO real** per redirecció OIDC amb sessió a `id.*` i «Continua amb AgilityHub» a Learn), (2) **selector de productes** «estil Google» a totes les apps, (3) **contingut de Learn recomanat pel nivell del gos** dins Clubs (`Level.agilityhubLevel` → rutes d'aprenentatge), (4) **challenges**: Learn publica un recorregut + criteris; el club el munta (S16); l'alumne registra l'intent des de Clubs o Learn; el resultat torna a Learn. Tot per **API del core** (font de veritat de recorreguts i challenges, ADR-013) i **cap dada del club** surt cap a Learn llevat del que l'alumne comparteix explícitament.
+Defineix la **cola** entre Clubs i Learn: (1) **identitat compartida** (R1: mateixes credencials via importació + adaptador de login, S01; R2: **SSO real** per redirecció OIDC amb sessió a `id.*` i «Continua amb AgilityHub» a Learn), (2) **selector de productes** «estil Google» a totes les apps, (3) **contingut de Learn recomanat** dins Clubs (R2, criteris propis de Learn — sense mapatge del nivell de club, A5), (4) **challenges**: Learn publica un recorregut + criteris; el club el munta (S16); l'alumne registra l'intent des de Clubs o Learn; el resultat torna a Learn. Tot per **API del core** (font de veritat de recorreguts i challenges, ADR-013) i **cap dada del club** surt cap a Learn llevat del que l'alumne comparteix explícitament.
 
 | Fora d'abast | On viu |
 |---|---|
@@ -26,7 +26,7 @@ Defineix la **cola** entre Clubs i Learn: (1) **identitat compartida** (R1: mate
 
 ## 3. Entitats i camps
 
-- `Account.externalIds.learnUserId` (S01) · `Membership` (S01) · `Level.agilityhubLevel` (S05).
+- `Account.externalIds.learnUserId` (S01) · `Membership` (S01). ~~`Level.agilityhubLevel` (S05)~~ retirat (Jordi 06-09, A5).
 - **`Challenge`** (global): `courseId` (PUBLIC), `title/description: LocalizedText`, `agilityhubLevel`, `discipline`, `rules {maxFaults, timeLimitS?, mustBeClean, videoRequired, attemptsPerDog}`, `validFrom/validTo`, `status`, `createdByAccountId`.
 - **`ChallengeAttempt`** (`clubId`): `challengeId`, `memberId`, `dogId`, `accountId`, `ringSetupId?` (si es corre en un muntatge registrat), `timeMs`, `faults`, `videoUrl?`, `notes`, `submittedAt`, `status` (`SUBMITTED · VALIDATED · REJECTED`), `validatedByAccountId?`, `score?` (calculat per `rules`).
 - **`LearnRecommendation`** (no persistit; resposta de Learn): `{lessonId, title, thumbnailUrl, url, level, durationMin}`.
@@ -40,10 +40,10 @@ Defineix la **cola** entre Clubs i Learn: (1) **identitat compartida** (R1: mate
 | **R-19-02 SSO** | Sessió al domini `id.*` (cookie httpOnly) creada en qualsevol login OIDC; Clubs passa del token endpoint directe (R1) a `authorize` + PKCE amb `prompt=none` per a login silenciós (R2, S01 R-01-11); logout global via `/connect/logout` amb `post_logout_redirect_uri` de cada producte (front-channel). L'app AR igual (R3). | R2 |
 | **R-19-03 Selector de productes** | `GET /me/products` calcula: `LEARN` (sempre, URL de Learn), `CLUBS` per cada membresia `ACTIVE` (URL del host principal del club, `app: clubs`), `CLUBS_ADMIN` per cada membresia amb ADMIN/INSTRUCTOR, `CONSOLE` per `AGILITYHUB_ADMIN`. Multi-club: una entrada per club (nom + logo). | R2 |
 | **R-19-04 Dades que viatgen** | Cap a Learn només: `sub`, `email`, `name`, `locale`, `memberships[{clubId, clubName, roles}]` (scope `memberships`, consentit al primer login OIDC amb pantalla de consentiment de `apps/id`), i `agilityhubLevel` dels gossos si l'usuari activa «Comparteix el nivell dels meus gossos amb Learn» (preferència al compte, `Account.sharing.dogLevels`, per defecte **off**). Cap dada del cens (DNI, IBAN, assistència) surt mai. Learn cap al core: recomanacions i challenges (públics). | R2 |
-| **R-19-05 Mapatge de nivells** | `Level.agilityhubLevel` (S05) és opcional; Clubs demana recomanacions amb el nivell del gos només si hi ha mapatge; l'escala AgilityHub es fixa amb Learn abans de R2 (proposta: `FOUNDATIONS · BEGINNER · INTERMEDIATE · ADVANCED · COMPETITION`; si Learn usa una altra, es canvia l'enum amb migració — cap literal al codi). | R2 |
+| **R-19-05 Mapatge de nivells** | ~~`Level.agilityhubLevel` (S05) és opcional…~~ **Retirat (Jordi 06-09, A5)**: els nivells de club no es mapen a cap escala de Learn. Les recomanacions de contingut (R2) es demanaran amb criteris propis de Learn (p. ex. els tags/dificultat del curs o l'historial de l'usuari), mai amb el nivell de club del gos. | — | — | — |
 | **R-19-06 Challenges** | Publicació: `AGILITYHUB_ADMIN` crea el `Challenge` sobre un `Course PUBLIC`; els clubs el veuen a la biblioteca (xip «Challenge») i poden muntar-lo (S16); l'alumne registra un intent **des del club** (Clubs) o **des de casa** (Learn, `ringSetupId = null`); `rules.attemptsPerDog` per challenge; `score` calculat al core; validació (si `videoRequired`) per l'equip AgilityHub o automàtica (`mustBeClean` i `timeLimit`); l'intent és de la parella (memberId + dogId) i del compte; visibilitat: l'alumne veu els seus; el club veu els dels seus abonats fets al club (`ringSetupId` seu); Learn mostra classificacions públiques **només amb nom de gos + inicials** llevat que l'usuari activi `Account.sharing.leaderboardName`. | R2 |
 | **R-19-07 Contracte d'API Learn → core** | Learn és un client OIDC confidencial amb scopes `challenges:read`, `attempts:write`, `recommendations:serve`; el core exposa `GET /challenges`, `GET /challenges/{id}`, `GET /challenges/{id}/leaderboard`, `POST /challenges/{id}/attempts` (amb `sub` de l'usuari via token d'usuari, no de servei), i consumeix `GET {LEARN_API}/recommendations?level=&locale=` (servei a servei amb client credentials) — tot versionat a `/api/v1`. | R2 |
-| **R-19-08 Preparat a R1** | `LEARN_LINK` (enllaç), `Level.agilityhubLevel`, `Account.externalIds.learnUserId`, importació + adaptador de login (S01), `Course.visibility PUBLIC` + `/platform/courses` (S16), reserves d'API `/challenges*` (`501`), client OIDC `learn` al seed. Cap altra feina a R1. | R1 |
+| **R-19-08 Preparat a R1** | `LEARN_LINK` (enllaç), `Account.externalIds.learnUserId`, importació + adaptador de login (S01), `Course.visibility PUBLIC` + `/platform/courses` (S16), reserves d'API `/challenges*` (`501`), client OIDC `learn` al seed. Cap altra feina a R1. | R1 |
 | **R-19-09 Mòduls** | `LEARN_LINK` off → cap entrada ni bloc de recomanacions; `COURSES` off → cap challenge visible al club (els alumnes els poden fer igualment des de Learn). | — |
 
 ## 5. Estats i transicions
@@ -89,7 +89,7 @@ Propostes: `learn.linkText` (localizedText, «Aprèn amb AgilityHub»), `learn.r
 
 **Cobertura addicional (traçabilitat regla → test)**
 - T-19-07 (R-19-01) usuari de Learn (`learnUserId`) que s'apunta al Cànic → cap compte nou (S04 T-04-17); abonat del club que entra a Learn per OIDC → usuari local creat amb `agilityhub_account_id = sub`; després de la fase 2, `users.password` de Learn és `null`.
-- T-19-08 (R-19-05, R-19-09) gos amb nivell sense `agilityhubLevel` → bloc de recomanacions absent; amb mapatge → petició a Learn amb `level=INTERMEDIATE`; `LEARN_LINK` off → cap entrada ni bloc; `COURSES` off → challenges absents del club però visibles a Learn.
+- T-19-08 (R-19-05, R-19-09) ~~mapatge de nivells~~ (retirat, A5) — R2: bloc de recomanacions segons el contracte que es fixi amb Learn; `LEARN_LINK` off → cap entrada ni bloc; `COURSES` off → challenges absents del club però visibles a Learn.
 
 ## 12. Paquets de feina
 
@@ -105,7 +105,7 @@ Propostes: `learn.linkText` (localizedText, «Aprèn amb AgilityHub»), `learn.r
 
 | # | Dubte | Qui | Assumpció |
 |---|---|---|---|
-| 1 | Escala AgilityHub definitiva (noms, nombre de nivells) | Jordi (Learn) | 5 nivells de R-19-05 |
+| 1 | ~~Escala AgilityHub definitiva (noms, nombre de nivells)~~ **Resolt (Jordi 06-09, A5)**: cap mapatge de nivells de club; l'escala `EASY · MEDIUM · HARD` és metadada de recorreguts/challenges | Jordi (Learn) | — |
 | 2 | Learn té API pública pròpia o cal crear `recommendations`? | revisió de Learn | cal crear-la a Laravel |
 | 3 | Validació de vídeos dels challenges: manual (equip) o automàtica | Jordi | manual si `videoRequired` |
 | 4 | Classificacions públiques i RGPD (inicials per defecte) | Jordi (legal) | inicials + nom del gos |
