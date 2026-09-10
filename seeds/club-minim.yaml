@@ -1,4 +1,4 @@
-# Fictional club definition. Provider configuration is supplied in later stages.
+# Fictional minimal signup variant: BILLING, FAMILY_GROUP, PACKS, SINGLE_CLASS and levels are off.
 apiVersion: "agilityhub.club/v1"
 club:
   slug: "minim"
@@ -41,6 +41,10 @@ paymentProviders:
   - "MANUAL"
 parameters:
   messaging.email.fromName: "Club Mínim"
+  signup.enabled: true
+  signup.requireDogDocumentAtSignup: false
+  signup.allowFamilyGroupPending: false
+  levels.enabled: false
 # Fictional identities only. Password values come from the process environment.
 accounts:
   - email: "minim.admin@example.test"
@@ -69,3 +73,9 @@ catalogs:
   prices: []
   faq: []
 messageTemplates: []
+
+legal:
+  privacyPolicyUrl: "https://minim.example.test/privacy"
+  legalTextsVersion: "2026-09"
+  imageConsentText:
+    en: "I authorize publication of photos of me and my dog within club activities."

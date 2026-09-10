@@ -77,8 +77,26 @@
         "required" : [ "deltaThisMonth", "value" ],
         "type" : "object"
       },
+      "AddDogCheckout" : {
+        "properties" : {
+          "memberId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "required" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "memberId", "required" ],
+        "type" : "object"
+      },
       "AddDogSignupRequest" : {
         "properties" : {
+          "additionalDogOption" : {
+            "default" : "TODAY",
+            "enum" : [ "TODAY", "ALTERNATIVE" ],
+            "type" : "string"
+          },
           "consents" : {
             "$ref" : "#/components/schemas/SignupConsents"
           },
@@ -104,7 +122,7 @@
       "AddDogSignupResult" : {
         "properties" : {
           "checkout" : {
-            "$ref" : "#/components/schemas/SignupCheckout"
+            "$ref" : "#/components/schemas/AddDogCheckout"
           },
           "dogId" : {
             "format" : "uuid",
@@ -1740,6 +1758,10 @@
             "format" : "date",
             "type" : "string"
           },
+          "birthMonth" : {
+            "description" : "PENDING dogs only; YYYY-MM.",
+            "type" : "string"
+          },
           "breed" : {
             "maxLength" : 60,
             "minLength" : 0,
@@ -1749,6 +1771,13 @@
             "maxLength" : 20,
             "minLength" : 0,
             "type" : "string"
+          },
+          "documents" : {
+            "description" : "PENDING dogs only; replaces files for the supplied document types.",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupDocument"
+            },
+            "type" : "array"
           },
           "handlerName" : {
             "maxLength" : 80,
@@ -1763,6 +1792,12 @@
           },
           "name" : {
             "maxLength" : 40,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "notesToInstructors" : {
+            "description" : "PENDING dogs only.",
+            "maxLength" : 1000,
             "minLength" : 0,
             "type" : "string"
           },
@@ -4043,6 +4078,10 @@
             "minLength" : 0,
             "type" : "string"
           },
+          "paymentMethod" : {
+            "$ref" : "#/components/schemas/PaymentMethodPatch",
+            "description" : "Only while PENDING; optional IBAN."
+          },
           "phones" : {
             "items" : {
               "$ref" : "#/components/schemas/Phone"
@@ -4053,6 +4092,10 @@
             "maxLength" : 2000,
             "minLength" : 0,
             "type" : "string"
+          },
+          "signup" : {
+            "$ref" : "#/components/schemas/SignupPlanPatch",
+            "description" : "Only while PENDING."
           },
           "version" : {
             "format" : "int64",
@@ -5684,7 +5727,8 @@
       "RejectionRequest" : {
         "properties" : {
           "reason" : {
-            "minLength" : 1,
+            "maxLength" : 500,
+            "minLength" : 3,
             "type" : "string"
           },
           "version" : {
@@ -5706,6 +5750,10 @@
           "memberId" : {
             "format" : "uuid",
             "type" : "string"
+          },
+          "paidPaymentRequiresRefund" : {
+            "description" : "A collected payment remains recorded and requires a refund through billing",
+            "type" : "boolean"
           },
           "status" : {
             "enum" : [ "PENDING", "ACTIVE", "INACTIVE", "LEFT" ],
@@ -6353,6 +6401,7 @@
             "type" : "array"
           },
           "steps" : {
+            "description" : "Present when signup is enabled",
             "items" : {
               "enum" : [ "PERSON", "DOG", "FAMILY_GROUP", "PAYMENT" ],
               "type" : "string"
@@ -6367,7 +6416,24 @@
             "description" : "BILLING first-month choices from S04 §6"
           }
         },
-        "required" : [ "countryProfile", "enabled", "legal", "plans", "steps", "texts" ],
+        "required" : [ "enabled" ],
+        "type" : "object"
+      },
+      "SignupConfigChoice" : {
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "option" : {
+            "enum" : [ "TODAY", "ALTERNATIVE" ],
+            "type" : "string"
+          },
+          "startDate" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        },
+        "required" : [ "amount", "option", "startDate" ],
         "type" : "object"
       },
       "SignupConsents" : {
@@ -6592,7 +6658,8 @@
             "type" : "string"
           },
           "name" : {
-            "minLength" : 1,
+            "maxLength" : 80,
+            "minLength" : 0,
             "type" : "string"
           }
         },
@@ -6799,7 +6866,6 @@
             "type" : "string"
           },
           "prefix" : {
-            "minLength" : 1,
             "type" : "string"
           }
         },
@@ -6846,6 +6912,15 @@
           }
         },
         "required" : [ "conditions", "description", "id", "name", "type" ],
+        "type" : "object"
+      },
+      "SignupPlanPatch" : {
+        "properties" : {
+          "planIdRequested" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ ],
         "type" : "object"
       },
       "SignupPrice" : {
@@ -6903,7 +6978,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "levels", "planId" ],
+        "required" : [ "levels" ],
         "type" : "object"
       },
       "SignupRequest" : {
@@ -6931,7 +7006,6 @@
           },
           "planId" : {
             "format" : "uuid",
-            "minLength" : 1,
             "type" : "string"
           },
           "website" : {
@@ -6939,7 +7013,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "consents", "dog", "locale", "person", "planId" ],
+        "required" : [ "consents", "dog", "locale", "person" ],
         "type" : "object"
       },
       "SignupResult" : {
@@ -6988,7 +7062,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "locale", "pendingDays", "planIdRequested", "readmission", "source", "submittedAt" ],
+        "required" : [ "locale", "pendingDays", "readmission", "source", "submittedAt" ],
         "type" : "object"
       },
       "SignupTexts" : {
@@ -7020,6 +7094,9 @@
       },
       "SignupUpfront" : {
         "properties" : {
+          "additionalDog" : {
+            "$ref" : "#/components/schemas/SignupFirstMonthChoice"
+          },
           "lines" : {
             "items" : {
               "$ref" : "#/components/schemas/UpfrontLine"
@@ -7035,9 +7112,15 @@
       },
       "SignupUpfrontConfig" : {
         "properties" : {
+          "additionalDogOptions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SignupConfigChoice"
+            },
+            "type" : "array"
+          },
           "firstMonthOptions" : {
             "items" : {
-              "$ref" : "#/components/schemas/SignupFirstMonthChoice"
+              "$ref" : "#/components/schemas/SignupConfigChoice"
             },
             "type" : "array"
           },
@@ -10802,7 +10885,7 @@
     },
     "/api/v1/checkout-sessions" : {
       "post" : {
-        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 implements capability/ownership/redirect checks, anonymous replay protection and limits; standard 501 stub.",
+        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits.",
         "operationId" : "create_1",
         "parameters" : [ {
           "in" : "header",
@@ -20699,7 +20782,7 @@
     },
     "/api/v1/me/dogs/signup" : {
       "post" : {
-        "description" : "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. E3-T03 verifies member ownership and ACTIVE status; standard 501 stub.",
+        "description" : "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status.",
         "operationId" : "addDog",
         "parameters" : [ {
           "in" : "header",
@@ -26036,7 +26119,7 @@
     },
     "/api/v1/members/{id}/rejection" : {
       "post" : {
-        "description" : "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE. Standard 501 stub.",
+        "description" : "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE.",
         "operationId" : "reject",
         "parameters" : [ {
           "in" : "path",
@@ -26350,7 +26433,7 @@
     },
     "/api/v1/members/{id}/signup" : {
       "get" : {
-        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resource lookup belongs to E3-T03; standard 501 stub.",
+        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND.",
         "operationId" : "review",
         "parameters" : [ {
           "in" : "path",
@@ -26497,7 +26580,7 @@
     },
     "/api/v1/members/{id}/validation" : {
       "post" : {
-        "description" : "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. Standard 501 stub.",
+        "description" : "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version.",
         "operationId" : "validate",
         "parameters" : [ {
           "in" : "path",
@@ -32550,7 +32633,7 @@
     },
     "/api/v1/signup" : {
       "get" : {
-        "description" : "S04 §6. ANON or MEMBER; member block is returned only for the authenticated add-dog flow. Module-dependent fields are omitted. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforcement is E3-T03. Standard 501 stub.",
+        "description" : "S04 §6. ANON or MEMBER; member block is returned only for the authenticated add-dog flow. Module-dependent fields are omitted. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "config",
         "responses" : {
           "200" : {
@@ -32690,7 +32773,7 @@
         "tags" : [ "clubs.census" ]
       },
       "post" : {
-        "description" : "S04 §6, R-04-01–24. ANON; 5/hour and 20/day. Idempotency-Key is a UUID; host-scoped anonymous replay protection is E3-T03. Body at most 64 KB and 10 files. Nonempty website honeypot will return 202 without saving. Client amounts are ignored. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforcement is E3-T03. Standard 501 stub.",
+        "description" : "S04 §6, R-04-01–24. ANON; 5/hour and 20/day. Idempotency-Key is a UUID; host-scoped encrypted replay protection lasts 24 hours. Body at most 64 KB and 10 files. Nonempty website honeypot will return 202 without saving. Client amounts are ignored. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "signup",
         "parameters" : [ {
           "in" : "header",
@@ -32792,7 +32875,7 @@
             "description" : "Signup submitted"
           },
           "202" : {
-            "description" : "Honeypot accepted without persistence (E3-T03)"
+            "description" : "Honeypot accepted without persistence"
           },
           "400" : {
             "content" : {
@@ -32921,7 +33004,7 @@
     },
     "/api/v1/signup/family-group-lookups" : {
       "post" : {
-        "description" : "R-04-12. ANON; FAMILY_GROUP required; 20/hour. Only holderDisplayName may be disclosed. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforcement is E3-T03. Standard 501 stub.",
+        "description" : "R-04-12. ANON; FAMILY_GROUP required; 20/hour. Only holderDisplayName may be disclosed. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "familyGroup",
         "requestBody" : {
           "content" : {
@@ -33071,7 +33154,7 @@
     },
     "/api/v1/signup/identity-checks" : {
       "post" : {
-        "description" : "R-04-05. ANON; 10/hour. Reveals only result and maskedEmail; recognition sends a verification link in E3-T03. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforcement is E3-T03. Standard 501 stub.",
+        "description" : "R-04-05. ANON; 10/hour. Reveals only result and maskedEmail; recognition queues a verification link through the outbox. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "identityCheck",
         "requestBody" : {
           "content" : {
@@ -33221,7 +33304,7 @@
     },
     "/api/v1/signup/towns" : {
       "get" : {
-        "description" : "R-04-02. ANON; 60/hour. Country-profile postal lookup; an unsupported dataset yields an empty array. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforcement is E3-T03. Standard 501 stub.",
+        "description" : "R-04-02. ANON; 60/hour. Country-profile postal lookup; an unsupported dataset yields an empty array. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "towns",
         "parameters" : [ {
           "in" : "query",
@@ -33372,7 +33455,7 @@
     },
     "/api/v1/signup/upload-urls" : {
       "post" : {
-        "description" : "R-04-08. ANON or MEMBER; 30/hour. Signed upload constrained by files.allowedTypes/files.maxSizeMb; at most 10 files per signup. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforcement is E3-T03. Standard 501 stub.",
+        "description" : "R-04-08. ANON or MEMBER; 30/hour. Signed upload constrained by files.allowedTypes/files.maxSizeMb; at most 10 files per signup. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "uploadUrl",
         "requestBody" : {
           "content" : {

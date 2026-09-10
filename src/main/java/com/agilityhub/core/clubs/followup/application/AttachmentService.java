@@ -25,7 +25,7 @@ public class AttachmentService {
     private ClubConfig config() { return configs.get(TenantContext.require()); }
     private String account() { var user = CurrentUser.current(); if (user == null) { throw new ApiException(ErrorCode.UNAUTHENTICATED); } return user.accountId(); }
     private void validate(String purpose, String type, long size) {
-        if (!Set.of("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE").contains(purpose)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
+        if (!Set.of("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "SIGNUP_DOCUMENT").contains(purpose)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
         if ("INSTRUCTOR_NOTE".equals(purpose) && !config().modules().contains(Module.TASKS)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
         boolean allowed = type != null && config().get("files.allowedTypes", List.class).stream().anyMatch(raw -> {
             String item = raw.toString(); return item.endsWith("/*") ? type.startsWith(item.substring(0, item.length() - 1)) : type.equals(item);
@@ -33,6 +33,38 @@ public class AttachmentService {
         if (!allowed || (purpose.equals("DOG_PHOTO") && !type.startsWith("image/"))) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
         int max = config().get(purpose.equals("DOG_PHOTO") ? "files.dogPhotoMaxMb" : "files.maxSizeMb", Integer.class);
         if (size <= 0 || size > max * 1024L * 1024) { throw new ApiException(ErrorCode.FILE_TOO_LARGE, Map.of("maxSizeMb", max)); }
+    }
+    public Upload signupUpload(String name, String type, long size) {
+        validate("SIGNUP_DOCUMENT",type,size);
+        if (!(type.startsWith("image/") || type.equals("application/pdf"))) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
+        if (name == null || name.isBlank() || name.length() > 80 || name.contains("\r") || name.contains("\n")) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        String safe = name.replaceAll("[^\\p{L}\\p{N}._-]", "_");
+        String month = java.time.format.DateTimeFormatter.ofPattern("yyyyMM").withZone(java.time.ZoneId.of(config().club().timeZone())).format(clock.instant());
+        String key = "signup/"+TenantContext.require()+"/"+month+"/"+UUID.randomUUID()+"/"+safe;
+        Instant expires = clock.instant().plusSeconds(900);
+        grants.insert(new UploadGrant(key,TenantContext.require(),null,"SIGNUP_DOCUMENT",safe,type,size,clock.instant(),expires,null));
+        return new Upload(storage.uploadUrl(key,type,size,expires),key,expires,Map.of("Content-Type",type,"If-None-Match","*"));
+    }
+    @Transactional
+    public File claimSignup(String key, String entity) {
+        var grant = grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND));
+        if (!key.startsWith("signup/"+TenantContext.require()+"/") || !"SIGNUP_DOCUMENT".equals(grant.purpose())
+                || grant.boundEntity()!=null && !grant.boundEntity().equals(entity)) { throw new ApiException(ErrorCode.FILE_NOT_FOUND); }
+        validate("SIGNUP_DOCUMENT",grant.mimeType(),grant.sizeBytes());
+        AttachmentStorage.Metadata actual;
+        try { actual=storage.metadata(key); } catch (ApiException missing) { if (missing.code()==ErrorCode.NOT_FOUND) throw new ApiException(ErrorCode.FILE_NOT_FOUND); throw missing; }
+        if (actual.sizeBytes()!=grant.sizeBytes()) { throw new ApiException(ErrorCode.FILE_TOO_LARGE); }
+        if (!actual.mimeType().equals(grant.mimeType())) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
+        grants.bind(key,entity);
+        return new File(key,grant.fileName(),key,grant.mimeType(),grant.sizeBytes(),clock.instant(),null);
+    }
+    public void putSignupLocal(String key,long expires,String signature,String type,InputStream input) throws IOException {
+        if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        var grant=grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND));
+        if (!"SIGNUP_DOCUMENT".equals(grant.purpose()) || grant.boundEntity()!=null || !grant.expiresAt().isAfter(clock.instant())) { throw new ApiException(ErrorCode.FILE_NOT_FOUND); }
+        local.authorize(key,expires,signature,"PUT");
+        if (!grant.mimeType().equals(type)) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
+        local.put(key,type,grant.sizeBytes(),input);
     }
     public Upload upload(String purpose, String name, String type, long size) {
         validate(purpose, type, size);

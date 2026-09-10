@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OpenApiRequiredContractTest {
     private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClubAddress", "ClubPwa",
             "ConsentPatch", "ErasureInput", "ImpersonationRequest", "OnboardingFields",
-            "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput");
+            "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch");
 
     @Test void E1_T11_everySnapshotObjectDeclaresItsRequiredProperties() throws Exception {
         var schemas = new ObjectMapper().readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas");

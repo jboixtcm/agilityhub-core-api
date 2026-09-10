@@ -1,0 +1,20 @@
+Command: bin/core club:apply seeds/club-minim.yaml
+Exit code: 0
+= club unchanged
+= domains unchanged
+= theme unchanged
+= modules unchanged
+= paymentProviders unchanged
+= legal unchanged
+= pwa unchanged
+= parameters.messaging.email.fromName unchanged
+= parameters.signup.enabled unchanged
+= parameters.signup.requireDogDocumentAtSignup unchanged
+= parameters.signup.allowFamilyGroupPending unchanged
+= parameters.levels.enabled unchanged
+= admins: 0 to provision
+= accounts: 0 to provision
+= catalogs: 0 catalog changes
+= messageTemplates: schema accepted; application deferred to E7
+= pages: 0 page changes
+0 changes (applied)

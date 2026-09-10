@@ -29,8 +29,7 @@ public class MemberOnboardingService implements MemberOnboardingAccess {
                 if (phones.isEmpty()) { phones.add(primary); } else { phones.set(0, primary); } member.phones = phones;
             }
             if (imageConsent != null) {
-                var consent = new LinkedHashMap<>(map(member.consents));
-                consent.put("imageRights", object("granted", imageConsent, "at", at, "version", version, "byAccountId", accountId)); member.consents = consent;
+                member.consents = ConsentLedgers.image(member.consents,imageConsent,version,at,accountId);
             }
             members.save(member);
         });

@@ -8,8 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- E3-T03: Record the add-dog billing-choice contract gap and a proposed API
-  amendment. Implementation is blocked pending organizer alignment with B13.
+- E3-T03: Implement public signup, signed documents, recognition, tenant-scoped
+  encrypted replay, review/edit/validation/rejection, and authenticated add-dog.
+  Persist census consent history, atomic member numbers, identity membership and
+  upfront payments with the outbox; deliver N-01/02/03/37/39 through SYSTEM mail.
+  Add the local/test checkout gateway, rate limits, explicit signup seeds, amended
+  OpenAPI choices and checkout ownership, and a disposable curl/mailbox rehearsal.
 
 - E3-T06: Keep public health independent of tenant data, preserve framework error
   statuses, and log unexpected failures with their response trace ID. Release

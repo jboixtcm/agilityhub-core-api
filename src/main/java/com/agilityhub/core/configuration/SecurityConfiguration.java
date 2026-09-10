@@ -55,6 +55,7 @@ public class SecurityConfiguration {
                     "/api/v1/signup", "/api/v1/signup/towns",
                     "/api/v1/public/**", "/api/v1/country-profile", "/api/v1/country-profile/postal-codes/*",
                     "/.well-known/openid-configuration", "/oauth2/authorize", "/connect/logout").permitAll();
+            authorize.requestMatchers(HttpMethod.PUT, "/api/v1/signup/uploads").permitAll();
             authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid",
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",
                     "/api/v1/signup/family-group-lookups", "/api/v1/checkout-sessions").permitAll();

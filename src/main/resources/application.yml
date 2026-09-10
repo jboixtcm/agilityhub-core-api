@@ -1,3 +1,5 @@
+signup:
+  capability-key: ${SIGNUP_CAPABILITY_KEY:}
 exports:
   local-directory: ${EXPORT_LOCAL_DIRECTORY:./.local/exports}
   signing-key: ${EXPORT_SIGNING_KEY:}

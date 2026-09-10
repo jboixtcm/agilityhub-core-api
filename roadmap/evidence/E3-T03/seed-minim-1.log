@@ -1,0 +1,32 @@
+Command: bin/core club:apply seeds/club-minim.yaml
+Exit code: 0
++ club added
+  null -> {"slug":"minim","name":"Club Mínim","contactEmail":"minim@example.test","locales":["en"],"defaultLocale":"en","timeZone":"UTC","currency":"EUR","countryProfile":"GENERIC","status":"ONBOARDING","template":false}
++ domains added
+  null -> [{"host":"minim.example.test","app":"clubs","primary":true}]
++ theme added
+  null -> {"colors":{"primary":"#2563EB","onPrimary":"#FFFFFF","background":"#F8FAFC","surface":"#FFFFFF","surfaceAlt":"#F1F5F9","text":"#0F172A","textMuted":"#475569","border":"#CBD5E1","success":"#15803D","warning":"#A16207","danger":"#B91C1C","info":"#0369A1"},"fontFamily":"system-ui","radius":"8px","ringPalette":[],"mode":"light"}
++ modules added
+  null -> ["FAQ","PUSH","WAITLIST"]
++ paymentProviders added
+  null -> ["MANUAL","STRIPE"]
++ legal added
+  null -> {"privacyPolicyUrl":"https://minim.example.test/privacy","imageConsentText":{"en":"I authorize publication of photos of me and my dog within club activities."},"legalTextsVersion":"2026-09"}
++ pwa added
+  null -> {"name":"Club Mínim","shortName":"Club Mínim","icons":[]}
++ parameters.messaging.email.fromName added
+  null -> "Club Mínim"
++ parameters.signup.enabled added
+  null -> true
++ parameters.signup.requireDogDocumentAtSignup added
+  null -> false
++ parameters.signup.allowFamilyGroupPending added
+  null -> false
++ parameters.levels.enabled added
+  null -> false
++ admins: 0 to provision
++ accounts: 3 to provision
+= catalogs: 0 catalog changes
++ messageTemplates: schema accepted; application deferred to E7
+= pages: 0 page changes
+13 changes (applied)

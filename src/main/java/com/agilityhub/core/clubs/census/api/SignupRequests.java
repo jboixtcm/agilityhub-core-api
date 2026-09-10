@@ -17,7 +17,7 @@ public final class SignupRequests {
     public enum FirstMonthOption { TODAY, ALTERNATIVE }
     public record SignupIdDocument(@NotNull SignupIdDocumentType type, @NotBlank String value) { }
     public record SignupAddress(@NotBlank String street, @NotBlank String postalCode, @NotBlank String town) { }
-    public record SignupPhone(@NotBlank String prefix, @NotBlank String number,
+    public record SignupPhone(String prefix, @NotBlank String number,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 30) String label) { }
     public record SignupPerson(@NotNull @Valid SignupIdDocument idDocument,
             @NotBlank @Size(max = 60) String firstName, @NotBlank @Size(max = 60) String lastName1,
@@ -26,7 +26,7 @@ public final class SignupRequests {
             @NotNull @Size(min = 1, max = 2) List<@NotBlank @Email String> emails,
             @NotNull @Size(min = 1, max = 2) List<@Valid SignupPhone> phones,
             @NotNull @Valid SignupAddress address) { }
-    public record SignupFile(@NotBlank String fileKey, @NotBlank String name) { }
+    public record SignupFile(@NotBlank String fileKey, @NotBlank @Size(max = 80) String name) { }
     public record SignupDocument(@NotBlank @Schema(description = "Key from census.dogDocumentTypes; e.g. VACCINATION_CARD, INSURANCE, OTHER") String type,
             @NotNull @Size(max = 10) List<@Valid SignupFile> files) { }
     public record SignupDog(@NotBlank @Size(max = 40) String name, @NotNull Sex sex,
@@ -48,7 +48,7 @@ public final class SignupRequests {
     public record SignupRequest(@NotBlank @Schema(example = "en") String locale,
             @Schema(requiredMode = NOT_REQUIRED, description = "Honeypot; nonempty input will return 202 without persistence in E3-T03", example = "") String website,
             @NotNull @Valid SignupPerson person, @NotNull @Valid SignupDog dog,
-            @NotBlank @Schema(format = "uuid") String planId,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String planId,
             @Schema(requiredMode = NOT_REQUIRED) @Valid SignupFamilyGroupClaim familyGroupClaim,
             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") @Valid SignupPayment payment,
             @NotNull @Valid SignupConsents consents) { }
@@ -59,7 +59,8 @@ public final class SignupRequests {
     public record AddDogSignupRequest(@NotNull @Valid SignupDog dog,
             @NotNull @Size(max = 10) List<@Valid SignupDocument> documents,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String planIdRequested,
-            @Schema(requiredMode = NOT_REQUIRED) @Valid SignupConsents consents) { }
+            @Schema(requiredMode = NOT_REQUIRED) @Valid SignupConsents consents,
+            @Schema(requiredMode = NOT_REQUIRED, defaultValue = "TODAY") FirstMonthOption additionalDogOption) { }
     public record ValidationDog(@NotBlank @Schema(format = "uuid") String dogId,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId) { }
     public record ValidationRequest(@NotNull @PositiveOrZero Long version,
@@ -69,5 +70,5 @@ public final class SignupRequests {
             @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String familyGroupId,
             @Schema(requiredMode = NOT_REQUIRED) Money upfrontAmountPaid) { }
-    public record RejectionRequest(@NotNull @PositiveOrZero Long version, @NotBlank String reason) { }
+    public record RejectionRequest(@NotNull @PositiveOrZero Long version, @NotBlank @Size(min = 3, max = 500) String reason) { }
 }

@@ -1,0 +1,30 @@
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 15 changes (applied); seed-canic-1.log
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 0 changes (applied); seed-canic-2.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 13 changes (applied); seed-minim-1.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 0 changes (applied); seed-minim-2.log
+Fixture setup: disposable clubs activated; committed seeds retain ONBOARDING
+curl -X GET /api/v1/signup -> 200
+curl -X GET /api/v1/signup/towns -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+curl -X POST /api/v1/signup/upload-urls -> 200
+curl -X PUT /api/v1/signup/uploads -> 204
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/e8ac8005-40ff-4a23-8b01-2f37748dbf07/signup -> 200
+curl -X POST /api/v1/members/e8ac8005-40ff-4a23-8b01-2f37748dbf07/validation -> 200
+curl -X POST /api/v1/members/e8ac8005-40ff-4a23-8b01-2f37748dbf07/validation -> 200
+Mailbox N-02 (ca): Benvinguda, Example!; token=[truncated]
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 234, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 198, in main
+    member = call("POST", "/oauth2/token", host=host, form=dict(grant_type="urn:agilityhub:grant:magic-link", client_id="clubs-app", token=token))["access_token"]
+             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 107, in call
+    require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {value.get('code','') if isinstance(value,dict) else ''}")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 21, in require
+    raise AssertionError(message)
+AssertionError: POST /oauth2/token: expected 200, got 401 UNAUTHENTICATED

@@ -15,14 +15,22 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 public class DogService {
     private final CensusAccess access; private final CensusValidation validation; private final CensusEvents events;
     private final Clock clock; private final ClubClock clubClock;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupService> signups;
     public DogService(CensusAccess access, CensusValidation validation, CensusEvents events, Clock clock, ClubClock clubClock) {
         this.access = access; this.validation = validation; this.events = events; this.clock = clock; this.clubClock = clubClock;
     }
     public String owner(String id) { return access.dogs.require(id).memberId; }
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
-    public void patch(String id, Map<String,Object> request) {
-        var dog = access.mutableDog(id); allow(request, Set.of("name", "breed", "sex", "birthDate", "chip", "handlerName", "licenses", "version"));
+    public void patch(String id, Map<String,Object> request) { edit(id,request); }
+    @Transactional
+    @Audited(action = AuditAction.SIGNUP_EDITED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
+    public void patchPending(String id,Map<String,Object> request) { edit(id,request); }
+    private void edit(String id,Map<String,Object> request) {
+        var dog = access.mutableDog(id);
+        var allowed=new HashSet<>(Set.of("name", "breed", "sex", "birthDate", "chip", "handlerName", "licenses", "version"));
+        if("PENDING".equals(dog.status)) allowed.addAll(Set.of("birthMonth","notesToInstructors","documents"));
+        allow(request,allowed);
         version(dog.version(), request.get("version")); var before = fields(dog);
         if (request.containsKey("name")) { dog.name = text(request.get("name"), "name", 40, true); }
         if (request.containsKey("breed")) { dog.breed = text(request.get("breed"), "breed", 60, true); }
@@ -36,22 +44,34 @@ public class DogService {
             if (dog.birthDate.isAfter(clubClock.today(TenantContext.require()))) { throw invalid("birthDate", "INVALID_VALUE"); }
         }
         if (request.containsKey("chip")) { dog.chip = text(request.get("chip"), "chip", 20, false); if (dog.chip != null && dog.chip.isEmpty()) { dog.chip = null; } }
+        if (request.containsKey("birthMonth")) {
+            try { dog.birthDate=YearMonth.parse(string(request.get("birthMonth"))).atDay(1); }
+            catch(RuntimeException invalidMonth) { throw invalid("birthMonth","INVALID_VALUE"); }
+            if(dog.birthDate.isAfter(clubClock.today(TenantContext.require()))) throw invalid("birthMonth","INVALID_VALUE");
+        }
+        if (request.containsKey("notesToInstructors")) dog.instructorNote=object("text",text(request.get("notesToInstructors"),"notesToInstructors",1000,false),"updatedAt",clock.instant());
+        if (request.containsKey("documents")) signups.getObject().saveDocuments(dog,rows(request.get("documents")));
         if (request.containsKey("handlerName")) { dog.handlerName = text(request.get("handlerName"), "handlerName", 80, false); if ("".equals(dog.handlerName)) { dog.handlerName = null; } }
         if (request.containsKey("licenses")) { dog.licenses = validation.licenses(request.get("licenses")); }
-        var diff = events.diff(before, fields(dog)); if (diff.isEmpty()) { return; }
-        access.dogs.save(dog); events.emit("DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
+        var diff = events.diff(before, fields(dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
+        if (diff.isEmpty()) { return; }
+        access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
     }
     private Map<String,Object> fields(Dog dog) {
         return object("name", dog.name, "breed", dog.breed, "sex", dog.sex, "birthDate", dog.birthDate, "chip", dog.chip,
-                "handlerName", dog.handlerName, "licenses", dog.licenses);
+                "handlerName", dog.handlerName, "licenses", dog.licenses, "instructorNote", dog.instructorNote);
     }
     @Transactional
     @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
-    public void level(String id, String levelId) {
+    public void level(String id, String levelId) { assignLevel(id,levelId,false); }
+    @Transactional
+    @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
+    public void signupLevel(String id,String levelId) { assignLevel(id,levelId,true); }
+    private void assignLevel(String id,String levelId,boolean signup) {
         var dog = access.mutableDog(id); if (!access.levels()) { throw new ApiException(ErrorCode.LEVELS_DISABLED); }
         access.references.lockLevelCatalog(); var level = access.references.level(levelId);
         if (!Boolean.TRUE.equals(level.get("active"))) { throw new ApiException(ErrorCode.LEVEL_NOT_ACTIVE); }
-        if (Objects.equals(dog.levelId, levelId)) { throw new ApiException(ErrorCode.LEVEL_UNCHANGED); }
+        if (!signup && Objects.equals(dog.levelId, levelId)) { throw new ApiException(ErrorCode.LEVEL_UNCHANGED); }
         boolean previous = access.free(dog).allowed(); String old = dog.levelId;
         var history = new ArrayList<Map<String,Object>>();
         for (var row : rows(dog.levelHistory)) { var closed = new LinkedHashMap<>(row); if (closed.get("to") == null) { closed.put("to", clock.instant()); } history.add(closed); }

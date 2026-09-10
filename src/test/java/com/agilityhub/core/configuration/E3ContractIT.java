@@ -68,17 +68,22 @@ class E3ContractIT extends AbstractIntegrationTest {
         if (route.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         return request;
     }
+    private int expected(Route route,String role) {
+        if(route.path().contains("/members/") || route.path().contains("/me/dogs/")) return 404;
+        if(route.path().equals("/api/v1/checkout-sessions")) return role.equals("ANON")?401:404;
+        if(route.path().equals("/api/v1/signup")) return route.method().equals("POST")?422:role.equals("ANON")?200:404;
+        return 200;
+    }
     @ParameterizedTest @MethodSource("routes")
-    void T_04_25_allElevenStubsEnforceRolesAndTenantBoundaries(Route route) throws Exception {
-        mvc.perform(call(route, HOST)).andExpect(status().is(route.roles().contains("ANON") ? 501 : 401))
-                .andExpect(jsonPath("$.code").value(route.roles().contains("ANON") ? "NOT_IMPLEMENTED" : "UNAUTHENTICATED"))
+    void T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route route) throws Exception {
+        mvc.perform(call(route, HOST)).andExpect(status().is(route.roles().contains("ANON") ? expected(route,"ANON") : 401))
                 .andExpect(header().doesNotExist("Set-Cookie"));
         for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN")) {
             boolean allowed = route.roles().contains(role);
-            mvc.perform(call(route, HOST).with(jwt().jwt(j -> j.subject("e3-" + role).claim("clubId", "e3-club-a"))
+            var result=mvc.perform(call(route, HOST).with(jwt().jwt(j -> j.subject("e3-" + role).claim("clubId", "e3-club-a"))
                             .authorities(new SimpleGrantedAuthority("ROLE_" + role))))
-                    .andExpect(status().is(allowed ? 501 : 403))
-                    .andExpect(jsonPath("$.code").value(allowed ? "NOT_IMPLEMENTED" : "FORBIDDEN"))
+                    .andExpect(status().is(allowed ? expected(route,role) : 403));
+            if(!allowed) result.andExpect(jsonPath("$.code").value("FORBIDDEN"))
                     .andExpect(jsonPath("$.length()").value(4)).andExpect(jsonPath("$.traceId").isNotEmpty())
                     .andExpect(jsonPath("$.message").isNotEmpty());
         }
@@ -93,7 +98,7 @@ class E3ContractIT extends AbstractIntegrationTest {
         }
         assertThat(TenantContext.current()).isNull();
     }
-    @Test void T_04_21_T_04_25_validImpersonationCanUseMemberStubsButNeverD2() throws Exception {
+    @Test void T_04_21_T_04_25_validImpersonationCanUseMemberRoutesButNeverD2() throws Exception {
         for (String kind : List.of("admin", "member")) {
             String id = "e3-imp-" + kind;
             var role = kind.equals("admin") ? com.agilityhub.core.identity.domain.Role.ADMIN : com.agilityhub.core.identity.domain.Role.MEMBER;
@@ -109,7 +114,9 @@ class E3ContractIT extends AbstractIntegrationTest {
         }
         for (Route route : routes().toList()) {
             mvc.perform(call(route, HOST).with(jwt().jwt(issued.token()).authorities(new SimpleGrantedAuthority("ROLE_MEMBER"))))
-                    .andExpect(status().is(route.roles().contains("MEMBER") ? 501 : 403));
+                    .andExpect(status().is(!route.roles().contains("MEMBER") ? 403
+                            :route.path().equals("/api/v1/checkout-sessions")?403
+                            :route.path().equals("/api/v1/me/dogs/signup")?422:200));
         }
     }
     @Test void T_04_26_moduleGuardsApplyToAnonymousAndAuthenticatedCheckoutAndFamilyLookups() throws Exception {
@@ -125,7 +132,7 @@ class E3ContractIT extends AbstractIntegrationTest {
             }
         }
     }
-    @Test void T_04_18_T_04_23_requiredHeadersBodiesAndDryRunAreContractOnlyWithoutSignupWrites() throws Exception {
+    @Test void T_04_18_T_04_23_invalidRequestsAndForeignDryRunDoNotWriteSignupEntities() throws Exception {
         var collections = List.of("members", "dogs", "dog_documents", "upfront_payments", "domain_events", "audit_entries", "notifications");
         var before = new LinkedHashMap<String, Long>();
         collections.forEach(name -> before.put(name, mongo.getCollection(name).countDocuments()));
@@ -134,7 +141,7 @@ class E3ContractIT extends AbstractIntegrationTest {
             var valid = call(route, HOST);
             if (!role.equals("ANON")) { valid.with(jwt().jwt(j -> j.claim("clubId", "e3-club-a")).authorities(new SimpleGrantedAuthority("ROLE_" + role))); }
             if (route.path().endsWith("/validation")) { valid.param("dryRun", "true"); }
-            mvc.perform(valid).andExpect(status().isNotImplemented());
+            mvc.perform(valid).andExpect(status().is(expected(route,role)));
             if (route.idempotency()) {
                 // Build without the fixture's required header.
                 var missing = request(HttpMethod.valueOf(route.method()), route.path()).header("Host", HOST)
@@ -149,8 +156,7 @@ class E3ContractIT extends AbstractIntegrationTest {
         JsonNode api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
-            assertThat(op.path("description").asText()).contains("501");
-            assertThat(op.at("/responses/501/content/application~1json/schema/$ref").asText()).endsWith("/ApiError");
+            assertThat(op.path("description").asText()).doesNotContain("501");
             assertThat(op.path("parameters").findValuesAsText("name")).doesNotContain("clubId");
             if (route.roles().contains("ANON")) { assertThat(op.path("security").isArray()).isTrue(); assertThat(op.path("security").isEmpty() || op.path("security").get(0).isEmpty()).isTrue(); }
             if (route.idempotency()) {
@@ -171,6 +177,10 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema, "SignupDog", "name,sex,breed,birthMonth,chip,notesToInstructors,documents");
         properties(schema, "SignupPayment", "type,iban,holderName,holderTaxId,firstMonthOption");
         properties(schema, "SignupConsents", "privacyPolicy,imageUse");
+        properties(schema,"AddDogSignupRequest","dog,documents,planIdRequested,consents,additionalDogOption");
+        properties(schema,"AddDogCheckout","required,memberId");
+        properties(schema,"SignupUpfront","lines,totalDue,additionalDog");
+        assertThat(schema.at("/SignupUpfrontConfig/properties").has("additionalDogOptions")).isTrue();
         properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,texts,legal,countryProfile,upfront,member");
         properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,version");
         properties(schema, "ValidationRequest", "version,dogs,planId,priceId,nextInvoiceDate,familyGroupId,upfrontAmountPaid");

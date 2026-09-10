@@ -92,4 +92,12 @@ class ParameterValidatorTest {
                 Map.of("validator", "unsupported"), List.of(), "club", "PLATFORM", false, "string", "—");
         assertThatThrownBy(() -> validator.validate(unknownValidator, "value", "ca", "EUR")).isInstanceOf(ApiException.class);
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"signup.firstMonthSplitDay","billing.nextInvoiceDayOfMonth"})
+    void T_04_18_calendarParametersRejectDayZero(String key) {
+        var definition=catalog.get(key);
+        assertThatThrownBy(() -> new ParameterValidator().validate(definition,0,"ca","EUR"))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.PARAMETER_INVALID));
+        new ParameterValidator().validate(definition,1,"ca","EUR");
+    }
 }

@@ -44,6 +44,24 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 .append("roles", fallback(expr("$arrayElemAt", "$membership.roles", 0), List.of()))
                 .append("hasPendingDocuments", expr("$in", true, "$dogs.hasPendingDocuments"))
                 .append("displayStatus", memberStatus())));
+        Object ledger=new Document("$isArray","$consents");
+        Object latestImage=expr("$arrayElemAt",new Document("$filter",new Document("input","$consents").append("as","consent").append("cond",expr("$eq","$$consent.type","IMAGE_USE"))),-1);
+        stages.add(new Document("$set",new Document("consents",new Document("$cond",List.of(ledger,new Document("imageRights",latestImage),fallback("$consents",new Document()))))
+                .append("pendingDogs",new Document("$filter",new Document("input","$dogs").append("as","dog").append("cond",expr("$eq","$$dog.status","PENDING"))))));
+        stages.add(join("upfront_payments","$_id","memberId","signupPayments",List.of()));
+        stages.add(new Document("$set",new Document("signupPending",expr("$gt",expr("$size","$pendingDogs"),0))));
+        var warnings=new ArrayList<Object>();
+        warnings.add(new Document("$cond",List.of(expr("$ne",fallback("$consents.imageRights.granted",false),true),List.of("NO_IMAGE_CONSENT"),List.of())));
+        warnings.add(new Document("$cond",List.of(expr("$in",true,"$pendingDogs.hasPendingDocuments"),List.of("DOCUMENT_PENDING"),List.of())));
+        var config=configs.get(TenantContext.require());
+        if(config.modules().contains(com.agilityhub.core.platform.application.Module.BILLING)) {
+            warnings.add(new Document("$cond",List.of(expr("$and",expr("$eq","$paymentMethod.type","SEPA_DD"),expr("$eq",fallback("$paymentMethod.iban",""),"")),List.of("ACCOUNT_NOT_PROVIDED"),List.of())));
+            Object unpaid=new Document("$filter",new Document("input","$signupPayments").append("as","payment").append("cond",expr("$and",expr("$in","$$payment.status",List.of("DUE","PARTIAL","CHECKOUT_PENDING")),expr("$in","$$payment.dogId","$pendingDogs._id"))));
+            warnings.add(new Document("$cond",List.of(expr("$gt",expr("$size",unpaid),0),List.of("UPFRONT_UNPAID"),List.of())));
+        }
+        if(config.modules().contains(com.agilityhub.core.platform.application.Module.FAMILY_GROUP)) warnings.add(new Document("$cond",List.of(expr("$eq","$familyGroupClaim.status","NOT_FOUND_PENDING"),List.of("FAMILY_HOLDER_NOT_FOUND"),List.of())));
+        warnings.add(new Document("$cond",List.of(expr("$eq","$signup.readmission",true),List.of("READMISSION"),List.of())));
+        stages.add(new Document("$set",new Document("warnings",new Document("$cond",List.of("$signupPending",new Document("$concatArrays",warnings),List.of())))));
         return stages;
     }
     private List<Document> dogStages(boolean owner) {
@@ -87,6 +105,10 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
                 .append("in", expr("$setUnion", "$$value", "$$this"))));
         fields.put("freeTraining", expr("$in", true, "$dogs.freeTrainingAllowed"));
         fields.put("idDocument", masked("$idDocument.number", true));
+        if(admin) {
+            fields.put("signupPending","$signupPending");fields.put("warnings","$warnings");fields.put("signup",new Document("submittedAt","$signup.submittedAt"));
+            fields.put("pendingDogs",map("$pendingDogs","dog",new Document("id","$$dog._id").append("name","$$dog.name").append("level",level("$$dog.level"))));
+        }
         if (!admin) {
             fields.putAll(fields("firstName", "lastName1", "lastName2", "status"));
             fields.put("contactEmails", emails()); fields.put("phones", phones());

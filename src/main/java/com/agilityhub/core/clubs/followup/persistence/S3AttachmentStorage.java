@@ -9,7 +9,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 public class S3AttachmentStorage implements AttachmentStorage {
     private final S3Client client; private final S3Presigner signer; private final String bucket; private final Clock clock;
     public S3AttachmentStorage(S3Client client, S3Presigner signer, String bucket, Clock clock) { this.client = client; this.signer = signer; this.bucket = bucket; this.clock = clock; }
-    private String objectKey(String key) { return "attachments/" + key; }
+    private String objectKey(String key) { return key.startsWith("signup/") ? key : "attachments/" + key; }
     @Override public String uploadUrl(String key, String type, long size, Instant expires) {
         return signer.presignPutObject(builder -> builder.signatureDuration(Duration.between(clock.instant(), expires))
                 .putObjectRequest(request -> request.bucket(bucket).key(objectKey(key)).contentLength(size).contentType(type).ifNoneMatch("*")))

@@ -16,9 +16,9 @@ public class IdentityTransactions {
         for (int attempt = 0; ; attempt++) {
             try { return transactions.execute(status -> work.get()); }
             catch (RuntimeException failure) {
-                if (attempt >= 4 || !retryable(failure) || Thread.currentThread().isInterrupted()) { throw failure; }
+                if (attempt >= 40 || !retryable(failure) || Thread.currentThread().isInterrupted()) { throw failure; }
                 // Let the winning transaction commit before rebuilding this transaction's snapshot.
-                java.util.concurrent.locks.LockSupport.parkNanos(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(25L << attempt));
+                java.util.concurrent.locks.LockSupport.parkNanos(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(java.util.concurrent.ThreadLocalRandom.current().nextLong(25L, Math.min(500L, 50L << Math.min(attempt, 4)))));
             }
         }
     }

@@ -14,6 +14,9 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 @Repository
 public class CensusReferences extends TenantRepository<Member> {
     public CensusReferences(MongoTemplate mongo) { super(mongo, Member.class); }
+    public List<String> activeLevelIds() {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("active").is(true)).with(Sort.by("order","_id")),Document.class,"levels").stream().map(d -> d.getString("_id")).toList();
+    }
     public Map<String,Object> level(String id) { return one("levels", "_id", id); }
     public Map<String,Object> plan(String id) { return one("plans", "_id", id); }
     public Map<String,Object> membership(String memberId) { return one("memberships", "memberId", memberId); }

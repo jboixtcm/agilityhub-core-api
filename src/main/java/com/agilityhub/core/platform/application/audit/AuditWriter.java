@@ -37,7 +37,8 @@ public class AuditWriter {
         AuditActor actor = Objects.requireNonNull(actors.current(), "Audit actor is required");
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
-                entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId());
+                entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),
+                com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name());
         // MongoTemplate participates in the caller's transaction, or inserts immediately without one.
         repository.append(entry);
     }

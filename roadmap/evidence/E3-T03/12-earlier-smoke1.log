@@ -1,0 +1,22 @@
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 15 changes (applied); seed-canic-1.log
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 0 changes (applied); seed-canic-2.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 13 changes (applied); seed-minim-1.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 0 changes (applied); seed-minim-2.log
+Fixture setup: disposable clubs activated; committed seeds retain ONBOARDING
+curl -X GET /api/v1/signup -> 200
+curl -X GET /api/v1/signup/towns -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+curl -X POST /api/v1/signup/upload-urls -> 200
+curl -X PUT /api/v1/signup/uploads -> 204
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 234, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 182, in main
+    submitted = call("POST", "/api/v1/signup", 201, host=host, key=key, body=body)
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 107, in call
+    require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {value.get('code','') if isinstance(value,dict) else ''}")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-signup-smoke", line 21, in require
+    raise AssertionError(message)
+AssertionError: POST /api/v1/signup: expected 201, got 422 PAYMENT_METHOD_NOT_AVAILABLE

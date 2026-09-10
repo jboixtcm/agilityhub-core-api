@@ -27,6 +27,10 @@ public class CensusLists implements ListProvider {
                 : "name,breed,level,owner,handler,freeTraining,licenses,displayStatus,sex,age,chip,pendingDocuments,levelAssignedAt,pack,registeredAt").split(",")));
         add(filters, "id", "_id", TEXT);
         if (members) {
+            if(ListAccess.admin()) {
+                add(filters,"signupPending","signupPending",BOOLEAN);add(filters,"pendingDogs","pendingDogs.name",TEXT);add(filters,"warnings","warnings",TEXT);
+                sorts.put("signup.submittedAt","signup.submittedAt");
+            }
             add(filters, "memberNumber", "memberNumber", NUMBER);
             add(filters, "lastName", "lastName", TEXT); contains(filters, "fullName", "fullName");
             for (String field : List.of("status", "planId", "priceId", "familyGroupId", "gender")) { add(filters, field, field, TEXT); }
@@ -65,6 +69,7 @@ public class CensusLists implements ListProvider {
                 : List.of("name", "breed", "level", "owner", "freeTraining", "licenses", "displayStatus")).stream().filter(columns::contains).toList();
         var fields = new HashSet<>(columns); fields.addAll(List.of("id", "version"));
         if (!members) { fields.add("handlerName"); }
+        if (members && ListAccess.admin()) { fields.addAll(List.of("signupPending","pendingDogs","warnings","signup")); }
         if (members && !ListAccess.admin()) { fields.addAll(List.of("firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status")); }
         var definition = new ListDefinition(key, filters, sorts,
                 members ? List.of("fullName", "idDocument.number", "contactEmails.email", "phones.number", "dogs.name") : List.of("name", "owner.fullName", "chip"),

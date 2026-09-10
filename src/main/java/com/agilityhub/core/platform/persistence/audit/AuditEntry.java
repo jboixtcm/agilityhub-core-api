@@ -12,6 +12,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public record AuditEntry(@Id String id, String clubId, Instant at, String actorAccountId, String actorName,
                          String actorRole, String impersonatedMemberId, Boolean support, AuditAction action,
                          String entityType, String entityId, String memberId, List<AuditChange> changes,
-                         String reason, String ip, String userAgent, String traceId) implements TenantEntity {
+                         String reason, String ip, String userAgent, String traceId, String origin) implements TenantEntity {
+    public AuditEntry(String id,String clubId,Instant at,String actorAccountId,String actorName,String actorRole,
+            String impersonatedMemberId,Boolean support,AuditAction action,String entityType,String entityId,String memberId,
+            List<AuditChange> changes,String reason,String ip,String userAgent,String traceId) {
+        this(id,clubId,at,actorAccountId,actorName,actorRole,impersonatedMemberId,support,action,entityType,entityId,memberId,changes,reason,ip,userAgent,traceId,null);
+    }
     public AuditEntry { changes = List.copyOf(changes); }
 }

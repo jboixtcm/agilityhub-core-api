@@ -98,7 +98,7 @@ parameters:
     block: "signup"
     labelKey: "admin-settings:param.signup.firstMonthSplitDay.label"
     helpKey: "admin-settings:param.signup.firstMonthSplitDay.help"
-    constraints: {"min": 0, "max": 31}
+    constraints: {"min": 1, "max": 31}
     modules: []
     scope: "club"
     editableBy: "CLUB"
@@ -618,7 +618,7 @@ parameters:
     block: "billing"
     labelKey: "admin-settings:param.billing.nextInvoiceDayOfMonth.label"
     helpKey: "admin-settings:param.billing.nextInvoiceDayOfMonth.help"
-    constraints: {"min": 0, "max": 31}
+    constraints: {"min": 1, "max": 31}
     modules: ["BILLING"]
     scope: "club"
     editableBy: "CLUB"

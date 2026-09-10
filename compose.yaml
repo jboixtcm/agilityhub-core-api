@@ -34,6 +34,7 @@ services:
       SERVER_PORT: ${SERVER_PORT:-8080}
       AUTH_ISSUER: ${AUTH_ISSUER:-https://id.agilitydoghub.com}
       OIDC_MASTER_KEY: ${OIDC_MASTER_KEY:-}
+      SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY:-}
       OIDC_LEARN_CLIENT_SECRET: ${OIDC_LEARN_CLIENT_SECRET:-}
       OIDC_LOGIN_URL: ${OIDC_LOGIN_URL:-https://id.agilitydoghub.com/login}
       OIDC_CLUBS_APP_REDIRECT_URI: ${OIDC_CLUBS_APP_REDIRECT_URI:-https://clubs.agilitydoghub.com/oidc/callback}

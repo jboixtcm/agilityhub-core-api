@@ -80,7 +80,7 @@
       "ANON"
     ],
     "body": {
-      "locale": "en",
+      "locale": "ca",
       "website": "",
       "person": {
         "idDocument": {
@@ -104,7 +104,7 @@
         ],
         "address": {
           "street": "1 Example Street",
-          "postalCode": "08001",
+          "postalCode": "99999",
           "town": "Example Town"
         }
       },
@@ -128,26 +128,18 @@
         ]
       },
       "planId": "11111111-1111-4111-8111-111111111111",
-      "familyGroupClaim": {
-        "holderName": "Example Holder",
-        "dogName": "Example Dog",
-        "leavePending": false
-      },
       "payment": {
-        "type": "SEPA_DD",
-        "iban": "ES0000000000000000000000",
-        "holderName": "Example Member",
-        "holderTaxId": null,
+        "type": "MANUAL",
         "firstMonthOption": "TODAY"
       },
       "consents": {
         "privacyPolicy": {
           "accepted": true,
-          "version": "2026-09"
+          "version": "v1"
         },
         "imageUse": {
           "granted": false,
-          "version": "2026-09"
+          "version": "v1"
         }
       }
     },

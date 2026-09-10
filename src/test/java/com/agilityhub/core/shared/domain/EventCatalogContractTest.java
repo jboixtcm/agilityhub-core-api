@@ -63,6 +63,8 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.migration.domain.MigrationEvent.class,
                 () -> new com.agilityhub.core.migration.domain.MigrationEvent("MigrationRunStarted","run-a","club-a",
                         Instant.parse("2030-01-01T00:00:00Z"),Map.of("mode","APPLY","env","STAGING")));
+        samples.put(com.agilityhub.core.payments.domain.SignupPaymentEvent.class,
+                () -> new com.agilityhub.core.payments.domain.SignupPaymentEvent("UpfrontPaymentRecorded","club-a","payment-a",Instant.parse("2030-01-01T00:00:00Z"),Map.of("paymentId","payment-a","provider","MANUAL"),"account-a",null,DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -75,6 +77,10 @@ class EventCatalogContractTest {
         samples.values().forEach(factory -> {
             DomainEvent event = factory.get();
             assertThat(catalog).contains(event.type());
+            if (event instanceof com.agilityhub.core.payments.domain.SignupPaymentEvent) {
+                assertThat(catalog).contains("UpfrontPaymentRecorded","UpfrontPaymentSucceeded");
+                assertThat(event.aggregateType()).isEqualTo("UpfrontPayment");assertThat(event.payload()).containsKeys("paymentId","provider");return;
+            }
             if (event instanceof com.agilityhub.core.migration.domain.MigrationEvent) {
                 assertThat(catalog).contains("MigrationRunStarted","MigrationRunCompleted","MigrationRunFailed");
                 assertThat(event.aggregateType()).isEqualTo("MigrationRun");

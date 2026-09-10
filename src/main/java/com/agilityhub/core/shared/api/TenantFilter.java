@@ -60,6 +60,7 @@ public class TenantFilter extends OncePerRequestFilter {
                     String host = local && request.getHeader("X-Club-Host") != null
                             ? request.getHeader("X-Club-Host") : request.getHeader("Host");
                     var hostClub = hosts.resolve(host);
+                    request.setAttribute("signup.resolvedHost",host);
                     String clubId;
                     if (authenticatedJwt) {
                         clubId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("clubId");

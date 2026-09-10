@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("dogs")
 public class Dog extends CensusEntity {
     public Map<String,Object> sourceIds;
+    public Map<String,Object> signup;
     public Map<String,Object> externalIds;
     public String memberId;
     public String name;

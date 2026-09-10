@@ -25,7 +25,10 @@ public class Member extends CensusEntity {
     public String priceId;
     @org.springframework.data.convert.ValueConverter(CensusDateConverter.class)
     public LocalDate nextInvoiceDate;
+    @org.springframework.data.convert.ValueConverter(ConsentLedgerConverter.class)
     public Map<String,Object> consents;
+    public Map<String,Object> signup;
+    public Map<String,Object> familyGroupClaim;
     public String remarks;
     public String internalNotes;
     public String status;

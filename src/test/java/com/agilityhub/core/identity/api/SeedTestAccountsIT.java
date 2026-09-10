@@ -111,6 +111,7 @@ class SeedTestAccountsIT extends AbstractIntegrationTest {
         var definition = seed("canic"); definition.remove("accounts");
         var applied = definitions.apply(definition, false);
         var original = clubs.findBySlug("canic").orElseThrow();
+        var originalParameters = documents("parameters");
         var input = seed("canic"); input.withObject("club").put("name", "Must not replace club name");
         input.withObject("parameters").put("signup.enabled", false);
         var file = temporary.resolve("accounts.yaml"); Files.writeString(file, codec.write(input));
@@ -120,7 +121,7 @@ class SeedTestAccountsIT extends AbstractIntegrationTest {
         assertThat(documents("accounts")).hasSize(15);
         var after = clubs.findBySlug("canic").orElseThrow();
         assertThat(after.name()).isEqualTo(original.name()); assertThat(after.theme()).isEqualTo(original.theme());
-        assertThat(documents("parameters")).isEmpty();
+        assertThat(documents("parameters")).isEqualTo(originalParameters);
         command.run(new DefaultApplicationArguments("--club=canic"));
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(after);
         assertThat(definitions.applyAccounts(file, true, false).changes()).isZero();

@@ -19,6 +19,7 @@ public class MemberService {
     private final CensusAccess access; private final CensusValidation validation; private final CensusEvents events;
     private final CountryContacts countries; private final CensusClubSettings settings; private final ClubConfigService configs;
     private final CensusIdentityService identities; private final Clock clock;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupService> signups;
     public MemberService(CensusAccess access, CensusValidation validation, CensusEvents events, CountryContacts countries,
             CensusClubSettings settings, ClubConfigService configs, CensusIdentityService identities, Clock clock) {
         this.access = access; this.validation = validation; this.events = events; this.countries = countries;
@@ -33,9 +34,13 @@ public class MemberService {
     private void edit(String id, Map<String,Object> request, boolean own) {
         var member = access.mutableMember(id);
         if (own && !access.me().id.equals(id)) { throw new ApiException(ErrorCode.FORBIDDEN); }
-        allow(request, own ? Set.of("contactEmails", "phones", "address", "version") : EDITABLE);
+        boolean pending="PENDING".equals(member.status);
+        var editable=new HashSet<>(EDITABLE);
+        if(pending) { editable.remove("consents");editable.addAll(Set.of("paymentMethod","signup")); }
+        allow(request, own ? Set.of("contactEmails", "phones", "address", "version") : editable);
         version(member.version(), request.get("version"));
         var before = snapshot(member);
+        var paymentBefore=member.paymentMethod;
         if (request.containsKey("idDocument")) { member.idDocument = validation.idDocument(request.get("idDocument")); }
         if (request.containsKey("firstName")) { member.firstName = text(request.get("firstName"), "firstName", 60, true); }
         if (request.containsKey("lastName1")) { member.lastName1 = text(request.get("lastName1"), "lastName1", 60, true); }
@@ -52,25 +57,39 @@ public class MemberService {
         if (request.containsKey("contactEmails")) { member.contactEmails = validation.emails(request.get("contactEmails"), member.contactEmails); }
         if (request.containsKey("phones")) { member.phones = validation.phones(request.get("phones")); }
         if (request.containsKey("address")) { member.address = validation.address(request.get("address")); }
+        if (pending && request.containsKey("paymentMethod")) {
+            var payment=new LinkedHashMap<>(map(request.get("paymentMethod")));
+            if(payment.containsKey("sepa")) { payment.putAll(map(payment.remove("sepa"))); }
+            member.paymentMethod=signups.getObject().payment(payment,member,member.firstName+" "+member.lastName1);
+        }
+        if (pending && request.containsKey("signup")) {
+            var signup=map(request.get("signup"));allow(signup,Set.of("planIdRequested"));
+            signups.getObject().requirePlan(string(signup.get("planIdRequested")));
+            member.signup=new LinkedHashMap<>(map(member.signup));member.signup.putAll(signup);
+        }
         if (request.containsKey("remarks")) { member.remarks = text(request.get("remarks"), "remarks", 2000, false); }
         if (request.containsKey("internalNotes")) { member.internalNotes = text(request.get("internalNotes"), "internalNotes", 2000, false); }
         if (request.containsKey("consents")) {
             var consent = map(request.get("consents")); allow(consent, Set.of("imageRights"));
             var image = map(consent.get("imageRights")); allow(image, Set.of("granted"));
             if (!(image.get("granted") instanceof Boolean)) { throw invalid("consents.imageRights.granted", "REQUIRED"); }
-            member.consents = new LinkedHashMap<>(map(member.consents));
-            member.consents.put("imageRights", object("granted", image.get("granted"), "at", clock.instant(),
-                    "version", configs.privacyPolicy(TenantContext.require()).version(), "byAccountId", CurrentUser.current().accountId()));
+            member.consents = ConsentLedgers.image(member.consents,(Boolean)image.get("granted"),
+                    configs.privacyPolicy(TenantContext.require()).version(),clock.instant(),CurrentUser.current().accountId());
         }
         var diff = events.diff(before, snapshot(member));
-        if (diff.isEmpty()) { return; }
+        if (diff.isEmpty() && Objects.equals(paymentBefore,member.paymentMethod)) { return; }
         access.members.save(member);
         events.emit("PENDING".equals(member.status) ? "SignupEdited" : "MemberUpdated", "Member", id, object("memberId", id, "diff", diff));
     }
     private Map<String,Object> snapshot(Member member) {
         return object("idDocument", member.idDocument, "firstName", member.firstName, "lastName1", member.lastName1, "lastName2", member.lastName2,
                 "gender", member.gender, "birthDate", member.birthDate, "contactEmails", member.contactEmails, "phones", member.phones,
-                "address", member.address, "remarks", member.remarks, "internalNotes", member.internalNotes, "consents", member.consents);
+                "address", member.address, "paymentMethod",maskedPayment(member), "signup", member.signup, "remarks", member.remarks, "internalNotes", member.internalNotes, "consents", member.consents);
+    }
+    private Object maskedPayment(Member member) {
+        if(member.paymentMethod==null) return null;
+        var value=new LinkedHashMap<>(member.paymentMethod);value.remove("iban");value.remove("holderTaxId");
+        value.put("ibanMasked",com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(string(member.paymentMethod.get("iban"))));return value;
     }
     @Transactional
     @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id")

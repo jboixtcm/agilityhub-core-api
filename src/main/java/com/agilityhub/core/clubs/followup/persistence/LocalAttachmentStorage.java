@@ -22,6 +22,10 @@ public class LocalAttachmentStorage implements AttachmentStorage {
         catch (IOException failure) { throw new UncheckedIOException(failure); }
     }
     private Path path(String id) {
+        if (id.startsWith("signup/")) {
+            try { return root.resolve(java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(id.getBytes(StandardCharsets.UTF_8)))); }
+            catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+        }
         if (!id.matches("[0-9a-f-]{36}")) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return root.resolve(id);
     }
@@ -41,6 +45,7 @@ public class LocalAttachmentStorage implements AttachmentStorage {
     }
     @Override public String downloadUrl(String id, String name, Instant expires) { return url(id, expires, "files", "GET"); }
     private String url(String id, Instant expires, String route, String method) {
+        if (id.startsWith("signup/")) { return "/api/v1/signup/" + route + "?fileKey=" + java.net.URLEncoder.encode(id,StandardCharsets.UTF_8) + "&expires="+expires.getEpochSecond()+"&signature="+signature(id,expires.getEpochSecond(),method); }
         return "/api/v1/attachments/" + route + "/" + id + "?expires=" + expires.getEpochSecond() + "&signature=" + signature(id, expires.getEpochSecond(), method);
     }
     public void put(String id, String mimeType, long expected, InputStream input) throws IOException {
@@ -54,15 +59,15 @@ public class LocalAttachmentStorage implements AttachmentStorage {
             if (count != expected) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         } catch (IOException | RuntimeException failure) { Files.deleteIfExists(temp); throw failure; }
         try { Files.createLink(target, temp);
-            Files.writeString(root.resolve(id + ".mime"), mimeType, StandardOpenOption.CREATE_NEW);
-            Files.setPosixFilePermissions(root.resolve(id + ".mime"), PosixFilePermissions.fromString("rw-------")); }
+            Files.writeString(path(id).resolveSibling(path(id).getFileName() + ".mime"), mimeType, StandardOpenOption.CREATE_NEW);
+            Files.setPosixFilePermissions(path(id).resolveSibling(path(id).getFileName() + ".mime"), PosixFilePermissions.fromString("rw-------")); }
         finally { Files.deleteIfExists(temp); }
     }
     public InputStream open(String id) throws IOException { return Files.newInputStream(path(id)); }
     @Override public Metadata metadata(String id) {
         try {
             if (!Files.isRegularFile(path(id), LinkOption.NOFOLLOW_LINKS)) { throw new ApiException(ErrorCode.NOT_FOUND); }
-            return new Metadata(Files.readString(root.resolve(id + ".mime")), Files.size(path(id)));
+            return new Metadata(Files.readString(path(id).resolveSibling(path(id).getFileName() + ".mime")), Files.size(path(id)));
         } catch (IOException failure) { throw new UncheckedIOException(failure); }
     }
 }

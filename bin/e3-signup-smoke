@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+"""Exercise S04 with curl, fictional seed accounts and a private local mailbox."""
+import argparse
+import base64
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import socket
+import subprocess
+import tempfile
+import time
+import uuid
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+def port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def run(args, env, timeout=180):
+    result = subprocess.run(args, cwd=ROOT, env=env, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, timeout=timeout)
+    require(result.returncode == 0, f"{Path(args[0]).name} failed: exit {result.returncode}; private output withheld")
+    return result.stdout
+
+
+def wait(action, message, timeout=60):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            result = action()
+            if result:
+                return result
+        except (AssertionError, OSError, ValueError):
+            pass
+        time.sleep(0.25)
+    raise AssertionError(message)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--evidence-dir", type=Path, required=True)
+    parser.add_argument("--mongo-container", help="Use an already initialized disposable replica set; never production")
+    options = parser.parse_args()
+    evidence = options.evidence_dir.resolve()
+    evidence.mkdir(parents=True, exist_ok=True)
+    jars = list((ROOT / "target").glob("agilityhub-core-api-*.jar"))
+    require(len(jars) == 1, "Run ./mvnw -q verify first")
+    container = options.mongo_container or "signup-smoke-" + secrets.token_hex(5)
+    app = None
+    owned = options.mongo_container is None
+    with tempfile.TemporaryDirectory(prefix="e3-signup-") as temporary:
+        private = Path(temporary)
+        env = {key: os.environ[key] for key in ("PATH", "JAVA_HOME", "TMPDIR", "LANG", "HOME",
+               "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY") if key in os.environ}
+        env.update(SPRING_PROFILES_ACTIVE="local", SEED_PASSWORD=secrets.token_urlsafe(32),
+                   LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off", MANAGEMENT_SERVER_PORT="0",
+                   SERVER_ADDRESS="127.0.0.1", MANAGEMENT_SERVER_ADDRESS="127.0.0.1", SERVER_PORT=str(port()),
+                   SHARED_SCHEDULING_ENABLED="true", MONGODB_DATABASE="e3_signup_smoke",
+                   MAIL_LOCAL_DIRECTORY=str(private / "mailbox"), ATTACHMENT_LOCAL_DIRECTORY=str(private / "attachments"),
+                   EXPORT_LOCAL_DIRECTORY=str(private / "exports"), AUTH_ISSUER="https://id.example.test",
+                   SIGNUP_CAPABILITY_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
+                   OIDC_LOGIN_URL="https://id.example.test/login", CORE_SECURITY_CORS_PLATFORM_HOSTS="id.example.test")
+        base = "http://127.0.0.1:" + env["SERVER_PORT"]
+
+        def mongo(script):
+            return json.loads(run(["docker", "exec", container, "mongosh", "--quiet", env["MONGODB_DATABASE"],
+                                   "--eval", script], env).strip().splitlines()[-1])
+
+        def call(method, path, expected=200, *, host=None, access=None, body=None, form=None, raw=None, mime=None, key=None, quiet=False):
+            response = private / "response.json"
+            headers = ["User-Agent: AgilityHub-S04-Smoke"]
+            if host:
+                headers.append("Host: " + host)
+            if access:
+                headers.append("Authorization: Bearer " + access)
+            if key:
+                headers.append("Idempotency-Key: " + key)
+            args = ["curl", "--silent", "--show-error", "--noproxy", "*", "--max-time", "20", "--request", method,
+                    "--output", str(response), "--write-out", "%{http_code}", "--config", "-", base + path]
+            if body is not None or form is not None or raw is not None:
+                payload = private / "request.body"
+                if body is not None:
+                    payload.write_text(json.dumps(body)); mime = "application/json"
+                elif form is not None:
+                    import urllib.parse
+                    payload.write_text(urllib.parse.urlencode(form)); mime = "application/x-www-form-urlencoded"
+                else:
+                    payload.write_bytes(raw)
+                headers.append("Content-Type: " + mime)
+                args += ["--data-binary", "@" + str(payload)]
+            config = "\n".join("header = " + json.dumps(header) for header in headers)
+            result = subprocess.run(args, input=config, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+            require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed")
+            status = int(result.stdout)
+            value = json.loads(response.read_text()) if response.stat().st_size else None
+            require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {value.get('code','') if isinstance(value,dict) else ''}")
+            if not quiet:
+                print(f"curl -X {method} {path.split('?')[0]} -> {status}", flush=True)
+            return value
+
+        def login(host, email):
+            return call("POST", "/oauth2/token", host=host, form=dict(grant_type="password", client_id="clubs-admin",
+                        username=email, password=env["SEED_PASSWORD"]))["access_token"]
+
+        def mail(email, subject_fragment, with_token=False):
+            for file in (private / "mailbox").glob("local-*.json"):
+                item = json.loads(file.read_text())
+                if item["to"] != email or subject_fragment not in item["subject"]:
+                    continue
+                token = re.search(r"[?]t=([A-Za-z0-9_-]{43})", item["text"])
+                if with_token and not token:
+                    continue
+                return (item, token[1] if token else None)
+            return None
+
+        try:
+            if owned:
+                run(["docker", "run", "--detach", "--rm", "--name", container, "--publish", "127.0.0.1::27017",
+                     "mongo:7", "mongod", "--replSet", "rs0", "--bind_ip_all"], env)
+                wait(lambda: mongo('print(JSON.stringify(db.adminCommand({ping:1}).ok))'), "Mongo startup failed")
+                mongo('print(JSON.stringify(rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]}).ok))')
+            address = run(["docker", "port", container, "27017/tcp"], env).strip()
+            env.update(MONGODB_HOST="127.0.0.1", MONGODB_PORT=address.rsplit(":", 1)[1])
+            wait(lambda: mongo('print(JSON.stringify(db.hello().isWritablePrimary))'), "Replica set has no primary")
+            require(mongo('print(JSON.stringify(db.clubs.countDocuments()))') == 0, "Smoke requires an empty disposable database")
+            for slug in ("canic", "minim"):
+                for attempt in (1, 2):
+                    command = ["bin/core", "club:apply", f"seeds/club-{slug}.yaml"]
+                    output = run(command, env)
+                    if attempt == 2:
+                        require("0 changes (applied)" in output, f"{slug} seed was not idempotent")
+                    log = evidence / f"seed-{slug}-{attempt}.log"
+                    log.write_text("Command: " + " ".join(command) + "\nExit code: 0\n" + output)
+                    print(f"{' '.join(command)} -> exit 0; {output.strip().splitlines()[-1]}; {log.name}", flush=True)
+            # Seed definitions deliberately start ONBOARDING; activate only this disposable rehearsal's clubs.
+            fixtures = mongo('''db.clubs.updateMany({},{$set:{status:"ACTIVE"}});
+                print(JSON.stringify(db.clubs.find({},{slug:1,domains:1}).toArray()));''')
+            print("Fixture setup: disposable clubs activated; committed seeds retain ONBOARDING", flush=True)
+            with (private / "api.log").open("w") as log:
+                app = subprocess.Popen(["java", "-jar", str(jars[0])], cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
+            wait(lambda: call("GET", "/api/v1/health", quiet=True)["status"] == "UP", "API health failed")
+            for slug in ("canic", "minim"):
+                fixture = next(item for item in fixtures if item["slug"] == slug)
+                host = next(d["host"] for d in fixture["domains"] if d["app"] == "clubs")
+                config = call("GET", "/api/v1/signup", host=host)
+                require(config["enabled"], "Signup configuration is closed")
+                is_full = slug == "canic"
+                language = "ca" if is_full else "en"
+                email = f"signup.{slug}@example.test"
+                person = dict(firstName="Example", lastName1="Applicant", birthDate="1990-01-01", gender="FEMALE", emails=[email],
+                              idDocument=dict(type="DNI", value="12345678Z") if is_full else dict(type="PASSPORT", value="EXAMPLE01"),
+                              phones=[dict(prefix="+34", number="600000001")] if is_full else [dict(prefix="+1", number="2025550101")],
+                              address=dict(street="1 Example Street", postalCode="99999" if is_full else "A1B2C3", town="Example Town"))
+                dog = dict(name="Example Dog", sex="FEMALE", breed="Example breed", birthMonth="2024-04", chip="941000000000901")
+                body = dict(locale=language, website="", person=person, dog=dog,
+                            consents=dict(privacyPolicy=dict(accepted=True, version=config["legal"]["legalTextsVersion"]),
+                                          imageUse=dict(granted=False, version=config["legal"]["legalTextsVersion"])))
+                if is_full:
+                    chosen = next(p for p in config["plans"] if p["type"] == "MONTHLY" and p.get("billingMode") == "MONTHLY_FEE" and p.get("price"))
+                    body.update(planId=chosen["id"], payment=dict(type="MANUAL", firstMonthOption="TODAY"))
+                    call("GET", "/api/v1/signup/towns?postalCode=08349", host=host)
+                    call("POST", "/api/v1/signup/identity-checks", host=host, body=dict(idDocument=person["idDocument"], emails=[email]))
+                    data = b"Fictional vaccination document for the S04 rehearsal."
+                    upload = call("POST", "/api/v1/signup/upload-urls", host=host, body=dict(fileName="vaccination.pdf", contentType="application/pdf", sizeBytes=len(data)))
+                    require(upload["uploadUrl"].startswith("/api/v1/signup/uploads?"), "Unexpected upload target")
+                    call("PUT", upload["uploadUrl"], 204, host=host, raw=data, mime="application/pdf")
+                    dog["documents"] = [dict(type="VACCINATION_CARD", files=[dict(fileKey=upload["fileKey"], name="vaccination.pdf")])]
+                else:
+                    require(config["plans"] == [] and "paymentMethods" not in config and len(config["steps"]) == 3, "Minimal module variant failed")
+                key = str(uuid.uuid4())
+                submitted = call("POST", "/api/v1/signup", 201, host=host, key=key, body=body)
+                replay = call("POST", "/api/v1/signup", 201, host=host, key=key, body=body)
+                require(replay == submitted, "Anonymous idempotency replay changed")
+                member_id = submitted["memberId"]
+                admin = login(host, "admin@example.test" if is_full else "minim.admin@example.test")
+                review = call("GET", f"/api/v1/members/{member_id}/signup", host=host, access=admin)
+                validation = dict(version=review["version"], dogs=[dict(dogId=d["id"]) for d in review["dogs"]])
+                if is_full:
+                    for item in validation["dogs"]:
+                        item["levelId"] = review["proposals"]["levels"][0]["id"]
+                    validation.update(nextInvoiceDate=review["proposals"]["nextInvoiceDate"], upfrontAmountPaid=review["upfront"]["totalDue"])
+                call("POST", f"/api/v1/members/{member_id}/validation?dryRun=true", host=host, access=admin, body=validation)
+                validated = call("POST", f"/api/v1/members/{member_id}/validation", host=host, access=admin, body=validation)
+                welcome, token = wait(lambda: mail(email, "Benvinguda" if is_full else "Welcome", True), "Welcome mail missing")
+                require(welcome["locale"] == language, "Welcome locale mismatch")
+                print(f"Mailbox N-02 ({language}): {welcome['subject']}; token=[truncated]", flush=True)
+                member = call("POST", "/oauth2/token", host=host, form=dict(grant_type="urn:agilityhub:grant:magic-link", client_id="clubs-app", token=token))["access_token"]
+                me = call("GET", "/api/v1/me", host=host, access=member)
+                require(me["account"]["id"] == validated["accountId"], "Welcome identity mismatch")
+                if is_full:
+                    config = call("GET", "/api/v1/signup", host=host, access=member)
+                    require(config["member"]["consentsUpToDate"], "Add-dog consent projection failed")
+                    dog = dict(dog, name="Additional Example Dog", chip="941000000000902")
+                    dog.pop("documents", None)
+                    added = call("POST", "/api/v1/me/dogs/signup", 201, host=host, access=member, key=str(uuid.uuid4()), body=dict(dog=dog, documents=[]))
+                    require(added["checkout"]["memberId"] == member_id, "Add-dog checkout owner missing")
+                    review = call("GET", f"/api/v1/members/{member_id}/signup", host=host, access=admin)
+                    validation = dict(version=review["version"], dogs=[dict(dogId=added["dogId"], levelId=review["proposals"]["levels"][0]["id"])], upfrontAmountPaid=review["upfront"]["totalDue"])
+                    more = call("POST", f"/api/v1/members/{member_id}/validation", host=host, access=admin, body=validation)
+                    require(more["accountId"] == validated["accountId"] and more["number"] == validated["number"], "Add-dog changed identity")
+                    wait(lambda: mongo('print(JSON.stringify(db.notifications.countDocuments({clubId:'+json.dumps(fixture['_id'])+',code:"N-37",channel:"APP",status:"SENT"})))'), "N-37 app notification missing")
+                    call("POST", "/api/v1/signup/identity-checks", host=host, body=dict(idDocument=person["idDocument"], emails=[email]))
+                    recognition, _ = wait(lambda: mail(email, "Verifica", True), "Recognition mail missing")
+                    require("redirect=%2Fgossos%2Fnou" in recognition["text"], "Recognition redirect missing")
+                    print("PASS add-dog validation, unchanged identity, N-37 APP and N-39 mailbox recognition", flush=True)
+                else:
+                    require("upfront" not in submitted, "Minimal signup unexpectedly created money")
+                print(f"PASS {slug}: public signup -> dry run -> validation -> welcome mailbox -> magic-link login", flush=True)
+            require(mongo('print(JSON.stringify(db.upfront_payments.countDocuments({clubId:db.clubs.findOne({slug:"minim"})._id})))') == 0, "Minimal club has upfront payments")
+            print("PASS both seeds idempotent; curl/local-mailbox S04 rehearsal completed", flush=True)
+        finally:
+            if app:
+                app.terminate()
+                try:
+                    app.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    app.kill(); app.wait(timeout=10)
+            if owned:
+                subprocess.run(["docker", "rm", "--force", container], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+if __name__ == "__main__":
+    main()

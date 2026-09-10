@@ -52,7 +52,12 @@ preset: "CANIC"
 paymentProviders:
   - "SEPA_XML"
   - "MANUAL"
-parameters: {}
+parameters:
+  signup.enabled: true
+  signup.pendingExpiryDays: 30
+  signup.requireDogDocumentAtSignup: false
+  signup.firstMonthSplitDay: 16
+  signup.allowFamilyGroupPending: true
 # Fictional identities only. Password values come from the process environment.
 accounts:
   - email: "admin@example.test"

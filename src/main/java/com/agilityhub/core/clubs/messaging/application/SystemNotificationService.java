@@ -51,8 +51,31 @@ public class SystemNotificationService {
         if (completed(id)) { return id; }
         return deliver(id, code, accountId, variables);
     }
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendOnceLocalized(String id,String code,String accountId,String locale,Map<String,?> variables) {
+        if(completed(id)) return id;
+        var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return deliverTo(id,code,new NotificationAccounts.Recipient(account.id(),account.email(),locale==null?account.locale():locale,account.emailStatus()),variables);
+    }
     private String deliver(String id, String code, String accountId, Map<String, ?> variables) {
-        var account = accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return deliverTo(id,code,accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)),variables);
+    }
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendApplicantOnce(String id,String code,String email,String locale,Map<String,?> variables) {
+        if(completed(id)) return id;
+        return deliverTo(id,code,new NotificationAccounts.Recipient(null,email,locale,null),variables);
+    }
+    @Transactional(propagation = Propagation.NEVER)
+    public void appOnce(String id,String code,String accountId,Map<String,Object> variables) {
+        transactions.executeWithoutResult(tx -> {
+            if(notifications.findScoped(id).isPresent()) return;
+            var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+            notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant()));
+            notifications.appContent(id,variables);
+            events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+        });
+    }
+    private String deliverTo(String id,String code,NotificationAccounts.Recipient account,Map<String,?> variables) {
         String clubId = TenantContext.current();
         var settings = clubId == null ? new ClubEmailSettings.Settings("AgilityHub", null, "#2563eb", "#ffffff",
                 platformFrom, "AgilityHub", null, "ca", parameters.defaultInteger("auth.magicLinkMinutes"))
@@ -63,7 +86,7 @@ public class SystemNotificationService {
         tags.put("notificationId", id);
         if (clubId != null) { tags.put("clubId", clubId); }
         var email = renderer.render(code, account.email(), locale, variables, settings, tags);
-        var notification = new Notification(id, clubId, accountId, code, "EMAIL", Notification.Status.QUEUED,
+        var notification = new Notification(id, clubId, account.id(), code, "EMAIL", Notification.Status.QUEUED,
                 null, null, null, account.email(), locale.toLanguageTag(), clock.instant());
         transactions.executeWithoutResult(tx -> {
             if (notifications.findScoped(id).isEmpty()) {

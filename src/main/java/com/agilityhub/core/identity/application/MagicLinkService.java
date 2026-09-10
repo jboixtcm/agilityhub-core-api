@@ -67,6 +67,9 @@ public class MagicLinkService {
         createAndSend(email, purpose, clientId, redirectUri, host, ip, agent, null);
     }
     public void createAndSend(String email, MagicLinkToken.Purpose purpose, String clientId, String redirectUri, String host, String ip, String agent, String deliveryId) {
+        createAndSend(email,purpose,clientId,redirectUri,host,ip,agent,deliveryId,Map.of());
+    }
+    public void createAndSend(String email, MagicLinkToken.Purpose purpose, String clientId, String redirectUri, String host, String ip, String agent, String deliveryId, Map<String,?> signupVariables) {
         if (deliveryId != null && notifications.completed(deliveryId)) { return; }
         var client = clients.findByClientId(clientId);
         if (client == null || !client.getAuthorizationGrantTypes().contains(new AuthorizationGrantType(GRANT))) { return; }
@@ -80,7 +83,7 @@ public class MagicLinkService {
             base = issuer.resolve("/magic-link").toString();
         }
         // A caller cannot turn a login link into an open redirect; only registered callback URIs are retained.
-        if (redirectUri != null && !redirectUri.equals(base) && !client.getRedirectUris().contains(redirectUri)) { return; }
+        if (redirectUri != null && !(purpose == MagicLinkToken.Purpose.RECOGNITION && redirectUri.equals("/gossos/nou")) && !redirectUri.equals(base) && !client.getRedirectUris().contains(redirectUri)) { return; }
         String value = TokenService.opaque();
         String accountId = transactions.run(() -> {
             var account = accounts.findByEmail(email).orElse(null);
@@ -99,6 +102,16 @@ public class MagicLinkService {
             return account.id();
         });
         if (accountId != null) {
+            if(purpose == MagicLinkToken.Purpose.WELCOME || purpose == MagicLinkToken.Purpose.RECOGNITION) {
+                var account=accounts.findById(accountId).orElseThrow();
+                var variables=new java.util.HashMap<String,Object>();variables.put("link",base+"?t="+value+(purpose==MagicLinkToken.Purpose.RECOGNITION?"&redirect=%2Fgossos%2Fnou":""));
+                variables.put("member_first_name",account.name().split(" ")[0]);variables.put("gender","OTHER");variables.put("club_name",host);
+                for(String field:java.util.List.of("member_first_name","gender","club_name")) if(signupVariables.get(field)!=null) variables.put(field,signupVariables.get(field));
+                variables.put("expires_minutes",purpose==MagicLinkToken.Purpose.WELCOME?settings.integer("auth.welcomeLinkDays")*1440:settings.integer("auth.magicLinkMinutes"));
+                String notification=purpose==MagicLinkToken.Purpose.WELCOME?"N-02":"N-39";
+                notifications.sendOnceLocalized(deliveryId==null?UUID.randomUUID().toString():deliveryId,notification,accountId,(String)signupVariables.get("locale"),variables);
+                return;
+            }
             if (deliveryId == null) { notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", base + "?t=" + value)); }
             else { notifications.sendOnce(deliveryId, "N-27", accountId, Map.of("link", base + "?t=" + value)); }
         }

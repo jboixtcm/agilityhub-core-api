@@ -29,3 +29,4 @@ __pycache__/
 !roadmap/evidence/E3-T01/*.log
 !roadmap/evidence/E3-T02/*.log
 !roadmap/evidence/E3-T06/*.log
+!roadmap/evidence/E3-T03/*.log

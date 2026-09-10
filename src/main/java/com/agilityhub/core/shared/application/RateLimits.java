@@ -10,7 +10,7 @@ import java.util.Map;
 
 /** Per-instance token buckets for the E0 single-instance deployment. */
 public final class RateLimits {
-    public enum Route { TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP }
+    public enum Route { TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP, SIGNUP_IDENTITY, SIGNUP_FAMILY, SIGNUP_UPLOAD, SIGNUP_SUBMIT, SIGNUP_DAILY, SIGNUP_CHECKOUT, SIGNUP_TOWNS }
     public record Limit(long capacity, Duration period) {
         public Limit {
             if (capacity < 1 || period == null || period.isZero() || period.isNegative()) {
@@ -26,12 +26,20 @@ public final class RateLimits {
 
     public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock) {
         this.enabled = enabled;
-        this.limits = Map.copyOf(limits);
+        var policies = new java.util.EnumMap<Route,Limit>(Route.class); policies.putAll(limits);
+        policies.putIfAbsent(Route.SIGNUP_IDENTITY,new Limit(10,Duration.ofHours(1)));
+        policies.putIfAbsent(Route.SIGNUP_FAMILY,new Limit(20,Duration.ofHours(1)));
+        policies.putIfAbsent(Route.SIGNUP_UPLOAD,new Limit(30,Duration.ofHours(1)));
+        policies.putIfAbsent(Route.SIGNUP_SUBMIT,new Limit(5,Duration.ofHours(1)));
+        policies.putIfAbsent(Route.SIGNUP_DAILY,new Limit(20,Duration.ofDays(1)));
+        policies.putIfAbsent(Route.SIGNUP_CHECKOUT,new Limit(10,Duration.ofHours(1)));
+        policies.putIfAbsent(Route.SIGNUP_TOWNS,new Limit(60,Duration.ofHours(1)));
+        this.limits = Map.copyOf(policies);
         this.time = new TimeMeter() {
             @Override public long currentTimeNanos() { return Math.multiplyExact(clock.millis(), 1_000_000L); }
             @Override public boolean isWallClockBased() { return true; }
         };
-        Duration longest = limits.values().stream().map(Limit::period).max(Duration::compareTo).orElseThrow();
+        Duration longest = this.limits.values().stream().map(Limit::period).max(Duration::compareTo).orElseThrow();
         this.buckets = Caffeine.newBuilder().maximumSize(100_000).expireAfterAccess(longest)
                 .ticker(time::currentTimeNanos).build();
     }

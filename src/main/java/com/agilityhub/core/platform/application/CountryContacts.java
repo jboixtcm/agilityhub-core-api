@@ -15,6 +15,10 @@ public class CountryContacts {
         if (phone.label() != null) { result.put("label", phone.label()); }
         return result;
     }
+    public Map<String,Object> signupProfile() {
+        var country=configs.get(TenantContext.require()).countryProfile();
+        return Map.of("code",country.code(),"idDocumentTypes",country.idDocumentTypes(),"postalCodeLookup","ES".equals(country.code()),"phonePrefix",country.defaultPhonePrefix(),"dateFormat",country.dateFormat(),"timeFormat",country.timeFormat());
+    }
     public String normalizeDocument(String type, String value) {
         return new CountryContactRules(configs.get(TenantContext.require()).countryProfile()).document(type, value);
     }

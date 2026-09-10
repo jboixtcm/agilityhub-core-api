@@ -1,4 +1,4 @@
-# Product defaults equal the Cànic catalog values; no parameter overrides are needed.
+# Signup configuration explicitly records the approved product defaults.
 # Theme tokens: docs/pantalles/mobil/01-acces.html :root.
 apiVersion: "agilityhub.club/v1"
 club:
@@ -51,7 +51,12 @@ preset: "CANIC"
 paymentProviders:
   - "SEPA_XML"
   - "MANUAL"
-parameters: {}
+parameters:
+  signup.enabled: true
+  signup.pendingExpiryDays: 30
+  signup.requireDogDocumentAtSignup: false
+  signup.firstMonthSplitDay: 16
+  signup.allowFamilyGroupPending: true
 # Fictional identities only. Password values come from the process environment.
 accounts:
   - email: "admin@example.test"

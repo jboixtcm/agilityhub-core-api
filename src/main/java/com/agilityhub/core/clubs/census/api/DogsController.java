@@ -73,7 +73,7 @@ public class DogsController {
     @Operation(summary = "Update dog",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
             responses = @ApiResponse(responseCode = "200", description = "Dog", content = @Content(schema = @Schema(implementation = Dog.class))))
-    public java.util.Map<String,Object> updateDog(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = DogPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { dogs.patch(id, request); return queries.dog(id); }); }
+    public java.util.Map<String,Object> updateDog(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = DogPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.dog(id).get("status"))) { dogs.patchPending(id, request); } else { dogs.patch(id, request); } return queries.dog(id); }); }
 
     @PatchMapping("/api/v1/dogs/{id}/level")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")

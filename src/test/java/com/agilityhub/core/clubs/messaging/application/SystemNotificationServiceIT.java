@@ -106,7 +106,7 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
             assertThatThrownBy(() -> service.send("N-25", "email-account", Map.of("link", link))).isInstanceOf(ApiException.class);
         }
         assertThatThrownBy(() -> service.send("N-25", "email-account", Map.of())).isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> service.send("N-02", "email-account", Map.of())).isInstanceOf(ApiException.class)
+        assertThatThrownBy(() -> service.send("N-04", "email-account", Map.of())).isInstanceOf(ApiException.class)
                 .extracting(f -> ((ApiException) f).code()).isEqualTo(ErrorCode.TEMPLATE_NOT_SENDABLE);
         assertThatThrownBy(() -> service.send("N-26", "unknown", Map.of())).isInstanceOf(ApiException.class);
         assertThat(mailbox().messages()).isEmpty(); assertThat(mongo.count(new Query(), Notification.class)).isZero();

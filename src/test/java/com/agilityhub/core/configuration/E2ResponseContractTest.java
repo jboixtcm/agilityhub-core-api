@@ -32,7 +32,7 @@ class E2ResponseContractTest {
                 CensusResponses.MeDog.class, java.util.Set.of("chip", "memberId", "remarks"),
                 CensusResponses.PaymentMethodView.class, java.util.Set.of("iban", "stripeSetupIntentId", "holderTaxId"),
                 CensusRequests.MeProfilePatch.class, java.util.Set.of("idDocument", "firstName", "paymentMethod", "planId", "roles"),
-                CensusRequests.MemberPatch.class, java.util.Set.of("accountId", "memberNumber", "status", "planId", "priceId", "roles", "paymentMethod"));
+                CensusRequests.MemberPatch.class, java.util.Set.of("accountId", "memberNumber", "status", "planId", "priceId", "roles"));
         forbidden.forEach((type, fields) -> assertThat(java.util.Arrays.stream(type.getRecordComponents()).map(java.lang.reflect.RecordComponent::getName))
                 .doesNotContainAnyElementsOf(fields));
         var input = new CensusRequests.SepaInput("fictional-iban", "Example Member", "fictional-tax-id");

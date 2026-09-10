@@ -28,6 +28,11 @@ public class NotificationRepository extends TenantRepository<Notification> {
     public Optional<Notification> findScoped(String id) {
         return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
     }
+    public void appContent(String id,java.util.Map<String,Object> variables) {
+        var safe=new java.util.LinkedHashMap<String,Object>();
+        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
+        mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is("APP")),new Update().set("variables",safe),Notification.class);
+    }
     public boolean finish(String id, Notification.Status status, String providerId, String error, Instant at) {
         var query = scoped(id).addCriteria(Criteria.where("status").is(Notification.Status.QUEUED));
         var update = new Update().set("status", status).set("providerMessageId", providerId).set("error", error);

@@ -85,7 +85,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var response = mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse();
         assertThat(mapper.readTree(response.getContentAsString())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/branding-canic.json").toFile()));
         assertThat(mapper.<com.fasterxml.jackson.databind.JsonNode>valueToTree(configs.get(first.id()).parameters())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/parameters-canic.json").toFile()));
-        assertThat(count("domain_events")).isEqualTo(65); assertThat(count("audit_entries")).isEqualTo(35);
+        assertThat(count("domain_events")).isEqualTo(70); assertThat(count("audit_entries")).isEqualTo(35);
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().action()).isEqualTo(AuditAction.CLUB_UPDATED);
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().clubId()).isEqualTo(first.id());
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().reason()).isEqualTo("source: APPLY");
@@ -93,7 +93,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var second = definitions.apply(definition, false);
         assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("0 changes");
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(original);
-        assertThat(count("domain_events")).isEqualTo(65); assertThat(count("audit_entries")).isEqualTo(35);
+        assertThat(count("domain_events")).isEqualTo(70); assertThat(count("audit_entries")).isEqualTo(35);
         assertThat(count("accounts")).isEqualTo(15); assertThat(count("memberships")).isEqualTo(15);
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero();
@@ -137,8 +137,8 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         mvc.perform(get("/api/v1/branding").header("Host", "minim.example.test")).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.club.city").value(org.hamcrest.Matchers.nullValue()));
         mvc.perform(get("/api/v1/branding").header("Host", "absent.example.test")).andExpect(status().isNotFound());
-        try (var scope = TenantContext.open(first.id())) { assertThat(parameters.findAll()).isEmpty(); }
-        try (var scope = TenantContext.open(second.id())) { assertThat(parameters.findAll()).hasSize(1); }
+        try (var scope = TenantContext.open(first.id())) { assertThat(parameters.findAll()).extracting(Parameter::key).containsExactlyInAnyOrderElementsOf(seed("canic").path("parameters").properties().stream().map(Map.Entry::getKey).toList()); }
+        try (var scope = TenantContext.open(second.id())) { assertThat(parameters.findAll()).hasSize(seed("minim").path("parameters").size()); }
         mongo.updateFirst(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(first.id())),
                 new org.springframework.data.mongodb.core.query.Update().set("domains.0.status", "PENDING"), Club.class);
         failure(conflict, ErrorCode.HOST_ALREADY_USED);

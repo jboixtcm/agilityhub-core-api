@@ -44,8 +44,10 @@ public class SecurityBaselineConfiguration {
     }
 
     @Bean FilterRegistrationBean<RateLimitFilter> rateLimitFilter(RateLimits limits, SecurityEvents events,
-                                                                 ApiExceptionHandler errors, ObjectMapper mapper) {
-        var registration = new FilterRegistrationBean<>(new RateLimitFilter(limits, events, errors, mapper));
+                                                                 ApiExceptionHandler errors, ObjectMapper mapper, HostTenantResolver hosts, Environment env) {
+        var filter=new RateLimitFilter(limits,events,errors,mapper);
+        filter.signupHosts(hosts,env.acceptsProfiles(Profiles.of("local")));
+        var registration = new FilterRegistrationBean<>(filter);
         // Install only in the security chains, after bearer authentication and before tenant lookup.
         registration.setEnabled(false);
         return registration;

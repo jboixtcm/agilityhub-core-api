@@ -3,6 +3,35 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-10 · E3-T03 · Signup implementation and add-dog billing choices
+
+The eleven S04 routes now execute their documented behavior. Public submission
+returns 201 and a 24-hour capability, or 202 for the honeypot. D2 review, dry run,
+validation/rejection, signed uploads, recognition and checkout enforce the
+published tenant/role/module/error contracts. Anonymous replay is scoped by host,
+plus the capability for checkout, and its stored response is encrypted.
+
+- `AddDogSignupRequest.additionalDogOption` is optional, TODAY by default;
+  ALTERNATIVE selects the first day of the next month within the configured cutoff.
+- `SignupConfig.upfront.additionalDogOptions` is optional in member mode. Configuration
+  choices use `{option, startDate, amount}` (including firstMonthOptions, corrected
+  from the stub's amountDue field to the organizer's step-11 shape).
+- `SignupUpfront.additionalDog` optionally exposes `{option, startDate, amountDue}`.
+- `AddDogSignupResult.checkout` contains required `{required, memberId}`. MEMBER
+  checkout accepts its own memberId without an anonymous signupToken.
+- Closed configuration contains only enabled=false and closedText. Empty catalogs
+  permit omitted planId; corresponding submission/proposal plan references are optional.
+- `MemberPatch.paymentMethod` and `.signup.planIdRequested`, and `DogPatch.birthMonth`,
+  `.notesToInstructors` and `.documents`, describe the PENDING-only D2 edits. Consent
+  editing remains forbidden while PENDING; the existing active-member consent path
+  appends to the ledger.
+- Rejection optionally returns paidPaymentRequiresRefund, preserving PAID lines.
+  Required reason length is 3–500. ES signup phone prefixes may use the country default.
+
+Local signed file transport routes are hidden from the public API snapshot; the
+signed URLs are returned by upload/review. Stripe network integration remains E8;
+local/test use FakeCheckoutGateway and the common completion/expiry handler.
+
 ## 2026-09-09 · E3-T01 · Signup and dashboard contract
 
 All new operations are standard `501 NOT_IMPLEMENTED` stubs under `/api/v1`:

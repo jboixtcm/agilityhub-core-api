@@ -1,0 +1,38 @@
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 15 changes (applied); seed-canic-1.log
+bin/core club:apply seeds/club-canic.yaml -> exit 0; 0 changes (applied); seed-canic-2.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 13 changes (applied); seed-minim-1.log
+bin/core club:apply seeds/club-minim.yaml -> exit 0; 0 changes (applied); seed-minim-2.log
+Fixture setup: disposable clubs activated; committed seeds retain ONBOARDING
+curl -X GET /api/v1/signup -> 200
+curl -X GET /api/v1/signup/towns -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+curl -X POST /api/v1/signup/upload-urls -> 200
+curl -X PUT /api/v1/signup/uploads -> 204
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/fcad6a7e-12b1-463d-a407-1cc5e722c18d/signup -> 200
+curl -X POST /api/v1/members/fcad6a7e-12b1-463d-a407-1cc5e722c18d/validation -> 200
+curl -X POST /api/v1/members/fcad6a7e-12b1-463d-a407-1cc5e722c18d/validation -> 200
+Mailbox N-02 (ca): Benvinguda, Example!; token=[truncated]
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/me -> 200
+curl -X GET /api/v1/signup -> 200
+curl -X POST /api/v1/me/dogs/signup -> 201
+curl -X GET /api/v1/members/fcad6a7e-12b1-463d-a407-1cc5e722c18d/signup -> 200
+curl -X POST /api/v1/members/fcad6a7e-12b1-463d-a407-1cc5e722c18d/validation -> 200
+curl -X POST /api/v1/signup/identity-checks -> 200
+PASS add-dog validation, unchanged identity, N-37 APP and N-39 mailbox recognition
+PASS canic: public signup -> dry run -> validation -> welcome mailbox -> magic-link login
+curl -X GET /api/v1/signup -> 200
+curl -X POST /api/v1/signup -> 201
+curl -X POST /api/v1/signup -> 201
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/members/c069ef48-ef83-4d7b-9b0d-b3c9eebd2de1/signup -> 200
+curl -X POST /api/v1/members/c069ef48-ef83-4d7b-9b0d-b3c9eebd2de1/validation -> 200
+curl -X POST /api/v1/members/c069ef48-ef83-4d7b-9b0d-b3c9eebd2de1/validation -> 200
+Mailbox N-02 (en): Welcome, Example!; token=[truncated]
+curl -X POST /oauth2/token -> 200
+curl -X GET /api/v1/me -> 200
+PASS minim: public signup -> dry run -> validation -> welcome mailbox -> magic-link login
+PASS both seeds idempotent; curl/local-mailbox S04 rehearsal completed

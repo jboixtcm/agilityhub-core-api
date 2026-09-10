@@ -22,6 +22,13 @@ public class ClubRepository extends GlobalRepository<Club> {
     public Optional<Club> findBySlug(String slug) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("slug").is(slug)), Club.class));
     }
+    public int nextMemberNumber(int minimum) {
+        var query=Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require()));
+        var club=mongo.findOne(query,org.bson.Document.class,"clubs");
+        if(club==null) throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND);
+        long reserved=((Number)club.getOrDefault("nextMemberNumber",1L)).longValue();
+        return new MemberNumberSequenceRepository(mongo).next(Math.max(reserved,minimum));
+    }
     public void reserveMemberNumbers(int maximum) {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require())),
                 new org.springframework.data.mongodb.core.query.Update().max("nextMemberNumber", (long) maximum + 1), Club.class);

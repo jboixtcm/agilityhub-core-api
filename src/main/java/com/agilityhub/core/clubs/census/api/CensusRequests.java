@@ -29,7 +29,10 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 2000) String remarks,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 2000) String internalNotes,
             @Schema(requiredMode = NOT_REQUIRED) ConsentPatch consents,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only while PENDING; optional IBAN.") PaymentMethodPatch paymentMethod,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only while PENDING.") SignupPlanPatch signup,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
+    public record SignupPlanPatch(@Schema(requiredMode = NOT_REQUIRED) String planIdRequested) { }
     public record ConsentPatch(
             @Schema(requiredMode = NOT_REQUIRED) ImageRightsPatch imageRights) { }
     public record ImageRightsPatch(
@@ -70,6 +73,9 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 20) String chip,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 80) String handlerName,
             @Schema(requiredMode = NOT_REQUIRED) List<License> licenses,
+            @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; YYYY-MM.") String birthMonth,
+            @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only.") @Size(max = 1000) String notesToInstructors,
+            @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; replaces files for the supplied document types.") List<SignupRequests.SignupDocument> documents,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record DogLevelRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String levelId) { }
