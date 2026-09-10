@@ -10,9 +10,9 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 
 | ID | Data | Àmbit | Títol | Gravetat | Estat |
 |---|---|---|---|---|---|
-| INC-01 | 09-09 | api | `GET /api/v1/health` retorna `500` amb el `main` actual | **Alta** | oberta → tasca **E3-T06** (09-09 23:35) |
+| INC-01 | 09-09 | api | `GET /api/v1/health` retorna `500` amb el `main` actual | **Alta** | **diagnosticada 10-09 (E3-T06)**: `localhost:8080` resol a `[::1]:8080`, on respon **un procés Java local antic** (PID 36366) — no el contenidor; `127.0.0.1:8080` (Docker) retorna `200 UP` amb BBDD buida i amb `Host: app.agilitycanic.cat`. Acció de Jordi: matar el procés (`lsof -nP -iTCP:8080 -sTCP:LISTEN`) i usar `curl -4` a la checklist; E3-T06 afegeix la regressió al filtre de health |
 | INC-02 | 09-09 | api | Els `500` no deixen cap traça al log | **Alta** | oberta → tasca **E3-T06** (09-09 23:35) |
-| INC-03 | 09-09 | api · infra | El healthcheck del compose apunta a l'actuator (8081), no a l'endpoint real | Mitjana | oberta → tasca **E3-T06** (09-09 23:35) |
+| INC-03 | 09-09 | api · infra | El healthcheck del compose apunta a l'actuator (8081), no a l'endpoint real | Mitjana | **no confirmada 10-09**: la imatge i el `Dockerfile` ja comproven `/api/v1/health`; el «Healthy» era correcte (el 500 venia del procés local d'INC-01). E3-T06 ho deixa documentat |
 | INC-04 | 09-09 | api · infra | `compose.yaml` publica el port `27017` fix | Baixa | oberta → tasca **E3-T06** (09-09 23:35) |
 | INC-05 | 09-09 | docs | La checklist de la porta E0 té la comanda del seed desactualitzada | Baixa | oberta |
 | INC-06 | 09-09 | api · contracte | `TokenResponse.scope` s'omet quan l'abast concedit és buit, però l'OpenAPI el marca `required` (trobat a E1-W04 contra la imatge real; el front ho normalitza a `""`) | Baixa | oberta → tasca **E3-T06** (09-09 23:35) |
