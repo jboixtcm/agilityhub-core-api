@@ -111,7 +111,7 @@ class HealthControllerTest {
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.message").value("No se ha encontrado el recurso."));
         mvc.perform(get("/actuator/health").header("Accept-Language", "es"))
                 .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
-        mvc.perform(get("/actuator/health").with(user("member@example.test").roles("MEMBER"))
+        mvc.perform(get("/actuator/info").with(user("member@example.test").roles("MEMBER"))
                 .header("Accept-Language", "es"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("No tienes permiso para realizar esta acción."));
     }

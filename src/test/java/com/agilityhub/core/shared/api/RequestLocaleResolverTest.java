@@ -115,6 +115,24 @@ class RequestLocaleResolverTest {
         assertThatThrownBy(() -> resolver.setLocale(request, new MockHttpServletResponse(), Locale.ENGLISH))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"/api/v1/health", "/actuator/health"})
+    void E3_T06_INC01_healthSkipsLocaleLookupEvenWithAmbientTenantAndJwt(String path) throws Exception {
+        var settings = org.mockito.Mockito.mock(com.agilityhub.core.shared.application.LocaleSettingsProvider.class);
+        var healthResolver = new RequestLocaleResolver(messages, settings);
+        authenticate("es", "missing-club");
+        var request = new MockHttpServletRequest("GET", "/core" + path);
+        request.setContextPath("/core");
+        request.addHeader("Accept-Language", "es");
+        try (var tenant = TenantContext.open("missing-club")) {
+            assertThat(healthResolver.resolveLocale(request)).isEqualTo(LocaleContext.DEFAULT);
+            var response = new MockHttpServletResponse();
+            new RequestLocaleFilter(healthResolver).doFilter(request, response, (req, res) -> res.getWriter().write("UP"));
+            assertThat(response.getContentAsString()).isEqualTo("UP");
+            assertThat(response.getHeader("Content-Language")).isNull();
+        }
+        org.mockito.Mockito.verifyNoInteractions(settings);
+    }
     private Locale resolve(String header) {
         var request = new MockHttpServletRequest();
         if (header != null) { request.addHeader("Accept-Language", header); }

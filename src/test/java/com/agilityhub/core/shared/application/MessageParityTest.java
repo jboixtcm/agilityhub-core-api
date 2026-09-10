@@ -36,8 +36,14 @@ class MessageParityTest {
                 assertThat(value).as("%s %s", locale, key).isNotBlank();
                 var format = new MessageFormat(value, locale);
                 if (key.startsWith("error.")) {
-                    assertThat(format.getArgumentNames()).isEmpty();
-                    assertThat(source.getMessage(key, null, locale)).isEqualTo(value);
+                    if (key.equals("error.INTERNAL_ERROR")) {
+                        assertThat(format.getArgumentNames()).containsExactly("traceId");
+                        assertThat(source.format(key, java.util.Map.of("traceId", "fictional-trace"), locale))
+                                .contains("fictional-trace").doesNotContain("{traceId}");
+                    } else {
+                        assertThat(format.getArgumentNames()).isEmpty();
+                        assertThat(source.getMessage(key, null, locale)).isEqualTo(value);
+                    }
                 }
             }
             System.out.println("E0-T08 " + locale + ": " + errorKeys.size() + " error messages; " + properties.size() + " keys; parity and ICU syntax OK");

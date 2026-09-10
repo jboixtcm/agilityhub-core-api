@@ -1,0 +1,115 @@
+ Image e3-t06-api Building
+#1 [internal] load local bake definitions
+#1 reading from stdin 534B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.35kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 0.8s
+
+#4 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#4 DONE 0.8s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 218B done
+#5 DONE 0.0s
+
+#6 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:a…[truncated]
+#6 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:a…[truncated] 0.0s done
+#6 DONE 0.0s
+
+#7 [stage-1 1/7] FROM docker.io/library/eclipse-temurin:21-jre@sha256:a…[truncated]
+#7 resolve docker.io/library/eclipse-temurin:21-jre@sha256:a…[truncated] 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 189.78kB 0.0s done
+#8 DONE 0.0s
+
+#9 [build 4/8] COPY .mvn/ .mvn/
+#9 CACHED
+
+#10 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [build 3/8] WORKDIR /workspace
+#11 CACHED
+
+#12 [build 5/8] COPY mvnw pom.xml ./
+#12 CACHED
+
+#13 [build 6/8] COPY src/ src/
+#13 DONE 0.1s
+
+#14 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#14 DONE 0.0s
+
+#15 [build 8/8] RUN ./mvnw -B -q -DskipTests package
+#15 DONE 52.5s
+
+#16 [stage-1 2/7] RUN apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*     && useradd --system --uid 10001 --user-group --create-home agilityhub     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
+#16 CACHED
+
+#17 [stage-1 3/7] WORKDIR /app
+#17 CACHED
+
+#18 [stage-1 4/7] COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
+#18 DONE 0.1s
+
+#19 [stage-1 5/7] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
+#19 DONE 0.0s
+
+#20 [stage-1 6/7] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#20 DONE 0.0s
+
+#21 [stage-1 7/7] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#21 DONE 0.0s
+
+#22 exporting to image
+#22 exporting layers
+#22 exporting layers 1.7s done
+#22 exporting manifest sha256:0…[truncated] done
+#22 exporting config sha256:b…[truncated] done
+#22 exporting attestation manifest sha256:6…[truncated] done
+#22 exporting manifest list sha256:0…[truncated] done
+#22 naming to docker.io/library/e3-t06-api:latest done
+#22 unpacking to docker.io/library/e3-t06-api:latest
+#22 unpacking to docker.io/library/e3-t06-api:latest 0.4s done
+#22 DONE 2.1s
+
+#23 resolving provenance for metadata file
+#23 DONE 0.0s
+ Image e3-t06-api Built
+ Volume e3-t06_export-files Creating
+ Volume e3-t06_mongo-data Creating
+ Volume e3-t06_attachment-files Creating
+ Network e3-t06_default Creating
+ Volume e3-t06_mongo-data Creating
+ Volume e3-t06_export-files Creating
+ Volume e3-t06_attachment-files Creating
+ Network e3-t06_default Creating
+ Volume e3-t06_export-files Created
+ Volume e3-t06_export-files Created
+ Volume e3-t06_attachment-files Created
+ Volume e3-t06_attachment-files Created
+ Volume e3-t06_mongo-data Created
+ Volume e3-t06_mongo-data Created
+ Network e3-t06_default Created
+ Network e3-t06_default Created
+ Container e3-t06-mongo-1 Creating
+ Container e3-t06-mongo-1 Created
+ Container e3-t06-api-1 Creating
+ Container e3-t06-api-1 Created
+ Container e3-t06-mongo-1 Starting
+ Container e3-t06-mongo-1 Started
+ Container e3-t06-mongo-1 Waiting
+ Container e3-t06-mongo-1 Healthy
+ Container e3-t06-api-1 Starting
+ Container e3-t06-api-1 Started
+ Container e3-t06-mongo-1 Waiting
+ Container e3-t06-api-1 Waiting
+ Container e3-t06-mongo-1 Healthy
+ Container e3-t06-api-1 Healthy

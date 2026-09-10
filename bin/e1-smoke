@@ -144,7 +144,7 @@ def main():
                    CORE_SECURITY_CORS_PLATFORM_HOSTS="id.example.test")
         api = Api(free_port())
         env["SERVER_PORT"] = api.base.rsplit(":", 1)[1]
-        env.update(CORE_IMAGE=options.image or "", CONSUMER_PORT=env["SERVER_PORT"],
+        env.update(CORE_IMAGE=options.image or "", CONSUMER_PORT=env["SERVER_PORT"], MONGO_PORT=str(free_port()),
                    CONSUMER_DATABASE="e1_smoke", CONSUMER_LOG_LEVEL="ERROR", CONSUMER_SCHEDULING_ENABLED="false")
         compose_args = ["docker", "compose", "--env-file", os.devnull, "--project-name", container,
                         "-f", str(ROOT / "docker-compose.consumer.yml")]

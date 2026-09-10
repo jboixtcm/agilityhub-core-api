@@ -1,0 +1,1483 @@
+07:12:50.194 [main] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 8.0.3.Final
+07:12:50.583 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:50.583 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:50.585 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 2 ms
+07:12:50.680 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:50.680 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:50.680 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+07:12:50.729 [main] ERROR com.agilityhub.core.shared.api.ApiExceptionHandler -- Unhandled request exception traceId=d7e6c950-d16c-42ca-9408-b5e1f315f012
+java.lang.IllegalStateException: fictional failure
+	at com.agilityhub.core.shared.api.ApiExceptionHandlerTest$TestController.unexpected(ApiExceptionHandlerTest.java:106)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:32)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.agilityhub.core.shared.api.ApiExceptionHandlerTest.E3_T06_INC02_unhandledFailureLogsOneFullExceptionWithTheResponseTrace(ApiExceptionHandlerTest.java:39)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.params.ArgumentCountValidator.interceptTestTemplateMethod(ArgumentCountValidator.java:45)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestTemplateMethod(TimeoutExtension.java:99)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:231)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:209)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$0(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$1(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.executeForProvider(TestTemplateTestDescriptor.java:114)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:103)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:43)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: java.lang.IllegalArgumentException: fictional cause
+	... 145 common frames omitted
+07:12:50.901 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:50.901 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:50.901 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+07:12:50.902 [main] ERROR com.agilityhub.core.shared.api.ApiExceptionHandler -- Unhandled request exception traceId=bb32ded4-3860-4546-b66d-fba7896eb3c7
+java.lang.IllegalStateException: fictional failure
+	at com.agilityhub.core.shared.api.ApiExceptionHandlerTest$TestController.unexpected(ApiExceptionHandlerTest.java:106)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:32)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.agilityhub.core.shared.api.ApiExceptionHandlerTest.E3_T06_INC02_unhandledFailureLogsOneFullExceptionWithTheResponseTrace(ApiExceptionHandlerTest.java:39)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.params.ArgumentCountValidator.interceptTestTemplateMethod(ArgumentCountValidator.java:45)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestTemplateMethod(TimeoutExtension.java:99)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:231)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:209)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$0(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$1(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.executeForProvider(TestTemplateTestDescriptor.java:114)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:103)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:43)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: java.lang.IllegalArgumentException: fictional cause
+	... 145 common frames omitted
+07:12:50.916 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:50.916 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:50.916 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+07:12:50.918 [main] ERROR com.agilityhub.core.shared.api.ApiExceptionHandler -- Unhandled request exception traceId=c4403220-d51d-437c-8a12-aecb0e35f2df
+java.lang.IllegalStateException: fictional failure
+	at com.agilityhub.core.shared.api.ApiExceptionHandlerTest$TestController.unexpected(ApiExceptionHandlerTest.java:106)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at com.agilityhub.core.shared.api.RequestTraceFilter.doFilterInternal(RequestTraceFilter.java:32)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.agilityhub.core.shared.api.ApiExceptionHandlerTest.E3_T06_INC02_unhandledFailureLogsOneFullExceptionWithTheResponseTrace(ApiExceptionHandlerTest.java:39)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.params.ArgumentCountValidator.interceptTestTemplateMethod(ArgumentCountValidator.java:45)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestTemplateMethod(TimeoutExtension.java:99)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:231)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:209)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$0(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$executeForProvider$1(TestTemplateTestDescriptor.java:115)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.executeForProvider(TestTemplateTestDescriptor.java:114)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:103)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:43)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: java.lang.IllegalArgumentException: fictional cause
+	... 145 common frames omitted
+07:12:50.930 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:50.930 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:50.931 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 1 ms
+07:12:51.027 [main] WARN org.springframework.web.servlet.PageNotFound -- No mapping for GET /missing
+07:12:51.035 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:51.035 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:51.035 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+07:12:51.074 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:51.074 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:51.074 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e1-t09-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+07:12:51.820 [main] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+07:12:51.820 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+07:12:51.820 [main] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+E0-T08 es: 243 error messages; 325 keys; parity and ICU syntax OK
+E0-T08 en: 243 error messages; 325 keys; parity and ICU syntax OK
+E0-T08 ca: 243 error messages; 325 keys; parity and ICU syntax OK
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.033 s <<< FAILURE! -- in com.agilityhub.core.shared.domain.ErrorCatalogContractTest
+[ERROR] com.agilityhub.core.shared.domain.ErrorCatalogContractTest.E0_T04_errorCatalogMatchesEveryConcreteCodeAndCanonicalStatus -- Time elapsed: 0.021 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expecting actual:
+  ["ACCOUNT_BLOCKED",
+    "ACTIVITY_FULL",
+    "ACTIVITY_HAS_REGISTRATIONS",
+    "ACTIVITY_INCOMPLETE",
+    "ACTIVITY_IN_PAST",
+    "ACTIVITY_NOT_PUBLISHED",
+    "ADMIN_TEXT_REQUIRED",
+    "ALREADY_BOOKED",
+    "ALREADY_ON_WAITLIST",
+    "ALREADY_REGISTERED",
+    "AMOUNT_EXCEEDS_DUE",
+    "ATTACHMENT_ENTITY_MISMATCH",
+    "ATTACHMENT_LIMIT_REACHED",
+    "ATTENDANCE_BOOKING_NOT_ACTIVE",
+    "ATTENDANCE_NOTIFIED_FINAL",
+    "ATTENDANCE_NOT_OPEN",
+    "ATTENDANCE_WINDOW_CLOSED",
+    "BAND_NOT_EMPTY",
+    "BAND_OVERLAP",
+    "BILLING_BUSY",
+    "BOOKING_BLOCKED",
+    "BOOKING_BLOCK_ALREADY_ACTIVE",
+    "BOOKING_BLOCK_NOT_ACTIVE",
+    "BOOKING_LIMIT_REACHED",
+    "BOOKING_NOT_CANCELLABLE",
+    "BUILD_SESSION_FINISHED",
+    "CANNOT_CHANGE_OWN_ADMIN_ROLE",
+    "CAPACITY_BELOW_BOOKINGS",
+    "CAPACITY_BELOW_REGISTRATIONS",
+    "CATALOG_NOT_EMPTY",
+    "CHANNEL_NOT_ALLOWED",
+    "CHIP_ALREADY_EXISTS",
+    "CLASS_CONFLICT",
+    "CLASS_FULL",
+    "CLASS_NOT_BOOKABLE",
+    "CLASS_NOT_FULL",
+    "CLUB_CLOSED",
+    "CLUB_NOT_EMPTY",
+    "CLUB_NOT_FOUND",
+    "CLUB_SUSPENDED",
+    "COLLECTION_DATE_TOO_SOON",
+    "CONSENT_VERSION_OUTDATED",
+    "COURSE_IN_USE",
+    "COURSE_MODEL_INVALID",
+    "COURSE_NOT_VISIBLE",
+    "CURRENCY_MISMATCH",
+    "DATA_EXPORT_TOO_SOON",
+    "DESCRIPTION_REQUIRED",
+    "DOCUMENT_NOT_PENDING",
+    "DOCUMENT_REMINDER_TOO_SOON",
+    "DOCUMENT_TYPE_UNKNOWN",
+    "DOG_ALREADY_BOOKED",
+    "DOG_CHIP_ALREADY_REGISTERED",
+    "DOG_DOCUMENT_REQUIRED",
+    "DOG_HAS_FUTURE_BOOKINGS",
+    "DOG_HAS_OPEN_PACK",
+    "DOG_NOT_ACCESSIBLE",
+    "DOG_NOT_ACTIVE",
+    "DOG_NOT_ALLOWED",
+    "DUPLICATE_NAME",
+    "DUPLICATE_SLUG",
+    "EMAIL_EXISTS",
+    "ERASURE_ALREADY_REQUESTED",
+    "ERASURE_BLOCKED",
+    "EXPORT_EXPIRED",
+    "EXPORT_LIMIT",
+    "EXPORT_TOO_LARGE",
+    "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP",
+    "FAMILY_GROUP_TOO_SMALL",
+    "FAMILY_HOLDER_NOT_FOUND",
+    "FILE_NOT_FOUND",
+    "FILE_TOO_LARGE",
+    "FILE_TYPE_NOT_ALLOWED",
+    "FORBIDDEN",
+    "GEOMETRY_INVALID",
+    "HANDOFF_INVALID",
+    "HOST_ALREADY_USED",
+    "HOST_NOT_VERIFIED",
+    "HOST_RESERVED",
+    "IDEMPOTENCY_KEY_REUSED",
+    "ID_DOCUMENT_ALREADY_EXISTS",
+    "ID_DOCUMENT_AMBIGUOUS",
+    "IMPERSONATION_DENIED",
+    "INACTIVITY_DEADLINE_PASSED",
+    "INACTIVITY_INVALID_RANGE",
+    "INACTIVITY_INVALID_STATE",
+    "INACTIVITY_OVERLAP",
+    "INACTIVITY_PERIOD",
+    "INPUT_SCHEMA_MISMATCH",
+    "INSTRUCTOR_IN_USE",
+    "INSTRUCTOR_NOTICE_DISABLED",
+    "INVALID_API_KEY",
+    "INVALID_CREDENTIALS",
+    "INVALID_FILTER",
+    "INVALID_IBAN",
+    "INVALID_ID_DOCUMENT",
+    "INVALID_PHONE",
+    "INVALID_REMINDER_OPTION",
+    "INVALID_SLOT_GRANULARITY",
+    "INTERNAL_ERROR",
+    "INVALID_STATE",
+    "INVALID_TIME_RANGE",
+    "INVENTORY_INVALID",
+    "JOB_ALREADY_RUNNING",
+    "JOB_UNKNOWN",
+    "LAST_ADMIN",
+    "LAST_PLATFORM_ADMIN",
+    "LEAVE_ALREADY_REQUESTED",
+    "LEAVE_ALREADY_SCHEDULED",
+    "LEAVE_DATE_INVALID",
+    "LEAVE_INVALID_STATE",
+    "LEAVE_REASON_UNKNOWN",
+    "LEVELS_DISABLED",
+    "LEVEL_IN_USE",
+    "LEVEL_NOT_ACTIVE",
+    "LEVEL_NOT_ALLOWED",
+    "LEVEL_REQUIRED",
+    "LEVEL_UNCHANGED",
+    "LOCALE_NOT_ENABLED",
+    "LOCALE_NOT_SUPPORTED",
+    "LOGIN_LOCKED",
+    "MAGIC_LINK_INVALID",
+    "MAPPING_INVALID",
+    "MAX_ATTEMPTS",
+    "MEMBERSHIP_EXISTS",
+    "MEMBERSHIP_SUSPENDED",
+    "MEMBER_ALREADY_EXISTS",
+    "MEMBER_NOT_ACTIVE",
+    "MEMBER_ERASED",
+    "MEMBER_NOT_LEFT",
+    "MIGRATION_ALREADY_APPLIED",
+    "MODULE_DEPENDENCY",
+    "MODULE_DISABLED",
+    "NEXT_INVOICE_DATE_REQUIRED",
+    "NOTHING_TO_VALIDATE",
+    "NOT_DUE",
+    "NOT_FOUND",
+    "NOT_IMPLEMENTED",
+    "NOT_YET_OPEN",
+    "NO_INVOICES",
+    "NO_MEMBERSHIP",
+    "NO_PAYMENT_METHOD",
+    "NO_PLANNED_LEAVE",
+    "NO_RECIPIENTS",
+    "ORDER_INCOMPLETE",
+    "OUTSIDE_OPENING_HOURS",
+    "OVERRIDE_NOT_ALLOWED",
+    "PACK_EMPTY",
+    "PACK_NEGATIVE",
+    "PARAMETER_INVALID",
+    "PASSWORD_COMPROMISED",
+    "PASSWORD_MISMATCH",
+    "PASSWORD_TOO_SHORT",
+    "PAYMENT_METHOD_NOT_AVAILABLE",
+    "PAYMENT_PROVIDER_NOT_ENABLED",
+    "PLACEMENT_BLOCKED",
+    "PLACEMENT_RING_MISMATCH",
+    "PLAN_IN_USE",
+    "PLAN_NOT_AVAILABLE",
+    "PLAN_NOT_PACK",
+    "PLATFORM_ONLY",
+    "PRICE_LOCKED",
+    "PRICE_OVERLAP",
+    "PRODUCTION_REQUIRES_CONFIRMATION",
+    "PROFILE_NOT_AVAILABLE",
+    "PROVIDER_CONFIG_INVALID",
+    "PROVIDER_IN_USE",
+    "PUSH_SUBSCRIPTION_INVALID",
+    "RATE_LIMITED",
+    "READ_ONLY",
+    "REFRESH_EXPIRED",
+    "REFRESH_REUSED",
+    "REFUND_EXCEEDS_PAID",
+    "REGISTRATION_CLOSED",
+    "REGISTRATION_NOT_CANCELLABLE",
+    "RING_BLOCKED",
+    "RING_BLOCK_CONFLICT",
+    "RING_BLOCK_MANAGED_BY_ACTIVITY",
+    "RING_GEOMETRY_IN_USE",
+    "RING_HAS_BOOKINGS",
+    "RING_IN_USE",
+    "RING_NOT_RESERVABLE",
+    "RING_WITHOUT_GEOMETRY",
+    "ROLE_MEMBER_REQUIRED",
+    "RUN_EXISTS",
+    "RUN_NOT_ROLLBACKABLE",
+    "SAME_MEMBER",
+    "SAVED_VIEW_NAME_TAKEN",
+    "SCHEMA_VERSION_UNSUPPORTED",
+    "SEAT_HOLD_EXPIRED",
+    "SEAT_TAKEN",
+    "SECRET_IN_FILE",
+    "SEPA_NOT_CONFIGURED",
+    "SETUP_SOURCE_REQUIRED",
+    "SIGNUP_ALREADY_PENDING",
+    "SIGNUP_CLOSED",
+    "SIMULATION_STALE",
+    "SLOT_NOT_ON_GRID",
+    "SLOT_OUT_OF_WINDOW",
+    "SLOT_TAKEN",
+    "SLUG_LOCKED",
+    "SLUG_TAKEN",
+    "SMS_BODY_REQUIRED",
+    "SMS_BODY_TOO_LONG",
+    "STALE_VERSION",
+    "STRIPE_CONNECTION_FAILED",
+    "SUPPORT_RESTRICTED",
+    "SWAP_NOT_ALLOWED",
+    "TARGET_MEMBER_NOT_ACTIVE",
+    "TASK_ALREADY_DONE",
+    "TASK_NOT_DONE",
+    "TEMPLATE_CLUB_NOT_FOUND",
+    "TEMPLATE_INCONSISTENT",
+    "TEMPLATE_KIND_MISMATCH",
+    "TEMPLATE_MANDATORY",
+    "TEMPLATE_NOT_CATALOG",
+    "TEMPLATE_NOT_CUSTOM",
+    "TEMPLATE_NOT_SENDABLE",
+    "TEMPLATE_SYNTAX_ERROR",
+    "TEMPLATE_UNKNOWN_VARIABLE",
+    "TENANT_MISMATCH",
+    "THEME_CONTRAST",
+    "TIMEZONE_CHANGE_BLOCKED",
+    "TOO_MANY_DOCUMENTS",
+    "TOO_MANY_INSTRUCTORS",
+    "TRAINING_CANCEL_TOO_LATE",
+    "TRAINING_LIMIT_REACHED",
+    "UNAUTHENTICATED",
+    "UNKNOWN_HOST",
+    "UNKNOWN_PARAMETER",
+    "UNSUBSCRIBE_TOKEN_INVALID",
+    "UPFRONT_AMOUNT_EXCEEDS_DUE",
+    "VALIDATION_ERROR",
+    "WAITLIST_ENTRY_NOT_LIVE",
+    "WAITLIST_FULL",
+    "WAITLIST_LIMIT",
+    "WAITLIST_NOT_NOTIFIED",
+    "WAITLIST_OFFER_EXPIRED",
+    "WEBHOOK_SIGNATURE_INVALID",
+    "WEEKLY_LIMIT_DONE",
+    "WEEK_ALREADY_GENERATED",
+    "WEEK_INCONSISTENT",
+    "WEEK_IN_PAST"]
+to contain exactly in any order:
+  ["VALIDATION_ERROR",
+    "INVALID_FILTER",
+    "INVALID_IBAN",
+    "INVALID_ID_DOCUMENT",
+    "INVALID_PHONE",
+    "INVALID_TIME_RANGE",
+    "INVALID_SLOT_GRANULARITY",
+    "PARAMETER_INVALID",
+    "UNKNOWN_PARAMETER",
+    "COURSE_MODEL_INVALID",
+    "SCHEMA_VERSION_UNSUPPORTED",
+    "LOCALE_NOT_SUPPORTED",
+    "PASSWORD_TOO_SHORT",
+    "PASSWORD_MISMATCH",
+    "PASSWORD_COMPROMISED",
+    "MAGIC_LINK_INVALID",
+    "HANDOFF_INVALID",
+    "REFRESH_EXPIRED",
+    "REFRESH_REUSED",
+    "FILE_TYPE_NOT_ALLOWED",
+    "FILE_TOO_LARGE",
+    "FILE_NOT_FOUND",
+    "TEMPLATE_SYNTAX_ERROR",
+    "TEMPLATE_UNKNOWN_VARIABLE",
+    "SMS_BODY_REQUIRED",
+    "SMS_BODY_TOO_LONG",
+    "INPUT_SCHEMA_MISMATCH",
+    "MAPPING_INVALID",
+    "INVALID_CREDENTIALS",
+    "WEBHOOK_SIGNATURE_INVALID",
+    "NO_MEMBERSHIP",
+    "MEMBERSHIP_SUSPENDED",
+    "ACCOUNT_BLOCKED",
+    "CLUB_SUSPENDED",
+    "TENANT_MISMATCH",
+    "IMPERSONATION_DENIED",
+    "PLATFORM_ONLY",
+    "SUPPORT_RESTRICTED",
+    "READ_ONLY",
+    "INVALID_API_KEY",
+    "NOT_FOUND",
+    "MODULE_DISABLED",
+    "UNKNOWN_HOST",
+    "COURSE_NOT_VISIBLE",
+    "DOG_NOT_ACCESSIBLE",
+    "TEMPLATE_CLUB_NOT_FOUND",
+    "CLUB_NOT_FOUND",
+    "STALE_VERSION",
+    "INVALID_STATE",
+    "CLASS_FULL",
+    "SEAT_TAKEN",
+    "SEAT_HOLD_EXPIRED",
+    "SLOT_TAKEN",
+    "BOOKING_LIMIT_REACHED",
+    "WAITLIST_LIMIT",
+    "TRAINING_LIMIT_REACHED",
+    "RUN_EXISTS",
+    "BILLING_BUSY",
+    "RUN_NOT_ROLLBACKABLE",
+    "SIMULATION_STALE",
+    "MAX_ATTEMPTS",
+    "LAST_ADMIN",
+    "LAST_PLATFORM_ADMIN",
+    "MIGRATION_ALREADY_APPLIED",
+    "JOB_ALREADY_RUNNING",
+    "MODULE_DEPENDENCY",
+    "PAYMENT_PROVIDER_NOT_ENABLED",
+    "PLAN_NOT_AVAILABLE",
+    "LEVEL_REQUIRED",
+    "LEVELS_DISABLED",
+    "MEMBER_NOT_ACTIVE",
+    "BOOKING_BLOCKED",
+    "INACTIVITY_PERIOD",
+    "NOT_YET_OPEN",
+    "CLASS_NOT_BOOKABLE",
+    "LEVEL_NOT_ALLOWED",
+    "PACK_EMPTY",
+    "DOG_NOT_ALLOWED",
+    "SLOT_OUT_OF_WINDOW",
+    "CLUB_CLOSED",
+    "RING_NOT_RESERVABLE",
+    "COLLECTION_DATE_TOO_SOON",
+    "CURRENCY_MISMATCH",
+    "GEOMETRY_INVALID",
+    "PLACEMENT_BLOCKED",
+    "HOST_RESERVED",
+    "HOST_NOT_VERIFIED",
+    "PROVIDER_CONFIG_INVALID",
+    "STRIPE_CONNECTION_FAILED",
+    "THEME_CONTRAST",
+    "ERASURE_BLOCKED",
+    "RATE_LIMITED",
+    "LOGIN_LOCKED",
+    "INTERNAL_ERROR",
+    "NOT_IMPLEMENTED",
+    "PROFILE_NOT_AVAILABLE",
+    "EMAIL_EXISTS",
+    "TIMEZONE_CHANGE_BLOCKED",
+    "BOOKING_BLOCK_ALREADY_ACTIVE",
+    "BOOKING_BLOCK_NOT_ACTIVE",
+    "CANNOT_CHANGE_OWN_ADMIN_ROLE",
+    "CHIP_ALREADY_EXISTS",
+    "DOCUMENT_NOT_PENDING",
+    "DOCUMENT_REMINDER_TOO_SOON",
+    "DOCUMENT_TYPE_UNKNOWN",
+    "DOG_HAS_FUTURE_BOOKINGS",
+    "DOG_HAS_OPEN_PACK",
+    "DOG_NOT_ACTIVE",
+    "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP",
+    "FAMILY_GROUP_TOO_SMALL",
+    "ID_DOCUMENT_ALREADY_EXISTS",
+    "LEVEL_NOT_ACTIVE",
+    "LEVEL_UNCHANGED",
+    "ROLE_MEMBER_REQUIRED",
+    "SAME_MEMBER",
+    "SAVED_VIEW_NAME_TAKEN",
+    "TARGET_MEMBER_NOT_ACTIVE",
+    "SIGNUP_CLOSED",
+    "SIGNUP_ALREADY_PENDING",
+    "MEMBER_ALREADY_EXISTS",
+    "MEMBERSHIP_EXISTS",
+    "ID_DOCUMENT_AMBIGUOUS",
+    "PAYMENT_METHOD_NOT_AVAILABLE",
+    "DOG_CHIP_ALREADY_REGISTERED",
+    "DOG_DOCUMENT_REQUIRED",
+    "CONSENT_VERSION_OUTDATED",
+    "NEXT_INVOICE_DATE_REQUIRED",
+    "UPFRONT_AMOUNT_EXCEEDS_DUE",
+    "FAMILY_HOLDER_NOT_FOUND",
+    "DUPLICATE_NAME",
+    "ORDER_INCOMPLETE",
+    "LOCALE_NOT_ENABLED",
+    "LEVEL_IN_USE",
+    "RING_IN_USE",
+    "INSTRUCTOR_IN_USE",
+    "PLAN_IN_USE",
+    "PRICE_OVERLAP",
+    "PRICE_LOCKED",
+    "BAND_OVERLAP",
+    "BAND_NOT_EMPTY",
+    "OUTSIDE_OPENING_HOURS",
+    "TOO_MANY_INSTRUCTORS",
+    "DESCRIPTION_REQUIRED",
+    "TEMPLATE_KIND_MISMATCH",
+    "TEMPLATE_INCONSISTENT",
+    "WEEK_ALREADY_GENERATED",
+    "WEEK_IN_PAST",
+    "WEEK_INCONSISTENT",
+    "NOTHING_TO_VALIDATE",
+    "CAPACITY_BELOW_BOOKINGS",
+    "ADMIN_TEXT_REQUIRED",
+    "RING_BLOCKED",
+    "RING_BLOCK_CONFLICT",
+    "RING_BLOCK_MANAGED_BY_ACTIVITY",
+    "RING_HAS_BOOKINGS",
+    "ACTIVITY_FULL",
+    "REGISTRATION_CLOSED",
+    "ALREADY_REGISTERED",
+    "ACTIVITY_NOT_PUBLISHED",
+    "ACTIVITY_INCOMPLETE",
+    "ACTIVITY_IN_PAST",
+    "ACTIVITY_HAS_REGISTRATIONS",
+    "REGISTRATION_NOT_CANCELLABLE",
+    "CAPACITY_BELOW_REGISTRATIONS",
+    "DUPLICATE_SLUG",
+    "SLUG_LOCKED",
+    "TOO_MANY_DOCUMENTS",
+    "ALREADY_BOOKED",
+    "ALREADY_ON_WAITLIST",
+    "CLASS_NOT_FULL",
+    "WAITLIST_FULL",
+    "WAITLIST_NOT_NOTIFIED",
+    "WAITLIST_OFFER_EXPIRED",
+    "WAITLIST_ENTRY_NOT_LIVE",
+    "SWAP_NOT_ALLOWED",
+    "BOOKING_NOT_CANCELLABLE",
+    "WEEKLY_LIMIT_DONE",
+    "SLOT_NOT_ON_GRID",
+    "DOG_ALREADY_BOOKED",
+    "CLASS_CONFLICT",
+    "TRAINING_CANCEL_TOO_LATE",
+    "OVERRIDE_NOT_ALLOWED",
+    "ATTENDANCE_NOT_OPEN",
+    "ATTENDANCE_WINDOW_CLOSED",
+    "ATTENDANCE_NOTIFIED_FINAL",
+    "ATTENDANCE_BOOKING_NOT_ACTIVE",
+    "INSTRUCTOR_NOTICE_DISABLED",
+    "TASK_ALREADY_DONE",
+    "TASK_NOT_DONE",
+    "ATTACHMENT_LIMIT_REACHED",
+    "ATTACHMENT_ENTITY_MISMATCH",
+    "CHANNEL_NOT_ALLOWED",
+    "INVALID_REMINDER_OPTION",
+    "NO_RECIPIENTS",
+    "PUSH_SUBSCRIPTION_INVALID",
+    "TEMPLATE_MANDATORY",
+    "TEMPLATE_NOT_CATALOG",
+    "TEMPLATE_NOT_CUSTOM",
+    "TEMPLATE_NOT_SENDABLE",
+    "UNSUBSCRIBE_TOKEN_INVALID",
+    "NO_INVOICES",
+    "SEPA_NOT_CONFIGURED",
+    "NO_PAYMENT_METHOD",
+    "REFUND_EXCEEDS_PAID",
+    "AMOUNT_EXCEEDS_DUE",
+    "PLAN_NOT_PACK",
+    "PACK_NEGATIVE",
+    "INACTIVITY_DEADLINE_PASSED",
+    "INACTIVITY_INVALID_RANGE",
+    "INACTIVITY_INVALID_STATE",
+    "INACTIVITY_OVERLAP",
+    "LEAVE_ALREADY_REQUESTED",
+    "LEAVE_ALREADY_SCHEDULED",
+    "LEAVE_DATE_INVALID",
+    "LEAVE_INVALID_STATE",
+    "LEAVE_REASON_UNKNOWN",
+    "MEMBER_NOT_LEFT",
+    "NO_PLANNED_LEAVE",
+    "DATA_EXPORT_TOO_SOON",
+    "ERASURE_ALREADY_REQUESTED",
+    "EXPORT_EXPIRED",
+    "EXPORT_LIMIT",
+    "EXPORT_TOO_LARGE",
+    "MEMBER_ERASED",
+    "JOB_UNKNOWN",
+    "NOT_DUE",
+    "COURSE_IN_USE",
+    "RING_GEOMETRY_IN_USE",
+    "RING_WITHOUT_GEOMETRY",
+    "PLACEMENT_RING_MISMATCH",
+    "SETUP_SOURCE_REQUIRED",
+    "BUILD_SESSION_FINISHED",
+    "INVENTORY_INVALID",
+    "SLUG_TAKEN",
+    "HOST_ALREADY_USED",
+    "PROVIDER_IN_USE",
+    "CATALOG_NOT_EMPTY",
+    "SECRET_IN_FILE",
+    "PRODUCTION_REQUIRES_CONFIRMATION",
+    "CLUB_NOT_EMPTY",
+    "IDEMPOTENCY_KEY_REUSED"]
+but the following elements were unexpected:
+  ["FORBIDDEN", "UNAUTHENTICATED"]
+
+	at com.agilityhub.core.shared.domain.ErrorCatalogContractTest.E0_T04_errorCatalogMatchesEveryConcreteCodeAndCanonicalStatus(ErrorCatalogContractTest.java:28)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   ErrorCatalogContractTest.E0_T04_errorCatalogMatchesEveryConcreteCodeAndCanonicalStatus:28
+Expecting actual:
+  ["ACCOUNT_BLOCKED",
+    "ACTIVITY_FULL",
+    "ACTIVITY_HAS_REGISTRATIONS",
+    "ACTIVITY_INCOMPLETE",
+    "ACTIVITY_IN_PAST",
+    "ACTIVITY_NOT_PUBLISHED",
+    "ADMIN_TEXT_REQUIRED",
+    "ALREADY_BOOKED",
+    "ALREADY_ON_WAITLIST",
+    "ALREADY_REGISTERED",
+    "AMOUNT_EXCEEDS_DUE",
+    "ATTACHMENT_ENTITY_MISMATCH",
+    "ATTACHMENT_LIMIT_REACHED",
+    "ATTENDANCE_BOOKING_NOT_ACTIVE",
+    "ATTENDANCE_NOTIFIED_FINAL",
+    "ATTENDANCE_NOT_OPEN",
+    "ATTENDANCE_WINDOW_CLOSED",
+    "BAND_NOT_EMPTY",
+    "BAND_OVERLAP",
+    "BILLING_BUSY",
+    "BOOKING_BLOCKED",
+    "BOOKING_BLOCK_ALREADY_ACTIVE",
+    "BOOKING_BLOCK_NOT_ACTIVE",
+    "BOOKING_LIMIT_REACHED",
+    "BOOKING_NOT_CANCELLABLE",
+    "BUILD_SESSION_FINISHED",
+    "CANNOT_CHANGE_OWN_ADMIN_ROLE",
+    "CAPACITY_BELOW_BOOKINGS",
+    "CAPACITY_BELOW_REGISTRATIONS",
+    "CATALOG_NOT_EMPTY",
+    "CHANNEL_NOT_ALLOWED",
+    "CHIP_ALREADY_EXISTS",
+    "CLASS_CONFLICT",
+    "CLASS_FULL",
+    "CLASS_NOT_BOOKABLE",
+    "CLASS_NOT_FULL",
+    "CLUB_CLOSED",
+    "CLUB_NOT_EMPTY",
+    "CLUB_NOT_FOUND",
+    "CLUB_SUSPENDED",
+    "COLLECTION_DATE_TOO_SOON",
+    "CONSENT_VERSION_OUTDATED",
+    "COURSE_IN_USE",
+    "COURSE_MODEL_INVALID",
+    "COURSE_NOT_VISIBLE",
+    "CURRENCY_MISMATCH",
+    "DATA_EXPORT_TOO_SOON",
+    "DESCRIPTION_REQUIRED",
+    "DOCUMENT_NOT_PENDING",
+    "DOCUMENT_REMINDER_TOO_SOON",
+    "DOCUMENT_TYPE_UNKNOWN",
+    "DOG_ALREADY_BOOKED",
+    "DOG_CHIP_ALREADY_REGISTERED",
+    "DOG_DOCUMENT_REQUIRED",
+    "DOG_HAS_FUTURE_BOOKINGS",
+    "DOG_HAS_OPEN_PACK",
+    "DOG_NOT_ACCESSIBLE",
+    "DOG_NOT_ACTIVE",
+    "DOG_NOT_ALLOWED",
+    "DUPLICATE_NAME",
+    "DUPLICATE_SLUG",
+    "EMAIL_EXISTS",
+    "ERASURE_ALREADY_REQUESTED",
+    "ERASURE_BLOCKED",
+    "EXPORT_EXPIRED",
+    "EXPORT_LIMIT",
+    "EXPORT_TOO_LARGE",
+    "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP",
+    "FAMILY_GROUP_TOO_SMALL",
+    "FAMILY_HOLDER_NOT_FOUND",
+    "FILE_NOT_FOUND",
+    "FILE_TOO_LARGE",
+    "FILE_TYPE_NOT_ALLOWED",
+    "FORBIDDEN",
+    "GEOMETRY_INVALID",
+    "HANDOFF_INVALID",
+    "HOST_ALREADY_USED",
+    "HOST_NOT_VERIFIED",
+    "HOST_RESERVED",
+    "IDEMPOTENCY_KEY_REUSED",
+    "ID_DOCUMENT_ALREADY_EXISTS",
+    "ID_DOCUMENT_AMBIGUOUS",
+    "IMPERSONATION_DENIED",
+    "INACTIVITY_DEADLINE_PASSED",
+    "INACTIVITY_INVALID_RANGE",
+    "INACTIVITY_INVALID_STATE",
+    "INACTIVITY_OVERLAP",
+    "INACTIVITY_PERIOD",
+    "INPUT_SCHEMA_MISMATCH",
+    "INSTRUCTOR_IN_USE",
+    "INSTRUCTOR_NOTICE_DISABLED",
+    "INVALID_API_KEY",
+    "INVALID_CREDENTIALS",
+    "INVALID_FILTER",
+    "INVALID_IBAN",
+    "INVALID_ID_DOCUMENT",
+    "INVALID_PHONE",
+    "INVALID_REMINDER_OPTION",
+    "INVALID_SLOT_GRANULARITY",
+    "INTERNAL_ERROR",
+    "INVALID_STATE",
+    "INVALID_TIME_RANGE",
+    "INVENTORY_INVALID",
+    "JOB_ALREADY_RUNNING",
+    "JOB_UNKNOWN",
+    "LAST_ADMIN",
+    "LAST_PLATFORM_ADMIN",
+    "LEAVE_ALREADY_REQUESTED",
+    "LEAVE_ALREADY_SCHEDULED",
+    "LEAVE_DATE_INVALID",
+    "LEAVE_INVALID_STATE",
+    "LEAVE_REASON_UNKNOWN",
+    "LEVELS_DISABLED",
+    "LEVEL_IN_USE",
+    "LEVEL_NOT_ACTIVE",
+    "LEVEL_NOT_ALLOWED",
+    "LEVEL_REQUIRED",
+    "LEVEL_UNCHANGED",
+    "LOCALE_NOT_ENABLED",
+    "LOCALE_NOT_SUPPORTED",
+    "LOGIN_LOCKED",
+    "MAGIC_LINK_INVALID",
+    "MAPPING_INVALID",
+    "MAX_ATTEMPTS",
+    "MEMBERSHIP_EXISTS",
+    "MEMBERSHIP_SUSPENDED",
+    "MEMBER_ALREADY_EXISTS",
+    "MEMBER_NOT_ACTIVE",
+    "MEMBER_ERASED",
+    "MEMBER_NOT_LEFT",
+    "MIGRATION_ALREADY_APPLIED",
+    "MODULE_DEPENDENCY",
+    "MODULE_DISABLED",
+    "NEXT_INVOICE_DATE_REQUIRED",
+    "NOTHING_TO_VALIDATE",
+    "NOT_DUE",
+    "NOT_FOUND",
+    "NOT_IMPLEMENTED",
+    "NOT_YET_OPEN",
+    "NO_INVOICES",
+    "NO_MEMBERSHIP",
+    "NO_PAYMENT_METHOD",
+    "NO_PLANNED_LEAVE",
+    "NO_RECIPIENTS",
+    "ORDER_INCOMPLETE",
+    "OUTSIDE_OPENING_HOURS",
+    "OVERRIDE_NOT_ALLOWED",
+    "PACK_EMPTY",
+    "PACK_NEGATIVE",
+    "PARAMETER_INVALID",
+    "PASSWORD_COMPROMISED",
+    "PASSWORD_MISMATCH",
+    "PASSWORD_TOO_SHORT",
+    "PAYMENT_METHOD_NOT_AVAILABLE",
+    "PAYMENT_PROVIDER_NOT_ENABLED",
+    "PLACEMENT_BLOCKED",
+    "PLACEMENT_RING_MISMATCH",
+    "PLAN_IN_USE",
+    "PLAN_NOT_AVAILABLE",
+    "PLAN_NOT_PACK",
+    "PLATFORM_ONLY",
+    "PRICE_LOCKED",
+    "PRICE_OVERLAP",
+    "PRODUCTION_REQUIRES_CONFIRMATION",
+    "PROFILE_NOT_AVAILABLE",
+    "PROVIDER_CONFIG_INVALID",
+    "PROVIDER_IN_USE",
+    "PUSH_SUBSCRIPTION_INVALID",
+    "RATE_LIMITED",
+    "READ_ONLY",
+    "REFRESH_EXPIRED",
+    "REFRESH_REUSED",
+    "REFUND_EXCEEDS_PAID",
+    "REGISTRATION_CLOSED",
+    "REGISTRATION_NOT_CANCELLABLE",
+    "RING_BLOCKED",
+    "RING_BLOCK_CONFLICT",
+    "RING_BLOCK_MANAGED_BY_ACTIVITY",
+    "RING_GEOMETRY_IN_USE",
+    "RING_HAS_BOOKINGS",
+    "RING_IN_USE",
+    "RING_NOT_RESERVABLE",
+    "RING_WITHOUT_GEOMETRY",
+    "ROLE_MEMBER_REQUIRED",
+    "RUN_EXISTS",
+    "RUN_NOT_ROLLBACKABLE",
+    "SAME_MEMBER",
+    "SAVED_VIEW_NAME_TAKEN",
+    "SCHEMA_VERSION_UNSUPPORTED",
+    "SEAT_HOLD_EXPIRED",
+    "SEAT_TAKEN",
+    "SECRET_IN_FILE",
+    "SEPA_NOT_CONFIGURED",
+    "SETUP_SOURCE_REQUIRED",
+    "SIGNUP_ALREADY_PENDING",
+    "SIGNUP_CLOSED",
+    "SIMULATION_STALE",
+    "SLOT_NOT_ON_GRID",
+    "SLOT_OUT_OF_WINDOW",
+    "SLOT_TAKEN",
+    "SLUG_LOCKED",
+    "SLUG_TAKEN",
+    "SMS_BODY_REQUIRED",
+    "SMS_BODY_TOO_LONG",
+    "STALE_VERSION",
+    "STRIPE_CONNECTION_FAILED",
+    "SUPPORT_RESTRICTED",
+    "SWAP_NOT_ALLOWED",
+    "TARGET_MEMBER_NOT_ACTIVE",
+    "TASK_ALREADY_DONE",
+    "TASK_NOT_DONE",
+    "TEMPLATE_CLUB_NOT_FOUND",
+    "TEMPLATE_INCONSISTENT",
+    "TEMPLATE_KIND_MISMATCH",
+    "TEMPLATE_MANDATORY",
+    "TEMPLATE_NOT_CATALOG",
+    "TEMPLATE_NOT_CUSTOM",
+    "TEMPLATE_NOT_SENDABLE",
+    "TEMPLATE_SYNTAX_ERROR",
+    "TEMPLATE_UNKNOWN_VARIABLE",
+    "TENANT_MISMATCH",
+    "THEME_CONTRAST",
+    "TIMEZONE_CHANGE_BLOCKED",
+    "TOO_MANY_DOCUMENTS",
+    "TOO_MANY_INSTRUCTORS",
+    "TRAINING_CANCEL_TOO_LATE",
+    "TRAINING_LIMIT_REACHED",
+    "UNAUTHENTICATED",
+    "UNKNOWN_HOST",
+    "UNKNOWN_PARAMETER",
+    "UNSUBSCRIBE_TOKEN_INVALID",
+    "UPFRONT_AMOUNT_EXCEEDS_DUE",
+    "VALIDATION_ERROR",
+    "WAITLIST_ENTRY_NOT_LIVE",
+    "WAITLIST_FULL",
+    "WAITLIST_LIMIT",
+    "WAITLIST_NOT_NOTIFIED",
+    "WAITLIST_OFFER_EXPIRED",
+    "WEBHOOK_SIGNATURE_INVALID",
+    "WEEKLY_LIMIT_DONE",
+    "WEEK_ALREADY_GENERATED",
+    "WEEK_INCONSISTENT",
+    "WEEK_IN_PAST"]
+to contain exactly in any order:
+  ["VALIDATION_ERROR",
+    "INVALID_FILTER",
+    "INVALID_IBAN",
+    "INVALID_ID_DOCUMENT",
+    "INVALID_PHONE",
+    "INVALID_TIME_RANGE",
+    "INVALID_SLOT_GRANULARITY",
+    "PARAMETER_INVALID",
+    "UNKNOWN_PARAMETER",
+    "COURSE_MODEL_INVALID",
+    "SCHEMA_VERSION_UNSUPPORTED",
+    "LOCALE_NOT_SUPPORTED",
+    "PASSWORD_TOO_SHORT",
+    "PASSWORD_MISMATCH",
+    "PASSWORD_COMPROMISED",
+    "MAGIC_LINK_INVALID",
+    "HANDOFF_INVALID",
+    "REFRESH_EXPIRED",
+    "REFRESH_REUSED",
+    "FILE_TYPE_NOT_ALLOWED",
+    "FILE_TOO_LARGE",
+    "FILE_NOT_FOUND",
+    "TEMPLATE_SYNTAX_ERROR",
+    "TEMPLATE_UNKNOWN_VARIABLE",
+    "SMS_BODY_REQUIRED",
+    "SMS_BODY_TOO_LONG",
+    "INPUT_SCHEMA_MISMATCH",
+    "MAPPING_INVALID",
+    "INVALID_CREDENTIALS",
+    "WEBHOOK_SIGNATURE_INVALID",
+    "NO_MEMBERSHIP",
+    "MEMBERSHIP_SUSPENDED",
+    "ACCOUNT_BLOCKED",
+    "CLUB_SUSPENDED",
+    "TENANT_MISMATCH",
+    "IMPERSONATION_DENIED",
+    "PLATFORM_ONLY",
+    "SUPPORT_RESTRICTED",
+    "READ_ONLY",
+    "INVALID_API_KEY",
+    "NOT_FOUND",
+    "MODULE_DISABLED",
+    "UNKNOWN_HOST",
+    "COURSE_NOT_VISIBLE",
+    "DOG_NOT_ACCESSIBLE",
+    "TEMPLATE_CLUB_NOT_FOUND",
+    "CLUB_NOT_FOUND",
+    "STALE_VERSION",
+    "INVALID_STATE",
+    "CLASS_FULL",
+    "SEAT_TAKEN",
+    "SEAT_HOLD_EXPIRED",
+    "SLOT_TAKEN",
+    "BOOKING_LIMIT_REACHED",
+    "WAITLIST_LIMIT",
+    "TRAINING_LIMIT_REACHED",
+    "RUN_EXISTS",
+    "BILLING_BUSY",
+    "RUN_NOT_ROLLBACKABLE",
+    "SIMULATION_STALE",
+    "MAX_ATTEMPTS",
+    "LAST_ADMIN",
+    "LAST_PLATFORM_ADMIN",
+    "MIGRATION_ALREADY_APPLIED",
+    "JOB_ALREADY_RUNNING",
+    "MODULE_DEPENDENCY",
+    "PAYMENT_PROVIDER_NOT_ENABLED",
+    "PLAN_NOT_AVAILABLE",
+    "LEVEL_REQUIRED",
+    "LEVELS_DISABLED",
+    "MEMBER_NOT_ACTIVE",
+    "BOOKING_BLOCKED",
+    "INACTIVITY_PERIOD",
+    "NOT_YET_OPEN",
+    "CLASS_NOT_BOOKABLE",
+    "LEVEL_NOT_ALLOWED",
+    "PACK_EMPTY",
+    "DOG_NOT_ALLOWED",
+    "SLOT_OUT_OF_WINDOW",
+    "CLUB_CLOSED",
+    "RING_NOT_RESERVABLE",
+    "COLLECTION_DATE_TOO_SOON",
+    "CURRENCY_MISMATCH",
+    "GEOMETRY_INVALID",
+    "PLACEMENT_BLOCKED",
+    "HOST_RESERVED",
+    "HOST_NOT_VERIFIED",
+    "PROVIDER_CONFIG_INVALID",
+    "STRIPE_CONNECTION_FAILED",
+    "THEME_CONTRAST",
+    "ERASURE_BLOCKED",
+    "RATE_LIMITED",
+    "LOGIN_LOCKED",
+    "INTERNAL_ERROR",
+    "NOT_IMPLEMENTED",
+    "PROFILE_NOT_AVAILABLE",
+    "EMAIL_EXISTS",
+    "TIMEZONE_CHANGE_BLOCKED",
+    "BOOKING_BLOCK_ALREADY_ACTIVE",
+    "BOOKING_BLOCK_NOT_ACTIVE",
+    "CANNOT_CHANGE_OWN_ADMIN_ROLE",
+    "CHIP_ALREADY_EXISTS",
+    "DOCUMENT_NOT_PENDING",
+    "DOCUMENT_REMINDER_TOO_SOON",
+    "DOCUMENT_TYPE_UNKNOWN",
+    "DOG_HAS_FUTURE_BOOKINGS",
+    "DOG_HAS_OPEN_PACK",
+    "DOG_NOT_ACTIVE",
+    "FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP",
+    "FAMILY_GROUP_TOO_SMALL",
+    "ID_DOCUMENT_ALREADY_EXISTS",
+    "LEVEL_NOT_ACTIVE",
+    "LEVEL_UNCHANGED",
+    "ROLE_MEMBER_REQUIRED",
+    "SAME_MEMBER",
+    "SAVED_VIEW_NAME_TAKEN",
+    "TARGET_MEMBER_NOT_ACTIVE",
+    "SIGNUP_CLOSED",
+    "SIGNUP_ALREADY_PENDING",
+    "MEMBER_ALREADY_EXISTS",
+    "MEMBERSHIP_EXISTS",
+    "ID_DOCUMENT_AMBIGUOUS",
+    "PAYMENT_METHOD_NOT_AVAILABLE",
+    "DOG_CHIP_ALREADY_REGISTERED",
+    "DOG_DOCUMENT_REQUIRED",
+    "CONSENT_VERSION_OUTDATED",
+    "NEXT_INVOICE_DATE_REQUIRED",
+    "UPFRONT_AMOUNT_EXCEEDS_DUE",
+    "FAMILY_HOLDER_NOT_FOUND",
+    "DUPLICATE_NAME",
+    "ORDER_INCOMPLETE",
+    "LOCALE_NOT_ENABLED",
+    "LEVEL_IN_USE",
+    "RING_IN_USE",
+    "INSTRUCTOR_IN_USE",
+    "PLAN_IN_USE",
+    "PRICE_OVERLAP",
+    "PRICE_LOCKED",
+    "BAND_OVERLAP",
+    "BAND_NOT_EMPTY",
+    "OUTSIDE_OPENING_HOURS",
+    "TOO_MANY_INSTRUCTORS",
+    "DESCRIPTION_REQUIRED",
+    "TEMPLATE_KIND_MISMATCH",
+    "TEMPLATE_INCONSISTENT",
+    "WEEK_ALREADY_GENERATED",
+    "WEEK_IN_PAST",
+    "WEEK_INCONSISTENT",
+    "NOTHING_TO_VALIDATE",
+    "CAPACITY_BELOW_BOOKINGS",
+    "ADMIN_TEXT_REQUIRED",
+    "RING_BLOCKED",
+    "RING_BLOCK_CONFLICT",
+    "RING_BLOCK_MANAGED_BY_ACTIVITY",
+    "RING_HAS_BOOKINGS",
+    "ACTIVITY_FULL",
+    "REGISTRATION_CLOSED",
+    "ALREADY_REGISTERED",
+    "ACTIVITY_NOT_PUBLISHED",
+    "ACTIVITY_INCOMPLETE",
+    "ACTIVITY_IN_PAST",
+    "ACTIVITY_HAS_REGISTRATIONS",
+    "REGISTRATION_NOT_CANCELLABLE",
+    "CAPACITY_BELOW_REGISTRATIONS",
+    "DUPLICATE_SLUG",
+    "SLUG_LOCKED",
+    "TOO_MANY_DOCUMENTS",
+    "ALREADY_BOOKED",
+    "ALREADY_ON_WAITLIST",
+    "CLASS_NOT_FULL",
+    "WAITLIST_FULL",
+    "WAITLIST_NOT_NOTIFIED",
+    "WAITLIST_OFFER_EXPIRED",
+    "WAITLIST_ENTRY_NOT_LIVE",
+    "SWAP_NOT_ALLOWED",
+    "BOOKING_NOT_CANCELLABLE",
+    "WEEKLY_LIMIT_DONE",
+    "SLOT_NOT_ON_GRID",
+    "DOG_ALREADY_BOOKED",
+    "CLASS_CONFLICT",
+    "TRAINING_CANCEL_TOO_LATE",
+    "OVERRIDE_NOT_ALLOWED",
+    "ATTENDANCE_NOT_OPEN",
+    "ATTENDANCE_WINDOW_CLOSED",
+    "ATTENDANCE_NOTIFIED_FINAL",
+    "ATTENDANCE_BOOKING_NOT_ACTIVE",
+    "INSTRUCTOR_NOTICE_DISABLED",
+    "TASK_ALREADY_DONE",
+    "TASK_NOT_DONE",
+    "ATTACHMENT_LIMIT_REACHED",
+    "ATTACHMENT_ENTITY_MISMATCH",
+    "CHANNEL_NOT_ALLOWED",
+    "INVALID_REMINDER_OPTION",
+    "NO_RECIPIENTS",
+    "PUSH_SUBSCRIPTION_INVALID",
+    "TEMPLATE_MANDATORY",
+    "TEMPLATE_NOT_CATALOG",
+    "TEMPLATE_NOT_CUSTOM",
+    "TEMPLATE_NOT_SENDABLE",
+    "UNSUBSCRIBE_TOKEN_INVALID",
+    "NO_INVOICES",
+    "SEPA_NOT_CONFIGURED",
+    "NO_PAYMENT_METHOD",
+    "REFUND_EXCEEDS_PAID",
+    "AMOUNT_EXCEEDS_DUE",
+    "PLAN_NOT_PACK",
+    "PACK_NEGATIVE",
+    "INACTIVITY_DEADLINE_PASSED",
+    "INACTIVITY_INVALID_RANGE",
+    "INACTIVITY_INVALID_STATE",
+    "INACTIVITY_OVERLAP",
+    "LEAVE_ALREADY_REQUESTED",
+    "LEAVE_ALREADY_SCHEDULED",
+    "LEAVE_DATE_INVALID",
+    "LEAVE_INVALID_STATE",
+    "LEAVE_REASON_UNKNOWN",
+    "MEMBER_NOT_LEFT",
+    "NO_PLANNED_LEAVE",
+    "DATA_EXPORT_TOO_SOON",
+    "ERASURE_ALREADY_REQUESTED",
+    "EXPORT_EXPIRED",
+    "EXPORT_LIMIT",
+    "EXPORT_TOO_LARGE",
+    "MEMBER_ERASED",
+    "JOB_UNKNOWN",
+    "NOT_DUE",
+    "COURSE_IN_USE",
+    "RING_GEOMETRY_IN_USE",
+    "RING_WITHOUT_GEOMETRY",
+    "PLACEMENT_RING_MISMATCH",
+    "SETUP_SOURCE_REQUIRED",
+    "BUILD_SESSION_FINISHED",
+    "INVENTORY_INVALID",
+    "SLUG_TAKEN",
+    "HOST_ALREADY_USED",
+    "PROVIDER_IN_USE",
+    "CATALOG_NOT_EMPTY",
+    "SECRET_IN_FILE",
+    "PRODUCTION_REQUIRES_CONFIRMATION",
+    "CLUB_NOT_EMPTY",
+    "IDEMPOTENCY_KEY_REUSED"]
+but the following elements were unexpected:
+  ["FORBIDDEN", "UNAUTHENTICATED"]
+
+[ERROR] Tests run: 22, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

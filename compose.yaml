@@ -5,7 +5,7 @@ services:
     environment:
       MONGODB_REPLICA_SET: ${MONGODB_REPLICA_SET:-rs0}
     ports:
-      - "127.0.0.1:${MONGODB_PORT:-27017}:27017"
+      - "127.0.0.1:${MONGO_PORT:-${MONGODB_PORT:-27017}}:27017"
     volumes:
       - mongo-data:/data/db
       - ./docker/mongo-healthcheck.js:/opt/mongo-healthcheck.js:ro

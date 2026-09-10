@@ -24,6 +24,42 @@ class ApiExceptionHandlerTest {
 
     ApiExceptionHandlerTest() throws java.io.IOException { }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(delimiter = '|', textBlock = """
+        ca | S'ha produït un error inesperat.
+        es | Se ha producido un error inesperado.
+        en | An unexpected error occurred.
+        """)
+    void E3_T06_INC02_unhandledFailureLogsOneFullExceptionWithTheResponseTrace(String locale, String prefix) throws Exception {
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            var response = mvc.perform(get("/unexpected").header("Accept-Language", locale))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                    .andExpect(jsonPath("$.details").isEmpty()).andReturn().getResponse();
+            var body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(response.getContentAsString());
+            String traceId = body.path("traceId").asText();
+            assertThat(traceId).isNotBlank();
+            assertThat(body.path("message").asText()).startsWith(prefix).contains(traceId).doesNotContain("{traceId}");
+            assertThat(response.getContentAsString()).doesNotContain("IllegalStateException", "fictional failure", "cause");
+            assertThat(appender.list).filteredOn(event -> event.getLevel() == ch.qos.logback.classic.Level.ERROR)
+                    .singleElement().satisfies(event -> {
+                        assertThat(event.getFormattedMessage()).contains("traceId=" + traceId);
+                        assertThat(event.getThrowableProxy().getClassName()).isEqualTo(IllegalStateException.class.getName());
+                        assertThat(event.getThrowableProxy().getStackTraceElementProxyArray()).isNotEmpty();
+                        assertThat(event.getThrowableProxy().getCause().getMessage()).isEqualTo("fictional cause");
+                    });
+            appender.list.clear();
+            mvc.perform(get("/business")).andExpect(status().isConflict());
+            mvc.perform(get("/denied")).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("FORBIDDEN"));
+            mvc.perform(get("/stub")).andExpect(status().isNotImplemented());
+            assertThat(appender.list).noneMatch(event -> event.getLevel() == ch.qos.logback.classic.Level.ERROR);
+        } finally { logger.detachAppender(appender); appender.stop(); }
+    }
+
     @Test void E0_T04_businessErrorsResolveMessagesAndPreserveDetails() throws Exception {
         mvc.perform(get("/business").header("Accept-Language", "en"))
                 .andExpect(status().isConflict())
@@ -66,6 +102,11 @@ class ApiExceptionHandlerTest {
     }
 
     @RestController static class TestController {
+        @GetMapping("/unexpected") void unexpected() {
+            throw new IllegalStateException("fictional failure", new IllegalArgumentException("fictional cause"));
+        }
+        @GetMapping("/denied") void denied() { throw new org.springframework.security.access.AccessDeniedException("denied"); }
+        @GetMapping("/stub") void stub() { throw new UnsupportedOperationException(); }
         @GetMapping("/business") void business() {
             throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, Map.of("limit", 2));
         }

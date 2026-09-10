@@ -1,0 +1,58 @@
+NAME             IMAGE        COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+e3-t06-api-1     e3-t06-api   "java -jar /app/app.…"   api       44 seconds ago   Up 32 seconds (healthy)   127.0.0.1:18080->18080/tcp
+e3-t06-mongo-1   mongo:7      "docker-entrypoint.s…"   mongo     44 seconds ago   Up 43 seconds (healthy)   127.0.0.1:27018->27017/tcp
+HTTP/1.1 200
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 10 Sep 2026 05:15:32 GMT
+
+{"status":"UP","version":"0.1.0-SNAPSHOT","builtAt":"2026-09-10T05:13:55.171Z"}HTTP/1.1 200
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 10 Sep 2026 05:15:32 GMT
+
+{"status":"UP","version":"0.1.0-SNAPSHOT","builtAt":"2026-09-10T05:13:55.171Z"}HTTP/1.1 404
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Type: application/json
+Content-Length: 141
+Date: Thu, 10 Sep 2026 05:15:32 GMT
+
+{"code":"UNKNOWN_HOST","message":"No hi ha cap club associat a aquest domini.","details":{},"traceId":"b8e2c3b0-362f-43fb-b5cc-2547805d606a"}{
+  collections: 35,
+  documents: 0
+}
+/e3-t06-api-1 healthy ["CMD-SHELL","curl -fsS \"http://localhost:${SERVER_PORT:-8080}/api/v1/health\" || exit 1"]
+127.0.0.1:27017
+127.0.0.1:27018

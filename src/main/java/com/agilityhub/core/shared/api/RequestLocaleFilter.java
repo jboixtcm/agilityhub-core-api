@@ -13,6 +13,10 @@ public final class RequestLocaleFilter extends OncePerRequestFilter {
     private final RequestLocaleResolver locales;
     public RequestLocaleFilter(RequestLocaleResolver locales) { this.locales = locales; }
 
+    @Override protected boolean shouldNotFilter(HttpServletRequest request) {
+        return HealthRequests.matches(request);
+    }
+
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         var locale = locales.resolveLocale(request);

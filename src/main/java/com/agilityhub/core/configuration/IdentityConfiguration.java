@@ -57,6 +57,16 @@ public class IdentityConfiguration {
         var token = new OAuth2TokenEndpointFilter(new ProviderManager(new PasswordGrantProvider(tokens, clients, handoffs, oidc)));
         token.setAuthenticationConverter(new PasswordGrantConverter(cookies));
         var standardResponse = new org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AccessTokenResponseAuthenticationSuccessHandler();
+        standardResponse.setAccessTokenResponseCustomizer(context -> {
+            var builder = context.getAccessTokenResponse();
+            var issued = builder.build();
+            if (issued.getAccessToken().getScopes().isEmpty()) {
+                // The standard converter omits empty scopes; our published contract requires the field.
+                var additional = new java.util.LinkedHashMap<>(issued.getAdditionalParameters());
+                additional.put("scope", "");
+                builder.additionalParameters(additional);
+            }
+        });
         token.setAuthenticationSuccessHandler((request, response, authentication) -> {
             var issued = (org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken) authentication;
             if (com.agilityhub.core.identity.application.TokenDelivery.cookie(issued.getRegisteredClient()) && issued.getRefreshToken() != null) {

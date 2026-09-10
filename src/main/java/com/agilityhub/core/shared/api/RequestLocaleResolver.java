@@ -22,6 +22,7 @@ public final class RequestLocaleResolver implements LocaleResolver {
     }
 
     @Override public Locale resolveLocale(HttpServletRequest request) {
+        if (HealthRequests.matches(request)) { return LocaleContext.DEFAULT; }
         if (request.getAttribute(ATTRIBUTE) instanceof Locale locale) { return locale; }
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         String clubId = TenantContext.current();

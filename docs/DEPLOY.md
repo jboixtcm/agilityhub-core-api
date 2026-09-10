@@ -24,7 +24,7 @@ cp .env.consumer.example .env.consumer
 chmod 600 .env.consumer
 # Edit .env.consumer: set a local SEED_PASSWORD of at least 12 characters.
 bin/consumer-up
-curl -fsS http://127.0.0.1:8080/api/v1/health
+curl -4 -fsS http://127.0.0.1:8080/api/v1/health
 docker compose --env-file .env.consumer -f docker-compose.consumer.yml ps -a
 ```
 
@@ -52,8 +52,11 @@ Account examples: `admin@example.test`, `instructor@example.test`,
 `SEED_PASSWORD`; repeated applies preserve existing credentials. To change this
 local password for existing fixtures, reset the disposable volumes and reseed.
 
-Only `127.0.0.1:8080` is published (`CONSUMER_PORT` overrides it). Mongo and the
-management listener stay private. Mongo data and `MAIL_LOCAL_DIRECTORY=/app/mailbox`
+The API is published at `127.0.0.1:8080` (`CONSUMER_PORT` overrides it), and
+Mongo at `127.0.0.1:27017` (`MONGO_PORT` overrides it). The management listener
+stays private. Use `MONGO_PORT=27018 bin/consumer-up` alongside a local Mongo;
+containers still connect to `mongo:27017`. For the Mac gate, use `127.0.0.1`
+or `curl -4`: `localhost` can reach an unrelated native IPv6 listener. Mongo data and `MAIL_LOCAL_DIRECTORY=/app/mailbox`
 use named volumes. The mailbox is owned by the image's non-root user with private
 permissions; messages go to the local sink. Copy it locally when inspecting a
 fictional magic link:

@@ -16,7 +16,7 @@ Prerequisites: Docker with Compose v2.20+ and `curl`. From the repository root:
 ```sh
 cp .env.example .env
 docker compose up -d --wait
-curl -fsS localhost:8080/api/v1/health
+curl -4 -fsS http://127.0.0.1:8080/api/v1/health
 docker compose exec mongo mongosh --quiet --eval 'rs.status().myState'
 docker compose ps
 ```
@@ -32,11 +32,18 @@ MongoDB; the separate Mongo healthcheck checks PRIMARY readiness.
 Compose reads `.env` automatically; all development values have defaults in
 `compose.yaml`, so the file is optional. `.env.example` documents the variables.
 Compose fixes the profile to `local` and the database host/port to `mongo:27017`;
-`SERVER_PORT`, `MONGODB_PORT` (published host port), `MONGODB_DATABASE`, and
+`SERVER_PORT`, `MONGO_PORT` (published Mongo host port), `MONGODB_DATABASE`, and
 `MONGODB_REPLICA_SET` are configurable. Adjust the curl port if needed. The
 unauthenticated development services are published only on `127.0.0.1`.
 Credentials, `.env`, and unrelated workspace files are excluded from the
 Docker build context.
+
+If a local Mongo already uses port 27017, start the stack with
+`MONGO_PORT=27018 docker compose up -d --wait`. Containers still connect to
+`mongo:27017`; host-run Java uses `MONGODB_PORT=27018`. For compatibility,
+Compose falls back to `MONGODB_PORT` when `MONGO_PORT` is unset.
+Use `127.0.0.1` or `curl -4` for the Mac gate: `localhost` can reach a separate
+native IPv6 listener on `[::1]:8080` while Docker publishes IPv4 only.
 
 `docker compose down` stops the stack and preserves the named `mongo-data`
 volume. Run `docker compose up -d --build --wait` after source changes. Keep the

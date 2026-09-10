@@ -18,6 +18,8 @@ class ErrorCatalogContractTest {
             var status = Pattern.compile("^\\| (\\d{3}) \\|").matcher(row);
             Integer expectedStatus = status.find() ? Integer.valueOf(status.group(1)) : null;
             while (matcher.find()) {
+                // The generic-500 row also documents the ERROR logging level, which is not a code.
+                if (matcher.group(1).equals("ERROR") && Integer.valueOf(500).equals(expectedStatus)) { continue; }
                 codes.add(matcher.group(1));
                 if (expectedStatus != null) {
                     assertThat(ErrorCode.valueOf(matcher.group(1)).httpStatus()).isEqualTo(expectedStatus);

@@ -21,6 +21,9 @@ public final class AccountStateFilter extends OncePerRequestFilter {
     public AccountStateFilter(AccountAccess accounts, ApiExceptionHandler errors, ObjectMapper mapper) {
         this.accounts = accounts; this.errors = errors; this.mapper = mapper;
     }
+    @Override protected boolean shouldNotFilter(HttpServletRequest request) {
+        return HealthRequests.matches(request);
+    }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         var authentication = SecurityContextHolder.getContext().getAuthentication();

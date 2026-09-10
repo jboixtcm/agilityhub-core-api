@@ -2,10 +2,12 @@ package com.agilityhub.core.shared.api;
 
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
+import com.agilityhub.core.shared.application.IcuMessageSource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
-import org.springframework.context.MessageSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -16,17 +18,30 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
-    private final MessageSource messages;
+    private static final Logger LOG = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private final IcuMessageSource messages;
     private final RequestLocaleResolver locales;
 
-    public ApiExceptionHandler(MessageSource messages, RequestLocaleResolver locales) {
+    public ApiExceptionHandler(IcuMessageSource messages, RequestLocaleResolver locales) {
         this.messages = messages; this.locales = locales;
     }
 
     public ApiError body(ApiException exception, HttpServletRequest request) {
         String code = exception.code().name();
-        String message = messages.getMessage("error." + code, null, code, locales.resolveLocale(request));
-        return new ApiError(code, message, exception.details(), RequestTraceFilter.traceId(request));
+        String traceId = RequestTraceFilter.traceId(request);
+        String message = messages.format("error." + code, Map.of("traceId", traceId), locales.resolveLocale(request));
+        return new ApiError(code, message, exception.details(), traceId);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> unexpected(Exception exception, HttpServletRequest request) {
+        LOG.error("Unhandled request exception traceId={}", RequestTraceFilter.traceId(request), exception);
+        return handle(new ApiException(ErrorCode.INTERNAL_ERROR), request);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiError> forbidden(HttpServletRequest request) {
+        return handle(new ApiException(ErrorCode.FORBIDDEN), request);
     }
 
     @ExceptionHandler(ApiException.class)
