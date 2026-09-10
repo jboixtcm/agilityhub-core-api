@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E3-T03: Record the add-dog billing-choice contract gap and a proposed API
+  amendment. Implementation is blocked pending organizer alignment with B13.
+
 - E3-T06: Record fresh-stack health diagnostics and the local IPv4/IPv6 listener
   collision. Hardening remains blocked pending the organizer's generic HTTP 500
   error-contract decision; application behavior is unchanged.
