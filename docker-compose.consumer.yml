@@ -10,6 +10,7 @@ x-core-environment: &core-environment
   MONGODB_REPLICA_SET: rs0
   # Local-only ephemeral signing ring; never inherit deployment credentials.
   OIDC_MASTER_KEY: ""
+  SIGNUP_CAPABILITY_KEY: ${SIGNUP_CAPABILITY_KEY:-}
   AUTH_ISSUER: https://id.example.test
   OIDC_LOGIN_URL: https://id.example.test/login
   OIDC_ID_WEB_REDIRECT_URI: https://id.example.test/oidc/callback

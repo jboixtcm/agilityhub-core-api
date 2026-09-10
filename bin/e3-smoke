@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+"""Rehearse T-04-34/T-14-11 with curl and the real local Compose mailbox."""
+import argparse
+import base64
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.parse
+import uuid
+
+ROOT = Path(__file__).resolve().parents[1]
+LOCAL_IMAGE = "agilityhub-e3-smoke:local"
+PUBLISHED_IMAGE = "ghcr.io/jboixtcm/agilityhub-core-api:main"
+
+
+def require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+def port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def wait(action, message, timeout=60):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        value = action()
+        if value:
+            return value
+        time.sleep(0.5)
+    raise AssertionError(message)
+
+
+def fictional_pdf():
+    """Minimal valid single-page PDF; no external generator dependency."""
+    stream = b"BT /F1 12 Tf 40 750 Td (Fictional smoke document. Not a veterinary record.) Tj ET"
+    objects = [b"<< /Type /Catalog /Pages 2 0 R >>",
+               b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+               b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+               b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+               b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream"]
+    output = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for index, body in enumerate(objects, 1):
+        offsets.append(len(output))
+        output += f"{index} 0 obj\n".encode() + body + b"\nendobj\n"
+    start = len(output)
+    output += b"xref\n0 6\n0000000000 65535 f \n"
+    for offset in offsets:
+        output += f"{offset:010d} 00000 n \n".encode()
+    output += f"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{start}\n%%EOF\n".encode()
+    return bytes(output)
+
+
+class Smoke:
+    def __init__(self, private, image):
+        self.private = private
+        self.image = image
+        self.project = "e3-smoke-" + secrets.token_hex(6)
+        self.service = "core" if image else "api"
+        self.host = None
+        self.started = False
+        # Explicit allowlist: never inherit deployment credentials or delivery settings.
+        self.env = {key: os.environ[key] for key in (
+            "PATH", "HOME", "LANG", "TMPDIR", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG",
+            "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY") if key in os.environ}
+        api_port = str(port())
+        self.env.update(SERVER_PORT=api_port, CONSUMER_PORT=api_port, MONGO_PORT=str(port()),
+                        MONGODB_DATABASE="e3_smoke", CONSUMER_DATABASE="e3_smoke",
+                        CORE_IMAGE=image or LOCAL_IMAGE, SEED_PASSWORD=secrets.token_urlsafe(32),
+                        BUILDX_CONFIG=str(private / "buildx"))
+        self.base = "http://127.0.0.1:" + api_port
+        environment = dict(SPRING_PROFILES_ACTIVE="local", MAIL_LOCAL_DIRECTORY="/app/mailbox",
+                           ATTACHMENT_LOCAL_DIRECTORY="/app/attachments", EXPORT_LOCAL_DIRECTORY="/app/exports",
+                           AUTH_ISSUER="https://id.example.test", OIDC_LOGIN_URL="https://id.example.test/login", OIDC_MASTER_KEY="",
+                           SIGNUP_CAPABILITY_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
+                           SEED_PASSWORD=self.env["SEED_PASSWORD"], SHARED_SCHEDULING_ENABLED="true",
+                           LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off")
+        override = {"services": {self.service: {"environment": environment}}, "volumes": {"mailbox": {}}}
+        if not image:
+            override["services"][self.service].update(image=LOCAL_IMAGE, volumes=["mailbox:/app/mailbox"])
+        else:
+            override["services"]["seed"] = {"environment": environment}
+        path = private / "compose.override.json"
+        path.write_text(json.dumps(override))
+        source = "docker-compose.consumer.yml" if image else "compose.yaml"
+        self.compose_args = ["docker", "compose", "--env-file", os.devnull, "--project-name", self.project,
+                             "-f", str(ROOT / source), "-f", str(path)]
+
+    def command(self, args, timeout=180):
+        result = subprocess.run(args, cwd=ROOT, env=self.env, text=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, timeout=timeout)
+        if result.returncode:
+            classes = sorted(set(re.findall(r"Caused by: ([A-Za-z0-9_.$]+)", result.stdout)))
+            operation = next((part for part in args if part in ("build", "run", "up", "down", "exec", "cp")), "command")
+            raise AssertionError(f"{Path(args[0]).name} {operation} failed (exit {result.returncode}; "
+                                 f"exception classes: {', '.join(classes) or 'none'}; private output withheld)")
+        return result.stdout
+
+    def compose(self, *args, timeout=300):
+        return self.command([*self.compose_args, *args], timeout)
+
+    def mongo(self, script):
+        return json.loads(self.compose("exec", "-T", "mongo", "mongosh", "--quiet", "e3_smoke", "--eval",
+                                       "print(JSON.stringify(" + script + "))").strip().splitlines()[-1])
+
+    def cli(self, *args):
+        service = "seed" if self.image else self.service
+        return self.compose("run", "--rm", "--no-deps", "-T", "--entrypoint", "java", service,
+                            "-jar", "/app/app.jar", "--core.command=" + args[0], *args[1:])
+
+    def call(self, method, path, expected=200, *, access=None, body=None, form=None, raw=None, mime=None,
+             key=None, quiet=False, error=None):
+        headers = ["User-Agent: AgilityHub-E3-Smoke"]
+        if self.host:
+            headers.append("Host: " + self.host)
+        if access:
+            headers.append("Authorization: Bearer " + access)
+        if key:
+            headers.append("Idempotency-Key: " + key)
+        args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "20",
+                "--request", method, "--output", str(self.private / "response"), "--write-out", "%{http_code}", "--config", "-"]
+        if body is not None or form is not None or raw is not None:
+            payload = self.private / "request"
+            if body is not None:
+                payload.write_text(json.dumps(body)); mime = "application/json"
+            elif form is not None:
+                payload.write_text(urllib.parse.urlencode(form)); mime = "application/x-www-form-urlencoded"
+            else:
+                payload.write_bytes(raw)
+            headers.append("Content-Type: " + mime)
+            args += ["--data-binary", "@" + str(payload)]
+        # Signed URLs, tokens and credentials stay in stdin/private files, never argv or output.
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.base + path)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.env, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed (exit {result.returncode})")
+        status = int(result.stdout)
+        data = (self.private / "response").read_text()
+        value = json.loads(data) if data else None
+        code = value.get("code", "") if isinstance(value, dict) else ""
+        require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {code}")
+        if error:
+            require(code == error, f"Expected {error}, got {code}")
+        if not quiet:
+            print(f"curl {method} {path.split('?')[0]} -> {status}" + (" " + error if error else ""), flush=True)
+        return value
+
+    def dashboard(self, admin, pending, active):
+        def updated():
+            value = self.call("GET", "/api/v1/dashboard", access=admin, quiet=True)
+            counters = self.call("GET", "/api/v1/dashboard/counters", access=admin, quiet=True)
+            return value if (value["pendingSignups"]["count"] == pending
+                             and value["kpis"]["pendingSignups"]["value"] == pending
+                             and value["kpis"]["activeMembers"]["value"] == active
+                             and counters["pendingSignups"] == pending) else None
+        result = wait(updated, "Dashboard/counters did not reflect committed signup state")
+        require(result["kpis"]["pendingSignups"]["olderThanWarn"] == 1, "Expected one overdue demo application")
+        print(f"PASS D1 dashboard + counters: pending={pending}, olderThanWarn=1, activeMembers={active}", flush=True)
+        return result
+
+    def mailbox(self, code, email, token=False):
+        def delivered():
+            criteria = dict(clubId=self.club_id, code=code, channel="EMAIL", recipientEmail=email, status="SENT")
+            ids = self.mongo("db.notifications.find(" + json.dumps(criteria) + ",{_id:1}).toArray().map(n=>n._id)")
+            if not ids:
+                return None
+            directory = self.private / "mailbox"
+            directory.mkdir(exist_ok=True)
+            self.command(["docker", "cp", self.container + ":/app/mailbox/.", str(directory)])
+            for path in directory.glob("local-*.json"):
+                item = json.loads(path.read_text())
+                if item["to"] != email or item["tags"].get("notificationId") not in ids:
+                    continue
+                match = re.search(r"[?]t=([A-Za-z0-9_-]{43})", item["text"])
+                if token and not match:
+                    continue
+                require(item["locale"] == "ca", "Applicant mail locale mismatch")
+                return (item, match[1] if match else None)
+            return None
+        value = wait(delivered, code + " did not reach the local mailbox")
+        print(f"PASS mailbox {code} correlated by notificationId; locale=ca" + ("; token=[truncated]" if token else ""), flush=True)
+        return value
+
+    def app_notification(self, code, account, entity):
+        criteria = dict(clubId=self.club_id, accountId=account, code=code, channel="APP", status="SENT",
+                        **{"variables.entityId": entity})
+        wait(lambda: self.mongo("db.notifications.countDocuments(" + json.dumps(criteria) + ")") == 1,
+             code + " APP inbox content missing or duplicated")
+        print(f"PASS {code} in the member APP inbox, scoped to account and entity", flush=True)
+
+    def start(self):
+        self.command(["docker", "info", "--format", "{{.ServerVersion}}"])
+        self.started = True
+        print("Starting disposable " + ("consumer image" if self.image else "development build") + " Compose stack", flush=True)
+        self.compose("up", "-d", "--wait", "--wait-timeout", "180", "mongo")
+        if not self.image:
+            print("Building the current working tree image", flush=True)
+            self.compose("build", self.service, timeout=900)
+            print("PASS working tree image built", flush=True)
+        require(self.mongo("db.clubs.countDocuments()") == 0, "Smoke database must be empty")
+        for command in (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42")):
+            for attempt in (1, 2):
+                output = self.cli(*command)
+                if attempt == 2:
+                    require("0 changes (" in output, "Seed reapply was not idempotent")
+                print(f"PASS {' '.join(command)} run {attempt}" + (": 0 changes" if attempt == 2 else ""), flush=True)
+        # Activation is fixture setup on this named disposable database only.
+        self.mongo('db.clubs.updateOne({slug:"canic"},{$set:{status:"ACTIVE"}}).modifiedCount')
+        club = self.mongo('db.clubs.findOne({slug:"canic"},{domains:1})')
+        self.club_id = club["_id"]
+        self.host = next(d["host"] for d in club["domains"] if d["app"] == "clubs")
+        self.compose("up", "-d", "--no-deps", "--wait", "--wait-timeout", "180", self.service)
+        self.container = self.compose("ps", "-q", self.service).strip()
+        require(self.call("GET", "/api/v1/health")["status"] == "UP", "Health must be UP")
+        print("PASS private local mailbox and attachment volumes ready; fixture club activated", flush=True)
+
+    def scenario(self):
+        config = self.call("GET", "/api/v1/signup")
+        require(config["enabled"] and config["steps"] == ["PERSON", "DOG", "FAMILY_GROUP", "PAYMENT"], "Signup steps mismatch")
+        require({m["type"] for m in config["paymentMethods"]} == {"SEPA_DD", "MANUAL"}, "Seed payment methods mismatch")
+        chosen = next(p for p in config["plans"] if p.get("billingMode") == "MONTHLY_FEE" and p.get("price"))
+        admin = self.call("POST", "/oauth2/token", form=dict(grant_type="password", client_id="clubs-admin",
+                          username="admin@example.test", password=self.env["SEED_PASSWORD"]))["access_token"]
+        dashboard = self.dashboard(admin, 3, 184)
+        require(dashboard["dogsByLevel"]["totalActiveDogs"] == 242, "Seed active dog total mismatch")
+        require(dashboard["kpis"]["classOccupancy"] == dict(percent=None, booked=0, capacity=0, waitingTotal=0)
+                and dashboard["kpis"]["trainingBookings"] == dict(value=0, distinctMembers=0), "Future verticals must stay empty")
+        require("ACCOUNT_NOT_PROVIDED" in dashboard["pendingSignups"]["items"][0]["warnings"], "Overdue demo warning missing")
+        for row in dashboard["pendingSignups"]["items"]:
+            review = self.call("GET", f"/api/v1/members/{row['memberId']}/signup", access=admin)
+            require(len(review["dogs"]) == 1 and review["signup"]["pendingDays"] == row["pendingDays"], "Demo row is not reviewable")
+        print("PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups", flush=True)
+        holder = self.mongo('(()=>{const g=db.family_groups.findOne({clubId:' + json.dumps(self.club_id) + '});'
+                            'const m=db.members.findOne({_id:g.holderMemberId});const d=db.dogs.findOne({memberId:m._id,status:"ACTIVE"});'
+                            'return {name:m.firstName+" "+m.lastName1,dog:d.name,groupId:g._id};})()')
+        family = self.call("POST", "/api/v1/signup/family-group-lookups", body=dict(holderName=holder["name"], dogName=holder["dog"]))
+        require(family["result"] == "FOUND", "Seeded family holder was not found")
+        legal = dict(privacyPolicy=dict(accepted=True, version=config["legal"]["legalTextsVersion"]),
+                     imageUse=dict(granted=True, version=config["legal"]["legalTextsVersion"]))
+
+        def application(index, family=False):
+            number = 12345678 + index
+            document = str(number) + "TRWAGMYFPDXBNJZSQVHLCKE"[number % 23]
+            result = dict(locale="ca", website="", planId=chosen["id"], consents=legal,
+                          person=dict(firstName="Example", lastName1="Applicant " + str(index), birthDate="1990-01-01", gender="FEMALE",
+                                      idDocument=dict(type="DNI", value=document), emails=[f"e3.applicant.{index}@example.test"],
+                                      phones=[dict(prefix="+34", number="600000001")],
+                                      address=dict(street="1 Example Street", postalCode="99999", town="Example Town")),
+                          dog=dict(name="Example Dog " + str(index), sex="FEMALE", breed="Fictional mixed breed", birthMonth="2024-04",
+                                   chip=str(941000000000901 + index)), payment=dict(type="SEPA_DD", firstMonthOption="TODAY"))
+            if family:
+                result["familyGroupClaim"] = dict(holderName=holder["name"], dogName=holder["dog"], leavePending=False)
+            return result
+
+        request = application(0, family=True)
+        identity = self.call("POST", "/api/v1/signup/identity-checks", body=dict(idDocument=request["person"]["idDocument"], emails=request["person"]["emails"]))
+        require(identity["result"] == "NEW", "Expected a new identity")
+        pdf = fictional_pdf()
+        upload = self.call("POST", "/api/v1/signup/upload-urls", body=dict(fileName="fictional.pdf", contentType="application/pdf", sizeBytes=len(pdf)))
+        require(upload["uploadUrl"].startswith("/api/v1/signup/uploads?"), "Expected a local signed upload")
+        self.call("PUT", upload["uploadUrl"], 204, raw=pdf, mime="application/pdf")
+        request["dog"]["documents"] = [dict(type="VACCINATION_CARD", files=[dict(fileKey=upload["fileKey"], name="fictional.pdf")])]
+        key = str(uuid.uuid4())
+        submitted = self.call("POST", "/api/v1/signup", 201, body=request, key=key)
+        require(self.call("POST", "/api/v1/signup", 201, body=request, key=key) == submitted, "Signup replay changed the response")
+        member_id = submitted["memberId"]
+        dashboard = self.dashboard(admin, 4, 184)
+        require(any(row["memberId"] == member_id for row in dashboard["pendingSignups"]["items"]), "Submitted member missing from D1")
+        review = self.call("GET", f"/api/v1/members/{member_id}/signup", access=admin)
+        require("ACCOUNT_NOT_PROVIDED" in review["warnings"] and review["familyGroupClaim"]["status"] == "FOUND", "D2 warning/claim mismatch")
+        require(any(doc["state"] == "RECEIVED" for doc in review["dogs"][0]["documents"]), "Uploaded PDF was not claimed")
+        self.mailbox("N-01", request["person"]["emails"][0])
+        validation = dict(version=review["version"], dogs=[dict(dogId=d["id"], levelId=review["proposals"]["levels"][0]["id"]) for d in review["dogs"]],
+                          nextInvoiceDate=review["proposals"]["nextInvoiceDate"], upfrontAmountPaid=review["upfront"]["totalDue"])
+        state_query = "(()=>{const id=" + json.dumps(member_id) + ";return {member:db.members.findOne({_id:id}),dogs:db.dogs.find({memberId:id}).sort({_id:1}).toArray(),payments:db.upfront_payments.find({memberId:id}).sort({_id:1}).toArray()};})()"
+        before_dry_run = self.mongo(state_query)
+        dry = self.call("POST", f"/api/v1/members/{member_id}/validation?dryRun=true", access=admin, body=validation)
+        require(self.mongo(state_query) == before_dry_run and dry["nextInvoiceDate"] == validation["nextInvoiceDate"]
+                and dry["upfront"]["totalDue"] == review["upfront"]["totalDue"], "Dry run changed state or quote")
+        highest = self.mongo('db.members.find({clubId:' + json.dumps(self.club_id) + ',memberNumber:{$ne:null}},{memberNumber:1}).sort({memberNumber:-1}).limit(1).toArray()[0].memberNumber')
+        validated = self.call("POST", f"/api/v1/members/{member_id}/validation", access=admin, body=validation)
+        require(validated["number"] == highest + 1, "Member number did not increment")
+        stored = self.mongo("db.members.findOne({_id:" + json.dumps(member_id) + "},{familyGroupId:1,nextInvoiceDate:1,status:1})")
+        require(stored["familyGroupId"] == holder["groupId"] and stored["status"] == "ACTIVE", "Family validation was not persisted")
+        require(stored["nextInvoiceDate"] == validation["nextInvoiceDate"], "Next invoice date was not persisted")
+        self.dashboard(admin, 3, 185)
+        require(self.mongo("db.dogs.countDocuments(" + json.dumps(dict(memberId=member_id, status="ACTIVE",
+                     levelId=validation["dogs"][0]["levelId"])) + ")") == 1, "Validated level was not persisted")
+        allocation = self.mongo("(()=>{const lines=db.upfront_payments.find({memberId:" + json.dumps(member_id) + ",status:{$nin:['CANCELLED','REFUNDED']}}).toArray();"
+                                "return {paid:lines.reduce((n,p)=>n+Number(p.amountPaid.amountMinor),0),due:lines.reduce((n,p)=>n+Number(p.amountDue.amountMinor)-Number(p.amountPaid.amountMinor),0)};})()")
+        require(allocation == dict(paid=validation["upfrontAmountPaid"]["amountMinor"], due=0), "Upfront payment allocation mismatch")
+        _, token = self.mailbox("N-02", request["person"]["emails"][0], token=True)
+        access = self.call("POST", "/oauth2/token", form=dict(grant_type="urn:agilityhub:grant:magic-link", client_id="clubs-app", token=token))["access_token"]
+        me = self.call("GET", "/api/v1/me", access=access)
+        require(me["account"]["id"] == validated["accountId"] and me["membership"]["memberId"] == member_id, "Welcome session is not the validated member")
+        print("PASS public family signup -> dry run -> validation/number increment -> N-02 -> welcome session", flush=True)
+
+        dog = dict(request["dog"], name="Additional Example Dog", chip="941000000000950")
+        dog.pop("documents", None)
+        added = self.call("POST", "/api/v1/me/dogs/signup", 201, access=access, key=str(uuid.uuid4()), body=dict(dog=dog, documents=[]))
+        self.app_notification("N-01", validated["accountId"], member_id)
+        dashboard = self.dashboard(admin, 4, 185)
+        row = next(row for row in dashboard["pendingSignups"]["items"] if row["memberId"] == member_id)
+        require(row["dogs"][0]["isAddDog"], "D1 add-dog flag missing")
+        review = self.call("GET", f"/api/v1/members/{member_id}/signup", access=admin)
+        more = self.call("POST", f"/api/v1/members/{member_id}/validation", access=admin,
+                         body=dict(version=review["version"], dogs=[dict(dogId=added["dogId"], levelId=review["proposals"]["levels"][0]["id"])],
+                                   upfrontAmountPaid=review["upfront"]["totalDue"]))
+        require(more["number"] == validated["number"] and more["accountId"] == validated["accountId"], "Add-dog changed member identity")
+        self.app_notification("N-37", validated["accountId"], added["dogId"])
+        self.dashboard(admin, 3, 185)
+
+        second = application(1)
+        rejected = self.call("POST", "/api/v1/signup", 201, key=str(uuid.uuid4()), body=second)
+        second_id = rejected["memberId"]
+        self.dashboard(admin, 4, 185)
+        review = self.call("GET", f"/api/v1/members/{second_id}/signup", access=admin)
+        require(review["familyGroupClaim"]["status"] == "NONE", "No-family path created a claim")
+        result = self.call("POST", f"/api/v1/members/{second_id}/rejection", access=admin,
+                           body=dict(version=review["version"], reason="Fictional gate rejection"))
+        require(result["status"] == "LEFT", "Rejected member status mismatch")
+        require(self.mongo("db.dogs.countDocuments(" + json.dumps(dict(memberId=second_id, status="INACTIVE")) + ")") == 1,
+                "Rejected dog was not deactivated")
+        require(self.mongo("db.upfront_payments.countDocuments(" + json.dumps(dict(memberId=second_id, status={"$ne": "CANCELLED"})) + ")") == 0,
+                "Unpaid rejected charges were not cancelled")
+        self.mailbox("N-03", second["person"]["emails"][0])
+        self.dashboard(admin, 3, 185)
+        print("PASS signup without family -> rejection -> N-03; D1 counters restored", flush=True)
+        parameter = self.call("GET", "/api/v1/parameters/signup.enabled", access=admin)
+        self.call("PUT", "/api/v1/parameters/signup.enabled", access=admin,
+                  body=dict(value=False, version=parameter["version"], reason="Fictional E3 gate closure"))
+        wait(lambda: not self.call("GET", "/api/v1/signup", quiet=True)["enabled"], "Public signup cache did not close")
+        self.call("POST", "/api/v1/signup", 422, key=str(uuid.uuid4()), body=application(2), error="SIGNUP_CLOSED")
+        print("PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED", flush=True)
+        print("PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld", flush=True)
+
+    def cleanup(self):
+        if self.started:
+            self.compose("down", "--volumes", "--remove-orphans", "--timeout", "15")
+            print("Removed disposable Compose services, volumes and private mailbox; existing stacks preserved", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--image", nargs="?", const=PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e3-") as directory:
+        smoke = Smoke(Path(directory), options.image)
+        try:
+            smoke.start()
+            smoke.scenario()
+        finally:
+            smoke.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__), file=sys.stderr)
+        sys.exit(1)

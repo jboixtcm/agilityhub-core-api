@@ -11,7 +11,8 @@ public final class DemoDataset {
     public record Spec(int activeMembers, int pendingMembers, int inactiveMembers, int leftMembers,
             Map<String, Integer> levelDogs, List<String> firstNames, String surnamePrefix, List<String> dogNames,
             List<String> accountEmails, List<String> planCodes, String familyPlanCode, int familyGroups,
-            List<Integer> instructors, List<Integer> administrators, int receivedDocuments, LocalDate referenceDate) {
+            List<Integer> instructors, List<Integer> administrators, int receivedDocuments, LocalDate referenceDate,
+            List<PendingSignup> pendingSignups) {
         public Spec {
             if (activeMembers < 5 || activeMembers > 1000 || pendingMembers < 0 || inactiveMembers < 0 || leftMembers < 0
                     || pendingMembers + inactiveMembers + leftMembers > 1000 || levelDogs == null || levelDogs.isEmpty()
@@ -24,13 +25,23 @@ public final class DemoDataset {
                     || new HashSet<>(accountEmails).size() != accountEmails.size()
                     || familyGroups < 0 || familyGroups * 2 > activeMembers || receivedDocuments < 0
                     || receivedDocuments > levelDogs.values().stream().mapToInt(Integer::intValue).sum()
-                    || instructors == null || administrators == null || referenceDate == null) { throw new IllegalArgumentException("Invalid demo seed specification"); }
+                    || instructors == null || administrators == null || referenceDate == null
+                    || pendingSignups == null || pendingSignups.size() != pendingMembers) { throw new IllegalArgumentException("Invalid demo seed specification"); }
             for (var team : List.of(instructors, administrators)) {
                 if (new HashSet<>(team).size() != team.size() || team.stream().anyMatch(i -> i < 0 || i >= activeMembers)) {
                     throw new IllegalArgumentException("Invalid demo team member ordinal");
                 }
             }
             levelDogs = Collections.unmodifiableMap(new LinkedHashMap<>(levelDogs));
+            pendingSignups = List.copyOf(pendingSignups);
+        }
+    }
+    public record PendingSignup(String planCode, int daysAgo, boolean accountProvided, String dogName, String chip) {
+        public PendingSignup {
+            if (planCode == null || planCode.isBlank() || daysAgo < 0 || daysAgo > 365
+                    || dogName == null || dogName.isBlank() || chip == null || !chip.matches("[0-9]{15}")) {
+                throw new IllegalArgumentException("Invalid fictional pending signup");
+            }
         }
     }
     public record MemberRow(String id, int number, String firstName, String surname, String email, String status, String planCode, String iban) { }

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E3-T05: Add the one-command Compose signup/dashboard gate (`bin/e3-smoke`,
+  including image mode), reviewable fictional pending signup fixtures with
+  one overdue missing-account warning, and the E3 deployment/browser checklist.
+
 - E3-T04: Serve the admin dashboard and menu counters from tenant-scoped census
   aggregations with club-local calendar boundaries, cached locale variants and
   outbox invalidation. Add shared dog activity and replaceable scheduling,

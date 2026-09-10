@@ -1,4 +1,4 @@
-# E2-T11: deterministic fictional census. D1 active totals and D3 distribution.
+# E2/E3: fictional census, reviewable D1/D2 signups and D3 active distribution.
 # Remaining dashboard booking/occupancy data is owned by the scheduling/training tasks.
 activeMembers: 184
 pendingMembers: 3
@@ -17,3 +17,9 @@ instructors: [2, 3, 4]
 administrators: [0, 1]
 receivedDocuments: 6
 referenceDate: '2026-09-01'
+# Ages are club-local days before the first demo apply; reapply preserves edits/ages.
+# With dashboard.pendingSignups.warnDays=2, only the third row is overdue.
+pendingSignups:
+  - {planCode: ABONAT, daysAgo: 0, accountProvided: true, dogName: Demo Bruc, chip: '941000000000801'}
+  - {planCode: ABONAT, daysAgo: 1, accountProvided: true, dogName: Demo Lluna, chip: '941000000000802'}
+  - {planCode: ABONAT, daysAgo: 3, accountProvided: false, dogName: Demo Neu, chip: '941000000000803'}

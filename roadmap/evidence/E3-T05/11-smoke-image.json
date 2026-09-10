@@ -1,0 +1,4 @@
+{
+  "command": "bin/e3-smoke --image agilityhub-e3-smoke:local",
+  "exitCode": 0
+}

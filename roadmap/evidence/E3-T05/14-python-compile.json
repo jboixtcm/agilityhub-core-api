@@ -1,0 +1,4 @@
+{
+  "command": "python3 -m py_compile bin/e3-smoke roadmap/evidence/E3-T05/capture.py roadmap/evidence/E3-T05/verification-summary.py",
+  "exitCode": 0
+}

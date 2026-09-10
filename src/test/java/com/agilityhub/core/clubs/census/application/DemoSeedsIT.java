@@ -38,7 +38,7 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @BeforeEach void clear() {
         for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "members", "dogs", "family_groups", "dog_documents",
                 "levels", "rings", "plans", "prices", "faq_entries", "instructors", "catalog_seed_references", "demo_seed_runs",
-                "club_pages", "domain_events", "audit_entries", "catalog_write_locks", "census_write_locks", "attachment_uploads")) { mongo.remove(new Query(), collection); }
+                "club_pages", "domain_events", "audit_entries", "catalog_write_locks", "census_write_locks", "attachment_uploads", "upfront_payments")) { mongo.remove(new Query(), collection); }
         hosts.invalidate(); clock.setInstant(java.time.Instant.parse("2026-09-09T10:00:00Z"));
     }
     ObjectNode seed() { return codec.read(Path.of("seeds/club-canic.yaml")); }
@@ -107,7 +107,8 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         assertThat(definitions.apply(seed(), false).changes()).isZero(); assertThat(snapshot()).isEqualTo(saved);
         try (var tenant = TenantContext.open(club)) {
             assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").is("ACTIVE")), "members")).isEqualTo(184);
-            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club)), "dogs")).isEqualTo(242);
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").is("ACTIVE")), "dogs")).isEqualTo(242);
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").is("PENDING")), "dogs")).isEqualTo(3);
             var doc = mongo.findOne(Query.query(Criteria.where("state").is("RECEIVED")), Document.class, "dog_documents");
             assertThat(doc).isNotNull();
             var rendered = documents.list(doc.getString("dogId")); assertThat(rendered).anyMatch(row -> row.get("state").equals("RECEIVED"));
@@ -158,7 +159,7 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Test void T_03_42_demoRejectsDeploymentProfilesBeforeWriting() throws Exception {
         for (String profile : List.of("prod", "staging", "local,prod", "test,staging", "unknown")) {
             var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profile.split(","));
-            var restricted = new DemoSeedService(null, null, null, null, null, null, null, mapper, environment, null, null, null);
+            var restricted = new DemoSeedService(null, null, null, null, null, null, null, mapper, environment, null, null, null, null);
             assertThatThrownBy(() -> restricted.apply(DemoFixtures.spec(mapper, true), 42)).isInstanceOfSatisfying(ApiException.class,
                     e -> assertThat(e.code()).isEqualTo(ErrorCode.FORBIDDEN));
         }
@@ -166,7 +167,7 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Test void T_03_42_smallFixtureUsesSameGeneratorAndExistingCensusIsProtected() throws Exception {
         String club = club(); var spec = DemoFixtures.spec(mapper, true);
         try (var tenant = TenantContext.open(club)) {
-            var result = demo.apply(spec, 42); assertThat(result.counts()).containsEntry("activeMembers", 8).containsEntry("dogs", 16);
+            var result = demo.apply(spec, 42); assertThat(result.counts()).containsEntry("activeMembers", 8).containsEntry("activeDogs", 16).containsEntry("pendingDogs", 3).containsEntry("dogs", 19);
             assertThat(demo.apply(spec, 42).changes()).isZero();
             mongo.remove(new Query(), "demo_seed_runs");
             assertThatThrownBy(() -> demo.apply(spec, 42)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.CLUB_NOT_EMPTY));
@@ -176,5 +177,44 @@ class DemoSeedsIT extends AbstractIntegrationTest {
             assertThatThrownBy(() -> command.run(new DefaultApplicationArguments(args))).isInstanceOf(IllegalArgumentException.class);
         }
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--club=missing"))).isInstanceOf(ApiException.class);
+    }
+    @Test void T_14_11_T_04_34_demoPendingRowsAreReviewableAndPreserveSubsequentEdits() throws Exception {
+        String club = club();
+        try (var tenant = TenantContext.open(club)) { demo.apply(DemoFixtures.spec(mapper, true), 42); }
+        var auth = jwt().jwt(j -> j.subject("seed-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN");
+        var dashboard = mapper.readTree(mvc.perform(get("/api/v1/dashboard").header("Host", "app.agilitycanic.cat").with(auth))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(dashboard.at("/pendingSignups/count").asInt()).isEqualTo(3);
+        assertThat(dashboard.at("/kpis/pendingSignups/olderThanWarn").asInt()).isEqualTo(1);
+        assertThat(dashboard.at("/pendingSignups/items/0/warnings").toString()).contains("ACCOUNT_NOT_PROVIDED");
+        assertThat(dashboard.at("/dogsByLevel/totalActiveDogs").asInt()).isEqualTo(16);
+        for (var row : dashboard.at("/pendingSignups/items")) {
+            String member = row.path("memberId").asText();
+            var review = mapper.readTree(mvc.perform(get("/api/v1/members/" + member + "/signup")
+                    .header("Host", "app.agilitycanic.cat").with(auth)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+            assertThat(review.at("/signup/source").asText()).isEqualTo("PUBLIC");
+            assertThat(review.at("/signup/pendingDays").asInt()).isEqualTo(row.path("pendingDays").asInt());
+            assertThat(review.at("/dogs").size()).isEqualTo(1);
+            assertThat(review.at("/upfront/totalDue/amountMinor").asLong()).isPositive();
+            assertThat(review.at("/proposals/nextInvoiceDate").asText()).isNotEmpty();
+            assertThat(review.at("/member/number").isNull() || review.at("/member/number").isMissingNode()).isTrue();
+            assertThat(mongo.findById(member, Document.class, "members").get("accountId")).isNull();
+        }
+        String member = dashboard.at("/pendingSignups/items/0/memberId").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(member)), Update.update("internalNotes", "Fictional reviewer edit"), "members");
+        var before = snapshot(); clock.advance(java.time.Duration.ofDays(1));
+        try (var tenant = TenantContext.open(club)) { assertThat(demo.apply(DemoFixtures.spec(mapper, true), 42).changes()).isZero(); }
+        assertThat(snapshot()).isEqualTo(before);
+        var review = mapper.readTree(mvc.perform(get("/api/v1/members/" + member + "/signup")
+                .header("Host", "app.agilitycanic.cat").with(auth)).andReturn().getResponse().getContentAsString());
+        var validation = mapper.createObjectNode().put("version", review.path("version").asLong())
+                .put("nextInvoiceDate", review.at("/proposals/nextInvoiceDate").asText());
+        validation.set("upfrontAmountPaid", review.at("/upfront/totalDue"));
+        validation.putArray("dogs").addObject().put("dogId", review.at("/dogs/0/id").asText())
+                .put("levelId", review.at("/proposals/levels/0/id").asText());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/members/" + member + "/validation")
+                .header("Host", "app.agilitycanic.cat").with(auth).contentType("application/json").content(mapper.writeValueAsBytes(validation)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.number").isNumber()).andExpect(jsonPath("$.accountId").isNotEmpty());
+        assertThat(mongo.findById(member, Document.class, "members").getString("status")).isEqualTo("ACTIVE");
     }
 }

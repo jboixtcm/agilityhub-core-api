@@ -41,9 +41,20 @@ class DemoDatasetTest {
         invalid.put("familyGroups", List.of(-1, 9)); invalid.put("receivedDocuments", List.of(-1, 1000));
         invalid.put("instructors", Arrays.asList(null, List.of(-1), List.of(8), List.of(1, 1)));
         invalid.put("administrators", Arrays.asList(null, List.of(8))); invalid.put("referenceDate", Arrays.asList((Object) null));
+        invalid.put("pendingSignups", Arrays.asList(null, List.of()));
         invalid.forEach((field, values) -> values.forEach(value -> {
             var input = base.deepCopy(); input.set(field, mapper.valueToTree(value));
             assertThatThrownBy(() -> mapper.convertValue(input, DemoDataset.Spec.class)).as(field + "=" + value).isInstanceOf(IllegalArgumentException.class);
+        }));
+    }
+    @Test void T_14_11_pendingSignupFixturesRejectInvalidFields() throws Exception {
+        var original = mapper.valueToTree(DemoFixtures.spec(mapper, true).pendingSignups().getFirst());
+        var invalid = new LinkedHashMap<String, List<Object>>();
+        invalid.put("planCode", Arrays.asList(null, "")); invalid.put("daysAgo", List.of(-1, 366));
+        invalid.put("dogName", Arrays.asList(null, "")); invalid.put("chip", Arrays.asList(null, "invalid"));
+        invalid.forEach((field, values) -> values.forEach(value -> {
+            ObjectNode input = original.deepCopy(); input.set(field, mapper.valueToTree(value));
+            assertThatThrownBy(() -> mapper.convertValue(input, DemoDataset.PendingSignup.class)).isInstanceOf(IllegalArgumentException.class);
         }));
     }
 }

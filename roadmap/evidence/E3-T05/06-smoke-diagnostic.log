@@ -1,0 +1,97 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+ Volume e3-smoke-5aaf4b521c78_attachment-files Creating 
+ Volume e3-smoke-5aaf4b521c78_attachment-files Creating 
+ Volume e3-smoke-5aaf4b521c78_mailbox Creating 
+ Volume e3-smoke-5aaf4b521c78_mailbox Creating 
+ Volume e3-smoke-5aaf4b521c78_export-files Creating 
+ Volume e3-smoke-5aaf4b521c78_export-files Creating 
+ Volume e3-smoke-5aaf4b521c78_attachment-files Created 
+ Volume e3-smoke-5aaf4b521c78_attachment-files Created 
+ Volume e3-smoke-5aaf4b521c78_mailbox Created 
+ Volume e3-smoke-5aaf4b521c78_mailbox Created 
+ Volume e3-smoke-5aaf4b521c78_export-files Created 
+ Volume e3-smoke-5aaf4b521c78_export-files Created 
+ Container e3-smoke-5aaf4b…[truncated]-api-run-c96248…[truncated] Creating 
+ Container e3-smoke-5aaf4b…[truncated]-api-run-c96248…[truncated] Created 
+2026-09-10T12:28:11.089Z ERROR 1 --- [agilityhub-core-api] [           main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'OAuthController' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/agilityhub/core/identity/api/OAuthController.class]: Unsatisfied dependency expressed through constructor parameter 2: Error creating bean with name 'oidcService' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/agilityhub/core/identity/application/OidcService.class]: Failed to instantiate [com.agilityhub.core.identity.application.OidcService]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:804) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1393) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1230) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1235) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1201) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1130) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:991) ~[spring-context-6.2.19.jar!/:6.2.19]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:628) ~[spring-context-6.2.19.jar!/:6.2.19]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752) ~[spring-boot-3.5.16.jar!/:3.5.16]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) ~[spring-boot-3.5.16.jar!/:3.5.16]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) ~[spring-boot-3.5.16.jar!/:3.5.16]
+	at com.agilityhub.core.CoreApplication.main(CoreApplication.java:26) ~[!/:0.1.0-SNAPSHOT]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:106) ~[app.jar:0.1.0-SNAPSHOT]
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[app.jar:0.1.0-SNAPSHOT]
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[app.jar:0.1.0-SNAPSHOT]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'oidcService' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/agilityhub/core/identity/application/OidcService.class]: Failed to instantiate [com.agilityhub.core.identity.application.OidcService]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:321) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:309) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1393) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1230) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1777) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1660) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	... 23 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.agilityhub.core.identity.application.OidcService]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:223) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:146) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:318) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	... 37 common frames omitted
+Caused by: java.lang.IllegalArgumentException: OIDC login page must share the HTTPS issuer origin
+	at com.agilityhub.core.identity.application.OidcService.<init>(OidcService.java:47) ~[!/:0.1.0-SNAPSHOT]
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(Unknown Source) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Unknown Source) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstance(Unknown Source) ~[na:na]
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:210) ~[spring-beans-6.2.19.jar!/:6.2.19]
+	... 39 common frames omitted
+
+Command startup failed (UnsatisfiedDependencyException)
+
+
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+Traceback (most recent call last):
+  File "/private/tmp/e3-t05-diagnose.py", line 17, in <module>
+    module['main']()
+    ~~~~~~~~~~~~~~^^
+  File "bin/e3-smoke", line 357, in main
+    smoke.start()
+    ~~~~~~~~~~~^^
+  File "bin/e3-smoke", line 209, in start
+    output = self.cli(*command)
+  File "bin/e3-smoke", line 115, in cli
+    return self.compose("run", "--rm", "--no-deps", "-T", "--entrypoint", "java", service,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "-jar", "/app/app.jar", "--core.command=" + args[0], *args[1:])
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "bin/e3-smoke", line 107, in compose
+    return self.command([*self.compose_args, *args], timeout)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/e3-t05-diagnose.py", line 13, in diagnosed
+    raise AssertionError('Command failed; sanitized diagnostic captured')
+AssertionError: Command failed; sanitized diagnostic captured

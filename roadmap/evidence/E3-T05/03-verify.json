@@ -1,0 +1,4 @@
+{
+  "command": "env MAVEN_USER_HOME=/private/tmp/e1-t09-maven MAVEN_OPTS=-Dmaven.repo.local=/private/tmp/e1-t09-maven/repository ./mvnw -q clean verify",
+  "exitCode": 0
+}

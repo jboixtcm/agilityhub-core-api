@@ -1,0 +1,52 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/16c3df0b-003d-3c27-ae0b-947ab9…[truncated]/signup -> 200
+curl GET /api/v1/members/aaf1647b-8a49-3c6d-b918-862055…[truncated]/signup -> 200
+curl GET /api/v1/members/9e7da518-b3c4-38f1-96e9-c47249…[truncated]/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/e365934e-bf61-4618-a969-d86ada…[truncated]/signup -> 200
+PASS mailbox N-01 correlated by notificationId; locale=ca
+curl POST /api/v1/members/e365934e-bf61-4618-a969-d86ada…[truncated]/validation -> 200
+curl POST /api/v1/members/e365934e-bf61-4618-a969-d86ada…[truncated]/validation -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS mailbox N-02 correlated by notificationId; locale=ca; token=[truncated]
+curl POST /oauth2/token -> 200
+curl GET /api/v1/me -> 200
+PASS public family signup -> dry run -> validation/number increment -> N-02 -> welcome session
+curl POST /api/v1/me/dogs/signup -> 201
+PASS N-01 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/e365934e-bf61-4618-a969-d86ada…[truncated]/signup -> 200
+curl POST /api/v1/members/e365934e-bf61-4618-a969-d86ada…[truncated]/validation -> 200
+PASS N-37 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/5f4fbfb0-a2da-4cb3-9134-e1eb31…[truncated]/signup -> 200
+curl POST /api/v1/members/5f4fbfb0-a2da-4cb3-9134-e1eb31…[truncated]/rejection -> 200
+PASS mailbox N-03 correlated by notificationId; locale=ca
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS signup without family -> rejection -> N-03; D1 counters restored
+curl GET /api/v1/parameters/signup.enabled -> 200
+curl PUT /api/v1/parameters/signup.enabled -> 200
+curl POST /api/v1/signup -> 422 SIGNUP_CLOSED
+PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED
+PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

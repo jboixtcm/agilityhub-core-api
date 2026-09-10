@@ -1,0 +1,31 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/b98e9f81-0ce8-367b-9baf-93ce6c…[truncated]/signup -> 200
+curl GET /api/v1/members/be12000a-58b2-3fbd-8028-71a66e…[truncated]/signup -> 200
+curl GET /api/v1/members/7a2edd1e-6121-33c4-bdf5-368b51…[truncated]/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/ecdd14d2-a231-4713-a459-b536be…[truncated]/signup -> 200
+PASS mailbox N-01 correlated by notificationId; locale=ca
+curl POST /api/v1/members/ecdd14d2-a231-4713-a459-b536be…[truncated]/validation -> 200
+curl GET /api/v1/members/ecdd14d2-a231-4713-a459-b536be…[truncated]/signup -> 200
+curl POST /api/v1/members/ecdd14d2-a231-4713-a459-b536be…[truncated]/validation -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: Upfront payment allocation mismatch

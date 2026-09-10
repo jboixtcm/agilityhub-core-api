@@ -1,0 +1,4 @@
+{
+  "command": "git diff -- docs/DEPLOY.md roadmap/ROADMAP.md",
+  "exitCode": 0
+}

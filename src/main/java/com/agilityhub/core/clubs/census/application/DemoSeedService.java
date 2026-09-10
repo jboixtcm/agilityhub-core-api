@@ -26,13 +26,15 @@ public class DemoSeedService {
     private final com.agilityhub.core.platform.application.MigrationClubAccess clubs;
     private final ClubConfigService configs; private final ObjectMapper mapper; private final Environment environment;
     private final AttachmentService attachments; private final DocumentService documentService;
+    private final DemoSignupSeeder signupSeeder;
     public DemoSeedService(CensusAccess census, CensusRepository<DogDocument> documents, DemoSeedRepository runs,
             MigrationCatalogAccess catalogs, RoleAssignmentService team, DemoIdentityService identity, ClubConfigService configs,
             ObjectMapper mapper, Environment environment, AttachmentService attachments, DocumentService documentService,
-            com.agilityhub.core.platform.application.MigrationClubAccess clubs) {
+            com.agilityhub.core.platform.application.MigrationClubAccess clubs, DemoSignupSeeder signupSeeder) {
         this.census = census; this.documents = documents; this.runs = runs; this.catalogs = catalogs; this.team = team;
         this.identity = identity; this.configs = configs; this.mapper = mapper; this.environment = environment;
         this.attachments = attachments; this.documentService = documentService; this.clubs = clubs;
+        this.signupSeeder = signupSeeder;
     }
     public record Result(String id, int changes, Map<String, Integer> counts,
             @com.agilityhub.core.shared.domain.audit.AuditField Map<String, Integer> summary) {
@@ -76,8 +78,10 @@ public class DemoSeedService {
             member.consents = Map.of("imageRights", Map.of("accepted", row.number() % 2 == 0, "at", reference));
             member.bookingBlock = Map.of("active", false); member.notificationPreferences = Map.of();
             if ("LEFT".equals(row.status())) { member.leftAt = reference.minusSeconds(86400L * 10); member.leftReason = "Fictional demo leave"; }
-            member.accountId = identity.link(member.id, row.email(), member.firstName + " " + member.lastName1, config.club().defaultLocale(),
-                    Set.of("ACTIVE", "INACTIVE").contains(member.status));
+            if (!"PENDING".equals(member.status)) {
+                member.accountId = identity.link(member.id, row.email(), member.firstName + " " + member.lastName1, config.club().defaultLocale(),
+                        Set.of("ACTIVE", "INACTIVE").contains(member.status));
+            }
             census.members.insert(member); created.put(member.id, member);
         }
         for (int i = 0; i < spec.familyGroups(); i++) {
@@ -113,16 +117,22 @@ public class DemoSeedService {
                 receive(dog.id(), requiredDocuments.getFirst(), owner.accountId);
             }
         }
+        var pendingMembers = created.values().stream().filter(m -> "PENDING".equals(m.status)).toList();
+        for (int i = 0; i < pendingMembers.size(); i++) {
+            signupSeeder.apply(pendingMembers.get(i), spec.pendingSignups().get(i), i, requiredDocuments);
+        }
+        int dogCount = data.dogs().size() + pendingMembers.size();
         var counts = new LinkedHashMap<String, Integer>();
         counts.put("activeMembers", spec.activeMembers()); counts.put("pendingMembers", spec.pendingMembers());
         counts.put("inactiveMembers", spec.inactiveMembers()); counts.put("leftMembers", spec.leftMembers());
-        counts.put("members", data.members().size()); counts.put("dogs", data.dogs().size()); counts.put("familyGroups", spec.familyGroups());
+        counts.put("members", data.members().size()); counts.put("dogs", dogCount); counts.put("familyGroups", spec.familyGroups());
+        counts.put("activeDogs", data.dogs().size()); counts.put("pendingDogs", pendingMembers.size());
         counts.put("instructors", spec.instructors().size()); counts.put("administrators", spec.administrators().size());
         counts.put("receivedDocuments", requiredDocuments.isEmpty() ? 0 : spec.receivedDocuments());
-        counts.put("pendingDocuments", data.dogs().size() * requiredDocuments.size() - counts.get("receivedDocuments"));
+        counts.put("pendingDocuments", dogCount * requiredDocuments.size() - counts.get("receivedDocuments"));
         clubs.reserveNumbers(data.members().size());
         runs.insert(new DemoSeedRun(club, club, seed, signature, counts));
-        return new Result(club, data.members().size() + data.dogs().size() + spec.familyGroups(), counts);
+        return new Result(club, data.members().size() + dogCount + spec.familyGroups(), counts);
     }
     private Map<String, Map<String, Object>> catalogByCode(String collection) {
         var result = new HashMap<String, Map<String, Object>>();

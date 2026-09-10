@@ -256,8 +256,8 @@ prefixes, or separate private buckets. Set `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION
 accept an optional `*_S3_ENDPOINT` for a compatible provider. Keep credentials in
 the deployment environment. Limit the export principal to Get/Put/DeleteObject
 under `exports/`; limit the attachment principal to Get/PutObject (including HEAD)
-under `attachments/`. A shared principal needs the union of those permissions,
-restricted to those two prefixes. Public access must remain disabled.
+under `attachments/` and `signup/`. A shared principal needs the union of those
+permissions, restricted to those three prefixes. Public access must remain disabled.
 
 Configure the bucket's CORS allowlist for the actual HTTPS app/admin origins.
 Attachment uploads use presigned `PUT` requests binding `Content-Type`,
@@ -287,3 +287,100 @@ authentication. Optional `EXPORT_SIGNING_KEY` (base64, at least 32 bytes) preser
 export signatures over restarts; otherwise it is ephemeral. Attachment signatures
 are always ephemeral, so obtain fresh links after a restart. Retain these volumes
 when recreating containers; removing volumes deletes their stored files.
+
+## E3 signup and dashboard gate (backend)
+
+Run from the API checkout with Docker, Compose, Python 3 and curl:
+
+```sh
+bin/e3-smoke
+bin/e3-smoke
+# Reuse a compatible published image without a local Java/Maven build:
+bin/e3-smoke --image ghcr.io/jboixtcm/agilityhub-core-api:main
+# Or exercise consumer Compose with the image built by the first command:
+bin/e3-smoke --image agilityhub-e3-smoke:local
+```
+
+The default builds the current Dockerfile and runs `compose.yaml`. Image mode
+runs `docker-compose.consumer.yml`; the image must include E3-T03/T04/T05 and
+`seeds/demo-canic.yaml`. Both modes use a new random Compose project, free
+loopback ports, private generated credentials, a Mongo replica set, the same
+Cànic catalogs/demo seed and the E1 local mailbox. Each seed is applied twice
+inside the same database and its second apply must report zero changes. The
+smoke activates only its disposable club, executes HTTP requests using curl,
+checks exact statuses and removes its containers, volumes and temporary files
+on success or failure. The built image remains cached. Existing local stacks
+are unaffected. A failed assertion exits nonzero; credentials, signed upload
+URLs and welcome capabilities never appear in the output.
+
+E3 runtime settings (all secrets remain environment-only):
+
+| Setting | Purpose |
+|---|---|
+| `SIGNUP_CAPABILITY_KEY` | Base64-encoded **32 bytes**, required in staging/prod. Signs 24-hour tenant/member signup capabilities and encrypts anonymous idempotency replays. Keep the key stable across API replicas and restarts; changing it invalidates outstanding capabilities/replays. Both local Compose files accept it; an empty local/test value uses an ephemeral key. |
+| `MAIL_LOCAL_DIRECTORY` | Local/test mailbox JSON directory; Compose uses `/app/mailbox` on a private named volume. N-01/N-02/N-03 mail can be correlated by `tags.notificationId` with the notification log. N-37 is APP-only. Copy messages using the mailbox recipe above, then remove the private copy. |
+| `ATTACHMENT_LOCAL_DIRECTORY` | Local uploaded-file directory (`/app/attachments` in Compose). Signup keys use `signup/<clubId>/<yyyyMM>/<uuid>/<filename>`; the month is club-local and the prefix is fixed by the adapter, not an environment setting. |
+| `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ACCESS_KEY`, `ATTACHMENT_S3_SECRET_KEY`, optional `ATTACHMENT_S3_ENDPOINT` | Existing staging/prod private storage settings. Include `signup/` as well as `attachments/` in IAM/CORS verification. Signed signup PUT grants last 15 minutes; claimed documents must not be expired by a blanket signup-prefix lifecycle. |
+| `SPRING_PROFILES_ACTIVE` | `local`/`test` selects `FakeCheckoutGateway`, which returns `https://checkout.test/<sessionId>` and makes no Stripe call. It is unavailable in staging/prod. Real Stripe credentials, webhook wiring and checkout completion are E8; no new Stripe environment variable or public fake-completion route is introduced by E3. |
+
+The Cànic gate seed enables SEPA and manual payments; it does not enable CARD.
+The smoke verifies SEPA without an IBAN produces `ACCOUNT_NOT_PROVIDED`, then
+records the upfront amount through D2 validation. Fake checkout lifecycle
+coverage remains in `SignupIT`; this gate does not claim a real Stripe payment.
+
+For E3-W03 browser work, use the same published image and the existing consumer
+host/proxy/mailbox setup above. On a **fresh disposable consumer project**:
+
+```sh
+bin/consumer-up
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml run --rm --no-deps -T --entrypoint java seed -jar /app/app.jar --core.command=seed:demo --club=canic --seed=42
+# Repeat: reports 0 changes, preserving subsequent reviewer edits and validation.
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml run --rm --no-deps -T --entrypoint java seed -jar /app/app.jar --core.command=seed:demo --club=canic --seed=42
+# Local rehearsal only: committed club definitions deliberately remain ONBOARDING.
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml exec -T mongo mongosh --quiet agilityhub --eval 'db.clubs.updateOne({slug:"canic"},{$set:{status:"ACTIVE"}})'
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml restart core
+```
+
+Use the configured `CONSUMER_DATABASE` instead of `agilityhub` if overridden.
+Restart after fixture activation clears the existing configuration caches.
+Login with `admin@example.test` and the local seed password. D1 starts with
+184 ACTIVE members, 242 ACTIVE dogs and three PENDING public applications
+(two recent and one aged three days with `ACCOUNT_NOT_PROVIDED`). All three
+have pending dogs, requested plans, consent evidence and upfront lines for D2;
+they have no membership/account or member number until validation. Total census
+counts are 194 members and 245 dogs. Ages use the club-local day of the first
+demo apply and then age naturally; the default warning threshold is two days.
+The demo seed is insert-only: reapply preserves dates, attachments, edits and
+validated/rejected records. An older demo specification fails with
+`CLUB_NOT_EMPTY`; use a fresh disposable project to adopt this fixture revision.
+Occupancy is `{percent:null, booked:0, capacity:0, waitingTotal:0}` and training
+is `{value:0, distinctMembers:0}` until E4/E5 supply scheduling/booking data.
+
+Organizer-run checklist for Gate E3 (back); copy its evidence links into the
+organizer-owned `roadmap/ROADMAP.md` after review:
+
+- [ ] Run `bin/e3-smoke` twice successfully and retain both complete outputs.
+- [ ] Confirm GET signup is enabled with four steps, offered plans/methods,
+  identity `NEW`, a real tiny PDF uploaded and claimed, and seeded family lookup
+  `FOUND`.
+- [ ] Confirm public signup with family, anonymous replay, D1 pending count and
+  overdue warning, D2 missing-IBAN warning, effect-free dry run, level/invoice-date
+  selection, collected upfront amount, consecutive member number and family link.
+- [ ] Confirm N-02 in the private mailbox and exchange that actual welcome link;
+  `/me` must identify the validated member.
+- [ ] Confirm an ACTIVE member adds a dog, receives N-01, appears in D1, is
+  validated without changing member/account/number, and receives N-37 in the
+  APP inbox.
+- [ ] Confirm signup without family can be rejected, N-03 reaches its applicant,
+  and dashboard/menu counters return to the baseline pending count.
+- [ ] Set `signup.enabled=false`: GET returns a closed configuration and POST
+  returns **422 `SIGNUP_CLOSED`**, the approved catalog status (the older task
+  example says 409).
+- [ ] Run `./mvnw -q verify`, review coverage/architecture/catalog checks, and
+  repeat image mode with the reviewed published tag. Record that tag through the
+  organizer/publish workflow; the executor never commits or pushes.
+- [ ] E3-W03: repeat the scenario through the browser with the same seed/mailbox,
+  capture D1/D2 screens, and retain the E4/E5 zero/null KPI boundary.
+
+Backend evidence: `roadmap/evidence/E3-T05/` and the E3-T05 Executor report.
+Browser/staging and remote publication checks remain organizer-run gate items.

@@ -1,0 +1,4 @@
+{
+  "command": "env BUILDX_CONFIG=/private/tmp/e3-t05-buildx docker build -t agilityhub-e3-smoke:local .",
+  "exitCode": 0
+}
