@@ -793,7 +793,7 @@
           },
           "percent" : {
             "format" : "double",
-            "type" : "number"
+            "type" : [ "number", "null" ]
           },
           "waitingTotal" : {
             "format" : "int32",
@@ -1327,7 +1327,7 @@
         "type" : "object"
       },
       "Dashboard" : {
-        "description" : "S14 §6: module/parameter-controlled blocks are explicitly null when disabled; contract only.",
+        "description" : "S14 §6: module/parameter-controlled blocks are explicitly null when disabled; cached for the club.",
         "properties" : {
           "dogsByLevel" : {
             "$ref" : "#/components/schemas/DogsByLevel",
@@ -4822,13 +4822,14 @@
             "type" : "string"
           },
           "warnings" : {
+            "description" : "Omitted when BILLING is disabled.",
             "items" : {
               "$ref" : "#/components/schemas/SignupWarning"
             },
             "type" : "array"
           }
         },
-        "required" : [ "dogs", "memberId", "pendingDays", "planName", "shortName", "submittedAt", "warnings" ],
+        "required" : [ "dogs", "memberId", "pendingDays", "planName", "shortName", "submittedAt" ],
         "type" : "object"
       },
       "PendingSignupDog" : {
@@ -12973,7 +12974,7 @@
     },
     "/api/v1/dashboard" : {
       "get" : {
-        "description" : "S14 §6, R-14-01 through R-14-07. Schemas only; aggregated values and module-controlled null blocks are implemented later.",
+        "description" : "S14 §6, R-14-01 through R-14-07. Club-local aggregate cached per club for 60 seconds; disabled blocks are null. Impersonation is denied.",
         "operationId" : "dashboard",
         "responses" : {
           "200" : {
@@ -13112,7 +13113,7 @@
     },
     "/api/v1/dashboard/counters" : {
       "get" : {
-        "description" : "S14 §6, R-14-08. Schemas only; menu counters are implemented later.",
+        "description" : "S14 §6, R-14-08. Menu counters cached for 30 seconds; unread counts belong to the current administrator. Impersonation is denied.",
         "operationId" : "dashboardCounters",
         "responses" : {
           "200" : {

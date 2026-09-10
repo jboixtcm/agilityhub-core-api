@@ -65,6 +65,9 @@ class EventCatalogContractTest {
                         Instant.parse("2030-01-01T00:00:00Z"),Map.of("mode","APPLY","env","STAGING")));
         samples.put(com.agilityhub.core.payments.domain.SignupPaymentEvent.class,
                 () -> new com.agilityhub.core.payments.domain.SignupPaymentEvent("UpfrontPaymentRecorded","club-a","payment-a",Instant.parse("2030-01-01T00:00:00Z"),Map.of("paymentId","payment-a","provider","MANUAL"),"account-a",null,DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event.class,
+                () -> new com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event("SignupEdited", "club-a", "Member", "member-a",
+                        Instant.parse("2030-01-01T00:00:00Z"), Map.of("memberId", "member-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -114,7 +117,8 @@ class EventCatalogContractTest {
                 assertThat(exported.payload()).containsEntry("rows", 2L).containsEntry("by", "account-a");
             } else if (event instanceof com.agilityhub.core.clubs.content.domain.ClubPageChanged) {
                 assertThat(event.aggregateType()).isEqualTo("ClubPage"); assertThat(event.payload()).containsKeys("key", "version", "active");
-            } else if (event instanceof com.agilityhub.core.clubs.census.domain.CensusEvent) {
+            } else if (event instanceof com.agilityhub.core.clubs.census.domain.CensusEvent
+                    || event instanceof com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event) {
                 assertThat(event.aggregateType()).isEqualTo("Member"); assertThat(event.payload()).containsKeys("memberId", "diff");
             } else if (event instanceof com.agilityhub.core.clubs.followup.domain.AttachmentAdded) {
                 assertThat(event.aggregateType()).isEqualTo("Attachment"); assertThat(event.payload()).containsKeys("attachmentId", "entityType", "entityId");

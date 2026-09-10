@@ -21,7 +21,7 @@ final class ArchitectureRules {
     static final List<String> CONTEXTS = List.of(
             "shared", "platform", "identity", "clubs.census", "clubs.catalogs", "clubs.content", "clubs.signup",
             "clubs.scheduling", "clubs.activities", "clubs.bookings", "clubs.training",
-            "clubs.followup", "clubs.messaging", "clubs.common", "courses", "payments", "migration");
+            "clubs.followup", "clubs.messaging", "clubs.dashboard", "clubs.common", "courses", "payments", "migration");
 
     static final ArchRule DOMAIN_INDEPENDENCE = noClasses()
             .that().resideInAPackage("..domain..")

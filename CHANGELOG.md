@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E3-T04: Serve the admin dashboard and menu counters from tenant-scoped census
+  aggregations with club-local calendar boundaries, cached locale variants and
+  outbox invalidation. Add shared dog activity and replaceable scheduling,
+  booking and follow-up ports, risk/pending builders, tenant/role tests, and
+  nullable occupancy plus optional billing-warning contract corrections.
+
 - E3-T03: Implement public signup, signed documents, recognition, tenant-scoped
   encrypted replay, review/edit/validation/rejection, and authenticated add-dog.
   Persist census consent history, atomic member numbers, identity membership and

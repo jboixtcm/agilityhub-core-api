@@ -3,6 +3,21 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-10 · E3-T04 · Dashboard implementation
+
+GET `/dashboard` and `/dashboard/counters` now return their S14 aggregates.
+`ClassOccupancyKpi.percent` is required and nullable: no available class capacity
+returns `null`, with booked/capacity/waitingTotal zero from the scheduling null
+object. `PendingSignup.warnings` is optional and omitted with paymentMethodType
+when BILLING is disabled (S14 T-14-23). Other disabled blocks remain explicit null.
+No endpoint or enum was added. Impersonation returns 403 IMPERSONATION_DENIED.
+
+Dashboard snapshots share generatedAt across club locale variants for 60 seconds;
+counters expire after 30 seconds and unread counts are scoped to the current
+administrator. Required outbox events invalidate both caches. Until the later
+verticals replace the ports, classes, training, recent bookings and request/unread
+counters are empty or zero. Census, signup and level counts are real.
+
 ## 2026-09-10 · E3-T03 · Signup implementation and add-dog billing choices
 
 The eleven S04 routes now execute their documented behavior. Public submission

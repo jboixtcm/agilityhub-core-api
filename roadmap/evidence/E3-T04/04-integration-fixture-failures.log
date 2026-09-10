@@ -1,0 +1,149 @@
+10:22:35.338 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.dashboard.api.DashboardIT]: DashboardIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:22:35.438 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.dashboard.api.DashboardIT
+10:22:35.535 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+10:22:35.537 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+10:22:35.542 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+10:22:35.876 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+10:22:35.877 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+10:22:35.890 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+10:22:35.961 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+10:22:36.059 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+10:22:36.132 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 151338…[truncated]
+10:22:36.280 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.319189S
+10:22:36.284 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+10:22:36.284 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+10:22:36.285 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+10:22:36.285 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+10:22:36.315 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 416711…[truncated]
+10:22:36.700 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.415354S
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-10T10:22:37.366+02:00  INFO 67725 --- [agilityhub-core-api] [           main] c.a.c.clubs.dashboard.api.DashboardIT    : Starting DashboardIT using Java 21.0.12.1 with PID 67725 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-10T10:22:37.366+02:00  INFO 67725 --- [agilityhub-core-api] [           main] c.a.c.clubs.dashboard.api.DashboardIT    : The following 1 profile is active: "test"
+2026-09-10T10:22:38.136+02:00  INFO 67725 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-10T10:22:38.163+02:00  INFO 67725 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 0 MongoDB repository interfaces.
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e1-t09-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-10T10:22:39.461+02:00  INFO 67725 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4ad58e69], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5eba1893, com.mongodb.Jep395RecordCodecProvider@7dee7f7b, com.mongodb.KotlinCodecProvider@72cbd1c5]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:55490], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@140baf33], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-10T10:22:39.468+02:00  INFO 67725 --- [agilityhub-core-api] [localhost:55490] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:55490, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=22254833, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=41671155611e:27017, hosts=[41671155611e:27017], passives=[], arbiters=[], primary='41671155611e:27017', tagSet=TagSet{[]}, electionId=7fffff…[truncated], setVersion=1, topologyVersion=TopologyVersion{processId=6aa268…[truncated], counter=6}, lastWriteDate=Thu Sep 10 10:22:36 CEST 2026, lastUpdateTimeNanos=147876973202333}
+2026-09-10T10:22:42.875+02:00  INFO 67725 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-10T10:22:42.875+02:00  INFO 67725 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-10T10:22:42.876+02:00  INFO 67725 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-10T10:22:42.903+02:00  INFO 67725 --- [agilityhub-core-api] [           main] c.a.c.clubs.dashboard.api.DashboardIT    : Started DashboardIT in 5.715 seconds (process running for 8.078)
+[ERROR] Tests run: 4, Failures: 1, Errors: 2, Skipped: 0, Time elapsed: 11.26 s <<< FAILURE! -- in com.agilityhub.core.clubs.dashboard.api.DashboardIT
+[ERROR] com.agilityhub.core.clubs.dashboard.api.DashboardIT.T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants -- Time elapsed: 2.920 s <<< ERROR!
+com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService.since(RoleAssignmentService.java:65)
+	at com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService.lambda$createAdministrator$6(RoleAssignmentService.java:134)
+	at com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService.lambda$write$2(RoleAssignmentService.java:50)
+	at com.agilityhub.core.identity.application.IdentityTransactions.run(IdentityTransactions.java:15)
+	at com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService.write(RoleAssignmentService.java:50)
+	at com.agilityhub.core.clubs.catalogs.application.RoleAssignmentService.createAdministrator(RoleAssignmentService.java:131)
+	at com.agilityhub.core.clubs.census.application.DemoSeedService.apply(DemoSeedService.java:109)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89)
+	at com.agilityhub.core.platform.application.audit.AuditedAspect.audit(AuditedAspect.java:47)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:649)
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:631)
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.clubs.census.application.DemoSeedService$$SpringCGLIB$$0.apply(<generated>)
+	at com.agilityhub.core.clubs.dashboard.api.DashboardIT.T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants(DashboardIT.java:90)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.dashboard.api.DashboardIT.T_14_11_validationInvalidatesDashboardAndCountersThroughActualOutbox -- Time elapsed: 0.114 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"INVALID_ID_DOCUMENT","message":"El document d'identitat no és vàlid.","details":{},"traceId":"f148ba40-d987-41d2-9182-355450478ade"}] 
+expected: 201
+ but was: 400
+	at com.agilityhub.core.clubs.dashboard.api.DashboardIT.result(DashboardIT.java:66)
+	at com.agilityhub.core.clubs.dashboard.api.DashboardIT.T_14_11_validationInvalidatesDashboardAndCountersThroughActualOutbox(DashboardIT.java:121)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.dashboard.api.DashboardIT.T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner -- Time elapsed: 0.018 s <<< ERROR!
+org.springframework.dao.DuplicateKeyException: Write operation error on server localhost:55490. Write error: WriteError{code=11000, message='E11000 duplicate key error collection: agilityhub_test.clubs index: _id_ dup key: { _id: "dash-45ce54a2" }', details={}}.
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.doTranslateException(MongoExceptionTranslator.java:108)
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.translateExceptionIfPossible(MongoExceptionTranslator.java:74)
+	at org.springframework.data.mongodb.core.MongoTemplate.potentiallyConvertRuntimeException(MongoTemplate.java:3037)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:618)
+	at org.springframework.data.mongodb.core.MongoTemplate.insertDocument(MongoTemplate.java:1562)
+	at org.springframework.data.mongodb.core.MongoTemplate.doInsert(MongoTemplate.java:1364)
+	at org.springframework.data.mongodb.core.MongoTemplate.doSaveVersioned(MongoTemplate.java:1495)
+	at org.springframework.data.mongodb.core.MongoTemplate.save(MongoTemplate.java:1487)
+	at org.springframework.data.mongodb.core.MongoTemplate.save(MongoTemplate.java:1473)
+	at com.agilityhub.core.shared.persistence.GlobalRepository.save(GlobalRepository.java:14)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.platform.persistence.ClubRepository$$SpringCGLIB$$0.save(<generated>)
+	at com.agilityhub.core.clubs.dashboard.api.DashboardIT.T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner(DashboardIT.java:169)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.mongodb.MongoWriteException: Write operation error on server localhost:55490. Write error: WriteError{code=11000, message='E11000 duplicate key error collection: agilityhub_test.clubs index: _id_ dup key: { _id: "dash-45ce54a2" }', details={}}.
+	at com.mongodb.client.internal.MongoCollectionImpl.executeSingleWriteRequest(MongoCollectionImpl.java:1123)
+	at com.mongodb.client.internal.MongoCollectionImpl.executeInsertOne(MongoCollectionImpl.java:498)
+	at com.mongodb.client.internal.MongoCollectionImpl.insertOne(MongoCollectionImpl.java:481)
+	at com.mongodb.client.internal.MongoCollectionImpl.insertOne(MongoCollectionImpl.java:475)
+	at org.springframework.data.mongodb.core.MongoTemplate.lambda$insertDocument$17(MongoTemplate.java:1568)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:616)
+	... 19 more
+
+[ERROR] Failures: 
+[ERROR]   DashboardIT.T_14_11_validationInvalidatesDashboardAndCountersThroughActualOutbox:121->result:66 [{"code":"INVALID_ID_DOCUMENT","message":"El document d'identitat no és vàlid.","details":{},"traceId":"f148ba40-d987-41d2-9182-355450478ade"}] 
+expected: 201
+ but was: 400
+[ERROR] Errors: 
+[ERROR]   DashboardIT.T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants:90 » Api VALIDATION_ERROR
+[ERROR]   DashboardIT.T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner:169 » DuplicateKey Write operation error on server localhost:55490. Write error: WriteError{code=11000, message='E11000 duplicate key error collection: agilityhub_test.clubs index: _id_ dup key: { _id: "dash-45ce54a2" }', details={}}.
+[ERROR] Tests run: 4, Failures: 1, Errors: 2, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

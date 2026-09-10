@@ -14,7 +14,7 @@ public final class DashboardContracts {
     private DashboardContracts() { }
 
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    @Schema(description = "S14 §6: module/parameter-controlled blocks are explicitly null when disabled; contract only.")
+    @Schema(description = "S14 §6: module/parameter-controlled blocks are explicitly null when disabled; cached for the club.")
     public record Dashboard(
             @Schema(requiredMode = REQUIRED) Instant generatedAt,
             @Schema(requiredMode = REQUIRED) LocalDate today,
@@ -39,8 +39,9 @@ public final class DashboardContracts {
     public record ActiveMembersKpi(
             @Schema(requiredMode = REQUIRED) int value,
             @Schema(requiredMode = REQUIRED) int deltaThisMonth) { }
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     public record ClassOccupancyKpi(
-            @Schema(requiredMode = REQUIRED) double percent,
+            @Schema(requiredMode = REQUIRED, types = {"number", "null"}) Double percent,
             @Schema(requiredMode = REQUIRED) int booked,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) int waitingTotal) { }
@@ -75,13 +76,14 @@ public final class DashboardContracts {
     public record PendingSignups(
             @Schema(requiredMode = REQUIRED) int count,
             @Schema(requiredMode = REQUIRED) List<PendingSignup> items) { }
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PendingSignup(
             @Schema(requiredMode = REQUIRED, format = "uuid") String memberId,
             @Schema(requiredMode = REQUIRED) String shortName,
             @Schema(requiredMode = REQUIRED) List<PendingSignupDog> dogs,
             @Schema(requiredMode = REQUIRED) String planName,
             @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"SEPA_DD", "CARD", "MANUAL"}) String paymentMethodType,
-            @Schema(requiredMode = REQUIRED) List<SignupWarning> warnings,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Omitted when BILLING is disabled.") List<SignupWarning> warnings,
             @Schema(requiredMode = REQUIRED) Instant submittedAt,
             @Schema(requiredMode = REQUIRED) int pendingDays) { }
     public record PendingSignupDog(

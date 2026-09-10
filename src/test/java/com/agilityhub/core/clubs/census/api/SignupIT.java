@@ -419,8 +419,14 @@ class SignupIT extends AbstractIntegrationTest {
         var body=request();String email="welcome."+UUID.randomUUID()+"@example.test";
         ((ObjectNode)body.get("person")).set("emails",mapper.valueToTree(List.of(email)));
         String id=submit(body).path("memberId").asText();validate(id,16000);dispatch();
-        var mail=((com.agilityhub.core.clubs.messaging.application.FakeEmailSender)sender).lastTo(email);
-        var match=java.util.regex.Pattern.compile("[?]t=([A-Za-z0-9_-]{43})").matcher(mail.text());assertThat(match.find()).isTrue();
+        // Equal-clock outbox events are ordered by UUID, so N-01 can arrive after N-02.
+        String notificationId=collection("notifications").stream().filter(n -> "N-02".equals(n.getString("code"))
+                && "EMAIL".equals(n.getString("channel")) && email.equals(n.getString("recipientEmail")))
+                .findFirst().orElseThrow().getString("_id");
+        var welcome=((com.agilityhub.core.clubs.messaging.application.FakeEmailSender)sender).messages().stream()
+                .filter(m -> notificationId.equals(m.tags().get("notificationId"))).toList();
+        assertThat(welcome).hasSize(1);
+        var match=java.util.regex.Pattern.compile("[?]t=([A-Za-z0-9_-]{43})").matcher(welcome.getFirst().text());assertThat(match.find()).isTrue();
         var login=result(post("/oauth2/token").header("Host",host).contentType("application/x-www-form-urlencoded")
                 .param("grant_type","urn:agilityhub:grant:magic-link").param("client_id","clubs-app").param("token",match.group(1)),200);
         var me=result(get("/api/v1/me").header("Host",host).header("Authorization","Bearer "+login.path("access_token").asText()),200);

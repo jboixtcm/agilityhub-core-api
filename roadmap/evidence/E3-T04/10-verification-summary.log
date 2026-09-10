@@ -1,0 +1,24 @@
+surefire: tests=359, failures=0, errors=0, skipped=0
+failsafe: tests=468, failures=0, errors=0, skipped=0
+com.agilityhub.core.clubs.dashboard.persistence: line=85/86 (98.84%), branch=8/8 (100.00%)
+com.agilityhub.core.clubs.dashboard.application: line=101/101 (100.00%), branch=24/24 (100.00%)
+com.agilityhub.core.clubs.dashboard.application.ports: line=12/12 (100.00%), branch=n/a
+com.agilityhub.core.clubs.dashboard.domain: line=64/64 (100.00%), branch=72/72 (100.00%)
+T_14_01_schedulingCanReplaceItsPortWithoutChangingDashboard
+T_14_01_T_14_23_absentVerticalsReturnEmptyData
+T_14_02_isoWeekMonthAndActivityBoundariesUseClubLocalTimeIncludingDst
+T_14_03_trainingCountsActiveBookingsAndDistinctMembersInLocalWeek
+T_14_05_riskRowsMatchMockupWindowPolicyAndNotificationSnapshots
+T_14_06_dogsOfInactiveLevelsAndMissingLevelsBelongToOthersIncludingTotal
+T_14_04_pendingCalendarDaysWarningsAddDogAndOptionalBillingFields
+T_14_01_classOccupancyExcludesDraftCancelledAndOutsideWeekAndRoundsHalfUp
+T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants
+T_14_22_crossTenantJoinsRolesAndRealImpersonationAreDenied
+T_14_04_pendingAggregateUsesOldestPendingDogAllWarningsAndTenantScopedJoins
+T_14_11_validationInvalidatesDashboardAndCountersThroughActualOutbox
+T_14_11_concurrentReadersShareOneClubLoadAndUnauthenticatedCallsFail
+T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner
+T_14_06_sharedActivityCountsOnlyActiveDogsOfActiveTenantOwners
+T_14_02_monthDeltaIncludesReadmissionsAndEffectiveLocalLeaves
+T_14_11_allRegisteredInvalidationsCommitOnlyAndPreserveOtherClubs
+OpenAPI build artifact matches committed snapshot: True

@@ -1,0 +1,177 @@
+$ bin/core club:apply seeds/club-canic.yaml 
+exit code: 0
+$ bin/core seed:demo --club=canic 
+exit code: 0
+$ curl -4 -fsS http://127.0.0.1:56329/api/v1/health
+exit code: 0
+{"status":"UP","version":"0.1.0-SNAPSHOT","builtAt":"2026-09-10T08:33:56.758Z"}
+Authenticated fictional seeded administrator; credentials and token omitted.
+$ curl -4 -fsS --max-time 20 -H 'Host: app.agilitycanic.cat' --config - http://127.0.0.1:56329/api/v1/dashboard
+# stdin supplies the authorization header (token omitted)
+exit code: 0
+{
+  "generatedAt": "2026-09-10T08:37:13.240001Z",
+  "today": "2026-09-10",
+  "week": {
+    "start": "2026-09-07",
+    "end": "2026-09-13"
+  },
+  "kpis": {
+    "activeMembers": {
+      "value": 184,
+      "deltaThisMonth": 0
+    },
+    "classOccupancy": {
+      "percent": null,
+      "booked": 0,
+      "capacity": 0,
+      "waitingTotal": 0
+    },
+    "trainingBookings": {
+      "value": 0,
+      "distinctMembers": 0
+    },
+    "pendingSignups": {
+      "value": 3,
+      "olderThanWarn": 0,
+      "warnDays": 2
+    }
+  },
+  "riskReview": {
+    "reviewTime": "07:30",
+    "lookaheadDays": 2,
+    "autoCancelSameDay": true,
+    "count": 0,
+    "items": []
+  },
+  "pendingSignups": {
+    "count": 3,
+    "items": [
+      {
+        "memberId": "d832299f-c151-37c1-9c34-b362072a95dd",
+        "shortName": "Queralt F.",
+        "dogs": [],
+        "planName": "—",
+        "paymentMethodType": "SEPA_DD",
+        "warnings": [
+          "NO_IMAGE_CONSENT"
+        ],
+        "submittedAt": "2026-09-10T08:37:07.673Z",
+        "pendingDays": 0
+      },
+      {
+        "memberId": "519d8f74-2833-3a6b-af7b-2adb2b9d989d",
+        "shortName": "Guillem F.",
+        "dogs": [],
+        "planName": "—",
+        "paymentMethodType": "MANUAL",
+        "warnings": [
+          "NO_IMAGE_CONSENT"
+        ],
+        "submittedAt": "2026-09-10T08:37:07.676Z",
+        "pendingDays": 0
+      },
+      {
+        "memberId": "7af7ecb0-700c-31db-9ddc-7d5e7fb9d8cb",
+        "shortName": "Lluc F.",
+        "dogs": [],
+        "planName": "—",
+        "paymentMethodType": "SEPA_DD",
+        "warnings": [
+          "NO_IMAGE_CONSENT"
+        ],
+        "submittedAt": "2026-09-10T08:37:07.679Z",
+        "pendingDays": 0
+      }
+    ]
+  },
+  "dogsByLevel": {
+    "totalActiveDogs": 242,
+    "activeDogWeeks": 2,
+    "levels": [
+      {
+        "levelId": "64d25fbc-29f1-4359-a579-b668a018ec47",
+        "code": "CAD",
+        "name": "Cadells",
+        "color": "#F5D67A",
+        "total": 24,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "a789dae3-b4b8-4204-b606-54fe542b138c",
+        "code": "A",
+        "name": "A",
+        "color": "#C9E4F5",
+        "total": 43,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "0c7a246f-847a-42e7-950d-03a18ff17ca5",
+        "code": "B",
+        "name": "B",
+        "color": "#A9D3F0",
+        "total": 39,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "27d951e2-d30b-4db3-a31e-d191897e5557",
+        "code": "C",
+        "name": "C",
+        "color": "#85B8E8",
+        "total": 42,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "523741cf-26fd-4c7f-b12f-e12459b9fcd4",
+        "code": "D",
+        "name": "D",
+        "color": "#8FCE8F",
+        "total": 35,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "c9dbad23-8f88-43d2-9abf-be64274428c5",
+        "code": "E",
+        "name": "E",
+        "color": "#F2B58C",
+        "total": 31,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "2b6a41ed-24f5-4ed6-81ce-67e733d465da",
+        "code": "F",
+        "name": "F",
+        "color": "#E8A070",
+        "total": 16,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "ccedcd71-22d9-4963-8be2-99d56f5f1d63",
+        "code": "G",
+        "name": "G",
+        "color": "#E26A2A",
+        "total": 12,
+        "withRecentBooking": 0
+      },
+      {
+        "levelId": "3474f878-b264-49fe-9f48-ce20ded578e2",
+        "code": "TER",
+        "name": "Teràpia",
+        "color": "#C9CDD3",
+        "total": 0,
+        "withRecentBooking": 0
+      }
+    ],
+    "others": 0
+  }
+}
+$ curl -4 -fsS --max-time 20 -H 'Host: app.agilitycanic.cat' --config - http://127.0.0.1:56329/api/v1/dashboard/counters
+# stdin supplies the authorization header (token omitted)
+exit code: 0
+{
+  "pendingSignups": 3,
+  "pendingRequests": 0,
+  "followUpUnread": 0
+}
+PASS: seeded census, nullable occupancy, level totals and counters.
+Removed disposable API, Mongo container and temporary seed files; existing stack preserved.
