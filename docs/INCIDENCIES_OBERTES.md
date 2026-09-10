@@ -10,12 +10,12 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 
 | ID | Data | Àmbit | Títol | Gravetat | Estat |
 |---|---|---|---|---|---|
-| INC-01 | 09-09 | api | `GET /api/v1/health` retorna `500` amb el `main` actual | **Alta** | oberta |
-| INC-02 | 09-09 | api | Els `500` no deixen cap traça al log | **Alta** | oberta |
-| INC-03 | 09-09 | api · infra | El healthcheck del compose apunta a l'actuator (8081), no a l'endpoint real | Mitjana | oberta |
-| INC-04 | 09-09 | api · infra | `compose.yaml` publica el port `27017` fix | Baixa | oberta |
+| INC-01 | 09-09 | api | `GET /api/v1/health` retorna `500` amb el `main` actual | **Alta** | oberta → tasca **E3-T06** (09-09 23:35) |
+| INC-02 | 09-09 | api | Els `500` no deixen cap traça al log | **Alta** | oberta → tasca **E3-T06** (09-09 23:35) |
+| INC-03 | 09-09 | api · infra | El healthcheck del compose apunta a l'actuator (8081), no a l'endpoint real | Mitjana | oberta → tasca **E3-T06** (09-09 23:35) |
+| INC-04 | 09-09 | api · infra | `compose.yaml` publica el port `27017` fix | Baixa | oberta → tasca **E3-T06** (09-09 23:35) |
 | INC-05 | 09-09 | docs | La checklist de la porta E0 té la comanda del seed desactualitzada | Baixa | oberta |
-| INC-06 | 09-09 | api · contracte | `TokenResponse.scope` s'omet quan l'abast concedit és buit, però l'OpenAPI el marca `required` (trobat a E1-W04 contra la imatge real; el front ho normalitza a `""`) | Baixa | oberta |
+| INC-06 | 09-09 | api · contracte | `TokenResponse.scope` s'omet quan l'abast concedit és buit, però l'OpenAPI el marca `required` (trobat a E1-W04 contra la imatge real; el front ho normalitza a `""`) | Baixa | oberta → tasca **E3-T06** (09-09 23:35) |
 
 ---
 
