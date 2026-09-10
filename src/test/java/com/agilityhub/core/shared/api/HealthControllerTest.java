@@ -103,7 +103,9 @@ class HealthControllerTest {
 
     @Test
     void E0_T01_postHealthIsNotPermitted() throws Exception {
-        mvc.perform(post("/api/v1/health").with(csrf())).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/health").with(csrf()))
+                .andExpect(status().isMethodNotAllowed()).andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.traceId").isNotEmpty());
     }
 
     @Test void E0_T08_controllerAndSecurityErrorsAreLocalizedInSpanish() throws Exception {

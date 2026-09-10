@@ -1,0 +1,188 @@
+$ docker compose --env-file /dev/null -f /Users/jordib/dev/agilityhub/agilityhub-core-api/compose.yaml ps
+NAME             IMAGE        COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+e3-t06-api-1     e3-t06-api   "java -jar /app/app.…"   api       30 seconds ago   Up 19 seconds (healthy)   127.0.0.1:18080->18080/tcp
+e3-t06-mongo-1   mongo:7      "docker-entrypoint.s…"   mongo     30 seconds ago   Up 30 seconds (healthy)   127.0.0.1:27018->27017/tcp
+exit=0
+$ curl -4 -fsS -i http://127.0.0.1:18080/api/v1/health
+HTTP/1.1 200
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 10 Sep 2026 06:41:15 GMT
+
+{"status":"UP","version":"0.1.0-SNAPSHOT","builtAt":"2026-09-10T06:38:32.919Z"}exit=0
+HTTP GET /api/v1/health 200: {"status": "UP", "version": "0.1.0-SNAPSHOT", "builtAt": "2026-09-10T06:38:32.919Z"}
+HTTP GET /api/v1/branding 404: {"code": "UNKNOWN_HOST", "message": "No hi ha cap club associat a aquest domini.", "details": {}, "traceId": "91df3c66-4988-41b3-a024-37c26c5bdfb7"}
+HTTP POST /api/v1/health 405: {"code": "METHOD_NOT_ALLOWED", "message": "Aquest m\u00e8tode HTTP no est\u00e0 perm\u00e8s per a aquest recurs.", "details": {}, "traceId": "e3c41b56-5ed0-48ae-9357-62695b821567"}
+$ docker compose --env-file /dev/null -f /Users/jordib/dev/agilityhub/agilityhub-core-api/compose.yaml exec -T mongo mongosh --quiet agilityhub --eval 'const counts = db.getCollectionNames().sort().map(name => ({collection: name, documents: db.getCollection(name).countDocuments({})})); printjson(counts); if (counts.some(item => item.documents !== 0)) { quit(1); }'
+[
+  {
+    collection: 'accounts',
+    documents: 0
+  },
+  {
+    collection: 'attachments',
+    documents: 0
+  },
+  {
+    collection: 'audit_entries',
+    documents: 0
+  },
+  {
+    collection: 'catalog_write_locks',
+    documents: 0
+  },
+  {
+    collection: 'club_pages',
+    documents: 0
+  },
+  {
+    collection: 'clubs',
+    documents: 0
+  },
+  {
+    collection: 'dog_documents',
+    documents: 0
+  },
+  {
+    collection: 'dogs',
+    documents: 0
+  },
+  {
+    collection: 'domain_events',
+    documents: 0
+  },
+  {
+    collection: 'export_account_locks',
+    documents: 0
+  },
+  {
+    collection: 'export_jobs',
+    documents: 0
+  },
+  {
+    collection: 'export_write_locks',
+    documents: 0
+  },
+  {
+    collection: 'family_groups',
+    documents: 0
+  },
+  {
+    collection: 'faq_entries',
+    documents: 0
+  },
+  {
+    collection: 'handoff_codes',
+    documents: 0
+  },
+  {
+    collection: 'idempotency_records',
+    documents: 0
+  },
+  {
+    collection: 'impersonation_grants',
+    documents: 0
+  },
+  {
+    collection: 'instructors',
+    documents: 0
+  },
+  {
+    collection: 'levels',
+    documents: 0
+  },
+  {
+    collection: 'magic_link_tokens',
+    documents: 0
+  },
+  {
+    collection: 'members',
+    documents: 0
+  },
+  {
+    collection: 'memberships',
+    documents: 0
+  },
+  {
+    collection: 'notifications',
+    documents: 0
+  },
+  {
+    collection: 'oidc_browser_sessions',
+    documents: 0
+  },
+  {
+    collection: 'oidc_codes',
+    documents: 0
+  },
+  {
+    collection: 'oidc_flows',
+    documents: 0
+  },
+  {
+    collection: 'parameters',
+    documents: 0
+  },
+  {
+    collection: 'plans',
+    documents: 0
+  },
+  {
+    collection: 'prices',
+    documents: 0
+  },
+  {
+    collection: 'refresh_tokens',
+    documents: 0
+  },
+  {
+    collection: 'rings',
+    documents: 0
+  },
+  {
+    collection: 'saved_views',
+    documents: 0
+  },
+  {
+    collection: 'security_events',
+    documents: 0
+  },
+  {
+    collection: 'sendgrid_webhook_receipts',
+    documents: 0
+  },
+  {
+    collection: 'team_write_locks',
+    documents: 0
+  }
+]
+exit=0
+$ docker ps --format '{{.Names}} {{.Status}} {{.Ports}}'
+e3-t06-api-1 Up 20 seconds (healthy) 127.0.0.1:18080->18080/tcp
+e3-t06-mongo-1 Up 30 seconds (healthy) 127.0.0.1:27018->27017/tcp
+distracted_moser Up About a minute 0.0.0.0:51743->27017/tcp, [::]:51743->27017/tcp
+testcontainers-ryuk-ee09fe9c-b0ae-442c-9a6c-e4463d9afe2c Up About a minute 0.0.0.0:51741->8080/tcp, [::]:51741->8080/tcp
+agilityhub-core-api-api-1 Up 13 hours (healthy) 127.0.0.1:8080->8080/tcp
+agilityhub-core-api-mongo-1 Up 13 hours (healthy) 127.0.0.1:27017->27017/tcp
+exit=0
+$ docker inspect --format '{{.State.Health.Status}}' e3-t06-api-1
+healthy
+exit=0
+$ docker inspect --format '{{.State.Health.Status}}' e3-t06-mongo-1
+healthy
+exit=0
+$ docker inspect --format '{{.State.Health.Status}}' agilityhub-core-api-mongo-1
+healthy
+exit=0
+PASS: empty database, host-independent health, unknown host 404, POST health 405; Mongo 27018 coexists with 27017.

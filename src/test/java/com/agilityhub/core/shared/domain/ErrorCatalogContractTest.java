@@ -18,8 +18,6 @@ class ErrorCatalogContractTest {
             var status = Pattern.compile("^\\| (\\d{3}) \\|").matcher(row);
             Integer expectedStatus = status.find() ? Integer.valueOf(status.group(1)) : null;
             while (matcher.find()) {
-                // The generic-500 row also documents the ERROR logging level, which is not a code.
-                if (matcher.group(1).equals("ERROR") && Integer.valueOf(500).equals(expectedStatus)) { continue; }
                 codes.add(matcher.group(1));
                 if (expectedStatus != null) {
                     assertThat(ErrorCode.valueOf(matcher.group(1)).httpStatus()).isEqualTo(expectedStatus);
@@ -28,6 +26,9 @@ class ErrorCatalogContractTest {
         }
         assertThat(Arrays.stream(ErrorCode.values()).map(Enum::name)).containsExactlyInAnyOrderElementsOf(codes);
         assertThat(ErrorCode.IDEMPOTENCY_KEY_REUSED.httpStatus()).isEqualTo(409);
+        assertThat(ErrorCode.METHOD_NOT_ALLOWED.httpStatus()).isEqualTo(405);
+        assertThat(ErrorCode.NOT_ACCEPTABLE.httpStatus()).isEqualTo(406);
+        assertThat(ErrorCode.UNSUPPORTED_MEDIA_TYPE.httpStatus()).isEqualTo(415);
         for (ErrorCode code : ErrorCode.values()) {
             var exception = new ApiException(code);
             assertThat(exception.code()).isEqualTo(code);

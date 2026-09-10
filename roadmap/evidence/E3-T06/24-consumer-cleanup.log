@@ -1,0 +1,104 @@
+$ docker compose --env-file /dev/null -f /Users/jordib/dev/agilityhub/agilityhub-core-api/compose.yaml down -v
+ Container e3-t06-api-1 Stopping
+ Container e3-t06-api-1 Stopped
+ Container e3-t06-api-1 Removing
+ Container e3-t06-api-1 Removed
+ Container e3-t06-mongo-1 Stopping
+ Container e3-t06-mongo-1 Stopped
+ Container e3-t06-mongo-1 Removing
+ Container e3-t06-mongo-1 Removed
+ Volume e3-t06_export-files Removing
+ Network e3-t06_default Removing
+ Volume e3-t06_attachment-files Removing
+ Volume e3-t06_mongo-data Removing
+ Volume e3-t06_export-files Removed
+ Volume e3-t06_attachment-files Removed
+ Volume e3-t06_mongo-data Removed
+ Network e3-t06_default Removed
+exit=0
+$ docker compose --env-file /dev/null -f /Users/jordib/dev/agilityhub/agilityhub-core-api/docker-compose.consumer.yml up -d --wait --wait-timeout 180
+ Volume e3-t06-consumer_mongo-data Creating
+ Volume e3-t06-consumer_attachment-files Creating
+ Network e3-t06-consumer_default Creating
+ Volume e3-t06-consumer_mailbox Creating
+ Volume e3-t06-consumer_mongo-data Creating
+ Volume e3-t06-consumer_attachment-files Creating
+ Volume e3-t06-consumer_mailbox Creating
+ Network e3-t06-consumer_default Creating
+ Volume e3-t06-consumer_export-files Creating
+ Volume e3-t06-consumer_export-files Creating
+ Volume e3-t06-consumer_export-files Created
+ Volume e3-t06-consumer_export-files Created
+ Volume e3-t06-consumer_mailbox Created
+ Volume e3-t06-consumer_mailbox Created
+ Volume e3-t06-consumer_mongo-data Created
+ Volume e3-t06-consumer_mongo-data Created
+ Volume e3-t06-consumer_attachment-files Created
+ Volume e3-t06-consumer_attachment-files Created
+ Network e3-t06-consumer_default Created
+ Network e3-t06-consumer_default Created
+ Container e3-t06-consumer-mongo-1 Creating
+ Container e3-t06-consumer-mongo-1 Created
+ Container e3-t06-consumer-seed-1 Creating
+ Container e3-t06-consumer-seed-1 Created
+ Container e3-t06-consumer-core-1 Creating
+ Container e3-t06-consumer-core-1 Created
+ Container e3-t06-consumer-mongo-1 Starting
+ Container e3-t06-consumer-mongo-1 Started
+ Container e3-t06-consumer-mongo-1 Waiting
+ Container e3-t06-consumer-mongo-1 Healthy
+ Container e3-t06-consumer-seed-1 Starting
+ Container e3-t06-consumer-seed-1 Started
+ Container e3-t06-consumer-mongo-1 Waiting
+ Container e3-t06-consumer-seed-1 Waiting
+ Container e3-t06-consumer-mongo-1 Healthy
+ Container e3-t06-consumer-seed-1 Exited
+ Container e3-t06-consumer-core-1 Starting
+ Container e3-t06-consumer-core-1 Started
+ Container e3-t06-consumer-mongo-1 Waiting
+ Container e3-t06-consumer-seed-1 Waiting
+ Container e3-t06-consumer-core-1 Waiting
+ Container e3-t06-consumer-seed-1 Exited
+ Container e3-t06-consumer-mongo-1 Healthy
+ Container e3-t06-consumer-core-1 Healthy
+exit=0
+$ docker compose --env-file /dev/null -f /Users/jordib/dev/agilityhub/agilityhub-core-api/docker-compose.consumer.yml ps -a
+NAME                      IMAGE               COMMAND                  SERVICE   CREATED          STATUS                     PORTS
+e3-t06-consumer-core-1    e3-t06-api:latest   "java -jar /app/app.…"   core      26 seconds ago   Up 5 seconds (healthy)     127.0.0.1:18080->8080/tcp
+e3-t06-consumer-mongo-1   mongo:7             "docker-entrypoint.s…"   mongo     26 seconds ago   Up 25 seconds (healthy)    127.0.0.1:27018->27017/tcp
+e3-t06-consumer-seed-1    e3-t06-api:latest   "/bin/sh -ec 'java -…"   seed      26 seconds ago   Exited (0) 5 seconds ago
+exit=0
+HTTP GET /api/v1/health 200: {"status": "UP", "version": "0.1.0-SNAPSHOT", "builtAt": "2026-09-10T06:38:32.919Z"}
+$ docker port e3-t06-consumer-mongo-1 27017/tcp
+127.0.0.1:27018
+exit=0
+PASS: consumer seeded, healthy with the explicit public-health check and MONGO_PORT=27018.
+$ docker compose --env-file /dev/null -f /Users/jordib/dev/agilityhub/agilityhub-core-api/docker-compose.consumer.yml down -v
+ Container e3-t06-consumer-core-1 Stopping
+ Container e3-t06-consumer-core-1 Stopped
+ Container e3-t06-consumer-core-1 Removing
+ Container e3-t06-consumer-core-1 Removed
+ Container e3-t06-consumer-seed-1 Stopping
+ Container e3-t06-consumer-seed-1 Stopped
+ Container e3-t06-consumer-seed-1 Removing
+ Container e3-t06-consumer-seed-1 Removed
+ Container e3-t06-consumer-mongo-1 Stopping
+ Container e3-t06-consumer-mongo-1 Stopped
+ Container e3-t06-consumer-mongo-1 Removing
+ Container e3-t06-consumer-mongo-1 Removed
+ Volume e3-t06-consumer_mongo-data Removing
+ Network e3-t06-consumer_default Removing
+ Volume e3-t06-consumer_export-files Removing
+ Volume e3-t06-consumer_attachment-files Removing
+ Volume e3-t06-consumer_mailbox Removing
+ Volume e3-t06-consumer_mongo-data Removed
+ Volume e3-t06-consumer_attachment-files Removed
+ Volume e3-t06-consumer_mailbox Removed
+ Volume e3-t06-consumer_export-files Removed
+ Network e3-t06-consumer_default Removed
+exit=0
+$ docker ps --format '{{.Names}} {{.Status}} {{.Ports}}'
+agilityhub-core-api-api-1 Up 13 hours (healthy) 127.0.0.1:8080->8080/tcp
+agilityhub-core-api-mongo-1 Up 13 hours (healthy) 127.0.0.1:27017->27017/tcp
+exit=0
+PASS: task containers and volumes removed; original stack retained.

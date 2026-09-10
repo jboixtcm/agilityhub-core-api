@@ -1,0 +1,34 @@
+{
+  "surefire-reports": {
+    "tests": 349,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failsafe-reports": {
+    "tests": 430,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "com/agilityhub/core/shared/api": {
+    "BRANCH": {
+      "covered": 255,
+      "missed": 26
+    },
+    "LINE": {
+      "covered": 276,
+      "missed": 17
+    }
+  },
+  "com/agilityhub/core/shared/domain": {
+    "BRANCH": {
+      "covered": 6,
+      "missed": 0
+    },
+    "LINE": {
+      "covered": 290,
+      "missed": 0
+    }
+  }
+}

@@ -161,7 +161,12 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
     }
     @Test void T_11_22_failedTransactionRollsBackReceiptAccountAuditAndDelivery() throws Exception {
         org.mockito.Mockito.doThrow(new IllegalStateException("Simulated outbox failure")).when(publisher).publish(org.mockito.ArgumentMatchers.any());
-        assertThatThrownBy(() -> send(event("retry-after-failure", "bounce"))).hasRootCauseMessage("Simulated outbox failure");
+        byte[] body = event("retry-after-failure", "bounce");
+        mvc.perform(post("/webhooks/email/sendgrid").contentType("application/json").content(body)
+                        .header("Host", "unregistered.example.test").header("X-Twilio-Email-Event-Webhook-Timestamp", TIMESTAMP)
+                        .header("X-Twilio-Email-Event-Webhook-Signature", sign(body)))
+                .andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.traceId").isNotEmpty());
         assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isZero();
         assertThat(mongo.count(new Query(), AuditEntry.class)).isZero();
         assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isNull();

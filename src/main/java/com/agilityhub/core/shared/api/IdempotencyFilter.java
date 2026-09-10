@@ -49,7 +49,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !"POST".equals(request.getMethod()) || request.getHeader("Idempotency-Key") == null;
+        return HealthRequests.matches(request) || !"POST".equals(request.getMethod()) || request.getHeader("Idempotency-Key") == null;
     }
 
     @Override
@@ -116,6 +116,11 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 try { chain.doFilter(new BufferedRequest(request, body), cachedResponse); }
                 catch (IOException | ServletException failure) { throw new RequestFailure(failure); }
                 if (request.isAsyncStarted()) { throw new IllegalStateException("Idempotent POST must be synchronous"); }
+                if (cachedResponse.getStatus() >= 500) {
+                    // MVC may handle the exception before it reaches this transaction boundary.
+                    status.setRollbackOnly();
+                    return;
+                }
                 Map<String, List<String>> headers = new LinkedHashMap<>();
                 for (String header : List.of("Content-Type", "Location", "ETag", "Cache-Control", "Content-Language")) {
                     headers.put(header, List.copyOf(cachedResponse.getHeaders(header)));
@@ -130,6 +135,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             }
             throw failure;
         }
+        if (cachedResponse.getStatus() >= 500) { records.abandon(record); }
         cachedResponse.copyBodyToResponse();
     }
 

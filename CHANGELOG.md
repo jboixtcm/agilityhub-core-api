@@ -11,9 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - E3-T03: Record the add-dog billing-choice contract gap and a proposed API
   amendment. Implementation is blocked pending organizer alignment with B13.
 
-- E3-T06: Record fresh-stack health diagnostics and the local IPv4/IPv6 listener
-  collision. Hardening remains blocked pending the organizer's generic HTTP 500
-  error-contract decision; application behavior is unchanged.
+- E3-T06: Keep public health independent of tenant data, preserve framework error
+  statuses, and log unexpected failures with their response trace ID. Release
+  idempotency keys and roll back writes on handled 5xx responses. Add explicit
+  Compose healthchecks, configurable MONGO_PORT, and always serialize token scope.
+  Document the Mac IPv4 gate and cover health, error, rollback and token regressions.
 
 - E3-T02: Add pure signup contact, postal lookup, first-month and upfront-payment
   rules, family matching and fare proposals, consent renewal and state transitions.

@@ -39,6 +39,7 @@ class IdempotencyIT extends AbstractIntegrationTest {
     @Autowired IdempotencyRepository repository;
 
     @BeforeEach void prepare() {
+        controller = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(controller);
         clock.setInstant(Instant.parse("2030-01-01T00:00:00Z"));
         mongo.remove(new org.springframework.data.mongodb.core.query.Query(), IdempotencyRecord.class);
         if (!mongo.collectionExists("idempotency_effects")) { mongo.createCollection("idempotency_effects"); }
@@ -143,12 +144,32 @@ class IdempotencyIT extends AbstractIntegrationTest {
                 .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         assertThat(controller.calls).hasValue(0);
     }
-    @Test void E0_T04_failureRollsBackEffectsAndReleasesTheKey() {
+    @Test void E0_T04_failureRollsBackEffectsAndReleasesTheKey() throws Exception {
         String key = UUID.randomUUID().toString();
-        assertThatThrownBy(() -> mvc.perform(request(key, "throw", "club-a", "account-a")))
-                .hasMessageContaining("Simulated failure");
+        for (int attempt = 0; attempt < 2; attempt++) {
+            mvc.perform(request(key, "throw", "club-a", "account-a"))
+                    .andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                    .andExpect(jsonPath("$.traceId").isNotEmpty());
+            assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isZero();
+            assertThat(mongo.findAll(IdempotencyRecord.class)).isEmpty();
+        }
+        assertThat(controller.calls).hasValue(2);
+        mvc.perform(request(key, "retry", "club-a", "account-a")).andExpect(status().isCreated());
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(1);
+    }
+
+    @Test void E3_T06_INC02_transactionalFailureReturns500AndReleasesTheKey() throws Exception {
+        String key = UUID.randomUUID().toString();
+        mvc.perform(post("/api/v1/test/idempotency/transactional").with(csrf())
+                        .with(jwt().jwt(token -> token.subject("account-a").claim("clubId", "club-a"))
+                                .authorities(() -> "ROLE_MEMBER"))
+                        .header("Idempotency-Key", key).contentType("application/json").content("throw"))
+                .andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.traceId").isNotEmpty());
         assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isZero();
         assertThat(mongo.findAll(IdempotencyRecord.class)).isEmpty();
+        mvc.perform(request(key, "retry", "club-a", "account-a")).andExpect(status().isCreated());
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(1);
     }
 
     @TestConfiguration(proxyBeanMethods = false) static class Config {
@@ -163,6 +184,11 @@ class IdempotencyIT extends AbstractIntegrationTest {
         volatile CountDownLatch release;
         private final MongoTemplate mongo;
         TestController(MongoTemplate mongo) { this.mongo = mongo; }
+        @org.springframework.transaction.annotation.Transactional
+        @PostMapping("/api/v1/test/idempotency/transactional")
+        public ResponseEntity<Map<String, Object>> transactional(@RequestBody String body) throws InterruptedException {
+            return post(body);
+        }
         @PostMapping("/api/v1/test/idempotency") ResponseEntity<Map<String, Object>> post(@RequestBody String body)
                 throws InterruptedException {
             int count = calls.incrementAndGet();

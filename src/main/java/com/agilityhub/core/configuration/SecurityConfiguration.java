@@ -49,7 +49,9 @@ public class SecurityConfiguration {
         http.csrf(csrf -> csrf.disable()).sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable());
         http.authorizeHttpRequests(authorize -> {
-            authorize.requestMatchers(HttpMethod.GET, "/api/v1/health", "/api/v1/branding", "/api/v1/manifest.webmanifest",
+            // Let MVC reject unsupported liveness methods with the public 405 error contract.
+            authorize.requestMatchers("/api/v1/health").permitAll();
+            authorize.requestMatchers(HttpMethod.GET, "/api/v1/branding", "/api/v1/manifest.webmanifest",
                     "/api/v1/signup", "/api/v1/signup/towns",
                     "/api/v1/public/**", "/api/v1/country-profile", "/api/v1/country-profile/postal-codes/*",
                     "/.well-known/openid-configuration", "/oauth2/authorize", "/connect/logout").permitAll();

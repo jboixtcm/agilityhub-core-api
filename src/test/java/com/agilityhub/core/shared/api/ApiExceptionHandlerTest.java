@@ -24,6 +24,42 @@ class ApiExceptionHandlerTest {
 
     ApiExceptionHandlerTest() throws java.io.IOException { }
 
+    @Test void E3_T06_INC02_frameworkErrorsRetainStatusHeadersAndSafeEnvelope() throws Exception {
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            var requests = java.util.List.of(
+                    post("/page"), get("/page").param("page", "abc"),
+                    post("/validation").contentType("text/plain").content("fictional input"),
+                    get("/json").accept("text/plain"), get("/page"), get("/missing"), get("/upload-too-large"));
+            var statuses = java.util.List.of(405, 400, 415, 406, 400, 404, 400);
+            var codes = java.util.List.of("METHOD_NOT_ALLOWED", "VALIDATION_ERROR", "UNSUPPORTED_MEDIA_TYPE",
+                    "NOT_ACCEPTABLE", "VALIDATION_ERROR", "NOT_FOUND", "FILE_TOO_LARGE");
+            for (int index = 0; index < requests.size(); index++) {
+                appender.list.clear();
+                var result = mvc.perform(requests.get(index)).andExpect(status().is(statuses.get(index)))
+                        .andExpect(content().contentTypeCompatibleWith("application/json"))
+                        .andExpect(jsonPath("$.code").value(codes.get(index)))
+                        .andExpect(jsonPath("$.traceId").isNotEmpty()).andReturn();
+                var body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(result.getResponse().getContentAsString());
+                assertThat(appender.list).filteredOn(event -> event.getLevel() == ch.qos.logback.classic.Level.WARN)
+                        .singleElement().satisfies(event -> {
+                            assertThat(event.getFormattedMessage()).contains("traceId=" + body.path("traceId").asText());
+                            assertThat(event.getThrowableProxy()).isNull();
+                        });
+                assertThat(appender.list).noneMatch(event -> event.getLevel() == ch.qos.logback.classic.Level.ERROR);
+                if (index == 0) { assertThat(result.getResponse().getHeader("Allow")).contains("GET"); }
+                if (index == 1) {
+                    assertThat(body.at("/details/fieldErrors/0/field").asText()).isEqualTo("page");
+                    assertThat(body.at("/details/fieldErrors/0/code").asText()).isEqualTo("TYPE_MISMATCH");
+                    assertThat(result.getResponse().getContentAsString()).doesNotContain("abc", "NumberFormatException");
+                }
+            }
+        } finally { logger.detachAppender(appender); appender.stop(); }
+    }
+
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.CsvSource(delimiter = '|', textBlock = """
         ca | S'ha produït un error inesperat.
@@ -102,6 +138,11 @@ class ApiExceptionHandlerTest {
     }
 
     @RestController static class TestController {
+        @GetMapping("/page") int page(@RequestParam int page) { return page; }
+        @GetMapping(value = "/json", produces = "application/json") Map<String, String> json() { return Map.of("value", "ok"); }
+        @GetMapping("/upload-too-large") void uploadTooLarge() {
+            throw new org.springframework.web.multipart.MaxUploadSizeExceededException(1024);
+        }
         @GetMapping("/unexpected") void unexpected() {
             throw new IllegalStateException("fictional failure", new IllegalArgumentException("fictional cause"));
         }

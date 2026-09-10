@@ -71,6 +71,12 @@ services:
 
   core:
     image: ${CORE_IMAGE:-ghcr.io/jboixtcm/agilityhub-core-api:main}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/api/v1/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      start_period: 40s
+      retries: 12
     environment:
       <<: *core-environment
       SERVER_PORT: 8080

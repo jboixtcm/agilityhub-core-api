@@ -1,0 +1,108 @@
+ Container e3-t06-api-1 Stopping
+ Container e3-t06-api-1 Stopped
+ Container e3-t06-api-1 Removing
+ Container e3-t06-api-1 Removed
+ Container e3-t06-mongo-1 Stopping
+ Container e3-t06-mongo-1 Stopped
+ Container e3-t06-mongo-1 Removing
+ Container e3-t06-mongo-1 Removed
+ Volume e3-t06_export-files Removing
+ Network e3-t06_default Removing
+ Volume e3-t06_mongo-data Removing
+ Volume e3-t06_attachment-files Removing
+ Volume e3-t06_export-files Removed
+ Volume e3-t06_attachment-files Removed
+ Volume e3-t06_mongo-data Removed
+ Network e3-t06_default Removed
+ Image e3-t06-api Building
+#1 [internal] load local bake definitions
+#1 reading from stdin 534B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.35kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 1.0s
+
+#4 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#4 DONE 1.1s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 218B done
+#5 DONE 0.0s
+
+#6 [stage-1 1/7] FROM docker.io/library/eclipse-temurin:21-jre@sha256:a…[truncated]
+#6 resolve docker.io/library/eclipse-temurin:21-jre@sha256:a…[truncated] 0.0s done
+#6 DONE 0.0s
+
+#7 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:a…[truncated]
+#7 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:a…[truncated] 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 209.40kB 0.0s done
+#8 DONE 0.0s
+
+#9 [build 3/8] WORKDIR /workspace
+#9 CACHED
+
+#10 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [build 4/8] COPY .mvn/ .mvn/
+#11 CACHED
+
+#12 [build 5/8] COPY mvnw pom.xml ./
+#12 CACHED
+
+#13 [build 6/8] COPY src/ src/
+#13 DONE 0.1s
+
+#14 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#14 DONE 0.0s
+
+#15 [build 8/8] RUN ./mvnw -B -q -DskipTests package
+#15 72.09 [ERROR] Failed to execute goal on project agilityhub-core-api: Could not resolve dependencies for project com.agilityhub:agilityhub-core-api:jar:0.1.0-SNAPSHOT
+#15 72.09 [ERROR] dependency: com.ibm.icu:icu4j:jar:77.1 (compile)
+#15 72.09 [ERROR] 	Could not transfer artifact com.ibm.icu:icu4j:jar:77.1 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 14,663,227; received: 2,480,640)
+#15 72.09 [ERROR] -> [Help 1]
+#15 72.09 [ERROR]
+#15 72.09 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+#15 72.09 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+#15 72.09 [ERROR]
+#15 72.09 [ERROR] For more information about the errors and possible solutions, please read the following articles:
+#15 72.09 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
+#15 ERROR: process "/bin/sh -c ./mvnw -B -q -DskipTests package" did not complete successfully: exit code: 1
+------
+ > [build 8/8] RUN ./mvnw -B -q -DskipTests package:
+72.09 [ERROR] Failed to execute goal on project agilityhub-core-api: Could not resolve dependencies for project com.agilityhub:agilityhub-core-api:jar:0.1.0-SNAPSHOT
+72.09 [ERROR] dependency: com.ibm.icu:icu4j:jar:77.1 (compile)
+72.09 [ERROR] 	Could not transfer artifact com.ibm.icu:icu4j:jar:77.1 from/to central (https://repo.maven.apache.org/maven2): Premature end of Content-Length delimited message body (expected: 14,663,227; received: 2,480,640)
+72.09 [ERROR] -> [Help 1]
+72.09 [ERROR]
+72.09 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+72.09 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
+72.09 [ERROR]
+72.09 [ERROR] For more information about the errors and possible solutions, please read the following articles:
+72.09 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
+------
+Dockerfile:11
+
+--------------------
+
+   9 |     COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+
+  10 |     # Integration tests run on the host with Docker, not inside the image build.
+
+  11 | >>> RUN ./mvnw -B -q -DskipTests package
+
+  12 |
+
+  13 |     FROM eclipse-temurin:21-jre
+
+--------------------
+
+failed to solve: process "/bin/sh -c ./mvnw -B -q -DskipTests package" did not complete successfully: exit code: 1
+

@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -62,6 +63,10 @@ class HealthIndependenceIT {
                                     .authorities(() -> "ROLE_" + role)))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
         }
+        mvc.perform(post("/api/v1/health").header("Host", "unknown.example.test")
+                        .header("Idempotency-Key", "ignored-for-health"))
+                .andExpect(status().isMethodNotAllowed()).andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.traceId").isNotEmpty());
         var response = HttpClient.newHttpClient().send(HttpRequest.newBuilder(
                         URI.create("http://127.0.0.1:" + managementPort + "/actuator/health"))
                 .header("Accept-Language", "es").GET().build(), HttpResponse.BodyHandlers.ofString());

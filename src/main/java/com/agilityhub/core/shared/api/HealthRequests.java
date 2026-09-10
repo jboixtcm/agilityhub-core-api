@@ -8,6 +8,6 @@ final class HealthRequests {
 
     static boolean matches(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        return path.equals("/api/v1/health") || path.equals("/actuator/health");
+        return path.equals("/api/v1/health");
     }
 }
