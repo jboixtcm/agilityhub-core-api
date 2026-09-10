@@ -47,7 +47,7 @@ public class CensusValidation {
         String type = text(doc.get("type"), "idDocument.type", 30, true);
         String number = text(doc.get("number"), "idDocument.number", 80, true).toUpperCase(Locale.ROOT);
         if (!countries.document(type, number)) { throw invalid("idDocument", "INVALID_VALUE"); }
-        return object("type", type, "number", number);
+        return object("type", type, "number", countries.normalizeDocument(type, number));
     }
     public List<Map<String,Object>> licenses(Object raw) {
         if (!(raw instanceof List<?>)) { throw invalid("licenses", "INVALID_VALUE"); }

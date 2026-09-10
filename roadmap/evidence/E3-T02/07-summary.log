@@ -1,0 +1,29 @@
+surefire-reports: tests=344, failures=0, errors=0, skipped=0
+failsafe-reports: tests=424, failures=0, errors=0, skipped=0
+com/agilityhub/core/platform/domain: LINE=100.00%, BRANCH=97.60%
+com/agilityhub/core/clubs/signup/domain: LINE=100.00%, BRANCH=99.31%
+com/agilityhub/core/clubs/census/application: LINE=99.75%, BRANCH=85.35%
+com/agilityhub/core/clubs/catalogs/application: LINE=99.34%, BRANCH=90.75%
+com/agilityhub/core/platform/application: LINE=99.27%, BRANCH=93.77%
+SignupCatalogAdapterTest.java: T_04_09_catalogProjectionUsesOnlyCurrentPricesOfTheSamePlanAndTenant
+SignupCatalogAdapterTest.java: T_04_09_catalogProjectionResolvesExistingEntryModesAndPackTerms
+SignupContactsTest.java: T_04_01_spanishDocumentsNormalizeAndCheckLetters
+SignupContactsTest.java: T_04_01_invalidCheckLetterIsRejected
+SignupContactsTest.java: T_04_02_passportRequiresEmptyNationalDocumentAndGenericAllowsFreeForm
+SignupContactsTest.java: T_04_03_postalDatasetSupportsZeroOneAndManyTowns
+SignupContactsTest.java: T_04_04_phonesReuseCountryNormalizationAndRequireSecondLabel
+SignupContactsTest.java: T_04_04_emailsAreNormalizedDistinctAndFirstIsPrimary
+SignupPaymentsTest.java: T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice
+SignupPaymentsTest.java: T_04_05_clockUsesClubZoneAndCatalogOverrides
+SignupPaymentsTest.java: T_04_06_publicUpfrontLinesFollowPlanTypesAndBilling
+SignupPaymentsTest.java: T_04_06_addDogUsesCurrentMonthDeltaAndInclusiveCutoff
+SignupPaymentsTest.java: T_04_07_allocationCascadesEntryBeforeFirstMonth
+SignupPaymentsTest.java: T_04_07_allocationRejectsExcessNegativeAndMixedCurrency
+SignupPaymentsTest.java: T_04_09_catalogFiltersTypesVisibilityTenantAndSuppressesAmounts
+SignupPolicyTest.java: T_04_08_holderMatchingNormalizesNamesAndRequiresUniqueEligibleHolder
+SignupPolicyTest.java: T_04_08_familyFareUsesEligibleCatalogPlanOrDiscountHint
+SignupPolicyTest.java: T_04_10_genderSnapshotsUseProductionIcuBundlesInThreeLocales
+SignupPolicyTest.java: T_04_15_consentRequiresAcceptanceAndCurrentVersionAndProducesAppendOnlyEntries
+SignupPolicyTest.java: T_04_17_signupStateCoversPublicReadmissionAndAddDogWithoutReprovisioning
+SignupPolicyTest.java: T_04_22_paymentStateTransitionMatrixMatchesS04AndRejectionRetainsPaid
+All T-04-01 through T-04-10 present; signup tests use no database I/O.

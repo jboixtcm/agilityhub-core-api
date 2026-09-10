@@ -5,6 +5,9 @@ import java.util.List;
 public interface CountryProfile {
     String code();
     List<String> idDocumentTypes();
+    default String normalizeIdDocument(String type, String value) {
+        return value == null ? "" : value.toUpperCase(java.util.Locale.ROOT).replaceAll("[\\s-]", "");
+    }
     boolean validateIdDocument(String type, String value);
     String normalizePhone(String raw);
     boolean validateIban(String value);

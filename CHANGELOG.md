@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E3-T02: Add pure signup contact, postal lookup, first-month and upfront-payment
+  rules, family matching and fare proposals, consent renewal and state transitions.
+  Reuse country profiles and catalog prices, preserve census document normalization,
+  and add ca/es/en gender-aware signup messages with S04 unit and architecture tests.
+
 - E3-T01: Publish eleven S04 signup, checkout, add-dog and validation contract
   stubs with tenant/role/module guards, typed request/response schemas and fictional
   fixtures. Reserve signup list fields, align dashboard enums and nullable blocks,

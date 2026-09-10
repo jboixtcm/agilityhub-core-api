@@ -9,6 +9,12 @@ import com.tngtech.archunit.lang.ArchRule;
 class ArchitectureTest {
 
     @ArchTest
+    static final ArchRule E3_T02_signupDomainHasNoSpringOrMongo =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses()
+                    .that().resideInAPackage("..clubs.signup.domain..")
+                    .should().dependOnClassesThat().resideInAnyPackage("org.springframework..", "com.mongodb..", "org.bson..");
+
+    @ArchTest
     static final ArchRule E0_T01_domainHasNoWebDataSecurityOrServletDependencies =
             ArchitectureRules.DOMAIN_INDEPENDENCE;
 

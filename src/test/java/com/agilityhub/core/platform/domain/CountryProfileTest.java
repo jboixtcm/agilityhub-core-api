@@ -38,7 +38,7 @@ class CountryProfileTest {
     @Test void T_02_04_genericIsFallbackWithNoNationalFormatValidation() {
         var generic = registry.get("GENERIC");
         assertThat(registry.get("PT")).isSameAs(generic);
-        assertThat(generic.code()).isEqualTo("GENERIC"); assertThat(generic.idDocumentTypes()).containsExactly("OTHER");
+        assertThat(generic.code()).isEqualTo("GENERIC"); assertThat(generic.idDocumentTypes()).containsExactly("PASSPORT", "OTHER");
         assertThat(generic.defaultPhonePrefix()).isEmpty(); assertThat(generic.dateFormat()).isEqualTo("yyyy-MM-dd");
         assertThat(generic.validateIdDocument("OTHER", "free form")).isTrue();
         assertThat(generic.validateIban("free form")).isTrue(); assertThat(generic.postalCodeLookup("08349")).isEmpty();

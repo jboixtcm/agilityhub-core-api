@@ -27,3 +27,4 @@ __pycache__/
 !roadmap/evidence/E2-T13/*.log
 !roadmap/evidence/E2-T10/*.log
 !roadmap/evidence/E3-T01/*.log
+!roadmap/evidence/E3-T02/*.log

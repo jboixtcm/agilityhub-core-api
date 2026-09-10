@@ -13,10 +13,14 @@ public class SpanishCountryProfile extends GenericCountryProfile {
     @Override public List<String> idDocumentTypes() { return List.of("DNI", "NIE", "PASSPORT"); }
     @Override public String defaultPhonePrefix() { return "+34"; }
     @Override public String dateFormat() { return "dd/MM/yyyy"; }
+    @Override public String normalizeIdDocument(String type, String value) {
+        String normalized = super.normalizeIdDocument(type, value);
+        return "DNI".equals(type) && normalized.matches("[0-9]{7}[A-Z]") ? "0" + normalized : normalized;
+    }
     @Override public boolean validateIdDocument(String type, String value) {
         if (value == null || value.isBlank()) { return false; }
-        String document = value.toUpperCase(Locale.ROOT).strip();
-        if ("PASSPORT".equals(type)) { return true; }
+        String document = normalizeIdDocument(type, value);
+        if ("PASSPORT".equals(type)) { return document.matches("[A-Z0-9]{5,20}"); }
         if ("DNI".equals(type) && document.matches("[0-9]{8}[A-Z]")) { return checkLetter(document); }
         if ("NIE".equals(type) && document.matches("[XYZ][0-9]{7}[A-Z]")) {
             return checkLetter("XYZ".indexOf(document.charAt(0)) + document.substring(1));

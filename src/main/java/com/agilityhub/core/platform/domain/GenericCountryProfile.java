@@ -6,8 +6,10 @@ import java.util.List;
 
 public class GenericCountryProfile implements CountryProfile {
     @Override public String code() { return "GENERIC"; }
-    @Override public List<String> idDocumentTypes() { return List.of("OTHER"); }
-    @Override public boolean validateIdDocument(String type, String value) { return true; }
+    @Override public List<String> idDocumentTypes() { return List.of("PASSPORT", "OTHER"); }
+    @Override public boolean validateIdDocument(String type, String value) {
+        return type != null && idDocumentTypes().contains(type) && normalizeIdDocument(type, value).length() >= 4;
+    }
     @Override public boolean validateIban(String value) { return true; }
     @Override public List<Town> postalCodeLookup(String code) { return List.of(); }
     @Override public String defaultPhonePrefix() { return ""; }
@@ -15,7 +17,7 @@ public class GenericCountryProfile implements CountryProfile {
     @Override public String timeFormat() { return "HH:mm"; }
     @Override public String normalizePhone(String raw) {
         String normalized = raw == null ? "" : raw.replaceAll("[\\s().-]", "");
-        if (!normalized.matches("\\+[1-9][0-9]{1,14}")) { throw new ApiException(ErrorCode.INVALID_PHONE); }
+        if (!normalized.matches("\\+[1-9][0-9]{6,14}")) { throw new ApiException(ErrorCode.INVALID_PHONE); }
         return normalized;
     }
 }

@@ -59,6 +59,7 @@ class CensusValidationTest {
         assertThat(validation.address(Map.of("street", "Example", "city", "Town", "postalCode", "08349", "province", "Example", "country", "ES"))).containsEntry("postalCode", "08349");
         assertThatThrownBy(() -> validation.address(Map.of("postalCode", "bad"))).hasMessage("VALIDATION_ERROR");
         when(countries.document("DNI", "12345678Z")).thenReturn(true);
+        when(countries.normalizeDocument("DNI", "12345678Z")).thenReturn("12345678Z");
         assertThat(validation.idDocument(Map.of("type", "DNI", "number", "12345678z"))).containsEntry("number", "12345678Z");
         assertThatThrownBy(() -> validation.idDocument(Map.of("type", "DNI", "number", "12345678A"))).hasMessage("VALIDATION_ERROR");
     }
