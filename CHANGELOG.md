@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E3-T06: Record fresh-stack health diagnostics and the local IPv4/IPv6 listener
+  collision. Hardening remains blocked pending the organizer's generic HTTP 500
+  error-contract decision; application behavior is unchanged.
+
 - E3-T02: Add pure signup contact, postal lookup, first-month and upfront-payment
   rules, family matching and fare proposals, consent renewal and state transitions.
   Reuse country profiles and catalog prices, preserve census document normalization,

@@ -1,0 +1,39 @@
+HTTP/1.1 500
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 10 Sep 2026 04:58:06 GMT
+Connection: close
+
+{"status":500,"error":"Internal Server Error","message":"internal server error","path":"/api/v1/health","timestamp":"2026-09-10T06:58:06.931301"}HTTP/1.1 200
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Language: ca
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 10 Sep 2026 04:58:06 GMT
+
+{"status":"UP","version":"0.1.0-SNAPSHOT","builtAt":"2026-09-09T17:19:05.358Z"}HTTP/1.1 500
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 10 Sep 2026 04:58:06 GMT
+Connection: close
+
+{"status":500,"error":"Internal Server Error","message":"internal server error","path":"/api/v1/health","timestamp":"2026-09-10T06:58:06.953751"}COMMAND     PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+java      36366 jordib  128u  IPv6 0x866e72abec93e8cc      0t0  TCP *:8080 (LISTEN)
+com.docke 99041 jordib  134u  IPv4 0xaa2157ffa37fcbfc      0t0  TCP 127.0.0.1:8080 (LISTEN)
+{"Test":["CMD-SHELL","curl -fsS \"http://localhost:${SERVER_PORT:-8080}/api/v1/health\" || exit 1"],"Interval":5000000000,"Timeout":3000000000,"StartPeriod":40000000000,"Retries":12} healthy
