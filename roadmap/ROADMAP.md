@@ -62,10 +62,10 @@ Planned tasks: E3-T01 contract S04 (`/signup*`, `/checkout-sessions`, `/me/dogs/
 
 Added 09-09 (night): **E3-T06** hardening of INC-01…04 + INC-06 (health independent of tenant/data, 500s logged, truthful compose healthcheck, `MONGO_PORT`, `scope` always present) — order 5, so it runs right after E3-T01; it unblocks the gate E0 promotion.
 
-### Gate E3 (back — checked by the organizer)
-- [ ] `bin/e3-smoke` green twice on the local stack: public signup (family group found, SEPA without IBAN → warning) → D1 pending → D2 validation → N-02 in the mailbox → welcome link → `/me`; add-dog → N-37; rejection → N-03; `signup.enabled=false` → `SIGNUP_CLOSED`.
-- [ ] `GET /dashboard` with the seed: `pendingSignups` real, `activeMembers` real, class/training blocks `null`/0 (ports until E4/E5), `dogsByLevel` real.
-- [ ] CI green; OpenAPI snapshot staged for the web (E3-W03).
+### Gate E3 (back — checked by the organizer 2026-09-16; E3-T01…T06 verified)
+- [x] `bin/e3-smoke` green twice on the local stack (E3-T05 evidence `10-smoke-second.log`, `11-smoke-image.log`): public signup (family group found, SEPA without IBAN → warning) → D1 pending → D2 validation → N-02 in the mailbox → welcome link → `/me`; add-dog → N-37; rejection → N-03; `signup.enabled=false` → `422 SIGNUP_CLOSED`.
+- [x] `GET /dashboard` with the seed: `pendingSignups` 3 (1 older than the warn days), `activeMembers` 184, class/training blocks `null`/0 (ports until E4/E5), `dogsByLevel` 242 over 8 levels (E3-T04/E3-T05).
+- [x] CI green at `2d0423c` (360 unit + 469 IT); OpenAPI snapshot `2d0423c` staged for the web (E3-W02 adopted `83069c1`; E3-W03 adopts `2d0423c`).
 
 ## E4 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md` and the Catalan backlog `docs/backlog` when synced)
 - **E4** Planning + activities (S06, S07) — gate: a week generated from templates and validated; a class with bookings cancelled with events.
