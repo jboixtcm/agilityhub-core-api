@@ -25,7 +25,7 @@ Order: T01 → T02 → T03 → T04 → T05 → T06 → T07 → T08 → T09 → T
 | E0-T13 | Staging deployment + backup/restore + DEPLOY.md | T03, T10, Jordi |
 | E0-T14 | Playbooks (entity, endpoint, scheduler, consumer, checklist) | T10, T11, T12 |
 
-### Gate E0 (checked by the organizer with Jordi) — organizer 2026-09-10 08:58: ready to promote (`gate/E0` at `061671a`, CI green) once Jordi's Mac check passes
+### Gate E0 (checked by the organizer with Jordi) — **PROMOTED 2026-09-16**: tag `gate/E0` = `061671a`, branch `release` ← `main` (Jordi; Mac health check with `curl -4` passed)
 - [x] `docker compose up -d --wait` starts api + mongo; `/api/v1/health` is `UP` — E3-T06 evidence `21-fresh-stack.log` (empty database, with/without `Host`); the 09-09 `500` was a stale native Java listener on `[::1]:8080` (INC-01 closed) → Jordi: kill it and check with `curl -4 -fsS http://127.0.0.1:8080/api/v1/health`.
 - [x] `bin/core club:apply seeds/club-canic.yaml` and `seeds/club-minim.yaml` applied; second run reports 0 changes (E0-T10, E2-T11 idempotency; `SEED_PASSWORD` required since E1-T09 — INC-05).
 - [x] `/branding` returns the Cànic theme for its host and the AgilityHub theme for the minimal club; unknown host → `404 UNKNOWN_HOST` (E0-T05; re-proven in E3-T06 `21-fresh-stack.log`).
