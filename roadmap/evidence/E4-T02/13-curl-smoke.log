@@ -1,0 +1,121 @@
+ Volume e4t02-smoke-73185_mongo-data Creating
+ Network e4t02-smoke-73185_default Creating
+ Network e4t02-smoke-73185_default Creating
+ Volume e4t02-smoke-73185_mongo-data Creating
+ Volume e4t02-smoke-73185_mongo-data Created
+ Volume e4t02-smoke-73185_mongo-data Created
+ Network e4t02-smoke-73185_default Created
+ Network e4t02-smoke-73185_default Created
+ Container e4t02-smoke-73185-mongo-1 Creating
+ Container e4t02-smoke-73185-mongo-1 Created
+ Container e4t02-smoke-73185-mongo-1 Starting
+ Container e4t02-smoke-73185-mongo-1 Started
+ Container e4t02-smoke-73185-mongo-1 Waiting
+ Container e4t02-smoke-73185-mongo-1 Healthy
+ Volume e4t02-smoke-73185_export-files Creating
+ Volume e4t02-smoke-73185_export-files Creating
+ Volume e4t02-smoke-73185_attachment-files Creating
+ Volume e4t02-smoke-73185_attachment-files Creating
+ Volume e4t02-smoke-73185_export-files Created
+ Volume e4t02-smoke-73185_export-files Created
+ Volume e4t02-smoke-73185_attachment-files Created
+ Volume e4t02-smoke-73185_attachment-files Created
+ Container e4t02-smoke-73185-api-run-49a290de1596 Creating
+ Container e4t02-smoke-73185-api-run-49a290de1596 Created
++ club added
+  null -> {"slug":"canic","name":"Club Agility Cànic","address":{"city":"Cabrera de Mar","country":"ES"},"contactEmail":"canic@example.test","locales":["ca","es"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":"ES","status":"ONBOARDING","template":false}
++ domains added
+  null -> [{"host":"app.example.test","app":"clubs","primary":true},{"host":"admin.example.test","app":"clubs-admin","primary":false}]
++ theme added
+  null -> {"colors":{"primary":"#E26A2A","onPrimary":"#FFFFFF","background":"#0B0B0B","surface":"#161616","surfaceAlt":"#1E1E1E","text":"#FFFFFF","textMuted":"#B5B5B5","border":"#2B2B2B","success":"#4CAF7D","warning":"#E5B93C","danger":"#E05B5B","info":"#85B8E8"},"fontFamily":"Montserrat","radius":"4px","ringPalette":["#F2B58C","#8FCE8F","#C9CDD3","#F5D67A","#85B8E8"],"mode":"dark"}
++ modules added
+  null -> ["ACTIVITIES","BILLING","COURSES","FAMILY_GROUP","FAQ","FREE_TRAINING","INACTIVITY","LEARN_LINK","PACKS","PUSH","SMS","TASKS","WAITLIST"]
++ paymentProviders added
+  null -> ["MANUAL","SEPA_XML"]
++ legal added
+  null -> {"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","imageConsentText":{"ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club","es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club","en":"I authorize publication of photos of me and my dog within club activities"},"legalTextsVersion":"1"}
++ pwa added
+  null -> {"name":"Club Agility Cànic","shortName":"Club Agility Cànic","icons":[]}
++ parameters.signup.enabled added
+  null -> true
++ parameters.signup.pendingExpiryDays added
+  null -> 30
++ parameters.signup.requireDogDocumentAtSignup added
+  null -> false
++ parameters.signup.firstMonthSplitDay added
+  null -> 16
++ parameters.signup.allowFamilyGroupPending added
+  null -> true
++ admins: 0 to provision
++ accounts: 15 to provision
++ catalogs.levels.CAD
++ catalogs.levels.A
++ catalogs.levels.B
++ catalogs.levels.C
++ catalogs.levels.D
++ catalogs.levels.E
++ catalogs.levels.F
++ catalogs.levels.G
++ catalogs.levels.TER
++ catalogs.rings.MUN
++ catalogs.rings.CEN
++ catalogs.rings.CAR
++ catalogs.rings.CAD
++ catalogs.rings.PET
++ catalogs.plans.ABONAT
++ catalogs.plans.ABONAT_FAMILIAR
++ catalogs.plans.PACK6
++ catalogs.plans.PACK10
++ catalogs.plans.TERAPIA
++ catalogs.prices.ABONAT:MONTHLY_FEE:2026-01-01
++ catalogs.prices.ABONAT_FAMILIAR:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK6:PACK:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.TERAPIA:MAINTENANCE_FEE:2026-01-01
++ catalogs.faq.FAQ_1
++ catalogs.faq.FAQ_2
++ catalogs.faq.FAQ_3
++ catalogs.faq.FAQ_4
++ catalogs.faq.FAQ_5
++ catalogs.faq.FAQ_6
++ catalogs.faq.FAQ_7
++ catalogs: 31 catalog changes
++ messageTemplates: schema accepted; application deferred to E7
++ pages: 3 page changes
+15 changes (applied)
+ Container e4t02-smoke-73185-mongo-1 Running
+ Container e4t02-smoke-73185-api-1 Creating
+ Container e4t02-smoke-73185-api-1 Created
+ Container e4t02-smoke-73185-mongo-1 Waiting
+ Container e4t02-smoke-73185-mongo-1 Healthy
+ Container e4t02-smoke-73185-api-1 Starting
+ Container e4t02-smoke-73185-api-1 Started
+ Container e4t02-smoke-73185-mongo-1 Waiting
+ Container e4t02-smoke-73185-api-1 Waiting
+ Container e4t02-smoke-73185-mongo-1 Healthy
+ Container e4t02-smoke-73185-api-1 Healthy
+curl GET /api/v1/health -> UP
+curl POST /api/v1/week-templates -> 201 Planning smoke
+curl POST /api/v1/week-templates/964b9ac3-7c7e-409e-aef4-2076e0f6031c/bands -> 201 bands=1
+ Container e4t02-smoke-73185-api-1 Stopping
+ Container e4t02-smoke-73185-api-1 Stopped
+ Container e4t02-smoke-73185-api-1 Removing
+ Container e4t02-smoke-73185-api-1 Removed
+ Container e4t02-smoke-73185-mongo-1 Stopping
+ Container e4t02-smoke-73185-mongo-1 Stopped
+ Container e4t02-smoke-73185-mongo-1 Removing
+ Container e4t02-smoke-73185-mongo-1 Removed
+ Volume e4t02-smoke-73185_mongo-data Removing
+ Volume e4t02-smoke-73185_export-files Removing
+ Network e4t02-smoke-73185_default Removing
+ Volume e4t02-smoke-73185_attachment-files Removing
+ Volume e4t02-smoke-73185_mongo-data Removed
+ Volume e4t02-smoke-73185_export-files Removed
+ Volume e4t02-smoke-73185_attachment-files Removed
+ Network e4t02-smoke-73185_default Removed
+Disposable Compose containers, volumes and network removed.
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E4-T02/curl-smoke.py", line 91, in <module>
+    instructorIds=[instructors[0]['id']], ringId=rings[0]['id'], levelIds=[names['B'], names['C']]),
+                   ~~~~~~~~~~~^^^
+IndexError: list index out of range

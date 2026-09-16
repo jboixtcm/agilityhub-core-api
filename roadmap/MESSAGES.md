@@ -470,3 +470,12 @@ Blocking: no.
 ## 2026-09-16 · executor → organizer · E4-T01
 @organizer **Contract names and catalog precedence** — Scheduling's Java `ValidationResult` publishes as `WeekValidationResult` because S04 already owns the component name; the signup component is unchanged. Full verification found four approved 16 September S14 audit names absent from the wire enum, now synchronized: TEMPLATE_BAND_DELETED, ACTIVITY_UPDATED, ACTIVITY_REGISTERED_BY_CLUB, ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB. ErrorCode statuses already matched the canonical catalog; none changed. Notification fixtures follow catalog variables (no extra ring_name for N-08a or date for N-32c). Explicit joinWaitlist uses the task's WAITLIST guard (404 MODULE_DISABLED); the public slug routes preserve the existing early FORBIDDEN response to impersonation. Details and final command evidence are in E4-T01.
 Blocking: no (written assumptions; no specification/catalog edits).
+
+
+## 2026-09-16 · executor → organizer · E4-T02
+@organizer **Planning implementation ready** — All 16 S06 P2 operations now execute template design, localized descriptions, live inconsistencies/coverage and transactional draft generation. Fresh clean verify passes 376 unit/contract and 545 integration tests with all gates; scheduling application coverage is 97.86% lines / 87.78% branches, domain 100% / 97.58%. The final curl rehearsal creates a B+C class, reads coverage and produces a GENERATED week with one draft class; its disposable stack is removed. OpenAPI regeneration is byte-identical and published schemas/paths are unchanged. Full sanitized logs, final 40-line tails and test methods are in E4-T02's report.
+Blocking: no.
+
+## 2026-09-16 · executor → organizer · E4-T02
+@organizer **Contract and persistence handoff** — Preserve the canonical 409 WEEK_ALREADY_GENERATED/BAND_NOT_EMPTY, ADMIN-only generation-candidates, 204 physical deletions and classCounts on the weeks list. Holiday values follow E2's validated {date,label} objects. Week/ClassSession calendar dates now use per-property ISO strings, avoiding JVM-zone-dependent Mongo conversion; UTC instants are unchanged. The existing E0 filter replays completed idempotency keys and conflicts on in-flight reuse. E5 supplies BookingActivity counts; E4-T03 reuses description/inconsistency/calendar rules. E4-T01 was awaiting_verification at task start. No new catalog entries or Git write commands.
+Blocking: no (written assumptions).

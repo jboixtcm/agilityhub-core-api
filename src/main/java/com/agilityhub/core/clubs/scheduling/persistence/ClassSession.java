@@ -4,13 +4,14 @@ import com.agilityhub.core.shared.domain.TenantEntity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.convert.ValueConverter;
 import java.time.*;
 import java.util.List;
 import com.agilityhub.core.clubs.scheduling.domain.*;
 
 @Document("class_sessions")
 public record ClassSession(@Id String id, String clubId,
-        String weekId, LocalDate date, String startTime, String endTime, Instant startsAt, Instant endsAt,
+        String weekId, @ValueConverter(CalendarDateConverter.class) LocalDate date, String startTime, String endTime, Instant startsAt, Instant endsAt,
         String ringId, List<String> levelIds, List<String> instructorIds, int capacity, CapacityMode capacityMode,
         String description, ClassState state, Counters counters, Risk risk, Cancellation cancellation, Origin origin,
         String placementId, String notes,

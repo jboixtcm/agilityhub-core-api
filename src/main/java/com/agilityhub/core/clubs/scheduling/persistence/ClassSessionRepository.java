@@ -19,4 +19,7 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
         mongo.indexOps(ClassSession.class).ensureIndex(new Index().on("clubId", ASC).on("state", ASC).on("endsAt", ASC).named("class_club_state_end"));
     }
     public boolean hasClasses() { return mongo.exists(tenantQuery(), ClassSession.class); }
+    public java.util.List<ClassSession> forWeek(String weekId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("weekId").is(weekId)), ClassSession.class);
+    }
 }

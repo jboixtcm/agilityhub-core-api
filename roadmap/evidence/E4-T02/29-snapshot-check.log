@@ -1,0 +1,3 @@
+PASS: fresh OpenAPI snapshot is byte-identical.
+PASS: published E4-T01 schemas and paths are unchanged.
+Updated 16 operation descriptions and existing error descriptions for implemented P2 routes.

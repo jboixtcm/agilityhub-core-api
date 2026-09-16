@@ -1,0 +1,24 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- jacoco:0.8.14:check (coverage) @ agilityhub-core-api ---
+[INFO] Loading execution data file /Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] Analyzed bundle 'agilityhub-core-api' with 1160 classes
+[WARNING] Rule violated for package com.agilityhub.core.clubs.scheduling.application: branches covered ratio is 0.77, but expected minimum is 0.80
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.662 s
+[INFO] Finished at: 2026-09-16T12:53:05+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.jacoco:jacoco-maven-plugin:0.8.14:check (coverage) on project agilityhub-core-api: Coverage checks have not been met. See log for details. -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

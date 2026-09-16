@@ -3,6 +3,16 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-16 · E4-T02 · Planning operations implemented
+
+The 16 template, coverage, week, candidate and generation operations now execute
+S06 P2 instead of returning 501. Their schemas and paths are unchanged. Nullable
+patch fields distinguish omitted values from explicit resets. `POST /weeks`
+returns 200 for an existing week and 201 for a new one. Week list filtering,
+sorting and paging use the shared list contract. Generation candidates retain
+ADMIN access as published in S06 §6 and E4-T01.
+
+
 ## 2026-09-16 · E4-T01 · Scheduling and activities contracts
 
 Adds **55 operations: 31 S06 + 24 S07**, all reserved with `501 NOT_IMPLEMENTED`

@@ -20350,7 +20350,7 @@
     },
     "/api/v1/coverage" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Exactly one of templateId (optional saturdayTemplateId) or weekId is required. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. Exactly one of templateId (optional saturdayTemplateId) or weekId is required. Tenant comes from the JWT.",
         "operationId" : "coverage",
         "parameters" : [ {
           "in" : "query",
@@ -42962,7 +42962,7 @@
     },
     "/api/v1/week-templates" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "templates",
         "parameters" : [ {
           "in" : "query",
@@ -43115,7 +43115,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "createTemplate",
         "requestBody" : {
           "content" : {
@@ -43196,7 +43196,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "TEMPLATE_KIND_MISMATCH"
           },
           "429" : {
             "content" : {
@@ -43264,7 +43264,7 @@
     },
     "/api/v1/week-templates/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "template",
         "parameters" : [ {
           "in" : "path",
@@ -43409,7 +43409,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "patchTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -43566,7 +43566,7 @@
     },
     "/api/v1/week-templates/{id}/bands" : {
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "createBand",
         "parameters" : [ {
           "in" : "path",
@@ -43723,7 +43723,7 @@
     },
     "/api/v1/week-templates/{id}/bands/{bandId}" : {
       "delete" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "deleteBand",
         "parameters" : [ {
           "in" : "path",
@@ -43868,7 +43868,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "patchBand",
         "parameters" : [ {
           "in" : "path",
@@ -44032,7 +44032,7 @@
     },
     "/api/v1/week-templates/{id}/classes" : {
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "createTemplateClass",
         "parameters" : [ {
           "in" : "path",
@@ -44189,7 +44189,7 @@
     },
     "/api/v1/week-templates/{id}/classes/{classId}" : {
       "delete" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "deleteTemplateClass",
         "parameters" : [ {
           "in" : "path",
@@ -44334,7 +44334,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "patchTemplateClass",
         "parameters" : [ {
           "in" : "path",
@@ -44498,7 +44498,7 @@
     },
     "/api/v1/weeks" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "weeks",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -44699,7 +44699,7 @@
         "x-sortable" : [ "startDate" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. 200 for an existing week; 201 for a new week. startDate must be Monday. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply. 200 for an existing week; 201 for a new week. startDate must be Monday. Tenant comes from the JWT.",
         "operationId" : "createWeek",
         "requestBody" : {
           "content" : {
@@ -44858,7 +44858,7 @@
     },
     "/api/v1/weeks/generation-candidates" : {
       "get" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "generationCandidates",
         "responses" : {
           "200" : {
@@ -44997,7 +44997,7 @@
     },
     "/api/v1/weeks/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "week",
         "parameters" : [ {
           "in" : "path",
@@ -45300,7 +45300,7 @@
     },
     "/api/v1/weeks/{id}/generation" : {
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "generate",
         "parameters" : [ {
           "in" : "path",
@@ -45387,7 +45387,7 @@
                 }
               }
             },
-            "description" : "WEEK_ALREADY_GENERATED, IDEMPOTENCY_KEY_REUSED"
+            "description" : "WEEK_ALREADY_GENERATED, INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {

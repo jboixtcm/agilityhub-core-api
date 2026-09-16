@@ -1,6 +1,6 @@
 package com.agilityhub.core.clubs.scheduling.api;
 
-import com.agilityhub.core.clubs.scheduling.application.SchedulingContractAccess;
+import com.agilityhub.core.clubs.scheduling.application.*;
 import com.agilityhub.core.clubs.scheduling.domain.*;
 import com.agilityhub.core.shared.application.contract.*;
 import com.agilityhub.core.platform.application.RequiresModule;
@@ -17,175 +17,178 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 import static com.agilityhub.core.clubs.scheduling.api.SchedulingContracts.*;
 import static com.agilityhub.core.clubs.scheduling.api.SchedulingRequests.*;
 
-/** Reserved S06 operations. Guards execute before the standard NOT_IMPLEMENTED response. */
+/** S06 planning operations; calendar and ring-block lifecycle remain reserved for E4-T03. */
 @RestController
 public class SchedulingController {
     private final SchedulingContractAccess access;
-    public SchedulingController(SchedulingContractAccess access) { this.access = access; }
+    private final TemplateQuery templates;
+    private final TemplateService templateWrites;
+    private final CoverageQuery coverage;
+    private final WeekGenerationUseCase planning;
+    private final com.agilityhub.core.shared.application.lists.ListEngine lists;
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    public SchedulingController(SchedulingContractAccess access, TemplateQuery templates, TemplateService templateWrites,
+            CoverageQuery coverage, WeekGenerationUseCase planning, com.agilityhub.core.shared.application.lists.ListEngine lists,
+            com.fasterxml.jackson.databind.ObjectMapper mapper) {
+        this.access = access; this.templates = templates; this.templateWrites = templateWrites; this.coverage = coverage;
+        this.planning = planning; this.lists = lists; this.mapper = mapper;
+    }
+    private <T> T view(Object source, Class<T> type) { return mapper.convertValue(source, type); }
+
 
     @GetMapping("/api/v1/week-templates")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "templates", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplates", useReturnTypeSchema = true))
+    @Operation(summary = "templates", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplates", useReturnTypeSchema = true))
     public WeekTemplates templates(@RequestParam(required = false) TemplateKind kind, @RequestParam(required = false) Boolean active) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return view(templates.list(kind, active), WeekTemplates.class);
     }
 
     @PostMapping("/api/v1/week-templates")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, DUPLICATE_NAME})
-    @Operation(summary = "createTemplate", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, DUPLICATE_NAME, TEMPLATE_KIND_MISMATCH})
+    @Operation(summary = "createTemplate", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate createTemplate(@Valid @RequestBody WeekTemplateCreateRequest request) {
         access.tenant();
-        if (request.copyFromId() != null) { access.template(request.copyFromId()); }
-        throw new UnsupportedOperationException();
+        return view(templateWrites.create(request.name(), request.kind(), request.copyFromId()), WeekTemplate.class);
     }
 
     @GetMapping("/api/v1/week-templates/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "template", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "template", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate template(@PathVariable String id) {
         access.tenant();
-        access.template(id);
-        throw new UnsupportedOperationException();
+        return view(templates.get(id), WeekTemplate.class);
     }
 
     @PatchMapping("/api/v1/week-templates/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, DUPLICATE_NAME})
-    @Operation(summary = "patchTemplate", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "patchTemplate", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate patchTemplate(@PathVariable String id, @Valid @RequestBody WeekTemplatePatchRequest request) {
         access.tenant();
-        access.template(id);
-        throw new UnsupportedOperationException();
+        return view(templateWrites.patch(id, request.version, request.patch()), WeekTemplate.class);
     }
 
     @PostMapping("/api/v1/week-templates/{id}/bands")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, BAND_OVERLAP, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS})
-    @Operation(summary = "createBand", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "createBand", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate createBand(@PathVariable String id, @Valid @RequestBody TimeBandCreateRequest request) {
         access.tenant();
-        access.template(id);
-        throw new UnsupportedOperationException();
+        return view(templateWrites.addBand(id, request.startTime(), request.endTime()), WeekTemplate.class);
     }
 
     @PatchMapping("/api/v1/week-templates/{id}/bands/{bandId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, BAND_OVERLAP, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS})
-    @Operation(summary = "patchBand", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "patchBand", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate patchBand(@PathVariable String id, @PathVariable String bandId, @Valid @RequestBody TimeBandPatchRequest request) {
         access.tenant();
-        access.band(id, bandId);
-        throw new UnsupportedOperationException();
+        return view(templateWrites.patchBand(id, bandId, request.version(), request.startTime(), request.endTime()), WeekTemplate.class);
     }
 
     @DeleteMapping("/api/v1/week-templates/{id}/bands/{bandId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, BAND_NOT_EMPTY})
-    @Operation(summary = "deleteBand", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
+    @Operation(summary = "deleteBand", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void deleteBand(@PathVariable String id, @PathVariable String bandId) {
         access.tenant();
-        access.band(id, bandId);
-        throw new UnsupportedOperationException();
+        templateWrites.deleteBand(id, bandId);
     }
 
     @PostMapping("/api/v1/week-templates/{id}/classes")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED})
-    @Operation(summary = "createTemplateClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "createTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate createTemplateClass(@PathVariable String id, @Valid @RequestBody TemplateClassCreateRequest request) {
         access.tenant();
-        access.band(id, request.bandId());
-        throw new UnsupportedOperationException();
+        return view(templateWrites.addClass(id, request.bandId(), request.dayOfWeek(), request.instructorIds(), request.ringId(), request.levelIds(), request.capacity(), request.description()), WeekTemplate.class);
     }
 
     @PatchMapping("/api/v1/week-templates/{id}/classes/{classId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED})
-    @Operation(summary = "patchTemplateClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
+    @Operation(summary = "patchTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekTemplate", useReturnTypeSchema = true))
     public WeekTemplate patchTemplateClass(@PathVariable String id, @PathVariable String classId, @Valid @RequestBody TemplateClassPatchRequest request) {
         access.tenant();
-        access.templateClass(id, classId);
-        throw new UnsupportedOperationException();
+        return view(templateWrites.patchClass(id, classId, request.version, request.patch()), WeekTemplate.class);
     }
 
     @DeleteMapping("/api/v1/week-templates/{id}/classes/{classId}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "deleteTemplateClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
+    @Operation(summary = "deleteTemplateClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
     public void deleteTemplateClass(@PathVariable String id, @PathVariable String classId) {
         access.tenant();
-        access.templateClass(id, classId);
-        throw new UnsupportedOperationException();
+        templateWrites.deleteClass(id, classId);
     }
 
     @GetMapping("/api/v1/coverage")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, LEVELS_DISABLED})
-    @Operation(summary = "coverage", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Exactly one of templateId (optional saturdayTemplateId) or weekId is required. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "Coverage", useReturnTypeSchema = true))
+    @Operation(summary = "coverage", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. Exactly one of templateId (optional saturdayTemplateId) or weekId is required. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "Coverage", useReturnTypeSchema = true))
     public Coverage coverage(@RequestParam(required = false) String templateId, @RequestParam(required = false) String saturdayTemplateId, @RequestParam(required = false) String weekId) {
         access.tenant();
-        access.coverage(templateId, saturdayTemplateId, weekId);
-        throw new UnsupportedOperationException();
+        return view(coverage.get(templateId, saturdayTemplateId, weekId), Coverage.class);
     }
 
     @GetMapping("/api/v1/weeks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ListContract(filterable = {"startDate", "state"}, sortable = {"startDate"}, paged = true)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "weeks", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<WeekListItem>", useReturnTypeSchema = true))
-    public ListPage<WeekListItem> weeks() {
+    @Operation(summary = "weeks", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<WeekListItem>", useReturnTypeSchema = true))
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public ListPage<WeekListItem> weeks(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        // The published DTO describes full rows; the engine also supports sparse `fields` projections.
+        return (ListPage) lists.list("weeks", params);
     }
 
     @GetMapping("/api/v1/weeks/generation-candidates")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "generationCandidates", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "GenerationCandidates", useReturnTypeSchema = true))
+    @Operation(summary = "generationCandidates", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "GenerationCandidates", useReturnTypeSchema = true))
     public GenerationCandidates generationCandidates() {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return view(planning.candidates(), GenerationCandidates.class);
     }
 
     @PostMapping("/api/v1/weeks")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ResponseStatus(HttpStatus.CREATED)
     @ApiResponse(responseCode = "200", description = "Existing week", useReturnTypeSchema = true)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "createWeek", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. 200 for an existing week; 201 for a new week. startDate must be Monday. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "Week", useReturnTypeSchema = true))
-    public Week createWeek(@Valid @RequestBody WeekCreateRequest request) {
+    @Operation(summary = "createWeek", description = "Roles: ADMIN. Tenant and role guards apply. 200 for an existing week; 201 for a new week. startDate must be Monday. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "Week", useReturnTypeSchema = true))
+    public Week createWeek(@Valid @RequestBody WeekCreateRequest request, jakarta.servlet.http.HttpServletResponse response) {
         access.tenant();
-        if (request.startDate().getDayOfWeek() != java.time.DayOfWeek.MONDAY) { throw new com.agilityhub.core.shared.domain.ApiException(VALIDATION_ERROR); }
-        throw new UnsupportedOperationException();
+        var result = planning.create(request.startDate());
+        response.setStatus(result.created() ? 201 : 200);
+        return view(result.week(), Week.class);
     }
 
     @GetMapping("/api/v1/weeks/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "week", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "Week", useReturnTypeSchema = true))
+    @Operation(summary = "week", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "Week", useReturnTypeSchema = true))
     public Week week(@PathVariable String id) {
         access.tenant();
-        access.week(id);
-        throw new UnsupportedOperationException();
+        return view(planning.get(id), Week.class);
     }
 
     @PostMapping("/api/v1/weeks/{id}/generation")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, WEEK_ALREADY_GENERATED, TEMPLATE_INCONSISTENT, TEMPLATE_KIND_MISMATCH, WEEK_IN_PAST, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "generate", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "GenerationResult", useReturnTypeSchema = true))
+    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, WEEK_ALREADY_GENERATED, TEMPLATE_INCONSISTENT, TEMPLATE_KIND_MISMATCH, WEEK_IN_PAST, INVALID_STATE, STALE_VERSION, IDEMPOTENCY_KEY_REUSED})
+    @Operation(summary = "generate", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "GenerationResult", useReturnTypeSchema = true))
     public GenerationResult generate(@PathVariable String id, @Valid @RequestBody GenerationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
-        access.week(id); access.template(request.weekdayTemplateId()); if (request.saturdayTemplateId() != null) { access.template(request.saturdayTemplateId()); }
-        throw new UnsupportedOperationException();
+        return view(planning.generate(id, request.weekdayTemplateId(), request.saturdayTemplateId()), GenerationResult.class);
     }
 
     @PostMapping("/api/v1/weeks/{id}/validation")

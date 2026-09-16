@@ -35,6 +35,7 @@ class E4ContractIT extends AbstractIntegrationTest {
     @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs;
     @Autowired HostTenantResolver hosts;
+    @Autowired com.agilityhub.core.clubs.scheduling.application.TemplateQuery templateQuery;
     @Autowired org.springframework.data.mongodb.core.MongoTemplate mongo;
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params,
@@ -50,19 +51,22 @@ class E4ContractIT extends AbstractIntegrationTest {
         for (String clubId : List.of(CLUB, OTHER)) {
             var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(clubId, clubId.equals(CLUB) ? HOST : OTHER_HOST));
             tree.set("modules", mapper.valueToTree(Module.values())); tree.put("publicApiKeyHash", PublicClubAccess.digest(PUBLIC_KEY));
-            clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(clubId);
+            clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(clubId); templateQuery.invalidate(clubId);
         }
         hosts.invalidate();
-        for (String collection : List.of("week_templates", "weeks", "class_sessions", "ring_blocks", "activities", "activity_registrations")) {
+        for (String collection : List.of("week_templates", "weeks", "class_sessions", "ring_blocks", "activities", "activity_registrations", "levels", "rings", "instructors", "parameters")) {
             mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
-        insert("scheduling", "WeekTemplate", "template-a", Map.of("name", "Example week", "kind", "WEEKDAYS", "active", true,
-                "timeBands", List.of(Map.of("id", "band-a", "startTime", "18:00", "endTime", "19:00")),
-                "classes", List.of(Map.of("id", "template-class-a", "bandId", "band-a", "dayOfWeek", "MONDAY", "instructorIds", List.of("instructor-a"), "levelIds", List.of("level-a"), "capacity", 5, "capacityMode", "AUTO"))));
+        insert("catalogs", "Level", "e4-level-a", Map.of("name", Map.of("ca", "A"), "order", 1, "capacity", 5, "active", true));
+        insert("catalogs", "Ring", "e4-ring-a", Map.of("name", "Example", "shortName", "EX", "order", 1, "active", true));
+        insert("catalogs", "Instructor", "e4-instructor-a", Map.of("memberId", "member-a", "shortName", "Example", "active", true));
+        insert("scheduling", "WeekTemplate", "template-a", Map.of("name", "Stored week", "kind", "WEEKDAYS", "active", true,
+                "timeBands", List.of(Map.of("id", "band-a", "startTime", "18:00", "endTime", "19:00"), Map.of("id", "band-empty", "startTime", "20:00", "endTime", "21:00")),
+                "classes", List.of(Map.of("id", "template-class-a", "bandId", "band-a", "dayOfWeek", "MONDAY", "instructorIds", List.of("e4-instructor-a"), "levelIds", List.of("e4-level-a"), "capacity", 5, "capacityMode", "AUTO"))));
         insert("scheduling", "WeekTemplate", "template-saturday", Map.of("name", "Example Saturday", "kind", "SATURDAY", "active", true, "timeBands", List.of(), "classes", List.of()));
         insert("scheduling", "Week", "week-a", Map.of("isoYear", 2026, "isoWeek", 38, "startDate", "2026-09-14", "endDate", "2026-09-20", "state", "PENDING"));
         insert("scheduling", "ClassSession", "class-a", Map.of("weekId", "week-a", "state", "ACTIVE", "levelIds", List.of(), "instructorIds", List.of(), "capacity", 5));
-        insert("scheduling", "RingBlock", "block-a", Map.of("ringId", "ring-a", "state", "ACTIVE", "kind", "BLOCK", "reason", "MAINTENANCE"));
+        insert("scheduling", "RingBlock", "block-a", Map.of("ringId", "e4-ring-a", "state", "ACTIVE", "kind", "BLOCK", "reason", "MAINTENANCE"));
         insert("activities", "Activity", "activity-a", Map.of("slug", "example-event", "state", "PUBLISHED", "documents", List.of(Map.of("id", "document-a", "name", "Example", "fileKey", "file-a", "mimeType", "application/pdf", "sizeBytes", 4))));
         insert("activities", "ActivityRegistration", "registration-a", Map.of("activityId", "activity-a", "memberId", "member-a", "state", "ACTIVE", "origin", "APP"));
     }
@@ -74,6 +78,11 @@ class E4ContractIT extends AbstractIntegrationTest {
             mongo.insert(mapper.treeToValue(tree, Class.forName("com.agilityhub.core.clubs." + context + ".persistence." + name)));
         } catch (Exception failure) { throw new IllegalStateException(failure); }
     }
+    private static boolean planning(Route route) {
+        return route.path().startsWith("/api/v1/week-templates") || route.path().equals("/api/v1/coverage")
+                || route.path().equals("/api/v1/weeks") || route.path().equals("/api/v1/weeks/{id}")
+                || route.path().endsWith("/generation-candidates") || route.path().endsWith("/generation");
+    }
     private String path(Route r, String clubId) {
         String id = r.path().contains("week-templates") ? "template-a" : r.path().contains("weeks/") ? "week-a"
                 : r.path().contains("class-sessions/") ? "class-a" : r.path().contains("ring-blocks/") ? "block-a"
@@ -83,8 +92,14 @@ class E4ContractIT extends AbstractIntegrationTest {
                 .replace("{slug}", "example-event").replace("{fileId}", "document-a");
     }
     private MockHttpServletRequestBuilder call(Route r, String clubId, String role) throws Exception {
-        var request = request(HttpMethod.valueOf(r.method()), path(r, clubId)).header("Host", r.publicRoute() ? "core.example.test" : clubId.equals(CLUB) ? HOST : OTHER_HOST);
-        if (r.body() != null && !r.body().isNull()) { request.contentType("application/json").content(mapper.writeValueAsString(r.body())); }
+        var request = request(HttpMethod.valueOf(r.method()), (r.method().equals("DELETE") && r.path().contains("/bands/") ? path(r, clubId).replace("band-a", "band-empty") : path(r, clubId))).header("Host", r.publicRoute() ? "core.example.test" : clubId.equals(CLUB) ? HOST : OTHER_HOST);
+        if (r.body() != null && !r.body().isNull()) { request.contentType("application/json").content(mapper.writeValueAsString(r.body()).replace("level-a", "e4-level-a").replace("ring-a", "e4-ring-a").replace("instructor-a", "e4-instructor-a")); }
+        if (r.method().equals("POST") && r.path().endsWith("/bands")) { request.content("{\"startTime\":\"19:00\",\"endTime\":\"20:00\"}"); }
+        if (planning(r) && r.method().equals("PATCH")) {
+            var body = (ObjectNode) r.body().deepCopy();
+            body.put("version", mongo.findById("template-a", com.agilityhub.core.clubs.scheduling.persistence.WeekTemplate.class).version());
+            request.content(mapper.writeValueAsString(body));
+        }
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (r.key()) { request.header("X-Api-Key", PUBLIC_KEY); }
@@ -103,8 +118,13 @@ class E4ContractIT extends AbstractIntegrationTest {
     void T_06_21_T_07_19_everyRouteEnforcesAllRolesAndTenantResourceIsolation(Route route) throws Exception {
         for (String role : List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN")) {
             boolean allowed = route.roles().contains(role);
-            error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
-                    allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
+            if (allowed && planning(route)) {
+                var result = mvc.perform(call(route, CLUB, role)).andReturn().getResponse();
+                assertThat(result.getStatus()).as(route.method() + " " + route.path() + ": " + result.getContentAsString()).isBetween(200, 299);
+            } else {
+                error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
+                        allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
+            }
         }
         if (!route.publicRoute()) {
             String role = route.roles().getFirst();
@@ -164,7 +184,7 @@ class E4ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_06_20_T_07_17_stubsLeaveAllCollectionsUnchangedIncludingIdempotency() throws Exception {
         Map<String, List<org.bson.Document>> before = database();
-        for (Route route : routes().toList()) { error(call(route, CLUB, route.roles().getFirst()), 501, "NOT_IMPLEMENTED"); }
+        for (Route route : routes().filter(r -> !planning(r)).toList()) { error(call(route, CLUB, route.roles().getFirst()), 501, "NOT_IMPLEMENTED"); }
         assertThat(database()).isEqualTo(before);
     }
     private Map<String, List<org.bson.Document>> database() {
@@ -213,13 +233,13 @@ class E4ContractIT extends AbstractIntegrationTest {
             params.forEach(request::param); error(request, 400, "VALIDATION_ERROR");
         }
         for (String field : List.of("weekId", "templateId")) {
-            error(get("/api/v1/coverage").param(field, field.equals("weekId") ? "week-a" : "template-a").header("Host", HOST)
-                    .with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN")), 501, "NOT_IMPLEMENTED");
+            mvc.perform(get("/api/v1/coverage").param(field, field.equals("weekId") ? "week-a" : "template-a").header("Host", HOST)
+                    .with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN"))).andExpect(status().isOk());
         }
         var generation = routes().filter(r -> r.path().endsWith("/generation")).findFirst().orElseThrow();
-        error(call(generation, CLUB, "ADMIN").content("{\"weekdayTemplateId\":\"template-a\",\"saturdayTemplateId\":\"template-saturday\"}"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(call(generation, CLUB, "ADMIN").content("{\"weekdayTemplateId\":\"template-a\",\"saturdayTemplateId\":\"template-saturday\"}")).andExpect(status().isOk());
         var template = routes().filter(r -> r.path().equals("/api/v1/week-templates") && r.method().equals("POST")).findFirst().orElseThrow();
-        error(call(template, CLUB, "ADMIN").content("{\"name\":\"Copied\",\"kind\":\"WEEKDAYS\",\"copyFromId\":\"template-a\"}"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(call(template, CLUB, "ADMIN").content("{\"name\":\"Copied\",\"kind\":\"WEEKDAYS\",\"copyFromId\":\"template-a\"}")).andExpect(status().isCreated());
         error(get("/api/v1/day-grid").param("date", "2026-09-14").param("view", "invalid").header("Host", HOST)
                 .with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN")), 400, "VALIDATION_ERROR");
     }
@@ -229,7 +249,8 @@ class E4ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();
-            assertThat(op.path("description").asText()).contains("501", "guards");
+            if (planning(route)) { assertThat(op.path("description").asText()).doesNotContain("501"); }
+            else { assertThat(op.path("description").asText()).contains("501", "guards"); }
             assertThat(op.path("responses").has(Integer.toString(route.success()))).as(route.path()).isTrue();
             assertThat(op.path("parameters").findValuesAsText("name")).doesNotContain("clubId");
             if (route.idempotency()) {

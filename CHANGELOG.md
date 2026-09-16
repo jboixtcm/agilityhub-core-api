@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E4-T02: Implement planning template edits, localized automatic descriptions,
+  live inconsistencies and coverage, and transactional draft week generation
+  with holidays, club-local time, concurrency protection and idempotent replay.
+  Add audited physical deletions, catalog reference locks, cache invalidation,
+  universal week lists and tenant/role/domain/integration tests.
+
 - E4-T01: Publish 31 scheduling and 24 activity contract operations with typed
   OpenAPI projections and guarded 501 responses; add tenant-scoped Mongo documents
   and indexes, final scheduling usage projections, activity upload purposes,

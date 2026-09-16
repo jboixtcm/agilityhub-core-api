@@ -68,6 +68,9 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event.class,
                 () -> new com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event("SignupEdited", "club-a", "Member", "member-a",
                         Instant.parse("2030-01-01T00:00:00Z"), Map.of("memberId", "member-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.scheduling.application.PlanningEvents.Event.class,
+                () -> new com.agilityhub.core.clubs.scheduling.application.PlanningEvents.Event("ParameterChanged", "club-a", "Parameter", "signup.enabled",
+                        Instant.parse("2030-01-01T00:00:00Z"), Map.of("key", "signup.enabled", "before", true, "after", false), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         samples.put(com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent.class,
                 () -> new com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent(com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent.Kind.WeekGenerated,
                         "club-a", "week-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("weekId", "week-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));

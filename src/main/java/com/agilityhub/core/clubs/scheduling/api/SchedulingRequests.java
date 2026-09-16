@@ -14,9 +14,22 @@ public final class SchedulingRequests {
     private SchedulingRequests() { }
     public record WeekTemplateCreateRequest(@NotBlank @Size(max = 40) String name, @NotNull TemplateKind kind,
             @Schema(requiredMode = NOT_REQUIRED) String copyFromId) { }
-    public record WeekTemplatePatchRequest(@Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) String name,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) String notes,
-            @Schema(requiredMode = NOT_REQUIRED) Boolean active, @NotNull @PositiveOrZero Long version) { }
+    public static final class WeekTemplatePatchRequest {
+        @Schema(requiredMode = NOT_REQUIRED) @Size(max = 40) public String name;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) public String notes;
+        @Schema(requiredMode = NOT_REQUIRED) public Boolean active;
+        @NotNull @PositiveOrZero public Long version;
+        @com.fasterxml.jackson.annotation.JsonIgnore private boolean notesPresent;
+        @com.fasterxml.jackson.annotation.JsonSetter("notes") public void setNotes(String value) { notes = value; notesPresent = true; }
+        public java.util.Map<String, Object> patch() {
+            var values = new java.util.LinkedHashMap<String, Object>();
+            if (name != null) { values.put("name", name); }
+            if (notesPresent) { values.put("notes", notes); }
+            if (active != null) { values.put("active", active); }
+            return values;
+        }
+        @JsonAnySetter public void rejectUnknown(String name, Object value) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+    }
     public record TimeBandCreateRequest(@NotBlank @Pattern(regexp = "\\d{2}:\\d{2}") String startTime,
             @NotBlank @Pattern(regexp = "\\d{2}:\\d{2}") String endTime) { }
     public record TimeBandPatchRequest(@Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "\\d{2}:\\d{2}") String startTime,
@@ -25,12 +38,32 @@ public final class SchedulingRequests {
             @NotEmpty List<String> instructorIds, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId,
             @NotNull List<String> levelIds, @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description) { }
-    public record TemplateClassPatchRequest(@Schema(requiredMode = NOT_REQUIRED) String bandId,
-            @Schema(requiredMode = NOT_REQUIRED) DayOfWeek dayOfWeek, @Schema(requiredMode = NOT_REQUIRED) List<String> instructorIds,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId, @Schema(requiredMode = NOT_REQUIRED) List<String> levelIds,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive Integer capacity,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description,
-            @NotNull @PositiveOrZero Long version) { }
+    public static final class TemplateClassPatchRequest {
+        @Schema(requiredMode = NOT_REQUIRED) public String bandId;
+        @Schema(requiredMode = NOT_REQUIRED) public DayOfWeek dayOfWeek;
+        @Schema(requiredMode = NOT_REQUIRED) public List<String> instructorIds;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) public String ringId;
+        @Schema(requiredMode = NOT_REQUIRED) public List<String> levelIds;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive public Integer capacity;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) public String description;
+        @NotNull @PositiveOrZero public Long version;
+        @com.fasterxml.jackson.annotation.JsonIgnore private final java.util.Set<String> present = new java.util.HashSet<>();
+        @com.fasterxml.jackson.annotation.JsonSetter("ringId") public void setRingId(String value) { ringId = value; present.add("ringId"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("capacity") public void setCapacity(Integer value) { capacity = value; present.add("capacity"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("description") public void setDescription(String value) { description = value; present.add("description"); }
+        public java.util.Map<String, Object> patch() {
+            var values = new java.util.LinkedHashMap<String, Object>();
+            if (bandId != null) { values.put("bandId", bandId); }
+            if (dayOfWeek != null) { values.put("dayOfWeek", dayOfWeek); }
+            if (instructorIds != null) { values.put("instructorIds", instructorIds); }
+            if (levelIds != null) { values.put("levelIds", levelIds); }
+            if (present.contains("ringId")) { values.put("ringId", ringId); }
+            if (present.contains("capacity")) { values.put("capacity", capacity); }
+            if (present.contains("description")) { values.put("description", description); }
+            return values;
+        }
+        @JsonAnySetter public void rejectUnknown(String name, Object value) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+    }
     public record WeekCreateRequest(@NotNull @Schema(description = "ISO Monday in the club time zone; otherwise VALIDATION_ERROR") LocalDate startDate) { }
     public record GenerationRequest(@NotBlank String weekdayTemplateId, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String saturdayTemplateId) { }
     @Schema(type = "object", additionalProperties = Schema.AdditionalPropertiesValue.FALSE)
