@@ -22,4 +22,25 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
     public java.util.List<ClassSession> forWeek(String weekId) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("weekId").is(weekId)), ClassSession.class);
     }
+
+    public ClassSession update(ClassSession next, long version) {
+        var saved = mongo.findAndReplace(tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(version)),
+                next, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());
+        if (saved == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
+        return saved;
+    }
+    public java.util.List<ClassSession> between(java.time.Instant from, java.time.Instant to) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("startsAt").lt(to).and("endsAt").gt(from)), ClassSession.class);
+    }
+    public java.util.List<ClassSession> findActiveBetween(String clubId, java.time.Instant from, java.time.Instant to) {
+        return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("state").is("ACTIVE").and("startsAt").gte(from).lt(to)), ClassSession.class);
+    }
+    public long countFutureByRing(String ringId, java.time.Instant now) { return future("ringId", ringId, now); }
+    public long countFutureByInstructor(String instructorId, java.time.Instant now) { return future("instructorIds", instructorId, now); }
+    private long future(String field, String id, java.time.Instant now) {
+        return mongo.count(tenantQuery().addCriteria(Criteria.where(field).is(id).and("state").in("DRAFT", "ACTIVE").and("startsAt").gt(now)), ClassSession.class);
+    }
+    public void finishedAt(String id, java.time.Instant now) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("finishedAt", now), ClassSession.class);
+    }
 }

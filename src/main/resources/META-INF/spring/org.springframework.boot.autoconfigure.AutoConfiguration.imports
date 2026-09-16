@@ -1,1 +1,2 @@
 com.agilityhub.core.clubs.dashboard.application.ports.DashboardPortDefaults
+com.agilityhub.core.clubs.scheduling.application.ports.SchedulingPortDefaults
