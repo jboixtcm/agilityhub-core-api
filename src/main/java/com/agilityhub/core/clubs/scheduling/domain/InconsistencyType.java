@@ -1,0 +1,4 @@
+package com.agilityhub.core.clubs.scheduling.domain;
+
+
+public enum InconsistencyType { RING_DOUBLE_BOOKED, INSTRUCTOR_DOUBLE_BOOKED, RING_BLOCKED, RING_TRAINING_CONFLICT, LEVEL_INACTIVE, RING_INACTIVE, INSTRUCTOR_INACTIVE }

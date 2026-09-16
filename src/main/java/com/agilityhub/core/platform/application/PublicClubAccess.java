@@ -23,6 +23,12 @@ public class PublicClubAccess {
         if (club.status() == com.agilityhub.core.platform.persistence.Club.Status.SUSPENDED) { throw new ApiException(ErrorCode.CLUB_SUSPENDED); }
         return configs.get(club.id());
     }
+    /** Resolve a public club before module guards, including keyless published-file routes. */
+    public ClubConfig resolveClub(String slug) {
+        var club = clubs.findBySlug(slug).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
+        if (club.status() == com.agilityhub.core.platform.persistence.Club.Status.SUSPENDED) { throw new ApiException(ErrorCode.CLUB_SUSPENDED); }
+        return configs.get(club.id());
+    }
     public static String digest(String key) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }

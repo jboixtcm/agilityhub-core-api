@@ -20,7 +20,7 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class AttachmentsController {
     private final AttachmentService attachments; private final IdentityTransactions transactions;
     public AttachmentsController(AttachmentService attachments, IdentityTransactions transactions) { this.attachments = attachments; this.transactions = transactions; }
-    public record UploadRequest(@NotBlank @Schema(allowableValues = {"DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE"}) String purpose,
+    public record UploadRequest(@NotBlank @Schema(allowableValues = {"DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT"}) String purpose,
             @NotBlank String fileName, @NotBlank String mimeType, @Positive long sizeBytes) { }
     public record AttachmentRequest(@NotBlank @Schema(allowableValues = "INSTRUCTOR_NOTE") String entityType,
             @NotBlank String entityId, @NotBlank String fileKey, @NotBlank @Size(max = 80) String name) { }
@@ -34,8 +34,8 @@ public class AttachmentsController {
     @PostMapping("/api/v1/attachments/upload-url")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN','MEMBER')")
-    @ContractErrors({FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, ATTACHMENT_ENTITY_MISMATCH})
-    @Operation(summary = "Create an attachment upload URL", description = "S03/S10 minimal upload contract. Upload using the returned headers; URLs last five minutes. Ownership is checked when attaching the uploaded file.",
+    @ContractErrors({FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, ATTACHMENT_ENTITY_MISMATCH, MODULE_DISABLED})
+    @Operation(summary = "Create an attachment upload URL", description = "S03/S07/S10 upload contract. ACTIVITY_IMAGE and ACTIVITY_DOCUMENT require ACTIVITIES; images must use image/* and documents files.allowedTypes, both limited by files.maxSizeMb. Upload using the returned headers; URLs last five minutes. Ownership is checked when attaching the uploaded file.",
             responses = @ApiResponse(responseCode = "201", description = "Upload URL, opaque file key, required headers and expiry"))
     public AttachmentService.Upload upload(@Valid @RequestBody UploadRequest request) {
         return attachments.upload(request.purpose(), request.fileName(), request.mimeType(), request.sizeBytes());

@@ -68,6 +68,12 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event.class,
                 () -> new com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event("SignupEdited", "club-a", "Member", "member-a",
                         Instant.parse("2030-01-01T00:00:00Z"), Map.of("memberId", "member-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent.class,
+                () -> new com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent(com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent.Kind.WeekGenerated,
+                        "club-a", "week-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("weekId", "week-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.activities.domain.ActivityEvent.class,
+                () -> new com.agilityhub.core.clubs.activities.domain.ActivityEvent(com.agilityhub.core.clubs.activities.domain.ActivityEvent.Kind.ActivityFinished,
+                        "club-a", "activity-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("activityId", "activity-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
         Set<Class<?>> implementations = new HashSet<>();
@@ -80,6 +86,14 @@ class EventCatalogContractTest {
         samples.values().forEach(factory -> {
             DomainEvent event = factory.get();
             assertThat(catalog).contains(event.type());
+            if (event instanceof com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent) {
+                for (var kind : com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("Week"); return;
+            }
+            if (event instanceof com.agilityhub.core.clubs.activities.domain.ActivityEvent) {
+                for (var kind : com.agilityhub.core.clubs.activities.domain.ActivityEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("Activity"); return;
+            }
             if (event instanceof com.agilityhub.core.payments.domain.SignupPaymentEvent) {
                 assertThat(catalog).contains("UpfrontPaymentRecorded","UpfrontPaymentSucceeded");
                 assertThat(event.aggregateType()).isEqualTo("UpfrontPayment");assertThat(event.payload()).containsKeys("paymentId","provider");return;

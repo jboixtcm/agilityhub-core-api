@@ -1,0 +1,19 @@
+Paths: 123 -> 165; added 42
+Operations: 167 -> 222; added 55, removed 0
+All 31 S06 + 24 S07 additions are individually listed in the OpenAPI changelog.
+Schemas: 301 -> 396; added 95, removed 0
+Existing schemas changed: AuditAction, UploadRequest
+Existing operations changed:
+  GET /api/v1/activity-registrations/export: description, x-columns, x-filterable, x-sortable
+  POST /api/v1/attachments/upload-url: description, responses
+Added schemas: Activity, ActivityCancellation, ActivityCancellationPreview, ActivityCancellationRecipient, ActivityCancellationRequest, ActivityCounters, ActivityCreateRequest, ActivityDocument, ActivityDocumentRequest, ActivityImage, ActivityImageRequest, ActivityImageResult, ActivityImpersonation, ActivityListItem, ActivityLocation, ActivityLocationRequest, ActivityPatchRequest, ActivityPhone, ActivityRegisteredBy, ActivityRegistration, ActivityRegistrationCancellation, ActivityRegistrationListItem, ActivityRegistrationMember, ActivityRegistrationRequest, ActivityRegistrationSummary, ActivityRing, ActivityRingBlockWindow, ActivityRingConflict, ActivityRow, ActivityTrainingBooking, CalendarWeek, CancellationBooking, CancellationPreview, ClassCancellation, ClassCancellationRequest, ClassCounters, ClassCounts, ClassOrigin, ClassRing, ClassSession, ClassSessionCreateRequest, ClassSessionMemberView, ClassSessionPatchRequest, Coverage, CoverageLevel, CoverageThresholds, DayGrid, DayGridCell, DayGridColumn, DayGridRow, EmptyRequest, GenerationCandidate, GenerationCandidates, GenerationRequest, GenerationResult, GridOccupancy, Inconsistency, ListPageActivityListItem, ListPageActivityRegistrationListItem, ListPageClassSession, ListPageRingBlock, ListPageWeekListItem, MeActivities, MemberActivityDetail, PublicActivities, PublicActivity, PublicActivityDocument, PublicActivityPlaces, PublicActivityRegistration, PublicationRequest, RegisteredActivity, RegistrationCancellationRequest, RingBlock, RingBlockCreateRequest, RingBlockMemberView, RingBlockPatchRequest, RingConflicts, RiskExemptionRequest, SkippedClasses, TemplateClass, TemplateClassCreateRequest, TemplateClassPatchRequest, TimeBand, TimeBandCreateRequest, TimeBandPatchRequest, Week, WeekCalendar, WeekCreateRequest, WeekListItem, WeekTemplate, WeekTemplateCreateRequest, WeekTemplatePatchRequest, WeekTemplateSummary, WeekTemplates, WeekValidationResult
+ErrorCode status changes: none; canonical S06/S07 statuses already match the catalog.
+surefire-reports: 81 suites; tests=375, failures=0, errors=0, skipped=0
+failsafe-reports: 48 suites; tests=535, failures=0, errors=0, skipped=0
+com/agilityhub/core/clubs/activities/application: LINE=27/27 (100.00%), BRANCH=25/26 (96.15%)
+com/agilityhub/core/clubs/activities/api: LINE=107/114 (93.86%), BRANCH=2/2 (100.00%)
+com/agilityhub/core/clubs/scheduling/api: LINE=142/146 (97.26%), BRANCH=8/8 (100.00%)
+com/agilityhub/core/clubs/activities/domain: LINE=16/16 (100.00%), BRANCH=n/a
+com/agilityhub/core/clubs/scheduling/application: LINE=22/22 (100.00%), BRANCH=20/20 (100.00%)
+com/agilityhub/core/clubs/scheduling/domain: LINE=24/24 (100.00%), BRANCH=n/a
+Scope: only E4-T01 task edited; Organizer verification and ROADMAP.md unchanged.

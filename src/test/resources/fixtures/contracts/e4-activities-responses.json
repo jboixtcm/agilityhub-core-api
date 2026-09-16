@@ -1,0 +1,339 @@
+{
+  "Activity": {
+    "id": "activity-a",
+    "slug": "example-event",
+    "state": "PUBLISHED",
+    "type": "SEMINAR",
+    "typeLabel": {
+      "en": "Example type"
+    },
+    "typeDisplay": "Example type",
+    "title": "Example event",
+    "titleI18n": {
+      "en": "Example event",
+      "ca": "Activitat de prova"
+    },
+    "shortDescription": "Example summary",
+    "shortDescriptionI18n": {
+      "en": "Example summary"
+    },
+    "longDescriptionHtml": "<p>Example</p>",
+    "longDescriptionI18n": {
+      "en": "<p>Example</p>"
+    },
+    "image": {
+      "fileId": "image-a",
+      "name": "Example image",
+      "url": "https://files.example.test/image"
+    },
+    "documents": [
+      {
+        "id": "document-a",
+        "name": "Example document",
+        "url": "https://files.example.test/document"
+      }
+    ],
+    "location": {
+      "atClub": true,
+      "name": "Example club",
+      "address": "Example street",
+      "url": "https://club.example.test"
+    },
+    "ringIds": [
+      "ring-a"
+    ],
+    "rings": [
+      {
+        "id": "ring-a",
+        "name": "Example ring",
+        "color": "#112233"
+      }
+    ],
+    "allRings": true,
+    "date": "2026-09-14",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "startsAt": "2026-09-14T16:00:00Z",
+    "endsAt": "2026-09-14T17:00:00Z",
+    "ringBlockWindow": {
+      "fromTime": "17:00",
+      "toTime": "20:00"
+    },
+    "registrationFrom": "2026-09-01",
+    "registrationTo": "2026-09-13",
+    "registrationOpen": true,
+    "minPlaces": 1,
+    "maxPlaces": 10,
+    "levelIds": [
+      "level-a"
+    ],
+    "levelNames": [
+      "A"
+    ],
+    "waitlistEnabled": true,
+    "visibility": "MEMBERS",
+    "priceTiers": [],
+    "counters": {
+      "active": 1,
+      "waiting": 0
+    },
+    "freeSeats": 9,
+    "belowMinimum": false,
+    "publicUrl": "https://club.example.test/activity/example-event",
+    "ringBlockIds": [
+      "block-a"
+    ],
+    "placementIds": [
+      "placement-a"
+    ],
+    "publishedAt": "2026-09-14T16:00:00Z",
+    "cancellation": {
+      "reason": "CLUB_MANUAL",
+      "adminText": "Example cancellation",
+      "at": "2026-09-14T16:00:00Z",
+      "byAccountId": "account-a",
+      "affectedCount": 1
+    },
+    "internalNotes": "Private",
+    "version": 1
+  },
+  "ActivityRegistration": {
+    "id": "registration-a",
+    "activityId": "activity-a",
+    "memberId": "member-a",
+    "state": "CANCELLED",
+    "origin": "BACKOFFICE",
+    "position": 1,
+    "activity": {
+      "id": "activity-a",
+      "title": "Example event",
+      "startsAtLocal": "2026-09-14T18:00",
+      "endsAtLocal": "2026-09-14T19:00",
+      "placeLabel": "Example ring"
+    },
+    "registeredAt": "2026-09-14T16:00:00Z",
+    "registeredBy": {
+      "displayName": "Example member",
+      "viaClub": true
+    },
+    "cancellableUntil": "2026-09-14T16:00:00Z",
+    "cancellation": {
+      "reason": "ADMIN",
+      "at": "2026-09-14T16:00:00Z",
+      "byRole": "ADMIN"
+    },
+    "impersonation": {
+      "actorAccountId": "account-a",
+      "memberId": "member-a"
+    }
+  },
+  "PublicActivity": {
+    "slug": "example-event",
+    "state": "PUBLISHED",
+    "type": "SEMINAR",
+    "typeLabel": "Example type",
+    "title": "Example event",
+    "titleI18n": {
+      "en": "Example event"
+    },
+    "shortDescription": "Example summary",
+    "longDescriptionHtml": "<p>Example</p>",
+    "longDescriptionText": "Example",
+    "imageUrl": "https://api.example.test/api/v1/public/example/activities/example-event/files/image-a",
+    "documents": [
+      {
+        "name": "Example document",
+        "url": "https://api.example.test/api/v1/public/example/activities/example-event/files/document-a"
+      }
+    ],
+    "location": {
+      "atClub": true,
+      "name": "Example club",
+      "address": "Example street",
+      "url": "https://club.example.test"
+    },
+    "ringNames": [
+      "Example ring"
+    ],
+    "date": "2026-09-14",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "timeZone": "Europe/Madrid",
+    "registration": {
+      "from": "2026-09-01",
+      "to": "2026-09-13",
+      "open": true,
+      "channel": "APP"
+    },
+    "places": {
+      "max": 10,
+      "free": 9,
+      "waitlist": true
+    },
+    "levels": [
+      "A"
+    ],
+    "publicUrl": "https://club.example.test/activity/example-event"
+  },
+  "MeActivities": {
+    "bookable": [
+      {
+        "id": "activity-a",
+        "title": "Example event",
+        "typeLabel": "Example type",
+        "startsAtLocal": "2026-09-14T18:00",
+        "endsAtLocal": "2026-09-14T19:00",
+        "placeLabel": "Example ring",
+        "rowState": "OPEN",
+        "notBookableReason": "Example",
+        "freeSeats": 9,
+        "waiting": 0,
+        "waitlistEnabled": true
+      }
+    ],
+    "mine": [
+      {
+        "id": "registration-a",
+        "activityId": "activity-a",
+        "state": "CANCELLED",
+        "origin": "BACKOFFICE",
+        "position": 1,
+        "activity": {
+          "id": "activity-a",
+          "title": "Example event",
+          "startsAtLocal": "2026-09-14T18:00",
+          "endsAtLocal": "2026-09-14T19:00",
+          "placeLabel": "Example ring"
+        },
+        "registeredAt": "2026-09-14T16:00:00Z",
+        "cancellableUntil": "2026-09-14T16:00:00Z",
+        "cancellation": {
+          "reason": "ADMIN",
+          "at": "2026-09-14T16:00:00Z",
+          "byRole": "ADMIN"
+        }
+      }
+    ]
+  },
+  "MemberActivityDetail": {
+    "id": "activity-a",
+    "slug": "example-event",
+    "state": "PUBLISHED",
+    "type": "SEMINAR",
+    "typeDisplay": "Example type",
+    "title": "Example event",
+    "shortDescription": "Example summary",
+    "longDescriptionHtml": "<p>Example</p>",
+    "image": {
+      "fileId": "image-a",
+      "name": "Example image",
+      "url": "https://files.example.test/image"
+    },
+    "documents": [
+      {
+        "id": "document-a",
+        "name": "Example document",
+        "url": "https://files.example.test/document"
+      }
+    ],
+    "location": {
+      "atClub": true,
+      "name": "Example club",
+      "address": "Example street",
+      "url": "https://club.example.test"
+    },
+    "rings": [
+      {
+        "id": "ring-a",
+        "name": "Example ring",
+        "color": "#112233"
+      }
+    ],
+    "allRings": true,
+    "date": "2026-09-14",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "startsAt": "2026-09-14T16:00:00Z",
+    "endsAt": "2026-09-14T17:00:00Z",
+    "registrationFrom": "2026-09-01",
+    "registrationTo": "2026-09-13",
+    "registrationOpen": true,
+    "minPlaces": 1,
+    "maxPlaces": 10,
+    "levelNames": [
+      "A"
+    ],
+    "waitlistEnabled": true,
+    "freeSeats": 9,
+    "myRegistration": {
+      "id": "registration-a",
+      "activityId": "activity-a",
+      "memberId": "member-a",
+      "state": "CANCELLED",
+      "origin": "BACKOFFICE",
+      "position": 1,
+      "activity": {
+        "id": "activity-a",
+        "title": "Example event",
+        "startsAtLocal": "2026-09-14T18:00",
+        "endsAtLocal": "2026-09-14T19:00",
+        "placeLabel": "Example ring"
+      },
+      "registeredAt": "2026-09-14T16:00:00Z",
+      "registeredBy": {
+        "displayName": "Example member",
+        "viaClub": true
+      },
+      "cancellableUntil": "2026-09-14T16:00:00Z",
+      "cancellation": {
+        "reason": "ADMIN",
+        "at": "2026-09-14T16:00:00Z",
+        "byRole": "ADMIN"
+      },
+      "impersonation": {
+        "actorAccountId": "account-a",
+        "memberId": "member-a"
+      }
+    },
+    "rowState": "OPEN",
+    "cancellableUntil": "2026-09-14T16:00:00Z"
+  },
+  "ActivityCancellationPreview": {
+    "registrations": [
+      {
+        "registrationId": "registration-a",
+        "memberName": "Example member",
+        "state": "ACTIVE",
+        "channels": [
+          "APP"
+        ],
+        "phoneCount": 1
+      }
+    ],
+    "activeCount": 1,
+    "waitingCount": 0
+  },
+  "RingConflicts": {
+    "conflicts": [
+      {
+        "ringId": "ring-a",
+        "type": "CLASS",
+        "id": "class-a",
+        "from": "2026-09-14T16:00:00Z",
+        "to": "2026-09-14T17:00:00Z",
+        "label": "Example class",
+        "bookedCount": 1
+      }
+    ],
+    "trainingBookings": [
+      {
+        "bookingId": "training-a",
+        "ringId": "ring-a",
+        "from": "2026-09-14T16:00:00Z",
+        "to": "2026-09-14T17:00:00Z",
+        "memberName": "Example member",
+        "dogName": "Example dog"
+      }
+    ]
+  }
+}

@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E4-T01: Publish 31 scheduling and 24 activity contract operations with typed
+  OpenAPI projections and guarded 501 responses; add tenant-scoped Mongo documents
+  and indexes, final scheduling usage projections, activity upload purposes,
+  catalog event/notification fixtures, and security/privacy/persistence tests.
+
 - E3-T05: Add the one-command Compose signup/dashboard gate (`bin/e3-smoke`,
   including image mode), reviewable fictional pending signup fixtures with
   one overdue missing-account warning, and the E3 deployment/browser checklist.

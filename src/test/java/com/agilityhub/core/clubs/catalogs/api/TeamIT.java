@@ -55,7 +55,7 @@ class TeamIT extends AbstractIntegrationTest {
     @BeforeEach void seed() {
         TenantContext.clear();
         for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "members", "instructors", "audit_entries", "domain_events",
-                "class_sessions", "template_classes", "team_write_locks")) { mongo.remove(new Query(), collection); }
+                "class_sessions", "week_templates", "team_write_locks")) { mongo.remove(new Query(), collection); }
         mongo.remove(new Query(), AuditEntry.class); mongo.remove(new Query(), DomainEventRecord.class);
         clubs.save(PlatformFixtures.club(CLUB, CLUB + ".example.test")); clubs.save(PlatformFixtures.club(OTHER, OTHER + ".example.test"));
         configs.invalidate(CLUB); configs.invalidate(OTHER); hosts.invalidate();
@@ -90,8 +90,12 @@ class TeamIT extends AbstractIntegrationTest {
     Membership membership(String id) { return mongo.findById(id + "-membership", Membership.class); }
     void state(String id, String state) { mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("status", state), "members"); }
     void reference(String collection, String club, String instructor, String status, long hours) {
-        mongo.insert(new Document("_id", UUID.randomUUID().toString()).append("clubId", club).append("instructorIds", List.of(instructor))
-                .append("status", status).append("startsAt", Date.from(clock.instant().plusSeconds(hours * 3600))), collection);
+        var row = new Document("_id", UUID.randomUUID().toString()).append("clubId", club);
+        if (collection.equals("week_templates")) {
+            row.append("kind", "WEEKDAYS").append("name", row.getString("_id")).append("classes", List.of(new Document("instructorIds", List.of(instructor))));
+        } else { row.append("instructorIds", List.of(instructor)).append("state", status)
+                .append("startsAt", Date.from(clock.instant().plusSeconds(hours * 3600))); }
+        mongo.insert(row, collection);
     }
     List<DomainEventRecord> event(String type) { return mongo.find(Query.query(Criteria.where("type").is(type)), DomainEventRecord.class); }
 
@@ -128,7 +132,7 @@ class TeamIT extends AbstractIntegrationTest {
         String id = instructor("one").path("id").asText();
         reference("class_sessions", OTHER, id, "PLANNED", 5);
         reference("class_sessions", CLUB, id, "CANCELLED", 5);
-        reference("template_classes", CLUB, id, "ACTIVE", 0);
+        reference("week_templates", CLUB, id, "ACTIVE", 0);
         update("instructors/" + id, Map.of("active", false, "version", 0));
         assertThat(event("InstructorChanged").getLast().payload().get("action")).isEqualTo("DEACTIVATED");
         update("instructors/" + id, Map.of("active", true, "version", 1));
@@ -143,7 +147,7 @@ class TeamIT extends AbstractIntegrationTest {
         admin(delete("/api/v1/instructors/" + id)).andExpect(status().isConflict());
         mongo.remove(new Query(), "class_sessions");
         admin(delete("/api/v1/instructors/" + id)).andExpect(status().isConflict());
-        mongo.remove(new Query(), "template_classes"); reference("class_sessions", CLUB, id, "COMPLETED", -10);
+        mongo.remove(new Query(), "week_templates"); reference("class_sessions", CLUB, id, "COMPLETED", -10);
         admin(delete("/api/v1/instructors/" + id)).andExpect(status().isConflict());
         update("instructors/" + id, Map.of("active", false, "version", 2));
     }

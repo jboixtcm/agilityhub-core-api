@@ -1,0 +1,347 @@
+{
+  "WeekTemplate": {
+    "id": "template-a",
+    "name": "Example week",
+    "kind": "WEEKDAYS",
+    "days": [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY"
+    ],
+    "notes": "Example note",
+    "active": true,
+    "version": 1,
+    "bands": [
+      {
+        "id": "band-a",
+        "startTime": "18:00",
+        "endTime": "19:00"
+      }
+    ],
+    "classes": [
+      {
+        "id": "template-class-a",
+        "bandId": "band-a",
+        "dayOfWeek": "MONDAY",
+        "instructorIds": [
+          "instructor-a"
+        ],
+        "ringId": "ring-a",
+        "levelIds": [
+          "level-a"
+        ],
+        "capacity": 5,
+        "capacityMode": "AUTO",
+        "description": "Example class",
+        "displayDescription": "Example class",
+        "inconsistencyIds": [],
+        "placementId": "placement-a"
+      }
+    ],
+    "inconsistencies": [
+      {
+        "id": "inc-a",
+        "type": "RING_DOUBLE_BOOKED",
+        "dayOfWeek": "MONDAY",
+        "date": "2026-09-14",
+        "startTime": "18:00",
+        "bandId": "band-a",
+        "ringId": "ring-a",
+        "instructorId": "instructor-a",
+        "levelId": "level-a",
+        "itemIds": [
+          "class-a",
+          "class-b"
+        ],
+        "message": "Example conflict"
+      }
+    ],
+    "canGenerate": false
+  },
+  "Week": {
+    "id": "week-a",
+    "isoYear": 2026,
+    "isoWeek": 38,
+    "startDate": "2026-09-14",
+    "endDate": "2026-09-20",
+    "state": "VALIDATED",
+    "generatedAt": "2026-09-14T16:00:00Z",
+    "generatedByAccountId": "account-a",
+    "weekdayTemplateId": "template-a",
+    "saturdayTemplateId": "template-saturday",
+    "validatedAt": "2026-09-14T16:00:00Z",
+    "validatedByAccountId": "account-a",
+    "version": 1
+  },
+  "WeekCalendar": {
+    "week": {
+      "id": "week-a",
+      "isoYear": 2026,
+      "isoWeek": 38,
+      "startDate": "2026-09-14",
+      "endDate": "2026-09-20",
+      "state": "VALIDATED",
+      "generatedAt": "2026-09-14T16:00:00Z",
+      "validatedAt": "2026-09-14T16:00:00Z",
+      "relative": "CURRENT"
+    },
+    "rows": [
+      "18:00"
+    ],
+    "classes": [
+      {
+        "id": "class-a",
+        "weekId": "week-a",
+        "date": "2026-09-14",
+        "startTime": "18:00",
+        "endTime": "19:00",
+        "startsAt": "2026-09-14T16:00:00Z",
+        "endsAt": "2026-09-14T17:00:00Z",
+        "ringId": "ring-a",
+        "levelIds": [
+          "level-a"
+        ],
+        "instructorIds": [
+          "instructor-a"
+        ],
+        "capacity": 5,
+        "capacityMode": "AUTO",
+        "description": "Example class",
+        "displayDescription": "Example class",
+        "state": "CANCELLED",
+        "counters": {
+          "booked": 0,
+          "waiting": 0
+        },
+        "atRisk": false,
+        "riskExempt": false,
+        "cancellation": {
+          "reason": "ACTIVITY",
+          "adminText": "Example cancellation",
+          "byAccountId": "account-a",
+          "at": "2026-09-14T16:00:00Z",
+          "affectedBookings": 2,
+          "affectedWaitlist": 1
+        },
+        "origin": {
+          "templateId": "template-a",
+          "templateClassId": "template-class-a"
+        },
+        "placementId": "placement-a",
+        "notes": "Private",
+        "version": 1,
+        "inconsistencyIds": []
+      }
+    ],
+    "ringBlocks": [
+      {
+        "id": "block-a",
+        "ringId": "ring-a",
+        "from": "2026-09-14T16:00:00Z",
+        "to": "2026-09-14T17:00:00Z",
+        "date": "2026-09-14",
+        "fromLocal": "18:00",
+        "toLocal": "19:00",
+        "kind": "BLOCK",
+        "reason": "ACTIVITY",
+        "note": "Private",
+        "activityId": "activity-a",
+        "activityTitle": "Example event",
+        "createdByName": "Example instructor",
+        "state": "ACTIVE",
+        "version": 1
+      }
+    ],
+    "inconsistencies": [
+      {
+        "id": "inc-a",
+        "type": "RING_DOUBLE_BOOKED",
+        "dayOfWeek": "MONDAY",
+        "date": "2026-09-14",
+        "startTime": "18:00",
+        "bandId": "band-a",
+        "ringId": "ring-a",
+        "instructorId": "instructor-a",
+        "levelId": "level-a",
+        "itemIds": [
+          "class-a",
+          "class-b"
+        ],
+        "message": "Example conflict"
+      }
+    ],
+    "draftCount": 0,
+    "canValidate": false
+  },
+  "Coverage": {
+    "scope": "WEEK",
+    "thresholds": {
+      "ok": 240,
+      "tight": 190,
+      "short": 150
+    },
+    "activeDogWeeks": 2,
+    "levels": [
+      {
+        "levelId": "level-a",
+        "name": "A",
+        "maxSeats": 10,
+        "propSeats": 7.5,
+        "dogsTotal": 4,
+        "dogsActive": 3,
+        "maxRatioPct": 250,
+        "propRatioPct": 250,
+        "status": "OK",
+        "booked": 2
+      }
+    ]
+  },
+  "DayGrid": {
+    "date": "2026-09-14",
+    "dayOfWeek": "MONDAY",
+    "timeZone": "Europe/Madrid",
+    "view": "INSTRUCTOR",
+    "columns": [
+      {
+        "ringId": "ring-a",
+        "shortName": "EX",
+        "name": "Example ring",
+        "color": "#112233",
+        "activeSetupId": "setup-a"
+      }
+    ],
+    "rows": [
+      {
+        "time": "18:00",
+        "cells": [
+          {
+            "ringId": "ring-a",
+            "kind": "CLASS",
+            "endTime": "19:00",
+            "classId": "class-a",
+            "description": "Example class",
+            "instructorName": "Example instructor",
+            "state": "ACTIVE",
+            "atRisk": true,
+            "riskText": "Example risk",
+            "occupancy": {
+              "booked": 1,
+              "capacity": 5,
+              "waiting": 0
+            }
+          },
+          {
+            "ringId": "ring-a",
+            "kind": "TRAINING",
+            "endTime": "19:00",
+            "who": [
+              "Example handler + Example dog"
+            ],
+            "trainingBookingIds": [
+              "training-a"
+            ]
+          },
+          {
+            "ringId": "ring-a",
+            "kind": "BLOCK",
+            "endTime": "19:00",
+            "blockId": "block-a",
+            "reason": "MAINTENANCE",
+            "note": "Private",
+            "createdByName": "Example instructor"
+          },
+          {
+            "ringId": "ring-a",
+            "kind": "ACTIVITY",
+            "endTime": "19:00",
+            "activityId": "activity-a",
+            "title": "Example event"
+          }
+        ]
+      }
+    ]
+  },
+  "ClassSessionMemberView": {
+    "id": "class-a",
+    "date": "2026-09-14",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "ring": {
+      "id": "ring-a",
+      "name": "Example ring",
+      "color": "#112233"
+    },
+    "levelIds": [
+      "level-a"
+    ],
+    "displayDescription": "Example class",
+    "instructorName": "Example instructor",
+    "state": "ACTIVE",
+    "capacity": 5,
+    "freeSeats": 4,
+    "waiting": 0
+  },
+  "RingBlockMemberView": {
+    "id": "block-a",
+    "ringId": "ring-a",
+    "from": "2026-09-14T16:00:00Z",
+    "to": "2026-09-14T17:00:00Z",
+    "date": "2026-09-14",
+    "fromLocal": "18:00",
+    "toLocal": "19:00",
+    "kind": "BLOCK",
+    "reason": "ACTIVITY",
+    "activityId": "activity-a",
+    "activityTitle": "Example event",
+    "state": "ACTIVE",
+    "version": 1
+  },
+  "GenerationCandidates": {
+    "items": [
+      {
+        "startDate": "2026-09-14",
+        "endDate": "2026-09-20",
+        "isoYear": 2026,
+        "isoWeek": 38,
+        "weekId": "week-a",
+        "state": "PENDING",
+        "proposed": true
+      }
+    ]
+  },
+  "GenerationResult": {
+    "weekId": "week-a",
+    "classCount": 1,
+    "skipped": [
+      {
+        "date": "2026-09-15",
+        "reason": "HOLIDAY",
+        "count": 2
+      }
+    ]
+  },
+  "ValidationResult": {
+    "validatedClassIds": [
+      "class-a"
+    ]
+  },
+  "CancellationPreview": {
+    "bookings": [
+      {
+        "bookingId": "booking-a",
+        "memberName": "Example member",
+        "dogName": "Example dog",
+        "levelName": "A",
+        "channels": [
+          "APP",
+          "EMAIL",
+          "SMS"
+        ],
+        "phoneCount": 2
+      }
+    ],
+    "waitlistCount": 1
+  }
+}

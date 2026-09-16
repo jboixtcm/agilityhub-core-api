@@ -15,11 +15,16 @@ public class MongoInstructorUsageCounter extends TenantRepository<MongoInstructo
     private final Clock clock;
     public MongoInstructorUsageCounter(MongoTemplate mongo, Clock clock) { super(mongo, Reference.class); this.clock = clock; }
     private long count(String collection, Criteria criteria) { return mongo.count(tenantQuery().addCriteria(criteria), collection); }
+    private long templateClasses(String field, String id) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("classes." + field).is(id)), org.bson.Document.class, "week_templates")
+                .stream().flatMap(template -> template.getList("classes", org.bson.Document.class).stream())
+                .filter(item -> item.get(field) instanceof java.util.List<?> values ? values.contains(id) : id.equals(item.get(field))).count();
+    }
     public Usage usage(String id) {
-        return new Usage(count("class_sessions", Criteria.where("instructorIds").is(id).and("startsAt").gt(clock.instant()).and("status").ne("CANCELLED")),
-                count("template_classes", Criteria.where("instructorIds").is(id)));
+        return new Usage(count("class_sessions", Criteria.where("instructorIds").is(id).and("startsAt").gt(clock.instant()).and("state").ne("CANCELLED")),
+                templateClasses("instructorIds", id));
     }
     public boolean hasReferences(String id) {
-        return count("class_sessions", Criteria.where("instructorIds").is(id)) + count("template_classes", Criteria.where("instructorIds").is(id)) > 0;
+        return count("class_sessions", Criteria.where("instructorIds").is(id)) + templateClasses("instructorIds", id) > 0;
     }
 }

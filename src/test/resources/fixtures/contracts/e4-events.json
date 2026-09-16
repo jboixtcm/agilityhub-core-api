@@ -1,0 +1,115 @@
+{
+  "WeekTemplateChanged": {
+    "templateId": "template-a",
+    "diff": {
+      "name": {
+        "before": "Old",
+        "after": "New"
+      }
+    },
+    "inconsistencies": []
+  },
+  "WeekGenerated": {
+    "weekId": "week-a",
+    "classCount": 2,
+    "templateId": "template-a"
+  },
+  "WeekValidated": {
+    "weekId": "week-a",
+    "classIds": [
+      "class-a"
+    ]
+  },
+  "ClassSessionCreated": {
+    "classId": "class-a"
+  },
+  "ClassSessionUpdated": {
+    "classId": "class-a",
+    "diff": {
+      "startTime": {
+        "before": "18:00",
+        "after": "19:00"
+      }
+    },
+    "bookedCount": 1
+  },
+  "ClassCancelledByClub": {
+    "classId": "class-a",
+    "reason": "CLUB_MANUAL",
+    "adminText": "Example cancellation",
+    "affected": [
+      {
+        "bookingId": "booking-a",
+        "memberId": "member-a",
+        "dogId": "dog-a"
+      }
+    ],
+    "waitlistIds": [
+      "wait-a"
+    ]
+  },
+  "ClassRiskExemptionChanged": {
+    "classId": "class-a",
+    "exempt": true
+  },
+  "RingBlockCreated": {
+    "blockId": "block-a",
+    "ringId": "ring-a",
+    "from": "2026-09-17T16:00:00Z",
+    "to": "2026-09-17T17:00:00Z",
+    "reason": "ACTIVITY",
+    "activityId": "activity-a"
+  },
+  "RingBlockUpdated": {
+    "blockId": "block-a",
+    "diff": {
+      "note": {
+        "after": "Updated"
+      }
+    }
+  },
+  "RingBlockCancelled": {
+    "blockId": "block-a"
+  },
+  "ActivityPublished": {
+    "activityId": "activity-a",
+    "levelIds": [
+      "level-a"
+    ],
+    "notifyEmail": true
+  },
+  "ActivityUpdated": {
+    "activityId": "activity-a",
+    "diff": {
+      "date": {
+        "after": "2026-09-19"
+      }
+    },
+    "state": "PUBLISHED",
+    "registrantCount": 1
+  },
+  "ActivityCancelled": {
+    "activityId": "activity-a",
+    "reason": "CLUB_MANUAL",
+    "adminText": "Example cancellation",
+    "affected": [
+      {
+        "registrationId": "registration-a",
+        "memberId": "member-a",
+        "state": "ACTIVE"
+      }
+    ]
+  },
+  "ActivityFinished": {
+    "activityId": "activity-a"
+  },
+  "ActivityRegistrationChanged": {
+    "registrationId": "registration-a",
+    "activityId": "activity-a",
+    "memberId": "member-a",
+    "state": "ACTIVE",
+    "origin": "APP",
+    "cancelReason": null,
+    "promoted": true
+  }
+}

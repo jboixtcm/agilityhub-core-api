@@ -19,18 +19,23 @@ public class MongoUsageCounter extends TenantRepository<MongoUsageCounter.Refere
     private long count(String collection, Criteria criteria) {
         return mongo.count(tenantQuery().addCriteria(criteria), collection);
     }
-    private Criteria future(String field, String id) {
-        return Criteria.where(field).is(id).and("startsAt").gt(clock.instant()).and("status").ne("CANCELLED");
+    private Criteria future(String field, String id, String stateField) {
+        return Criteria.where(field).is(id).and("startsAt").gt(clock.instant()).and(stateField).ne("CANCELLED");
+    }
+    private long templateClasses(String field, String id) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("classes." + field).is(id)), org.bson.Document.class, "week_templates")
+                .stream().flatMap(template -> template.getList("classes", org.bson.Document.class).stream())
+                .filter(item -> item.get(field) instanceof java.util.List<?> values ? values.contains(id) : id.equals(item.get(field))).count();
     }
     @Override public Map<String, Long> usage(CatalogKind kind, String id) {
         return switch (kind) {
             case LEVEL -> Map.of("activeDogs", count("dogs", Criteria.where("levelId").is(id).and("status").is("ACTIVE")),
-                    "futureClassSessions", count("class_sessions", future("levelIds", id)),
-                    "templateClasses", count("template_classes", Criteria.where("levelIds").is(id)));
-            case RING -> Map.of("futureClassSessions", count("class_sessions", future("ringId", id)),
-                    "futureTrainingBookings", count("training_bookings", future("ringId", id)),
-                    "templateClasses", count("template_classes", Criteria.where("ringId").is(id)),
-                    "ringBlocks", count("ring_blocks", Criteria.where("ringId").is(id)));
+                    "futureClassSessions", count("class_sessions", future("levelIds", id, "state")),
+                    "templateClasses", templateClasses("levelIds", id));
+            case RING -> Map.of("futureClassSessions", count("class_sessions", future("ringId", id, "state")),
+                    "futureTrainingBookings", count("training_bookings", future("ringId", id, "status")),
+                    "templateClasses", templateClasses("ringId", id),
+                    "ringBlocks", count("ring_blocks", Criteria.where("ringId").is(id).and("state").is("ACTIVE")));
             case FAQ -> Map.of();
         };
     }
@@ -38,9 +43,9 @@ public class MongoUsageCounter extends TenantRepository<MongoUsageCounter.Refere
         return switch (kind) {
             case LEVEL -> count("dogs", Criteria.where("levelId").is(id))
                     + count("class_sessions", Criteria.where("levelIds").is(id))
-                    + count("template_classes", Criteria.where("levelIds").is(id)) > 0;
-            case RING -> List.of("class_sessions", "template_classes", "training_slots", "training_bookings", "ring_blocks", "placements")
-                    .stream().anyMatch(collection -> count(collection, Criteria.where("ringId").is(id)) > 0);
+                    + templateClasses("levelIds", id) > 0;
+            case RING -> List.of("class_sessions", "training_slots", "training_bookings", "ring_blocks", "placements")
+                    .stream().anyMatch(collection -> count(collection, Criteria.where("ringId").is(id)) > 0) || templateClasses("ringId", id) > 0;
             case FAQ -> false;
         };
     }

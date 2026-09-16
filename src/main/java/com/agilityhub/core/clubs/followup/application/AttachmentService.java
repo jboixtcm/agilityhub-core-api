@@ -25,12 +25,13 @@ public class AttachmentService {
     private ClubConfig config() { return configs.get(TenantContext.require()); }
     private String account() { var user = CurrentUser.current(); if (user == null) { throw new ApiException(ErrorCode.UNAUTHENTICATED); } return user.accountId(); }
     private void validate(String purpose, String type, long size) {
-        if (!Set.of("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "SIGNUP_DOCUMENT").contains(purpose)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
+        if (!Set.of("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "SIGNUP_DOCUMENT", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT").contains(purpose)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
         if ("INSTRUCTOR_NOTE".equals(purpose) && !config().modules().contains(Module.TASKS)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
+        if (purpose.startsWith("ACTIVITY_") && !config().modules().contains(Module.ACTIVITIES)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
         boolean allowed = type != null && config().get("files.allowedTypes", List.class).stream().anyMatch(raw -> {
             String item = raw.toString(); return item.endsWith("/*") ? type.startsWith(item.substring(0, item.length() - 1)) : type.equals(item);
         });
-        if (!allowed || (purpose.equals("DOG_PHOTO") && !type.startsWith("image/"))) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
+        if (!allowed || ((purpose.equals("DOG_PHOTO") || purpose.equals("ACTIVITY_IMAGE")) && !type.startsWith("image/"))) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
         int max = config().get(purpose.equals("DOG_PHOTO") ? "files.dogPhotoMaxMb" : "files.maxSizeMb", Integer.class);
         if (size <= 0 || size > max * 1024L * 1024) { throw new ApiException(ErrorCode.FILE_TOO_LARGE, Map.of("maxSizeMb", max)); }
     }

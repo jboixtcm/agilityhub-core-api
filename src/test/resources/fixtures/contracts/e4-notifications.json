@@ -1,0 +1,55 @@
+{
+  "N-08a": {
+    "event": "ClassCancelledByClub",
+    "variables": [
+      "dog_name",
+      "class_date",
+      "class_time",
+      "class_description",
+      "admin_text"
+    ],
+    "action": "CHANGE_CLASS"
+  },
+  "N-08b": {
+    "event": "ClassSessionUpdated",
+    "variables": [
+      "dog_name",
+      "class_date",
+      "changes"
+    ],
+    "action": "OPEN_BOOKING"
+  },
+  "N-32a": {
+    "event": "ActivityPublished",
+    "variables": [
+      "activity_title",
+      "date"
+    ],
+    "action": "OPEN_ACTIVITY"
+  },
+  "N-32b": {
+    "event": "ActivityRegistrationChanged",
+    "variables": [
+      "activity_title",
+      "date",
+      "state"
+    ],
+    "action": "OPEN_ACTIVITY"
+  },
+  "N-32c": {
+    "event": "ActivityCancelled",
+    "variables": [
+      "activity_title",
+      "admin_text"
+    ],
+    "action": null
+  },
+  "N-32d": {
+    "event": "ActivityUpdated",
+    "variables": [
+      "activity_title",
+      "changes"
+    ],
+    "action": "OPEN_ACTIVITY"
+  }
+}

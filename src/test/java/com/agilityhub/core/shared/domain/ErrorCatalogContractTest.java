@@ -37,4 +37,27 @@ class ErrorCatalogContractTest {
             assertThat(code.httpStatus()).isBetween(400, 501);
         }
     }
+    @Test void T_06_20_T_07_17_schedulingAndActivityErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
+        var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
+        var expected = new java.util.LinkedHashMap<String, Integer>();
+        for (String names : java.util.List.of(
+                "400:INVALID_TIME_RANGE,INVALID_SLOT_GRANULARITY,VALIDATION_ERROR,INVALID_FILTER,FILE_TOO_LARGE,FILE_TYPE_NOT_ALLOWED,FILE_NOT_FOUND",
+                "403:INVALID_API_KEY", "404:MODULE_DISABLED,NOT_FOUND,DOG_NOT_ACCESSIBLE",
+                "409:STALE_VERSION,INVALID_STATE,IDEMPOTENCY_KEY_REUSED,ACTIVITY_FULL,WEEK_ALREADY_GENERATED,BAND_NOT_EMPTY,DUPLICATE_NAME,DUPLICATE_SLUG,BAND_OVERLAP,RING_BLOCK_CONFLICT,ALREADY_REGISTERED,SLUG_LOCKED",
+                "422:LEVEL_REQUIRED,LEVELS_DISABLED,LEVEL_NOT_ALLOWED,MEMBER_NOT_ACTIVE,BOOKING_BLOCKED,INACTIVITY_PERIOD,OUTSIDE_OPENING_HOURS,TOO_MANY_INSTRUCTORS,DESCRIPTION_REQUIRED,TEMPLATE_KIND_MISMATCH,TEMPLATE_INCONSISTENT,WEEK_IN_PAST,WEEK_INCONSISTENT,NOTHING_TO_VALIDATE,CAPACITY_BELOW_BOOKINGS,ADMIN_TEXT_REQUIRED,RING_BLOCKED,RING_BLOCK_MANAGED_BY_ACTIVITY,RING_HAS_BOOKINGS,REGISTRATION_CLOSED,ACTIVITY_NOT_PUBLISHED,ACTIVITY_INCOMPLETE,ACTIVITY_IN_PAST,ACTIVITY_HAS_REGISTRATIONS,REGISTRATION_NOT_CANCELLABLE,CAPACITY_BELOW_REGISTRATIONS,TOO_MANY_DOCUMENTS,LOCALE_NOT_ENABLED",
+                "429:RATE_LIMITED")) {
+            String[] pair = names.split(":");
+            for (String name : pair[1].split(",")) { expected.put(name, Integer.parseInt(pair[0])); }
+        }
+        expected.forEach((name, status) -> {
+            assertThat(catalog).contains("`" + name + "`");
+            assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);
+        });
+        for (String locale : java.util.List.of("ca", "es", "en")) {
+            var messages = new java.util.Properties();
+            try (var input = Files.newBufferedReader(Path.of("src/main/resources/messages/messages_" + locale + ".properties"))) { messages.load(input); }
+            expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
+        }
+    }
+
 }

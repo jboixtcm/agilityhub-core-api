@@ -156,11 +156,11 @@ public class ExportsController {
     @GetMapping("/api/v1/activity-registrations/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.ACTIVITIES)
-    @ListContract(filterable = {}, sortable = {},
-            columns = {}, paged = true, exportable = false)
+    @ListContract(filterable = {"activityId", "state", "origin", "registeredAt", "memberId"}, sortable = {"registeredAt", "position", "memberLastName"},
+            columns = {"member*", "state*", "position*", "origin*", "registeredAt*", "cancelledAt", "cancelReason"}, paged = true, exportable = false)
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export activity registrations",
-            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Filter by activityId to export an activity. Contract only; implementation is deferred to E4-T04.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Disposition", schema = @Schema(type = "string")),
                             content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),

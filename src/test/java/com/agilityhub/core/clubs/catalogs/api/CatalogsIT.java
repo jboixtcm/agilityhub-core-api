@@ -49,7 +49,7 @@ class CatalogsIT extends AbstractIntegrationTest {
     @BeforeEach void seed() {
         TenantContext.clear();
         for (Class<?> type : List.of(Club.class, Parameter.class, Level.class, Ring.class, FaqEntry.class, AuditEntry.class, DomainEventRecord.class)) { mongo.remove(new Query(), type); }
-        for (String collection : List.of("dogs", "class_sessions", "template_classes", "training_bookings", "training_slots", "ring_blocks", "placements", "catalog_write_locks")) { mongo.remove(new Query(), collection); }
+        for (String collection : List.of("dogs", "class_sessions", "week_templates", "training_bookings", "training_slots", "ring_blocks", "placements", "catalog_write_locks")) { mongo.remove(new Query(), collection); }
         clubs.save(PlatformFixtures.club(CLUB, HOST));
         clubs.save(PlatformFixtures.club(OTHER, "catalog-b.example.test"));
         configs.invalidate(CLUB); configs.invalidate(OTHER); hosts.invalidate();
@@ -76,8 +76,14 @@ class CatalogsIT extends AbstractIntegrationTest {
     String orderKey(String catalog) { return switch(catalog) { case "levels" -> "levelIds"; case "rings" -> "ringIds"; default -> "faqEntryIds"; }; }
     JsonNode update(String catalog, String id, Object patch) throws Exception { return json(admin(body(patch("/api/v1/" + catalog + "/" + id), patch)), 200); }
     void reference(String collection, String club, String field, Object id, String status, int futureHours) {
-        mongo.insert(new Document("_id", UUID.randomUUID().toString()).append("clubId", club).append(field, id).append("status", status)
-                .append("startsAt", Date.from(clock.instant().plus(Duration.ofHours(futureHours)))), collection);
+        var row = new Document("_id", UUID.randomUUID().toString()).append("clubId", club);
+        if (collection.equals("week_templates")) {
+            row.append("kind", "WEEKDAYS").append("name", row.getString("_id")).append("classes", List.of(new Document(field, id)));
+        } else {
+            row.append(field, id).append(collection.equals("class_sessions") || collection.equals("ring_blocks") ? "state" : "status", status)
+                    .append("startsAt", Date.from(clock.instant().plus(Duration.ofHours(futureHours))));
+        }
+        mongo.insert(row, collection);
     }
     void modules(Set<Module> modules) {
         var tree = mapper.valueToTree(clubs.findById(CLUB).orElseThrow());
@@ -165,11 +171,11 @@ class CatalogsIT extends AbstractIntegrationTest {
     @Test void T_05_10_levelsWithReferencesCanDeactivateButCannotBeDeleted() throws Exception {
         String id = create("levels", "1").path("id").asText();
         reference("dogs", CLUB, "levelId", id, "ACTIVE", 0);
-        reference("template_classes", CLUB, "levelIds", List.of(id), "ACTIVE", 0);
+        reference("week_templates", CLUB, "levelIds", List.of(id), "ACTIVE", 0);
         admin(delete("/api/v1/levels/" + id)).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("LEVEL_IN_USE")).andExpect(jsonPath("$.details.activeDogs").value(1));
         var inactive = update("levels", id, Map.of("active", false, "version", 0));
         assertThat(inactive.at("/warnings/activeDogs").asInt()).isEqualTo(1); assertThat(inactive.at("/warnings/templateClasses").asInt()).isEqualTo(1);
-        mongo.remove(new Query(), "dogs"); mongo.remove(new Query(), "template_classes");
+        mongo.remove(new Query(), "dogs"); mongo.remove(new Query(), "week_templates");
         reference("dogs", CLUB, "levelId", id, "INACTIVE", 0);
         admin(delete("/api/v1/levels/" + id)).andExpect(status().isConflict()).andExpect(jsonPath("$.details.activeDogs").value(0));
         mongo.remove(new Query(), "dogs");
@@ -210,7 +216,7 @@ class CatalogsIT extends AbstractIntegrationTest {
         reference("class_sessions", CLUB, "ringId", id, "CANCELLED", 24);
         reference("class_sessions", CLUB, "ringId", id, "SCHEDULED", -24);
         reference("class_sessions", OTHER, "ringId", id, "SCHEDULED", 24);
-        reference("template_classes", CLUB, "ringId", id, "ACTIVE", 24);
+        reference("week_templates", CLUB, "ringId", id, "ACTIVE", 24);
         reference("ring_blocks", CLUB, "ringId", id, "ACTIVE", 24);
         mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("geometry", Map.of("width", 20)).set("activeSetupId", "setup"), "rings");
         var updated = update("rings", id, Map.of("allowsFreeTraining", false, "trainingCapacity", 2, "version", 0, "geometry", Map.of("width", 99), "activeSetupId", "other"));
@@ -312,14 +318,14 @@ class CatalogsIT extends AbstractIntegrationTest {
 
     @Test void T_05_19_referenceProjectionsCountHistoricalRowsAndScopeEveryCollection() throws Exception {
         try (var scope = TenantContext.open(CLUB)) {
-            for (String collection : List.of("class_sessions", "template_classes", "training_slots", "training_bookings", "ring_blocks", "placements")) {
+            for (String collection : List.of("class_sessions", "week_templates", "training_slots", "training_bookings", "ring_blocks", "placements")) {
                 reference(collection, OTHER, "ringId", "ring", "CANCELLED", -24);
                 assertThat(usage.hasReferences(CatalogKind.RING, "ring")).isFalse();
                 reference(collection, CLUB, "ringId", "ring", "CANCELLED", -24);
                 assertThat(usage.hasReferences(CatalogKind.RING, "ring")).isTrue();
                 mongo.remove(new Query(), collection);
             }
-            for (String collection : List.of("class_sessions", "template_classes")) {
+            for (String collection : List.of("class_sessions", "week_templates")) {
                 reference(collection, CLUB, "levelIds", List.of("level"), "CANCELLED", -24);
                 assertThat(usage.hasReferences(CatalogKind.LEVEL, "level")).isTrue(); mongo.remove(new Query(), collection);
             }

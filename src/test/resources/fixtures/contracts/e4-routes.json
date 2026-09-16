@@ -1,0 +1,946 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/week-templates",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {
+      "kind": "WEEKDAYS",
+      "active": "true"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/week-templates",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "name": "Example week",
+      "kind": "WEEKDAYS"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/week-templates/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/week-templates/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/week-templates/{id}/bands",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "startTime": "18:00",
+      "endTime": "19:00"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/week-templates/{id}/bands/{bandId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/week-templates/{id}/bands/{bandId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 204,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/week-templates/{id}/classes",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "bandId": "band-a",
+      "dayOfWeek": "MONDAY",
+      "instructorIds": [
+        "instructor-a"
+      ],
+      "levelIds": [
+        "level-a"
+      ],
+      "ringId": "ring-a"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/week-templates/{id}/classes/{classId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/week-templates/{id}/classes/{classId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 204,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/coverage",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {
+      "templateId": "template-a",
+      "saturdayTemplateId": "template-saturday"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/weeks",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/weeks/generation-candidates",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/weeks",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "startDate": "2026-09-14"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/weeks/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/weeks/{id}/generation",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "weekdayTemplateId": "template-a"
+    },
+    "params": {},
+    "idempotency": true,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/weeks/{id}/validation",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {},
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/weeks/{id}/calendar",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {
+      "filter": "ACTIVE"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/class-sessions",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/class-sessions",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "startTime": "18:00",
+      "endTime": "19:00",
+      "date": "2026-09-14",
+      "levelIds": [
+        "level-a"
+      ],
+      "instructorIds": [
+        "instructor-a"
+      ]
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/class-sessions/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/class-sessions/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/class-sessions/{id}/cancellation-preview",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/class-sessions/{id}/cancellation",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "reason": "CLUB_MANUAL"
+    },
+    "params": {},
+    "idempotency": true,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/class-sessions/{id}/risk-exemption",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "exempt": true
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/ring-blocks",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/ring-blocks/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/ring-blocks",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": {
+      "ringId": "ring-a",
+      "from": "2026-09-17T16:00:00Z",
+      "to": "2026-09-17T17:00:00Z",
+      "kind": "BLOCK",
+      "reason": "MAINTENANCE"
+    },
+    "params": {},
+    "idempotency": true,
+    "success": 201,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/ring-blocks/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/ring-blocks/{id}/cancellation",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": {},
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/day-grid",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER",
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": null,
+    "params": {
+      "date": "2026-09-14",
+      "view": "member"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities/filter-values",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {
+      "field": "state"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities/export",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {
+      "format": "xlsx"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/activities",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "title": {
+        "en": "Example event"
+      },
+      "type": "SEMINAR"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/activities/{id}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "version": 1
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/activities/{id}/image",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "fileKey": "file-a",
+      "name": "Example image"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/activities/{id}/image",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 204,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/activities/{id}/documents",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "fileKey": "file-a",
+      "name": "Example document"
+    },
+    "params": {},
+    "idempotency": false,
+    "success": 201,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/activities/{id}/documents/{docId}",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 204,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities/{id}/ring-conflicts",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/activities/{id}/publication",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {},
+    "params": {},
+    "idempotency": true,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/activities/{id}/publication",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities/{id}/cancellation-preview",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/activities/{id}/cancellation",
+    "roles": [
+      "ADMIN"
+    ],
+    "body": {
+      "reason": "CLUB_MANUAL"
+    },
+    "params": {},
+    "idempotency": true,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activities/{id}/registrations",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/activity-registrations",
+    "roles": [
+      "MEMBER"
+    ],
+    "body": {
+      "activityId": "activity-a"
+    },
+    "params": {},
+    "idempotency": true,
+    "success": 201,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity-registrations/{id}",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR",
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/activity-registrations/{id}/cancellation",
+    "roles": [
+      "MEMBER"
+    ],
+    "body": {},
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/activities",
+    "roles": [
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/me/activities/{activityId}",
+    "roles": [
+      "MEMBER"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": false,
+    "key": false,
+    "impersonation": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/{clubSlug}/activities",
+    "roles": [
+      "ANON",
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN",
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": true,
+    "key": true,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/{clubSlug}/activities/{slug}",
+    "roles": [
+      "ANON",
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN",
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 200,
+    "module": "ACTIVITIES",
+    "public": true,
+    "key": true,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/{clubSlug}/activities/{slug}/files/{fileId}",
+    "roles": [
+      "ANON",
+      "MEMBER",
+      "INSTRUCTOR",
+      "ADMIN",
+      "AGILITYHUB_ADMIN"
+    ],
+    "body": null,
+    "params": {},
+    "idempotency": false,
+    "success": 302,
+    "module": "ACTIVITIES",
+    "public": true,
+    "key": false,
+    "impersonation": false
+  }
+]

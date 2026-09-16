@@ -53,6 +53,20 @@ class AttachmentServiceTest {
         config(Set.of()); assertThatThrownBy(() -> service.upload("INSTRUCTOR_NOTE", "Example", "text/plain", 4)).hasMessage("MODULE_DISABLED");
         verifyNoInteractions(grants, events);
     }
+    @Test void T_07_18_activityPurposesUseTheModuleAllowedMimeTypesAndGeneralSizeLimit() {
+        for (String purpose : List.of("ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT")) {
+            config(Set.of());
+            assertThatThrownBy(() -> service.upload(purpose, "Example", "image/png", 4)).hasMessage("MODULE_DISABLED");
+            config(Set.of(Module.ACTIVITIES));
+            assertThatThrownBy(() -> service.upload(purpose, "Example", "application/x-executable", 4)).hasMessage("FILE_TYPE_NOT_ALLOWED");
+            assertThatThrownBy(() -> service.upload(purpose, "Example", "image/png", 26L * 1024 * 1024)).hasMessage("FILE_TOO_LARGE");
+            assertThat(service.upload(purpose, "Example", "image/png", 9L * 1024 * 1024).fileKey()).isNotBlank();
+        }
+        assertThatThrownBy(() -> service.upload("ACTIVITY_IMAGE", "Example", "text/plain", 4)).hasMessage("FILE_TYPE_NOT_ALLOWED");
+        assertThat(service.upload("ACTIVITY_DOCUMENT", "Example", "text/plain", 4).fileKey()).isNotBlank();
+        verify(grants, times(3)).insert(any());
+        verifyNoInteractions(events);
+    }
     @Test void T_03_23_claimsRequireTheUploaderPurposeAndExactEntity() {
         grant("someone-else", "DOG_DOCUMENT", null, now.plusSeconds(300));
         assertThatThrownBy(() -> service.claim(key, "DOG_DOCUMENT", "dog:VACCINATION_CARD")).hasMessage("ATTACHMENT_ENTITY_MISMATCH");

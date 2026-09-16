@@ -3,6 +3,110 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-16 · E4-T01 · Scheduling and activities contracts
+
+Adds **55 operations: 31 S06 + 24 S07**, all reserved with `501 NOT_IMPLEMENTED`
+after tenant, role, impersonation and module checks. Business execution and
+successful projections remain E4-T02/T03/T04. All paths below use `/api/v1`.
+
+S06 (31 operations):
+
+- `GET /week-templates`
+- `POST /week-templates`
+- `GET /week-templates/{id}`
+- `PATCH /week-templates/{id}`
+- `POST /week-templates/{id}/bands`
+- `PATCH /week-templates/{id}/bands/{bandId}`
+- `DELETE /week-templates/{id}/bands/{bandId}`
+- `POST /week-templates/{id}/classes`
+- `PATCH /week-templates/{id}/classes/{classId}`
+- `DELETE /week-templates/{id}/classes/{classId}`
+- `GET /coverage`
+- `GET /weeks`
+- `GET /weeks/generation-candidates`
+- `POST /weeks`
+- `GET /weeks/{id}`
+- `POST /weeks/{id}/generation`
+- `POST /weeks/{id}/validation`
+- `GET /weeks/{id}/calendar`
+- `GET /class-sessions`
+- `POST /class-sessions`
+- `GET /class-sessions/{id}`
+- `PATCH /class-sessions/{id}`
+- `GET /class-sessions/{id}/cancellation-preview`
+- `POST /class-sessions/{id}/cancellation`
+- `POST /class-sessions/{id}/risk-exemption`
+- `GET /ring-blocks`
+- `GET /ring-blocks/{id}`
+- `POST /ring-blocks`
+- `PATCH /ring-blocks/{id}`
+- `POST /ring-blocks/{id}/cancellation`
+- `GET /day-grid`
+
+S07 (24 operations):
+
+- `GET /activities`
+- `GET /activities/filter-values`
+- `GET /activities/export`
+- `POST /activities`
+- `GET /activities/{id}`
+- `PATCH /activities/{id}`
+- `PUT /activities/{id}/image`
+- `DELETE /activities/{id}/image`
+- `POST /activities/{id}/documents`
+- `DELETE /activities/{id}/documents/{docId}`
+- `GET /activities/{id}/ring-conflicts`
+- `POST /activities/{id}/publication`
+- `DELETE /activities/{id}/publication`
+- `GET /activities/{id}/cancellation-preview`
+- `POST /activities/{id}/cancellation`
+- `GET /activities/{id}/registrations`
+- `POST /activity-registrations`
+- `GET /activity-registrations/{id}`
+- `POST /activity-registrations/{id}/cancellation`
+- `GET /me/activities`
+- `GET /me/activities/{activityId}`
+- `GET /public/{clubSlug}/activities`
+- `GET /public/{clubSlug}/activities/{slug}`
+- `GET /public/{clubSlug}/activities/{slug}/files/{fileId}`
+
+The existing `GET /activity-registrations/export` remains the only registrations
+export route (not counted among the 55 additions). It gains filters `activityId,
+state, origin, registeredAt, memberId`, sort keys `registeredAt, position,
+memberLastName`, and columns `member*, state*, position*, origin*, registeredAt*,
+cancelledAt, cancelReason`. Its ADMIN/ACTIVITIES guards remain.
+
+Universal list metadata:
+
+| Route | Filters | Sort | Columns / defaults |
+|---|---|---|---|
+| `/weeks` | startDate, state | startDate | WeekListItem |
+| `/class-sessions` | date, state, ringId, instructorId, levelId, weekId | startsAt, date | Staff only |
+| `/ring-blocks` | ringId, kind, reason, state, from, to | from | MEMBER projection omits note/createdByName |
+| `/activities` | state, type, date, ringId, levelId, deleted, registrationOpen | date, title, state, createdAt | title*, date*, rings*, registrations*, state*, type, slug, registrationTo; date desc; deleted:eq:false |
+| `/activities/{id}/registrations` | state, origin, registeredAt, memberId | registeredAt, position, memberLastName | ActivityRegistrationListItem |
+
+S06 forms A–D and S07 forms A–C have typed schemas, role-specific class/ring-block
+projections, public activity allowlists, UTC instants and local business dates.
+The scheduling Java `ValidationResult` publishes as `WeekValidationResult` because
+S04 already owns the `ValidationResult` component; the signup component is preserved.
+Public list/detail use `clubApiKey`, declare Cache-Control `public, max-age=300`
+and ETag; files declare a keyless 302 with Location. API-key failures retain 403.
+Idempotency-Key is required for generation, class cancellation, ring-block creation,
+activity publication/cancellation and registration creation. All editable PATCH
+contracts require version; class-session PATCH rejects date.
+
+`POST /attachments/upload-url` adds `ACTIVITY_IMAGE` and `ACTIVITY_DOCUMENT` purposes,
+both gated by ACTIVITIES. Images require image/* and configured allowed MIME types;
+both use files.maxSizeMb. No ErrorCode status changes were needed: the existing enum
+already matches the 16 September catalog amendment; dedicated assertions cover all
+S06/S07 statuses and ca/es/en messages.
+
+The existing `AuditAction` wire enum adds the four actions already approved in
+S14 R-14-09 on 16 September for E4: `TEMPLATE_BAND_DELETED`, `ACTIVITY_UPDATED`,
+`ACTIVITY_REGISTERED_BY_CLUB`, and `ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB`.
+This publishes names only; audit-producing mutations remain E4-T02/T03/T04.
+
 ## 2026-09-10 · E3-T04 · Dashboard implementation
 
 GET `/dashboard` and `/dashboard/counters` now return their S14 aggregates.

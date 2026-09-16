@@ -20,7 +20,7 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OpenApiRequiredContractTest {
-    private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClubAddress", "ClubPwa",
+    private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClassOrigin", "EmptyRequest", "PublicationRequest", "RegistrationCancellationRequest", "ClubAddress", "ClubPwa",
             "ConsentPatch", "ErasureInput", "ImpersonationRequest", "OnboardingFields",
             "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch");
 
@@ -52,6 +52,11 @@ class OpenApiRequiredContractTest {
         assertThat(required(schemas, "OnboardingField")).containsExactlyInAnyOrder("key", "required");
         assertThat(required(schemas, "TokenRequest")).containsExactlyInAnyOrder("grant_type", "client_id");
         assertThat(required(schemas, "MemberPatch")).containsExactly("version");
+        for (String name : List.of("WeekTemplatePatchRequest", "TimeBandPatchRequest", "TemplateClassPatchRequest", "ClassSessionPatchRequest", "RingBlockPatchRequest", "ActivityPatchRequest")) {
+            assertThat(required(schemas, name)).as(name).containsExactly("version");
+        }
+        assertThat(required(schemas, "WeekValidationResult")).containsExactly("validatedClassIds");
+        assertThat(required(schemas, "PublicActivity")).contains("slug", "state", "title", "date", "registration", "places");
         assertThat(required(schemas, "Manifest")).containsExactlyInAnyOrderElementsOf(names(schemas.at("/Manifest/properties")));
     }
 
