@@ -67,8 +67,16 @@ Added 09-09 (night): **E3-T06** hardening of INC-01…04 + INC-06 (health indepe
 - [x] `GET /dashboard` with the seed: `pendingSignups` 3 (1 older than the warn days), `activeMembers` 184, class/training blocks `null`/0 (ports until E4/E5), `dogsByLevel` 242 over 8 levels (E3-T04/E3-T05).
 - [x] CI green at `2d0423c` (360 unit + 469 IT); OpenAPI snapshot `2d0423c` staged for the web (E3-W02 adopted `83069c1`; E3-W03 adopts `2d0423c`).
 
-## E4 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md` and the Catalan backlog `docs/backlog` when synced)
-- **E4** Planning + activities (S06, S07) — gate: a week generated from templates and validated; a class with bookings cancelled with events.
+## E4 · Planning and activities (thread A) — OPENED 2026-09-16 (E4-T01 ready; the rest open in order as their dependencies are verified)
+Decisions in force: A21 (activities: type enum + label, drafts do not block rings, publishing does with a conflict dialog, FIFO waitlist, N-32d), A22 (no Sunday classes at R1, physical deletion of template bands/classes with audit, instructor reads D3/D4, single automatic description form, the student never sees counts on 10), B18, B20 (`activities.cancelDeadline = EVENT_START`). Catalog amendments of 16-09: `CATALEG_ERRORS.md` (`DUPLICATE_*` 409; `ACTIVITY_FULL`, `WEEK_ALREADY_GENERATED`, `BAND_NOT_EMPTY` explicit 409; the other S06/S07 business codes 422), S14 R-14-09 (`TEMPLATE_BAND_DELETED`, `ACTIVITY_UPDATED`, `ACTIVITY_REGISTERED_BY_CLUB`, `ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB`).
+Planned tasks: E4-T01 contracts S06 + S07 (OpenAPI forms A–D / A–C, documents + indexes, status audit, purposes, 501 stubs) · E4-T02 planning domain (templates, `DescriptionResolver`, `InconsistencyDetector`, `CoverageCalculator`, `WeekGenerationUseCase`, P2 endpoints) · E4-T03 calendar, classes, cancellation, ring blocks, day grids (ports with null-objects for E5/E6) · E4-T04 activities (lifecycle, registrations with FIFO promotion, public API, consumers, N-32a…d) · E4-T05 integration (demo seed with templates A/B + Saturdays, validated week, block, inconsistency, 4 activities; `bin/e4-smoke`; gate evidence).
+
+### Gate E4 (back — checked by the organizer)
+- [ ] `bin/e4-smoke` green twice on the local stack: week generated from «Setmana A» + «Dissabtes» (holiday skipped, inconsistent template refused with `TEMPLATE_INCONSISTENT`) → validated as a whole → the Wednesday 18:50 class with 4 fictional registrants cancelled in one transaction (`ClassCancelledByClub` in the outbox, N-08a APP/EMAIL rows + SMS intents) → an activity published blocks its ring (conflict dialog lists the class) and is listed for the member; public API answers with the key and refuses without it.
+- [ ] Day grids: `view=member` without counts; `view=instructor` with counts and cancelled classes dimmed; coverage table per level with the D3 vocabulary.
+- [ ] CI green; OpenAPI snapshot staged for the web (E4-W01…W05).
+
+## E5 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md` and the Catalan backlog `docs/backlog` when synced)
 - **E5** Bookings + free training + scheduler framework (S08, S09, S15 P1/P6/P7/P9) — gate: full booking/cancel/waitlist/training cycle in staging with jobs running; k6 peak test passes; zero overbooking under concurrency.
 - **E6** Attendance + follow-up (S10, S15 P3/P8).
 - **E7** Communications (S11: engine, templates, SMS Twilio, push, email bounces, mass communications; S15 P4).
