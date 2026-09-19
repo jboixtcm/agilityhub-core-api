@@ -1,0 +1,26 @@
+Starting disposable consumer image Compose stack
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl POST /oauth2/token -> 200
+curl POST /oauth2/token -> 200
+curl POST /api/v1/week-templates -> 201
+curl POST /api/v1/week-templates/[id truncated]/bands -> 201
+curl POST /api/v1/week-templates/[id truncated]/classes -> 201
+curl POST /api/v1/weeks -> 201
+curl POST /api/v1/weeks/[id truncated]/generation -> 200
+curl GET /api/v1/day-grid?date=2026-09-21&view=member -> 200
+curl POST /api/v1/weeks/[id truncated]/validation -> 200
+curl GET /api/v1/day-grid?date=2026-09-21&view=member -> 200
+PASS generated DRAFT week -> validation -> member CLASS cell, occupancy absent
+curl POST /api/v1/ring-blocks -> 201
+curl POST /api/v1/ring-blocks -> 409
+curl POST /api/v1/class-sessions -> 201
+curl POST /api/v1/class-sessions/[id truncated]/cancellation -> 200
+curl POST /api/v1/class-sessions/[id truncated]/cancellation -> 200
+PASS outbox: WeekValidated=1, ClassCancelledByClub=1, RingBlockCreated=1; N-08a rows=0 for an empty draft
+PASS registrant delivery is covered by CalendarIT: 4 bookings + 2 waitlist, 21 N-08a rows, 2 PackRefunded events
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

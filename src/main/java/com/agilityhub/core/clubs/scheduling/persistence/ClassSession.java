@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.scheduling.persistence;
 
 import com.agilityhub.core.shared.domain.TenantEntity;
+import com.agilityhub.core.shared.domain.audit.AuditField;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,14 +12,21 @@ import com.agilityhub.core.clubs.scheduling.domain.*;
 
 @Document("class_sessions")
 public record ClassSession(@Id String id, String clubId,
-        String weekId, @ValueConverter(CalendarDateConverter.class) LocalDate date, String startTime, String endTime, Instant startsAt, Instant endsAt,
-        String ringId, List<String> levelIds, List<String> instructorIds, int capacity, CapacityMode capacityMode,
-        String description, ClassState state, Counters counters, Risk risk, Cancellation cancellation, Origin origin,
-        String placementId, String notes,
-        @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) implements TenantEntity {
-    public record Counters(int booked, int waiting) { }
-    public record Risk(boolean exempt, List<String> notifiedBookingIds, Instant adminNotifiedAt, Instant lowAlertSentAt) { }
-    public record Cancellation(ClassCancellationReason reason, String adminText, String byAccountId, Instant at,
-            int affectedBookings, int affectedWaitlist) { }
+        String weekId, @ValueConverter(CalendarDateConverter.class) LocalDate date, @AuditField String startTime, @AuditField String endTime, Instant startsAt, Instant endsAt,
+        @AuditField String ringId, @AuditField List<String> levelIds, @AuditField List<String> instructorIds, @AuditField int capacity, @AuditField CapacityMode capacityMode,
+        @AuditField String description, @AuditField ClassState state, @AuditField Counters counters, @AuditField Risk risk, @AuditField Cancellation cancellation, Origin origin,
+        String placementId, @AuditField String notes,
+        @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId, Instant finishedAt) implements TenantEntity {
+    public ClassSession(String id,String clubId,String weekId,LocalDate date,String startTime,String endTime,Instant startsAt,Instant endsAt,
+            String ringId,List<String> levelIds,List<String> instructorIds,int capacity,CapacityMode capacityMode,String description,ClassState state,
+            Counters counters,Risk risk,Cancellation cancellation,Origin origin,String placementId,String notes,Long version,Instant createdAt,
+            String createdByAccountId,Instant updatedAt,String updatedByAccountId) {
+        this(id,clubId,weekId,date,startTime,endTime,startsAt,endsAt,ringId,levelIds,instructorIds,capacity,capacityMode,description,state,counters,risk,
+                cancellation,origin,placementId,notes,version,createdAt,createdByAccountId,updatedAt,updatedByAccountId,null);
+    }
+    public record Counters(@AuditField int booked, @AuditField int waiting) { }
+    public record Risk(@AuditField boolean exempt, List<String> notifiedBookingIds, Instant adminNotifiedAt, Instant lowAlertSentAt) { }
+    public record Cancellation(@AuditField ClassCancellationReason reason, @AuditField String adminText, @AuditField String byAccountId, @AuditField Instant at,
+            @AuditField int affectedBookings, @AuditField int affectedWaitlist) { }
     public record Origin(String templateId, String templateClassId) { }
 }

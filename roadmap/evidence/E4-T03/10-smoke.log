@@ -1,0 +1,36 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl POST /oauth2/token -> 200
+curl POST /oauth2/token -> 200
+curl POST /api/v1/week-templates -> 201
+curl POST /api/v1/week-templates/[id truncated]/bands -> 201
+curl POST /api/v1/week-templates/[id truncated]/classes -> 201
+curl POST /api/v1/weeks -> 201
+curl POST /api/v1/weeks/[id truncated]/generation -> 200
+curl GET /api/v1/day-grid?date=2026-09-21&view=member -> 200
+curl POST /api/v1/weeks/[id truncated]/validation -> 200
+curl GET /api/v1/day-grid?date=2026-09-21&view=member -> 200
+PASS generated DRAFT week -> validation -> member CLASS cell, occupancy absent
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E4-T03/smoke.py", line 73, in <module>
+    smoke.scenario()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E4-T03/smoke.py", line 54, in scenario
+    self.call('POST', '/api/v1/ring-blocks', 201, access=admin, body=body)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E4-T03/smoke.py", line 22, in call
+    result = super().call(method, path, expected, **kwargs)
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-smoke", line 153, in call
+    require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {code}")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/bin/e3-smoke", line 26, in require
+    raise AssertionError(message)
+AssertionError: POST /api/v1/ring-blocks: expected 201, got 400 VALIDATION_ERROR

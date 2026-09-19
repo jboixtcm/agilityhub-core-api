@@ -22,6 +22,7 @@ public class ClubRepository extends GlobalRepository<Club> {
     public Optional<Club> findBySlug(String slug) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("slug").is(slug)), Club.class));
     }
+    public java.util.List<Club> activeClubs() { return mongo.find(Query.query(Criteria.where("status").is(Club.Status.ACTIVE).and("template").ne(true)),Club.class); }
     public int nextMemberNumber(int minimum) {
         var query=Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require()));
         var club=mongo.findOne(query,org.bson.Document.class,"clubs");

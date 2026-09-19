@@ -17,11 +17,12 @@ public class CoverageQuery {
     private final WeekGenerationUseCase weeks;
     private final ClassSessionRepository sessions;
     private final DogActivityQuery dogs;
-    private final BookingActivity bookings;
+    private final com.agilityhub.core.clubs.scheduling.application.ports.ClassBookingsPort bookings;
+    private final com.agilityhub.core.clubs.census.application.SchedulingRecipients recipients;
     private final ClubClock clock;
     public CoverageQuery(PlanningContext context, TemplateQuery templates, WeekGenerationUseCase weeks, ClassSessionRepository sessions,
-            DogActivityQuery dogs, BookingActivity bookings, ClubClock clock) {
-        this.context = context; this.templates = templates; this.weeks = weeks; this.sessions = sessions; this.dogs = dogs; this.bookings = bookings; this.clock = clock;
+            DogActivityQuery dogs, com.agilityhub.core.clubs.scheduling.application.ports.ClassBookingsPort bookings, com.agilityhub.core.clubs.census.application.SchedulingRecipients recipients, ClubClock clock) {
+        this.context = context; this.templates = templates; this.weeks = weeks; this.sessions = sessions; this.dogs = dogs; this.bookings = bookings; this.recipients = recipients; this.clock = clock;
     }
     public PlanningViews.Coverage get(String templateId, String saturdayTemplateId, String weekId) {
         if ((templateId == null) == (weekId == null) || weekId != null && saturdayTemplateId != null) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
@@ -32,7 +33,10 @@ public class CoverageQuery {
         if (weekId != null) {
             var week = weeks.require(weekId);
             sessions.forWeek(weekId).stream().filter(c -> c.state() != ClassState.CANCELLED).forEach(c -> classes.add(new CoverageCalculator.ClassPlaces(c.capacity(), c.levelIds())));
-            booked = bookings.activeBookingsByLevel(TenantContext.require(), week.startDate().atStartOfDay(zone).toInstant(), week.endDate().plusDays(1).atStartOfDay(zone).toInstant());
+            var countsByLevel = new HashMap<String,Integer>();
+            sessions.forWeek(weekId).stream().filter(c -> c.state()!=ClassState.CANCELLED).forEach(c -> bookings.bookedDogs(c.id()).forEach(id ->
+                    recipients.dog(id).map(com.agilityhub.core.clubs.census.application.SchedulingRecipients.Dog::levelId).ifPresent(level -> countsByLevel.merge(level,1,Integer::sum))));
+            booked = countsByLevel;
         } else {
             addTemplate(classes, templateId, TemplateKind.WEEKDAYS);
             if (saturdayTemplateId != null) { addTemplate(classes, saturdayTemplateId, TemplateKind.SATURDAY); }

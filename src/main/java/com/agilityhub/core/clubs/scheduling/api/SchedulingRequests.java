@@ -74,16 +74,32 @@ public final class SchedulingRequests {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description,
             @Schema(requiredMode = NOT_REQUIRED) Boolean cancelBookings) { }
-    public record ClassSessionPatchRequest(@Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId,
-            @Schema(requiredMode = NOT_REQUIRED) List<String> levelIds, @Schema(requiredMode = NOT_REQUIRED) List<String> instructorIds,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive Integer capacity,
-            @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "\\d{2}:\\d{2}") String startTime,
-            @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "\\d{2}:\\d{2}") String endTime,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) String description,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) String notes,
-            @Schema(requiredMode = NOT_REQUIRED) Boolean riskExempt, @Schema(requiredMode = NOT_REQUIRED) Boolean cancelBookings,
-            @NotNull @PositiveOrZero Long version) {
-        @JsonAnySetter public void rejectUnknown(String name, Object value) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+    public static final class ClassSessionPatchRequest {
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) public String ringId;
+        @Schema(requiredMode = NOT_REQUIRED) public List<String> levelIds;
+        @Schema(requiredMode = NOT_REQUIRED) public List<String> instructorIds;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Positive public Integer capacity;
+        @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "\\d{2}:\\d{2}") public String startTime;
+        @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "\\d{2}:\\d{2}") public String endTime;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 40) public String description;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) public String notes;
+        @Schema(requiredMode = NOT_REQUIRED) public Boolean riskExempt;
+        @Schema(requiredMode = NOT_REQUIRED) public Boolean cancelBookings;
+        @NotNull @PositiveOrZero public Long version;
+        @com.fasterxml.jackson.annotation.JsonIgnore private final java.util.Set<String> present = new java.util.HashSet<>();
+        @com.fasterxml.jackson.annotation.JsonSetter("ringId") public void setRingId(String value) { ringId=value; present.add("ringId"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("capacity") public void setCapacity(Integer value) { capacity=value; present.add("capacity"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("description") public void setDescription(String value) { description=value; present.add("description"); }
+        @com.fasterxml.jackson.annotation.JsonSetter("notes") public void setNotes(String value) { notes=value; present.add("notes"); }
+        public java.util.Map<String,Object> patch() {
+            var p=new java.util.LinkedHashMap<String,Object>();
+            if(present.contains("ringId")) p.put("ringId",ringId); if(present.contains("capacity")) p.put("capacity",capacity);
+            if(present.contains("description")) p.put("description",description); if(present.contains("notes")) p.put("notes",notes);
+            if(levelIds!=null) p.put("levelIds",levelIds); if(instructorIds!=null) p.put("instructorIds",instructorIds);
+            if(startTime!=null) p.put("startTime",startTime); if(endTime!=null) p.put("endTime",endTime); if(riskExempt!=null) p.put("riskExempt",riskExempt);
+            return p;
+        }
+        @JsonAnySetter public void rejectUnknown(String name,Object value) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
     }
     public enum ManualClassCancellationReason { CLUB_MANUAL, DELETED }
     public record ClassCancellationRequest(@NotNull ManualClassCancellationReason reason,
@@ -93,9 +109,23 @@ public final class SchedulingRequests {
             @NotNull @Schema(description = "RESERVATION requires FREE_TRAINING; enforced by E4-T03") RingBlockKind kind,
             @NotNull RingBlockReason reason, @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 200) String note,
             @Schema(requiredMode = NOT_REQUIRED, description = "ADMIN only") Boolean cancelBookings) { }
-    public record RingBlockPatchRequest(@Schema(requiredMode = NOT_REQUIRED) String ringId,
-            @Schema(requiredMode = NOT_REQUIRED) Instant from, @Schema(requiredMode = NOT_REQUIRED) Instant to,
-            @Schema(requiredMode = NOT_REQUIRED) RingBlockKind kind, @Schema(requiredMode = NOT_REQUIRED) RingBlockReason reason,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 200) String note,
-            @Schema(requiredMode = NOT_REQUIRED, description = "ADMIN only") Boolean cancelBookings, @NotNull @PositiveOrZero Long version) { }
+    public static final class RingBlockPatchRequest {
+        @Schema(requiredMode = NOT_REQUIRED) public String ringId;
+        @Schema(requiredMode = NOT_REQUIRED) public Instant from;
+        @Schema(requiredMode = NOT_REQUIRED) public Instant to;
+        @Schema(requiredMode = NOT_REQUIRED) public RingBlockKind kind;
+        @Schema(requiredMode = NOT_REQUIRED) public RingBlockReason reason;
+        @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 200) public String note;
+        @Schema(requiredMode = NOT_REQUIRED, description = "ADMIN only") public Boolean cancelBookings;
+        @NotNull @PositiveOrZero public Long version;
+        @com.fasterxml.jackson.annotation.JsonIgnore private boolean notePresent;
+        @com.fasterxml.jackson.annotation.JsonSetter("note") public void setNote(String value) { note=value; notePresent=true; }
+        public java.util.Map<String,Object> patch() {
+            var p=new java.util.LinkedHashMap<String,Object>();
+            if(ringId!=null) p.put("ringId",ringId); if(from!=null) p.put("from",from); if(to!=null) p.put("to",to);
+            if(kind!=null) p.put("kind",kind); if(reason!=null) p.put("reason",reason); if(notePresent) p.put("note",note);
+            return p;
+        }
+        @JsonAnySetter public void rejectUnknown(String name,Object value) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+    }
 }

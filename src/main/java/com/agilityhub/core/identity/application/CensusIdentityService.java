@@ -14,6 +14,10 @@ public class CensusIdentityService {
     public CensusIdentityService(AccountRepository accounts, MembershipRepository memberships, MagicLinkService links, RateLimits limits, CensusClubSettings clubs) {
         this.accounts = accounts; this.memberships = memberships; this.links = links; this.limits = limits; this.clubs = clubs;
     }
+    public String displayName(String accountId) {
+        if(accountId==null || memberships.findByAccountId(accountId).isEmpty()) return "";
+        return accounts.findById(accountId).map(Account::name).orElse("");
+    }
     public String accessEmail(String accountId) {
         var account = accounts.findById(accountId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_ACTIVE));
         if (account.status() != Account.Status.ACTIVE || memberships.findByAccountId(accountId)

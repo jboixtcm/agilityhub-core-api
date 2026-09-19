@@ -1,0 +1,26 @@
+surefire: {'tests': 381, 'failures': 0, 'errors': 0, 'skipped': 0}
+failsafe: {'tests': 557, 'failures': 0, 'errors': 0, 'skipped': 0}
+T-06 methods in CalendarRulesTest/CalendarIT:
+  T_06_14_smsUsesAtMost160BasicGsmSeptetsIncludingTruncation
+  T_06_08_exhaustiveStateMachinesAndTerminalNotesOnly
+  T_06_06_riskBoundariesAndAllRecipientLocales
+  T_06_07_localInstantsAndReviewTimesAcrossBothDstTransitionsAndZones
+  T_06_12_validateAtomicallyAndExposeDraftsOnlyAfterValidation
+  T_06_25_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithoutN08a
+  T_06_23_T_06_24_validationPatchAndCancellationRacesSerializeWithoutDrafts
+  T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+  T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+  T_06_14_deletedDraftApplicantAndSmsOffAreDistinctDeliveryCases
+  T_06_16_activitySyncJoinsCallerTransactionMovesAndCancelsWithFullRollback
+  T_06_16_trainingConflictsCancelAtomicallyOnlyForAdmin
+  T_06_12_T_06_36_validationSeesTrainingAndActiveBlocksAndHonorsModuleRemoval
+  T_06_17_T_06_35_T_06_36_gridVisibilityModulesNoRingAndForeignTenant
+  T_06_25_dashboardCoverageAndCliUseRealSessionsAndEnforceTenant
+  T_06_14_T_06_15_T_06_34_cancellationRollsBackAndDeliversEveryDogInRecipientLocaleOnce
+com.agilityhub.core.clubs.scheduling.application.ports: LINE 16/18 (88.89%)
+com.agilityhub.core.clubs.scheduling.api: LINE 176/181 (97.24%)
+com.agilityhub.core.clubs.scheduling.application: LINE 783/795 (98.49%)
+com.agilityhub.core.clubs.scheduling.application: BRANCH 616/719 (85.67%)
+com.agilityhub.core.clubs.scheduling.domain: LINE 181/181 (100.00%)
+com.agilityhub.core.clubs.scheduling.domain: BRANCH 220/230 (95.65%)
+PASS all coverage gates; generated OpenAPI byte-identical to reviewed snapshot

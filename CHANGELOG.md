@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E4-T03: Implement transactional week validation, class edits/cancellation,
+  ring blocking and activity synchronization; serve calendar and privacy-aware
+  member/instructor day grids. Add replaceable booking/training ports, risk and
+  dashboard projections, the finish-ended CLI, audited changes and durable
+  localized N-08a/N-08b delivery with SMS intents. Cover rollback, concurrency,
+  tenant/role/module variants and the disposable HTTP rehearsal.
+
 - E4-T02: Implement planning template edits, localized automatic descriptions,
   live inconsistencies and coverage, and transactional draft week generation
   with holidays, club-local time, concurrency protection and idempotent replay.

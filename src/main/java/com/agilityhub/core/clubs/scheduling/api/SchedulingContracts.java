@@ -56,6 +56,7 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant validatedAt, RelativeWeek relative) { }
     public enum RelativeWeek { CURRENT, NEXT, OTHER }
     public enum CalendarFilter { ACTIVE, DRAFT, CANCELLED }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record ClassSession(String id, String weekId, LocalDate date, String startTime, String endTime,
             Instant startsAt, Instant endsAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId,
             List<String> levelIds, List<String> instructorIds, int capacity, CapacityMode capacityMode,
@@ -92,12 +93,14 @@ public final class SchedulingContracts {
     public record DayGrid(LocalDate date, DayOfWeek dayOfWeek, String timeZone, GridView view,
             List<DayGridColumn> columns, List<DayGridRow> rows) { }
     public enum GridView { MEMBER, INSTRUCTOR }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record DayGridColumn(@Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId, String shortName,
             String name, String color, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with COURSES") String activeSetupId) { }
     public record DayGridRow(String time, List<DayGridCell> cells) { }
     public enum CellKind { CLASS, OCCUPIED, TRAINING, BLOCK, ACTIVITY }
     public enum CellReason { MAINTENANCE, PRIVATE_CLASS, THERAPY, PREPARATION, ACTIVITY, OTHER, TRAINING }
     @Schema(description = "MEMBER: CLASS/OCCUPIED/ACTIVITY only; no occupancy, who, trainingBookingIds, note, createdByName or blockId. Instructor name follows R-06-12. INSTRUCTOR/ADMIN: all cell kinds, counts and names. ACTIVITY carries activityId/title in both views.")
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record DayGridCell(@Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId, CellKind kind, String endTime,
             @Schema(requiredMode = NOT_REQUIRED) String classId, @Schema(requiredMode = NOT_REQUIRED) String description,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName, @Schema(requiredMode = NOT_REQUIRED) ClassState state,
@@ -107,6 +110,7 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED) CellReason reason, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note,
             @Schema(requiredMode = NOT_REQUIRED) String createdByName, @Schema(requiredMode = NOT_REQUIRED) String activityId,
             @Schema(requiredMode = NOT_REQUIRED) String title) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record GridOccupancy(int booked, int capacity, @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting) { }
     public record Coverage(CoverageScope scope, CoverageThresholds thresholds, int activeDogWeeks, List<CoverageLevel> levels) { }
     public enum CoverageScope { TEMPLATE, WEEK }

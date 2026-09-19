@@ -17298,7 +17298,7 @@
     },
     "/api/v1/class-sessions" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. MEMBER cannot list classes; use day-grid or class detail. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. MEMBER cannot list classes; use day-grid or class detail. Tenant comes from the JWT.",
         "operationId" : "classes",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -17499,7 +17499,7 @@
         "x-sortable" : [ "startsAt", "date" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "createClass",
         "requestBody" : {
           "content" : {
@@ -17648,7 +17648,7 @@
     },
     "/api/v1/class-sessions/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. Tenant comes from the JWT.",
         "operationId" : "classSession",
         "parameters" : [ {
           "in" : "path",
@@ -17797,7 +17797,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT.",
         "operationId" : "patchClass",
         "parameters" : [ {
           "in" : "path",
@@ -17954,7 +17954,7 @@
     },
     "/api/v1/class-sessions/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "cancelClass",
         "parameters" : [ {
           "in" : "path",
@@ -18119,7 +18119,7 @@
     },
     "/api/v1/class-sessions/{id}/cancellation-preview" : {
       "get" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "classCancellationPreview",
         "parameters" : [ {
           "in" : "path",
@@ -18266,7 +18266,7 @@
     },
     "/api/v1/class-sessions/{id}/risk-exemption" : {
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "exemptClass",
         "parameters" : [ {
           "in" : "path",
@@ -20789,7 +20789,7 @@
     },
     "/api/v1/day-grid" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER, AGILITYHUB_ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Every authenticated role may use member view; instructor view requires INSTRUCTOR/ADMIN. Impersonation permits only member view. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER, AGILITYHUB_ADMIN. Tenant and role guards apply. Every authenticated role may use member view; instructor view requires INSTRUCTOR/ADMIN. Impersonation permits only member view. Tenant comes from the JWT.",
         "operationId" : "dayGrid",
         "parameters" : [ {
           "in" : "query",
@@ -39504,7 +39504,7 @@
     },
     "/api/v1/ring-blocks" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. MEMBER receives RingBlockMemberView without note or createdByName. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER receives RingBlockMemberView without note or createdByName. Tenant comes from the JWT.",
         "operationId" : "blocks",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -39705,7 +39705,7 @@
         "x-sortable" : [ "from" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. RESERVATION requires FREE_TRAINING; cancelBookings requires ADMIN. Conditional write rules enforced in E4-T03. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. RESERVATION requires FREE_TRAINING; cancelBookings requires ADMIN. Tenant comes from the JWT.",
         "operationId" : "createBlock",
         "parameters" : [ {
           "in" : "header",
@@ -39863,7 +39863,7 @@
     },
     "/api/v1/ring-blocks/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "block",
         "parameters" : [ {
           "in" : "path",
@@ -40012,7 +40012,7 @@
         "tags" : [ "clubs.scheduling" ]
       },
       "patch" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "patchBlock",
         "parameters" : [ {
           "in" : "path",
@@ -40169,7 +40169,7 @@
     },
     "/api/v1/ring-blocks/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "cancelBlock",
         "parameters" : [ {
           "in" : "path",
@@ -45144,7 +45144,7 @@
     },
     "/api/v1/weeks/{id}/calendar" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "calendar",
         "parameters" : [ {
           "in" : "path",
@@ -45465,7 +45465,7 @@
     },
     "/api/v1/weeks/{id}/validation" : {
       "post" : {
-        "description" : "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
         "operationId" : "validateWeek",
         "parameters" : [ {
           "in" : "path",

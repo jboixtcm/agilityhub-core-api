@@ -47,6 +47,7 @@ class E4ContractIT extends AbstractIntegrationTest {
         }
     }
     @BeforeEach void prepare() {
+        clock.setInstant(java.time.Instant.parse("2026-09-14T04:00:00Z"));
         mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").in(CLUB, OTHER)), Club.class);
         for (String clubId : List.of(CLUB, OTHER)) {
             var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(clubId, clubId.equals(CLUB) ? HOST : OTHER_HOST));
@@ -58,15 +59,18 @@ class E4ContractIT extends AbstractIntegrationTest {
             mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
         insert("catalogs", "Level", "e4-level-a", Map.of("name", Map.of("ca", "A"), "order", 1, "capacity", 5, "active", true));
-        insert("catalogs", "Ring", "e4-ring-a", Map.of("name", "Example", "shortName", "EX", "order", 1, "active", true));
+        insert("catalogs", "Ring", "e4-ring-a", Map.of("name", "Example", "shortName", "EX", "order", 1, "active", true, "color", "#112233"));
         insert("catalogs", "Instructor", "e4-instructor-a", Map.of("memberId", "member-a", "shortName", "Example", "active", true));
         insert("scheduling", "WeekTemplate", "template-a", Map.of("name", "Stored week", "kind", "WEEKDAYS", "active", true,
                 "timeBands", List.of(Map.of("id", "band-a", "startTime", "18:00", "endTime", "19:00"), Map.of("id", "band-empty", "startTime", "20:00", "endTime", "21:00")),
                 "classes", List.of(Map.of("id", "template-class-a", "bandId", "band-a", "dayOfWeek", "MONDAY", "instructorIds", List.of("e4-instructor-a"), "levelIds", List.of("e4-level-a"), "capacity", 5, "capacityMode", "AUTO"))));
         insert("scheduling", "WeekTemplate", "template-saturday", Map.of("name", "Example Saturday", "kind", "SATURDAY", "active", true, "timeBands", List.of(), "classes", List.of()));
         insert("scheduling", "Week", "week-a", Map.of("isoYear", 2026, "isoWeek", 38, "startDate", "2026-09-14", "endDate", "2026-09-20", "state", "PENDING"));
-        insert("scheduling", "ClassSession", "class-a", Map.of("weekId", "week-a", "state", "ACTIVE", "levelIds", List.of(), "instructorIds", List.of(), "capacity", 5));
-        insert("scheduling", "RingBlock", "block-a", Map.of("ringId", "e4-ring-a", "state", "ACTIVE", "kind", "BLOCK", "reason", "MAINTENANCE"));
+        var session = new LinkedHashMap<String,Object>(); session.put("weekId","week-a");session.put("date","2026-09-14");session.put("startTime","18:00");session.put("endTime","19:00");
+        session.put("startsAt","2026-09-14T16:00:00Z");session.put("endsAt","2026-09-14T17:00:00Z");session.put("state","ACTIVE");session.put("levelIds",List.of("e4-level-a"));session.put("instructorIds",List.of("e4-instructor-a"));session.put("capacity",5);session.put("capacityMode","AUTO");session.put("counters",Map.of("booked",0,"waiting",0));session.put("risk",Map.of("exempt",false,"notifiedBookingIds",List.of()));
+        insert("scheduling","ClassSession","class-a",session);
+        session.put("state","DRAFT");session.put("startTime","20:00");session.put("endTime","21:00");session.put("startsAt","2026-09-14T18:00:00Z");session.put("endsAt","2026-09-14T19:00:00Z");insert("scheduling","ClassSession","draft-a",session);
+        insert("scheduling", "RingBlock", "block-a", Map.of("ringId", "e4-ring-a", "state", "ACTIVE", "kind", "BLOCK", "reason", "MAINTENANCE", "from", "2026-09-16T14:00:00Z", "to", "2026-09-16T15:00:00Z"));
         insert("activities", "Activity", "activity-a", Map.of("slug", "example-event", "state", "PUBLISHED", "documents", List.of(Map.of("id", "document-a", "name", "Example", "fileKey", "file-a", "mimeType", "application/pdf", "sizeBytes", 4))));
         insert("activities", "ActivityRegistration", "registration-a", Map.of("activityId", "activity-a", "memberId", "member-a", "state", "ACTIVE", "origin", "APP"));
     }
@@ -82,6 +86,10 @@ class E4ContractIT extends AbstractIntegrationTest {
         return route.path().startsWith("/api/v1/week-templates") || route.path().equals("/api/v1/coverage")
                 || route.path().equals("/api/v1/weeks") || route.path().equals("/api/v1/weeks/{id}")
                 || route.path().endsWith("/generation-candidates") || route.path().endsWith("/generation");
+    }
+    private static boolean implemented(Route route) {
+        return planning(route) || route.path().startsWith("/api/v1/class-sessions") || route.path().startsWith("/api/v1/ring-blocks")
+                || route.path().equals("/api/v1/day-grid") || route.path().endsWith("/calendar") || route.path().equals("/api/v1/weeks/{id}/validation");
     }
     private String path(Route r, String clubId) {
         String id = r.path().contains("week-templates") ? "template-a" : r.path().contains("weeks/") ? "week-a"
@@ -100,6 +108,10 @@ class E4ContractIT extends AbstractIntegrationTest {
             body.put("version", mongo.findById("template-a", com.agilityhub.core.clubs.scheduling.persistence.WeekTemplate.class).version());
             request.content(mapper.writeValueAsString(body));
         }
+        if(r.method().equals("PATCH") && (r.path().startsWith("/api/v1/class-sessions") || r.path().startsWith("/api/v1/ring-blocks"))) {
+            var body=(ObjectNode)r.body().deepCopy();boolean session=r.path().contains("class-sessions");
+            body.put("version",((Number)mongo.findById(session?"class-a":"block-a",org.bson.Document.class,session?"class_sessions":"ring_blocks").get("version")).longValue());request.content(mapper.writeValueAsString(body));
+        }
         r.params().forEach(request::param);
         if (r.idempotency()) { request.header("Idempotency-Key", UUID.randomUUID().toString()); }
         if (r.key()) { request.header("X-Api-Key", PUBLIC_KEY); }
@@ -117,8 +129,9 @@ class E4ContractIT extends AbstractIntegrationTest {
     @ParameterizedTest @MethodSource("routes")
     void T_06_21_T_07_19_everyRouteEnforcesAllRolesAndTenantResourceIsolation(Route route) throws Exception {
         for (String role : List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN")) {
+            prepare();
             boolean allowed = route.roles().contains(role);
-            if (allowed && planning(route)) {
+            if (allowed && implemented(route)) {
                 var result = mvc.perform(call(route, CLUB, role)).andReturn().getResponse();
                 assertThat(result.getStatus()).as(route.method() + " " + route.path() + ": " + result.getContentAsString()).isBetween(200, 299);
             } else {
@@ -148,6 +161,7 @@ class E4ContractIT extends AbstractIntegrationTest {
         com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
         try (var scope = TenantContext.open(CLUB)) { issued = impersonations.create("e4-imp-admin", "member-a", "Contract authorization test"); }
         for (Route route : routes().toList()) {
+            if(route.impersonation() && implemented(route)) { mvc.perform(call(route,CLUB,"MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isOk()); continue; }
             error(call(route, CLUB, "MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER")),
                     route.impersonation() ? 501 : 403, route.impersonation() ? "NOT_IMPLEMENTED" : route.publicRoute() ? "FORBIDDEN" : "IMPERSONATION_DENIED");
         }
@@ -156,8 +170,8 @@ class E4ContractIT extends AbstractIntegrationTest {
         error(get("/api/v1/day-grid").param("date", "2026-09-14").param("view", "instructor").header("Host", HOST)
                 .with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER")), 403, "FORBIDDEN");
         for (String role : List.of("ADMIN", "INSTRUCTOR")) {
-            error(get("/api/v1/day-grid").param("date", "2026-09-14").param("view", "instructor").header("Host", HOST)
-                    .with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_" + role)), 501, "NOT_IMPLEMENTED");
+            mvc.perform(get("/api/v1/day-grid").param("date","2026-09-14").param("view","instructor").header("Host",HOST)
+                    .with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_"+role))).andExpect(status().isOk());
             for (Route route : routes().filter(r -> r.roles().equals(List.of("MEMBER"))).toList()) {
                 error(call(route, CLUB, role).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + role)), 403, "FORBIDDEN");
             }
@@ -184,7 +198,7 @@ class E4ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_06_20_T_07_17_stubsLeaveAllCollectionsUnchangedIncludingIdempotency() throws Exception {
         Map<String, List<org.bson.Document>> before = database();
-        for (Route route : routes().filter(r -> !planning(r)).toList()) { error(call(route, CLUB, route.roles().getFirst()), 501, "NOT_IMPLEMENTED"); }
+        for (Route route : routes().filter(r -> !implemented(r)).toList()) { error(call(route, CLUB, route.roles().getFirst()), 501, "NOT_IMPLEMENTED"); }
         assertThat(database()).isEqualTo(before);
     }
     private Map<String, List<org.bson.Document>> database() {
@@ -249,7 +263,7 @@ class E4ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();
-            if (planning(route)) { assertThat(op.path("description").asText()).doesNotContain("501"); }
+            if (implemented(route)) { assertThat(op.path("description").asText()).doesNotContain("501"); }
             else { assertThat(op.path("description").asText()).contains("501", "guards"); }
             assertThat(op.path("responses").has(Integer.toString(route.success()))).as(route.path()).isTrue();
             assertThat(op.path("parameters").findValuesAsText("name")).doesNotContain("clubId");

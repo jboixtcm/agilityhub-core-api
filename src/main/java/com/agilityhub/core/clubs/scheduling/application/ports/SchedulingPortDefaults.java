@@ -11,6 +11,7 @@ public class SchedulingPortDefaults {
     ClassBookingsPort classBookings() { return new ClassBookingsPort() {
         public List<BookingRef> activeBookings(String id) { return List.of(); }
         public List<WaitlistRef> liveWaitlist(String id) { return List.of(); }
+        public List<WaitlistRef> waitlistEntries(List<String> ids) { return List.of(); }
         public CancellationEffects cancelAllByClub(String id, String reason, String actor) { return new CancellationEffects(List.of(), List.of()); }
     }; }
     @Bean @ConditionalOnMissingBean(TrainingConflictPort.class)

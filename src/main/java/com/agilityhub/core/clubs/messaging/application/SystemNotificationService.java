@@ -75,6 +75,17 @@ public class SystemNotificationService {
             events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
         });
     }
+    @Transactional(propagation = Propagation.NEVER)
+    public void smsIntentOnce(String id,String code,String accountId,String locale,java.util.List<String> phones,
+            String body,boolean enabled,Map<String,Object> variables) {
+        transactions.executeWithoutResult(tx -> {
+            if(notifications.findScoped(id).isPresent()) return;
+            notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"SMS",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
+                    null,null,null,null,locale,clock.instant()));
+            notifications.smsContent(id,phones,body,variables);
+            events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+        });
+    }
     private String deliverTo(String id,String code,NotificationAccounts.Recipient account,Map<String,?> variables) {
         String clubId = TenantContext.current();
         var settings = clubId == null ? new ClubEmailSettings.Settings("AgilityHub", null, "#2563eb", "#ffffff",

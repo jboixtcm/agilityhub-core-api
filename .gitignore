@@ -35,3 +35,4 @@ __pycache__/
 !roadmap/evidence/E4-T01/*.log
 !roadmap/evidence/E4-T02/*.log
 .roadmap-ci.json.tmp
+!roadmap/evidence/E4-T03/*.log

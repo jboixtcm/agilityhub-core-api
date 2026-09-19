@@ -13,6 +13,8 @@ public interface ClassBookingsPort {
     }
     List<BookingRef> activeBookings(String classId);
     List<WaitlistRef> liveWaitlist(String classId);
+    /** Resolve retained entries, including CANCELLED, for durable outbox delivery. */
+    List<WaitlistRef> waitlistEntries(List<String> entryIds);
     @Transactional(propagation = Propagation.MANDATORY)
     CancellationEffects cancelAllByClub(String classId, String reason, String actorAccountId);
     default List<String> bookedDogs(String classId) { return activeBookings(classId).stream().map(BookingRef::dogId).toList(); }

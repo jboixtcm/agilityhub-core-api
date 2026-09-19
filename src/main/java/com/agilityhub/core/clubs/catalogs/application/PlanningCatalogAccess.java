@@ -24,6 +24,10 @@ public class PlanningCatalogAccess {
                 rings.findAll().stream().map(r -> new ResourceView(r.id(), r.name(), r.active())).toList(),
                 instructors.findAll().stream().map(i -> new ResourceView(i.id(), i.shortName(), i.active())).toList());
     }
+    public record RingView(String id,String name,String shortName,String color,int order,boolean active,String activeSetupId) { }
+    public List<RingView> rings() { return rings.findAll().stream().sorted(Comparator.comparingInt(Ring::order).thenComparing(Ring::id))
+            .map(r -> new RingView(r.id(),r.name(),r.shortName(),r.color(),r.order(),r.active(),r.activeSetupId())).toList(); }
+    public List<String> instructorMembers(Collection<String> ids) { return instructors.findAll().stream().filter(i -> ids.contains(i.id())).map(Instructor::memberId).toList(); }
     public static int capacity(List<Integer> capacities, boolean levelsEnabled, int defaultCapacity) {
         return CapacityCalculator.forLevels(capacities, levelsEnabled, defaultCapacity);
     }

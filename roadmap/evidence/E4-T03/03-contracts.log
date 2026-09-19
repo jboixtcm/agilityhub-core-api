@@ -1,0 +1,44 @@
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/private/tmp/e4-t01-maven/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+Audit coverage: WEEK_VALIDATED -> CalendarIT.T_06_12_validateAtomicallyAndExposeDraftsOnlyAfterValidation
+Audit coverage: CLASS_CANCELLED -> CalendarIT.T_06_14_T_06_15_T_06_34_cancellationRollsBackAndDeliversEveryDogInRecipientLocaleOnce
+Audit coverage: CLASS_UPDATED_WITH_BOOKINGS -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: CLASS_RISK_EXEMPTION_CHANGED -> CalendarIT.T_06_13_editPresenceCapacityVersionExemptionAndLocalizedChangeNotifications
+Audit coverage: RING_BLOCK_CREATED -> CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: RING_BLOCK_CANCELLED -> CalendarIT.T_06_16_T_06_32_ringBlockLifecycleConflictsTimeRulesRolesAndRedaction
+Audit coverage: TEMPLATE_CLASS_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: TEMPLATE_BAND_DELETED -> PlanningIT.T_06_01_T_06_09_templateCrudCopyNullResetsAuditEventsAndUsage
+Audit coverage: MEMBER_VALIDATED -> SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: SIGNUP_REJECTED -> SignupIT.T_04_19_rejectionCancelsDuePaymentsAndCannotRepeat
+Audit coverage: MEMBER_UPDATED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff
+Audit coverage: SIGNUP_EDITED -> CensusIT.T_03_12_memberEditsUseVersionUniquenessAndExactAuditDiff, SignupIT.T_04_20_pendingEditsEmitSignupEditedAndRejectStaleVersion
+Audit coverage: MEMBER_PAYMENT_METHOD_CHANGED -> CensusIT.T_03_13_paymentMethodsAreValidatedAndAlwaysMasked
+Audit coverage: MEMBER_STATUS_CHANGED -> CensusIT.T_03_06_T_03_31_memberLeaveDeactivatesDogsAndReactivationKeepsTheirStatus
+Audit coverage: BOOKING_BLOCK_SET -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: BOOKING_BLOCK_CLEARED -> CensusIT.T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges
+Audit coverage: ACCESS_RESENT -> CensusIT.T_03_16_accessResendPublishesAndDeliversN27Once
+Audit coverage: DOG_UPDATED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: DOG_LEVEL_CHANGED -> CensusIT.T_03_19_levelChangeKeepsBookingsAndEmitsNoWarnings, SignupIT.T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+Audit coverage: DOG_FREE_TRAINING_CHANGED -> CensusIT.T_03_20_freeOverrideOnlyEmitsAnEventForEffectiveChanges
+Audit coverage: DOG_TRANSFERRED -> CensusIT.T_03_21_transferPreservesDogDataAndClearsSelections
+Audit coverage: DOG_DEACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_REACTIVATED -> CensusIT.T_03_22_deactivationChecksWaitlistsAndReactivationRequiresAnActiveOwner
+Audit coverage: DOG_DOCUMENT_FILE_REMOVED -> CensusIT.T_03_05_T_03_23_uploadOwnershipFileValidationAndSoftRemoval
+Audit coverage: FAMILY_GROUP_CHANGED -> CensusIT.T_03_28_familyMembershipHolderUpdatesAndDissolutionAreAtomic
+Audit coverage: MEMBER_ROLES_CHANGED -> TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: DATA_EXPORTED -> ExportEngineIT.T_14_15_localizedHeadersMaskedValuesDatesAndReadyJobs, UniversalListsIT.T_03_11_exportsMaskFilesAndWriteTransactionalAuditOutbox
+Audit coverage: CATALOG_CHANGED -> CatalogsIT.T_05_06_T_05_19_T_05_20_catalogCrudOrderVersionAuditAndOutbox, ClubPagesIT.T_05_CP_05_auditOutboxAndPageWritesCommitAndRollbackTogether, DemoSeedsIT.T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites, PlansIT.T_05_02_supersessionResolvesBothBoundariesAndEmitsTwoAtomicChanges, TeamIT.T_05_13_createReactivateRolesAndAtomicAudit
+Audit coverage: MIGRATION_APPLIED -> PlayoffMigrationIT.T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections
+Audit coverage: PLATFORM_ROLES_CHANGED -> PlatformRolesIT.T_17_09_globalReadReplaceAndRemovalAuditOnlyRolePathWithoutDomainEvent
+Audit coverage: ONBOARDING_COMPLETED -> OnboardingIT.T_01_26_importedAccountAcceptsOnceWithVersionTimeAndTransactionalAudit
+Audit coverage: IMPERSONATION_STARTED -> ImpersonationHandoffIT.T_01_11_claimsMemberViewAuditedMutationAndRevocation
+Audit coverage: ACCOUNT_EMAIL_STATUS_CHANGED -> SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce
+Audit coverage: PARAMETER_CHANGED -> AuditedAspectIT.T_14_12_parameterEntryCommitsAtomicallyWithAggregateAndOutboxAndCapturesMetadata, SettingsIT.T_02_08_parameterHistoryAuditOutboxCacheAndVersionedReset
+Audit coverage: CLUB_UPDATED -> AuditedAspectIT.T_14_12_manualWriterMasksAndFreezesMutableSnapshotsBeforeCommit, ClubDefinitionsIT.T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite, SettingsIT.T_02_11_clubProjectionAndAllowlistedUpdatesAuditAndRefreshBranding
+Audit coverage: CLUB_MODULES_CHANGED -> AuditedAspectIT.T_14_11_lastChangeUsesLatestTimestampAndSeparatesTenantsAndTargets, SettingsIT.T_02_09_selfServiceModulesAuditOutboxDependenciesAndBranding
+Audit coverage: CLUB_STATUS_CHANGED -> AuditedAspectIT.T_14_11_platformEntriesHaveNullClubIdAndExplicitIsolatedQuery
+10:53:56.737 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1

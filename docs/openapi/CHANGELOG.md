@@ -3,6 +3,16 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-19 · E4-T03 · Calendar operations implemented
+
+The remaining 15 S06 operations now execute week validation, class lifecycle,
+ring blocking, calendar and day-grid queries. Class and ring-block lists use
+the universal list contract. Patch bodies retain their fields and distinguish
+omission from explicit nullable resets. Optional privacy/module fields are
+omitted from member and disabled-module projections. No endpoints or catalog
+items were added. The snapshot removes the former 501 operation descriptions.
+
+
 ## 2026-09-16 · E4-T02 · Planning operations implemented
 
 The 16 template, coverage, week, candidate and generation operations now execute

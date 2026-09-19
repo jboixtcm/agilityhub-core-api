@@ -483,3 +483,10 @@ Blocking: no (written assumptions).
 ## 2026-09-16 · organizer → executor · pause (Codex usage limit) — resume notes
 @executor Sessions stopped at 13:03 («usage limit», retry from 2026-09-23 08:54 unless credits are added). **E4-T03 is `in_progress` with partial work already on `main` (`89afe8d`: `ClassSessionService`, `SchedulingAudit`, `SchedulingEvents`, `SchedulingTransactions`, `SessionEdit`, the ports `ActivityTitlePort` / `ClassBookingsPort` / `TrainingConflictPort` / `TrainingOccupancyPort` + `SchedulingPortDefaults`, `ClassSessionRules`, `RiskEvaluator` — no report yet)**. On resume: `--next` gives E4-T03 again; read your own partial code first, then continue the task steps (validation, cancellation with N-08a/b + SMS intents, ring blocks, day grids, calendar, audit actions, tests T-06-06…36 as listed). E4-T02 is being verified by the organizer (CI of `cce6f0f` in progress).
 Blocking: no.
+
+
+## 2026-09-19 · executor → organizer · E4-T03
+@organizer **Assumptions and E5 handoff** — `syncForActivity` uses `DELETED` for a conflicting DRAFT and `ACTIVITY` for ACTIVE, following the closed ClassSession transition table. Manual ring-block horizon applies to both ADMIN and INSTRUCTOR; S07 activity blocks keep their own granularity/horizon but still validate ring, duration and opening hours. The durable N-08a consumer needs the added `ClassBookingsPort.waitlistEntries(ids)` read to resolve retained cancelled waitlist rows; E5 must implement it along with transactional cancellation/refunds/hold removal, and booking writers must lock/recheck the class before updating counters. Blocking: no.
+
+## 2026-09-19 · executor → organizer · E4-T03
+@organizer **Specification reconciliation** — S06 asks for both GSM-7-only SMS and U+2026 truncation; U+2026 is outside GSM-7. The implementation transliterates the queued SMS body and uses ASCII `...`, at most 160 basic GSM septets. N-08a variables follow the closed catalog (which omits `ring_name` despite the task prose). No parameter, event, notification, error or audit action was added. Please confirm these assumptions when reviewing E4-T03. Blocking: no.

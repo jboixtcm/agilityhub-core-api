@@ -10,6 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public record Notification(@Id String id, String clubId, String accountId, String code, String channel,
                            Status status, String providerMessageId, Instant sentAt, String error,
                            String recipientEmail, String locale, Instant createdAt) implements TenantEntity {
-    public enum Status { QUEUED, SENT, FAILED, DELIVERED }
+    public enum Status { QUEUED, SENT, FAILED, DELIVERED, SKIPPED_BY_PREFERENCE, SKIPPED_MODULE_OFF }
     @Override public String toString() { return "Notification[id=" + id + ", status=" + status + "]"; }
 }

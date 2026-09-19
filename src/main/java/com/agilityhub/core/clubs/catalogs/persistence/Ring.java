@@ -8,4 +8,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document("rings")
 public record Ring(@Id String id, String clubId, String name, String shortName, String color, boolean allowsFreeTraining, Integer trainingCapacity, int order, boolean active, long version,
-        Instant createdAt, Instant updatedAt, String createdByAccountId, String updatedByAccountId) implements CatalogEntity { }
+        Instant createdAt, Instant updatedAt, String createdByAccountId, String updatedByAccountId, String activeSetupId) implements CatalogEntity {
+    public Ring(String id,String clubId,String name,String shortName,String color,boolean allowsFreeTraining,Integer trainingCapacity,int order,boolean active,long version,
+            Instant createdAt,Instant updatedAt,String createdByAccountId,String updatedByAccountId) {
+        this(id,clubId,name,shortName,color,allowsFreeTraining,trainingCapacity,order,active,version,createdAt,updatedAt,createdByAccountId,updatedByAccountId,null);
+    }
+}

@@ -17,9 +17,12 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 import static com.agilityhub.core.clubs.scheduling.api.SchedulingContracts.*;
 import static com.agilityhub.core.clubs.scheduling.api.SchedulingRequests.*;
 
-/** S06 planning operations; calendar and ring-block lifecycle remain reserved for E4-T03. */
+/** S06 planning, calendar and ring occupancy. */
 @RestController
 public class SchedulingController {
+    private final WeekValidationUseCase validation; private final CalendarQuery calendarQuery; private final ClassSessionService sessions;
+    private final ClassCancellationUseCase cancellations; private final RingBlockService ringBlocks; private final DayGridQuery grid;
+    private final SessionProjection projections; private final SchedulingLists schedulingLists; private final SchedulingEvents events;
     private final SchedulingContractAccess access;
     private final TemplateQuery templates;
     private final TemplateService templateWrites;
@@ -29,7 +32,10 @@ public class SchedulingController {
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
     public SchedulingController(SchedulingContractAccess access, TemplateQuery templates, TemplateService templateWrites,
             CoverageQuery coverage, WeekGenerationUseCase planning, com.agilityhub.core.shared.application.lists.ListEngine lists,
-            com.fasterxml.jackson.databind.ObjectMapper mapper) {
+            com.fasterxml.jackson.databind.ObjectMapper mapper, WeekValidationUseCase validation, CalendarQuery calendarQuery, ClassSessionService sessions,
+            ClassCancellationUseCase cancellations, RingBlockService ringBlocks, DayGridQuery grid, SessionProjection projections, SchedulingLists schedulingLists, SchedulingEvents events) {
+        this.validation=validation; this.calendarQuery=calendarQuery; this.sessions=sessions; this.cancellations=cancellations; this.ringBlocks=ringBlocks;
+        this.grid=grid; this.projections=projections; this.schedulingLists=schedulingLists; this.events=events;
         this.access = access; this.templates = templates; this.templateWrites = templateWrites; this.coverage = coverage;
         this.planning = planning; this.lists = lists; this.mapper = mapper;
     }
@@ -194,152 +200,152 @@ public class SchedulingController {
     @PostMapping("/api/v1/weeks/{id}/validation")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, WEEK_INCONSISTENT, NOTHING_TO_VALIDATE})
-    @Operation(summary = "validateWeek", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ValidationResult", useReturnTypeSchema = true))
+    @Operation(summary = "validateWeek", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ValidationResult", useReturnTypeSchema = true))
     public ValidationResult validateWeek(@PathVariable String id, @Valid @RequestBody EmptyRequest request) {
         access.tenant();
         access.week(id);
-        throw new UnsupportedOperationException();
+        return view(validation.validate(id), ValidationResult.class);
     }
 
     @GetMapping("/api/v1/weeks/{id}/calendar")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "calendar", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekCalendar", useReturnTypeSchema = true))
+    @Operation(summary = "calendar", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "WeekCalendar", useReturnTypeSchema = true))
     public WeekCalendar calendar(@PathVariable String id, @RequestParam(defaultValue = "ACTIVE") CalendarFilter filter) {
         access.tenant();
         access.week(id);
-        throw new UnsupportedOperationException();
+        return view(calendarQuery.get(id, filter.name()), WeekCalendar.class);
     }
 
     @GetMapping("/api/v1/class-sessions")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ListContract(filterable = {"date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "classes", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. MEMBER cannot list classes; use day-grid or class detail. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<ClassSession>", useReturnTypeSchema = true))
-    public ListPage<ClassSession> classes() {
+    @Operation(summary = "classes", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. MEMBER cannot list classes; use day-grid or class detail. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<ClassSession>", useReturnTypeSchema = true))
+    public ListPage<ClassSession> classes(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return (ListPage) schedulingLists.list(lists, "class-sessions", params);
     }
 
     @PostMapping("/api/v1/class-sessions")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED})
-    @Operation(summary = "createClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
+    @Operation(summary = "createClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession createClass(@Valid @RequestBody ClassSessionCreateRequest request) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return view(projections.session(sessions.create(request.date(),request.startTime(),request.endTime(),request.ringId(),request.levelIds(),request.instructorIds(),request.capacity(),request.description(),Boolean.TRUE.equals(request.cancelBookings())),false,java.util.List.of()),ClassSession.class);
     }
 
     @GetMapping("/api/v1/class-sessions/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ApiResponse(responseCode = "200", description = "ADMIN/INSTRUCTOR or MEMBER projection", content = @Content(schema = @Schema(anyOf = {ClassSession.class, ClassSessionMemberView.class})))
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "classSession", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. Tenant comes from the JWT.")
-    public ClassSession classSession(@PathVariable String id) {
+    @Operation(summary = "classSession", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. Tenant comes from the JWT.")
+    public Object classSession(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return projections.session(sessions.require(id),projections.member(),java.util.List.of());
     }
 
     @PatchMapping("/api/v1/class-sessions/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, INVALID_STATE, CAPACITY_BELOW_BOOKINGS, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED})
-    @Operation(summary = "patchClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
+    @Operation(summary = "patchClass", description = "Roles: ADMIN. Tenant and role guards apply. The date field is forbidden (400 VALIDATION_ERROR). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession patchClass(@PathVariable String id, @Valid @RequestBody ClassSessionPatchRequest request) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return view(projections.session(sessions.patch(id,request.version,request.patch(),Boolean.TRUE.equals(request.cancelBookings)),false,java.util.List.of()),ClassSession.class);
     }
 
     @GetMapping("/api/v1/class-sessions/{id}/cancellation-preview")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "classCancellationPreview", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "CancellationPreview", useReturnTypeSchema = true))
+    @Operation(summary = "classCancellationPreview", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "CancellationPreview", useReturnTypeSchema = true))
     public CancellationPreview classCancellationPreview(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return view(cancellations.preview(id),CancellationPreview.class);
     }
 
     @PostMapping("/api/v1/class-sessions/{id}/cancellation")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, ADMIN_TEXT_REQUIRED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "cancelClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
+    @Operation(summary = "cancelClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession cancelClass(@PathVariable String id, @Valid @RequestBody ClassCancellationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return view(projections.session(cancellations.cancel(id,ClassCancellationReason.valueOf(request.reason().name()),request.adminText(),events.actor()),false,java.util.List.of()),ClassSession.class);
     }
 
     @PostMapping("/api/v1/class-sessions/{id}/risk-exemption")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE})
-    @Operation(summary = "exemptClass", description = "Roles: ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
+    @Operation(summary = "exemptClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession exemptClass(@PathVariable String id, @Valid @RequestBody RiskExemptionRequest request) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return view(projections.session(sessions.exemption(id,request.exempt()),false,java.util.List.of()),ClassSession.class);
     }
 
     @GetMapping("/api/v1/ring-blocks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ListContract(filterable = {"ringId", "kind", "reason", "state", "from", "to"}, sortable = {"from"}, paged = true)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. MEMBER receives RingBlockMemberView without note or createdByName. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlock>", useReturnTypeSchema = true))
-    public ListPage<RingBlock> blocks() {
+    @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER receives RingBlockMemberView without note or createdByName. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlock>", useReturnTypeSchema = true))
+    public ListPage<RingBlock> blocks(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return (ListPage) schedulingLists.list(lists, "ring-blocks", params);
     }
 
     @GetMapping("/api/v1/ring-blocks/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ApiResponse(responseCode = "200", description = "Staff or redacted MEMBER projection", content = @Content(schema = @Schema(anyOf = {RingBlock.class, RingBlockMemberView.class})))
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "block", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.")
-    public RingBlock block(@PathVariable String id) {
+    @Operation(summary = "block", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply.  Tenant comes from the JWT.")
+    public Object block(@PathVariable String id) {
         access.tenant();
         access.block(id);
-        throw new UnsupportedOperationException();
+        return projections.block(ringBlocks.require(id),projections.member());
     }
 
     @PostMapping("/api/v1/ring-blocks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, RING_BLOCK_CONFLICT, RING_HAS_BOOKINGS, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "createBlock", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. RESERVATION requires FREE_TRAINING; cancelBookings requires ADMIN. Conditional write rules enforced in E4-T03. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "RingBlock", useReturnTypeSchema = true))
+    @Operation(summary = "createBlock", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. RESERVATION requires FREE_TRAINING; cancelBookings requires ADMIN. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "RingBlock", useReturnTypeSchema = true))
     public RingBlock createBlock(@Valid @RequestBody RingBlockCreateRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return view(projections.block(ringBlocks.create(request.ringId(),request.from(),request.to(),request.kind(),request.reason(),request.note(),Boolean.TRUE.equals(request.cancelBookings())),false),RingBlock.class);
     }
 
     @PatchMapping("/api/v1/ring-blocks/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, STALE_VERSION, INVALID_STATE, RING_BLOCK_CONFLICT, RING_BLOCK_MANAGED_BY_ACTIVITY, RING_HAS_BOOKINGS, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, MODULE_DISABLED})
-    @Operation(summary = "patchBlock", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "RingBlock", useReturnTypeSchema = true))
+    @Operation(summary = "patchBlock", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "RingBlock", useReturnTypeSchema = true))
     public RingBlock patchBlock(@PathVariable String id, @Valid @RequestBody RingBlockPatchRequest request) {
         access.tenant();
         access.block(id);
-        throw new UnsupportedOperationException();
+        return view(projections.block(ringBlocks.patch(id,request.version,request.patch(),Boolean.TRUE.equals(request.cancelBookings)),false),RingBlock.class);
     }
 
     @PostMapping("/api/v1/ring-blocks/{id}/cancellation")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, RING_BLOCK_MANAGED_BY_ACTIVITY})
-    @Operation(summary = "cancelBlock", description = "Roles: ADMIN, INSTRUCTOR. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "RingBlock", useReturnTypeSchema = true))
+    @Operation(summary = "cancelBlock", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "RingBlock", useReturnTypeSchema = true))
     public RingBlock cancelBlock(@PathVariable String id, @Valid @RequestBody EmptyRequest request) {
         access.tenant();
         access.block(id);
-        throw new UnsupportedOperationException();
+        return view(projections.block(ringBlocks.cancel(id),false),RingBlock.class);
     }
 
     @GetMapping("/api/v1/day-grid")
     @PreAuthorize("isAuthenticated() and (#view != 'instructor' or hasAnyRole('ADMIN','INSTRUCTOR'))")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "dayGrid", description = "Roles: ADMIN, INSTRUCTOR, MEMBER, AGILITYHUB_ADMIN. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Every authenticated role may use member view; instructor view requires INSTRUCTOR/ADMIN. Impersonation permits only member view. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "DayGrid", useReturnTypeSchema = true))
+    @Operation(summary = "dayGrid", description = "Roles: ADMIN, INSTRUCTOR, MEMBER, AGILITYHUB_ADMIN. Tenant and role guards apply. Every authenticated role may use member view; instructor view requires INSTRUCTOR/ADMIN. Impersonation permits only member view. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "DayGrid", useReturnTypeSchema = true))
     public DayGrid dayGrid(@RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date, @RequestParam(defaultValue = "member") @Schema(allowableValues = {"member", "instructor"}) String view) {
         access.tenant();
         if (!java.util.Set.of("member", "instructor").contains(view)) { throw new com.agilityhub.core.shared.domain.ApiException(VALIDATION_ERROR); }
-        throw new UnsupportedOperationException();
+        return view(grid.get(date,view.equals("instructor")),DayGrid.class);
     }
 }

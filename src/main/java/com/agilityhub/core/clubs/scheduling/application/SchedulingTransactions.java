@@ -11,17 +11,22 @@ public class SchedulingTransactions {
     private final TransactionTemplate transactions;
     private final PlanningContext context;
     public SchedulingTransactions(TransactionTemplate transactions, PlanningContext context) { this.transactions = transactions; this.context = context; }
-    public <T> T write(Supplier<T> action) {
+    public <T> T write(Supplier<T> action) { return write(action,ErrorCode.STALE_VERSION); }
+    public <T> T write(Supplier<T> action,ErrorCode nestedConflict) {
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) {
+            try { context.lockReferences(); return action.get(); }
+            catch (RuntimeException failure) { if(conflict(failure)) throw new ApiException(nestedConflict); throw failure; }
+        }
         for (int attempt = 0; ; attempt++) {
             try { return transactions.execute(tx -> { context.lockReferences(); return action.get(); }); }
             catch (RuntimeException failure) {
-                boolean conflict = false;
-                for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
-                    if (cause instanceof com.mongodb.MongoException mongo && (mongo.getCode() == 112 || mongo.hasErrorLabel("TransientTransactionError"))) { conflict = true; }
-                }
-                if (!conflict) { throw failure; }
+                if (!conflict(failure)) { throw failure; }
                 if (attempt >= 5) { throw new ApiException(ErrorCode.STALE_VERSION); }
             }
         }
+    }
+    private boolean conflict(RuntimeException failure) {
+        for(Throwable cause=failure;cause!=null;cause=cause.getCause()) if(cause instanceof com.mongodb.MongoException mongo && (mongo.getCode()==112 || mongo.hasErrorLabel("TransientTransactionError"))) return true;
+        return false;
     }
 }
