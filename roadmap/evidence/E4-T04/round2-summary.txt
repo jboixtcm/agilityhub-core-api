@@ -1,0 +1,10 @@
+ActivityIT run 1: tests=24, failures=0, errors=0, skipped=0, time=26.177 s; JVM ActiveProcessorCount=2
+ActivityIT run 2: tests=24, failures=0, errors=0, skipped=0, time=32.981 s; JVM ActiveProcessorCount=2
+ActivityIT run 3: tests=24, failures=0, errors=0, skipped=0, time=27.336 s; JVM ActiveProcessorCount=2
+ActivityIT run 4: tests=24, failures=0, errors=0, skipped=0, time=30.343 s; JVM ActiveProcessorCount=2
+ActivityIT run 5: tests=24, failures=0, errors=0, skipped=0, time=25.139 s; JVM ActiveProcessorCount=2
+unit/contract: {"tests": 392, "failures": 0, "errors": 0, "skipped": 0}
+integration/contract: {"tests": 580, "failures": 1, "errors": 0, "skipped": 0}
+Full verify exit 1: E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses lacks five S14 audit actions added for E5/E8.
+Full verify ActivityIT: tests=24, failures=0, errors=0, skipped=0.
+Counts exclude the older standalone OpenApiSnapshotTest XML, which was not refreshed by this invocation.

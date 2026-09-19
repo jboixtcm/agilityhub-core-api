@@ -25,6 +25,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -257,7 +258,12 @@ class ActivityIT extends AbstractIntegrationTest {
         assertThat(count("audit_entries","action","ACTIVITY_REGISTERED_BY_CLUB")).isEqualTo(1);assertThat(count("audit_entries","action","ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB")).isEqualTo(1);
         var audit=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB")),Document.class,"audit_entries");
         assertThat(audit).containsEntry("actorAccountId","s07-admin").containsEntry("impersonatedMemberId","m0").containsEntry("reason","Member requested");
-        dispatch();assertThat(count("notifications","code","N-32b")).isEqualTo(6);
+        // Dispatch durable events until their notification rows are observable.
+        await().alias("impersonated registration and cancellation notifications")
+                .atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+                    dispatch();
+                    assertThat(count("notifications","code","N-32b")).isEqualTo(6);
+                });
         String second=published(3,false).path("id").asText();var self=register(second,"m0",false,201);
         mvc.perform(post("/api/v1/activity-registrations/"+self.path("id").asText()+"/cancellation").header("Host",HOST).contentType("application/json")
                 .content("{\"reason\":\"Member requested\"}").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER")))
