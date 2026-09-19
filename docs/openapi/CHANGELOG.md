@@ -3,6 +3,16 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-19 · E4-T04 · Activities implemented
+
+All S07 routes now execute activity lifecycle, registrations, lists/exports and
+public/member projections. Public activities expose optional typeLabelI18n,
+shortDescriptionI18n and longDescriptionI18n maps. Local public file redirects
+accept their signed expires/signature capability without an API key; the initial
+request still returns 302. Impersonated cancellation always requires a reason.
+PATCH preserves omission versus explicit null. Catalog status codes are unchanged.
+
+
 ## 2026-09-19 · E4-T03 · Calendar operations implemented
 
 The remaining 15 S06 operations now execute week validation, class lifecycle,

@@ -44,6 +44,6 @@ public final class ActivityRequests {
     public record ActivityCancellationRequest(@NotNull ActivityCancellationReason reason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) @Size(max = 500) String adminText) { }
     public record ActivityRegistrationRequest(@NotBlank String activityId,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Requires WAITLIST") Boolean joinWaitlist) { }
-    public record RegistrationCancellationRequest(@Schema(requiredMode = NOT_REQUIRED, description = "Required when impersonating outside the cancellation window") @Size(max = 500) String reason) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Explicitly joins the waitlist when full and WAITLIST is enabled; otherwise ACTIVITY_FULL") Boolean joinWaitlist) { }
+    public record RegistrationCancellationRequest(@Schema(requiredMode = NOT_REQUIRED, description = "Required for every impersonated cancellation") @Size(max = 500) String reason) { }
 }

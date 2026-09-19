@@ -79,6 +79,9 @@ class EventCatalogContractTest {
                         "club-a", "activity-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("activityId", "activity-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.agilityhub.core");
+        samples.put(com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent.class,
+                () -> new com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent("ParameterChanged","club-a","Parameter","signup.enabled",
+                        Instant.parse("2030-01-01T00:00:00Z"),Map.of("key","signup.enabled","before",false,"after",true),"account-a",null,DomainEvent.Origin.BACKOFFICE));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {

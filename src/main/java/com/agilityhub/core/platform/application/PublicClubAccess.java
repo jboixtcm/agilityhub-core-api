@@ -29,6 +29,9 @@ public class PublicClubAccess {
         if (club.status() == com.agilityhub.core.platform.persistence.Club.Status.SUSPENDED) { throw new ApiException(ErrorCode.CLUB_SUSPENDED); }
         return configs.get(club.id());
     }
+    public String websiteUrl(String clubId) {
+        return clubs.findById(clubId).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND)).websiteUrl();
+    }
     public static String digest(String key) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }

@@ -60,6 +60,7 @@ class E2ContractIT extends AbstractIntegrationTest {
                 && !route.path().startsWith("/api/v1/me/dogs")
                 && !route.path().equals("/api/v1/me/profile")
                 && !route.path().equals("/api/v1/me/family-group") && !route.path().startsWith("/api/v1/exports")
+                && !route.path().equals("/api/v1/activity-registrations/export")
                 && !route.path().startsWith("/api/v1/saved-views")
                 && !(route.method().equals("GET") && Set.of("/api/v1/members", "/api/v1/dogs", "/api/v1/members/filter-values", "/api/v1/dogs/filter-values", "/api/v1/members/export", "/api/v1/dogs/export").contains(route.path()))
                 && !route.path().startsWith("/api/v1/plans")

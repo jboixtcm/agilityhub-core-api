@@ -33,10 +33,10 @@ public final class ActivityContracts {
             @io.swagger.v3.oas.annotations.media.ArraySchema(maxItems = 0, arraySchema = @Schema(description = "Always empty in R1")) List<Void> priceTiers,
             ActivityCounters counters, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer freeSeats,
             boolean belowMinimum, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String publicUrl,
-            List<String> ringBlockIds, @Schema(requiredMode = NOT_REQUIRED, description = "Only with COURSES") List<String> placementIds,
+            List<String> ringBlockIds, @Schema(requiredMode = NOT_REQUIRED, description = "Only with COURSES") @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> placementIds,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant publishedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityCancellation cancellation,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") String internalNotes,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String internalNotes,
             long version) { }
     public record ActivityListItem(String id, String title, @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate date,
             List<ActivityRing> rings, ActivityCounters registrations, ActivityState state, ActivityType type, String slug,
@@ -99,7 +99,11 @@ public final class ActivityContracts {
             Instant cancellableUntil) { }
     public record PublicActivities(List<PublicActivity> items) { }
     public record PublicActivity(String slug, ActivityState state, ActivityType type, String typeLabel, String title,
-            Map<String, String> titleI18n, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String shortDescription,
+            Map<String, String> titleI18n,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Map<String,String> typeLabelI18n,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Map<String,String> shortDescriptionI18n,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Map<String,String> longDescriptionI18n,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String shortDescription,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String longDescriptionHtml,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String longDescriptionText,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String imageUrl, List<PublicActivityDocument> documents,

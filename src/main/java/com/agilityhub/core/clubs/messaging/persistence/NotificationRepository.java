@@ -30,7 +30,7 @@ public class NotificationRepository extends TenantRepository<Notification> {
     }
     public void appContent(String id,java.util.Map<String,Object> variables) {
         var safe=new java.util.LinkedHashMap<String,Object>();
-        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
+        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
         mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is("APP")),new Update().set("variables",safe),Notification.class);
     }
     public void smsContent(String id,java.util.List<String> phones,String body,java.util.Map<String,Object> variables) {

@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E4-T04: Implement activity editing, publication and ring synchronization,
+  per-person registration with FIFO promotion, member views and public localized
+  activity feeds with signed files. Add audited lifecycle changes, N-32a/b/c/d
+  notification delivery, universal lists/exports, system cancellations and the
+  finish-ended CLI. Preserve atomic idempotent responses through transaction retries.
+
 - E4-T03: Implement transactional week validation, class edits/cancellation,
   ring blocking and activity synchronization; serve calendar and privacy-aware
   member/instructor day grids. Add replaceable booking/training ports, risk and

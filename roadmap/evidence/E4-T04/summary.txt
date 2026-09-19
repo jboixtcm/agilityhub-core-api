@@ -1,0 +1,6 @@
+surefire (verify excludes the separately executed OpenApiSnapshotTest): {'tests': 392, 'failures': 0, 'errors': 0, 'skipped': 0}
+failsafe: {'tests': 580, 'failures': 0, 'errors': 0, 'skipped': 0}
+com/agilityhub/core/clubs/activities/application: {'BRANCH': '83.78%', 'LINE': '99.16%'}
+com/agilityhub/core/clubs/activities/api: {'BRANCH': '73.08%', 'LINE': '100.0%'}
+com/agilityhub/core/clubs/activities/domain: {'BRANCH': '89.09%', 'LINE': '100.0%'}
+com/agilityhub/core/clubs/activities/persistence: {'BRANCH': '91.67%', 'LINE': '94.0%'}

@@ -10,9 +10,9 @@ import com.agilityhub.core.clubs.activities.domain.*;
 
 @Document("activity_registrations")
 public record ActivityRegistration(@Id String id, String clubId,
-        String activityId, String memberId, RegistrationState state, RegistrationOrigin origin, Instant registeredAt,
-        RegisteredBy registeredBy, Integer position, Instant promotedAt, Instant cancelledAt, CancelledBy cancelledBy,
-        RegistrationCancelReason cancelReason, Instant activityStartsAt, String upfrontPaymentId,
+        String activityId, String memberId, @com.agilityhub.core.shared.domain.audit.AuditField RegistrationState state, @com.agilityhub.core.shared.domain.audit.AuditField RegistrationOrigin origin, Instant registeredAt,
+        @com.agilityhub.core.shared.domain.audit.AuditField RegisteredBy registeredBy, Integer position, Instant promotedAt, Instant cancelledAt, @com.agilityhub.core.shared.domain.audit.AuditField CancelledBy cancelledBy,
+        @com.agilityhub.core.shared.domain.audit.AuditField RegistrationCancelReason cancelReason, Instant activityStartsAt, String upfrontPaymentId,
         @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) implements TenantEntity {
     public record RegisteredBy(String accountId, String impersonatedMemberId, String displayName) { }
     public record CancelledBy(String accountId, CancelledByRole role) { }

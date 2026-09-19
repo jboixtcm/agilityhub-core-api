@@ -136,6 +136,7 @@ public class RingBlockService {
             }
         }
     }
+    public java.util.List<String> activityBlockIds(String activityId) { return blocks.forActivity(activityId).stream().map(RingBlock::id).toList(); }
     @Transactional(propagation=Propagation.MANDATORY)
     public void cancelForActivity(String activityId) { context.lockReferences(); blocks.forActivity(activityId).forEach(this::cancelBlock); }
 }

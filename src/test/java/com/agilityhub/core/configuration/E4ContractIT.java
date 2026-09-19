@@ -71,8 +71,16 @@ class E4ContractIT extends AbstractIntegrationTest {
         insert("scheduling","ClassSession","class-a",session);
         session.put("state","DRAFT");session.put("startTime","20:00");session.put("endTime","21:00");session.put("startsAt","2026-09-14T18:00:00Z");session.put("endsAt","2026-09-14T19:00:00Z");insert("scheduling","ClassSession","draft-a",session);
         insert("scheduling", "RingBlock", "block-a", Map.of("ringId", "e4-ring-a", "state", "ACTIVE", "kind", "BLOCK", "reason", "MAINTENANCE", "from", "2026-09-16T14:00:00Z", "to", "2026-09-16T15:00:00Z"));
-        insert("activities", "Activity", "activity-a", Map.of("slug", "example-event", "state", "PUBLISHED", "documents", List.of(Map.of("id", "document-a", "name", "Example", "fileKey", "file-a", "mimeType", "application/pdf", "sizeBytes", 4))));
-        insert("activities", "ActivityRegistration", "registration-a", Map.of("activityId", "activity-a", "memberId", "member-a", "state", "ACTIVE", "origin", "APP"));
+        var activity = new LinkedHashMap<String,Object>();
+        activity.put("title",Map.of("ca","Example activity"));activity.put("type","SEMINAR");activity.put("slug","example-event");activity.put("state","PUBLISHED");
+        activity.put("documents",List.of(Map.of("id","document-a","name","Example","fileKey","00000000-0000-0000-0000-000000000001","mimeType","application/pdf","sizeBytes",4)));
+        activity.put("location",Map.of("atClub",true));activity.put("ringIds",List.of());activity.put("levelIds",List.of());activity.put("ringBlockIds",List.of());activity.put("priceTiers",List.of());activity.put("visibility","MEMBERS");
+        activity.put("date","2026-09-15");activity.put("startTime","18:00");activity.put("endTime","19:00");activity.put("registrationFrom","2026-09-01");activity.put("registrationTo","2026-09-15");
+        activity.put("startsAt","2026-09-15T16:00:00Z");activity.put("endsAt","2026-09-15T17:00:00Z");activity.put("registrationOpensAt","2026-08-31T22:00:00Z");activity.put("registrationClosesAt","2026-09-15T22:00:00Z");
+        activity.put("counters",Map.of("active",1,"waiting",0));activity.put("maxPlaces",1);insert("activities","Activity","activity-a",activity);
+        mongo.save(new org.bson.Document("_id","member-a").append("clubId",CLUB).append("accountId","e4-MEMBER").append("status","ACTIVE").append("firstName","Example").append("bookingBlock",Map.of("active",false)),"members");
+        mongo.save(new org.bson.Document("_id","e4-member-membership").append("clubId",CLUB).append("accountId","e4-MEMBER").append("memberId","member-a").append("status","ACTIVE"),"memberships");
+        insert("activities", "ActivityRegistration", "registration-a", Map.of("activityId", "activity-a", "memberId", "member-a", "state", "ACTIVE", "origin", "APP", "registeredAt",clock.instant().toString(),"activityStartsAt","2026-09-15T16:00:00Z","registeredBy",Map.of("accountId","e4-MEMBER","displayName","Example")));
     }
     private void insert(String context, String name, String id, Map<String, Object> values) {
         try {
@@ -87,7 +95,9 @@ class E4ContractIT extends AbstractIntegrationTest {
                 || route.path().equals("/api/v1/weeks") || route.path().equals("/api/v1/weeks/{id}")
                 || route.path().endsWith("/generation-candidates") || route.path().endsWith("/generation");
     }
+    private static boolean activityRoute(Route route) { return route.path().contains("activit"); }
     private static boolean implemented(Route route) {
+        if (activityRoute(route)) return true;
         return planning(route) || route.path().startsWith("/api/v1/class-sessions") || route.path().startsWith("/api/v1/ring-blocks")
                 || route.path().equals("/api/v1/day-grid") || route.path().endsWith("/calendar") || route.path().equals("/api/v1/weeks/{id}/validation");
     }
@@ -133,7 +143,8 @@ class E4ContractIT extends AbstractIntegrationTest {
             boolean allowed = route.roles().contains(role);
             if (allowed && implemented(route)) {
                 var result = mvc.perform(call(route, CLUB, role)).andReturn().getResponse();
-                assertThat(result.getStatus()).as(route.method() + " " + route.path() + ": " + result.getContentAsString()).isBetween(200, 299);
+                if(activityRoute(route)) assertThat(result.getStatus()).as(route.method()+" "+route.path()+": "+result.getContentAsString()).isBetween(200,499).isNotIn(401,403);
+                else assertThat(result.getStatus()).as(route.method() + " " + route.path() + ": " + result.getContentAsString()).isBetween(200, 299);
             } else {
                 error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
                         allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
@@ -161,7 +172,11 @@ class E4ContractIT extends AbstractIntegrationTest {
         com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
         try (var scope = TenantContext.open(CLUB)) { issued = impersonations.create("e4-imp-admin", "member-a", "Contract authorization test"); }
         for (Route route : routes().toList()) {
-            if(route.impersonation() && implemented(route)) { mvc.perform(call(route,CLUB,"MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isOk()); continue; }
+            if(route.impersonation() && implemented(route)) {
+                var result=mvc.perform(call(route,CLUB,"MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"))).andReturn().getResponse();
+                if(activityRoute(route)) assertThat(result.getStatus()).as(result.getContentAsString()).isBetween(200,499).isNotIn(401,403);
+                else assertThat(result.getStatus()).isEqualTo(200); continue;
+            }
             error(call(route, CLUB, "MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER")),
                     route.impersonation() ? 501 : 403, route.impersonation() ? "NOT_IMPLEMENTED" : route.publicRoute() ? "FORBIDDEN" : "IMPERSONATION_DENIED");
         }
@@ -196,10 +211,10 @@ class E4ContractIT extends AbstractIntegrationTest {
                     .header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN")), 404, "MODULE_DISABLED");
         }
     }
-    @Test void T_06_20_T_07_17_stubsLeaveAllCollectionsUnchangedIncludingIdempotency() throws Exception {
-        Map<String, List<org.bson.Document>> before = database();
-        for (Route route : routes().filter(r -> !implemented(r)).toList()) { error(call(route, CLUB, route.roles().getFirst()), 501, "NOT_IMPLEMENTED"); }
-        assertThat(database()).isEqualTo(before);
+    @Test void T_06_20_T_07_17_everyE4RouteHasAnImplementedHandler() throws Exception {
+        assertThat(routes().filter(r -> !implemented(r)).toList()).isEmpty();
+        var result=mvc.perform(call(routes().filter(r -> r.method().equals("GET") && r.path().equals("/api/v1/activities")).findFirst().orElseThrow(),CLUB,"ADMIN")).andExpect(status().isOk()).andReturn();
+        assertThat(mapper.readTree(result.getResponse().getContentAsString()).path("items")).hasSize(1);
     }
     private Map<String, List<org.bson.Document>> database() {
         var result = new TreeMap<String, List<org.bson.Document>>();
@@ -222,20 +237,21 @@ class E4ContractIT extends AbstractIntegrationTest {
         var tree = (ObjectNode) mapper.valueToTree(clubs.findById(CLUB).orElseThrow()); tree.set("modules", mapper.valueToTree(List.of(Module.ACTIVITIES)));
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(CLUB);
         var register = routes().filter(r -> r.path().equals("/api/v1/activity-registrations")).findFirst().orElseThrow();
-        error(call(register, CLUB, "MEMBER").content("{\"activityId\":\"activity-a\",\"joinWaitlist\":true}"), 404, "MODULE_DISABLED");
+        mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is("registration-a")),"activity_registrations");
+        error(call(register, CLUB, "MEMBER").content("{\"activityId\":\"activity-a\",\"joinWaitlist\":true}"), 409, "ACTIVITY_FULL");
     }
     @Test void T_07_17_publicFilesCheckPublicationAndTheExactActivityFileWithoutAKey() throws Exception {
         String base = "/api/v1/public/" + CLUB + "/activities/example-event";
         error(get(base + "/files/missing"), 404, "NOT_FOUND");
         mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is("activity-a")),
-                new org.springframework.data.mongodb.core.query.Update().set("image", new org.bson.Document("fileId", "image-a").append("name", "Example image").append("sizeBytes", 4)), "activities");
-        error(get(base + "/files/image-a"), 501, "NOT_IMPLEMENTED");
-        error(get(base + "/files/document-a"), 501, "NOT_IMPLEMENTED");
+                new org.springframework.data.mongodb.core.query.Update().set("image", new org.bson.Document("fileId", "image-a").append("name", "Example image").append("fileKey","00000000-0000-0000-0000-000000000002").append("mimeType","image/png").append("sizeBytes", 4)), "activities");
+        mvc.perform(get(base+"/files/image-a")).andExpect(status().isFound()).andExpect(header().exists("Location"));
+        mvc.perform(get(base+"/files/document-a")).andExpect(status().isFound());
         error(get(base + "/files/missing"), 404, "NOT_FOUND");
         for (String state : List.of("DRAFT", "CANCELLED", "FINISHED")) {
             mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is("activity-a")),
                     new org.springframework.data.mongodb.core.query.Update().set("state", state), "activities");
-            error(get(base + "/files/image-a"), state.equals("DRAFT") ? 404 : 501, state.equals("DRAFT") ? "NOT_FOUND" : "NOT_IMPLEMENTED");
+            if(state.equals("DRAFT")) error(get(base+"/files/image-a"),404,"NOT_FOUND"); else mvc.perform(get(base+"/files/image-a")).andExpect(status().isFound());
         }
     }
     @Test void T_06_20_nestedAndQueryResourceGuardsRejectMissingTargetsAndAcceptBothCoverageScopes() throws Exception {

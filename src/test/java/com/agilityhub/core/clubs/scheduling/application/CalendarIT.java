@@ -352,7 +352,7 @@ class CalendarIT extends AbstractIntegrationTest {
         error("PATCH","/class-sessions/"+id,invalid,ErrorCode.TOO_MANY_INSTRUCTORS);
     }
     @TestConfiguration(proxyBeanMethods=false) static class Ports {
-        @Bean Doubles schedulingTestPorts(EventPublisher events,ClubConfigService configs,java.time.Clock clock) { return new Doubles(events,configs,clock); }
+        @Bean @org.springframework.context.annotation.Primary Doubles schedulingTestPorts(EventPublisher events,ClubConfigService configs,java.time.Clock clock) { return new Doubles(events,configs,clock); }
     }
     static class Doubles implements ClassBookingsPort,TrainingConflictPort,TrainingOccupancyPort,ActivityTitlePort {
         final Map<String,List<BookingRef>> bookings=new HashMap<>();final Map<String,List<WaitlistRef>> waiting=new HashMap<>();final Map<String,Set<String>> holds=new HashMap<>();final Set<String> cancelled=new HashSet<>();final List<TrainingConflictPort.Booking> training=new ArrayList<>();boolean fail;

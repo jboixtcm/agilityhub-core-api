@@ -40,6 +40,12 @@ public class CensusReferences extends TenantRepository<Member> {
                             "instructorName", name == null ? "" : name, "attachmentsCount", attachments, "doneAt", instant(row.get("doneAt")));
                 }).toList();
     }
+    public List<Map<String,Object>> approvedInactivity(String memberId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId)), Document.class, "inactivity_periods").stream()
+                .filter(row -> Set.of("APPROVED", "ACTIVE").contains(Objects.toString(row.getOrDefault("state", row.get("status")), "")))
+                .filter(row -> row.get("from") != null && row.get("to") != null)
+                .map(row -> object("from", date(row.get("from")), "to", date(row.get("to")))).toList();
+    }
     public LocalDate inactivityEnd(String memberId, LocalDate today) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId)), Document.class, "inactivity_periods").stream()
                 .filter(row -> !Set.of("CANCELLED", "REJECTED", "DENIED").contains(String.valueOf(row.get("status"))))

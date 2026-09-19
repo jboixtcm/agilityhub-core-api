@@ -1,0 +1,49 @@
+[ERROR] COMPILATION ERROR : 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityEdit.java:[27,5] reference to RingBlockWindow is ambiguous
+  both record com.agilityhub.core.clubs.activities.domain.RingBlockWindow in com.agilityhub.core.clubs.activities.domain and record com.agilityhub.core.clubs.activities.persistence.Activity.RingBlockWindow in com.agilityhub.core.clubs.activities.persistence.Activity match
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[9,32] cannot find symbol
+  symbol:   variable ACTIVITY_PUBLISHED
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[11,32] cannot find symbol
+  symbol:   variable ACTIVITY_CANCELLED
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[13,32] cannot find symbol
+  symbol:   variable ACTIVITY_UPDATED
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[15,32] cannot find symbol
+  symbol:   variable ACTIVITY_REGISTERED_BY_CLUB
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[17,32] cannot find symbol
+  symbol:   variable ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB
+  location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/application/PublicClubAccess.java:[36,21] cannot find symbol
+  symbol:   method findAll()
+  location: variable clubs of type com.agilityhub.core.platform.persistence.ClubRepository
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project agilityhub-core-api: Compilation failure: Compilation failure: 
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityEdit.java:[27,5] reference to RingBlockWindow is ambiguous
+[ERROR]   both record com.agilityhub.core.clubs.activities.domain.RingBlockWindow in com.agilityhub.core.clubs.activities.domain and record com.agilityhub.core.clubs.activities.persistence.Activity.RingBlockWindow in com.agilityhub.core.clubs.activities.persistence.Activity match
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[9,32] cannot find symbol
+[ERROR]   symbol:   variable ACTIVITY_PUBLISHED
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[11,32] cannot find symbol
+[ERROR]   symbol:   variable ACTIVITY_CANCELLED
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[13,32] cannot find symbol
+[ERROR]   symbol:   variable ACTIVITY_UPDATED
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[15,32] cannot find symbol
+[ERROR]   symbol:   variable ACTIVITY_REGISTERED_BY_CLUB
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityAudit.java:[17,32] cannot find symbol
+[ERROR]   symbol:   variable ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB
+[ERROR]   location: class com.agilityhub.core.platform.application.audit.AuditAction
+[ERROR] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/application/PublicClubAccess.java:[36,21] cannot find symbol
+[ERROR]   symbol:   method findAll()
+[ERROR]   location: variable clubs of type com.agilityhub.core.platform.persistence.ClubRepository
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

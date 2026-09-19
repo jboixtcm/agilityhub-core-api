@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Map;
 
 /** Closed catalog event envelope; publication remains inside the owning lifecycle transaction. */
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)
 public record ActivityEvent(Kind kind, String clubId, String aggregateId, Instant occurredAt,
         Map<String, Object> payload, String actorAccountId, String impersonatedMemberId, Origin origin) implements DomainEvent {
     public ActivityEvent { payload = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(payload)); }

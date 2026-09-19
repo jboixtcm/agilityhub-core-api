@@ -31,6 +31,9 @@
     <!-- The pinned Spring Boot parent manages exact versions for starters,
          Spring Security, Caffeine, Testcontainers and their dependencies. -->
     <dependencies>
+        <dependency>
+            <groupId>com.googlecode.owasp-java-html-sanitizer</groupId><artifactId>owasp-java-html-sanitizer</artifactId><version>20260313.1</version>
+        </dependency>
         <dependency><groupId>org.commonmark</groupId><artifactId>commonmark</artifactId><version>0.24.0</version></dependency>
         <dependency>
             <groupId>com.googlecode.libphonenumber</groupId><artifactId>libphonenumber</artifactId><version>9.0.35</version>

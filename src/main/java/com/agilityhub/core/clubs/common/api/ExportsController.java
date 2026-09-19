@@ -160,13 +160,13 @@ public class ExportsController {
             columns = {"member*", "state*", "position*", "origin*", "registeredAt*", "cancelledAt", "cancelReason"}, paged = true, exportable = false)
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export activity registrations",
-            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Filter by activityId to export an activity. Contract only; implementation is deferred to E4-T04.",
+            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Filter by activityId to export an activity. Implemented by S07.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Disposition", schema = @Schema(type = "string")),
                             content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),
                                     @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema = @Schema(type = "string", format = "binary"))}),
                     @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
-    public org.springframework.http.ResponseEntity<byte[]> exportActivityRegistrations(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns) { throw new UnsupportedOperationException(); }
+    public org.springframework.http.ResponseEntity<?> exportActivityRegistrations(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns, @io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) { return export("activity-registrations",format,columns,params); }
 
     @GetMapping("/api/v1/notifications/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

@@ -130,6 +130,26 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             response.getOutputStream().write(anonymous ? capabilities.open(record.responseBody(),record.id()) : record.responseBody());
             return;
         }
+        // S07 executes serialization inside its retryable use-case transaction. Other routes keep
+        // the existing request transaction. Both paths commit the idempotency row with effects.
+        if (path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+                || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
+            var completed = new java.util.concurrent.atomic.AtomicBoolean();
+            try (var operation = com.agilityhub.core.shared.application.IdempotentOperation.open(
+                    () -> records.lock(record), (status, bytes) -> {
+                        records.complete(record, status, bytes, Map.of("Content-Type", List.of("application/json"),
+                                "Content-Language", List.of(com.agilityhub.core.shared.application.LocaleContext.current().toLanguageTag())));
+                        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                                new org.springframework.transaction.support.TransactionSynchronization() {
+                                    @Override public void afterCommit() { completed.set(true); }
+                                });
+                    })) {
+                chain.doFilter(new BufferedRequest(request, body), response);
+            } finally {
+                if (!completed.get()) records.abandon(record);
+            }
+            return;
+        }
         var cachedResponse = new ContentCachingResponseWrapper(response);
         try {
             transactions.executeWithoutResult(status -> {
