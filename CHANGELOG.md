@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E4-T05: Record blocked integration-seed requirements: current-week fixtures
+  conflict with past-date guards, and the tournament's ACTIVE-class cancellation
+  conflicts with keeping its week in GENERATED state. Implementation awaits
+  organizer alignment; application behavior is unchanged.
+
 - E4-T04: Implement activity editing, publication and ring synchronization,
   per-person registration with FIFO promotion, member views and public localized
   activity feeds with signed files. Add audited lifecycle changes, N-32a/b/c/d
