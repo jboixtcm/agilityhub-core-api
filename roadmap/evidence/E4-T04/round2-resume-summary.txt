@@ -1,0 +1,10 @@
+Round 2 resumed verification: full verify exit code 1.
+Unit/contract: {"tests": 392, "failures": 0, "errors": 0, "skipped": 0}
+Integration/contract: {"tests": 580, "failures": 1, "errors": 0, "skipped": 0}
+ActivityIT: {"tests": 24, "failures": 0, "errors": 0, "skipped": 0}
+Failure: com.agilityhub.core.configuration.E2ContractIT.T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses
+T-07-23: PASS in this full verify run.
+Prior five two-core ActivityIT repetitions remain in round2-01 through round2-05 logs; not repeated in this resumed session.
+Fresh standalone OpenAPI, HTTP rehearsal and finish-ended CLI not run: required verify gate remains blocked.
+Coverage gates occur after failsafe:verify and were not reached; no fresh coverage success claimed.
+No production code, catalog, contract test, API snapshot, other task or Organizer verification section changed.

@@ -1,0 +1,4 @@
+Source: docs/specs/S14-tauler-auditoria-exportacions-rgpd.md:95
+Parser: src/test/java/com/agilityhub/core/configuration/E2ContractIT.java:239-246
+Deferred names still matched: CARD_CHARGES_STARTED, INVOICE_CREATED_MANUAL, JOB_TRIGGERED, PACK_ADJUSTED, REMITTANCE_SUBMITTED
+All five remain backticked inside the parsed R-14-09 paragraph: True
