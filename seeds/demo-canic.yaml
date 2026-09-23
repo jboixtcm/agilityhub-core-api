@@ -97,7 +97,7 @@ planning:
   riskCancellations:
     - {week: 2, day: WEDNESDAY, start: '09:30', ring: CAD}
 
-# Registrants of week +2 through the demo bookings adapter (D4 counts). Wednesday 18:50 B+C is the R-06-10 / D4c case.
+# Registrants of week +2 booked through the S08 hold + confirmation services (D4 counts). Wednesday 18:50 B+C is the R-06-10 / D4c case.
 bookings:
   - {week: 2, day: MONDAY, start: '08:30', ring: CEN, booked: 4, withPack: 0, waiting: 0}
   - {week: 2, day: MONDAY, start: '08:30', ring: MUN, booked: 3, withPack: 1, waiting: 0}

@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T02: S08 class bookings (WP-08-B). Booking weeks from `bookings.weekOpensAt` in club-local
+  time (DST-safe, no weekday literal), weekly limits by dog or owner with swappable / not
+  selectable bookings, one ordered eligibility pipeline (dog, member, block, leaving, inactivity,
+  level, class, week, pack), `POST /seat-holds` in one Mongo transaction serialised by
+  `seat_locks` (retry ≤ 3, in-process lanes, live holds only), `DELETE /seat-holds/{id}`,
+  `POST /bookings` with the atomic swap, PAY_TO_BOOK / CHARGE_ON_ATTENDANCE (SINGLE_CLASS),
+  idempotent replay including stored 409/422, `GET /bookings/{id}` (`displayState`, R-08-20
+  instructor visibility), `GET /me/bookings`, `GET /bookings` (universal list),
+  `GET /class-sessions/{id}/bookings`, HMAC-signed `.ics`, cancellation in time / late at
+  `bookings.lateCancelThresholdMinutes` (240) with `SeatReleased{notifyWaitlist}` (strictly
+  above 30 min), `ClassBelowMinimum` guarded by `risk.lowAlertSentAt`, instructor «ha avisat»,
+  system cancellations, audit `BOOKING_CREATED_BY_CLUB` / `BOOKING_CANCELLED_BY_CLUB` /
+  `BOOKING_CANCELLED_LATE`, outbox consumers N-04 / N-05 / N-36 (APP + EMAIL + SMS intent) /
+  N-40 and `ClassSessionUpdated` / `UpfrontPayment*` consumers. Real `ClassBookingsPort`
+  (`cancelAllByClub` also cancels live waiting-list entries) and `BookingActivity` adapters;
+  ports with null-object defaults for E6/E8/E5-T03 (`AttendanceStatePort`, `PackBalancePort`,
+  `InactivityPort`, `WaitlistConsolidationPort`) plus local/test pack and inactivity stand-ins;
+  `SingleClassChargePort` over `payments.application`. New env var `BOOKING_CALENDAR_KEY`.
 - E5-T01: contract of S08 (bookings, seat holds, waiting list), S09 (free training) and S15
   (scheduled processes): 32 guarded `501` operations, wire forms, error `details` schemas and
   the `bookings`, `seat_holds` (TTL), `waitlist_entries`, `seat_locks`, `training_bookings`
@@ -36,6 +54,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E5-T02: the E4-T05 demo bookings adapter and `demo_class_bookings` are removed; `seed:demo`
+  books the same registrants through `SeatHoldService` + `BookingConfirmationService` (as of the
+  W+2 opening) and waiting registrants become `waitlist_entries`. `ClassSessionService.bookingCounters`
+  is replaced by `ClassSessionBookingAccess.counters` (no catalog reference lock inside booking
+  transactions). The idempotency filter replays stored 409/422 outcomes of `POST /bookings` and
+  the claim route. OpenAPI: only nine operation descriptions change (no longer 501).
 - E4-T04 Round 2: Wait for durable impersonation notifications with a bounded
   assertion in T-07-23 instead of assuming notification rows are immediately ready.
   After the organizer removed the backticks from the deferred S14 R-14-09 names,

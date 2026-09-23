@@ -3,6 +3,16 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T02 · S08 WP-08-B served (9 operations no longer 501)
+
+No path, parameter, request body, response or schema changes: only the `description` of nine
+operations drops «Contract only; returns 501 NOT_IMPLEMENTED…», because they now serve:
+`POST /seat-holds` · `DELETE /seat-holds/{id}` · `POST /bookings` · `GET /me/bookings` ·
+`GET /bookings/{id}` · `GET /bookings/{id}/calendar.ics` (any token mismatch → 404) ·
+`POST /bookings/{id}/cancellation` · `GET /bookings` · `GET /class-sessions/{id}/bookings`
+(«every booking of the class, any state»). `/me/home`, `/me/bookable-classes` (E5-T06) and the
+waiting-list routes (E5-T03) still answer 501. Web adopters need no regeneration of types.
+
 ## 2026-09-24 · E5-T01 · Contract S08 + S09 + S15 (32 operations, 501 behind the guards)
 
 32 new operations (16 S08, 8 S09, 8 S15) on 30 new paths, 96 new schemas; none removed.

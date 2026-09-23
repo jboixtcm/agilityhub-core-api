@@ -1,7 +1,10 @@
 package com.agilityhub.core.clubs.bookings.api;
 
-import com.agilityhub.core.clubs.bookings.application.BookingContractAccess;
+import com.agilityhub.core.clubs.bookings.application.*;
 import com.agilityhub.core.clubs.bookings.domain.BookingState;
+import com.agilityhub.core.shared.application.IdempotentOperation;
+import com.agilityhub.core.shared.application.lists.ListEngine;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.CurrentUser;
@@ -26,14 +29,28 @@ import static com.agilityhub.core.shared.application.contract.ApiContracts.ListP
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
- * S08 WP-08-A: class bookings, seat holds and waiting list. Every operation runs the tenant, role, ownership
- * and module guards and then answers 501 NOT_IMPLEMENTED until E5-T02 (bookings) and E5-T03 (waiting list).
+ * S08: class bookings, seat holds and waiting list. WP-08-B (E5-T02) serves holds, confirmation, detail, lists,
+ * `.ics` and cancellation; `/me/home`, `/me/bookable-classes` (E5-T06) and the waiting list (E5-T03) still run their
+ * tenant, role, ownership and module guards and then answer 501 NOT_IMPLEMENTED.
  */
 @RestController
 public class BookingsController {
     static final String MEMBER = "hasRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))";
-    private final BookingContractAccess access;
-    public BookingsController(BookingContractAccess access) { this.access = access; }
+    private final BookingContractAccess access; private final BookingActors actors; private final SeatHoldService holds;
+    private final BookingConfirmationService confirmations; private final BookingCancellationService cancellations; private final BookingQueryService queries;
+    private final BookingViews views; private final BookingTransactions transactions; private final ListEngine lists; private final ObjectMapper mapper;
+    public BookingsController(BookingContractAccess access, BookingActors actors, SeatHoldService holds, BookingConfirmationService confirmations,
+            BookingCancellationService cancellations, BookingQueryService queries, BookingViews views, BookingTransactions transactions,
+            ListEngine lists, ObjectMapper mapper) {
+        this.access = access; this.actors = actors; this.holds = holds; this.confirmations = confirmations; this.cancellations = cancellations;
+        this.queries = queries; this.views = views; this.transactions = transactions; this.lists = lists; this.mapper = mapper;
+    }
+    private <T> T view(Object value, Class<T> type) { return mapper.convertValue(value, type); }
+    private static boolean instructorOnly() {
+        var user = CurrentUser.current();
+        return (user == null || user.impersonation() == null) && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_INSTRUCTOR"));
+    }
 
     private static String memberId(Jwt jwt) {
         var user = CurrentUser.current();
@@ -74,12 +91,13 @@ public class BookingsController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, DOG_NOT_ACCESSIBLE, MODULE_DISABLED, CLASS_FULL, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_LIMIT_REACHED,
             BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, ALREADY_BOOKED, PACK_EMPTY, SEAT_TAKEN,
             WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED})
-    @Operation(summary = "holdSeat", description = "Roles: MEMBER (also the impersonation token). R-08-07: one Mongo transaction serialised by seat_locks; re-entering refreshes the same hold. waitlistEntryId requires WAITLIST. details: CLASS_FULL{heldOnly}, NOT_YET_OPEN{opensAt}, BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], notSelectable[], nextBookableAt}, INACTIVITY_PERIOD{from, to}. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "holdSeat", description = "Roles: MEMBER (also the impersonation token). R-08-07: one Mongo transaction serialised by seat_locks; re-entering refreshes the same hold. waitlistEntryId requires WAITLIST. details: CLASS_FULL{heldOnly}, NOT_YET_OPEN{opensAt}, BOOKING_LIMIT_REACHED{unit, week, limit, current, swappable[], notSelectable[], nextBookableAt}, INACTIVITY_PERIOD{from, to}. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "SeatHoldResponse", useReturnTypeSchema = true))
-    public SeatHoldResponse holdSeat(@Valid @RequestBody SeatHoldRequest request) {
+    public SeatHoldResponse holdSeat(@Valid @RequestBody SeatHoldRequest request, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         access.waitlistModule(request.waitlistEntryId() != null);
-        throw new UnsupportedOperationException();
+        var held = holds.hold(actors.member(memberId(jwt)), request.classSessionId(), request.dogId(), request.waitlistEntryId());
+        return view(views.hold(held), SeatHoldResponse.class);
     }
 
     @DeleteMapping("/api/v1/seat-holds/{id}")
@@ -87,11 +105,11 @@ public class BookingsController {
     @AllowsImpersonation
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ContractErrors({VALIDATION_ERROR})
-    @Operation(summary = "releaseSeat", description = "Roles: MEMBER owner of the hold (also the impersonation token). 204 also when the hold is already gone (expired or consumed). Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "releaseSeat", description = "Roles: MEMBER owner of the hold (also the impersonation token). 204 also when the hold is already gone (expired or consumed). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "204", description = "void", content = @Content))
-    public void releaseSeat(@PathVariable String id) {
+    public void releaseSeat(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        holds.release(actors.member(memberId(jwt)), id);
     }
 
     @PostMapping("/api/v1/bookings")
@@ -100,58 +118,70 @@ public class BookingsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, SEAT_HOLD_EXPIRED, SWAP_NOT_ALLOWED, CLASS_FULL, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_LIMIT_REACHED,
             BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, ALREADY_BOOKED, PACK_EMPTY, SEAT_TAKEN, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "confirmBooking", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId); Idempotency-Key = seatHoldId, a repeated key returns the same response, also a 409. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "confirmBooking", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId); Idempotency-Key = seatHoldId, a repeated key returns the same response, also a 409. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "Booking", useReturnTypeSchema = true))
     public Booking confirmBooking(@Valid @RequestBody BookingRequest request,
-            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
+            @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        var actor = actors.member(memberId(jwt));
+        return transactions.write(confirmations.classes(request.seatHoldId(), request.swapBookingId()), () -> {
+            IdempotentOperation.lock();
+            var confirmed = confirmations.confirm(actor, request.seatHoldId(), request.swapBookingId());
+            var result = view(views.booking(confirmed.booking(), false, confirmed.checkoutUrl()), Booking.class);
+            try { IdempotentOperation.complete(201, mapper.writeValueAsBytes(result)); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
+            return result;
+        });
     }
 
     @GetMapping("/api/v1/me/bookings")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, DOG_NOT_ACCESSIBLE})
-    @Operation(summary = "memberBookings", description = "Roles: MEMBER (also the impersonation token). Own and family-group bookings for 03/07; the history is /me/history (S10). Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "memberBookings", description = "Roles: MEMBER (also the impersonation token). Own and family-group bookings for 03/07; the history is /me/history (S10). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "MemberBookings", useReturnTypeSchema = true))
     public MemberBookings memberBookings(@RequestParam(required = false) String dogId, @RequestParam(required = false) BookingState state,
-            @RequestParam(required = false) LocalDate from, @RequestParam(required = false) LocalDate to) {
+            @RequestParam(required = false) LocalDate from, @RequestParam(required = false) LocalDate to, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return new MemberBookings(queries.mine(memberId(jwt), dogId, state, from, to).stream().map(b -> view(b, Booking.class)).toList());
     }
 
     @GetMapping("/api/v1/bookings/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND})
-    @Operation(summary = "booking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN. Detail 07 with cancellation{at, byDisplayName, byRole, late, minutesBefore, message} and displayState. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "booking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN. Detail 07 with cancellation{at, byDisplayName, byRole, late, minutesBefore, message} and displayState. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "Booking", useReturnTypeSchema = true))
     public Booking booking(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        access.booking(id, memberId(jwt), staff());
-        throw new UnsupportedOperationException();
+        return view(queries.detail(id, memberId(jwt), staff()), Booking.class);
     }
 
     @GetMapping("/api/v1/bookings/{id}/calendar.ics")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND})
-    @Operation(summary = "bookingCalendar", description = "Roles: anyone holding the signed token of calendarLinks.ics (no JWT; the club comes from the host). Token valid until classEndsAt. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards.",
+    @Operation(summary = "bookingCalendar", description = "Roles: anyone holding the signed token of calendarLinks.ics (no JWT; the club comes from the host). Token valid until classEndsAt; any mismatch is 404.",
             responses = @ApiResponse(responseCode = "200", description = "iCalendar file", content = @Content(mediaType = "text/calendar", schema = @Schema(type = "string"))))
-    public String bookingCalendar(@PathVariable String id, @RequestParam(required = false) String token) {
+    public String bookingCalendar(@PathVariable String id, @RequestParam(required = false) String token,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) jakarta.servlet.http.HttpServletResponse response) {
         access.tenant();
-        access.calendar(id, token);
-        throw new UnsupportedOperationException();
+        var body = queries.calendar(id, token);
+        response.setContentType("text/calendar;charset=UTF-8"); response.setHeader("Content-Disposition", "attachment; filename=\"booking.ics\"");
+        return body;
     }
 
     @PostMapping("/api/v1/bookings/{id}/cancellation")
     @PreAuthorize("(hasRole('INSTRUCTOR') and principal.claims['imp'] != true) or (" + MEMBER + ")")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, BOOKING_NOT_CANCELLABLE})
-    @Operation(summary = "cancelBooking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation → 403. R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "cancelBooking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation → 403. R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "Booking", useReturnTypeSchema = true))
     public Booking cancelBooking(@PathVariable String id, @Valid @RequestBody(required = false) BookingCancellationRequest request, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        access.booking(id, memberId(jwt), staff());
-        throw new UnsupportedOperationException();
+        boolean instructor = instructorOnly();
+        queries.visible(id, memberId(jwt), instructor);
+        var actor = instructor ? actors.instructor() : actors.member(memberId(jwt));
+        var cancelled = cancellations.cancel(id, actor, request == null ? null : request.message());
+        return view(views.booking(cancelled, instructor, null), Booking.class);
     }
 
     @GetMapping("/api/v1/bookings")
@@ -159,11 +189,13 @@ public class BookingsController {
     @ListContract(filterable = {"state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt"}, sortable = {"classStartsAt", "bookedAt"},
             columns = {"classStartsAt*", "dogName*", "memberName*", "state*", "origin*", "bookedAt", "bookingWeekKey", "late"}, paged = true, exportable = false)
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
-    @Operation(summary = "bookings", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "bookings", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<BookingListItem>", useReturnTypeSchema = true))
-    public ListPage<BookingListItem> bookings() {
+    public ListPage<BookingListItem> bookings(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        var page = queries.list(lists, params);
+        return new ListPage<>(page.items().stream().map(item -> view(item, BookingListItem.class)).toList(), page.page(), page.size(), page.totalItems(),
+                page.totalPages(), page.appliedFilters());
     }
 
     @PostMapping("/api/v1/waitlist-entries")
@@ -225,12 +257,12 @@ public class BookingsController {
     @GetMapping("/api/v1/class-sessions/{id}/bookings")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "classBookings", description = "Roles: INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Read for 21/D4/D12. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "classBookings", description = "Roles: INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Read for 21/D4/D12: every booking of the class, any state. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ClassBookings", useReturnTypeSchema = true))
     public ClassBookings classBookings(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return new ClassBookings(queries.forClass(id).stream().map(item -> view(item, BookingListItem.class)).toList());
     }
 
     @GetMapping("/api/v1/class-sessions/{id}/waitlist-entries")

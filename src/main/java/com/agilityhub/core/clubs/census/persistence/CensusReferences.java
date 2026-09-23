@@ -19,6 +19,7 @@ public class CensusReferences extends TenantRepository<Member> {
     }
     public Map<String,Object> level(String id) { return one("levels", "_id", id); }
     public Map<String,Object> plan(String id) { return one("plans", "_id", id); }
+    public Map<String,Object> price(String id) { return one("prices", "_id", id); }
     public Map<String,Object> membership(String memberId) { return one("memberships", "memberId", memberId); }
     private Map<String,Object> one(String collection, String field, String id) {
         if (id == null) { return Map.of(); }

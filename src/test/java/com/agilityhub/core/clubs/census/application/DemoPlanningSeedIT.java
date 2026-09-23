@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 @TestPropertySource(properties = "identity.seed-password=Fictional-seed-password")
 class DemoPlanningSeedIT extends AbstractIntegrationTest {
-    static final List<String> SEEDED = List.of("week_templates", "weeks", "class_sessions", "ring_blocks", "demo_class_bookings", "activities", "activity_registrations");
+    static final List<String> SEEDED = List.of("week_templates", "weeks", "class_sessions", "ring_blocks", "bookings", "waitlist_entries", "activities", "activity_registrations");
     static final LocalDate MONDAY = LocalDate.parse("2026-09-07");
     @Autowired ClubDefinitions definitions; @Autowired ClubDefinitionCodec codec; @Autowired DemoSeedCommand command; @Autowired DemoPlanningService planning;
     @Autowired HostTenantResolver hosts; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired MockMvc mvc;
@@ -88,7 +88,10 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         var wednesday = MONDAY.plusWeeks(2).plusDays(2);
         var target = session(wednesday, "18:50", ring("CEN"));
         assertThat(target.get("counters", Document.class)).containsEntry("booked", 4).containsEntry("waiting", 2);
-        assertThat(mongo.count(Query.query(Criteria.where("classId").is(target.getString("_id")).and("paidWithPack").is(true)), "demo_class_bookings")).isEqualTo(2);
+        assertThat(mongo.count(Query.query(Criteria.where("classSessionId").is(target.getString("_id")).and("packMovementId").ne(null)), "bookings")).isEqualTo(2);
+        // E5-T02: the registrants are real S08 bookings made by each member through hold + confirmation.
+        assertThat(mongo.count(Query.query(Criteria.where("origin").ne("APP")), "bookings")).isZero();
+        assertThat(mongo.count(Query.query(Criteria.where("type").is("BookingCreated")), "domain_events")).isEqualTo(mongo.count(new Query(), "bookings"));
         var risk = mongo.findOne(Query.query(Criteria.where("date").is(wednesday.toString()).and("startTime").is("09:30").and("ringId").is(ring("CAD"))), Document.class, "class_sessions");
         assertThat(risk.getString("state")).isEqualTo("CANCELLED");
         assertThat(risk.get("cancellation", Document.class).getString("reason")).isEqualTo("RISK_REVIEW");
@@ -120,9 +123,10 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
                 .forEach(a -> mongo.find(Query.query(Criteria.where("accountId").is(a.getString("_id"))), Document.class, "members").forEach(m -> logins.add(m.getString("_id"))));
         assertThat(logins).hasSize(15);
         assertThat(mongo.count(Query.query(Criteria.where("memberId").in(logins)), "activity_registrations")).isZero();
-        assertThat(mongo.count(Query.query(Criteria.where("memberId").in(logins)), "demo_class_bookings")).isZero();
-        for (var booking : mongo.findAll(Document.class, "demo_class_bookings")) {
-            var levels = mongo.findById(booking.getString("classId"), Document.class, "class_sessions").getList("levelIds", String.class);
+        assertThat(mongo.count(Query.query(Criteria.where("memberId").in(logins)), "bookings")).isZero();
+        assertThat(mongo.count(Query.query(Criteria.where("memberId").in(logins)), "waitlist_entries")).isZero();
+        for (var booking : mongo.findAll(Document.class, "bookings")) {
+            var levels = mongo.findById(booking.getString("classSessionId"), Document.class, "class_sessions").getList("levelIds", String.class);
             assertThat(levels).contains(mongo.findById(booking.getString("dogId"), Document.class, "dogs").getString("levelId"));
         }
         for (String collection : SEEDED) {
@@ -165,9 +169,11 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         var result = new TreeMap<String, List<String>>(); var rings = new HashMap<String, String>();
         mongo.findAll(Document.class, "rings").forEach(r -> rings.put(r.getString("_id"), r.getString("shortName")));
         var numbers = new HashMap<String, String>(); mongo.findAll(Document.class, "members").forEach(m -> numbers.put(m.getString("_id"), String.valueOf(m.get("memberNumber"))));
-        for (var booking : mongo.findAll(Document.class, "demo_class_bookings")) {
-            var c = mongo.findById(booking.getString("classId"), Document.class, "class_sessions");
-            result.computeIfAbsent(c.getString("date") + " " + c.getString("startTime") + " " + rings.get(c.getString("ringId")) + " " + booking.getString("state"), k -> new ArrayList<>()).add(numbers.get(booking.getString("memberId")));
+        for (String collection : List.of("bookings", "waitlist_entries")) {
+            for (var booking : mongo.findAll(Document.class, collection)) {
+                var c = mongo.findById(booking.getString("classSessionId"), Document.class, "class_sessions");
+                result.computeIfAbsent(c.getString("date") + " " + c.getString("startTime") + " " + rings.get(c.getString("ringId")) + " " + collection + " " + booking.getString("state"), k -> new ArrayList<>()).add(numbers.get(booking.getString("memberId")));
+            }
         }
         for (var r : mongo.findAll(Document.class, "activity_registrations")) {
             var a = mongo.findById(r.getString("activityId"), Document.class, "activities");
@@ -189,9 +195,11 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED");
         var event = one("domain_events", Criteria.where("type").is("ClassCancelledByClub").and("aggregateId").is(id)).get("payload", Document.class);
         assertThat(event.getList("affected", Document.class)).hasSize(4); assertThat(event.getList("waitlistIds", String.class)).hasSize(2);
-        var states = mongo.find(Query.query(Criteria.where("classId").is(id)), Document.class, "demo_class_bookings").stream()
+        var states = mongo.find(Query.query(Criteria.where("classSessionId").is(id)), Document.class, "bookings").stream()
                 .collect(Collectors.groupingBy(b -> b.getString("state"), Collectors.counting()));
-        assertThat(states).containsEntry("CANCELLED_BY_CLUB", 4L).containsEntry("CANCELLED", 2L);
+        assertThat(states).containsOnlyKeys("CANCELLED_BY_CLUB").containsEntry("CANCELLED_BY_CLUB", 4L);
+        var entries = mongo.find(Query.query(Criteria.where("classSessionId").is(id)), Document.class, "waitlist_entries");
+        assertThat(entries).hasSize(2).allSatisfy(e -> assertThat(e).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "CLASS_CANCELLED"));
         assertThat(mongo.findById(id, Document.class, "class_sessions").get("counters", Document.class)).containsEntry("booked", 0).containsEntry("waiting", 0);
     }
 

@@ -23,6 +23,7 @@ import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -132,9 +133,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         }
         // S07 executes serialization inside its retryable use-case transaction. Other routes keep
         // the existing request transaction. Both paths commit the idempotency row with effects.
-        if (path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // S08 confirmation and claim replay their business conflicts too (R-08-08: «també si va ser 409»).
+        boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim");
+        if (bookings || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
+            var target = bookings ? new ContentCachingResponseWrapper(response) : response;
             try (var operation = com.agilityhub.core.shared.application.IdempotentOperation.open(
                     () -> records.lock(record), (status, bytes) -> {
                         records.complete(record, status, bytes, Map.of("Content-Type", List.of("application/json"),
@@ -144,9 +148,19 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                                     @Override public void afterCommit() { completed.set(true); }
                                 });
                     })) {
-                chain.doFilter(new BufferedRequest(request, body), response);
+                chain.doFilter(new BufferedRequest(request, body), target);
             } finally {
-                if (!completed.get()) records.abandon(record);
+                if (!completed.get()) {
+                    if (target instanceof ContentCachingResponseWrapper cached && (cached.getStatus() == 409 || cached.getStatus() == 422)
+                            && !transientOutcome(cached.getContentAsByteArray())) {
+                        transactions.executeWithoutResult(status -> {
+                            records.lock(record);
+                            records.complete(record, cached.getStatus(), cached.getContentAsByteArray(), Map.of("Content-Type", List.of("application/json"),
+                                    "Content-Language", List.copyOf(cached.getHeaders("Content-Language"))));
+                        });
+                    } else { records.abandon(record); }
+                }
+                if (target instanceof ContentCachingResponseWrapper cached) { cached.copyBodyToResponse(); }
             }
             return;
         }
@@ -178,6 +192,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         }
         if (cachedResponse.getStatus() >= 400) { records.abandon(record); }
         cachedResponse.copyBodyToResponse();
+    }
+
+    /** Exhausted write-conflict retries are not a business outcome: the key is released instead of replaying them. */
+    private boolean transientOutcome(byte[] bytes) {
+        try { return Set.of("STALE_VERSION", "IDEMPOTENCY_KEY_REUSED").contains(mapper.readTree(bytes).path("code").asText()); }
+        catch (IOException unreadable) { return true; }
     }
 
     private com.fasterxml.jackson.databind.JsonNode json(byte[] bytes) {

@@ -52,6 +52,10 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
         if (message != null && message.contains("dog_chip")) { return new ApiException(ErrorCode.CHIP_ALREADY_EXISTS); }
         return failure;
     }
+    /** Single-field write owned by another vertical (S08 `Member.lastDogForClass`); bumps the version so a stale form save fails. */
+    public void setField(String id, String field, Object value) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set(field, value).inc("version", 1).set("updatedAt", clock.instant()), type);
+    }
     public void lock() {
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require() + ":census")), new Update().inc("sequence", 1), "census_write_locks");
     }

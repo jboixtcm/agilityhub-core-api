@@ -149,12 +149,19 @@ state, never by date or first name:
   message; Carretera `BLOCK`/`MAINTENANCE` Wednesday 16:00–18:00, note «manteniment»
   (no class on Carretera then); a loose «Particular» on Petita, Thursday 18:50, created
   after validation with the Cadells instructor → D4 warning `INSTRUCTOR_DOUBLE_BOOKED`.
-- Class registrants use the **demo bookings adapter** (`DemoClassBookings`, collection
-  `demo_class_bookings`, `local`/`test` profiles only, `@ConditionalOnMissingBean`):
-  it implements `ClassBookingsPort` and writes counters through
-  `ClassSessionService.bookingCounters` (the S08 writer path: class version check,
-  ACTIVE recheck); counters are never set by hand. **E5 replaces it** with the real
-  S08 `bookings`/waitlist, and its adapter wins automatically.
+- Class registrants are **real S08 bookings** (E5-T02; the E4-T05 demo adapter and its
+  `demo_class_bookings` collection are gone): each booked registrant holds a seat and
+  confirms it as its own member through `SeatHoldService` + `BookingConfirmationService`
+  (`origin = APP`, one `BookingCreated` + `SeatHeld` + `SeatHoldReleased` each, N-04 queued
+  when the outbox runs). W+2 is not bookable yet on the run date (R-08-01: a booking week
+  opens one week before it starts), so the seed books **as of the instant that week opens**
+  (or the run date when later): `bookedAt` may be a few days ahead of the run. The
+  `withPack` registrants get a 10-session pack in the local/test pack stand-in (S12 is E8)
+  and their booking carries `packMovementId`. Waiting registrants are `ACTIVE`
+  `waitlist_entries` (FIFO `position`) until E5-T03 ships the join service. Counters
+  (`booked`, `waiting`) follow the bookings and entries; they are never set by hand.
+  Cancelling the class (D4c) turns the 4 bookings into `CANCELLED_BY_CLUB` and the 2 entries
+  into `CANCELLED{CLASS_CANCELLED}`.
 - Activities (D7), all through `ActivityService`/`ActivityLifecycleService`/
   `ActivityRegistrationService` (`origin = APP`):
   «Torneig d'Estiu 2026» (`COMPETITION`, Saturday of W+2, 18:30–20:30, five rings,

@@ -24,6 +24,13 @@ public class UpfrontPayments {
                 .thenComparing(p -> "ENTRY_FEE".equals(p.concept()) ? 0 : 1).thenComparing(UpfrontPayment::id)).toList();
     }
     private Line line(UpfrontPayment p) { return new Line(p.id(),p.signupConcept()==null?p.concept():p.signupConcept(),p.dogId(),p.amountDue(),p.amountPaid(),p.status(),p.provider()); }
+    /** One due line, e.g. the S08 PAY_TO_BOOK single class (`concept = SINGLE_CLASS`); returns its id for the checkout. */
+    public String createOne(String memberId,Charge charge) {
+        String id=UUID.randomUUID().toString();
+        repository.insert(new UpfrontPayment(id,TenantContext.require(),memberId,charge.dogId(),charge.concept(),charge.concept(),charge.amount(),
+                new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null));
+        return id;
+    }
     public void create(String memberId,List<Charge> charges) {
         for (var charge:charges) {
             repository.insert(new UpfrontPayment(UUID.randomUUID().toString(),TenantContext.require(),memberId,charge.dogId(),

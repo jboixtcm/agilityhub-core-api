@@ -54,6 +54,17 @@ class E5ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
+        /** E5-T02 serves the S08 WP-08-B routes; the rest stay 501 until E5-T03…T06. */
+        boolean implemented() { return IMPLEMENTED.contains(method + " " + path); }
+    }
+    static final Set<String> IMPLEMENTED = Set.of("POST /api/v1/seat-holds", "DELETE /api/v1/seat-holds/{id}", "POST /api/v1/bookings",
+            "GET /api/v1/me/bookings", "GET /api/v1/bookings/{id}", "GET /api/v1/bookings/{id}/calendar.ics", "POST /api/v1/bookings/{id}/cancellation",
+            "GET /api/v1/bookings", "GET /api/v1/class-sessions/{id}/bookings");
+    /** An implemented route passed its guards: whatever business answer it gives, it is not an auth failure, a stub or a crash. */
+    private void served(MockHttpServletRequestBuilder request) throws Exception {
+        var result = mvc.perform(request).andReturn();
+        assertThat(result.getResponse().getStatus()).as(result.getRequest().getMethod() + " " + result.getRequest().getRequestURI() + " "
+                + result.getResponse().getContentAsString()).isNotIn(401, 403, 500, 501);
     }
     static Stream<Route> routes() throws Exception {
         try (var input = E5ContractIT.class.getResourceAsStream("/fixtures/contracts/e5-routes.json")) {
@@ -129,6 +140,7 @@ class E5ContractIT extends AbstractIntegrationTest {
     void T_08_26_T_09_30_T_15_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
         for (String role : ROLES) {
             boolean allowed = route.roles().contains(role);
+            if (allowed && route.implemented()) { served(call(route, CLUB, role)); continue; }
             error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
                     allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
         }
@@ -155,7 +167,8 @@ class E5ContractIT extends AbstractIntegrationTest {
         try (var scope = TenantContext.open(CLUB)) { issued = impersonations.create("e5-imp-admin", "e5-member-a", "Contract authorization test"); }
         for (Route route : routes().toList()) {
             var request = call(route, CLUB, "MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
-            if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
+            if (route.impersonation() && route.implemented()) { served(request); }
+            else if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
             else { error(request, 403, "IMPERSONATION_DENIED", "FORBIDDEN"); }
         }
     }
@@ -170,8 +183,10 @@ class E5ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().filter(r -> r.resource() && r.club() && r.roles().contains("MEMBER")).toList()) {
             error(call(route, CLUB, "MEMBER", "someone-else"), 404, "NOT_FOUND");
         }
-        // Staff read another member's booking, waiting-list entry and training booking (then 501).
-        for (String path : List.of("/api/v1/bookings/e5-booking-a", "/api/v1/waitlist-entries/e5-entry-a", "/api/v1/training-bookings/e5-training-a")) {
+        // Staff read another member's booking (served since E5-T02), waiting-list entry and training booking (then 501).
+        mvc.perform(get("/api/v1/bookings/e5-booking-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e5-booking-a"));
+        for (String path : List.of("/api/v1/waitlist-entries/e5-entry-a", "/api/v1/training-bookings/e5-training-a")) {
             error(get(path).header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")), 501, "NOT_IMPLEMENTED");
         }
         // T-08-47 / T-09-30: MEMBER on the universal lists → 403.
@@ -187,7 +202,7 @@ class E5ContractIT extends AbstractIntegrationTest {
         }
         var hold = routes().filter(r -> r.path().equals("/api/v1/seat-holds")).findFirst().orElseThrow();
         error(call(hold, CLUB, "MEMBER").content("{\"classSessionId\":\"e5-class-a\",\"dogId\":\"dog-a\",\"waitlistEntryId\":\"e5-entry-a\"}"), 404, "MODULE_DISABLED");
-        error(call(hold, CLUB, "MEMBER"), 501, "NOT_IMPLEMENTED");
+        error(call(hold, CLUB, "MEMBER"), 404, "NOT_FOUND"); // served since E5-T02: the fixture's class-a does not exist
         // S15: a process whose module is off is 404; an unknown route id is JOB_UNKNOWN (422 by catalog rule 0).
         var admin = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN");
         error(get("/api/v1/jobs/payment-timeouts/runs").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
@@ -215,7 +230,7 @@ class E5ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_08_47_T_09_24_T_15_29_theStubsWriteNothing() throws Exception {
         var before = database();
-        for (Route route : routes().toList()) {
+        for (Route route : routes().filter(r -> !r.implemented()).toList()) {
             for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().isNotImplemented()); }
         }
         assertThat(database()).isEqualTo(before);
@@ -239,7 +254,8 @@ class E5ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();
-            assertThat(op.path("description").asText()).as(route.path()).contains("501", "guards", "Roles:");
+            if (route.implemented()) { assertThat(op.path("description").asText()).as(route.path()).contains("Roles:").doesNotContain("501"); }
+            else { assertThat(op.path("description").asText()).as(route.path()).contains("501", "guards", "Roles:"); }
             assertThat(op.path("responses").has(Integer.toString(route.success()))).as(route.path()).isTrue();
             assertThat(op.path("operationId").asText()).as(route.path()).doesNotContain("_");
             // Club routes take the tenant from the JWT; only the platform console addresses a club explicitly.

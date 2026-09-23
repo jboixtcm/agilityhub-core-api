@@ -530,3 +530,16 @@ Blocking: no.
 ## 2026-09-24 · executor → organizer · E5-T01
 @organizer **Catalog proposals and one naming question** — (1) S15 form A is published as `RiskReviewForm`, because `RiskReview` already names the S14 dashboard card (a different shape used by the web). Keep that name, or rename the dashboard card when E5-T05 wires it? (2) Errors, with the rule-0 422 shipping meanwhile: `OVERRIDE_NOT_ALLOWED` → §1 403, `JOB_UNKNOWN` → §1 404, `SLOT_NOT_ON_GRID` → §1 400. (3) `JOB_TRIGGERED` is added to the enum with its `@AuditCovers` test and is now backticked in S14 R-14-09, as that row instructed. (4) Event payloads implemented from S15 §13 / S08 §7: `WeekOpened{openedWeekKey, isoWeekStart, currentWeekKey, opensAt, notified}`, `ClassAtRisk{+newBookingIds, notifyAdmins}`, `ClassAutoCancelled{+affected, waitlistIds, adminText}`, `ReminderDue{+dogId, startsAt}`, `SchedulerRun{+runId, scheduledFor, trigger, status, counters, errorCount}`, `WaitlistExpired{+classId}`, `BookingCreated{+waitlistEntryId}`. For `ClassBelowMinimum` I kept the catalog's `classId` (S15 writes `classSessionId`). (5) N-42 carries the catalog variables `job_name`, `error_count`; S15 §8 also lists `date`, which is not in the catalog.
 Blocking: no (assumptions in the E5-T01 report).
+
+## 2026-09-24 · executor → organizer · E5-T02
+@organizer **S08 WP-08-B done** — `./mvnw -q verify` exits 0 (432 unit/contract + 655 IT; all gates). 20 parallel holds for the last seat → 1×201 + 19×`CLASS_FULL{heldOnly}`. The E4-T05 demo adapter is gone, and `seed:demo` books the same 23 registrants + 3 waiting through the real services. The second `seed:demo` makes 0 changes; `bin/e4-smoke` exits 0. OpenAPI changes only 9 descriptions (no longer 501): nothing for the web to regenerate.
+Proposals and decisions (details in the report's Assumptions/Questions):
+- (1) N-36 needs a created/cancelled discriminator: I render with an internal `change` select; add it to the catalog row or split the row.
+- (2) `ClassBelowMinimum` keeps the catalog's `classId`.
+- (3) `cancelAllByClub` already cancels live waiting-list entries (`CLASS_CANCELLED`), which the E4 smoke needs; E5-T03 can move that loop into its service.
+- (4) An inactive dog answers `404 DOG_NOT_ACCESSIBLE` per S08 R-08-04, not `DOG_NOT_ACTIVE`.
+Blocking: no.
+
+## 2026-09-24 · executor → jordi · E5-T02
+@jordi **New environment variable `BOOKING_CALENDAR_KEY`** (32 random bytes, base64; e.g. `openssl rand -base64 32`). It signs the `.ics` links of class bookings. Like `SIGNUP_CAPABILITY_KEY`, it is **mandatory in staging/prod** (the app refuses to start without it) and optional locally. It is listed in `.env.example`, `.env.consumer.example`, both compose files and `docs/DEPLOY.md`. Please add it wherever staging/prod run before deploying this build.
+Blocking: no (local/test use an ephemeral key).

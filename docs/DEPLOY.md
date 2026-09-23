@@ -318,6 +318,7 @@ E3 runtime settings (all secrets remain environment-only):
 | Setting | Purpose |
 |---|---|
 | `SIGNUP_CAPABILITY_KEY` | Base64-encoded **32 bytes**, required in staging/prod. Signs 24-hour tenant/member signup capabilities and encrypts anonymous idempotency replays. Keep the key stable across API replicas and restarts; changing it invalidates outstanding capabilities/replays. Both local Compose files accept it; an empty local/test value uses an ephemeral key. |
+| `BOOKING_CALENDAR_KEY` | Base64-encoded **32 bytes**, required in staging/prod. Signs the `.ics` links of class bookings (S08 R-08-08, valid until the class ends). Keep it stable across replicas and restarts; changing it invalidates the calendar links already sent. An empty local/test value uses an ephemeral key. |
 | `MAIL_LOCAL_DIRECTORY` | Local/test mailbox JSON directory; Compose uses `/app/mailbox` on a private named volume. N-01/N-02/N-03 mail can be correlated by `tags.notificationId` with the notification log. N-37 is APP-only. Copy messages using the mailbox recipe above, then remove the private copy. |
 | `ATTACHMENT_LOCAL_DIRECTORY` | Local uploaded-file directory (`/app/attachments` in Compose). Signup keys use `signup/<clubId>/<yyyyMM>/<uuid>/<filename>`; the month is club-local and the prefix is fixed by the adapter, not an environment setting. |
 | `ATTACHMENT_S3_BUCKET`, `ATTACHMENT_S3_REGION`, `ATTACHMENT_S3_ACCESS_KEY`, `ATTACHMENT_S3_SECRET_KEY`, optional `ATTACHMENT_S3_ENDPOINT` | Existing staging/prod private storage settings. Include `signup/` as well as `attachments/` in IAM/CORS verification. Signed signup PUT grants last 15 minutes; claimed documents must not be expired by a blanket signup-prefix lifecycle. |
@@ -414,9 +415,11 @@ Wednesday 18:50 B+C class (`422 ADMIN_TEXT_REQUIRED`, then 4 bookings + 2 waitli
 public API `403`/`200` without registrant data → activity cancellation with N-32c →
 both `finish-ended` commands → summary table. Any failed assertion exits nonzero.
 
-E4 adds **no environment variable**: planning, activities and the demo bookings
-adapter use the existing Mongo, mailbox, attachment and profile settings. The
-demo bookings adapter (`demo_class_bookings`) is active only in `local`/`test`.
+E4 adds **no environment variable**: planning and activities use the existing Mongo,
+mailbox, attachment and profile settings. Since E5-T02 the demo class registrants are
+real S08 bookings (the E4-T05 `demo_class_bookings` adapter is gone); the pack and
+inactivity stand-ins the seed and tests use are active only in `local`/`test`, and the
+only new variable is `BOOKING_CALENDAR_KEY` (see the table above).
 
 For browser work (E4-W…), seed a fresh disposable consumer project exactly as in
 the E3 recipe above: the same `seed:demo --club=canic --seed=42` command now adds

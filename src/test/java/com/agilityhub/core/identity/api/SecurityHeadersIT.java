@@ -14,6 +14,8 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
     @DynamicPropertySource static void productionProperties(DynamicPropertyRegistry registry) throws Exception {
         String signupKey=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
         registry.add("signup.capability-key", () -> signupKey);
+        String calendarKey=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
+        registry.add("bookings.calendar-key", () -> calendarKey);
         registry.add("OIDC_LEARN_CLIENT_SECRET", () -> java.util.UUID.randomUUID().toString());
         var emailKeys = java.security.KeyPairGenerator.getInstance("EC");
         emailKeys.initialize(256);
