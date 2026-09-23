@@ -12,8 +12,9 @@ public final class DemoDataset {
             Map<String, Integer> levelDogs, List<String> firstNames, String surnamePrefix, List<String> dogNames,
             List<String> accountEmails, List<String> planCodes, String familyPlanCode, int familyGroups,
             List<Integer> instructors, List<Integer> administrators, int receivedDocuments, LocalDate referenceDate,
-            List<PendingSignup> pendingSignups) {
+            List<PendingSignup> pendingSignups, String phoneNumberFormat) {
         public Spec {
+            if (phoneNumberFormat != null && !phoneNumberFormat.matches("[0-9]{1,9}%0[1-9]d")) { throw new IllegalArgumentException("Invalid demo phone format"); }
             if (activeMembers < 5 || activeMembers > 1000 || pendingMembers < 0 || inactiveMembers < 0 || leftMembers < 0
                     || pendingMembers + inactiveMembers + leftMembers > 1000 || levelDogs == null || levelDogs.isEmpty()
                     || levelDogs.values().stream().anyMatch(n -> n < 0 || n > 1000)

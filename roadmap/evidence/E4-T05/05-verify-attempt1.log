@@ -1,0 +1,19 @@
+$ ./mvnw -q verify        (exit 1; first full verify attempt — unit phase, integration tests not reached)
+Excerpt of the Maven summary (the session sandbox refused copying the raw /tmp output into the repository;
+lines below are verbatim from `grep -E "Tests run:|ERROR\]|Unrecognized field"` over that output, truncated at 300 chars):
+
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.102 s <<< FAILURE! -- in com.agilityhub.core.arch.ArchitectureTest
+[ERROR] com.agilityhub.core.arch.ArchitectureTest.E0_T01_crossContextAccessUsesApplication -- Time elapsed: 0.048 s <<< FAILURE!
+[ERROR] Failures:
+[ERROR]   ArchitectureTest.E0_T01_crossContextAccessUsesApplication Architecture Violation [Priority: MEDIUM] - Rule 'classes should access other contexts only through their application packages' was violated (1 times):
+          Method <...census.application.DemoSeedService.apply(...)> calls method <com.agilityhub.core.platform.domain.CountryProfile.defaultPhonePrefix()> in (DemoSeedService.java:74)
+[ERROR] Errors:
+[ERROR]   DemoDatasetTest.T_03_42_demoFixtureIsDeterministicFictionalAndMatchesD1D3:14 » IllegalArgument Unrecognized field "planning" (class com.agilityhub.core.clubs.census.domain.DemoDataset$Spec), not marked as ignorable (18 known properties: ...
+[ERROR]   DemoDatasetTest.T_03_42_invalidSeedCountsIdentitiesAndReferencesAreRejected:33 » IllegalArgument Unrecognized field "planning" ...
+[ERROR]   DemoDatasetTest.T_14_11_pendingSignupFixturesRejectInvalidFields:51 » IllegalArgument Unrecognized field "planning" ...
+[ERROR] Tests run: 392, Failures: 1, Errors: 3, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+
+Fixes: DemoSeedService reads the phone prefix through platform.application.CountryContacts (not platform.domain);
+the test helper DemoFixtures strips the E4 sections (planning/bookings/activities) before converting the census Spec,
+as DemoSeedCommand does; DemoDatasetTest also rejects invalid phoneNumberFormat values.

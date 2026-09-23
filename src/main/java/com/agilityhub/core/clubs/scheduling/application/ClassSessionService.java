@@ -22,6 +22,21 @@ public class ClassSessionService {
         this.events = events; this.audit = audit; this.training = training; this.clock = clock;
     }
     public ClassSession require(String id) { return classes.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
+    public record Slot(String id, LocalDate date, String startTime, List<String> levelIds, int capacity, String state) { }
+    /** The DRAFT or ACTIVE class of a ring at a club-local date and start time. */
+    public Optional<Slot> slot(LocalDate date, String startTime, String ringId) {
+        return classes.findLive(date, startTime, ringId).map(c -> new Slot(c.id(), c.date(), c.startTime(), c.levelIds(), c.capacity(), c.state().name()));
+    }
+    /** S08 booking writers call this inside their transaction after changing bookings: the class version check
+     * serializes concurrent writers, a non-ACTIVE class rejects the change, and counters are never patched elsewhere. */
+    public void bookingCounters(String id, int booked, int waiting) {
+        transactions.write(() -> {
+            var before = require(id); if (before.state() != ClassState.ACTIVE) { throw new ApiException(ErrorCode.INVALID_STATE); }
+            if (booked < 0 || waiting < 0) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+            var edit = new SessionEdit(before); edit.counters = new ClassSession.Counters(booked, waiting);
+            return classes.update(edit.snapshot(clock.instant(), events.actor()), before.version());
+        });
+    }
     @PreAuthorize("hasRole('ADMIN')")
     public ClassSession create(LocalDate date, String start, String end, String ring, List<String> levels, List<String> instructors,
             Integer capacity, String description, boolean cancelBookings) {

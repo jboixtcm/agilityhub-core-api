@@ -1,0 +1,111 @@
+$ bin/e4-smoke        (exit 0; first passing run, fresh disposable Compose project; complete output)
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 31 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+  205 changes (demo planning, week start 2026-09-21)
+PASS seed:demo --club=canic --seed=42 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+  0 changes (demo planning, week start 2026-09-21)
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+PASS seed club:apply + seed:demo --seed=42 (x2): second runs 0 changes · week start 2026-09-21
+curl GET /api/v1/health -> 200
+PASS API up; fixture club activated; runtime-only public API key provisioned (value withheld)
+curl GET /api/v1/rings -> 200
+curl GET /api/v1/week-templates -> 200
+PASS GET /week-templates: 200 · 3 templates; Setmana B inconsistencyCount=1
+curl POST /api/v1/weeks -> 201
+curl POST /api/v1/weeks/<id>/generation -> 422 TEMPLATE_INCONSISTENT
+PASS POST /weeks/{week+3}/generation (Setmana B): 422 TEMPLATE_INCONSISTENT
+curl GET /api/v1/weeks/generation-candidates -> 200
+PASS GET /weeks/generation-candidates: 200 · proposed=2026-10-12 (week +3)
+curl POST /api/v1/weeks/<id>/generation -> 200
+PASS POST /weeks/{week+3}/generation (A + Dissabtes): 200 · classCount=38, skipped=[]
+curl GET /api/v1/weeks/<id>/calendar -> 200
+PASS GET /weeks/{week+3}/calendar?filter=DRAFT: 200 · draftCount=38, canValidate=true
+curl GET /api/v1/day-grid -> 200
+PASS member GET /day-grid (draft week): 200 · 0 classes
+curl POST /api/v1/weeks/<id>/validation -> 200
+PASS POST /weeks/{week+3}/validation: 200 · validatedClassIds=38
+curl GET /api/v1/day-grid -> 200
+curl GET /api/v1/day-grid -> 200
+PASS day-grid member / instructor: 200 · member 7 classes without occupancy/instructor; instructor sees occupancy
+curl GET /api/v1/weeks/<id>/calendar -> 200
+curl POST /api/v1/class-sessions/<id>/cancellation -> 422 ADMIN_TEXT_REQUIRED
+PASS POST /class-sessions/{Wed 18:50 B+C}/cancellation without text: 422 ADMIN_TEXT_REQUIRED
+curl POST /api/v1/class-sessions/<id>/cancellation -> 200
+PASS POST /class-sessions/{Wed 18:50 B+C}/cancellation: 200 CANCELLED · affectedBookings=4, affectedWaitlist=2
+PASS outbox ClassCancelledByClub: committed · event 71339bd3…: affected=4, waitlistIds=2
+PASS notifications N-08a: 6 APP + 6 EMAIL (mailbox) + 6 SMS QUEUED · 4 bookings + 2 waitlist
+curl POST /api/v1/ring-blocks -> 409 RING_BLOCK_CONFLICT
+PASS POST /ring-blocks over an ACTIVE class: 409 RING_BLOCK_CONFLICT
+curl POST /api/v1/ring-blocks -> 201
+curl GET /api/v1/day-grid -> 200
+curl GET /api/v1/day-grid -> 200
+PASS POST /ring-blocks on a free slot: 201 · member grid OCCUPIED, instructor grid BLOCK
+curl POST /api/v1/activities -> 201
+curl PATCH /api/v1/activities/<id> -> 200
+curl GET /api/v1/activities/<id>/ring-conflicts -> 200
+PASS GET /activities/{id}/ring-conflicts: 200 · 1 CLASS conflict (Sat 18:30 Central)
+curl POST /api/v1/activities/<id>/publication -> 409 RING_BLOCK_CONFLICT
+PASS POST /activities/{id}/publication: 409 RING_BLOCK_CONFLICT
+curl POST /api/v1/activities/<id>/publication -> 200
+PASS POST /activities/{id}/publication {cancelClasses}: 200 PUBLISHED · ringBlockIds=1; class CANCELLED{ACTIVITY}
+curl GET /api/v1/weeks/<id>/calendar -> 200
+PASS GET /weeks/{week+3}/calendar: 200 · activity block with activityTitle
+curl GET /api/v1/me/activities -> 200
+PASS member GET /me/activities: 200 · rowState=OPEN
+curl POST /api/v1/activity-registrations -> 201
+PASS member POST /activity-registrations: 201 ACTIVE
+curl GET /api/v1/public/canic/activities -> 403 INVALID_API_KEY
+curl GET /api/v1/public/canic/activities -> 200
+PASS GET /public/canic/activities: 403 without key; 200 with key (masked) · places.free=9; no member*/phone/person keys; registrant name and phone absent
+curl POST /api/v1/activities/<id>/cancellation -> 200
+curl GET /api/v1/activity-registrations/<id> -> 200
+PASS POST /activities/{id}/cancellation: 200 · registration CANCELLED{ACTIVITY_CANCELLED}; N-32c rows
+curl POST /api/v1/ring-blocks/<id>/cancellation -> 200
+PASS POST /ring-blocks/{smoke}/cancellation: 200 · smoke block released
+PASS bin/core activities:finish-ended --club=canic: exit 0
+PASS bin/core scheduling:finish-ended --club=canic: exit 0
+
+SUMMARY (step · status · key values)
+  seed club:apply + seed:demo --seed=42 (x2)                     · second runs 0 changes · week start 2026-09-21
+  GET /week-templates                                            · 200 · 3 templates; Setmana B inconsistencyCount=1
+  POST /weeks/{week+3}/generation (Setmana B)                    · 422 TEMPLATE_INCONSISTENT
+  GET /weeks/generation-candidates                               · 200 · proposed=2026-10-12 (week +3)
+  POST /weeks/{week+3}/generation (A + Dissabtes)                · 200 · classCount=38, skipped=[]
+  GET /weeks/{week+3}/calendar?filter=DRAFT                      · 200 · draftCount=38, canValidate=true
+  member GET /day-grid (draft week)                              · 200 · 0 classes
+  POST /weeks/{week+3}/validation                                · 200 · validatedClassIds=38
+  day-grid member / instructor                                   · 200 · member 7 classes without occupancy/instructor; instructor sees occupancy
+  POST /class-sessions/{Wed 18:50 B+C}/cancellation without text · 422 ADMIN_TEXT_REQUIRED
+  POST /class-sessions/{Wed 18:50 B+C}/cancellation              · 200 CANCELLED · affectedBookings=4, affectedWaitlist=2
+  outbox ClassCancelledByClub                                    · committed · event 71339bd3…: affected=4, waitlistIds=2
+  notifications N-08a                                            · 6 APP + 6 EMAIL (mailbox) + 6 SMS QUEUED · 4 bookings + 2 waitlist
+  POST /ring-blocks over an ACTIVE class                         · 409 RING_BLOCK_CONFLICT
+  POST /ring-blocks on a free slot                               · 201 · member grid OCCUPIED, instructor grid BLOCK
+  GET /activities/{id}/ring-conflicts                            · 200 · 1 CLASS conflict (Sat 18:30 Central)
+  POST /activities/{id}/publication                              · 409 RING_BLOCK_CONFLICT
+  POST /activities/{id}/publication {cancelClasses}              · 200 PUBLISHED · ringBlockIds=1; class CANCELLED{ACTIVITY}
+  GET /weeks/{week+3}/calendar                                   · 200 · activity block with activityTitle
+  member GET /me/activities                                      · 200 · rowState=OPEN
+  member POST /activity-registrations                            · 201 ACTIVE
+  GET /public/canic/activities                                   · 403 without key; 200 with key (masked) · places.free=9; no member*/phone/person keys; registrant name and phone absent
+  POST /activities/{id}/cancellation                             · 200 · registration CANCELLED{ACTIVITY_CANCELLED}; N-32c rows
+  POST /ring-blocks/{smoke}/cancellation                         · 200 · smoke block released
+  bin/core activities:finish-ended --club=canic                  · exit 0
+  bin/core scheduling:finish-ended --club=canic                  · exit 0
+PASS E4 backend gate: week generated from A/B + Saturdays and validated; class with fictional registrants cancelled with ClassCancelledByClub + N-08a; published activity blocks a ring and is listed for the member
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

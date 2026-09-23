@@ -35,6 +35,10 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
     public java.util.List<ClassSession> findActiveBetween(String clubId, java.time.Instant from, java.time.Instant to) {
         return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("state").is("ACTIVE").and("startsAt").gte(from).lt(to)), ClassSession.class);
     }
+    public java.util.Optional<ClassSession> findLive(java.time.LocalDate date, String startTime, String ringId) {
+        return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("date").is(date).and("startTime").is(startTime)
+                .and("ringId").is(ringId).and("state").in("DRAFT", "ACTIVE")), ClassSession.class));
+    }
     public long countFutureByRing(String ringId, java.time.Instant now) { return future("ringId", ringId, now); }
     public long countFutureByInstructor(String instructorId, java.time.Instant now) { return future("instructorIds", instructorId, now); }
     private long future(String field, String id, java.time.Instant now) {

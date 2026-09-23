@@ -1,5 +1,5 @@
 # E2/E3: fictional census, reviewable D1/D2 signups and D3 active distribution.
-# Remaining dashboard booking/occupancy data is owned by the scheduling/training tasks.
+# E4 planning, class registrants and activities follow in the `planning`, `bookings` and `activities` sections.
 activeMembers: 184
 pendingMembers: 3
 inactiveMembers: 4
@@ -23,3 +23,135 @@ pendingSignups:
   - {planCode: ABONAT, daysAgo: 0, accountProvided: true, dogName: Demo Bruc, chip: '941000000000801'}
   - {planCode: ABONAT, daysAgo: 1, accountProvided: true, dogName: Demo Lluna, chip: '941000000000802'}
   - {planCode: ABONAT, daysAgo: 3, accountProvided: false, dogName: Demo Neu, chip: '941000000000803'}
+# Fictional mobile numbers (E4 SMS intents): the club's country prefix + this format over the member number.
+phoneNumberFormat: '600%06d'
+
+# E4-T05 (S06 P7 / S07 P6). Everything below is dated relative to the run's week start (--week-start, default: the
+# club-local Monday of the current week); `week` / `offset` count weeks after it. Instructors are indexes into the
+# demo instructors (census member order), rings are catalog short names, levels are catalog codes.
+# seeds/README.md lists the resulting states (D3/D4/D4b/D4c/D7) and the deviations from the mockups.
+planning:
+  templates:
+    - name: Setmana A
+      kind: WEEKDAYS
+      bands: ['08:30-09:30', '09:30-10:30', '16:30-17:30', '17:40-18:40', '18:50-19:50', '20:00-21:00']
+      classes:
+        - {day: MONDAY, start: '08:30', ring: CEN, levels: [A, B], instructor: 0}
+        - {day: MONDAY, start: '08:30', ring: MUN, levels: [C, D, E], instructor: 1}
+        - {day: MONDAY, start: '09:30', ring: CEN, levels: [D, E, F, G], instructor: 0, description: 'D i sup.'}
+        - {day: MONDAY, start: '17:40', ring: PET, levels: [A], instructor: 2, capacity: 1, description: 'Teràpia'}
+        - {day: MONDAY, start: '18:50', ring: CEN, levels: [B, C], instructor: 1}
+        - {day: MONDAY, start: '18:50', ring: CAD, levels: [CAD], instructor: 2}
+        - {day: MONDAY, start: '20:00', ring: CEN, levels: [F, G], instructor: 0}
+        - {day: TUESDAY, start: '08:30', ring: CEN, levels: [F, G], instructor: 0}
+        - {day: TUESDAY, start: '17:40', ring: CAR, levels: [D, E], instructor: 1}
+        - {day: TUESDAY, start: '18:50', ring: CEN, levels: [A, B], instructor: 2}
+        - {day: TUESDAY, start: '20:00', ring: MUN, levels: [B, C], instructor: 1}
+        - {day: TUESDAY, start: '20:00', ring: CEN, levels: [A], instructor: 0}
+        - {day: WEDNESDAY, start: '08:30', ring: CEN, levels: [A, B], instructor: 0}
+        - {day: WEDNESDAY, start: '08:30', ring: MUN, levels: [C, D, E], instructor: 1}
+        - {day: WEDNESDAY, start: '09:30', ring: CAD, levels: [CAD], instructor: 2}
+        - {day: WEDNESDAY, start: '16:30', ring: CEN, levels: [B, C], instructor: 0}
+        - {day: WEDNESDAY, start: '17:40', ring: CEN, levels: [A], instructor: 0}
+        - {day: WEDNESDAY, start: '18:50', ring: CEN, levels: [B, C], instructor: 1}
+        - {day: WEDNESDAY, start: '18:50', ring: PET, levels: [A], instructor: 2, capacity: 1, description: 'Teràpia'}
+        - {day: WEDNESDAY, start: '20:00', ring: CEN, levels: [A, B, C], instructor: 0, description: 'Obed. urbana'}
+        - {day: WEDNESDAY, start: '20:00', ring: MUN, levels: [F, G], instructor: 2}
+        - {day: THURSDAY, start: '08:30', ring: MUN, levels: [C, D, E], instructor: 1}
+        - {day: THURSDAY, start: '16:30', ring: MUN, levels: [C, D], instructor: 0}
+        - {day: THURSDAY, start: '17:40', ring: CAR, levels: [D, E], instructor: 1}
+        - {day: THURSDAY, start: '18:50', ring: CAD, levels: [CAD], instructor: 1}
+        - {day: THURSDAY, start: '18:50', ring: CEN, levels: [F, G], instructor: 2}
+        - {day: THURSDAY, start: '20:00', ring: CEN, levels: [D, E, F, G], instructor: 0, description: 'D i sup.'}
+        - {day: FRIDAY, start: '08:30', ring: CAD, levels: [CAD], instructor: 1}
+        - {day: FRIDAY, start: '09:30', ring: CEN, levels: [A, B], instructor: 0}
+        - {day: FRIDAY, start: '17:40', ring: PET, levels: [A], instructor: 0, capacity: 1, description: 'Particular'}
+        - {day: FRIDAY, start: '18:50', ring: CEN, levels: [A, B], instructor: 0}
+        - {day: FRIDAY, start: '18:50', ring: MUN, levels: [C, D, E], instructor: 1}
+    # D3 inconsistency: a second class on Central on Wednesday 20:00 -> RING_DOUBLE_BOOKED, canGenerate = false.
+    - name: Setmana B
+      kind: WEEKDAYS
+      copyFrom: Setmana A
+      classes:
+        - {day: WEDNESDAY, start: '20:00', ring: CEN, levels: [B, C], instructor: 1}
+    # Template bands cannot overlap: R-06-01's Saturday 17:40 band is left out so 18:30 holds the tournament conflict.
+    - name: Dissabtes
+      kind: SATURDAY
+      bands: ['08:30-09:30', '09:30-10:30', '16:30-17:30', '18:30-19:30']
+      classes:
+        - {day: SATURDAY, start: '08:30', ring: MUN, levels: [A], instructor: 0}
+        - {day: SATURDAY, start: '08:30', ring: CEN, levels: [B, C], instructor: 1}
+        - {day: SATURDAY, start: '09:30', ring: CEN, levels: [B, C], instructor: 0}
+        - {day: SATURDAY, start: '09:30', ring: CAD, levels: [CAD], instructor: 1}
+        - {day: SATURDAY, start: '16:30', ring: CEN, levels: [D, E], instructor: 2}
+        - {day: SATURDAY, start: '18:30', ring: CEN, levels: [A, B], instructor: 0}
+  # Week +1 stays GENERATED with DRAFT classes (D4b); week +2 is VALIDATED (D4/D4c/D7). Generation candidates then propose week +3.
+  weeks:
+    - {offset: 1, weekdays: Setmana A, saturday: Dissabtes, validate: false}
+    - {offset: 2, weekdays: Setmana A, saturday: Dissabtes, validate: true}
+  # Added after validation; its instructor already teaches Cadells at the same time -> D4 INSTRUCTOR_DOUBLE_BOOKED warning.
+  looseClasses:
+    - {week: 2, day: THURSDAY, start: '18:50', end: '19:50', ring: PET, levels: [A], instructor: 1, capacity: 1, description: 'Particular'}
+  ringBlocks:
+    - {week: 2, day: WEDNESDAY, from: '16:00', to: '18:00', ring: CAR, kind: BLOCK, reason: MAINTENANCE, note: 'manteniment'}
+  riskCancellations:
+    - {week: 2, day: WEDNESDAY, start: '09:30', ring: CAD}
+
+# Registrants of week +2 through the demo bookings adapter (D4 counts). Wednesday 18:50 B+C is the R-06-10 / D4c case.
+bookings:
+  - {week: 2, day: MONDAY, start: '08:30', ring: CEN, booked: 4, withPack: 0, waiting: 0}
+  - {week: 2, day: MONDAY, start: '08:30', ring: MUN, booked: 3, withPack: 1, waiting: 0}
+  - {week: 2, day: MONDAY, start: '17:40', ring: PET, booked: 1, withPack: 0, waiting: 0}
+  - {week: 2, day: WEDNESDAY, start: '08:30', ring: CEN, booked: 5, withPack: 1, waiting: 1}
+  - {week: 2, day: WEDNESDAY, start: '18:50', ring: CEN, booked: 4, withPack: 2, waiting: 2}
+  - {week: 2, day: THURSDAY, start: '18:50', ring: CAD, booked: 2, withPack: 0, waiting: 0}
+  - {week: 2, day: THURSDAY, start: '18:50', ring: PET, booked: 1, withPack: 0, waiting: 0}
+  - {week: 2, day: FRIDAY, start: '17:40', ring: PET, booked: 1, withPack: 0, waiting: 0}
+  - {week: 2, day: SATURDAY, start: '18:30', ring: CEN, booked: 2, withPack: 0, waiting: 0}
+
+# The four D7 activities. The Seminari is full (12/12 + 2 waiting) instead of the mockup's 6/12 so that the waitlist exists.
+activities:
+  - title: {ca: "Torneig d'Estiu 2026", es: 'Torneo de Verano 2026'}
+    type: COMPETITION
+    week: 2
+    day: SATURDAY
+    startTime: '18:30'
+    endTime: '20:30'
+    rings: [MUN, CEN, CAR, CAD, PET]
+    maxPlaces: 40
+    waitlistEnabled: true
+    registrationClosesDaysBefore: 1
+    publish: true
+    publication: {cancelClasses: true, adminText: "La classe s'anul·la perquè les pistes es reserven per al Torneig d'Estiu."}
+    registrants: 22
+  - title: {ca: 'Seminari de handling', es: 'Seminario de handling'}
+    type: SEMINAR
+    week: 5
+    day: SATURDAY
+    startTime: '09:00'
+    endTime: '13:00'
+    rings: [CEN]
+    maxPlaces: 12
+    waitlistEnabled: true
+    registrationClosesDaysBefore: 1
+    publish: true
+    registrants: 12
+    waitlisted: 2
+  - title: {ca: 'Lliga social — 3a jornada', es: 'Liga social — 3.ª jornada'}
+    type: SOCIAL_LEAGUE
+    week: 6
+    day: SATURDAY
+    startTime: '09:00'
+    endTime: '14:00'
+    rings: [MUN, CEN, CAR, CAD, PET]
+    registrationClosesDaysBefore: 1
+    publish: true
+    registrants: 10
+    files: true
+  - title: {ca: 'Demostració Festa Major', es: 'Demostración Fiesta Mayor'}
+    type: DEMONSTRATION
+    week: 8
+    day: SUNDAY
+    location: {atClub: false, name: 'Plaça Major de Poble Fictici'}
+    registrationClosesDaysBefore: 1
+    publish: false

@@ -159,7 +159,7 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Test void T_03_42_demoRejectsDeploymentProfilesBeforeWriting() throws Exception {
         for (String profile : List.of("prod", "staging", "local,prod", "test,staging", "unknown")) {
             var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profile.split(","));
-            var restricted = new DemoSeedService(null, null, null, null, null, null, null, mapper, environment, null, null, null, null);
+            var restricted = new DemoSeedService(null, null, null, null, null, null, null, mapper, environment, null, null, null, null, null);
             assertThatThrownBy(() -> restricted.apply(DemoFixtures.spec(mapper, true), 42)).isInstanceOfSatisfying(ApiException.class,
                     e -> assertThat(e.code()).isEqualTo(ErrorCode.FORBIDDEN));
         }

@@ -42,6 +42,7 @@ class DemoDatasetTest {
         invalid.put("instructors", Arrays.asList(null, List.of(-1), List.of(8), List.of(1, 1)));
         invalid.put("administrators", Arrays.asList(null, List.of(8))); invalid.put("referenceDate", Arrays.asList((Object) null));
         invalid.put("pendingSignups", Arrays.asList(null, List.of()));
+        invalid.put("phoneNumberFormat", List.of("", "600%d", "%06d", "6-%06d", "600%06s"));
         invalid.forEach((field, values) -> values.forEach(value -> {
             var input = base.deepCopy(); input.set(field, mapper.valueToTree(value));
             assertThatThrownBy(() -> mapper.convertValue(input, DemoDataset.Spec.class)).as(field + "=" + value).isInstanceOf(IllegalArgumentException.class);

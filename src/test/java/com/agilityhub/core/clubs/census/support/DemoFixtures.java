@@ -12,6 +12,8 @@ public final class DemoFixtures {
     public static DemoDataset.Spec spec(ObjectMapper mapper, boolean small) throws Exception {
         try (var input = Files.newInputStream(Path.of("seeds/demo-canic.yaml"))) {
             Map<String, Object> values = new Yaml().load(input);
+            // The E4 planning/bookings/activities sections belong to DemoPlanningService, not to the census Spec.
+            values.keySet().removeAll(com.agilityhub.core.clubs.census.application.DemoPlanningService.SECTIONS);
             if (small) {
                 values.put("activeMembers", 8); values.put("inactiveMembers", 1); values.put("leftMembers", 1);
                 values.put("familyGroups", 2); values.put("receivedDocuments", 2);

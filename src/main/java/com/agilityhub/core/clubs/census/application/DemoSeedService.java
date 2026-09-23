@@ -26,15 +26,15 @@ public class DemoSeedService {
     private final com.agilityhub.core.platform.application.MigrationClubAccess clubs;
     private final ClubConfigService configs; private final ObjectMapper mapper; private final Environment environment;
     private final AttachmentService attachments; private final DocumentService documentService;
-    private final DemoSignupSeeder signupSeeder;
+    private final DemoSignupSeeder signupSeeder; private final com.agilityhub.core.platform.application.CountryContacts contacts;
     public DemoSeedService(CensusAccess census, CensusRepository<DogDocument> documents, DemoSeedRepository runs,
             MigrationCatalogAccess catalogs, RoleAssignmentService team, DemoIdentityService identity, ClubConfigService configs,
             ObjectMapper mapper, Environment environment, AttachmentService attachments, DocumentService documentService,
-            com.agilityhub.core.platform.application.MigrationClubAccess clubs, DemoSignupSeeder signupSeeder) {
+            com.agilityhub.core.platform.application.MigrationClubAccess clubs, DemoSignupSeeder signupSeeder, com.agilityhub.core.platform.application.CountryContacts contacts) {
         this.census = census; this.documents = documents; this.runs = runs; this.catalogs = catalogs; this.team = team;
         this.identity = identity; this.configs = configs; this.mapper = mapper; this.environment = environment;
         this.attachments = attachments; this.documentService = documentService; this.clubs = clubs;
-        this.signupSeeder = signupSeeder;
+        this.signupSeeder = signupSeeder; this.contacts = contacts;
     }
     public record Result(String id, int changes, Map<String, Integer> counts,
             @com.agilityhub.core.shared.domain.audit.AuditField Map<String, Integer> summary) {
@@ -69,7 +69,10 @@ public class DemoSeedService {
             member.firstName = row.firstName(); member.lastName1 = row.surname(); member.lastName2 = ""; member.status = row.status();
             member.birthDate = spec.referenceDate().minusYears(20 + row.number() % 45);
             member.sourceIds = Map.of("demo", row.number()); member.contactEmails = List.of(Map.of("email", row.email(), "label", "Personal"));
-            member.phones = List.of(); member.joinedAt = reference.minusSeconds(86400L * (30 + row.number()));
+            // Fictional numbers from the seed format and the club's country prefix (E4-T05: SMS intents need a phone).
+            member.phones = spec.phoneNumberFormat() == null ? List.of()
+                    : List.of(Map.of("prefix", contacts.signupProfile().get("phonePrefix"), "number", String.format(spec.phoneNumberFormat(), row.number())));
+            member.joinedAt = reference.minusSeconds(86400L * (30 + row.number()));
             member.planId = plan.get("_id").toString();
             member.priceId = prices.stream().filter(p -> member.planId.equals(p.get("planId")) && p.get("validTo") == null)
                     .map(p -> p.get("_id").toString()).findFirst().orElse(null);

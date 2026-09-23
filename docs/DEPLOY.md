@@ -384,3 +384,61 @@ organizer-owned `roadmap/ROADMAP.md` after review:
 
 Backend evidence: `roadmap/evidence/E3-T05/` and the E3-T05 Executor report.
 Browser/staging and remote publication checks remain organizer-run gate items.
+
+## E4 planning and activities gate (backend)
+
+Run from the API checkout with Docker, Compose, Python 3 and curl:
+
+```sh
+bin/e4-smoke
+bin/e4-smoke
+# Consumer Compose with an image that already contains E4-T02…T05 and seeds/demo-canic.yaml:
+bin/e4-smoke --image agilityhub-e4-smoke:local
+```
+
+Same isolation as `bin/e3-smoke`: a new random Compose project, free loopback
+ports, generated `SEED_PASSWORD`, the local mailbox volume, exact HTTP statuses,
+and `down --volumes` on success or failure. It applies `seeds/club-canic.yaml` and
+`seed:demo --seed=42` twice (second runs: 0 changes), activates only its
+disposable club and provisions a **runtime-only random public API key** by storing
+its SHA-256 in that club's `publicApiKeyHash` (no key provisioning API exists yet;
+the key is never printed). It then runs: templates (B inconsistent) → generation
+of week +3 from «Setmana B» `422 TEMPLATE_INCONSISTENT` → candidates propose
+week +3 → generation from A + Dissabtes → DRAFT calendar → member grid without
+drafts → validation → member/instructor grids → cancellation of the seeded
+Wednesday 18:50 B+C class (`422 ADMIN_TEXT_REQUIRED`, then 4 bookings + 2 waitlist)
+→ `ClassCancelledByClub` in the outbox and N-08a APP/EMAIL (local mailbox)/SMS
+`QUEUED` rows for the 6 registrants → ring block over a class `409`, on a free slot
+`201` (OCCUPIED/BLOCK) → an activity with a run suffix that conflicts, publishes with
+`cancelClasses` and blocks Central → member `/me/activities` + registration →
+public API `403`/`200` without registrant data → activity cancellation with N-32c →
+both `finish-ended` commands → summary table. Any failed assertion exits nonzero.
+
+E4 adds **no environment variable**: planning, activities and the demo bookings
+adapter use the existing Mongo, mailbox, attachment and profile settings. The
+demo bookings adapter (`demo_class_bookings`) is active only in `local`/`test`.
+
+For browser work (E4-W…), seed a fresh disposable consumer project exactly as in
+the E3 recipe above: the same `seed:demo --club=canic --seed=42` command now adds
+the E4 planning and activities dated relative to the run week
+(`seeds/README.md` → «E4 planning and activities»).
+
+Organizer-run checklist for Gate E4 (back); copy its evidence links into the
+organizer-owned `roadmap/ROADMAP.md` after review:
+
+- [ ] Run `bin/e4-smoke` twice successfully and retain both complete outputs
+  (`roadmap/evidence/E4-T05/`).
+- [ ] «L'admin genera i valida una setmana des de les plantilles (A/B + dissabtes)»:
+  smoke lines `POST /weeks/{week+3}/generation (Setmana B) · 422`, `… (A + Dissabtes) · 200`
+  and `POST /weeks/{week+3}/validation · 200`.
+- [ ] «D4c anul·la una classe amb inscrits ficticis (transacció + esdeveniments a
+  l'outbox)»: smoke lines for the cancellation (4/2), `outbox ClassCancelledByClub`
+  and `notifications N-08a`.
+- [ ] «Una activitat publicada bloqueja la pista»: smoke lines for `ring-conflicts`,
+  `publication · 409`, `publication {cancelClasses} · 200 PUBLISHED` and the calendar block.
+- [ ] Front (organizer-run, E4-W…): «alumne i instructor veuen 10/23» — log in as
+  `member@example.test` and `instructor@example.test` on the seeded stack and open
+  mobile screens 10 and 23 on a week +2 day; «apareix a 04» — the published
+  activities («Lliga social — 3a jornada» is open to members) appear in screen 04.
+- [ ] Run `./mvnw -q verify` (includes `DemoPlanningSeedIT`) and repeat image mode
+  with the reviewed published tag.

@@ -419,3 +419,24 @@ an offset are Europe/Madrid local time (including summer/winter offsets); explic
 earlier offset, and nonexistent spring times shift forward; exports should use
 explicit offsets to disambiguate those transition hours. The real Laravel adapter
 and staging/email delivery still require their separate roadmap tasks.
+
+## E4 planning and activities (demo seed and gate)
+
+```sh
+bin/core club:apply seeds/club-canic.yaml
+bin/core seed:demo --club=canic --seed=42      # census (E2/E3) + planning/activities (E4)
+bin/core seed:demo --club=canic --seed=42      # repeat: both parts report 0 changes
+bin/core seed:demo --club=canic --week-start=2026-10-05   # tests only: explicit Monday anchor
+bin/core scheduling:finish-ended --club=canic  # ACTIVE classes past classes.finishGraceMinutes -> FINISHED
+bin/core activities:finish-ended --club=canic  # PUBLISHED activities that have ended -> FINISHED
+bin/e4-smoke                                   # gate E4 (back) on a disposable Compose stack
+```
+
+`seed:demo` accepts `--club`, `--seed` (default 42) and `--week-start` (an ISO
+Monday; default: the club-local Monday of the current week). The planning part
+runs after the census demo, through the S06/S07 application services, in one
+transaction. Its first completed run is recorded per club, so later runs (with
+any week start) print `0 changes (demo planning, ...)`. `seeds/README.md` lists
+the seeded states. Both `finish-ended` commands accept an optional `--club`
+(otherwise all active clubs) and exit 0 or 1. `docs/DEPLOY.md` describes the
+smoke and the gate E4 checklist.

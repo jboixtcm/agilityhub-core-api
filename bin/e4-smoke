@@ -1,0 +1,401 @@
+#!/usr/bin/env python3
+"""Rehearse the E4 backend gate (S06/S07, T-06-28/T-07-32 back half) with curl on a disposable local Compose stack."""
+import argparse
+import base64
+import datetime
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+import zoneinfo
+
+ROOT = Path(__file__).resolve().parents[1]
+LOCAL_IMAGE = "agilityhub-e4-smoke:local"
+PUBLISHED_IMAGE = "ghcr.io/jboixtcm/agilityhub-core-api:main"
+DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+
+
+def require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+def port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def wait(action, message, timeout=90):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        value = action()
+        if value:
+            return value
+        time.sleep(0.5)
+    raise AssertionError(message)
+
+
+def short(value):
+    return (value or "")[:8] + "…"
+
+
+def keys(value):
+    """Every JSON key at any depth (the public payload must not leak registrant fields)."""
+    if isinstance(value, dict):
+        return set(value) | set().union(*(keys(v) for v in value.values())) if value else set()
+    if isinstance(value, list):
+        return set().union(*(keys(v) for v in value)) if value else set()
+    return set()
+
+
+class Smoke:
+    def __init__(self, private, image):
+        self.private = private
+        self.image = image
+        self.suffix = secrets.token_hex(3)
+        self.project = "e4-smoke-" + secrets.token_hex(6)
+        self.service = "core" if image else "api"
+        self.host = None
+        self.started = False
+        self.summary = []
+        # Explicit allowlist: never inherit deployment credentials or delivery settings.
+        self.env = {key: os.environ[key] for key in (
+            "PATH", "HOME", "LANG", "TMPDIR", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG",
+            "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY") if key in os.environ}
+        api_port = str(port())
+        self.env.update(SERVER_PORT=api_port, CONSUMER_PORT=api_port, MONGO_PORT=str(port()),
+                        MONGODB_DATABASE="e4_smoke", CONSUMER_DATABASE="e4_smoke",
+                        CORE_IMAGE=image or LOCAL_IMAGE, SEED_PASSWORD=secrets.token_urlsafe(32),
+                        BUILDX_CONFIG=str(private / "buildx"))
+        self.public_key = secrets.token_urlsafe(32)
+        self.base = "http://127.0.0.1:" + api_port
+        environment = dict(SPRING_PROFILES_ACTIVE="local", MAIL_LOCAL_DIRECTORY="/app/mailbox",
+                           ATTACHMENT_LOCAL_DIRECTORY="/app/attachments", EXPORT_LOCAL_DIRECTORY="/app/exports",
+                           AUTH_ISSUER="https://id.example.test", OIDC_LOGIN_URL="https://id.example.test/login", OIDC_MASTER_KEY="",
+                           SIGNUP_CAPABILITY_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
+                           SEED_PASSWORD=self.env["SEED_PASSWORD"], SHARED_SCHEDULING_ENABLED="true",
+                           LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off")
+        override = {"services": {self.service: {"environment": environment}}, "volumes": {"mailbox": {}}}
+        if not image:
+            override["services"][self.service].update(image=LOCAL_IMAGE, volumes=["mailbox:/app/mailbox"])
+        else:
+            override["services"]["seed"] = {"environment": environment}
+        path = private / "compose.override.json"
+        path.write_text(json.dumps(override))
+        source = "docker-compose.consumer.yml" if image else "compose.yaml"
+        self.compose_args = ["docker", "compose", "--env-file", os.devnull, "--project-name", self.project,
+                             "-f", str(ROOT / source), "-f", str(path)]
+
+    def record(self, step, status, values=""):
+        self.summary.append((step, status, values))
+        print(f"PASS {step}: {status}" + (f" · {values}" if values else ""), flush=True)
+
+    def command(self, args, timeout=180):
+        result = subprocess.run(args, cwd=ROOT, env=self.env, text=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, timeout=timeout)
+        if result.returncode:
+            classes = sorted(set(re.findall(r"Caused by: ([A-Za-z0-9_.$]+)", result.stdout)))
+            codes = sorted(set(re.findall(r"code=([A-Z_]+)|ApiException: ([A-Z_]+)", result.stdout)))
+            operation = next((part for part in args if part in ("build", "run", "up", "down", "exec", "cp")), "command")
+            raise AssertionError(f"{Path(args[0]).name} {operation} failed (exit {result.returncode}; "
+                                 f"exception classes: {', '.join(classes) or 'none'}; codes: {codes or 'none'}; private output withheld)")
+        return result.stdout
+
+    def compose(self, *args, timeout=300):
+        return self.command([*self.compose_args, *args], timeout)
+
+    def mongo(self, script):
+        return json.loads(self.compose("exec", "-T", "mongo", "mongosh", "--quiet", "e4_smoke", "--eval",
+                                       "print(JSON.stringify(" + script + "))").strip().splitlines()[-1])
+
+    def cli(self, *args):
+        service = "seed" if self.image else self.service
+        return self.compose("run", "--rm", "--no-deps", "-T", "--entrypoint", "java", service,
+                            "-jar", "/app/app.jar", "--core.command=" + args[0], *args[1:])
+
+    def call(self, method, path, expected=200, *, access=None, body=None, form=None, idempotent=False,
+             api_key=None, error=None, quiet=False):
+        headers = ["User-Agent: AgilityHub-E4-Smoke"]
+        if self.host:
+            headers.append("Host: " + self.host)
+        if access:
+            headers.append("Authorization: Bearer " + access)
+        if idempotent:
+            headers.append("Idempotency-Key: " + str(uuid.uuid4()))
+        if api_key:
+            headers.append("X-Api-Key: " + api_key)
+        args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "30",
+                "--request", method, "--output", str(self.private / "response"), "--write-out", "%{http_code}", "--config", "-"]
+        if body is not None or form is not None:
+            payload = self.private / "request"
+            if body is not None:
+                payload.write_text(json.dumps(body)); mime = "application/json"
+            else:
+                payload.write_text("&".join(f"{k}={v}" for k, v in form.items())); mime = "application/x-www-form-urlencoded"
+            headers.append("Content-Type: " + mime)
+            args += ["--data-binary", "@" + str(payload)]
+        # Tokens and the API key stay in stdin/private files, never in argv or output.
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.base + path)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.env, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed (exit {result.returncode})")
+        status = int(result.stdout)
+        data = (self.private / "response").read_text()
+        value = json.loads(data) if data else None
+        code = value.get("code", "") if isinstance(value, dict) else ""
+        require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {code}")
+        if error:
+            require(code == error, f"Expected {error}, got {code}")
+        if not quiet:
+            print(f"curl {method} {re.sub('[0-9a-f]{8}-[0-9a-f-]{27}', '<id>', path.split('?')[0])} -> {status}" + (" " + error if error else ""), flush=True)
+        return value
+
+    def login(self, email, client):
+        return self.call("POST", "/oauth2/token", form=dict(grant_type="password", client_id=client, username=email,
+                                                           password=self.env["SEED_PASSWORD"]), quiet=True)["access_token"]
+
+    def start(self):
+        self.command(["docker", "info", "--format", "{{.ServerVersion}}"])
+        self.started = True
+        print("Starting disposable " + ("consumer image" if self.image else "development build") + " Compose stack", flush=True)
+        self.compose("up", "-d", "--wait", "--wait-timeout", "180", "mongo")
+        if not self.image:
+            print("Building the current working tree image", flush=True)
+            self.compose("build", self.service, timeout=900)
+            print("PASS working tree image built", flush=True)
+        require(self.mongo("db.clubs.countDocuments()") == 0, "Smoke database must be empty")
+        output = ""
+        for command in (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42")):
+            for attempt in (1, 2):
+                output = self.cli(*command)
+                if attempt == 2:
+                    require("0 changes (" in output and not re.search(r"\n[1-9][0-9]* changes \(", "\n" + output),
+                            "Seed reapply was not idempotent")
+                for line in output.strip().splitlines():
+                    if "changes" in line or line.startswith("{"):
+                        print("  " + line, flush=True)
+                print(f"PASS {' '.join(command)} run {attempt}" + (": 0 changes" if attempt == 2 else ""), flush=True)
+        self.week_start = datetime.date.fromisoformat(re.search(r"week start (\d{4}-\d{2}-\d{2})", output)[1])
+        self.record("seed club:apply + seed:demo --seed=42 (x2)", "second runs 0 changes", "week start " + str(self.week_start))
+        # Activation and the public website key are fixture setup on this named disposable database only.
+        digest = hashlib.sha256(self.public_key.encode()).hexdigest()
+        self.mongo('db.clubs.updateOne({slug:"canic"},{$set:{status:"ACTIVE",publicApiKeyHash:' + json.dumps(digest) + '}}).modifiedCount')
+        club = self.mongo('db.clubs.findOne({slug:"canic"},{domains:1})')
+        self.club_id = club["_id"]
+        self.host = next(d["host"] for d in club["domains"] if d["app"] == "clubs")
+        self.compose("up", "-d", "--no-deps", "--wait", "--wait-timeout", "180", self.service)
+        self.container = self.compose("ps", "-q", self.service).strip()
+        require(self.call("GET", "/api/v1/health")["status"] == "UP", "Health must be UP")
+        print("PASS API up; fixture club activated; runtime-only public API key provisioned (value withheld)", flush=True)
+
+    def date(self, week, day):
+        return self.week_start + datetime.timedelta(weeks=week, days=DAYS.index(day))
+
+    def week_id(self, week):
+        return self.mongo('db.weeks.findOne({clubId:' + json.dumps(self.club_id) + ',startDate:' + json.dumps(str(self.date(week, "MONDAY"))) + '})._id')
+
+    def cells(self, grid, kind=None, ring=None):
+        return [c for row in grid["rows"] for c in row["cells"] if (kind is None or c["kind"] == kind) and (ring is None or c["ringId"] == ring)]
+
+    def scenario(self):
+        admin = self.login("admin@example.test", "clubs-admin")
+        member = self.login("member@example.test", "clubs-app")
+        instructor = self.login("instructor@example.test", "clubs-app")
+        rings = {r["shortName"]: r["id"] for r in self.call("GET", "/api/v1/rings", access=admin)["items"]}
+
+        # D3: three seeded templates, B inconsistent; generation from B is blocked.
+        templates = {t["name"]: t for t in self.call("GET", "/api/v1/week-templates", access=admin)["items"]}
+        require(len(templates) == 3 and templates["Setmana B"]["inconsistencyCount"] == 1
+                and templates["Setmana A"]["inconsistencyCount"] == 0 and templates["Dissabtes"]["inconsistencyCount"] == 0, "Seeded templates mismatch")
+        self.record("GET /week-templates", "200", "3 templates; Setmana B inconsistencyCount=1")
+        week3 = self.call("POST", "/api/v1/weeks", 201, access=admin, body=dict(startDate=str(self.date(3, "MONDAY"))))
+        self.call("POST", f"/api/v1/weeks/{week3['id']}/generation", 422, access=admin, idempotent=True, error="TEMPLATE_INCONSISTENT",
+                  body=dict(weekdayTemplateId=templates["Setmana B"]["id"], saturdayTemplateId=templates["Dissabtes"]["id"]))
+        self.record("POST /weeks/{week+3}/generation (Setmana B)", "422 TEMPLATE_INCONSISTENT")
+        candidates = self.call("GET", "/api/v1/weeks/generation-candidates", access=admin)["items"]
+        proposed = [c for c in candidates if c["proposed"]]
+        require(len(proposed) == 1 and proposed[0]["startDate"] == str(self.date(3, "MONDAY")), "Proposed week must follow the seeded weeks")
+        self.record("GET /weeks/generation-candidates", "200", "proposed=" + proposed[0]["startDate"] + " (week +3)")
+        generated = self.call("POST", f"/api/v1/weeks/{week3['id']}/generation", access=admin, idempotent=True,
+                              body=dict(weekdayTemplateId=templates["Setmana A"]["id"], saturdayTemplateId=templates["Dissabtes"]["id"]))
+        require(generated["classCount"] == 38 and generated["skipped"] == [], "Generation count mismatch")
+        self.record("POST /weeks/{week+3}/generation (A + Dissabtes)", "200", f"classCount={generated['classCount']}, skipped=[]")
+        draft = self.call("GET", f"/api/v1/weeks/{week3['id']}/calendar?filter=DRAFT", access=admin)
+        require(draft["draftCount"] == 38 and draft["canValidate"], "Draft calendar mismatch")
+        self.record("GET /weeks/{week+3}/calendar?filter=DRAFT", "200", "draftCount=38, canValidate=true")
+        monday = str(self.date(3, "MONDAY"))
+        grid = self.call("GET", f"/api/v1/day-grid?date={monday}&view=member", access=member)
+        require(not self.cells(grid, "CLASS"), "Members must not see draft classes")
+        self.record("member GET /day-grid (draft week)", "200", "0 classes")
+        validated = self.call("POST", f"/api/v1/weeks/{week3['id']}/validation", access=admin, body={})
+        require(len(validated["validatedClassIds"]) == 38, "Validation count mismatch")
+        self.record("POST /weeks/{week+3}/validation", "200", "validatedClassIds=38")
+        grid = self.call("GET", f"/api/v1/day-grid?date={monday}&view=member", access=member)
+        classes = self.cells(grid, "CLASS")
+        require(classes and all("occupancy" not in c and c.get("instructorName") is None for c in classes), "Member grid leaks staff data")
+        staff = self.cells(self.call("GET", f"/api/v1/day-grid?date={monday}&view=instructor", access=instructor), "CLASS")
+        require(staff and all("occupancy" in c for c in staff), "Instructor grid lacks occupancy")
+        self.record("day-grid member / instructor", "200", f"member {len(classes)} classes without occupancy/instructor; instructor sees occupancy")
+
+        # D4c: the seeded Wednesday 18:50 B+C class (week +2) with 4 registrants (2 by pack) and 2 waiting.
+        wednesday = str(self.date(2, "WEDNESDAY"))
+        target = next(c for c in self.call("GET", f"/api/v1/weeks/{self.week_id(2)}/calendar", access=admin)["classes"]
+                      if c["date"] == wednesday and c["startTime"] == "18:50" and c["ringId"] == rings["CEN"])
+        require(target["counters"] == dict(booked=4, waiting=2), "Seeded class counters mismatch")
+        self.call("POST", f"/api/v1/class-sessions/{target['id']}/cancellation", 422, access=admin, idempotent=True,
+                  body=dict(reason="CLUB_MANUAL"), error="ADMIN_TEXT_REQUIRED")
+        self.record("POST /class-sessions/{Wed 18:50 B+C}/cancellation without text", "422 ADMIN_TEXT_REQUIRED")
+        cancelled = self.call("POST", f"/api/v1/class-sessions/{target['id']}/cancellation", access=admin, idempotent=True,
+                              body=dict(reason="CLUB_MANUAL", adminText="Fictional E4 smoke cancellation " + self.suffix))
+        require(cancelled["state"] == "CANCELLED" and cancelled["cancellation"]["affectedBookings"] == 4
+                and cancelled["cancellation"]["affectedWaitlist"] == 2, "Cancellation effects mismatch")
+        self.record("POST /class-sessions/{Wed 18:50 B+C}/cancellation", "200 CANCELLED", "affectedBookings=4, affectedWaitlist=2")
+        event = self.mongo('db.domain_events.findOne({clubId:' + json.dumps(self.club_id) + ',type:"ClassCancelledByClub",aggregateId:'
+                           + json.dumps(target["id"]) + '},{payload:1})')
+        require(len(event["payload"]["affected"]) == 4 and len(event["payload"]["waitlistIds"]) == 2, "Outbox payload mismatch")
+        self.record("outbox ClassCancelledByClub", "committed", f"event {short(event['_id'])}: affected=4, waitlistIds=2")
+        prefix = "^" + re.escape(event["_id"]) + ":(?!staff:)"
+
+        def delivered():
+            rows = self.mongo('db.notifications.find({clubId:' + json.dumps(self.club_id) + ',code:"N-08a",_id:{$regex:' + json.dumps(prefix)
+                              + '}},{channel:1,status:1}).toArray()')
+            by = {}
+            for row in rows:
+                by.setdefault(row["channel"], []).append(row)
+            ok = (len(by.get("APP", [])) == 6 and len(by.get("SMS", [])) == 6 and len(by.get("EMAIL", [])) == 6
+                  and all(r["status"] == "SENT" for r in by["EMAIL"]) and all(r["status"] == "QUEUED" for r in by["SMS"]))
+            return by if ok else None
+        by = wait(delivered, "N-08a APP/EMAIL/SMS rows for the 6 registrants did not appear")
+        directory = self.private / "mailbox"
+        directory.mkdir(exist_ok=True)
+        self.command(["docker", "cp", self.container + ":/app/mailbox/.", str(directory)])
+        mails = {json.loads(p.read_text())["tags"].get("notificationId") for p in directory.glob("local-*.json")}
+        require({r["_id"] for r in by["EMAIL"]} <= mails, "N-08a e-mails missing from the local mailbox")
+        self.record("notifications N-08a", "6 APP + 6 EMAIL (mailbox) + 6 SMS QUEUED", "4 bookings + 2 waitlist")
+
+        # Ring blocks: over an active class -> conflict; on a free slot -> visible in both grids.
+        zone = self.mongo('db.clubs.findOne({_id:' + json.dumps(self.club_id) + '}).timeZone')
+        require(zone, "Club time zone missing")
+        tz = zoneinfo.ZoneInfo(zone)
+
+        def at(day, clock):
+            local = datetime.datetime.combine(day, datetime.time.fromisoformat(clock), tz)
+            return local.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.call("POST", "/api/v1/ring-blocks", 409, access=admin, idempotent=True, error="RING_BLOCK_CONFLICT",
+                  body=dict(ringId=rings["CEN"], **{"from": at(self.date(3, "MONDAY"), "08:30")}, to=at(self.date(3, "MONDAY"), "09:30"),
+                            kind="BLOCK", reason="MAINTENANCE", note="E4 smoke " + self.suffix))
+        self.record("POST /ring-blocks over an ACTIVE class", "409 RING_BLOCK_CONFLICT")
+        tuesday = self.date(3, "TUESDAY")
+        block = self.call("POST", "/api/v1/ring-blocks", 201, access=admin, idempotent=True,
+                          body=dict(ringId=rings["PET"], **{"from": at(tuesday, "16:30")}, to=at(tuesday, "17:30"),
+                                    kind="BLOCK", reason="MAINTENANCE", note="E4 smoke " + self.suffix))
+        seen = self.cells(self.call("GET", f"/api/v1/day-grid?date={tuesday}&view=member", access=member), "OCCUPIED", rings["PET"])
+        blocked = self.cells(self.call("GET", f"/api/v1/day-grid?date={tuesday}&view=instructor", access=instructor), "BLOCK", rings["PET"])
+        require(seen and blocked and "note" not in seen[0], "Ring block not projected as OCCUPIED/BLOCK")
+        self.record("POST /ring-blocks on a free slot", "201", "member grid OCCUPIED, instructor grid BLOCK")
+
+        # S07: an activity on the week +3 Saturday 18:30 class of Central.
+        title = "Activitat smoke E4 " + self.suffix
+        activity = self.call("POST", "/api/v1/activities", 201, access=admin, body=dict(title=dict(ca=title), type="OTHER"))
+        saturday = self.date(3, "SATURDAY")
+        today = datetime.datetime.now(tz).date()
+        activity = self.call("PATCH", f"/api/v1/activities/{activity['id']}", access=admin,
+                             body=dict(version=activity["version"], date=str(saturday), startTime="18:30", endTime="20:30", ringIds=[rings["CEN"]],
+                                       registrationFrom=str(today), registrationTo=str(saturday - datetime.timedelta(days=1)), maxPlaces=10))
+        conflicts = self.call("GET", f"/api/v1/activities/{activity['id']}/ring-conflicts", access=admin)
+        clash = [c for c in conflicts["conflicts"] if c["type"] == "CLASS"]
+        require(len(clash) == 1, "The Saturday 18:30 class must be the only conflict")
+        self.record("GET /activities/{id}/ring-conflicts", "200", "1 CLASS conflict (Sat 18:30 Central)")
+        self.call("POST", f"/api/v1/activities/{activity['id']}/publication", 409, access=admin, idempotent=True, body={}, error="RING_BLOCK_CONFLICT")
+        self.record("POST /activities/{id}/publication", "409 RING_BLOCK_CONFLICT")
+        published = self.call("POST", f"/api/v1/activities/{activity['id']}/publication", access=admin, idempotent=True,
+                              body=dict(cancelClasses=True, adminText="Fictional E4 smoke activity " + self.suffix))
+        require(published["state"] == "PUBLISHED" and len(published["ringBlockIds"]) == 1, "Publication mismatch")
+        clash_state = self.mongo('db.class_sessions.findOne({_id:' + json.dumps(clash[0]["id"]) + '},{state:1,cancellation:1})')
+        require(clash_state["state"] == "CANCELLED" and clash_state["cancellation"]["reason"] == "ACTIVITY", "Class not cancelled by the activity")
+        self.record("POST /activities/{id}/publication {cancelClasses}", "200 PUBLISHED", "ringBlockIds=1; class CANCELLED{ACTIVITY}")
+        calendar = self.call("GET", f"/api/v1/weeks/{week3['id']}/calendar", access=admin)
+        require(any(b.get("activityTitle") == title for b in calendar["ringBlocks"]), "Calendar lacks the activity block")
+        self.record("GET /weeks/{week+3}/calendar", "200", "activity block with activityTitle")
+        mine = self.call("GET", "/api/v1/me/activities", access=member)
+        row = next(r for r in mine["bookable"] if r["id"] == activity["id"])
+        require(row["rowState"] == "OPEN", "Member row must be OPEN")
+        self.record("member GET /me/activities", "200", "rowState=OPEN")
+        registration = self.call("POST", "/api/v1/activity-registrations", 201, access=member, idempotent=True, body=dict(activityId=activity["id"]))
+        require(registration["state"] == "ACTIVE", "Registration must be ACTIVE")
+        self.record("member POST /activity-registrations", "201 ACTIVE")
+        self.call("GET", "/api/v1/public/canic/activities?scope=upcoming", 403, error="INVALID_API_KEY")
+        public = self.call("GET", "/api/v1/public/canic/activities?scope=upcoming", api_key=self.public_key)
+        item = next(a for a in public["items"] if a["slug"] == published["slug"])
+        # `name` keys in the E4-T04 contract are document/location names; person data is checked by key and by value.
+        leaked = {k for k in keys(public) if k.lower().startswith("member") or "phone" in k.lower()
+                  or k in ("registrations", "firstName", "lastName1", "lastName2", "displayName", "registeredBy", "who")}
+        person = self.mongo('(()=>{const m=db.members.findOne({clubId:' + json.dumps(self.club_id) + ',_id:' + json.dumps(registration["memberId"])
+                            + '});return [m.firstName+" "+m.lastName1, m.phones.length?m.phones[0].number:""]})()')
+        text = json.dumps(public, ensure_ascii=False)
+        require(item["places"]["free"] == 9 and not leaked and all(v and v not in text for v in person),
+                f"Public payload mismatch (leaked keys: {sorted(leaked)})")
+        self.record("GET /public/canic/activities", "403 without key; 200 with key (masked)",
+                    f"places.free={item['places']['free']}; no member*/phone/person keys; registrant name and phone absent")
+        self.call("POST", f"/api/v1/activities/{activity['id']}/cancellation", access=admin, idempotent=True,
+                  body=dict(reason="CLUB_MANUAL", adminText="Fictional E4 smoke activity cancellation " + self.suffix))
+        after = self.call("GET", f"/api/v1/activity-registrations/{registration['id']}", access=member)
+        require(after["state"] == "CANCELLED" and after["cancellation"]["reason"] == "ACTIVITY_CANCELLED", "Registration not cancelled by the activity")
+        account = self.mongo('db.memberships.findOne({clubId:' + json.dumps(self.club_id) + ',memberId:' + json.dumps(registration["memberId"]) + '}).accountId')
+        wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.club_id) + ',code:"N-32c",accountId:' + json.dumps(account) + '})') > 0,
+             "N-32c rows missing")
+        self.record("POST /activities/{id}/cancellation", "200", "registration CANCELLED{ACTIVITY_CANCELLED}; N-32c rows")
+        self.call("POST", f"/api/v1/ring-blocks/{block['id']}/cancellation", access=admin, body={})
+        self.record("POST /ring-blocks/{smoke}/cancellation", "200", "smoke block released")
+        for command in ("activities:finish-ended", "scheduling:finish-ended"):
+            self.cli(command, "--club=canic")
+            self.record("bin/core " + command + " --club=canic", "exit 0")
+
+    def report(self):
+        width = max(len(s[0]) for s in self.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print("PASS E4 backend gate: week generated from A/B + Saturdays and validated; class with fictional registrants cancelled "
+              "with ClassCancelledByClub + N-08a; published activity blocks a ring and is listed for the member", flush=True)
+
+    def cleanup(self):
+        if self.started:
+            self.compose("down", "--volumes", "--remove-orphans", "--timeout", "15")
+            print("Removed disposable Compose services, volumes and private mailbox; existing stacks preserved", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--image", nargs="?", const=PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e4-") as directory:
+        smoke = Smoke(Path(directory), options.image)
+        try:
+            smoke.start()
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, StopIteration, KeyError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:120]), file=sys.stderr)
+        sys.exit(1)

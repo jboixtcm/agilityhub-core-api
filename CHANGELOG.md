@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- E4-T05: `seed:demo` adds the E4 planning/activities demo (`--week-start`, default
+  the club-local current Monday) through the S06/S07 services in one transaction:
+  templates «Setmana A»/«Setmana B» (one `RING_DOUBLE_BOOKED`)/«Dissabtes», week +1
+  GENERATED (draft), week +2 VALIDATED with registrants, the R-06-10 class (4 + 2
+  waiting), a RISK_REVIEW cancellation, a maintenance block, an
+  `INSTRUCTOR_DOUBLE_BOOKED` loose class and the four D7 activities (tournament
+  published over a class → `CANCELLED{ACTIVITY}`). New shared `DemoSeedStep` hook,
+  local/test `DemoClassBookings` adapter (`demo_class_bookings`, replaced by E5's
+  `ClassBookingsPort`), `ClassSessionService.bookingCounters` (S08 counter writer path)
+  and fictional member phones (`phoneNumberFormat`). `bin/e4-smoke` rehearses gate
+  E4 (back) on a disposable stack; `DemoPlanningSeedIT` covers T-06-28/T-07-32 (back).
+  No API, parameter, event, notification or error-code change.
+
 ### Changed
 
 - E4-T04 Round 2: Wait for durable impersonation notifications with a bounded
@@ -16,8 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - E4-T05: Record blocked integration-seed requirements: current-week fixtures
   conflict with past-date guards, and the tournament's ACTIVE-class cancellation
-  conflicts with keeping its week in GENERATED state. Implementation awaits
-  organizer alignment; application behavior is unchanged.
+  conflicts with keeping its week in GENERATED state. Resolved by the organizer's
+  week +1/+2 arrangement (2026-09-19); implemented in the E4-T05 entry under Added.
 
 - E4-T04: Implement activity editing, publication and ring synchronization,
   per-person registration with FIFO promotion, member views and public localized

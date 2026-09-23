@@ -1,0 +1,14 @@
+$ bin/e4-smoke        (exit 1; third attempt — the script read `cancelReason` instead of the contract's `cancellation.reason`)
+Every step up to and including the public API passed exactly as in the final run (see 04-e4-smoke-run1.log):
+seed x2 (0 changes), templates, 422 TEMPLATE_INCONSISTENT, candidates (week +3), generation 38, draft calendar,
+member grid 0 → validation 38 → grids, 422 ADMIN_TEXT_REQUIRED → 200 CANCELLED 4/2, outbox affected=4/waitlistIds=2,
+N-08a 6 APP + 6 EMAIL + 6 SMS QUEUED, ring blocks 409/201, activity conflicts/409/200, calendar, /me/activities OPEN,
+registration 201 ACTIVE, public API 403/200 (places.free=9, no person keys/values). Tail:
+
+curl GET /api/v1/public/canic/activities -> 403 INVALID_API_KEY
+curl GET /api/v1/public/canic/activities -> 200
+PASS GET /public/canic/activities: 403 without key; 200 with key (masked) · places.free=9; no member*/phone/person keys; registrant name and phone absent
+curl POST /api/v1/activities/<id>/cancellation -> 200
+curl GET /api/v1/activity-registrations/<id> -> 200
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: KeyError 'cancelReason'
