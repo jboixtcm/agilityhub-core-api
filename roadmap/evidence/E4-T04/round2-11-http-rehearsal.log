@@ -1,0 +1,118 @@
+bin/core club:apply seeds/club-canic.yaml -> exit 0
+bin/core identity:seed-test-accounts --club=canic --allow-seed-passwords -> exit 0
+curl -X POST /oauth2/token (credentials masked) -> 200
+curl -X POST /oauth2/token (credentials masked) -> 200
+curl -X POST /oauth2/token (credentials masked) -> 200
+curl -X POST /api/v1/activities (credentials masked) -> 201
+curl -X PATCH /api/v1/activities/5e265d5a-5c8d-49c8-a5ff-c3e50d8937b9 (credentials masked) -> 200
+curl -X POST /api/v1/activities/5e265d5a-5c8d-49c8-a5ff-c3e50d8937b9/publication (credentials masked) -> 409
+curl -X POST /api/v1/activities/5e265d5a-5c8d-49c8-a5ff-c3e50d8937b9/publication (credentials masked) -> 200
+curl -X POST /api/v1/activity-registrations (credentials masked) -> 201
+curl -X POST /api/v1/activity-registrations (credentials masked) -> 201
+curl -X POST /api/v1/activity-registrations/35d5fb1a-ae01-4cc2-9750-32848e704642/cancellation (credentials masked) -> 200
+curl -X GET /api/v1/activity-registrations/ebbabed8-4759-4ee4-b90d-0746d5eea07f (credentials masked) -> 200
+curl -X GET /api/v1/activities/5e265d5a-5c8d-49c8-a5ff-c3e50d8937b9 (credentials masked) -> 200
+curl -X PATCH /api/v1/activities/5e265d5a-5c8d-49c8-a5ff-c3e50d8937b9 (credentials masked) -> 200
+curl -X GET /api/v1/public/canic/activities (credentials masked) -> 200
+Public privacy allowlist: PASS
+curl -X POST /api/v1/activities/5e265d5a-5c8d-49c8-a5ff-c3e50d8937b9/cancellation (credentials masked) -> 200
+{
+  "events": [
+    "AccountCreated",
+    "ActivityCancelled",
+    "ActivityPublished",
+    "ActivityRegistrationChanged",
+    "ActivityUpdated",
+    "ClassCancelledByClub",
+    "ClubPageChanged",
+    "ClubUpdated",
+    "FaqChanged",
+    "LevelChanged",
+    "MembershipChanged",
+    "NotificationQueued",
+    "NotificationSent",
+    "ParameterChanged",
+    "PlanChanged",
+    "PriceChanged",
+    "RingBlockCancelled",
+    "RingBlockCreated",
+    "RingBlockUpdated",
+    "RingChanged"
+  ],
+  "notifications": [
+    {
+      "_id": {
+        "code": "N-32a",
+        "channel": "APP",
+        "status": "SENT"
+      },
+      "count": 2
+    },
+    {
+      "_id": {
+        "code": "N-32a",
+        "channel": "EMAIL",
+        "status": "SENT"
+      },
+      "count": 2
+    },
+    {
+      "_id": {
+        "code": "N-32b",
+        "channel": "APP",
+        "status": "SENT"
+      },
+      "count": 4
+    },
+    {
+      "_id": {
+        "code": "N-32c",
+        "channel": "APP",
+        "status": "SENT"
+      },
+      "count": 1
+    },
+    {
+      "_id": {
+        "code": "N-32c",
+        "channel": "EMAIL",
+        "status": "SENT"
+      },
+      "count": 1
+    },
+    {
+      "_id": {
+        "code": "N-32c",
+        "channel": "SMS",
+        "status": "QUEUED"
+      },
+      "count": 1
+    },
+    {
+      "_id": {
+        "code": "N-32d",
+        "channel": "APP",
+        "status": "SENT"
+      },
+      "count": 1
+    },
+    {
+      "_id": {
+        "code": "N-32d",
+        "channel": "EMAIL",
+        "status": "SENT"
+      },
+      "count": 1
+    },
+    {
+      "_id": {
+        "code": "N-32d",
+        "channel": "SMS",
+        "status": "QUEUED"
+      },
+      "count": 1
+    }
+  ]
+}
+bin/core activities:finish-ended --club=canic -> exit 0
+S07 disposable HTTP rehearsal: PASS

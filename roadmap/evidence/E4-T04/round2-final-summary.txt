@@ -1,0 +1,12 @@
+Round 2 final (2026-09-23) - XML reports refreshed by `./mvnw -q verify` (exit 0)
+target/surefire-reports: tests=401 failures=0 errors=0 skipped=0
+target/failsafe-reports: tests=580 failures=0 errors=0 skipped=0
+ActivityIT: tests=24 failures=0 errors=0 skipped=0
+E2ContractIT: tests=14 failures=0 errors=0 skipped=0
+E4ContractIT: tests=63 failures=0 errors=0 skipped=0
+  T_07_23_impersonationRecordsBothActorsAndClubChangeChannels: PASS (0.641 s)
+Coverage source: target/site/jacoco/jacoco.csv
+  com.agilityhub.core.clubs.activities.api: lines 100.00% branches 73.08%
+  com.agilityhub.core.clubs.activities.application: lines 99.16% branches 83.78%
+  com.agilityhub.core.clubs.activities.domain: lines 100.00% branches 89.09%
+  com.agilityhub.core.clubs.activities.persistence: lines 94.00% branches 91.67%

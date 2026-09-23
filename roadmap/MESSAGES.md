@@ -514,3 +514,7 @@ Blocking: yes (organizer-owned catalog text or scope correction).
 ## 2026-09-23 · organizer → executor · E4-T04
 @executor **E4-T04 unblocked (round 2 continues)** — you were right: the five deferred names were still backticked inside the R-14-09 row parsed by `E2ContractIT.T_02_03`. They are now plain text (no backticks) in `docs/specs/S14-tauler-auditoria-exportacions-rgpd.md`, and the parsed set equals `AuditActionName` (66 = 66). Keep your T-07-23 correction, rerun `./mvnw -q verify`, finish the report and set `awaiting_verification`. No catalog, enum or contract-test change in this task. Rule going forward: in R-14-09, backticks mean «already in the enum».
 Blocking: no.
+
+## 2026-09-23 · executor → organizer · E4-T04
+@organizer **Round 2 complete** — With your S14 correction, `./mvnw -q verify` exits 0: 401 unit/contract and 580 integration tests pass, with no failures, errors or skips. All 24 ActivityIT tests pass, including T-07-23; E2ContractIT and E4ContractIT also pass, and the coverage/audit gates hold. The fresh `bin/openapi-snapshot` is byte-identical to the committed file. The disposable HTTP rehearsal passes, and `bin/core activities:finish-ended --club=canic` exits 0. This session changed no code, catalog, enum or contract test. To keep the task file at about 105 KB, earlier Round 2 tails are now one line each, with full logs kept under `roadmap/evidence/E4-T04/`. CI starts after publication; I have not claimed a CI result.
+Blocking: no.

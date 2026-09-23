@@ -10,8 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - E4-T04 Round 2: Wait for durable impersonation notifications with a bounded
   assertion in T-07-23 instead of assuming notification rows are immediately ready.
-  Recheck after the organizer's catalog deferral: verification remains blocked
-  because the audit contract still matches the five deferred names in S14 prose.
+  After the organizer removed the backticks from the deferred S14 R-14-09 names,
+  full verification passes again (401 unit / 580 integration tests); the OpenAPI
+  snapshot is unchanged.
 
 - E4-T05: Record blocked integration-seed requirements: current-week fixtures
   conflict with past-date guards, and the tournament's ACTIVE-class cancellation
