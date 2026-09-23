@@ -1,0 +1,54 @@
+Disposable Mongo 7 replica set on a random localhost port, database e4_cli, local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 08-club-apply.log)
+  null -> 16
++ parameters.signup.allowFamilyGroupPending added
+  null -> true
++ admins: 0 to provision
++ accounts: 15 to provision
++ catalogs.levels.CAD
++ catalogs.levels.A
++ catalogs.levels.B
++ catalogs.levels.C
++ catalogs.levels.D
++ catalogs.levels.E
++ catalogs.levels.F
++ catalogs.levels.G
++ catalogs.levels.TER
++ catalogs.rings.MUN
++ catalogs.rings.CEN
++ catalogs.rings.CAR
++ catalogs.rings.CAD
++ catalogs.rings.PET
++ catalogs.plans.ABONAT
++ catalogs.plans.ABONAT_FAMILIAR
++ catalogs.plans.PACK6
++ catalogs.plans.PACK10
++ catalogs.plans.TERAPIA
++ catalogs.prices.ABONAT:MONTHLY_FEE:2026-01-01
++ catalogs.prices.ABONAT_FAMILIAR:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK6:PACK:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.TERAPIA:MAINTENANCE_FEE:2026-01-01
++ catalogs.faq.FAQ_1
++ catalogs.faq.FAQ_2
++ catalogs.faq.FAQ_3
++ catalogs.faq.FAQ_4
++ catalogs.faq.FAQ_5
++ catalogs.faq.FAQ_6
++ catalogs.faq.FAQ_7
++ catalogs: 31 catalog changes
++ messageTemplates: schema accepted; application deferred to E7
++ pages: 3 page changes
+15 changes (applied)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0 (log 09-seed-demo-first.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+205 changes (demo planning, week start 2026-09-21)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0 (log 10-seed-demo-second.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+0 changes (demo planning, week start 2026-09-21)
+PASS second seed:demo run: 0 changes and complete Mongo document snapshot unchanged
+Removed the disposable Mongo container and runtime directory

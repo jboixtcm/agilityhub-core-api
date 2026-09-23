@@ -18,7 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   local/test `DemoClassBookings` adapter (`demo_class_bookings`, replaced by E5's
   `ClassBookingsPort`), `ClassSessionService.bookingCounters` (S08 counter writer path)
   and fictional member phones (`phoneNumberFormat`). `bin/e4-smoke` rehearses gate
-  E4 (back) on a disposable stack; `DemoPlanningSeedIT` covers T-06-28/T-07-32 (back).
+  E4 (back) on a disposable stack; `DemoPlanningSeedIT` covers T-06-28/T-07-32 (back)
+  and `DemoBookingsTest` the demo bookings adapter/seeder guards (branch coverage gate).
   No API, parameter, event, notification or error-code change.
 
 ### Changed
