@@ -1,0 +1,12 @@
+{
+  "N-04": {"event": "BookingCreated", "variables": ["dog_name", "class_date", "class_time", "class_description", "ring_name", "calendar_links"], "action": "OPEN_BOOKING"},
+  "N-05": {"event": "BookingCancelled", "variables": ["dog_name", "class_date", "class_time", "late"], "action": null},
+  "N-06": {"event": "TrainingBooked", "variables": ["dog_name", "date", "time", "ring_name"], "action": null},
+  "N-07": {"event": "TrainingCancelled", "variables": ["dog_name", "date", "time", "ring_name"], "action": null},
+  "N-15": {"event": "SeatReleased", "variables": ["dog_name", "class_date", "class_time", "confirm_by"], "action": "CLAIM_SEAT"},
+  "N-36": {"event": "BookingCreated", "variables": ["dog_name", "class_date", "class_time", "actor"], "action": "OPEN_BOOKING"},
+  "N-40": {"event": "BookingCancelled", "variables": ["dog_name", "class_date", "class_time"], "action": "OPEN_BOOKING"},
+  "N-42": {"event": "JobFailed", "variables": ["job_name", "error_count"], "action": "OPEN_JOBS"},
+  "N-46": {"event": "WaitlistNotified", "variables": ["dog_name", "class_date", "class_time"], "action": null},
+  "N-47": {"event": "TrainingBooked", "variables": ["dog_name", "date", "time", "ring_name"], "action": "OPEN_BOOKING"}
+}

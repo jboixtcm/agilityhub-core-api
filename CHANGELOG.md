@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T01: contract of S08 (bookings, seat holds, waiting list), S09 (free training) and S15
+  (scheduled processes): 32 guarded `501` operations, wire forms, error `details` schemas and
+  the `bookings`, `seat_holds` (TTL), `waitlist_entries`, `seat_locks`, `training_bookings`
+  (partial unique active-seat guard), `job_runs` and `job_locks` documents with their indexes;
+  `Week.openedAt/openingNotifiedAt`. Process framework in `platform.application.jobs`:
+  `JobCatalog` (ten R-15-01 rows), `Job {plan/apply}`, `JobOccurrences` (club-local occurrences,
+  DST, catch-up windows), `SchedulerTick` (every minute, `tick` lease), `JobRunner` (switch,
+  module, club status, leases with renewal and reaping, one transaction per item, dry run,
+  `SchedulerRun`/`JobFailed` on the outbox, Micrometer `jobs.*`), audited manual trigger
+  (`JOB_TRIGGERED`), N-42 consumer (one per process and local day), the test-profile
+  `TEST_NOOP` job and `POST /api/v1/test/clock` (`test`/`local` only). `BookingEvent`,
+  `TrainingEvent` and `SchedulerEvent` envelopes; ArchUnit rule R-15-22 (time from the Clock).
 - E4-T05: `seed:demo` adds the E4 planning/activities demo (`--week-start`, default
   the club-local current Monday) through the S06/S07 services in one transaction:
   templates «Setmana A»/«Setmana B» (one `RING_DOUBLE_BOOKED`)/«Dissabtes», week +1

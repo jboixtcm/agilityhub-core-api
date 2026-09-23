@@ -1,0 +1,57 @@
+{
+  "TrainingSlots": {
+    "timeZone": "Europe/Madrid", "slotMinutes": 30, "window": {"from": "2026-10-05", "to": "2026-10-08"}, "dogEligible": true,
+    "rings": [
+      {"id": "r-mun", "name": "Muntanya", "shortName": "MUN", "color": "#F2B58C", "order": 1, "capacity": 1,
+        "setup": {"id": "s-1", "kind": "AGILITY", "levelNames": ["D"], "builtAt": "2026-10-04T16:10:00Z", "expectedUntil": "2026-10-11"}},
+      {"id": "r-cen", "name": "Central", "shortName": "CEN", "color": "#8FCE8F", "order": 2, "capacity": 1}
+    ],
+    "days": [
+      {"date": "2026-10-05", "closed": false, "slots": [
+        {"startsAt": "2026-10-05T05:00:00Z", "startsAtLocal": "07:00", "endsAtLocal": "07:30", "anyFree": true, "bookable": true,
+          "rings": {"r-mun": {"state": "FREE"}, "r-cen": {"state": "FREE"}}}]},
+      {"date": "2026-10-06", "closed": false, "slots": [
+        {"startsAt": "2026-10-06T05:30:00Z", "startsAtLocal": "07:30", "endsAtLocal": "08:00", "anyFree": false, "bookable": false,
+          "rings": {"r-mun": {"state": "BLOCKED", "reason": "CLASS"}, "r-cen": {"state": "BOOKED", "reason": "OWN_TRAINING", "bookingId": "tb-6"}}},
+        {"startsAt": "2026-10-06T06:30:00Z", "startsAtLocal": "08:30", "endsAtLocal": "09:00", "anyFree": true, "bookable": true,
+          "rings": {"r-mun": {"state": "FREE"}, "r-cen": {"state": "BOOKED", "reason": "TRAINING"}}}]},
+      {"date": "2026-10-12", "closed": true, "slots": []}
+    ]
+  },
+  "TrainingSlots#staff": {
+    "timeZone": "Europe/Madrid", "slotMinutes": 30, "window": {"from": "2026-10-08", "to": "2026-10-08"}, "dogEligible": true,
+    "rings": [{"id": "r-pet", "name": "Petita", "shortName": "PET", "color": "#D8B4E2", "order": 5, "capacity": 1}],
+    "days": [{"date": "2026-10-08", "closed": false, "slots": [
+      {"startsAt": "2026-10-08T16:00:00Z", "startsAtLocal": "18:00", "endsAtLocal": "18:30", "anyFree": false, "bookable": false,
+        "rings": {"r-pet": {"state": "BLOCKED", "reason": "RING_BLOCK",
+          "block": {"id": "rb-3", "kind": "RESERVATION", "reason": "PRIVATE_CLASS", "note": "Particular amb l'alumna de la tarda", "createdByName": "Estel"}}}},
+      {"startsAt": "2026-10-08T16:30:00Z", "startsAtLocal": "18:30", "endsAtLocal": "19:00", "anyFree": false, "bookable": false,
+        "rings": {"r-pet": {"state": "BOOKED", "reason": "TRAINING", "occupants": [{"bookingId": "tb-8", "memberName": "Pau", "dogName": "Blat"}]}}},
+      {"startsAt": "2026-10-08T17:00:00Z", "startsAtLocal": "19:00", "endsAtLocal": "19:30", "anyFree": false, "bookable": false,
+        "rings": {"r-pet": {"state": "BLOCKED", "reason": "CLASS", "classSession": {"id": "c9", "description": "B+C"}}}}]}]
+  },
+  "TrainingSummary": {
+    "eligibleDogs": [
+      {"id": "d-rock", "name": "Rock", "levelName": "D", "rightSource": "LEVEL"},
+      {"id": "d-kira", "name": "Kira", "levelName": "B", "ownerName": "Joan", "rightSource": "MANUAL"}
+    ],
+    "defaultDogId": "d-rock", "limitUnit": "DOG", "weekOpensAt": {"dayOfWeek": "SUNDAY", "time": "20:00"},
+    "week": {"start": "2026-10-04T18:00:00Z", "end": "2026-10-11T18:00:00Z", "current": true},
+    "counter": {"used": 2, "limit": 3, "remaining": 1, "resetsAt": "2026-10-11T18:00:00Z"},
+    "cancellableBookings": [{"id": "tb-7", "startsAt": "2026-10-08T18:30:00Z", "ringName": "Central", "cancellableUntil": "2026-10-08T16:30:00Z"}]
+  },
+  "TrainingBooking": {
+    "id": "tb-9", "dogId": "d-rock", "dogName": "Rock", "memberId": "m-maria", "ringId": "r-mun", "ringName": "Muntanya",
+    "slotId": "r-mun_2026-10-05T06:30:00Z", "startsAt": "2026-10-05T06:30:00Z", "endsAt": "2026-10-05T07:00:00Z",
+    "startsAtLocal": "08:30", "endsAtLocal": "09:00", "date": "2026-10-05", "state": "ACTIVE", "origin": "APP",
+    "cancellableUntil": "2026-10-05T04:30:00Z", "createdAt": "2026-10-03T17:02:11Z",
+    "counter": {"used": 3, "limit": 3, "remaining": 0}
+  },
+  "TrainingLimitReachedDetails": {
+    "limit": 3, "used": 3, "weekStart": "2026-10-04T18:00:00Z", "weekEnd": "2026-10-11T18:00:00Z",
+    "cancellableBookings": [{"id": "tb-7", "startsAt": "2026-10-08T18:30:00Z", "ringName": "Central", "cancellableUntil": "2026-10-08T16:30:00Z"}]
+  },
+  "SlotTakenDetails": {"ringId": "r-mun", "startsAt": "2026-10-06T06:30:00Z", "reason": "TRAINING", "freeRings": ["r-car"]},
+  "SlotOutOfWindowDetails": {"from": "2026-10-05", "to": "2026-10-08"},
+  "TrainingCancelTooLateDetails": {"thresholdMinutes": 120, "minutesBefore": 119}
+}

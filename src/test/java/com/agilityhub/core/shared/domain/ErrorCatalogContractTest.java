@@ -37,6 +37,32 @@ class ErrorCatalogContractTest {
             assertThat(code.httpStatus()).isBetween(400, 501);
         }
     }
+    @Test void T_08_47_T_09_24_T_15_29_bookingTrainingAndJobErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
+        var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
+        var expected = new java.util.LinkedHashMap<String, Integer>();
+        for (String names : java.util.List.of(
+                // Explicit in §1.
+                "409:CLASS_FULL,SEAT_TAKEN,SEAT_HOLD_EXPIRED,SLOT_TAKEN,BOOKING_LIMIT_REACHED,WAITLIST_LIMIT,TRAINING_LIMIT_REACHED,JOB_ALREADY_RUNNING,STALE_VERSION,INVALID_STATE,IDEMPOTENCY_KEY_REUSED",
+                "422:NOT_YET_OPEN,CLASS_NOT_BOOKABLE,LEVEL_NOT_ALLOWED,PACK_EMPTY,MEMBER_NOT_ACTIVE,BOOKING_BLOCKED,INACTIVITY_PERIOD,DOG_NOT_ALLOWED,SLOT_OUT_OF_WINDOW,CLUB_CLOSED,RING_NOT_RESERVABLE",
+                "400:VALIDATION_ERROR,INVALID_FILTER,INVALID_TIME_RANGE", "404:MODULE_DISABLED,NOT_FOUND,DOG_NOT_ACCESSIBLE",
+                // Rule 0: ALREADY_ prefix and _CONFLICT suffix.
+                "409:ALREADY_BOOKED,ALREADY_ON_WAITLIST,RING_BLOCK_CONFLICT,CLASS_CONFLICT",
+                // Rule 0: everything else is 422, whatever S08/S09/S15 §6 write (SLOT_NOT_ON_GRID 400, DOG_ALREADY_BOOKED 409, OVERRIDE_NOT_ALLOWED 403, JOB_UNKNOWN 404).
+                "422:CLASS_NOT_FULL,WAITLIST_FULL,WAITLIST_NOT_NOTIFIED,WAITLIST_OFFER_EXPIRED,WAITLIST_ENTRY_NOT_LIVE,SWAP_NOT_ALLOWED,BOOKING_NOT_CANCELLABLE,WEEKLY_LIMIT_DONE,SLOT_NOT_ON_GRID,DOG_ALREADY_BOOKED,TRAINING_CANCEL_TOO_LATE,OVERRIDE_NOT_ALLOWED,RING_HAS_BOOKINGS,RING_BLOCK_MANAGED_BY_ACTIVITY,JOB_UNKNOWN,NOT_DUE")) {
+            String[] pair = names.split(":");
+            for (String name : pair[1].split(",")) { expected.put(name, Integer.parseInt(pair[0])); }
+        }
+        assertThat(expected).hasSize(48);
+        expected.forEach((name, status) -> {
+            assertThat(catalog).contains("`" + name + "`");
+            assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);
+        });
+        for (String locale : java.util.List.of("ca", "es", "en")) {
+            var messages = new java.util.Properties();
+            try (var input = Files.newBufferedReader(Path.of("src/main/resources/messages/messages_" + locale + ".properties"))) { messages.load(input); }
+            expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
+        }
+    }
     @Test void T_06_20_T_07_17_schedulingAndActivityErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
         var expected = new java.util.LinkedHashMap<String, Integer>();

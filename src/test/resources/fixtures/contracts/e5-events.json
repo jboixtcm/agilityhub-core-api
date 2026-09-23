@@ -1,0 +1,22 @@
+{
+  "SeatHeld": {"classId": "class-a", "memberId": "member-a", "dogId": "dog-a", "expiresAt": "2026-10-08T14:00:30Z"},
+  "SeatHoldReleased": {"classId": "class-a", "memberId": "member-a", "dogId": "dog-a", "expiresAt": "2026-10-08T14:00:30Z"},
+  "BookingCreated": {"bookingId": "booking-a", "classId": "class-a", "memberId": "member-a", "dogId": "dog-a", "origin": "APP", "swapFromBookingId": "booking-b", "packMovementId": "movement-a", "waitlistEntryId": "entry-a"},
+  "BookingCancelled": {"bookingId": "booking-a", "by": "MEMBER", "late": false, "minutesBefore": 150, "origin": "APP", "reason": "MEMBER"},
+  "SeatReleased": {"classId": "class-a", "freeSeats": 1, "minutesBefore": 150, "notifyWaitlist": true},
+  "WaitlistJoined": {"entryId": "entry-a", "classId": "class-a", "memberId": "member-a", "dogId": "dog-a"},
+  "WaitlistLeft": {"entryId": "entry-a", "classId": "class-a", "memberId": "member-a", "dogId": "dog-a"},
+  "WaitlistNotified": {"entryIds": ["entry-a"], "classId": "class-a", "confirmBy": "2026-10-08T13:30:00Z", "mode": "FIFO"},
+  "WaitlistConsolidated": {"entryId": "entry-a", "bookingId": "booking-a"},
+  "TrainingBooked": {"trainingBookingId": "training-a", "slotId": "ring-a_2026-10-05T06:30:00Z", "ringId": "ring-a", "memberId": "member-a", "dogId": "dog-a", "origin": "APP"},
+  "TrainingCancelled": {"trainingBookingId": "training-a", "slotId": "ring-a_2026-10-05T06:30:00Z", "ringId": "ring-a", "memberId": "member-a", "dogId": "dog-a", "origin": "APP", "by": "MEMBER", "cancelReason": "MEMBER_REQUEST", "late": false},
+  "SchedulerRun": {"job": "RISK_REVIEW", "clubId": "club-a", "runId": "run-a", "scheduledFor": "2026-10-05T05:30:00Z", "trigger": "SCHEDULE", "status": "SUCCEEDED", "startedAt": "2026-10-05T05:30:00Z", "finishedAt": "2026-10-05T05:30:02Z", "counters": {"reviewed": 3}, "errorCount": 0},
+  "WeekOpened": {"openedWeekKey": "2026-10-11", "isoWeekStart": "2026-10-12", "currentWeekKey": "2026-10-04", "opensAt": "2026-10-04T18:00:00Z", "notified": 184},
+  "TrainingCounterReset": {"weekStart": "2026-10-04T18:00:00Z"},
+  "ClassAtRisk": {"classId": "class-a", "dogsCount": 1, "reviewAt": "2026-10-06T05:30:00Z", "newBookingIds": ["booking-a"], "notifyAdmins": true},
+  "ClassAutoCancelled": {"classId": "class-a", "dogsCount": 1, "affected": [{"bookingId": "booking-a", "memberId": "member-a", "dogId": "dog-a"}], "waitlistIds": [], "adminText": "No s'ha arribat al mínim de 2 gossos"},
+  "ClassBelowMinimum": {"classId": "class-a", "countedDogs": 1, "minDogs": 2},
+  "ReminderDue": {"bookingId": "booking-a", "memberId": "member-a", "dogId": "dog-a", "startsAt": "2026-10-08T16:50:00Z"},
+  "WaitlistExpired": {"entryId": "entry-a", "classId": "class-a"},
+  "JobFailed": {"job": "RISK_REVIEW", "runId": "run-a", "status": "FAILED", "errorCount": 1}
+}

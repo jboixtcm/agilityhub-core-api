@@ -1,0 +1,43 @@
+{
+  "RiskReviewForm": {
+    "date": "2026-08-10", "reviewTime": "07:30", "lookaheadDays": 2, "minDogs": 2, "autoCancelSameDay": true,
+    "items": [
+      {"classId": "c1", "date": "2026-08-10", "dayLabel": "TODAY", "startTime": "09:30", "displayDescription": "Cadells", "ringName": "Cadells", "bookedCount": 0, "status": "AUTO_CANCELLED", "cancelledAt": "2026-08-10T05:30:02Z", "notified": []},
+      {"classId": "c2", "date": "2026-08-10", "dayLabel": "TODAY", "startTime": "17:40", "displayDescription": "Nivell D", "ringName": "Petita", "bookedCount": 1, "status": "AUTO_CANCELLED", "notified": [{"memberName": "Laura", "dogName": "Duna"}]},
+      {"classId": "c3", "date": "2026-08-11", "dayLabel": "TOMORROW", "startTime": "20:00", "displayDescription": "F i G", "ringName": "Carretera", "bookedCount": 1, "status": "AT_RISK", "reviewAt": "2026-08-11T05:30:00Z", "notified": [{"memberName": "Pau", "dogName": "Blat"}]},
+      {"classId": "c4", "date": "2026-08-12", "dayLabel": "OTHER", "startTime": "09:30", "displayDescription": "Cadells", "ringName": "Cadells", "bookedCount": 0, "status": "WILL_CANCEL", "reviewAt": "2026-08-12T05:30:00Z", "notified": []}
+    ]
+  },
+  "JobSummaries": {
+    "items": [
+      {"name": "risk-review", "jobName": "RISK_REVIEW", "enabled": true, "schedule": {"kind": "DAILY", "localTime": "07:30"}, "nextScheduledForLocal": "2026-10-06T07:30",
+        "lastRun": {"runId": "run-1", "status": "SUCCEEDED", "finishedAt": "2026-10-05T05:30:02Z", "trigger": "SCHEDULE", "dryRun": false, "counters": {"reviewed": 3, "cancelled": 1}}},
+      {"name": "week-opening", "jobName": "WEEK_OPENING", "enabled": false, "schedule": {"kind": "WEEKLY", "localTime": "20:00", "dayOfWeek": "SUNDAY"}, "nextScheduledForLocal": "2026-10-11T20:00"},
+      {"name": "waitlist-fifo", "jobName": "WAITLIST_FIFO", "module": "WAITLIST", "enabled": true, "schedule": {"kind": "CONTINUOUS"}}
+    ]
+  },
+  "JobRun": {
+    "runId": "run-1", "job": "RISK_REVIEW", "scheduledFor": "2026-10-05T05:30:00Z", "scheduledForLocal": "2026-10-05T07:30", "timeZone": "Europe/Madrid",
+    "trigger": "MANUAL", "dryRun": true, "status": "SUCCEEDED", "startedAt": "2026-10-05T05:30:00Z", "finishedAt": "2026-10-05T05:30:02Z", "durationMs": 2000,
+    "effects": {"counters": {"WOULD_CANCEL": 1}, "items": [{"entityType": "ClassSession", "entityId": "c1", "action": "WOULD_CANCEL", "detail": {"dogsCount": 0}}]},
+    "errors": [], "actorAccountId": "account-admin", "parametersSnapshot": {"classes.minDogs": 2, "classes.riskReviewTime": "07:30"}
+  },
+  "JobRun#partial": {
+    "runId": "run-2", "job": "CLEANUP", "scheduledFor": "2026-10-05T04:00:00Z", "scheduledForLocal": "2026-10-05T06:00", "timeZone": "Europe/Madrid",
+    "trigger": "CATCH_UP", "dryRun": false, "status": "PARTIAL", "startedAt": "2026-10-05T09:00:00Z", "finishedAt": "2026-10-05T09:00:01Z", "durationMs": 1000,
+    "effects": {"counters": {"exportsPurged": 1}, "items": [{"entityType": "ExportJob", "entityId": "export-1", "action": "PURGE"}]},
+    "errors": [{"entityId": "export-2", "code": "INTERNAL_ERROR", "message": "IllegalStateException", "traceId": "trace-1"}],
+    "parametersSnapshot": {"jobs.dailyTime": "06:00"}
+  },
+  "JobRun#skipped": {
+    "runId": "run-3", "job": "WEEK_OPENING", "scheduledFor": "2026-10-04T18:00:00Z", "scheduledForLocal": "2026-10-04T20:00", "timeZone": "Europe/Madrid",
+    "trigger": "CATCH_UP", "dryRun": false, "status": "SKIPPED", "skipReason": "MISSED_WINDOW", "startedAt": "2026-10-05T20:00:00Z", "finishedAt": "2026-10-05T20:00:00Z", "durationMs": 0,
+    "effects": {"counters": {}, "items": []}, "errors": [], "parametersSnapshot": {"jobs.weekOpening.enabled": true}
+  },
+  "JobSwitchResponse": {"name": "reminders", "enabled": false},
+  "PlatformJobsOverview": {
+    "clubs": [{"clubId": "club-a", "name": "Club Example", "timeZone": "Europe/Madrid", "jobs": [
+      {"name": "risk-review", "enabled": true, "lastRun": {"runId": "run-1", "status": "FAILED", "finishedAt": "2026-10-05T05:30:02Z", "trigger": "SCHEDULE", "dryRun": false, "counters": {}}, "health": "ALERT"},
+      {"name": "cleanup", "enabled": true, "health": "OK"}]}]
+  }
+}

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class OpenApiRequiredContractTest {
     private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClassOrigin", "EmptyRequest", "PublicationRequest", "RegistrationCancellationRequest", "ClubAddress", "ClubPwa",
+            "BookingCancellationRequest", "TrainingCancellationRequest",
             "ConsentPatch", "ErasureInput", "ImpersonationRequest", "OnboardingFields",
             "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch");
 
@@ -56,6 +57,16 @@ class OpenApiRequiredContractTest {
             assertThat(required(schemas, name)).as(name).containsExactly("version");
         }
         assertThat(required(schemas, "WeekValidationResult")).containsExactly("validatedClassIds");
+        // E5-T01: required-by-default forms of S08/S09/S15; optional = nullable or module-dependent.
+        assertThat(required(schemas, "SeatHoldRequest")).containsExactly("classSessionId", "dogId");
+        assertThat(required(schemas, "BookingRequest")).containsExactly("seatHoldId");
+        assertThat(required(schemas, "TrainingBookingRequest")).containsExactly("dogId", "startsAt");
+        assertThat(required(schemas, "JobTriggerRequest")).containsExactly("dryRun");
+        assertThat(required(schemas, "Booking")).contains("id", "state", "origin", "classSession", "bookedBy", "calendarLinks")
+                .doesNotContain("checkoutUrl", "charge", "pack", "cancellation", "displayState", "swapFromBookingId");
+        assertThat(required(schemas, "SlotCell")).containsExactly("state");
+        assertThat(required(schemas, "JobRun")).contains("runId", "job", "scheduledFor", "trigger", "dryRun", "status", "effects", "errors", "parametersSnapshot")
+                .doesNotContain("skipReason", "finishedAt", "durationMs", "actorAccountId");
         assertThat(required(schemas, "PublicActivity")).contains("slug", "state", "title", "date", "registration", "places");
         assertThat(required(schemas, "Manifest")).containsExactlyInAnyOrderElementsOf(names(schemas.at("/Manifest/properties")));
     }

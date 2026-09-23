@@ -1,0 +1,71 @@
+{
+  "MeHome": {
+    "member": {"id": "m1", "firstName": "Laura", "gender": "FEMALE"},
+    "dogs": [
+      {"id": "d1", "name": "Duna", "levelName": "C", "own": true},
+      {"id": "d2", "name": "Rock", "levelName": "D", "own": true},
+      {"id": "d3", "name": "Toby", "levelName": "B", "own": false, "ownerFirstName": "Joan Antoni"}
+    ],
+    "limits": {"unit": "DOG", "currentWeek": {"count": 1, "max": 2, "weekKey": "2026-10-04"}, "nextWeek": {"count": 1, "max": 1, "weekKey": "2026-10-11"}},
+    "reservations": [
+      {"type": "CLASS", "id": "b1", "state": "CONFIRMED", "dogId": "d1", "dogName": "Duna", "title": "Classe B+C", "startsAt": "2026-10-05T16:50:00Z", "startsAtLocal": "2026-10-05T18:50", "endsAtLocal": "2026-10-05T19:50", "ringName": "Central", "instructorVisibleAt": "2026-10-04T16:50:00Z"},
+      {"type": "TRAINING", "id": "t1", "state": "CONFIRMED", "dogId": "d2", "dogName": "Rock", "title": "Entrenament", "startsAtLocal": "2026-10-06T08:00", "endsAtLocal": "2026-10-06T08:30", "ringName": "Muntanya"},
+      {"type": "CLASS_WAITLIST", "id": "w1", "state": "WAITLISTED", "dogId": "d1", "dogName": "Duna", "title": "Classe C i sup.", "startsAtLocal": "2026-10-08T20:00", "ringName": "Carretera"},
+      {"type": "ACTIVITY", "id": "a1", "state": "REGISTERED", "title": "Torneig d'Estiu", "startsAtLocal": "2026-10-10T18:30", "endsAtLocal": "2026-10-10T20:30", "ringName": "totes les pistes"},
+      {"type": "CLASS", "id": "b4", "state": "CONFIRMED", "dogId": "d2", "dogName": "Rock", "title": "Classe D i sup.", "startsAt": "2026-10-14T17:00:00Z", "startsAtLocal": "2026-10-14T19:00", "endsAtLocal": "2026-10-14T20:00", "ringName": "Muntanya", "instructorVisibleAt": "2026-10-13T17:00:00Z"}
+    ],
+    "history": {"monthsVisible": 2},
+    "notifications": {"unreadCount": 2}
+  },
+  "BookableClasses": {
+    "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE", "levelId": "l3", "levelName": "C", "own": true},
+    "dogs": [
+      {"id": "d1", "name": "Duna", "levelName": "C", "own": true},
+      {"id": "d3", "name": "Toby", "levelName": "B", "own": false, "ownerFirstName": "Joan Antoni"}
+    ],
+    "pack": {"planName": "Pack 10", "sessionsTotal": 10, "consumed": 6, "available": 4, "expiresOn": "2026-11-12", "state": "ACTIVE"},
+    "activities": [{"id": "a2", "title": "Seminari de handling", "startsAtLocal": "2026-09-12T09:00", "freeSeats": 6}],
+    "classes": [
+      {"id": "c1", "startsAtLocal": "2026-10-07T18:50", "endsAtLocal": "2026-10-07T19:50", "description": "B+C", "ringName": "Central", "ringColor": "#8FCE8F", "week": "CURRENT", "state": "BOOKABLE", "freeSeats": 2, "waiting": 0, "waitlistMax": 3},
+      {"id": "c2", "startsAtLocal": "2026-10-08T20:00", "description": "C+D", "ringName": "Carretera", "week": "CURRENT", "state": "WAITLIST_OPEN", "freeSeats": 0, "waiting": 1, "waitlistMax": 3},
+      {"id": "c3", "startsAtLocal": "2026-10-09T17:40", "description": "Teràpia", "week": "CURRENT", "state": "WAITLIST_FULL", "freeSeats": 0, "waiting": 3, "waitlistMax": 3},
+      {"id": "c4", "startsAtLocal": "2026-10-10T09:00", "description": "C", "week": "CURRENT", "state": "BOOKABLE", "freeSeats": 3, "waiting": 0, "waitlistMax": 3},
+      {"id": "c5", "startsAtLocal": "2026-10-12T18:50", "description": "B+C", "week": "NEXT", "state": "BOOKABLE", "freeSeats": 4, "waiting": 0, "waitlistMax": 3},
+      {"id": "c6", "startsAtLocal": "2026-10-19T09:30", "description": "C", "week": "LATER", "state": "NOT_YET_OPEN", "freeSeats": 5, "opensAt": "2026-10-11T18:00:00Z"}
+    ]
+  },
+  "SeatHoldResponse": {
+    "id": "h1", "classSessionId": "c4", "dogId": "d1", "expiresAt": "2026-10-08T14:00:30Z", "serverNow": "2026-10-08T14:00:00Z", "holdSeconds": 30,
+    "classSession": {"startsAtLocal": "2026-10-10T09:00", "endsAtLocal": "2026-10-10T10:00", "description": "C", "levelNames": ["C"], "ringName": "Muntanya", "ringColor": "#F2B58C"},
+    "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"},
+    "limit": {"reached": true, "unit": "DOG", "week": "CURRENT", "count": 2, "max": 2,
+      "swappable": [{"bookingId": "b2", "startsAtLocal": "2026-10-09T20:00", "description": "Classe C", "ringName": "Carretera"}],
+      "notSelectable": [{"bookingId": "b0", "startsAtLocal": "2026-10-05T10:00", "description": "Classe B+C", "reason": "DONE"}]},
+    "pack": {"available": 4, "expiresOn": "2026-11-12"}
+  },
+  "Booking": {
+    "id": "b9", "state": "ACTIVE", "origin": "APP", "classSessionId": "c4", "dogId": "d1", "memberId": "m1",
+    "classSession": {"startsAtLocal": "2026-10-10T09:00", "endsAtLocal": "2026-10-10T10:00", "description": "C", "ringName": "Muntanya", "instructorVisibleAt": "2026-10-09T07:00:00Z"},
+    "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false},
+    "swapFromBookingId": "b2", "pack": {"available": 3, "expiresOn": "2026-11-12"},
+    "calendarLinks": {"google": "https://calendar.google.com/calendar/render?action=TEMPLATE", "outlook": "https://outlook.live.com/calendar/0/deeplink/compose", "ics": "https://core.example.test/api/v1/bookings/b9/calendar.ics?token=example-token"}
+  },
+  "Booking#cancelled": {
+    "id": "b2", "state": "CANCELLED_LATE", "origin": "APP", "classSessionId": "c7", "dogId": "d1", "memberId": "m1",
+    "classSession": {"startsAtLocal": "2026-10-15T18:50", "endsAtLocal": "2026-10-15T19:50", "description": "B+C", "ringName": "Central", "instructorName": "Estel", "instructorVisibleAt": "2026-10-14T16:50:00Z"},
+    "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false},
+    "calendarLinks": {"google": "https://calendar.google.com/calendar/render?action=TEMPLATE", "outlook": "https://outlook.live.com/calendar/0/deeplink/compose", "ics": "https://core.example.test/api/v1/bookings/b2/calendar.ics?token=example-token"},
+    "cancellation": {"at": "2026-10-15T15:05:00Z", "byDisplayName": "Laura", "byRole": "MEMBER", "late": true, "minutesBefore": 105},
+    "displayState": "CANCELLED_LATE"
+  },
+  "WaitlistEntry": {
+    "id": "w1", "state": "NOTIFIED", "classSessionId": "c2", "dogId": "d1", "dogName": "Duna", "memberId": "m1", "position": 1, "joinedAt": "2026-10-06T09:00:00Z",
+    "classSession": {"startsAtLocal": "2026-10-08T20:00", "endsAtLocal": "2026-10-08T21:00", "description": "C+D", "ringName": "Carretera"},
+    "notifiedAt": "2026-10-08T13:00:00Z", "confirmBy": "2026-10-08T13:30:00Z"
+  },
+  "BookingLimitReachedDetails": {
+    "unit": "DOG", "week": "CURRENT", "limit": 2, "current": 2, "swappable": [],
+    "notSelectable": [{"bookingId": "b0", "reason": "DONE"}, {"bookingId": "b3", "reason": "DONE"}],
+    "nextBookableAt": "2026-10-11T18:00:00Z"
+  }
+}

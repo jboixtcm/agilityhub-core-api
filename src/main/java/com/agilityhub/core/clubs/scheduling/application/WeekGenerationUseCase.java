@@ -75,7 +75,7 @@ public class WeekGenerationUseCase {
         try {
         weeks.update(new Week(before.id(), before.clubId(), before.isoYear(), before.isoWeek(), before.startDate(), before.endDate(), WeekState.GENERATED,
                 now, actor.accountId(), weekdayTemplateId, saturdayTemplateId, before.validatedAt(), before.validatedByAccountId(), before.version() + 1,
-                before.createdAt(), before.createdByAccountId(), now, actor.accountId()), before.version());
+                before.createdAt(), before.createdByAccountId(), now, actor.accountId(), before.openedAt(), before.openingNotifiedAt()), before.version());
         } catch (DataAccessException conflict) {
             for (Throwable cause = conflict; cause != null; cause = cause.getCause()) {
                 if (cause instanceof com.mongodb.MongoException mongo && mongo.getCode() == 112) { throw new ApiException(ErrorCode.WEEK_ALREADY_GENERATED); }

@@ -440,3 +440,25 @@ any week start) print `0 changes (demo planning, ...)`. `seeds/README.md` lists
 the seeded states. Both `finish-ended` commands accept an optional `--club`
 (otherwise all active clubs) and exit 0 or 1. `docs/DEPLOY.md` describes the
 smoke and the gate E4 checklist.
+
+## E5 scheduled processes (framework) and the test clock
+
+`SchedulerTick` runs at second 0 of every minute (disabled with
+`shared.scheduling.enabled=false`, as in the integration tests) and executes, club
+by club (`ACTIVE` and `ONBOARDING`; `SUSPENDED` records `SKIPPED{CLUB_INACTIVE}`),
+every registered `Job` bean in the R-15-01 catalog order. Runs are traced in
+`job_runs` (also `SKIPPED` and dry runs) and leased in `job_locks`. E5-T01 ships
+the framework only; the processes arrive with E5-T05 (P1, P2, P6, P7, P9), E6, E7
+and E8, and `/jobs*` answers 501 until then.
+
+Under the `test` and `local` profiles only, the application clock can be moved for
+end-to-end sessions (S15 WP-15-E); the endpoint does not exist elsewhere and is not
+in the OpenAPI snapshot:
+
+```sh
+curl -fsS -X POST localhost:8080/api/v1/test/clock -H 'Content-Type: application/json' -d '{"instant":"2026-10-11T18:00:00Z"}'
+curl -fsS -X POST localhost:8080/api/v1/test/clock -H 'Content-Type: application/json' -d '{"advanceSeconds":3600}'
+```
+
+Exactly one of `instant` and `advanceSeconds` is required; the response is `{"now": …}`.
+Under `local` the clock keeps flowing from the new instant.

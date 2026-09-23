@@ -55,6 +55,8 @@ public class SecurityConfiguration {
                     "/api/v1/signup", "/api/v1/signup/towns",
                     "/api/v1/public/**", "/api/v1/country-profile", "/api/v1/country-profile/postal-codes/*",
                     "/.well-known/openid-configuration", "/oauth2/authorize", "/connect/logout").permitAll();
+            // S08 R-08-08: the .ics link authenticates with its signed token, not a JWT; the club comes from the host.
+            authorize.requestMatchers(HttpMethod.GET, "/api/v1/bookings/*/calendar.ics").permitAll();
             authorize.requestMatchers(HttpMethod.PUT, "/api/v1/signup/uploads").permitAll();
             authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid",
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",
@@ -62,6 +64,8 @@ public class SecurityConfiguration {
             if (environment.acceptsProfiles(Profiles.of("local", "test"))
                     && !environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
                 authorize.requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll();
+                // S15 WP-15-E end-to-end clock; the controller itself only exists under these profiles.
+                authorize.requestMatchers(HttpMethod.POST, "/api/v1/test/clock").permitAll();
             }
             authorize.requestMatchers("/actuator/**", "/v3/api-docs/**", "/api/v1/openapi.json", "/api/v1/openapi.json/**").denyAll();
             authorize.anyRequest().authenticated();

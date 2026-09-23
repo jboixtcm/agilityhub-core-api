@@ -55,6 +55,7 @@ public final class AuditContracts {
         TRAINING_BOOKED_BY_CLUB,
         TRAINING_CANCELLED_BY_CLUB,
         ATTENDANCE_OVERRIDDEN,
+        JOB_TRIGGERED,
         WEEK_VALIDATED,
         CLASS_CANCELLED,
         CLASS_UPDATED_WITH_BOOKINGS,

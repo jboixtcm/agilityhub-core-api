@@ -70,6 +70,24 @@ final class ArchitectureRules {
                 }
             });
 
+    /** S15 R-15-22: only the Clock/ClubClock beans read the system time; everything else receives the injected Clock. */
+    static final List<String> CLOCK_BEANS = List.of(BASE_PACKAGE + "configuration.ClockConfiguration",
+            BASE_PACKAGE + "shared.application.DefaultClubClock", BASE_PACKAGE + "shared.application.OffsetClock");
+    static final ArchRule TIME_FROM_CLOCK = noClasses()
+            .that(new DescribedPredicate<>("are not the Clock/ClubClock beans") {
+                @Override public boolean test(JavaClass type) {
+                    return CLOCK_BEANS.stream().noneMatch(bean -> type.getName().equals(bean) || type.getName().startsWith(bean + "$"));
+                }
+            })
+            .should().callMethod(java.time.Instant.class, "now")
+            .orShould().callMethod(java.time.LocalDate.class, "now")
+            .orShould().callMethod(java.time.LocalDateTime.class, "now")
+            .orShould().callMethod(java.time.ZonedDateTime.class, "now")
+            .orShould().callMethod(java.time.OffsetDateTime.class, "now")
+            .orShould().callMethod(java.time.LocalTime.class, "now")
+            .orShould().callMethod(System.class, "currentTimeMillis")
+            .because("S15 R-15-22: time comes from the injected Clock (MutableClock in tests)");
+
     private static boolean sharedContract(JavaClass type) {
         return inPackage(type, BASE_PACKAGE + "shared.domain")
                 || type.getName().equals(BASE_PACKAGE + "shared.persistence.TenantRepository")

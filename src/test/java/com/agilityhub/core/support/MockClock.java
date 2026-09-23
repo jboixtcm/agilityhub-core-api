@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /** Mutable test time; zone views share the same instant. */
-public final class MockClock extends Clock {
+public final class MockClock extends com.agilityhub.core.shared.application.MutableClock {
 
     private final AtomicReference<Instant> currentInstant;
     private final ZoneId zone;

@@ -82,6 +82,15 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent.class,
                 () -> new com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent("ParameterChanged","club-a","Parameter","signup.enabled",
                         Instant.parse("2030-01-01T00:00:00Z"),Map.of("key","signup.enabled","before",false,"after",true),"account-a",null,DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.bookings.domain.BookingEvent.class,
+                () -> new com.agilityhub.core.clubs.bookings.domain.BookingEvent(com.agilityhub.core.clubs.bookings.domain.BookingEvent.Kind.BookingCreated,
+                        "club-a", "booking-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("bookingId", "booking-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.clubs.training.domain.TrainingEvent.class,
+                () -> new com.agilityhub.core.clubs.training.domain.TrainingEvent(com.agilityhub.core.clubs.training.domain.TrainingEvent.Kind.TrainingBooked,
+                        "club-a", "training-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("trainingBookingId", "training-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        samples.put(com.agilityhub.core.shared.domain.events.SchedulerEvent.class,
+                () -> new com.agilityhub.core.shared.domain.events.SchedulerEvent(com.agilityhub.core.shared.domain.events.SchedulerEvent.Kind.JobFailed,
+                        "club-a", "run-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("job", "RISK_REVIEW", "runId", "run-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -95,6 +104,18 @@ class EventCatalogContractTest {
             if (event instanceof com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent) {
                 for (var kind : com.agilityhub.core.clubs.scheduling.domain.SchedulingEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
                 assertThat(event.aggregateType()).isEqualTo("Week"); return;
+            }
+            if (event instanceof com.agilityhub.core.clubs.bookings.domain.BookingEvent) {
+                for (var kind : com.agilityhub.core.clubs.bookings.domain.BookingEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("Booking"); return;
+            }
+            if (event instanceof com.agilityhub.core.clubs.training.domain.TrainingEvent) {
+                for (var kind : com.agilityhub.core.clubs.training.domain.TrainingEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("TrainingBooking"); return;
+            }
+            if (event instanceof com.agilityhub.core.shared.domain.events.SchedulerEvent) {
+                for (var kind : com.agilityhub.core.shared.domain.events.SchedulerEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("JobRun"); return;
             }
             if (event instanceof com.agilityhub.core.clubs.activities.domain.ActivityEvent) {
                 for (var kind : com.agilityhub.core.clubs.activities.domain.ActivityEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }

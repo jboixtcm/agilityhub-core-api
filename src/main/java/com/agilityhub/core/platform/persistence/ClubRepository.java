@@ -22,6 +22,11 @@ public class ClubRepository extends GlobalRepository<Club> {
     public Optional<Club> findBySlug(String slug) {
         return Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("slug").is(slug)), Club.class));
     }
+    /** S15 R-15-01/R-15-03: ACTIVE and ONBOARDING clubs run processes; SUSPENDED ones record SKIPPED{CLUB_INACTIVE}. */
+    public java.util.List<Club> schedulableClubs() {
+        return mongo.find(Query.query(Criteria.where("status").in(Club.Status.ACTIVE, Club.Status.ONBOARDING, Club.Status.SUSPENDED)
+                .and("template").ne(true)).with(org.springframework.data.domain.Sort.by("_id")), Club.class);
+    }
     public java.util.List<Club> activeClubs() { return mongo.find(Query.query(Criteria.where("status").is(Club.Status.ACTIVE).and("template").ne(true)),Club.class); }
     public int nextMemberNumber(int minimum) {
         var query=Query.query(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require()));

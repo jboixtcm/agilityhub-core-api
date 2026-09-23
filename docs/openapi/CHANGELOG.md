@@ -3,6 +3,41 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T01 · Contract S08 + S09 + S15 (32 operations, 501 behind the guards)
+
+32 new operations (16 S08, 8 S09, 8 S15) on 30 new paths, 96 new schemas; none removed.
+Every one runs the tenant, role, ownership and module guards and then answers
+`501 NOT_IMPLEMENTED` until E5-T02…T05. Member routes accept the impersonation token
+(origin BACKOFFICE); every other E5 route answers `403 IMPERSONATION_DENIED`.
+
+- S08 (`clubs.bookings`): `GET /me/home` (MeHome) · `GET /me/bookable-classes` (BookableClasses) ·
+  `POST /seat-holds` 201 (SeatHoldResponse; `waitlistEntryId` needs WAITLIST) · `DELETE /seat-holds/{id}` 204 ·
+  `POST /bookings` 201 (`Idempotency-Key`; Booking) · `GET /me/bookings` · `GET /bookings/{id}` ·
+  `GET /bookings/{id}/calendar.ics?token=` (signed token, no JWT, `security: []`) ·
+  `POST /bookings/{id}/cancellation` (MEMBER, INSTRUCTOR) · `GET /bookings` (ADMIN, INSTRUCTOR; x-filterable
+  state, dogId, memberId, classSessionId, bookingWeekKey, origin, classStartsAt; x-sortable classStartsAt, bookedAt) ·
+  `POST /waitlist-entries` 201 · `GET /waitlist-entries/{id}` · `POST /waitlist-entries/{id}/cancellation` ·
+  `POST /waitlist-entries/{id}/claim` 201 (`Idempotency-Key`) — all four WAITLIST ·
+  `GET /class-sessions/{id}/bookings` · `GET /class-sessions/{id}/waitlist-entries` (WAITLIST).
+- S09 (`clubs.training`, FREE_TRAINING): `GET /training-slots` · `GET /me/training-summary` ·
+  `GET /me/training-bookings` · `POST /training-bookings` 201 (`Idempotency-Key`) · `GET /training-bookings/{id}` ·
+  `POST /training-bookings/{id}/cancellation` (optional `Idempotency-Key`) · `GET /training-bookings`
+  (x-filterable date, ringId, memberId, dogId, state, origin; x-sortable startsAt; x-exportable, listKey
+  `training-bookings`) · `GET /training-bookings/export?format=xlsx|pdf`. `/ring-blocks*` is unchanged
+  (E4-T01/T03; x-filterable ringId, kind, reason, state, from, to already published).
+- S15: `GET /jobs` (JobSummaries) · `GET /jobs/{name}/runs` (x-filterable status, scheduledFor, trigger, dryRun;
+  x-sortable scheduledFor, startedAt) · `GET /jobs/{name}/runs/{runId}` (JobRun) · `POST /jobs/{name}/trigger` ·
+  `PUT /jobs/{name}/switch` · `GET /risk-review` (form A, published as `RiskReviewForm` because the S14
+  dashboard already owns `RiskReview`) · `GET /platform/jobs/overview` · `POST /platform/clubs/{clubId}/jobs/{name}/trigger`.
+  `{name}` is the R-15-01 route id; unknown → `422 JOB_UNKNOWN` (catalog rule 0); module of the process off → `404 MODULE_DISABLED`.
+- Error `details` schemas published: BookingLimitReachedDetails, ClassFullDetails, NotYetOpenDetails,
+  WaitlistLimitDetails, InactivityPeriodDetails, TrainingLimitReachedDetails, SlotTakenDetails,
+  SlotOutOfWindowDetails, TrainingCancelTooLateDetails, RingHasBookingsDetails.
+- Existing schema changed: `AuditAction` gains `JOB_TRIGGERED` (S14 R-14-09 / S15 R-15-09).
+- Status changes (catalog rule 0 wins over S08/S09 §6): `CLASS_NOT_FULL`, `WAITLIST_FULL` and
+  `DOG_ALREADY_BOOKED` 409 → 422.
+
+
 ## 2026-09-19 · E4-T04 · Activities implemented
 
 All S07 routes now execute activity lifecycle, registrations, lists/exports and

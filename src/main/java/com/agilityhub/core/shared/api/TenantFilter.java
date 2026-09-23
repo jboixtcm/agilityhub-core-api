@@ -38,7 +38,8 @@ public class TenantFilter extends OncePerRequestFilter {
             boolean global = path.equals("/webhooks/email/sendgrid") || path.equals("/oauth2/jwks") || path.equals("/.well-known/jwks.json") || path.equals("/api/v1/openapi.json") || path.startsWith("/actuator/") || path.equals("/api/v1/health") || path.equals("/api/v1/platform") || path.startsWith("/api/v1/platform/");
             global = global || path.equals("/.well-known/openid-configuration") || path.equals("/oauth2/authorize")
                     || path.equals("/connect/logout") || path.equals("/oauth2/session") || path.matches("/api/v1/accounts/[^/]+/(password|erasure)")
-                    || path.matches("/api/v1/public/[^/]+/(plans|pages/[^/]+|activities(?:/[^/]+(?:/files/[^/]+)?)?)");
+                    || path.matches("/api/v1/public/[^/]+/(plans|pages/[^/]+|activities(?:/[^/]+(?:/files/[^/]+)?)?)")
+                    || path.equals("/api/v1/test/clock");
             boolean accountRoute = path.equals("/api/v1/me") || path.equals("/api/v1/me/password")
                     || path.equals("/api/v1/me/sessions") || path.matches("/api/v1/me/sessions/[^/]+")
                     || path.equals("/api/v1/me/onboarding") || path.equals("/api/v1/me/onboarding/postpone")
@@ -52,7 +53,8 @@ public class TenantFilter extends OncePerRequestFilter {
             boolean publicRoute = path.equals("/api/v1/branding") || path.equals("/api/v1/manifest.webmanifest")
                     || path.startsWith("/api/v1/public/") || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/postal-codes/")
                     || path.equals("/api/v1/signup") || path.startsWith("/api/v1/signup/")
-                    || path.equals("/api/v1/checkout-sessions") || path.startsWith("/oauth2/") || optionalHost;
+                    || path.equals("/api/v1/checkout-sessions") || path.startsWith("/oauth2/") || optionalHost
+                    || path.matches("/api/v1/bookings/[^/]+/calendar\\.ics");
             if (!global) {
                 var authentication = SecurityContextHolder.getContext().getAuthentication();
                 boolean authenticatedJwt = authentication instanceof JwtAuthenticationToken jwt && jwt.isAuthenticated();
