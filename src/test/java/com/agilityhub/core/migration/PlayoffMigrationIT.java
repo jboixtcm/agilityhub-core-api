@@ -38,7 +38,8 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         for (String collection:List.of("members","dogs","family_groups","accounts","memberships","clubs","parameters","levels","plans","prices","migration_runs",
                 "migration_write_locks","census_write_locks","catalog_write_locks","audit_entries","domain_events","notifications","magic_link_tokens")) { mongo.remove(new Query(),collection); }
         clubs.save(PlatformFixtures.club(CLUB,CLUB+".example.test")); clubs.save(PlatformFixtures.club(OTHER,OTHER+".example.test")); configs.invalidate(CLUB); configs.invalidate(OTHER);
-        for (String code:List.of("ABONAT","ABONAT_FAMILIAR","TERAPIA","PACK10","PACK6","INSTRUCTOR_FREE","COMPETICIO_1")) {
+        // The plan and level codes of seeds/club-canic.yaml (S05 §12).
+        for (String code:List.of("ABONAT","ABONAT_FAMILIAR","TERAPIA","PACK10","PACK6")) {
             String type=code.startsWith("PACK") ? "PACK" : "MONTHLY";
             mongo.insert(new Document("_id",code).append("clubId",CLUB).append("code",code).append("type",type)
                     .append("billingMode",code.equals("TERAPIA") ? "MAINTENANCE" : "MONTHLY_FEE").append("active",true),"plans");
@@ -46,7 +47,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
                     .append("concept",type.equals("PACK") ? "PACK" : code.equals("TERAPIA") ? "MAINTENANCE_FEE" : "MONTHLY_FEE")
                     .append("validFrom","2020-01-01"),"prices");
         }
-        for (String code:List.of("A","B","C","D","E","F","G","CADELLS")) {
+        for (String code:List.of("CAD","A","B","C","D","E","F","G","TER","PENDENT")) {
             mongo.insert(new Document("_id","level-"+code).append("clubId",CLUB).append("code",code).append("nameKeys",List.of(code.toLowerCase(Locale.ROOT))).append("active",true),"levels");
         }
     }
@@ -54,12 +55,25 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
     PlayoffPlanner.Plan preview(PlayoffInput input) { try(var tenant=TenantContext.open(CLUB)) { return planner.plan(input,MAPPING); } }
     MigrationReport apply() { return importer.importDirectory(FIXTURE,MAPPING,CLUB,false,false,false); }
     long incidents(MigrationReport report,String code) { return report.rows().stream().filter(r -> r.code().equals(code)).count(); }
-    Document member(int ordinal) { String source=input().files().get("members").get(ordinal-1).get("id"); return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source)),Document.class,"members"); }
+    long warnings(MigrationReport report,String code) { return report.rows().stream().filter(r -> r.outcome().equals("WARNING") && r.code().equals(code)).count(); }
+    /** The report lines of the source record with this ordinal (row = ordinal + 1, the header is row 1). */
+    List<String> entries(MigrationReport report,int ordinal) {
+        return report.rows().stream().filter(r -> r.file().equals("members") && r.row()==ordinal+1)
+                .map(r -> r.entity()+" "+r.outcome()+" "+r.code()+(r.field().isEmpty() ? "" : " field="+r.field())).toList();
+    }
+    String source(int ordinal) { return input().files().get("members").get(ordinal-1).get("id"); }
+    Document member(int ordinal) { return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source(ordinal))),Document.class,"members"); }
+    Document dog(int ordinal) { return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("externalIds.playoff").is(source(ordinal))),Document.class,"dogs"); }
+    PlayoffInput persons(List<Map<String,String>> rows) {
+        var data=new LinkedHashMap<>(input().files()); var persons=new ArrayList<PlayoffInput.Row>();
+        for (int i=0;i<rows.size();i++) { persons.add(new PlayoffInput.Row("persons",i+2,rows.get(i))); }
+        data.put("persons",persons); return new PlayoffInput(data,List.of());
+    }
     List<Document> rows(String collection) { return mongo.find(new Query(),Document.class,collection); }
     @Test @com.agilityhub.core.support.AuditCovers(com.agilityhub.core.platform.application.audit.AuditAction.MIGRATION_APPLIED)
     void T_18_01_fixtureIncidentsSplitPeopleAndDogsWithoutSignupRejections() {
         var report=apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
-        assertThat(report.count("members","CREATED")).isEqualTo(188); assertThat(report.count("dogs","CREATED")).isEqualTo(189);
+        assertThat(report.count("members","CREATED")).isEqualTo(187); assertThat(report.count("dogs","CREATED")).isEqualTo(189);
         assertThat(incidents(report,"DOG_INFERRED")).isEqualTo(9); assertThat(incidents(report,"CHIP_MISSING")).isEqualTo(16);
         assertThat(incidents(report,"AGE_SUSPECT")).isEqualTo(2); assertThat(incidents(report,"NO_BANK_ACCOUNT")).isEqualTo(26);
         assertThat(incidents(report,"BIRTHDATE_SUSPECT")).isEqualTo(1); assertThat(member(27).get("birthDate")).isNull();
@@ -77,7 +91,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(dogs.stream().filter(d -> d.get("levelId")==null)).isNotEmpty();
         assertThat(rows("audit_entries")).hasSize(1).allMatch(d -> "MigrationRun".equals(d.get("entityType")) && "MIGRATION_APPLIED".equals(d.get("action")));
         assertThat(rows("audit_entries").getFirst().getList("changes", Document.class))
-                .anyMatch(change -> "details.counters.membersCREATED".equals(change.get("path")) && Long.valueOf(188).equals(change.get("after")));
+                .anyMatch(change -> "details.counters.membersCREATED".equals(change.get("path")) && Long.valueOf(187).equals(change.get("after")));
     }
     @Test void T_18_02_activeNumbersWinOldLeaversAreSkippedAndNumbersReserved() {
         var report=apply(); assertThat(report.hasErrors()).isFalse(); assertThat(incidents(report,"NUMBER_CONFLICT")).isEqualTo(4);
@@ -114,9 +128,81 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat((Map<String,Object>)((Map<String,Object>)member(43).get("consents")).get("privacyPolicy")).containsValue("LEGACY");
         assertThat(rows("notifications")).isEmpty(); assertThat(rows("magic_link_tokens")).isEmpty();
         org.mockito.Mockito.verifyNoInteractions(mail);
-        assertThat(incidents(report,"EMAIL_SHARED")).isEqualTo(20);
-        assertThat(report.count("accounts","SKIPPED")).isEqualTo(27);
-        assertThat(report.render()).doesNotContain("@","Surname","Example","ibanEncrypted");
+        // 20 shared addresses in the fixture: one pair is joined through persones.csv, so 19 records are left without account.
+        assertThat(warnings(report,"EMAIL_SHARED")).isEqualTo(19);
+        // 7 without email + 19 EMAIL_SHARED + the 5 migrated LEFT records (R-18-12: accounts only for ACTIVE).
+        assertThat(report.count("accounts","SKIPPED")).isEqualTo(31);
+        assertThat(report.count("accounts","CREATED")).isEqualTo(rows("accounts").size());
+        // Every EMAIL_SHARED record proposes a family group, except the pair 61/81 that family_groups.csv already groups.
+        assertThat(report.count("familyGroups","PROPOSED")).isEqualTo(18);
+        assertThat(report.render()).contains("familyGroups: created=1 updated=0 skipped=0 errors=0 proposed=18").contains("EMAIL_SHARED=19")
+                .doesNotContain("@example","Surname","Example","ibanEncrypted");
+    }
+    @Test void T_18_06_E32_samePersonFamilyAndActiveLeftPairsGetTheRightPersonsDogsAndAccounts() {
+        var report=apply(); assertThat(report.hasErrors()).as(report.render()).isFalse();
+        // (1) Same person confirmed in persones.csv (62 principal, 82 joined): one member with two dogs and the NIF of the file.
+        assertThat(member(82).get("_id")).isEqualTo(member(62).get("_id"));
+        assertThat(((Document)member(62).get("idDocument")).getString("number")).isEqualTo("45128376F");
+        assertThat(((Document)member(62).get("externalIds")).getList("playoff",String.class)).containsExactly(source(62),source(82));
+        assertThat(mongo.count(Query.query(Criteria.where("memberId").is(member(62).get("_id"))),"dogs")).isEqualTo(2);
+        assertThat(member(62).get("accountId")).isNotNull();
+        assertThat(entries(report,82)).contains("members WARNING PERSON_MERGED","members SKIPPED ","dogs CREATED ")
+                .doesNotContain("members WARNING EMAIL_SHARED","accounts SKIPPED ","accounts CREATED ");
+        assertThat(warnings(report,"PERSON_MERGED")).isEqualTo(1);
+        // (2) Same person, not confirmed (63/83), and (3) a family (64/84): two persons, the oldest «Data alta» owns the account.
+        for (int[] pair:new int[][]{{63,83},{64,84}}) {
+            assertThat(member(pair[1]).get("_id")).isNotEqualTo(member(pair[0]).get("_id"));
+            assertThat(member(pair[0]).get("accountId")).isNotNull(); assertThat(member(pair[1]).get("accountId")).isNull();
+            assertThat(entries(report,pair[1])).contains("members WARNING EMAIL_SHARED","accounts SKIPPED ","familyGroups PROPOSED EMAIL_SHARED field=holder@"+(pair[0]+1));
+            assertThat((List<Document>)member(pair[1]).get("contactEmails")).extracting(d -> d.getString("email")).contains(input().files().get("members").get(pair[1]-1).get("email").toLowerCase(Locale.ROOT));
+        }
+        // Tie on «Data alta» (67/87): the lowest member number owns the account.
+        assertThat(member(87).get("accountId")).isNotNull(); assertThat(member(67).get("accountId")).isNull();
+        assertThat(entries(report,67)).contains("familyGroups PROPOSED EMAIL_SHARED field=holder@88");
+        // (4) ACTIVE/LEFT pair (55/186): the LEFT record joined earlier, but only ACTIVE members get an account; no EMAIL_SHARED.
+        assertThat(member(55).get("accountId")).isNotNull(); assertThat(member(186)).containsEntry("status","LEFT"); assertThat(member(186).get("accountId")).isNull();
+        assertThat((List<Document>)member(186).get("contactEmails")).extracting(d -> d.getString("email")).contains(input().files().get("members").get(54).get("email").toLowerCase(Locale.ROOT));
+        assertThat(entries(report,186)).contains("accounts SKIPPED ").doesNotContain("members WARNING EMAIL_SHARED");
+        for (int i=185;i<=189;i++) { assertThat(member(i).get("accountId")).isNull(); }
+        assertThat(mongo.count(Query.query(Criteria.where("memberId").in(List.of(member(185).get("_id"),member(186).get("_id")))),"memberships")).isZero();
+        // Without persones.csv each NIF is one person, as before E32.
+        var data=new LinkedHashMap<>(input().files()); data.put("persons",List.of());
+        var plan=preview(new PlayoffInput(data,List.of()));
+        assertThat(plan.changes().stream().filter(c -> c.entity().equals("members"))).hasSize(188);
+        assertThat(plan.rows()).noneMatch(r -> r.code().equals("PERSON_MERGED"));
+    }
+    @Test void T_18_06_E32_invalidPersonsRowsAreErrorsAndNeverGuessAPerson() {
+        String p62=source(62), p82=source(82), p83=source(83), p1=source(1), p190=source(190);
+        for (var bad:List.of(Map.of("principalId","missing","joinedId",p82,"document","45128376F"),Map.of("principalId",p62,"joinedId",p62,"document","45128376F"),
+                Map.of("principalId",p62,"joinedId",p82,"document"," "))) {
+            var plan=preview(persons(List.of(bad)));
+            assertThat(plan.rows()).anyMatch(r -> r.entity().equals("persons") && r.outcome().equals("ERROR") && r.code().equals("INPUT_SCHEMA_MISMATCH"));
+        }
+        // A chain (82 is a principal and a joined record), a second joining of 82, and a different NIF for the same principal: one error each.
+        var joined=Map.of("principalId",p62,"joinedId",p82,"document","45128376F");
+        for (var pair:List.of(List.of(joined,Map.of("principalId",p82,"joinedId",p83,"document","45128376F")),List.of(joined,Map.of("principalId",p1,"joinedId",p82,"document","45128376F")),
+                List.of(joined,Map.of("principalId",p62,"joinedId",p83,"document","60764207R")))) {
+            assertThat(preview(persons(pair)).rows().stream().filter(r -> r.entity().equals("persons") && r.outcome().equals("ERROR"))).hasSize(1);
+        }
+        // The principal of 190 is not migrated (an old leaver): the joined record is an error, never a person of its own.
+        var plan=preview(persons(List.of(Map.of("principalId",p190,"joinedId",p83,"document","45128376F"))));
+        assertThat(plan.rows()).anyMatch(r -> r.row()==84 && r.entity().equals("members") && r.outcome().equals("ERROR"));
+        assertThat(plan.changes()).noneMatch(c -> c.entity().equals("members") && ((List<?>)((Map<?,?>)c.fields().get("externalIds")).get("playoff")).contains(p83));
+    }
+    @Test void T_18_01_mappingV2AppliesJoseAnswersB29ToB32() {
+        var report=apply(); assertThat(report.hasErrors()).isFalse();
+        // B31: «Familiar Abonat/curs» is ABONAT_FAMILIAR with the family behaviour (no family_groups.csv row → review warning).
+        assertThat(member(32).get("planId")).isEqualTo("ABONAT_FAMILIAR");
+        assertThat(entries(report,32)).contains("members WARNING MAPPING_INVALID").doesNotContain("members WARNING PLAN_UNMAPPED");
+        // B30: «Quota reduïda» stays without plan.
+        assertThat(member(31).get("planId")).isNull(); assertThat(entries(report,31)).contains("members WARNING PLAN_UNMAPPED");
+        // B32: «Pendent» → level PENDENT with LEVEL_PENDING; «Cadells» → the seed code CAD.
+        assertThat(dog(33).get("levelId")).isEqualTo("level-PENDENT"); assertThat(entries(report,33)).contains("members WARNING LEVEL_PENDING");
+        assertThat(dog(48).get("levelId")).isEqualTo("level-CAD");
+        // B29: the photo belongs to the dog; its source reference waits for the cutover download, no warning.
+        assertThat((Map<String,Object>)dog(34).get("sourceIds")).containsEntry("playoffPhoto","[redacted]");
+        assertThat(dog(34).get("photoFileKey")).isNull(); assertThat(entries(report,34)).doesNotContain("members WARNING MAPPING_INVALID");
+        assertThat(mongo.findOne(new Query(),Document.class,"migration_runs").get("mappingVersion")).isEqualTo(MappingConfig.VERSION);
     }
     @Test void T_18_08_reapplyUpdatesOnlyMappedRecordsAndDryRunWritesNothing() {
         var before=snapshot(); var dry=importer.importDirectory(FIXTURE,MAPPING,CLUB,true,false,false);
@@ -126,7 +212,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         mongo.updateFirst(Query.query(Criteria.where("_id").is(member(50).get("_id"))),new Update().set("remarks","Keep manual remarks"),"members");
         var again=apply(); assertThat(again.hasErrors()).as(again.render()).isFalse();
         assertThat(again.count("members","CREATED")).isZero(); assertThat(again.count("dogs","CREATED")).isZero(); assertThat(again.count("familyGroups","CREATED")).isZero();
-        assertThat(again.count("members","UPDATED")).isEqualTo(188); assertThat(member(50).get("remarks")).isEqualTo("Keep manual remarks");
+        assertThat(again.count("members","UPDATED")).isEqualTo(187); assertThat(member(50).get("remarks")).isEqualTo("Keep manual remarks");
         assertThat(mongo.findById("manual",Document.class,"members")).containsEntry("firstName","Manual Example").doesNotContainKey("sourceIds");
         assertThatThrownBy(() -> importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,false)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.PRODUCTION_REQUIRES_CONFIRMATION));
         assertThat(importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,true).hasErrors()).isFalse();

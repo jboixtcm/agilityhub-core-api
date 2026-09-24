@@ -15,9 +15,13 @@ public record MigrationReport(boolean dryRun, List<Entry> rows) {
         if (hasErrors()) { out.append("Validation failed; no changes applied. Counts below describe the proposed changes.\n"); }
         for (String entity : List.of("members", "dogs", "familyGroups", "accounts")) {
             out.append(entity).append(": created=").append(count(entity,"CREATED")).append(" updated=").append(count(entity,"UPDATED"))
-                .append(" skipped=").append(count(entity,"SKIPPED")).append(" errors=").append(count(entity,"ERROR")).append('\n');
+                .append(" skipped=").append(count(entity,"SKIPPED")).append(" errors=").append(count(entity,"ERROR"));
+            // R-18-12: family groups proposed to the club for records that share an email; never created by the import.
+            if (entity.equals("familyGroups")) { out.append(" proposed=").append(count(entity,"PROPOSED")); }
+            out.append('\n');
         }
-        var incidents = new TreeMap<String,Integer>(); rows.stream().filter(r -> !r.code().isEmpty()).forEach(r -> incidents.merge(r.code(),1,Integer::sum));
+        var incidents = new TreeMap<String,Integer>();
+        rows.stream().filter(r -> !r.code().isEmpty() && !r.outcome().equals("PROPOSED")).forEach(r -> incidents.merge(r.code(),1,Integer::sum));
         out.append("Incidents: ").append(incidents).append('\n');
         for (var row : rows) { out.append(row.file()).append(':').append(row.row()).append(' ').append(row.entity()).append(' ').append(row.outcome()).append(' ').append(row.code()).append(row.field().isEmpty() ? "" : " field="+row.field()).append('\n'); }
         return out.toString();

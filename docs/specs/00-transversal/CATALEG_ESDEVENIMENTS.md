@@ -41,7 +41,7 @@
 | `RingBlockCreated` / `RingBlockCancelled` | blockId, ringId, from, to, reason, activityId? | S06/S09 | slots d'entrenament → bloquejats, quadres |
 | `ActivityPublished` / `ActivityUpdated` / `ActivityCancelled` / `ActivityFinished` | activityId | S06 | N-32, bloquejos de pista, web pública |
 | **Reserves** | | | |
-| `SeatHeld` / `SeatHoldReleased` | classId, memberId, dogId, expiresAt | S08 | UI compte enrere (no notifica) |
+| `SeatHeld` / `SeatHoldReleased` | classId, memberId, dogId, expiresAt | S08 | UI compte enrere (no notifica per si sol; el `SeatHoldReleased` d'una confirmació porta la N-46 quan la reserva ocupa la plaça — S08 R-08-13/R-08-18) |
 | `BookingCreated` | bookingId, classId, memberId, dogId, origin, swapFromBookingId?, packMovementId? | S08 | N-04 (o N-36 si BACKOFFICE), comptadors, pack |
 | `BookingCancelled` | bookingId, by (MEMBER · INSTRUCTOR · ADMIN · SYSTEM), late (bool), minutesBefore, origin | S08/S10 | N-05 (o N-36), `SeatReleased`, pack retornat si no late |
 | `SeatReleased` | classId, freeSeats, minutesBefore, notifyWaitlist (bool: > `waitlist.notifyThresholdMinutes`) | S08 | N-15 (mode ALL_AT_ONCE: tots; FIFO: primer) |

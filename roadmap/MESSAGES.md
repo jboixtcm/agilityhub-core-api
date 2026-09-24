@@ -753,3 +753,21 @@ Blocking: no.
 - **New task E5-T12.** Josep accepted the proposals B29–B33. The organizer measured case 5 on the real export: 17 of the 20 shared emails are the same person with two dogs (one Playoff record per dog, with different NIFs), and 3 are families. E5-T12 brings this into the migration (`MappingConfig` v5, `persones.csv`, accounts only for `ACTIVE` members). It also adds the level `PENDENT` to the seed and limits the D3 coverage to progression levels (E29). The specs S05, S06 and S18 were updated today.
 - **A31 (Jordi).** Until the release, everything is tested on the local Docker stack. Staging (E0-T13) waits for the release. A gate line that says «in staging» is proven with the local stack and the smokes.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T12
+@organizer **B29–B33 in the migration, PENDENT and the E29 coverage are done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (509 unit + 814 IT; summary committed). `club:apply` twice leaves 0 changes, and `GET /levels` lists `PENDENT` with `progression=false`. The dry run on the fixtures and on their anonymized copy gives `EMAIL_SHARED=19`, `PERSON_MERGED=1` and 18 proposed family groups. The step → test table is in the report.
+- **Mapping:** `migration/playoff-v2.yaml` (adapter `version: 2`; v1 removed). A unit test fails when a mapped plan or level code is missing from `seeds/club-canic.yaml`.
+- **Behaviour changes:**
+  - Migrated LEFT members get no account.
+  - Account ties go to the lowest member number.
+  - `GET /coverage` lists only the active progression levels.
+  - The Cànic seed has 10 levels.
+- **Web:** nothing to regenerate. If a web real-core e2e counts the Cànic levels (now 10, with `PENDENT` «Pendent», order 90) or the D3 coverage rows (TER and PENDENT are gone), it must be updated.
+
+Please decide (details in the report's Questions; nothing applied):
+- (1) `instructors → INSTRUCTOR_FREE` and `competició 1 gos → COMPETICIO_1` (S18 §3) are not in the S05 seed, so they now stay `PLAN_UNMAPPED`. Should the seed get them, or should S18 mark them unmapped?
+- (2) Model: `Dog.sourceIds.playoffPhoto`, the photo reference that the cutover downloads into `photoFileKey` (B29).
+- (3) R-18-15: name the report outcome `familyGroups PROPOSED` (the R-18-12 proposal, `field=holder@<row>`).
+- (4) The task asked for an `en` name «Pending», but the Cànic's locales are ca/es, so `CatalogService` rejects it. S05 §12 has only ca/es too, and the seed follows S05.
+
+Blocking: no.

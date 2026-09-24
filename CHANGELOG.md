@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T12: Josep's answers B29–B33 in the Playoff migration (S18 `MappingConfig` v5, E32), level PENDENT, E29 coverage.
+  - The adapter moves to `migration/playoff-v2.yaml` (`version: 2`): «Familiar Abonat/curs» → `ABONAT_FAMILIAR`
+    with the family behaviour (B31); `pendent` → level `PENDENT` + `LEVEL_PENDING` (B32); `cadells` → `CAD`; the photo
+    reference goes to `Dog.sourceIds.playoffPhoto` for the cutover download (B29). A unit test fails when a mapped plan
+    or level code is missing from `seeds/club-canic.yaml`, so `instructors`/`competició 1 gos` stay `PLAN_UNMAPPED`.
+  - Optional `persones.csv` (R-18-04 (f)): the joined record adds only its dog to the principal's person, which keeps
+    the NIF of the file (`PERSON_MERGED`); the anonymizer keeps the joins.
+  - Accounts only for `ACTIVE` members (R-18-12); among shared emails the oldest «Data alta» owns the account (tie:
+    lowest member number); the others get `EMAIL_SHARED` and a `familyGroups PROPOSED … field=holder@<row>` report line.
+  - Seed level `PENDENT` «Pendent»/«Pendiente» (order 90, #9AA0A6, capacity 5, outside the progression).
+  - Behaviour change: the D3 coverage (`GET /coverage`, R-06-06) lists only the active progression levels (E29), so
+    Teràpia and Pendent no longer appear; `GET /levels` on the Cànic seed returns 10 levels.
 - E6-T01: S10 contract (WP-10-A).
   - 22 S10 routes (`/instructor/day|week|week/export`, `/class-sessions/{id}/attendance` GET/PUT, `/attendances`,
     `/dogs/{id}/instructor-card`, `/me/history`, `/dogs/{id}/observations`, `/tasks*`, `GET /attachments`,

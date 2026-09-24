@@ -275,7 +275,7 @@ Llegeix: `training.slotMinutes` (30) · `training.bookingWindowDays` (3) · `tra
 - T-09-10 (R-09-05) Given `limitUnit=MEMBER`, When la Maria té Rock ×2 i Kira ×1, Then 3/3 i `TRAINING_LIMIT_REACHED` amb `cancellableBookings` només les futures dins llindar.
 - T-09-11 (R-09-07) Given Muntanya, Central, Carretera lliures, When `POST` sense `ringId`, Then Muntanya; amb Muntanya ocupada → Central (determinisme per `order`).
 - T-09-12 (R-09-10) Given slot dg 25-10 08:00 local i llindar 120, When s'anul·la a les 05:59 local i a les 06:01, Then 200 i `409 TRAINING_CANCEL_TOO_LATE {minutesBefore: 119}`.
-- T-09-13 (R-09-11) Given `from/to` no alineats o `to−from < 30 min`, Then `400 INVALID_TIME_RANGE`; `kind=BLOCK` amb `reason=THERAPY` → `400 VALIDATION_ERROR`.
+- T-09-13 (R-09-11) Given `from/to` no alineats a `classes.slotMinutes` → `400 INVALID_SLOT_GRANULARITY` (el mateix endpoint d'S06, R-06-11); `to−from < 30 min` → `400 INVALID_TIME_RANGE`; `kind=BLOCK` amb `reason=THERAPY` → `400 VALIDATION_ERROR`.
 - T-09-14 (R-09-03, R-09-06) Given `startsAt` 08:20 (desalineat), 06:30 (abans d'obrir) i 12-10-2026 09:00 (festiu), When `POST`, Then `400 SLOT_NOT_ON_GRID`, `422 CLUB_CLOSED`, `422 CLUB_CLOSED`.
 - T-09-15 (R-09-04) Given ara = 05-10-2026 08:31 local, When `POST` per al slot 08:30 d'avui, Then `422 SLOT_OUT_OF_WINDOW` (ja començat); per al 09:00 → 201.
 
@@ -349,3 +349,4 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. Tres fils: back-B, back-C, front-D+E.
 
 - 03-09-2026 · v0.1 · esborrany inicial a partir dels mockups V8 (08, 24, 23, 10), model v1.6 + PLATAFORMA v1.7-ext, DETALL_FUNCIONAL §H i catàlegs transversals v1.0.
 - 03-09-2026 · catàleg tancat: «Entrenament reservat/anul·lat pel club en nom teu» és **N-47** (abans proposada com a N-39).
+- 24-09-2026 · T-09-13: un bloqueig no alineat respon `INVALID_SLOT_GRANULARITY`, com l'endpoint d'S06 (verificació d'E5-T09).

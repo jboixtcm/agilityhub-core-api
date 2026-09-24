@@ -51,9 +51,9 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Test @AuditCovers(AuditAction.CATALOG_CHANGED)
     void T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites() throws Exception {
         var input = seed(); var before = snapshot();
-        assertThat(definitions.apply(input, true).render(true)).contains("31 catalog changes"); assertThat(snapshot()).isEqualTo(before);
+        assertThat(definitions.apply(input, true).render(true)).contains("32 catalog changes"); assertThat(snapshot()).isEqualTo(before);
         String club = definitions.apply(input, false).id(); var first = snapshot();
-        for (var route : Map.of("levels", 9, "rings", 5, "plans", 5).entrySet()) {
+        for (var route : Map.of("levels", 10, "rings", 5, "plans", 5).entrySet()) {
             mvc.perform(get("/api/v1/" + route.getKey()).header("Host", "app.agilitycanic.cat")
                     .with(jwt().jwt(j -> j.subject("seed-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN")))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(route.getValue()));
@@ -61,10 +61,14 @@ class DemoSeedsIT extends AbstractIntegrationTest {
 
         assertThat(definitions.apply(input, false).changes()).isZero(); assertThat(snapshot()).isEqualTo(first);
         try (var tenant = TenantContext.open(club)) {
-            assertThat(catalogs.list(CatalogKind.LEVEL, true)).hasSize(9); assertThat(catalogs.list(CatalogKind.RING, true)).hasSize(5);
+            assertThat(catalogs.list(CatalogKind.LEVEL, true)).hasSize(10); assertThat(catalogs.list(CatalogKind.RING, true)).hasSize(5);
             assertThat(catalogs.list(CatalogKind.FAQ, true)).hasSize(7); assertThat(plans.list(true)).hasSize(5);
-            // S05 §12 seed, E29: Teràpia is the only level outside the progression.
-            assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER");
+            // S05 §12 seed, E29 and B32: Teràpia and Pendent are the levels outside the progression.
+            assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER", "PENDENT");
+            var pending = catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> l.code().equals("PENDENT")).findFirst().orElseThrow();
+            assertThat(pending.order()).isEqualTo(90); assertThat(pending.capacity()).isEqualTo(5); assertThat(pending.color()).isEqualTo("#9AA0A6");
+            // The Cànic locales are ca/es (S05 §12 has only name.ca/name.es): a level name in `en` is rejected for this club.
+            assertThat(pending.grantsFreeTraining()).isFalse(); assertThat(pending.name().values()).containsOnly(Map.entry("ca", "Pendent"), Map.entry("es", "Pendiente"));
             var therapy = plans.list(true).stream().filter(p -> p.code().equals("TERAPIA")).findFirst().orElseThrow();
             assertThat(therapy.billingMode().name()).isEqualTo("MAINTENANCE");
             assertThat(prices.list(therapy.id(), null).getFirst().amount().amountMinor()).isEqualTo(1000);
@@ -94,15 +98,16 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         var input = seed(); String club = definitions.apply(input, false).id();
         mongo.updateMulti(new Query(), new org.springframework.data.mongodb.core.query.Update().unset("progression"), "levels"); // levels stored before E29
         var next = definitions.apply(input, true);
-        assertThat(next.changes()).as("only Teràpia differs").isEqualTo(1);
+        assertThat(next.changes()).as("only the catalogs section differs").isEqualTo(1);
+        assertThat(next.render(true)).as("Teràpia and Pendent").contains("2 catalog changes");
         definitions.apply(input, false);
         assertThat(definitions.apply(input, false).changes()).isZero();
         try (var tenant = TenantContext.open(club)) {
-            assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER");
+            assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER", "PENDENT");
         }
         var levelChanged = mongo.find(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("type").is("LevelChanged").and("payload.action").is("UPDATED")),
                 org.bson.Document.class, "domain_events");
-        assertThat(levelChanged).singleElement().satisfies(e -> assertThat(e.get("payload", org.bson.Document.class).get("diff", org.bson.Document.class))
+        assertThat(levelChanged).hasSize(2).allSatisfy(e -> assertThat(e.get("payload", org.bson.Document.class).get("diff", org.bson.Document.class))
                 .containsOnlyKeys("progression"));
     }
     @Test void T_05_21_duplicateKeysAndInvalidCatalogShapesRollBack() {

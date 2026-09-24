@@ -55,10 +55,50 @@ class PlayoffAdapterTest {
                 assertThat(transformed.get(file.equals("team") ? "number" : "id")).isEqualTo(anonymizer.replace(file.equals("team") ? "number" : "id",row.get(file.equals("team") ? "number" : "id")));
             }
         }
+        // persones.csv (R-18-04 (f)) keeps its joins: the same HMAC ids and documents as the members file.
+        var persons=before.files().get("persons"); assertThat(persons).isNotEmpty();
+        for (int i=0;i<persons.size();i++) {
+            var row=persons.get(i); var transformed=after.files().get("persons").get(i);
+            assertThat(transformed.get("principalId")).isEqualTo(anonymizer.replace("id",row.get("principalId")));
+            assertThat(transformed.get("joinedId")).isEqualTo(anonymizer.replace("id",row.get("joinedId")));
+            assertThat(transformed.get("document")).isEqualTo(anonymizer.replace("document",row.get("document")));
+        }
+        var members=PlayoffInput.read(fixture(),mapping).files().get("members");
+        var principal=members.stream().filter(m -> m.get("id").equals(persons.getFirst().get("principalId"))).findFirst().orElseThrow();
+        assertThat(anonymizer.replace("id",principal.get("id"))).isEqualTo(after.files().get("persons").getFirst().get("principalId"));
         assertThat(anonymizer.replace("document","12.345.678-Z")).isEqualTo(anonymizer.replace("document","12345678Z"));
         assertThat(anonymizer.replace("surname","Example (Pup)")).contains(anonymizer.replace("dog","Pup"));
         assertThat(anonymizer.replace("iban","invalid")).isEqualTo("INVALID_TEST_IBAN");
         assertThat(anonymizer.replace("passport","AB123")).startsWith("TEST");
+    }
+    /** The mapped codes that the Cànic seed (seeds/club-canic.yaml) does not define, per catalog. */
+    static Map<String,Set<String>> missingSeedCodes(MappingConfig mapping) throws Exception {
+        var seed=new com.fasterxml.jackson.databind.ObjectMapper(new com.fasterxml.jackson.dataformat.yaml.YAMLFactory()).readTree(Path.of("seeds/club-canic.yaml").toFile());
+        var result=new TreeMap<String,Set<String>>();
+        for (var catalog:Map.of("plans",mapping.plans().values(),"levels",mapping.levels().values()).entrySet()) {
+            var codes=new HashSet<String>(); seed.at("/catalogs/"+catalog.getKey()).forEach(item -> codes.add(item.path("code").asText()));
+            assertThat(codes).as(catalog.getKey()).isNotEmpty();
+            var missing=new TreeSet<>(catalog.getValue()); missing.removeAll(codes); result.put(catalog.getKey(),missing);
+        }
+        return result;
+    }
+    @Test void T_18_01_everyMappedPlanAndLevelCodeExistsInTheCanicSeed() throws Exception {
+        assertThat(missingSeedCodes(mapping)).isEqualTo(Map.of("plans",Set.of(),"levels",Set.of()));
+        // The check catches a mismatch such as the v1 `cadells: CADELLS` (the seed code is CAD).
+        var levels=new LinkedHashMap<>(mapping.levels()); levels.put("cadells","CADELLS");
+        var plans=new LinkedHashMap<>(mapping.plans()); plans.put("instructors","INSTRUCTOR_FREE");
+        var broken=new MappingConfig(mapping.version(),mapping.defaultClub(),mapping.ageWarningYears(),mapping.suspectBirthYears(),mapping.inferredDogPrefix(),mapping.statuses(),plans,
+                mapping.unresolvedPlans(),mapping.familyPlans(),mapping.instructorPlans(),levels,mapping.levelWarnings(),mapping.levelFlags(),mapping.unresolvedLevels(),mapping.photoOwner(),mapping.files());
+        assertThat(missingSeedCodes(broken)).isEqualTo(Map.of("plans",Set.of("INSTRUCTOR_FREE"),"levels",Set.of("CADELLS")));
+        assertThat(mapping.version()).isEqualTo(2); assertThat(mapping.levelWarnings()).containsEntry("pendent","LEVEL_PENDING");
+        assertThat(mapping.plans()).containsEntry("familiar abonat/curs","ABONAT_FAMILIAR"); assertThat(mapping.familyPlans()).contains("familiar abonat/curs");
+        assertThat(mapping.unresolvedPlans()).contains("quota reduïda"); assertThat(mapping.unresolvedLevels()).isEmpty();
+        for (var invalid:List.of(new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,Map.of("unknown","LEVEL_PENDING"),Map.of(),Set.of(),"DOG",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,Map.of("pendent","OTHER"),Map.of(),Set.of(),"DOG",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,Map.of(),Map.of(),Set.of(),"MEMBER",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,null,Map.of(),Set.of(),"DOG",mapping.files()))) {
+            assertThatThrownBy(invalid::validate).isInstanceOf(ApiException.class);
+        }
     }
     @Test void T_18_03_anonymizerRejectsUnsafeOrInvalidInputsWithoutOverwriting() throws Exception {
         assertThatThrownBy(() -> new PlayoffAnonymizer(null)).isInstanceOf(ApiException.class);

@@ -1,24 +1,30 @@
-version: 1
+version: 2
 defaultClub: canic
 ageWarningYears: 16
 suspectBirthYears: 10
 inferredDogPrefix: "Gos de "
 statuses: {alta: ACTIVE, baixa: LEFT, baja: LEFT, bloqueado: ACTIVE, "personal laboral": ACTIVE, simpatizante: SKIP}
+# Every target code exists in seeds/club-canic.yaml (S05 §12); the adapter test fails otherwise.
 plans:
   "abonat": ABONAT
   "familiar abonat": ABONAT_FAMILIAR
+  "familiar abonat/curs": ABONAT_FAMILIAR
   "abonat 2 gossos": ABONAT_FAMILIAR
   "manteniment": TERAPIA
   "pack 10 classes": PACK10
-  "instructors": INSTRUCTOR_FREE
-  "competició 1 gos": COMPETICIO_1
   "pack 6 classes": PACK6
-unresolvedPlans: ["quota reduïda", "familiar abonat/curs"]
-familyPlans: ["familiar abonat"]
+# B30: «quota reduïda» has no plan until the club settles it. INSTRUCTOR_FREE and COMPETICIO_1 (S18 §3)
+# are not in the S05 seed yet, so their typologies stay unmapped with PLAN_UNMAPPED.
+unresolvedPlans: ["quota reduïda", "instructors", "competició 1 gos"]
+familyPlans: ["familiar abonat", "familiar abonat/curs"]
 instructorPlans: [instructors]
-levels: {a: A, b: B, c: C, d: D, e: E, f: F, g: G, cadells: CADELLS}
+levels: {a: A, b: B, c: C, d: D, e: E, f: F, g: G, cadells: CAD, pendent: PENDENT}
+# B32: the dog gets the level PENDENT (outside the progression, E29) and the report keeps the warning.
+levelWarnings: {pendent: LEVEL_PENDING}
 levelFlags: {llicencia: LICENSE_HOLDER, teràpies: THERAPY, terapies: THERAPY}
-unresolvedLevels: [pendent]
+unresolvedLevels: []
+# B29: the Playoff photo is the dog's; its source reference waits on the dog for the cutover download.
+photoOwner: DOG
 files:
   members:
     name: socis.csv
@@ -101,3 +107,11 @@ files:
     columns:
       - {at: 1, header: "Núm. assoc.", field: number, anonymize: number}
       - {at: 2, header: "Rol", field: role, anonymize: keep}
+  # R-18-04 (f), E32: records of the same person that the club confirms (one Playoff record per dog).
+  persons:
+    name: persones.csv
+    required: false
+    columns:
+      - {at: 1, header: "ID associat principal", field: principalId, anonymize: id}
+      - {at: 2, header: "ID associat unida", field: joinedId, anonymize: id}
+      - {at: 3, header: "NIF", field: document, anonymize: document}

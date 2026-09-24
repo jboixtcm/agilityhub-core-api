@@ -85,7 +85,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var response = mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse();
         assertThat(mapper.readTree(response.getContentAsString())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/branding-canic.json").toFile()));
         assertThat(mapper.<com.fasterxml.jackson.databind.JsonNode>valueToTree(configs.get(first.id()).parameters())).isEqualTo(mapper.readTree(Path.of("src/test/resources/fixtures/parameters-canic.json").toFile()));
-        assertThat(count("domain_events")).isEqualTo(70); assertThat(count("audit_entries")).isEqualTo(35);
+        assertThat(count("domain_events")).isEqualTo(71); assertThat(count("audit_entries")).isEqualTo(36);
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().action()).isEqualTo(AuditAction.CLUB_UPDATED);
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().clubId()).isEqualTo(first.id());
         assertThat(mongo.findAll(AuditEntry.class).stream().filter(a -> a.action() == AuditAction.CLUB_UPDATED).findFirst().orElseThrow().reason()).isEqualTo("source: APPLY");
@@ -93,7 +93,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var second = definitions.apply(definition, false);
         assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("0 changes");
         assertThat(clubs.findBySlug("canic").orElseThrow()).isEqualTo(original);
-        assertThat(count("domain_events")).isEqualTo(70); assertThat(count("audit_entries")).isEqualTo(35);
+        assertThat(count("domain_events")).isEqualTo(71); assertThat(count("audit_entries")).isEqualTo(36);
         assertThat(count("accounts")).isEqualTo(15); assertThat(count("memberships")).isEqualTo(15);
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero();

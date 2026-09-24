@@ -115,7 +115,7 @@ class DashboardIT extends AbstractIntegrationTest {
         assertThat(first.at("/kpis/classOccupancy/percent").isNull()).isTrue();
         assertThat(first.at("/kpis/classOccupancy/capacity").asInt()).isZero();
         assertThat(first.at("/dogsByLevel/totalActiveDogs").asInt()).isEqualTo(242);
-        assertThat(first.at("/dogsByLevel/levels")).hasSize(9);
+        assertThat(first.at("/dogsByLevel/levels")).hasSize(10); // S05 §12: nine levels + PENDENT (B32)
         assertThat(first.at("/dogsByLevel/levels")).allSatisfy(row -> assertThat(row.path("withRecentBooking").asInt()).isZero());
         assertThat(first.at("/riskReview/items")).isEmpty();
         assertThat(first.at("/pendingSignups/items")).hasSize(3);

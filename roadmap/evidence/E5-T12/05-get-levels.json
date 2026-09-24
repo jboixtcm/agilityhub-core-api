@@ -1,0 +1,265 @@
+{
+  "items": [
+    {
+      "id": "93df6b1a-8da7-4dbc-82e0-0036c1a9c751",
+      "code": "CAD",
+      "name": "Cadells",
+      "nameI18n": {
+        "ca": "Cadells",
+        "es": "Cachorros"
+      },
+      "order": 0,
+      "color": "#F5D67A",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.859Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "d4e4f697-1fc0-41d0-9bb4-bd9a214c74fa",
+      "code": "A",
+      "name": "A",
+      "nameI18n": {
+        "ca": "A",
+        "es": "A"
+      },
+      "order": 10,
+      "color": "#C9E4F5",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.884Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "1619b649-c406-4ea4-b275-5d0b2551072e",
+      "code": "B",
+      "name": "B",
+      "nameI18n": {
+        "ca": "B",
+        "es": "B"
+      },
+      "order": 20,
+      "color": "#A9D3F0",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.907Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "89d13c1a-f07a-4fa0-b3a1-ac461a5deb75",
+      "code": "C",
+      "name": "C",
+      "nameI18n": {
+        "ca": "C",
+        "es": "C"
+      },
+      "order": 30,
+      "color": "#85B8E8",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.927Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "4f45773e-3bc7-499a-8b3d-192e14b34229",
+      "code": "D",
+      "name": "D",
+      "nameI18n": {
+        "ca": "D",
+        "es": "D"
+      },
+      "order": 40,
+      "color": "#8FCE8F",
+      "capacity": 5,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.947Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "d274d656-d9e0-4f6e-9d87-8d1e0e404135",
+      "code": "E",
+      "name": "E",
+      "nameI18n": {
+        "ca": "E",
+        "es": "E"
+      },
+      "order": 50,
+      "color": "#F2B58C",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.968Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "3bbf5648-1cfb-4913-8418-3d9108bdd08a",
+      "code": "F",
+      "name": "F",
+      "nameI18n": {
+        "ca": "F",
+        "es": "F"
+      },
+      "order": 60,
+      "color": "#E8A070",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:06.988Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "40c1e6cf-7e1b-4951-82c8-c4f5e7981d46",
+      "code": "G",
+      "name": "G",
+      "nameI18n": {
+        "ca": "G",
+        "es": "G"
+      },
+      "order": 70,
+      "color": "#E26A2A",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:07.013Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "03063101-d2df-4620-a700-1fe60f2dcef3",
+      "code": "TER",
+      "name": "Teràpia",
+      "nameI18n": {
+        "ca": "Teràpia",
+        "es": "Terapia"
+      },
+      "order": 80,
+      "color": "#C9CDD3",
+      "capacity": 1,
+      "grantsFreeTraining": false,
+      "progression": false,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:07.034Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "c22c078d-c583-4d1b-a183-dda3017d6237",
+      "code": "PENDENT",
+      "name": "Pendent",
+      "nameI18n": {
+        "ca": "Pendent",
+        "es": "Pendiente"
+      },
+      "order": 90,
+      "color": "#9AA0A6",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": false,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T13:01:07.051Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    }
+  ],
+  "totalItems": 10
+}

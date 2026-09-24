@@ -1,13 +1,16 @@
-# Playoff census input, MappingConfig v1
+# Playoff census input, MappingConfig v2
 
 This adapter follows `docs/MAPATGE_CAMPS_PLAYOFF.md` §§2–6 and S18 §§3–4.
 Only fictional/anonymized fixtures belong in this repository. No live Playoff access,
 receipt export, mandate export or photo download is needed by this command.
+The adapter file is `src/main/resources/migration/playoff-v2.yaml` (`version: 2`, the
+adapter schema version; S18's `MappingConfig` v5 is the document revision it implements).
+v2 (E5-T12) adds `levelWarnings`, `photoOwner` and the optional `persons` file.
 
 ## Files and schema
 
 Required: `socis.csv`, `tipologia.csv`, `nivell.csv`. Optional, explicitly supplied
-club supplements: `family_groups.csv`, `equip.csv`. The latter two are adapter
+club supplements: `family_groups.csv`, `equip.csv`, `persones.csv`. These are adapter
 schemas, not claimed to be native Playoff exports. The documented join columns of
 Tipologia/Nivell are the v1 contract; additional source columns are reported until
 an operator supplies a reviewed mapping. Every reference joins on `ID associat`;
@@ -114,6 +117,25 @@ and free-text notes are replaced or redacted. No source row value is printed.
 | 1 | Núm. assoc. | number | number |
 | 2 | Rol | role | keep |
 
+### persons (`persones.csv`, R-18-04 (f), E32)
+
+| Position | Exact header | Adapter field | Anonymization |
+|---|---|---|---|
+| 1 | ID associat principal | principalId | id |
+| 2 | ID associat unida | joinedId | id |
+| 3 | NIF | document | document |
+
+One row per record that the club confirms as the same person as a principal record
+(Playoff makes one record per dog). The joined record adds only its dog to the
+principal's person, which keeps the NIF of the file; the joined record gets the
+`PERSON_MERGED` warning and its source id becomes a member alias. A row is an error
+when an id is unknown, the pair is the same record, the NIF is empty, the joined id
+is also a principal (no chains) or is joined twice, or the same principal gets two
+different NIFs. A joined record whose principal is not migrated is an error. Without
+the file each NIF is one person. The anonymizer uses the same HMAC ids and document
+replacement as `socis.csv`, so the joins survive. Supply the file from the first apply:
+a club already loaded without it keeps the joined record's own member.
+
 ## Commands
 
 - `bin/core migration:anonymize <dir> <out> [--mapping=file.yaml]`
@@ -140,14 +162,25 @@ and free-text notes are replaced or redacted. No source row value is printed.
 ## Mapping and incident handling
 
 Case, leading/trailing whitespace and repeated internal spaces are normalized for
-plan and level matching. `Quota reduïda` and `Familiar Abonat/curs` remain
-`PLAN_UNMAPPED` (B30/B31); unknown old plans use `LEGACY_PLAN`. `Pendent` stays
-unassigned with `LEVEL_PENDING` (B32). `Llicencia` is a marker, never a level;
-`Terapies` produces a plan review warning. Photos remain untouched with a
-`MAPPING_INVALID` warning (B29). Shared emails give the first eligible person
-(by ACTIVE first, then earliest join date) the account; others retain contact
-email but have no account (`EMAIL_SHARED`, B33). Explicit family files alone
-create groups and select their payer; no group is guessed from typology alone.
+plan and level matching. Every mapped plan and level code exists in
+`seeds/club-canic.yaml` (a unit test enforces it). `Familiar Abonat/curs` is
+`ABONAT_FAMILIAR` with the family behaviour of `Familiar abonat` (B31). `Quota
+reduïda` stays `PLAN_UNMAPPED` (B30); so do `Instructors` and `Competició 1 gos`,
+whose S18 targets `INSTRUCTOR_FREE`/`COMPETICIO_1` are not in the S05 seed yet
+(instructors still get the INSTRUCTOR role). Unknown old plans use `LEGACY_PLAN`.
+`Cadells` is `CAD`; `Pendent` is the level `PENDENT` (outside the progression) with
+the `LEVEL_PENDING` warning (B32). `Llicencia` is a marker, never a level;
+`Terapies` produces a plan review warning. The photo is the dog's (B29): its source
+reference is kept in `Dog.sourceIds.playoffPhoto` for the cutover download into
+`photoFileKey`; this command downloads nothing.
+
+Only ACTIVE members get an account (R-18-12, E32); a migrated LEFT member keeps the
+email as a contact only. Among ACTIVE records that share an email, the oldest `Data
+alta` owns the account (tie: the lowest member number); the others retain the contact
+email, get `EMAIL_SHARED` and a report line `familyGroups PROPOSED EMAIL_SHARED
+field=holder@<row>` that points at the account holder's row, unless both are already
+in the same explicit family group. Proposals are never applied. Explicit family files
+alone create groups and select their payer; no group is guessed from typology alone.
 
 Duplicate normalized identity documents create one member and a dog per source
 record. Without a document, normalized email is the fallback key; without either,
@@ -173,8 +206,8 @@ The supplied exports contain no image consent evidence, so the importer creates
 only a `LEGACY` privacy provenance marker and never invents image consent or
 current legal acceptance. New accounts are created with `onboardingPending=true`,
 no password, and the club's default locale; existing accounts remain intact.
-Memberships get MEMBER plus explicit team/instructor roles, with LEFT memberships
-suspended. Loading sends no notifications or welcome links.
+Memberships get MEMBER plus explicit team/instructor roles; LEFT members get none.
+Loading sends no notifications or welcome links.
 
 Every SEPA record receives a new cutover mandate reference using club slug and
 member number (stable member id if the number is absent), with the club-local
@@ -206,8 +239,12 @@ are printed to stdout; dry-run creates no report file.
 
 `src/test/resources/fixtures/playoff/` contains 184 fictional ACTIVE source rows
 plus 7 LEFT examples: 26 missing IBANs, 9 inferred dogs, 16 missing chips, 7 missing
-emails, 20 shared-email second owners, 4 number conflicts, 2 suspicious ages and
+emails, 20 shared-email pairs, 4 number conflicts, 2 suspicious ages and
 one duplicated document (one person/two dogs). Additional rows cover invalid IBAN,
-card fallback, old/undated leave and explicit family/team joins. Anonymizer tests
+card fallback, old/undated leave and explicit family/team joins. E5-T12 cases:
+`persones.csv` joins records 62 and 82 (same person, confirmed); pairs 63/83 and
+64/84 play an unconfirmed same person and a family; LEFT record 186 shares the email
+of ACTIVE record 55 with an older join date; 67/87 share the join date (the lower
+member number, 87, owns the account). Anonymizer tests
 exercise a 50-row synthetic export and verify deterministic replacement and
 relationship preservation. No production data was accessed to build this fixture.

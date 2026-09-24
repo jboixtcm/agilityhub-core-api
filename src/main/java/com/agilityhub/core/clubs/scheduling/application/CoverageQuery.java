@@ -46,12 +46,14 @@ public class CoverageQuery {
         for (var count : dogs.counts(clock.today(TenantContext.require()), zone, activeWeeks)) {
             counts.put(count.levelId(), new CoverageCalculator.Dogs(count.total(), count.withRecentBooking(), booked.getOrDefault(count.levelId(), 0)));
         }
-        for (var level : catalog.activeLevels()) {
+        // R-06-06 (E29): the table lists only the active progression levels; Teràpia or Pendent never appear.
+        var levels = catalog.activeProgression();
+        for (var level : levels) {
             counts.putIfAbsent(level.id(), new CoverageCalculator.Dogs(0, 0, booked.getOrDefault(level.id(), 0)));
         }
         var thresholds = config.get("coverage.thresholds", Map.class);
         var limits = new CoverageCalculator.Thresholds(((Number) thresholds.get("ok")).intValue(), ((Number) thresholds.get("tight")).intValue(), ((Number) thresholds.get("short")).intValue());
-        var levels = catalog.activeLevels(); var names = new HashMap<String, String>(); levels.forEach(l -> names.put(l.id(), l.name().resolve(LocaleContext.current()).value()));
+        var names = new HashMap<String, String>(); levels.forEach(l -> names.put(l.id(), l.name().resolve(LocaleContext.current()).value()));
         var results = CoverageCalculator.calculate(levels.stream().map(SchedulingCatalog.Level::id).toList(), classes, counts, limits, weekId != null);
         return new PlanningViews.Coverage(weekId == null ? PlanningViews.CoverageScope.TEMPLATE : PlanningViews.CoverageScope.WEEK,
                 new PlanningViews.CoverageThresholds(limits.ok(), limits.tight(), limits.shortThreshold()), activeWeeks,

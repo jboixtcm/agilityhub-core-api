@@ -1,0 +1,55 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_t12 (empty), local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 03-club-apply-first.log)
++ catalogs: 32 catalog changes
++ pages: 3 page changes
+15 changes (applied)
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 04-club-apply-second.log)
+= catalogs: 0 catalog changes
+= pages: 0 page changes
+0 changes (applied)
+PASS second club:apply: 0 changes and complete Mongo document snapshot unchanged
+Stored levels (mongosh):
+  CAD order=0 capacity=5 progression=true
+  A order=10 capacity=5 progression=true
+  B order=20 capacity=5 progression=true
+  C order=30 capacity=5 progression=true
+  D order=40 capacity=5 progression=true
+  E order=50 capacity=4 progression=true
+  F order=60 capacity=4 progression=true
+  G order=70 capacity=4 progression=true
+  TER order=80 capacity=1 progression=false
+  PENDENT order=90 capacity=5 progression=false
+curl GET /api/v1/levels (Host app.agilitycanic.cat, seeded ADMIN) -> 200
+  CAD      order=0 capacity=5 color=#F5D67A progression=true name="Cadells"
+  A        order=10 capacity=5 color=#C9E4F5 progression=true name="A"
+  B        order=20 capacity=5 color=#A9D3F0 progression=true name="B"
+  C        order=30 capacity=5 color=#85B8E8 progression=true name="C"
+  D        order=40 capacity=5 color=#8FCE8F progression=true name="D"
+  E        order=50 capacity=4 color=#F2B58C progression=true name="E"
+  F        order=60 capacity=4 color=#E8A070 progression=true name="F"
+  G        order=70 capacity=4 color=#E26A2A progression=true name="G"
+  TER      order=80 capacity=1 color=#C9CDD3 progression=false name="Teràpia"
+  PENDENT  order=90 capacity=5 color=#9AA0A6 progression=false name="Pendent"
+PASS GET /levels: PENDENT and TER progression=false, the other 8 levels true (full body 05-get-levels.json)
+$ bin/core migration:playoff src/test/resources/fixtures/playoff --dry-run --club=canic -> exit 0 (log 06-migration-dry-run-fixtures.log)
+Playoff DRY_RUN
+members: created=187 updated=0 skipped=4 errors=0
+dogs: created=189 updated=0 skipped=0 errors=0
+familyGroups: created=1 updated=0 skipped=0 errors=0 proposed=18
+accounts: created=156 updated=0 skipped=31 errors=0
+Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PERSON_MERGED=1, PLAN_UNMAPPED=13, VALIDATION_ERROR=10}
+Dry run summary (fixtures): EMAIL_SHARED=19 PERSON_MERGED=1 LEVEL_PENDING=8 PLAN_UNMAPPED=13 MAPPING_INVALID=2
+PASS dry run on the fixtures: no Mongo write, EMAIL_SHARED=19, PERSON_MERGED=1, familyGroups proposed=18
+$ bin/core migration:anonymize src/test/resources/fixtures/playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-qof_zjty/anonymized -> exit 0 (log 07-migration-anonymize.log)
+Anonymized Playoff files written; no input values or key logged.
+Anonymized files: equip.csv, family_groups.csv, nivell.csv, persones.csv, socis.csv, tipologia.csv
+$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-qof_zjty/anonymized --dry-run --club=canic -> exit 0 (log 08-migration-dry-run-anonymized.log)
+Playoff DRY_RUN
+members: created=187 updated=0 skipped=4 errors=0
+dogs: created=189 updated=0 skipped=0 errors=0
+familyGroups: created=1 updated=0 skipped=0 errors=0 proposed=18
+accounts: created=156 updated=0 skipped=31 errors=0
+Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PERSON_MERGED=1, PLAN_UNMAPPED=13, VALIDATION_ERROR=10}
+Dry run summary (anonymized): EMAIL_SHARED=19 PERSON_MERGED=1
+PASS dry run on the anonymized derivative: same entity counts and incident counts (the persones.csv join survived)
+HELPER_EXIT_0

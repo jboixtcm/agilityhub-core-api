@@ -289,7 +289,7 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 
 ### 14.5 Via de port (substitueix WP-16-0/A/B/E de §12)
 
-1. **WP-16-A′** Copiar `packages/course-core` i `packages/shared-types` (i el que calgui de `packages/ui`) al monorepo amb els seus tests; publicar el JSON Schema de `CourseData`/`BuildSessionExportV1` (zod → JSON Schema) per a la validació al core.
+1. **WP-16-A′** Copiar `packages/course-core` i `packages/shared-types` (i el que calgui de `packages/ui`) al monorepo amb els seus tests (**fet a E0-W08**, web, 24-09). La publicació del JSON Schema de `CourseData`/`BuildSessionExportV1` (zod → JSON Schema) per a la validació al core se'n separa: és precondició de WP-16-C′ i serà la primera tasca web quan s'obri S16.
 2. **WP-16-C′** Back `courses`: col·leccions segons §14.2; endpoints modelats sobre els mètodes de `PlannerStore` (`listVenues, listRings, uploadCourse, savePlacement, createBuildSession, listCalendarPlacements, createMarker/updateMarker, listMarkers, createCalibrationLog, upsertBuildObstacleStatus, subscribeBuildObstacleStatuses → SSE, listAuditLogs…`) + `GET /build-sessions/{id}/export` (`BuildSessionExportV1`) + `POST /rings/{id}/calibrations`.
 3. **WP-16-B′** `packages/course-ui`: moure `PlannerCanvas`, `Planner3D`, `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `PaperSizeToggle`, `UnitsToggle` (són React + Tailwind sense Next); `CoreApiStore implements PlannerStore` a `packages/api-client`.
 4. **WP-16-E′** `apps/clubs-admin`: pàgines del wizard (`/recorreguts/nou` = `plan/*`), biblioteca (D18 = `courses` + calendari), geometria de D16 (`venue/[id]/markers` + `RingDoorEditor` + inventari), sessions (`build-sessions/[id]` i `/live`), impressió de marcadors (`markers/print`). Next App Router → React Router: substituir `next/navigation`, `next/link`, `NextResponse` i `supabase-server` pels equivalents.
@@ -298,7 +298,13 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 
 ### 14.6 Verificacions pendents (necessiten l'arrel del monorepo)
 
-1. `course-core` i `shared-types`: dependències (només `zod`?), llicència, cobertura de tests, existència de JSON Schema exportable.
+1. ~~`course-core` i `shared-types`: dependències (només `zod`?), llicència, cobertura de tests, existència de JSON Schema exportable.~~ **Resolt 24-09 (E0-W08):**
+   - dependències: `course-core` només `zod` (3.25.76), i `shared-types` `zod` + `course-core`;
+   - llicència: cap llicència de paquet, i l'únic avís de tercers és el BSD-2 d'AprilTag (`LICENSE-apriltag`);
+   - cobertura: 17 fitxers i 317 tests d'origen + 21 de `shared-types`;
+   - JSON Schema: encara no n'hi ha cap d'exportable (cal `zod-to-json-schema`); vegeu WP-16-A′ a §14.5.
+
+   L'origen és el commit `65126cf` del 21-09-2026. La pàgina de marcadors imprimible (`marker-svg.ts`) porta colors literals de la impressió, amb una excepció aprovada a la regla de colors: WP-16-E′ decideix si la capçalera i el peu prenen els colors del *branding* del club.
 2. Apps Unity/Quest del monorepo: estat real, versió d'AR Foundation, com llegeixen `BuildSessionExportV1` (`StreamingAssets/`), autenticació actual (Supabase?) → S20.
 3. Dades reals a Supabase (venues, rings, courses, usuaris amb `profiles`) → WP-16-G′ i importació de comptes a S01 si hi ha usuaris reals.
 4. `packages/ui` (design system del planner) vs `packages/ui` del core: fusió o coexistència.
@@ -309,3 +315,4 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 
 - 03-09-2026 · v0.1 · esborrany inicial a partir d'ADR-013, PLATAFORMA §5, IDEA-02 i les specs S05/S06/S07/S09/S15. Pendent de la revisió del codi del web-planner (WP-16-0) → v0.2.
 - 05-09-2026 · v0.2 · §14: verificació del web-planner (course-core i shared-types reals, esquema Supabase, `PlannerStore`, Unity export, AprilTag, calibratge, fixtures Smarter). El model de §3 i els paquets de §12 queden substituïts pel §14 on discrepin; pendent muntar l'arrel del monorepo per a §14.6.
+- 24-09-2026 · verificació d'E0-W08 (web): WP-16-A′ fet (còpia de `course-core` i `shared-types` des de `65126cf`). La publicació del JSON Schema se'n separa com a precondició de WP-16-C′. §14.6-1 resolt.

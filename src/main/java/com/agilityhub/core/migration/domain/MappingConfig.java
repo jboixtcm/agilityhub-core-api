@@ -9,23 +9,27 @@ import java.util.*;
 
 /** Versioned adapter: positions disambiguate Playoff's duplicate birth-date headings. */
 public record MappingConfig(int version, String defaultClub, int ageWarningYears, int suspectBirthYears, String inferredDogPrefix, Map<String,String> statuses, Map<String,String> plans,
-        Set<String> unresolvedPlans, Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels,
-        Map<String,String> levelFlags, Set<String> unresolvedLevels, Map<String,InputFile> files) {
+        Set<String> unresolvedPlans, Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels, Map<String,String> levelWarnings,
+        Map<String,String> levelFlags, Set<String> unresolvedLevels, String photoOwner, Map<String,InputFile> files) {
+    public static final int VERSION = 2;
+    public static final String DEFAULT = "/migration/playoff-v" + VERSION + ".yaml";
     public record Column(int at, String header, String field, String anonymize) { }
     public record InputFile(String name, boolean required, List<Column> columns) { }
     public static String normalize(String value) { return value.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT); }
     public static MappingConfig load(Path path) {
-        try (InputStream input = path == null ? MappingConfig.class.getResourceAsStream("/migration/playoff-v1.yaml") : Files.newInputStream(path)) {
+        try (InputStream input = path == null ? MappingConfig.class.getResourceAsStream(DEFAULT) : Files.newInputStream(path)) {
             var config = new ObjectMapper(new YAMLFactory()).readValue(input, MappingConfig.class);
             config.validate(); return config;
         } catch (IOException | IllegalArgumentException failure) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
     }
     public void validate() {
-        if (version != 1 || defaultClub == null || defaultClub.isBlank() || ageWarningYears < 1 || suspectBirthYears < 1
+        if (version != VERSION || defaultClub == null || defaultClub.isBlank() || ageWarningYears < 1 || suspectBirthYears < 1
                 || inferredDogPrefix == null || statuses == null || plans == null || levels == null || files == null
                 || unresolvedPlans == null || familyPlans == null || instructorPlans == null || levelFlags == null || unresolvedLevels == null
+                || levelWarnings == null || !levels.keySet().containsAll(levelWarnings.keySet()) || !Set.of("LEVEL_PENDING").containsAll(levelWarnings.values())
+                || !"DOG".equals(photoOwner)
                 || !Set.of("ACTIVE","LEFT","SKIP").containsAll(statuses.values())
-                || !files.keySet().equals(Set.of("members", "plans", "levels", "groups", "team"))) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
+                || !files.keySet().equals(Set.of("members", "plans", "levels", "groups", "team", "persons"))) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
         var names = new HashSet<String>();
         for (var file : files.values()) {
             var positions = new HashSet<Integer>(); var fields = new HashSet<String>();

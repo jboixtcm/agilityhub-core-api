@@ -269,6 +269,19 @@ catalogs: {
       "grantsFreeTraining": false,
       "progression": false,
       "active": true
+    },
+    {
+      "code": "PENDENT",
+      "name": {
+        "ca": "Pendent",
+        "es": "Pendiente"
+      },
+      "order": 90,
+      "color": "#9AA0A6",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": false,
+      "active": true
     }
   ],
   "rings": [
