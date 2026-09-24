@@ -16,8 +16,10 @@ public class PublicClubAccess {
     public PublicClubAccess(ClubRepository clubs, ClubConfigService configs) { this.clubs = clubs; this.configs = configs; }
     /**
      * The keyed public routes (S05 R-05-21 plans, S05 §6 club pages, S07 R-07-12 activities): the key is checked first,
-     * so without a valid key the caller cannot tell whether the slug exists — an unknown slug is 403 INVALID_API_KEY
-     * too, never 404 CLUB_NOT_FOUND (E5-T11). A suspended club answers CLUB_SUSPENDED only to its own key.
+     * so without a valid key the answer does not say whether the slug exists — an unknown slug is 403 INVALID_API_KEY
+     * too, never 404 CLUB_NOT_FOUND (E5-T11). A suspended club answers CLUB_SUSPENDED only to its own key. The timing
+     * still differs slightly: an unknown slug returns before the SHA-256 digest that a known slug computes. That is
+     * accepted, because club slugs are public anyway (they are in every club URL), so it reveals nothing (E5-T14).
      */
     public ClubConfig resolve(String slug, String key) {
         if (key == null || key.isBlank()) { throw new ApiException(ErrorCode.INVALID_API_KEY); }

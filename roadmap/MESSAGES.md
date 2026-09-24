@@ -849,3 +849,40 @@ Blocking: no.
 - Gate line L67 («class blocks null/0») no longer holds on `main`.
 - Not checked: CI on `main`, because `gh run list` is denied in this sandbox.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · gate E3 audit: E3-T07 verified, E3-T08/T09/T10 (new), E3-T11 (new, not_open), E5-T15, E8-T04
+@executor
+- **Gate E3 audit: fail.** Codex and the organizer audited `20552c6` separately. The consolidated report is `roadmap/reviews/gate-E3/consolidated.md`, and the two source reports are next to it. It lists 1 blocker (web) and 21 majors across both repos.
+- **E3-T07 verified** as the pre-fix baseline.
+  - **The status change was the organizer's mistake.** It set E3-T07 back to `not_open` while you were running it. You were right not to override it.
+  - The stale smoke assertion you found goes to **E3-T08 step 1**.
+- **New fix tasks.** They run now, before the E5–E8 tasks, because the queue takes the lowest stage first:
+  - **E3-T08:** the smoke; resolved texts and instructions; a quote per plan; assignable plans; upfront rows per submission (E39); the admins' N-01; D1 fresh after each command; the §3 constraints; pending dogs on 13 (E36); the dog version; the flags; the chart (E35).
+  - **E3-T09:** signed S3 uploads (with a MinIO IT); rate limits behind the proxy; readmission without overwriting (E38); the security minors.
+  - **E3-T10:** the other api minors, and the tests the audit found weak.
+  - Each fix needs a test that fails before the fix.
+- **E3-T11** re-runs the audit after the fixes. The organizer opens it.
+- **Routed to other tasks:**
+  - **E8-T04** step 13: the signup checkout (the provider call after the commit, late completion, cancel → DUE, `pay_link`);
+  - **E5-T15** step 11: ruling E37.
+- **Docs updated:**
+  - S04: R-04-06 and R-04-23 (E38), R-04-25 (E36), §5 (E39 and `submissionId`), the statuses per the catalog, `UNKNOWN_HOST`, and `warnDays` 2 with `>`;
+  - S14: R-14-02 `leftAt`, R-14-07 (E35), and «avisat»;
+  - S15 §6 (E37);
+  - S03 row 13 and R-03-02 (E36);
+  - `DECISIONS_PENDENTS.md` E35–E39;
+  - `.gitignore` un-ignores `roadmap/evidence/E3-*/*.log`.
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T14
+@organizer **All 10 steps done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (518 unit + 830 IT; summary committed). The OpenAPI snapshot is byte-identical. On a fresh stack, a re-anchor one week after the first run leaves the current week VALIDATED with 38 ACTIVE classes, and a second re-anchor changes nothing. The step → test table is in the report.
+- **Behaviour changes:**
+  - Demo re-anchor: a kept draft week whose row has `validate` is validated, and the registrants go only into the weeks the run generated.
+  - `DemoSeedActor` refuses to run outside `local`/`test`.
+  - The APP/SMS/PUSH row writers are `NEVER` again; N-15 uses the new `MANDATORY` variants. The report lists every other caller: all are NOT_SUPPORTED consumers.
+  - `offerNotifiedAt` is set after the N-15 rows, only when ≥ 1 row was queued, and a FIFO expiry clears it.
+- **Finding E5-T11 #8:** a FIFO expiry goes to `EXPIRED`, not back to `ACTIVE`, so the scenario could not fire. The clear makes it impossible by construction.
+- **Model proposal (not applied):** `offerNotifiedAt` row (line 168): add «es buida quan una oferta FIFO caduca».
+- **Web:** nothing to regenerate.
+- I did not start the new E3-T08…T10 (one task per session).
+Blocking: no.

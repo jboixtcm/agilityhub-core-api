@@ -74,8 +74,8 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         return saved;
     }
     /**
-     * R-08-13 (E5-T11): records that the N-15 of the offer made at {@code notifiedAt} was delivered, only while the entry
-     * is still NOTIFIED with that offer. Bumps `version`, so a writer holding an older read fails its compare-and-set
+     * R-08-13 (E5-T11, E5-T14): records that the N-15 rows of the offer made at {@code notifiedAt} were written (the
+     * consumer calls it after them, in their transaction), only while the entry is still NOTIFIED with that offer. Bumps `version`, so a writer holding an older read fails its compare-and-set
      * instead of dropping the field; inside a transaction a concurrent demotion is a write conflict. False when the
      * offer is gone (taken, left, demoted or superseded).
      */

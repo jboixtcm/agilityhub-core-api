@@ -19,6 +19,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-07 | 24-09 | api · web (auth) | El `refresh_token` respon `400` de manera intermitent a l'e2e contra el core real | **Alta** (provisional) | oberta — **E3-W04** (pas 6) en captura el cos de l'error; diagnosi pendent |
 | INC-08 | 24-09 | api · contracte | Les respostes serialitzen `null` en camps opcionals que l'OpenAPI no declara `nullable` | Mitjana | oberta — el front ho tolera a D11 (E3-W03) i a D2 (E3-W04) |
 | INC-09 | 24-09 | api · contracte | `RING_HAS_BOOKINGS.details.bookings[]` té dues formes segons la ruta | Baixa | oberta — el front mostra només `memberName` + `dogName` (E4-W02) |
+| INC-10 | 24-09 | api · RGPD | Les altes rebutjades no tenen retenció: S14 R-14-16 (b) no està implementada | Mitjana | oberta — la purga és d'E11 (retenció i supressió); trobada a la revisió de la porta E3 |
 
 ---
 
@@ -190,3 +191,13 @@ Solució probable:
 **Comportament esperat**: una sola forma per al codi, publicada a l'OpenAPI i usada per totes les rutes. Suggeriment: `{bookingId, ringId, from, to, memberName, dogName}`, amb `ringId`, `from` i `to` opcionals si S09 no els té.
 
 **On mirar**: `TrainingContracts.RingHasBookingsDetails`, `TrainingConflictPort`, `RingTrainingBookings`, `RingBlockService.resolve` i `ClassSessionService`.
+
+## INC-10 · Retenció de les altes rebutjades (RGPD)
+
+**Gravetat**: mitjana. Cap dada es perd ni s'exposa, però les dades d'una alta rebutjada es guarden indefinidament, i la política de privacitat dirà que s'esborren passat `rgpd.rejectedSignupRetentionDays`.
+
+**Origen**: la revisió exhaustiva de la porta E3 (24-09), `backlog/revisio-porta-E3/REVISIO_PORTA_E3.md`, «Routed elsewhere».
+
+**Comportament esperat** (S14 R-14-16, b): el procés mensual de retenció (S15) tracta les altes rebutjades (`leftReason = SIGNUP_REJECTED`) amb `leftAt + rgpd.rejectedSignupRetentionDays ≤ avui` com una supressió (`ErasureRequest{source: RETENTION}`, R-14-15). Amb la decisió E38, una readmissió rebutjada torna al seu motiu de baixa original i **no** entra en aquesta classe.
+
+**On mirar**: el procés de retenció d'S15 i `ErasureExecutor` d'S14, quan s'implementin (E11).

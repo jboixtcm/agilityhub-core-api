@@ -51,3 +51,6 @@ __pycache__/
 !roadmap/evidence/E5-T05/*.log
 !roadmap/evidence/E5-T06/*.log
 !roadmap/evidence/E3-T07/*.log
+
+# gate E3 audit and fix tasks (organizer 24-09)
+!roadmap/evidence/E3-*/*.log

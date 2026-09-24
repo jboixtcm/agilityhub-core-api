@@ -24,7 +24,7 @@ public class PublicPlansController {
     private final OfferViews views;
     public PublicPlansController(com.agilityhub.core.platform.application.PublicClubAccess clubs, OfferViews views) { this.clubs = clubs; this.views = views; }
     @GetMapping("/api/v1/public/{clubSlug}/plans")
-    @io.swagger.v3.oas.annotations.security.SecurityRequirements
+    @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "clubApiKey")
     @ListContract(filterable = {}, sortable = {"order"},
             columns = {"name*", "type*", "conditions", "texts", "currentPrices@BILLING"}, paged = false, exportable = false)
     @ContractErrors({INVALID_API_KEY, CLUB_SUSPENDED, RATE_LIMITED})

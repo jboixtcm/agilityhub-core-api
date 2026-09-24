@@ -20,15 +20,17 @@ import org.springframework.transaction.annotation.*;
  * <li>`notifications.N-15` on `WaitlistNotified` → «S'ha alliberat una plaça!» to the owner of each notified entry: APP
  * + SMS intent (QUEUED, ≤ 160 GSM-7, or SKIPPED_MODULE_OFF without SMS) + PUSH intent (QUEUED, or SKIPPED_MODULE_OFF
  * without PUSH), action CLAIM_SEAT; ids `eventId:entryId:channel`, so one N-15 per entry and offer. Each entry is one
- * transaction: `offerNotifiedAt` is set on the entry only while it is still NOTIFIED with that `notifiedAt`, together
- * with the N-15 rows; an entry demoted (or taken) first gets neither (E5-T11).</li>
+ * transaction: while the entry is still NOTIFIED with that `notifiedAt`, the N-15 rows are written first and then
+ * `offerNotifiedAt` says «the N-15 rows of this offer were written», only when at least one row was queued; an entry
+ * demoted (or taken) first gets neither (E5-T11, E5-T14).</li>
  * <li>`notifications.N-46` on `WaitlistConsolidated`, `notifications.N-46.booked` on `BookingCreated` and
  * `notifications.N-46.held` on `SeatHoldReleased` of a confirmation (the PAY_TO_BOOK seat taken as PAYMENT_PENDING; a
  * hold released without a booking of its dog is ignored, and an expired hold emits no event) (ALL_AT_ONCE):
  * a read-only check first (nothing offered → nothing to do), the idempotent demotion of R-08-13 in its own transaction
  * only while an entry is still NOTIFIED (the booking transaction normally did it already), then «La plaça ja s'ha
- * ocupat» → APP to every ACTIVE entry whose offer was taken (ACTIVE with `notifiedAt`) and whose N-15 of that offer
- * was delivered (`offerNotifiedAt` = `notifiedAt`); ids
+ * ocupat» → APP to every ACTIVE entry whose offer was taken (ACTIVE with `notifiedAt`) and whose N-15 rows of that
+ * offer were written (`offerNotifiedAt` = `notifiedAt`; a FIFO offer that expired is EXPIRED, not live, and its mark
+ * is cleared, E5-T14); ids
  * `N-46:entryId:notifiedAt:app`, so each lost offer is told exactly once, whichever event gets there first.</li>
  * </ul>
  * Rendered in the recipient's locale with the club time zone.
@@ -53,10 +55,15 @@ public class WaitlistNotifications {
             var ids = event.payload().get("entryIds") instanceof Collection<?> list ? list.stream().map(Object::toString).toList() : List.<String>of();
             for (var entry : waitlist.byIds(ids)) {
                 if (entry.state() != WaitlistState.NOTIFIED) { continue; } // taken, left or demoted before the delivery
-                // R-08-13 (E5-T11): the delivery is recorded on the entry in the transaction of the N-15 rows. A demotion
-                // committed first makes the conditional update miss (no N-15, no N-46); one running meanwhile conflicts.
+                // R-08-13 (E5-T11, E5-T14): the N-15 rows are written first and the entry records them after, in the same
+                // transaction, only when at least one row was queued (a member without account or phone gets none). A
+                // demotion committed first is seen by the re-read (no N-15, no N-46); one running meanwhile conflicts.
                 transactions.write(List.of(entry.classSessionId()), () -> {
-                    if (waitlist.markOfferNotified(entry.id(), entry.notifiedAt())) { send(eventId + ":" + entry.id(), "N-15", entry); }
+                    var current = waitlist.findById(entry.id()).filter(e -> e.state() == WaitlistState.NOTIFIED && entry.notifiedAt().equals(e.notifiedAt()));
+                    if (current.isEmpty() || send(eventId + ":" + entry.id(), "N-15", entry, true) == 0) { return null; }
+                    if (!waitlist.markOfferNotified(entry.id(), entry.notifiedAt())) {
+                        throw new IllegalStateException("Waiting-list entry " + entry.id() + " changed while its N-15 was written"); // rolls the rows back
+                    }
                     return null;
                 });
             }
@@ -83,23 +90,39 @@ public class WaitlistNotifications {
             }
             for (var entry : live) {
                 if (entry.state() != WaitlistState.ACTIVE || entry.notifiedAt() == null || !entry.notifiedAt().equals(entry.offerNotifiedAt())) { continue; }
-                send("N-46:" + entry.id() + ":" + entry.notifiedAt().toEpochMilli(), "N-46", entry);
+                send("N-46:" + entry.id() + ":" + entry.notifiedAt().toEpochMilli(), "N-46", entry, false);
             }
         }
     }
-    private void send(String key, String code, WaitlistEntry entry) {
-        var session = classes.find(entry.classSessionId()).orElse(null); if (session == null) { return; }
-        var member = census.member(entry.memberId()).orElse(null); if (member == null) { return; }
+    /**
+     * Writes the notice rows (each id idempotent) and returns how many channel rows now exist for this notice: 0 when
+     * the class or the member is gone, or the member has neither an account nor a phone. `joined` = inside the caller's
+     * transaction (the MANDATORY variants); otherwise each row gets its own (the NEVER methods).
+     */
+    private int send(String key, String code, WaitlistEntry entry, boolean joined) {
+        var session = classes.find(entry.classSessionId()).orElse(null); if (session == null) { return 0; }
+        var member = census.member(entry.memberId()).orElse(null); if (member == null) { return 0; }
         var account = member.accountId() == null ? null : accounts.find(member.accountId()).orElse(null);
         var locale = locale(account == null ? member.locale() : account.locale());
         var variables = variables(code, entry, session, locale);
-        if (account != null) { notifications.appOnce(key + ":app", code, account.id(), variables); }
-        if (!code.equals("N-15")) { return; }
-        if (!member.phones().isEmpty()) {
-            notifications.smsIntentOnce(key + ":sms", code, member.accountId(), locale.toLanguageTag(), member.phones(),
-                    BookingSms.compact(messages.format("notif.N-15.sms", variables, locale)), context.enabled(Module.SMS), variables);
+        int rows = 0;
+        if (account != null) {
+            if (joined) { notifications.appOnceInTransaction(key + ":app", code, account.id(), variables); } else { notifications.appOnce(key + ":app", code, account.id(), variables); }
+            rows++;
         }
-        if (account != null) { notifications.pushIntentOnce(key + ":push", code, account.id(), locale.toLanguageTag(), context.enabled(Module.PUSH), variables); }
+        if (!code.equals("N-15")) { return rows; }
+        if (!member.phones().isEmpty()) {
+            var body = BookingSms.compact(messages.format("notif.N-15.sms", variables, locale));
+            if (joined) { notifications.smsIntentOnceInTransaction(key + ":sms", code, member.accountId(), locale.toLanguageTag(), member.phones(), body, context.enabled(Module.SMS), variables); }
+            else { notifications.smsIntentOnce(key + ":sms", code, member.accountId(), locale.toLanguageTag(), member.phones(), body, context.enabled(Module.SMS), variables); }
+            rows++;
+        }
+        if (account != null) {
+            if (joined) { notifications.pushIntentOnceInTransaction(key + ":push", code, account.id(), locale.toLanguageTag(), context.enabled(Module.PUSH), variables); }
+            else { notifications.pushIntentOnce(key + ":push", code, account.id(), locale.toLanguageTag(), context.enabled(Module.PUSH), variables); }
+            rows++;
+        }
+        return rows;
     }
     private Locale locale(String tag) {
         return tag != null && Set.of("ca", "es", "en").contains(tag) ? Locale.forLanguageTag(tag) : Locale.forLanguageTag(context.config().club().defaultLocale());

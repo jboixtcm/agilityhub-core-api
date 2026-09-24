@@ -1,0 +1,26 @@
+Command: ./mvnw -q clean verify -> exit=0 (03-clean-verify.log)
+surefire TOTAL tests=518 failures=0 errors=0 skipped=0
+  DemoSeedActorTest tests=2 failures=0 errors=0 skipped=0
+  DemoBookingSeederTest tests=1 failures=0 errors=0 skipped=0
+  SeedAndWriterRulesTest tests=6 failures=0 errors=0 skipped=0
+  ArchitectureTest tests=12 failures=0 errors=0 skipped=0
+  EventCatalogContractTest tests=2 failures=0 errors=0 skipped=0
+  new/changed methods:
+    DemoBookingSeederTest.T_06_28_aReanchoredRunBooksOnlyIntoTheWeeksItGenerated passed
+    DemoSeedActorTest.E5_T14_inLocalOrTestTheWorkRunsAsTheSeedAccountAndTheContextIsRestored passed
+    DemoSeedActorTest.E5_T14_theSeedActorRefusesToRunOutsideTheLocalAndTestProfiles passed
+    SeedAndWriterRulesTest.E5_T09_classCountersAreWrittenOnlyByTheBookingContext passed
+    SeedAndWriterRulesTest.E5_T14_onlyTheNamedS08WriterSetsTheCountersAndAMethodReferenceIsCaught passed
+    SeedAndWriterRulesTest.E5_T14_theActivityConsumerEnvelopeIsNotADomainEventEither passed
+failsafe TOTAL tests=830 failures=0 errors=0 skipped=0
+  DemoPlanningSeedIT tests=7 failures=0 errors=0 skipped=0
+  WaitlistIT tests=18 failures=0 errors=0 skipped=0
+  SystemNotificationServiceIT tests=16 failures=0 errors=0 skipped=0
+  E2ContractIT tests=15 failures=0 errors=0 skipped=0
+  new/changed methods:
+    DemoPlanningSeedIT.T_06_28_reanchorOneWeekLaterValidatesTheKeptDraftWeekAndBooksOnlyTheGeneratedWeek passed
+    E2ContractIT.T_05_18_T_07_17_everyKeyedPublicRouteChecksTheKeyBeforeTheClub passed
+    SystemNotificationServiceIT.E5_T14_rowWritersRefuseABusinessTransactionAndTheirMandatoryVariantsNeedOne passed
+    WaitlistIT.R_08_13_R_08_14_anExpiredFifoOfferNeverGetsN46 passed
+    WaitlistIT.R_08_13_anOfferWithNoN15RecipientIsNotMarkedAndGetsNoN46 passed
+(read from target/surefire-reports and target/failsafe-reports after ./mvnw -q clean verify)

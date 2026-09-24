@@ -72,13 +72,23 @@ public class WaitlistTransitions implements WaitlistConsolidationPort {
     WaitlistEntry notify(WaitlistEntry e, Instant now, Instant confirmBy, String actorAccountId) {
         return write(e, WaitlistState.NOTIFIED, now, confirmBy, null, null, null, now, actorAccountId);
     }
-    WaitlistEntry expire(WaitlistEntry e, Instant now) { return write(e, WaitlistState.EXPIRED, e.notifiedAt(), e.confirmBy(), null, null, null, now, null); }
+    /**
+     * R-08-14 FIFO expiry. E5-T14 (review E5-T11 #8): the expired offer loses its N-15 mark, so no later seat-taken
+     * event can ever tell it «La plaça ja s'ha ocupat» (N-46 is for an offer someone else took, not one that ran out).
+     */
+    WaitlistEntry expire(WaitlistEntry e, Instant now) {
+        return write(e, WaitlistState.EXPIRED, e.notifiedAt(), e.confirmBy(), null, null, null, now, null, null);
+    }
 
     private WaitlistEntry write(WaitlistEntry e, WaitlistState state, Instant notifiedAt, Instant confirmBy, String bookingId, Instant cancelledAt,
             WaitlistCancelReason reason, Instant now, String actorAccountId) {
+        return write(e, state, notifiedAt, confirmBy, bookingId, cancelledAt, reason, now, actorAccountId, e.offerNotifiedAt());
+    }
+    private WaitlistEntry write(WaitlistEntry e, WaitlistState state, Instant notifiedAt, Instant confirmBy, String bookingId, Instant cancelledAt,
+            WaitlistCancelReason reason, Instant now, String actorAccountId, Instant offerNotifiedAt) {
         long version = e.version() == null ? 0L : e.version();
         return waitlist.update(new WaitlistEntry(e.id(), e.clubId(), e.classSessionId(), e.dogId(), e.memberId(), e.accountId(), e.joinedAt(), state,
-                e.position(), notifiedAt, confirmBy, e.offerNotifiedAt(), bookingId, cancelledAt, reason, e.classStartsAt(), e.bookingWeekKey(), version + 1,
+                e.position(), notifiedAt, confirmBy, offerNotifiedAt, bookingId, cancelledAt, reason, e.classStartsAt(), e.bookingWeekKey(), version + 1,
                 e.createdAt(), e.createdByAccountId(), now, actorAccountId), version);
     }
     static Map<String, Object> payload(WaitlistEntry e) {

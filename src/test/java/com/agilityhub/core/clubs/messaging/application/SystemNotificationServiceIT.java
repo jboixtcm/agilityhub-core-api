@@ -125,6 +125,37 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
                 .isInstanceOf(org.springframework.transaction.IllegalTransactionStateException.class);
         assertThat(mailbox().messages()).isEmpty();
     }
+    /**
+     * E5-T14 (review E5-T11 #2): the APP/SMS/PUSH writers refuse a caller's transaction again (NEVER); only their
+     * `…InTransaction` variants join one, and those need it (MANDATORY), so their rows share its commit or rollback.
+     */
+    @Test void E5_T14_rowWritersRefuseABusinessTransactionAndTheirMandatoryVariantsNeedOne() {
+        account("en");
+        try (var tenant = TenantContext.open("club-a")) {
+            var tx = new TransactionTemplate(manager);
+            List<Runnable> never = List.of(() -> service.appOnce("n-app", "N-15", "email-account", Map.of()),
+                    () -> service.smsIntentOnce("n-sms", "N-15", "email-account", "en", List.of("+34600000001"), "Body", true, Map.of()),
+                    () -> service.pushIntentOnce("n-push", "N-15", "email-account", "en", true, Map.of()));
+            for (var call : never) {
+                assertThatThrownBy(() -> tx.executeWithoutResult(status -> call.run())).isInstanceOf(org.springframework.transaction.IllegalTransactionStateException.class);
+            }
+            List<Runnable> mandatory = List.of(() -> service.appOnceInTransaction("m-app", "N-15", "email-account", Map.of()),
+                    () -> service.smsIntentOnceInTransaction("m-sms", "N-15", "email-account", "en", List.of("+34600000001"), "Body", false, Map.of()),
+                    () -> service.pushIntentOnceInTransaction("m-push", "N-15", "email-account", "en", false, Map.of()));
+            for (var call : mandatory) {
+                assertThatThrownBy(call::run).isInstanceOf(org.springframework.transaction.IllegalTransactionStateException.class);
+            }
+            assertThat(mongo.count(new Query(), Notification.class)).as("nothing written by a refused call").isZero();
+            // Inside a transaction that rolls back, the mandatory variants' rows roll back with it; committed, they stay.
+            tx.executeWithoutResult(status -> { mandatory.forEach(Runnable::run); status.setRollbackOnly(); });
+            assertThat(mongo.count(new Query(), Notification.class)).isZero();
+            tx.executeWithoutResult(status -> mandatory.forEach(Runnable::run));
+            assertThat(mongo.find(new Query(), Notification.class)).extracting(Notification::channel).containsExactlyInAnyOrder("APP", "SMS", "PUSH");
+            // Outside any transaction the public writers run in their own, and stay idempotent by id.
+            never.forEach(Runnable::run); never.forEach(Runnable::run);
+            assertThat(mongo.count(new Query(), Notification.class)).isEqualTo(6);
+        }
+    }
     @Test void T_11_09_providerFailureIsRecordedAfterCommittedQueue() {
         account("en");
         org.mockito.Mockito.doAnswer(call -> {

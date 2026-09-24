@@ -233,14 +233,22 @@ class E2ContractIT extends AbstractIntegrationTest {
                 "/api/v1/public/{clubSlug}/pages/{key}", "/api/v1/public/missing-club/pages/RULES",
                 "/api/v1/public/{clubSlug}/activities", "/api/v1/public/missing-club/activities",
                 "/api/v1/public/{clubSlug}/activities/{slug}", "/api/v1/public/missing-club/activities/missing");
+        // E5-T14 (review E5-T11 #5): the other half of key-first. A SUSPENDED club reached with a wrong key or none answers
+        // INVALID_API_KEY, never CLUB_SUSPENDED (which only its own key may learn).
+        var suspended = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.valueToTree(PlatformFixtures.club("e2-suspended", "e2-suspended.example.test"));
+        suspended.put("status", "SUSPENDED"); suspended.set("modules", mapper.valueToTree(Module.values()));
+        suspended.put("publicApiKeyHash", com.agilityhub.core.platform.application.PublicClubAccess.digest(java.util.UUID.randomUUID().toString()));
+        clubs.save(mapper.convertValue(suspended, Club.class)); configs.invalidate("e2-suspended"); hosts.invalidate();
         keyed.forEach((route, path) -> {
             var responses = api.path("paths").path(route).path("get").path("responses");
             assertThat(responses.at("/403/description").asText()).as(route).contains("INVALID_API_KEY", "CLUB_SUSPENDED");
             assertThat(responses.toString()).as(route + " never answers CLUB_NOT_FOUND").doesNotContain("CLUB_NOT_FOUND");
             try {
-                for (String key : new String[] {null, "", "fictional"}) {
-                    var request = get(path); if (key != null) { request.header("X-Api-Key", key); }
-                    mvc.perform(request).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+                for (String slugPath : List.of(path, path.replace("/missing-club/", "/e2-suspended/"))) {
+                    for (String key : new String[] {null, "", "fictional"}) {
+                        var request = get(slugPath); if (key != null) { request.header("X-Api-Key", key); }
+                        mvc.perform(request).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+                    }
                 }
             } catch (Exception failure) { throw new AssertionError(route, failure); }
         });

@@ -66,40 +66,59 @@ public class SystemNotificationService {
         return deliverTo(id,code,new NotificationAccounts.Recipient(null,email,locale,null),variables);
     }
     /**
-     * The APP row and the SMS/PUSH intents only write rows (no network call), so they join the caller's transaction when
-     * there is one: the S08 N-15 rows commit together with the entry's `offerNotifiedAt` (E5-T11).
+     * The APP row and the SMS/PUSH intents only write rows (no network call), each in its own transaction: like the email
+     * methods they refuse to run inside the caller's transaction, so a business transaction never joins them by mistake
+     * (E5-T14). A consumer that must commit the rows together with its own write uses the `…InTransaction` variants.
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.NEVER)
     public void appOnce(String id,String code,String accountId,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> {
-            if(notifications.findScoped(id).isPresent()) return;
-            var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-            notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant()));
-            notifications.appContent(id,variables);
-            events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
-        });
+        transactions.executeWithoutResult(tx -> app(id,code,accountId,variables));
     }
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.NEVER)
     public void smsIntentOnce(String id,String code,String accountId,String locale,java.util.List<String> phones,
             String body,boolean enabled,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> {
-            if(notifications.findScoped(id).isPresent()) return;
-            notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"SMS",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
-                    null,null,null,null,locale,clock.instant()));
-            notifications.smsContent(id,phones,body,variables);
-            events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
-        });
+        transactions.executeWithoutResult(tx -> sms(id,code,accountId,locale,phones,body,enabled,variables));
     }
     /** A PUSH intent row (QUEUED, or SKIPPED_MODULE_OFF without PUSH); no push sender exists before E7. */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.NEVER)
     public void pushIntentOnce(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> {
-            if(notifications.findScoped(id).isPresent()) return;
-            notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"PUSH",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
-                    null,null,null,null,locale,clock.instant()));
-            notifications.content(id,"PUSH",variables);
-            events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
-        });
+        transactions.executeWithoutResult(tx -> push(id,code,accountId,locale,enabled,variables));
+    }
+    /**
+     * {@link #appOnce} inside the caller's transaction, which must exist: the S08 N-15 rows commit together with the
+     * entry's `offerNotifiedAt` (E5-T11/E5-T14). The same holds for the SMS and PUSH variants below.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void appOnceInTransaction(String id,String code,String accountId,Map<String,Object> variables) { app(id,code,accountId,variables); }
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void smsIntentOnceInTransaction(String id,String code,String accountId,String locale,java.util.List<String> phones,
+            String body,boolean enabled,Map<String,Object> variables) {
+        sms(id,code,accountId,locale,phones,body,enabled,variables);
+    }
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void pushIntentOnceInTransaction(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
+        push(id,code,accountId,locale,enabled,variables);
+    }
+    private void app(String id,String code,String accountId,Map<String,Object> variables) {
+        if(notifications.findScoped(id).isPresent()) return;
+        var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant()));
+        notifications.appContent(id,variables);
+        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+    }
+    private void sms(String id,String code,String accountId,String locale,java.util.List<String> phones,String body,boolean enabled,Map<String,Object> variables) {
+        if(notifications.findScoped(id).isPresent()) return;
+        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"SMS",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
+                null,null,null,null,locale,clock.instant()));
+        notifications.smsContent(id,phones,body,variables);
+        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+    }
+    private void push(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
+        if(notifications.findScoped(id).isPresent()) return;
+        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"PUSH",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
+                null,null,null,null,locale,clock.instant()));
+        notifications.content(id,"PUSH",variables);
+        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
     }
     private String deliverTo(String id,String code,NotificationAccounts.Recipient account,Map<String,?> variables) {
         String clubId = TenantContext.current();

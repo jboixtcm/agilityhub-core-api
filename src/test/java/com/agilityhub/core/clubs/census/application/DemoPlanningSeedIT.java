@@ -189,6 +189,41 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         assertThat(snapshot()).isEqualTo(saved);
     }
 
+    /**
+     * E5-T14 (review E5-T09 #3 and #4): a weekly re-anchor makes the old draft W+1 the current week; its `planning.weeks`
+     * row says `validate`, so it is validated and the current week has bookable classes. The registrants go only into the
+     * week the run generated, never into a kept one.
+     */
+    @Test void T_06_28_reanchorOneWeekLaterValidatesTheKeptDraftWeekAndBooksOnlyTheGeneratedWeek() throws Exception {
+        seed();
+        var anchor = MONDAY.plusWeeks(1);
+        assertThat(one("weeks", Criteria.where("startDate").is(anchor.toString())).getString("state")).isEqualTo("GENERATED");
+        var keptWeeks = List.of(week(anchor), week(anchor.plusWeeks(1)));
+        long keptBookings = bookingsOf(keptWeeks);
+        assertThat(keptBookings).as("the first run's D4 registrants in the old W+2").isPositive();
+        clock.setInstant(Instant.parse("2026-09-16T10:00:00Z")); // Wednesday of the old W+1
+        seed("--reanchor");
+        var current = one("weeks", Criteria.where("startDate").is(anchor.toString()));
+        assertThat(current.getString("state")).as("the kept draft week is validated").isEqualTo("VALIDATED");
+        assertThat(mongo.count(Query.query(Criteria.where("weekId").is(current.getString("_id")).and("state").is("DRAFT")), "class_sessions")).isZero();
+        assertThat(mongo.count(Query.query(Criteria.where("weekId").is(current.getString("_id")).and("state").is("ACTIVE")
+                .and("date").gte("2026-09-16")), "class_sessions")).as("bookable classes left in the current week").isPositive();
+        assertThat(one("weeks", Criteria.where("startDate").is(anchor.plusWeeks(1).toString())).getString("state")).isEqualTo("VALIDATED");
+        var generated = one("weeks", Criteria.where("startDate").is(anchor.plusWeeks(2).toString()));
+        assertThat(generated.getString("state")).isEqualTo("VALIDATED");
+        assertThat(bookingsOf(keptWeeks)).as("no registrant is added to a kept week").isEqualTo(keptBookings);
+        assertThat(bookingsOf(List.of(generated.getString("_id")))).isPositive();
+        var run = one("demo_seed_runs", Criteria.where("_id").is(club + ":planning:" + anchor)).get("counts", Document.class);
+        assertThat(run).containsEntry("keptWeeks", 2).containsEntry("validatedKeptWeeks", 1).containsEntry("weeks", 1);
+        // Idempotent per run week, like the two-week case.
+        var saved = snapshot(); seed("--reanchor"); assertThat(snapshot()).isEqualTo(saved);
+    }
+    String week(LocalDate start) { return one("weeks", Criteria.where("startDate").is(start.toString())).getString("_id"); }
+    long bookingsOf(List<String> weekIds) {
+        var classIds = mongo.find(Query.query(Criteria.where("weekId").in(weekIds)), Document.class, "class_sessions").stream().map(c -> c.getString("_id")).toList();
+        return mongo.count(Query.query(Criteria.where("classSessionId").in(classIds)), "bookings");
+    }
+
     @Test void T_06_28_planningNeedsTheCensusDemoFirst() throws Exception {
         var spec = DemoFixtures.spec(mapper, false);
         try (var tenant = TenantContext.open(club)) {

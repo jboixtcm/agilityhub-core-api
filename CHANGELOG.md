@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T14: follow-ups of the E5-T09 and E5-T11 reviews.
+  - Demo `seed:demo --reanchor`: registrants go only into the weeks the run generated (`DemoSeedStep.Input.generatedWeeks`),
+    never into a kept week. A kept, still-draft, non-past week whose `planning.weeks` row says `validate` is validated,
+    so a weekly re-anchor leaves a bookable current week (`seeds/README.md`).
+  - `DemoSeedActor.as` refuses to run outside the `local`/`test` profiles (FORBIDDEN, fail-closed without an environment).
+  - ArchUnit: `COUNTER_WRITERS` allows only `BookingCounters` and also catches `::counters` method references;
+    `CONSUMER_ENVELOPES` covers `*ExternalEvent`, and `ActivityExternalEvent` is no longer a `DomainEvent`.
+  - `SystemNotificationService.appOnce/smsIntentOnce/pushIntentOnce` are `Propagation.NEVER` again; the S08 N-15
+    consumer uses the new `…InTransaction` (`MANDATORY`) variants.
+  - Behaviour change (R-08-13): `WaitlistEntry.offerNotifiedAt` is set after the N-15 rows and only when at least one
+    was queued (a member with no account and no phone gets no mark and no N-46); a FIFO expiry clears it.
+  - The plans route declares `@SecurityRequirement(name = "clubApiKey")` like the pages route (the snapshot is
+    byte-identical); new tests: a SUSPENDED club with a wrong key or none answers `403 INVALID_API_KEY` on every keyed
+    public route.
 - E3-T07: gate E3 audit run on `de0e17f`, evidence only with no product change.
   - `roadmap/evidence/E3-T07/` holds the S04/S14 spec-test traceability (`trace.py`, CSV and summary: 40 of the 44 ids in scope pass; the 4 missing are front-layer ids).
   - `clean verify` passes (513 unit + 826 IT), both seed commands are idempotent, and the snapshot shows no drift.

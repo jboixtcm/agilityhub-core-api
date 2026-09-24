@@ -19,10 +19,19 @@ class SeedAndWriterRulesTest {
     static final class WritesTheClassCounters {
         Object run(ClassSessionBookingAccess classes) { return classes.counters("class", 1, 0, ClassSessionBookingAccess.LowAlert.KEEP); }
     }
+    /** E5-T14 (review E5-T09 #7): a method reference hands the writer to someone else; it is an access too. */
+    static final class ReferencesTheClassCounters {
+        Object run(ClassSessionBookingAccess classes) {
+            ClassSessionBookingAccessCounters writer = classes::counters; return writer.write("class", 1, 0, ClassSessionBookingAccess.LowAlert.KEEP);
+        }
+    }
+    interface ClassSessionBookingAccessCounters { Object write(String id, int booked, int waiting, ClassSessionBookingAccess.LowAlert alert); }
     static final class MovesTheBookingTime {
         Object run(BookingContext context) { return context.asOf(Instant.EPOCH, () -> "work"); }
     }
     record SneakyForeignEvent(String type, String clubId, String aggregateType, String aggregateId, Instant occurredAt, Map<String, Object> payload,
+            String actorAccountId, String impersonatedMemberId, Origin origin) implements DomainEvent { }
+    record SneakyExternalEvent(String type, String clubId, String aggregateType, String aggregateId, Instant occurredAt, Map<String, Object> payload,
             String actorAccountId, String impersonatedMemberId, Origin origin) implements DomainEvent { }
 
     @Test void E5_T09_onlyDemoSeedClassesMayRunAsTheSeedActor() {
@@ -38,6 +47,24 @@ class SeedAndWriterRulesTest {
         var result = ArchitectureRules.COUNTER_WRITERS.evaluate(new ClassFileImporter().importClasses(WritesTheClassCounters.class));
         assertThat(result.hasViolation()).isTrue();
         assertThat(result.getFailureReport().getDetails()).anyMatch(line -> line.contains("ClassSessionBookingAccess.counters"));
+    }
+
+    @Test void E5_T14_onlyTheNamedS08WriterSetsTheCountersAndAMethodReferenceIsCaught() {
+        var reference = ArchitectureRules.COUNTER_WRITERS.evaluate(new ClassFileImporter().importClasses(ReferencesTheClassCounters.class));
+        assertThat(reference.hasViolation()).isTrue();
+        assertThat(reference.getFailureReport().getDetails()).anyMatch(line -> line.contains("references") &&line.contains("ClassSessionBookingAccess.counters"));
+        // Other S08 and S06 classes are no longer allowed by package; only the named writer is.
+        var bookingsPackage = ArchitectureRules.COUNTER_WRITERS.evaluate(new ClassFileImporter().importClasses(
+                com.agilityhub.core.clubs.bookings.application.fixtures.CounterWriterFixture.class));
+        assertThat(bookingsPackage.hasViolation()).isTrue();
+        assertThatCode(() -> ArchitectureRules.COUNTER_WRITERS.check(new ClassFileImporter().importClasses(
+                com.agilityhub.core.clubs.bookings.application.BookingCounters.class, ClassSessionBookingAccess.class))).doesNotThrowAnyException();
+    }
+
+    @Test void E5_T14_theActivityConsumerEnvelopeIsNotADomainEventEither() {
+        assertThat(ArchitectureRules.CONSUMER_ENVELOPES.evaluate(new ClassFileImporter().importClasses(SneakyExternalEvent.class)).hasViolation()).isTrue();
+        assertThatCode(() -> ArchitectureRules.CONSUMER_ENVELOPES.check(new ClassFileImporter().importClasses(
+                com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent.class))).doesNotThrowAnyException();
     }
 
     @Test void E5_T06_onlyDemoSeedClassesMayMoveTheBookingTime() {

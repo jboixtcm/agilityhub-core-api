@@ -257,7 +257,7 @@ Rutes de club (tenant del JWT); `{name}` = id de ruta de R-15-01 (`404 JOB_UNKNO
     {"classId":"c3","date":"2026-08-11","dayLabel":"TOMORROW","startTime":"20:00","displayDescription":"F i G","ringName":"Carretera","bookedCount":1,"status":"AT_RISK","reviewAt":"2026-08-11T05:30:00Z","notified":[{"memberName":"Pau","dogName":"Blat"}]},
     {"classId":"c4","date":"2026-08-12","dayLabel":"OTHER","startTime":"09:30","displayDescription":"Cadells","ringName":"Cadells","bookedCount":0,"status":"WILL_CANCEL","reviewAt":"2026-08-12T05:30:00Z","notified":[]} ] }
 ```
-`status` ∈ `AUTO_CANCELLED` · `AT_RISK` (avisada) · `WILL_CANCEL` (0 inscrits o encara sense avís; amb `autoCancelSameDay=false` → `WILL_REVIEW`). `notified` es resol de `risk.notifiedBookingIds` (o de `cancellation.affectedBookings` si anul·lada).
+`status` ∈ `AUTO_CANCELLED` · `AT_RISK` (avisada) · `WILL_CANCEL` (0 inscrits o encara sense avís; amb `autoCancelSameDay=false` → `WILL_REVIEW`). `WILL_CANCEL`/`WILL_REVIEW` només quan P2 de debò revisarà la classe: el procés `risk-review` està engegat i el seu `reviewAt` encara és futur. Passada l'hora de revisió del dia, o amb el procés apagat, una classe en risc és `AT_RISK` (amb `notified` si hi va haver avís) — organitzador 24-09, E37. `notified` es resol de `risk.notifiedBookingIds` (o de `cancellation.affectedBookings` si anul·lada).
 
 Codis d'error propis: `JOB_UNKNOWN` (404) · `JOB_ALREADY_RUNNING` (409) · reutilitzats `MODULE_DISABLED` (404), `VALIDATION_ERROR` (400), `INVALID_FILTER` (400).
 
@@ -349,7 +349,7 @@ Llegeix: `club.timeZone` · `bookings.weekOpensAt` · `messaging.notifyWeekOpeni
 
 **Front (component / E2E)**
 - T-15-32 D11: targeta amb 10 files (8 amb el «club mínim»: sense P7, P10; P6 present perquè `WAITLIST` hi és), interruptor amb confirmació, [Simula] mostra el pla de la resposta, [Executa ara] mostra el resum; estat «fallida» en vermell.
-- T-15-33 D1: targeta de risc amb els 4 estats de la forma A i els literals exactes del mockup («anul·lada · avisada Laura + Duna», «en risc · avisats Pau + Blat», «s'anul·larà dc a les 7:30»); clic → D4 amb la classe seleccionada; sense ítems → «Cap classe en risc».
+- T-15-33 D1: targeta de risc amb els 4 estats de la forma A i els literals exactes del mockup («anul·lada · avisada Laura + Duna», «en risc · avisat Pau + Blat», «s'anul·larà dc a les 7:30»); clic → D4 amb la classe seleccionada; sense ítems → «Cap classe en risc».
 - T-15-34 (i18n) Claus `admin-settings:jobs.*`, `admin-dashboard:risk.*`, `console:jobs.*` en `ca`/`es`/`en`; linter de vocabulari; hores locals correctes amb el navegador en un altre fus.
 
 **Cobertura addicional (traçabilitat regla → test)**
@@ -395,3 +395,4 @@ Ordre: A → B ∥ C ∥ D → E. Tres fils en paral·lel després d'A: B (contr
 - 08-09-2026 · respostes del Josep (B17): nova **R-15-12b** — una anul·lació dins termini que deixi la classe per sota del mínim avisa **instructors i admins** (N-54, `ClassBelowMinimum`) i no fa res més; la revisió i l'anul·lació continuen només a les 7:30.
 - 24-09-2026 · R-15-05: la primera execució d'un procés sense historial no alerta (E33).
 - 24-09-2026 · verificació d'E6-T01: la marca de P3 és `Attendance.noShowNotice.queuedAt` (subdocument `noShowNotice {queuedAt, eventId, sentAt}` d'S10 §3), amb l'índex `{clubId, state, "noShowNotice.queuedAt", classDate}`. Abans era `noticeSentAt`.
+- 24-09-2026 · §6: `WILL_CANCEL`/`WILL_REVIEW` només si P2 encara revisarà la classe; si no, `AT_RISK` (E37, revisió de la porta E3).

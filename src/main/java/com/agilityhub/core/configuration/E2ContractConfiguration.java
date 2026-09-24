@@ -41,8 +41,7 @@ public class E2ContractConfiguration {
             api.getComponents().addSecuritySchemes("clubApiKey", new io.swagger.v3.oas.models.security.SecurityScheme()
                     .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.APIKEY)
                     .in(io.swagger.v3.oas.models.security.SecurityScheme.In.HEADER).name("X-Api-Key"));
-            api.getPaths().get("/api/v1/public/{clubSlug}/plans").getGet()
-                    .setSecurity(List.of(new io.swagger.v3.oas.models.security.SecurityRequirement().addList("clubApiKey")));
+            // E5-T14: the plans route declares `@SecurityRequirement(name = "clubApiKey")` itself, like the pages route.
         };
     }
 }

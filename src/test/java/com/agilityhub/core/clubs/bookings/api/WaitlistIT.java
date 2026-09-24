@@ -422,6 +422,46 @@ class WaitlistIT extends BookingFixtures {
         }
     }
 
+    /** E5-T14 (review E5-T11 #3): the mark means «the N-15 rows of this offer were written»; no row, no mark, no N-46. */
+    @Test void R_08_13_anOfferWithNoN15RecipientIsNotMarkedAndGetsNoN46() throws Exception {
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
+        // C0's member has lost its account link and its phones: the N-15 consumer finds nobody to write to.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-c0")), new Update().set("accountId", null).set("phones", List.of()), "members");
+        cancel(as("pere"), id(pere), 200); dispatch();
+        assertThat(entry(c0)).containsEntry("state", "NOTIFIED"); assertThat(entry(c0).get("offerNotifiedAt")).as("no N-15 row, no mark").isNull();
+        assertThat(count("notifications", Criteria.where("code").is("N-15").and("_id").regex(":" + c0 + ":"))).isZero();
+        assertThat(instant(entry(duna), "offerNotifiedAt")).isEqualTo(instant(entry(duna), "notifiedAt"));
+        assertThat(notificationsOf("N-15", "APP")).extracting(n -> n.getString("accountId")).containsExactly("s08-laura");
+        book(as("joan"), "last", "s08-d-toby"); dispatch();
+        assertThat(entry(c0)).containsEntry("state", "ACTIVE");
+        assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).containsExactly("s08-laura");
+        assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
+    }
+
+    /**
+     * E5-T14 (review E5-T11 #8): a FIFO offer that expired is EXPIRED (not live) and loses its N-15 mark, so a later
+     * seat-taken event never tells it «La plaça ja s'ha ocupat», even after the club switches to ALL_AT_ONCE.
+     */
+    @Test void R_08_13_R_08_14_anExpiredFifoOfferNeverGetsN46() throws Exception {
+        parameter("waitlist.mode", "FIFO");
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), toby = id(join(as("joan"), "last", "s08-d-toby", 201));
+        cancel(as("pere"), id(pere), 200); dispatch();
+        assertThat(entry(duna)).containsEntry("state", "NOTIFIED"); assertThat(instant(entry(duna), "offerNotifiedAt")).isEqualTo(NOW);
+        // confirmBy passes; WaitlistExpired → S08 expires the entry and offers the seat to the next one.
+        clock.setInstant(NOW.plus(Duration.ofMinutes(30)));
+        expired(duna); dispatch();
+        assertThat(entry(duna)).containsEntry("state", "EXPIRED"); assertThat(entry(duna).get("offerNotifiedAt")).as("cleared on expiry").isNull();
+        assertThat(instant(entry(duna), "notifiedAt")).as("kept for the record").isEqualTo(NOW);
+        assertThat(entry(toby)).containsEntry("state", "NOTIFIED");
+        parameter("waitlist.mode", "ALL_AT_ONCE");
+        book(as("c0"), "last", "s08-d-c0"); dispatch(); // the seat is taken by someone else
+        assertThat(entry(toby)).containsEntry("state", "ACTIVE");
+        assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).as("only the live offer that was taken").containsExactly("s08-joan");
+        assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
+    }
+
     @Test void R_08_13_aHoldReleasedWithoutABookingSendsNoN46AndChangesNothing() throws Exception {
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), toby = id(join(as("joan"), "last", "s08-d-toby", 201));

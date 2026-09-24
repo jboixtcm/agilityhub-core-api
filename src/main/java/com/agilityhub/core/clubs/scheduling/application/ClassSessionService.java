@@ -22,6 +22,10 @@ public class ClassSessionService {
         this.events = events; this.audit = audit; this.training = training; this.clock = clock;
     }
     public ClassSession require(String id) { return classes.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
+    /** Whether the week still has DRAFT classes (validation answers NOTHING_TO_VALIDATE otherwise). */
+    public boolean hasDrafts(String weekId) {
+        return classes.forWeek(weekId).stream().anyMatch(c -> c.state() == com.agilityhub.core.clubs.scheduling.domain.ClassState.DRAFT);
+    }
     /** @param manualCapacity whether `capacity` was set by hand (MANUAL) rather than derived from the levels (AUTO) */
     public record Slot(String id, LocalDate date, String startTime, List<String> levelIds, int capacity, String state, boolean manualCapacity) { }
     /** The DRAFT or ACTIVE class of a ring at a club-local date and start time. */

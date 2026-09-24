@@ -45,8 +45,10 @@ public class DemoBookingSeeder implements DemoSeedStep {
         var rings = catalogs.ringIdsByShortName(); var pool = members.pool(input.loginMemberIds()); var used = new HashSet<String>();
         for (int index = 0; index < rows.size(); index++) {
             var row = rows.get(index);
+            // E5-T09 `--reanchor`: only the weeks the run generated (E5-T14: never a kept week, even one validated by this run)
+            // and there only the ACTIVE classes still without registrants (a past day of the current week has none).
+            if (!input.dated(row.week())) { counts.merge("keptClasses", 1, Integer::sum); continue; }
             var found = sessions.slot(DemoPlanningSeeder.date(input.weekStart(), row.week(), row.day()), row.start(), DemoPlanningSeeder.require(rings, row.ring()));
-            // E5-T09 `--reanchor`: only the ACTIVE classes of the weeks the run generated, still without registrants, get them.
             if (input.reanchor() && found.map(s -> classes.require(s.id())).filter(s -> s.active() && s.booked() == 0 && s.waiting() == 0).isEmpty()) {
                 counts.merge("keptClasses", 1, Integer::sum); continue;
             }

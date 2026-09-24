@@ -1,0 +1,227 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 9 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 37 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ agilityhub-core-api ---
+[INFO] Building jar: /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.5.16:repackage (repackage) @ agilityhub-core-api ---
+[INFO] Replacing main artifact /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar.original
+[INFO] 
+[INFO] --- failsafe:3.5.6:integration-test (default) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.configuration.E2ContractIT
+16:44:17.273 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+16:44:17.276 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+16:44:17.281 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+16:44:17.387 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+16:44:17.538 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+16:44:17.538 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+16:44:17.551 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+16:44:17.674 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+16:44:17.758 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+16:44:17.823 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: ed01619a481a56aa731e20fd086c1b07a820ab6167dce401fa78deb2c8cc1706
+16:44:17.984 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.309315S
+16:44:17.987 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+16:44:17.988 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+16:44:17.988 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+16:44:17.988 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+16:44:18.033 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 4fc69941f31c5a5cc963f44758221a22d82569e36a1b2553529d8810ba399de4
+16:44:18.350 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.362351S
+Integration JVM availableProcessors=18
+16:44:18.926 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E2ContractIT]: E2ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:44:19.033 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E2ContractIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-24T16:44:19.231+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.core.configuration.E2ContractIT      : Starting E2ContractIT using Java 21.0.12.1 with PID 33845 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-24T16:44:19.231+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.core.configuration.E2ContractIT      : The following 1 profile is active: "test"
+2026-09-24T16:44:20.078+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-24T16:44:20.122+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 40 ms. Found 0 MongoDB repository interfaces.
+2026-09-24T16:44:20.538+02:00  INFO 33845 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@598f1faf], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@464abed, com.mongodb.Jep395RecordCodecProvider@1af78e37, com.mongodb.KotlinCodecProvider@5c46a957]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60101], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7d95a717], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-24T16:44:20.543+02:00  INFO 33845 --- [agilityhub-core-api] [localhost:60101] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60101, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=12354834, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4fc69941f31c:27017, hosts=[4fc69941f31c:27017], passives=[], arbiters=[], primary='4fc69941f31c:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab5374229f1271d7ac0d652, counter=6}, lastWriteDate=Thu Sep 24 16:44:18 CEST 2026, lastUpdateTimeNanos=123598978474833}
+2026-09-24T16:44:23.160+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-24T16:44:23.160+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-24T16:44:23.160+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-24T16:44:23.190+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.core.configuration.E2ContractIT      : Started E2ContractIT in 4.106 seconds (process running for 6.302)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-24T16:44:25.955+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 1798 ms
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.411 s -- in com.agilityhub.core.configuration.E2ContractIT
+[INFO] Running com.agilityhub.core.clubs.bookings.api.WaitlistIT
+2026-09-24T16:44:26.660+02:00  INFO 33845 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.WaitlistIT]: WaitlistIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-24T16:44:26.691+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.WaitlistIT
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.42 s -- in com.agilityhub.core.clubs.bookings.api.WaitlistIT
+[INFO] Running com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT
+2026-09-24T16:44:45.077+02:00  INFO 33845 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT]: DemoPlanningSeedIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-24T16:44:45.115+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-24T16:44:45.128+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.DemoPlanningSeedIT           : Starting DemoPlanningSeedIT using Java 21.0.12.1 with PID 33845 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-24T16:44:45.129+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.DemoPlanningSeedIT           : The following 1 profile is active: "test"
+2026-09-24T16:44:45.719+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-24T16:44:45.747+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 27 ms. Found 0 MongoDB repository interfaces.
+2026-09-24T16:44:45.813+02:00  INFO 33845 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@d3e77a3], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@464abed, com.mongodb.Jep395RecordCodecProvider@1af78e37, com.mongodb.KotlinCodecProvider@5c46a957]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60101], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@ff68deb], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-24T16:44:45.814+02:00  INFO 33845 --- [agilityhub-core-api] [localhost:60101] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60101, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1349458, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4fc69941f31c:27017, hosts=[4fc69941f31c:27017], passives=[], arbiters=[], primary='4fc69941f31c:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab5374229f1271d7ac0d652, counter=6}, lastWriteDate=Thu Sep 24 16:44:45 CEST 2026, lastUpdateTimeNanos=123624251539333}
+2026-09-24T16:44:46.545+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-24T16:44:46.545+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-24T16:44:46.545+02:00  INFO 33845 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-24T16:44:46.562+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.DemoPlanningSeedIT           : Started DemoPlanningSeedIT in 1.444 seconds (process running for 29.674)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+233 changes (demo planning, week start 2026-09-07)
+E5-T07 outbox backlog discarded before DemoPlanningSeedIT: 652 PENDING records (more than one dispatch() batch)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+233 changes (demo planning, week start 2026-09-07)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=1, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+109 changes (demo planning, week start 2026-09-21)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=1, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+0 changes (demo planning, week start 2026-09-21)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+0 changes (demo planning, week start 2026-09-07)
+E5-T07 outbox backlog discarded before DemoPlanningSeedIT: 732 PENDING records (more than one dispatch() batch)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+233 changes (demo planning, week start 2026-09-07)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=2, validatedKeptWeeks=1, weeks=1, generatedClasses=38, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+72 changes (demo planning, week start 2026-09-14)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=2, validatedKeptWeeks=1, weeks=1, generatedClasses=38, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+0 changes (demo planning, week start 2026-09-14)
+E5-T07 outbox backlog discarded before DemoPlanningSeedIT: 732 PENDING records (more than one dispatch() batch)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+233 changes (demo planning, week start 2026-09-07)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+0 changes (demo planning, week start 2026-09-07)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+0 changes (demo planning, week start 2026-09-07)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+233 changes (demo planning, week start 2026-09-07)
+E5-T07 outbox backlog discarded before DemoPlanningSeedIT: 652 PENDING records (more than one dispatch() batch)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=102, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+233 changes (demo planning, week start 2026-09-07)
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 43.16 s -- in com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT
+[INFO] Running com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT
+2026-09-24T16:45:28.239+02:00  INFO 33845 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT]: SystemNotificationServiceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-24T16:45:28.268+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-24T16:45:28.277+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.SystemNotificationServiceIT  : Starting SystemNotificationServiceIT using Java 21.0.12.1 with PID 33845 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-24T16:45:28.277+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.SystemNotificationServiceIT  : The following 1 profile is active: "test"
+2026-09-24T16:45:28.727+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-24T16:45:28.773+02:00  INFO 33845 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 44 ms. Found 0 MongoDB repository interfaces.
+2026-09-24T16:45:28.842+02:00  INFO 33845 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2b1a61e8], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@464abed, com.mongodb.Jep395RecordCodecProvider@1af78e37, com.mongodb.KotlinCodecProvider@5c46a957]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60101], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7a37b645], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-24T16:45:28.845+02:00  INFO 33845 --- [agilityhub-core-api] [localhost:60101] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60101, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1701083, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=4fc69941f31c:27017, hosts=[4fc69941f31c:27017], passives=[], arbiters=[], primary='4fc69941f31c:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab5374229f1271d7ac0d652, counter=6}, lastWriteDate=Thu Sep 24 16:45:28 CEST 2026, lastUpdateTimeNanos=123667282593166}
+2026-09-24T16:45:31.177+02:00  INFO 33845 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.SystemNotificationServiceIT  : Started SystemNotificationServiceIT in 2.908 seconds (process running for 74.29)
+E5-T07 outbox backlog discarded before SystemNotificationServiceIT: 653 PENDING records (more than one dispatch() batch)
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.757 s -- in com.agilityhub.core.clubs.messaging.application.SystemNotificationServiceIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 56, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- failsafe:3.5.6:verify (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- jacoco:0.8.14:report (coverage) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] 
+[INFO] --- jacoco:0.8.14:check (coverage) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:17 min
+[INFO] Finished at: 2026-09-24T16:45:32+02:00
+[INFO] ------------------------------------------------------------------------

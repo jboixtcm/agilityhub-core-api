@@ -118,11 +118,22 @@ final class ArchitectureRules {
             .should().accessClassesThat().haveFullyQualifiedName(BASE_PACKAGE + "shared.application.DemoSeedActor")
             .because("E4-T05: DemoSeedActor skips the role checks of a real request, so only the local/test demo seed may run as a seed account");
 
-    /** E4-T05 review #8: the class counters are written only by the S08 booking writers (inside their seat-lock transaction). */
-    static final ArchRule COUNTER_WRITERS = noClasses()
-            .that().resideOutsideOfPackages(BASE_PACKAGE + "clubs.bookings..", BASE_PACKAGE + "clubs.scheduling..")
-            .should().callMethod(BASE_PACKAGE + "clubs.scheduling.application.ClassSessionBookingAccess", "counters", "java.lang.String", "int", "int",
-                    BASE_PACKAGE + "clubs.scheduling.application.ClassSessionBookingAccess$LowAlert")
+    /**
+     * E4-T05 review #8: the class counters are written only by the S08 booking writers (inside their seat-lock transaction).
+     * E5-T14 (review E5-T09 #7): the allow-list names the writer classes, not their packages, and a method reference
+     * (`classes::counters`) is an access too.
+     */
+    static final List<String> COUNTER_WRITER_CLASSES = List.of(BASE_PACKAGE + "clubs.bookings.application.BookingCounters");
+    static final ArchRule COUNTER_WRITERS = classes()
+            .that(outside(COUNTER_WRITER_CLASSES, "are not the S08 counter writers"))
+            .should(new ArchCondition<>("not call or reference ClassSessionBookingAccess.counters") {
+                @Override public void check(JavaClass source, ConditionEvents events) {
+                    java.util.stream.Stream.concat(source.getMethodCallsFromSelf().stream(), source.getMethodReferencesFromSelf().stream())
+                            .filter(access -> access.getTargetOwner().getName().equals(BASE_PACKAGE + "clubs.scheduling.application.ClassSessionBookingAccess")
+                                    && access.getName().equals("counters"))
+                            .forEach(access -> events.add(SimpleConditionEvent.violated(access, access.getDescription())));
+                }
+            })
             .because("E4-T05: ClassSession.counters follow the S08 bookings and waiting-list entries; nothing else sets them");
 
     /**
@@ -139,6 +150,8 @@ final class ArchitectureRules {
     /** E5-T05 review #10: a consumer's read-only envelope of another context's event can never be published. */
     static final ArchRule CONSUMER_ENVELOPES = noClasses()
             .that().haveSimpleNameEndingWith("ForeignEvent")
+            // E5-T14 (E5-T09 Question 4): S07's envelope is named `ActivityExternalEvent`.
+            .or().haveSimpleNameEndingWith("ExternalEvent")
             .should().beAssignableTo(BASE_PACKAGE + "shared.domain.DomainEvent")
             .because("E5-T09: EventPublisher.publish takes a DomainEvent; a consumer envelope is not one");
 
