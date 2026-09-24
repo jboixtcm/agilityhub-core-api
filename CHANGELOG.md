@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- E5-T08: review follow-ups for S07/S08 (E4-T04, E5-T02, E5-T03 reviews).
+  - S07: a FIFO promotion publishes `ActivityRegistrationChanged{origin: SYSTEM, promoted: true}` (N-32b APP only),
+    whatever the promoted registration's origin. The public activities API checks `X-Api-Key` before the club and the
+    module: without a valid key every slug answers `403 INVALID_API_KEY` (an unknown slug too, instead of
+    `404 CLUB_NOT_FOUND`).
+  - Census: `Member.lastDogForClass` / `lastDogForTraining` are `@ForeignOwned`. Bookings, training bookings and the
+    census consumers write them without touching `Member.version` (the entity-class `updateFirst` bumped `@Version` by
+    itself; `trainingSeq` increments did too), and census saves never rewrite them. An admin editing a member no
+    longer gets `STALE_VERSION` because the member booked meanwhile.
+  - S08: a same-class swap never raises `ClassBelowMinimum`. `cancelFutureByMember(memberId, by, reason)` takes the
+    actor. `GET /bookings` reads a page with one `$in` per collection. Booking events are stamped with the business
+    instant (`occurredAt` = `bookedAt` in «as of» seeds; `seeds/README.md`).
+  - S08 waiting list: the N-46 consumers return before any write or class lock unless the class has offered entries,
+    send N-46 only to entries whose N-15 of that offer was delivered, and also run on the confirmation's
+    `SeatHoldReleased`, so a PAY_TO_BOOK booking that takes the last seat notifies when the seat is taken. The claim of
+    a demoted entry answers `SEAT_TAKEN` only while the class is full (as the hold). `counters.waiting` is recounted when
+    WAITLIST is switched back on (`ClubModulesChanged`).
+  - API: `WaitlistEntry.position` is `null` (and no longer required) when `waitlist.mode = ALL_AT_ONCE`; the web must
+    regenerate its types.
+
 ### Added
 
 - E5-T07: concurrency guarantees proven on Mongo, and deterministic outbox dispatch in the integration tests.

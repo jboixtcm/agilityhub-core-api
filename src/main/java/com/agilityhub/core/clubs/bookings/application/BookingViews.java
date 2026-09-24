@@ -98,13 +98,17 @@ public class BookingViews {
         cls.put("instructorName", visibility.instructorName()); cls.put("instructorVisibleAt", visibility.instructorVisibleAt());
         return cls;
     }
-    /** S08 §6 `WaitlistEntry` (07 «/espera/:id», 21/D4/D12): the class card, `position`, `confirmBy` (FIFO), state and outcome. */
+    /**
+     * S08 §6 `WaitlistEntry` (07 «/espera/:id», 21/D4/D12): the class card, `position` (FIFO only: `null` with
+     * `waitlist.mode = ALL_AT_ONCE`, where the queue number means nothing; lists keep the stored order), `confirmBy`
+     * (FIFO), state and outcome.
+     */
     public Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff) {
         var session = classes.find(e.classSessionId()); var labels = labelsOf(e.classSessionId());
         var out = new LinkedHashMap<String, Object>();
         out.put("id", e.id()); out.put("state", e.state()); out.put("classSessionId", e.classSessionId()); out.put("dogId", e.dogId());
         out.put("dogName", census.dog(e.dogId()).map(BookingMemberAccess.Dog::name).orElse(null)); out.put("memberId", e.memberId());
-        out.put("position", e.position()); out.put("joinedAt", e.joinedAt());
+        out.put("position", context.waitlistMode() == WaitlistMode.FIFO ? e.position() : null); out.put("joinedAt", e.joinedAt());
         out.put("classSession", classCard(labels, e.classStartsAt(), session.map(ClassSessionBookingAccess.Session::endsAt).orElse(e.classStartsAt()), context.now(), staff));
         out.put("notifiedAt", e.notifiedAt()); out.put("confirmBy", e.confirmBy()); out.put("bookingId", e.bookingId());
         out.put("cancelledAt", e.cancelledAt()); out.put("cancelReason", e.cancelReason());

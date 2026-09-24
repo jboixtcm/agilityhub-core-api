@@ -132,7 +132,7 @@ public final class BookingContracts {
     // ---- Waitlist
     public record WaitlistEntry(String id, WaitlistState state, String classSessionId, String dogId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName, String memberId,
-            @Schema(description = "FIFO order; kept but unused in ALL_AT_ONCE") int position, Instant joinedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "FIFO order (R-08-14); null when waitlist.mode = ALL_AT_ONCE") Integer position, Instant joinedAt,
             BookingClassSession classSession,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant notifiedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "FIFO only (R-08-14)") Instant confirmBy,

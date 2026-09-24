@@ -67,13 +67,14 @@ public class BookingQueryService implements ListProvider {
     public ListPage<Map<String, Object>> list(ListEngine engine, MultiValueMap<String, String> params) {
         var page = engine.list("bookings", params);
         var ids = page.items().stream().map(row -> row.get("id").toString()).toList();
-        var byId = new HashMap<String, Booking>(); ids.forEach(id -> bookings.findById(id).ifPresent(b -> byId.put(id, b)));
+        // One `$in` per collection for the page (bookings, dogs, members), never one read per row (E5-T08).
+        var byId = new HashMap<String, Booking>(); bookings.byIds(ids).forEach(b -> byId.put(b.id(), b));
         return new ListPage<>(items(ids.stream().map(byId::get).filter(Objects::nonNull).toList()), page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters());
     }
     private List<Map<String, Object>> items(List<Booking> list) {
         var dogs = new HashMap<String, BookingMemberAccess.Dog>(); census.dogs(list.stream().map(Booking::dogId).distinct().toList()).forEach(d -> dogs.put(d.id(), d));
         var members = new HashMap<String, String>();
-        list.stream().map(Booking::memberId).distinct().forEach(m -> census.member(m).ifPresent(member -> members.put(m, member.displayName())));
+        census.members(list.stream().map(Booking::memberId).filter(Objects::nonNull).distinct().toList()).forEach(m -> members.put(m.id(), m.displayName()));
         return list.stream().map(b -> views.listItem(b, dogs, members)).toList();
     }
 }

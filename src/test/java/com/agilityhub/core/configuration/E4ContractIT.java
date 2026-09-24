@@ -233,7 +233,7 @@ class E4ContractIT extends AbstractIntegrationTest {
             error(get("/api/v1/public/" + CLUB + "/activities" + suffix).header("Host", "core.example.test"), 403, "INVALID_API_KEY");
             error(get("/api/v1/public/" + CLUB + "/activities" + suffix).header("X-Api-Key", "invalid"), 403, "INVALID_API_KEY");
         }
-        error(get("/api/v1/public/missing-club/activities"), 404, "CLUB_NOT_FOUND");
+        error(get("/api/v1/public/missing-club/activities"), 403, "INVALID_API_KEY"); // E5-T08: the key is checked before the club
         var tree = (ObjectNode) mapper.valueToTree(clubs.findById(CLUB).orElseThrow()); tree.set("modules", mapper.valueToTree(List.of(Module.ACTIVITIES)));
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(CLUB);
         var register = routes().filter(r -> r.path().equals("/api/v1/activity-registrations")).findFirst().orElseThrow();

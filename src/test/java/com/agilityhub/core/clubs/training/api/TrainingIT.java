@@ -240,6 +240,7 @@ class TrainingIT extends TrainingFixtures {
 
     @Test void T_09_16_theHappyPathBooksRemembersTheDogPublishesAndNotifiesOnce() throws Exception {
         String key = UUID.randomUUID().toString(); var body = Map.of("dogId", "s09-d-rock", "startsAt", local("2026-10-05T08:30").toString(), "ringId", MUN);
+        var memberVersion = mongo.findById("s09-m-maria", Document.class, "members").get("version");
         var booked = call(POST, "/training-bookings", body, as("maria"), 201, key);
         assertThat(booked.path("state").asText()).isEqualTo("ACTIVE"); assertThat(booked.path("origin").asText()).isEqualTo("APP");
         assertThat(booked.path("slotId").asText()).isEqualTo(MUN + "_2026-10-05T06:30:00Z"); assertThat(booked.path("ringName").asText()).isEqualTo("Muntanya");
@@ -268,6 +269,7 @@ class TrainingIT extends TrainingFixtures {
         assertThat(notifications("N-06").getFirst().get("variables", Document.class)).containsEntry("time", "8:30–9:00").containsEntry("dog_name", "Rock")
                 .containsEntry("ring_name", "Muntanya").containsKey("date");
         assertThat(notifications("N-47")).isEmpty();
+        assertThat(mongo.findById("s09-m-maria", Document.class, "members").get("version")).as("E5-T08: lastDogForTraining never bumps Member.version").isEqualTo(memberVersion);
         // A second dog on the same slot and ring: SLOT_TAKEN; the same dog elsewhere at that time: DOG_ALREADY_BOOKED; the default dog is remembered.
         assertThat(code(book(as("joan"), "s09-d-kira", "2026-10-05T08:30", MUN, 409))).isEqualTo("SLOT_TAKEN");
         assertThat(code(book(as("maria"), "s09-d-rock", "2026-10-05T08:30", CEN, 422))).isEqualTo("DOG_ALREADY_BOOKED");

@@ -20,9 +20,12 @@ import org.springframework.transaction.annotation.*;
  * <li>`notifications.N-15` on `WaitlistNotified` → «S'ha alliberat una plaça!» to the owner of each notified entry: APP
  * + SMS intent (QUEUED, ≤ 160 GSM-7, or SKIPPED_MODULE_OFF without SMS) + PUSH intent (QUEUED, or SKIPPED_MODULE_OFF
  * without PUSH), action CLAIM_SEAT; ids `eventId:entryId:channel`, so one N-15 per entry and offer.</li>
- * <li>`notifications.N-46` on `WaitlistConsolidated` and `notifications.N-46.booked` on `BookingCreated` (ALL_AT_ONCE):
- * first the idempotent demotion of R-08-13 in its own transaction (the booking transaction normally did it already),
- * then «La plaça ja s'ha ocupat» → APP to every ACTIVE entry whose offer was taken (ACTIVE with `notifiedAt`); ids
+ * <li>`notifications.N-46` on `WaitlistConsolidated`, `notifications.N-46.booked` on `BookingCreated` and
+ * `notifications.N-46.held` on `SeatHoldReleased` (the PAY_TO_BOOK seat taken as PAYMENT_PENDING) (ALL_AT_ONCE):
+ * a read-only check first (nothing offered → nothing to do), the idempotent demotion of R-08-13 in its own transaction
+ * only while an entry is still NOTIFIED (the booking transaction normally did it already), then «La plaça ja s'ha
+ * ocupat» → APP to every ACTIVE entry whose offer was taken (ACTIVE with `notifiedAt`) and whose N-15 of that offer
+ * was delivered; ids
  * `N-46:entryId:notifiedAt:app`, so each lost offer is told exactly once, whichever event gets there first.</li>
  * </ul>
  * Rendered in the recipient's locale with the club time zone.
@@ -58,12 +61,28 @@ public class WaitlistNotifications {
                     ? waitlist.findById(event.aggregateId()).map(WaitlistEntry::classSessionId).orElse(null)
                     : Objects.toString(event.payload().get("classId"), null);
             if (classId == null) { return; }
-            transactions.write(List.of(classId), () -> { locks.lock(classId); return transitions.demoteIfFull(classId, BookingActor.system()); });
-            for (var entry : waitlist.live(classId)) {
-                if (entry.state() != WaitlistState.ACTIVE || entry.notifiedAt() == null) { continue; }
+            // Read-only first (E5-T08): an ordinary booking (no open offer, no taken one) stops here, without a write
+            // transaction or the class's seat lock. The lock is taken only while a NOTIFIED entry may still need demoting.
+            var live = waitlist.live(classId);
+            if (live.stream().noneMatch(e -> e.notifiedAt() != null)) { return; }
+            if (live.stream().anyMatch(e -> e.state() == WaitlistState.NOTIFIED)) {
+                transactions.write(List.of(classId), () -> { locks.lock(classId); return transitions.demoteIfFull(classId, BookingActor.system()); });
+                live = waitlist.live(classId);
+            }
+            for (var entry : live) {
+                if (entry.state() != WaitlistState.ACTIVE || entry.notifiedAt() == null || !offerDelivered(entry)) { continue; }
                 send("N-46:" + entry.id() + ":" + entry.notifiedAt().toEpochMilli(), "N-46", entry);
             }
         }
+    }
+    /**
+     * R-08-13: «La plaça ja s'ha ocupat» only to whom heard of the offer. When the outbox delivers `WaitlistNotified`
+     * after the seat was taken, N-15 skips the demoted entries, so there is no N-15 row of that offer (created at or
+     * after its `notifiedAt`) and no N-46 either.
+     */
+    private boolean offerDelivered(WaitlistEntry entry) {
+        var member = census.member(entry.memberId()).orElse(null);
+        return member != null && member.accountId() != null && notifications.appSentSince("N-15", member.accountId(), entry.id(), entry.notifiedAt());
     }
 
     private void send(String key, String code, WaitlistEntry entry) {
@@ -105,6 +124,9 @@ public class WaitlistNotifications {
         @Bean("notifications.N-15") DomainEventHandler<BookingEvent> n15(WaitlistNotifications s) { return handler("WaitlistNotified", s::offered); }
         @Bean("notifications.N-46") DomainEventHandler<BookingEvent> n46(WaitlistNotifications s) { return handler("WaitlistConsolidated", s::seatTaken); }
         @Bean("notifications.N-46.booked") DomainEventHandler<BookingEvent> n46Booked(WaitlistNotifications s) { return handler("BookingCreated", s::seatTaken); }
+        // R-08-13/R-08-18 (E5-T08): a PAY_TO_BOOK booking takes the seat as PAYMENT_PENDING and emits BookingCreated only
+        // when paid, so the confirmation's SeatHoldReleased carries the demotion notice at the moment the seat is taken.
+        @Bean("notifications.N-46.held") DomainEventHandler<BookingEvent> n46Held(WaitlistNotifications s) { return handler("SeatHoldReleased", s::seatTaken); }
         private DomainEventHandler<BookingEvent> handler(String type, java.util.function.BiConsumer<String, BookingEvent> action) {
             return new DomainEventHandler<>() {
                 public String eventType() { return type; } public Class<BookingEvent> eventClass() { return BookingEvent.class; }

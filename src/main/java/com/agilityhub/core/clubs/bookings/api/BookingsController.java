@@ -236,7 +236,7 @@ public class BookingsController {
     @AllowsImpersonation
     @RequiresModule(Module.WAITLIST)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED})
-    @Operation(summary = "waitlistEntry", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN. Screen 07 «/espera/:id»: class card, position (FIFO order), confirmBy (FIFO only), state. Requires WAITLIST. Tenant comes from the JWT.",
+    @Operation(summary = "waitlistEntry", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN. Screen 07 «/espera/:id»: class card, position (FIFO only; null with waitlist.mode = ALL_AT_ONCE), confirmBy (FIFO only), state. Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "WaitlistEntry", useReturnTypeSchema = true))
     public WaitlistEntry waitlistEntry(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();

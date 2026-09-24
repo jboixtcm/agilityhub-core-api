@@ -116,7 +116,7 @@ public class WaitlistService {
             switch (entry.state()) {
                 case NOTIFIED -> { if (entry.confirmBy() != null && !entry.confirmBy().isAfter(now)) { throw new ApiException(ErrorCode.WAITLIST_OFFER_EXPIRED); } }
                 case EXPIRED -> throw new ApiException(ErrorCode.WAITLIST_OFFER_EXPIRED);
-                case ACTIVE -> throw new ApiException(entry.notifiedAt() != null ? ErrorCode.SEAT_TAKEN : ErrorCode.WAITLIST_NOT_NOTIFIED);
+                case ACTIVE -> throw new ApiException(entry.notifiedAt() != null && full(entry, now) ? ErrorCode.SEAT_TAKEN : ErrorCode.WAITLIST_NOT_NOTIFIED);
                 default -> throw new ApiException(ErrorCode.WAITLIST_NOT_NOTIFIED);
             }
             var hold = holds.findById(seatHoldId).filter(h -> Objects.equals(h.accountId(), actor.accountId()) && h.expiresAt().isAfter(now))
@@ -126,6 +126,16 @@ public class WaitlistService {
         }));
     }
 
+    /**
+     * The hold's rule for a demoted entry ({@link SeatHoldService}): the class is full when its live bookings plus the
+     * other dogs' live holds reach the capacity. Only then was the offer taken (SEAT_TAKEN); a seat freed later without a
+     * new offer leaves the entry simply not notified (E5-T08).
+     */
+    private boolean full(WaitlistEntry entry, Instant now) {
+        int capacity = classes.find(entry.classSessionId()).filter(ClassSessionBookingAccess.Session::active).map(ClassSessionBookingAccess.Session::capacity).orElse(0);
+        long others = holds.live(entry.classSessionId(), now).stream().filter(h -> !h.dogId().equals(entry.dogId())).count();
+        return bookings.forClass(entry.classSessionId(), BookingRepository.LIVE).size() + others >= capacity;
+    }
     /** `SeatReleased{notifyWaitlist = true}` consumer (R-08-13/14): never more offers than seats the event released and still free. */
     public int offerSeats(String classSessionId, int freeSeats) { return offer(classSessionId, freeSeats, null); }
     /**

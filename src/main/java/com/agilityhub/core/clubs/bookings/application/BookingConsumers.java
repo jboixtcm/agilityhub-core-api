@@ -16,18 +16,40 @@ import org.springframework.stereotype.Service;
  * waiting-list entries (R-08-21);
  * `ClassCancelledByClub` only asserts nothing live remains (S06 cancelled synchronously through the port);
  * `DogLevelChanged` and `BookingBlockChanged` have no effect on existing bookings (R-08-21, R-08-05);
- * `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` with a `bookingId` settle a PAYMENT_PENDING booking (R-08-18).
+ * `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` with a `bookingId` settle a PAYMENT_PENDING booking (R-08-18);
+ * `ClubModulesChanged` with WAITLIST back on recounts `counters.waiting` ({@link #modulesChanged}).
  */
 @Service
 public class BookingConsumers {
     private static final Logger LOG = LoggerFactory.getLogger(BookingConsumers.class);
     private final BookingRepository bookings; private final ClassSessionBookingAccess classes; private final BookingContext context;
     private final BookingTransactions transactions; private final SeatLockRepository locks; private final BookingConfirmationService confirmations;
-    private final BookingCancellationService cancellations; private final WaitlistEntryRepository waitlist;
+    private final BookingCancellationService cancellations; private final WaitlistEntryRepository waitlist; private final BookingCounters counters;
     public BookingConsumers(BookingRepository bookings, ClassSessionBookingAccess classes, BookingContext context, BookingTransactions transactions,
-            SeatLockRepository locks, BookingConfirmationService confirmations, BookingCancellationService cancellations, WaitlistEntryRepository waitlist) {
+            SeatLockRepository locks, BookingConfirmationService confirmations, BookingCancellationService cancellations, WaitlistEntryRepository waitlist,
+            BookingCounters counters) {
         this.bookings = bookings; this.classes = classes; this.context = context; this.transactions = transactions; this.locks = locks;
-        this.confirmations = confirmations; this.cancellations = cancellations; this.waitlist = waitlist;
+        this.confirmations = confirmations; this.cancellations = cancellations; this.waitlist = waitlist; this.counters = counters;
+    }
+    /**
+     * `ClubModulesChanged` with WAITLIST switched back on: `counters.waiting` was forced to 0 while it was off (S08 §9), so
+     * every future class with live entries is recounted, each in its own class transaction (E5-T08). Idempotent.
+     */
+    public void modulesChanged(ForeignEvent event) {
+        try (var tenant = TenantContext.open(event.clubId())) {
+            if (!switchedOn(event.payload(), com.agilityhub.core.platform.application.Module.WAITLIST.name())
+                    || !context.enabled(com.agilityhub.core.platform.application.Module.WAITLIST)) { return; }
+            for (String classId : waitlist.liveClassIds(context.now())) {
+                transactions.write(List.of(classId), () -> { locks.lock(classId); counters.recount(classId, false, BookingActor.system()); return null; });
+            }
+        }
+    }
+    static boolean switchedOn(Map<String, Object> payload, String module) {
+        if (!(payload.get("diff") instanceof Map<?, ?> diff) || !(diff.get("modules") instanceof Map<?, ?> modules)) { return false; }
+        return names(modules.get("after")).contains(module) && !names(modules.get("before")).contains(module);
+    }
+    private static List<String> names(Object value) {
+        return value instanceof Collection<?> list ? list.stream().map(Object::toString).toList() : List.of();
     }
     public void handle(ForeignEvent event) {
         try (var tenant = TenantContext.open(event.clubId())) {
@@ -82,6 +104,13 @@ public class BookingConsumers {
         @Bean("bookings.BookingBlockChanged") DomainEventHandler<ForeignEvent> bookingBlock(BookingConsumers c) { return handler("BookingBlockChanged", c); }
         @Bean("bookings.UpfrontPaymentSucceeded") DomainEventHandler<ForeignEvent> paid(BookingConsumers c) { return handler("UpfrontPaymentSucceeded", c); }
         @Bean("bookings.UpfrontPaymentFailed") DomainEventHandler<ForeignEvent> failed(BookingConsumers c) { return handler("UpfrontPaymentFailed", c); }
+        // The ClubModulesChanged envelope does not serialise its type, so this handler calls the consumer directly.
+        @Bean("bookings.ClubModulesChanged") DomainEventHandler<ForeignEvent> modules(BookingConsumers c) {
+            return new DomainEventHandler<>() {
+                public String eventType() { return "ClubModulesChanged"; } public Class<ForeignEvent> eventClass() { return ForeignEvent.class; }
+                public void handle(String id, ForeignEvent event) { c.modulesChanged(event); }
+            };
+        }
         private DomainEventHandler<ForeignEvent> handler(String type, BookingConsumers consumers) {
             return new DomainEventHandler<>() {
                 public String eventType() { return type; } public Class<ForeignEvent> eventClass() { return ForeignEvent.class; }

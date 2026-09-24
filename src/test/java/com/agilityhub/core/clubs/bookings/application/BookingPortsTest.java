@@ -14,6 +14,18 @@ import static org.assertj.core.api.Assertions.*;
 
 /** The local/test stand-ins of the E6/E8 ports, the `.ics` capability and the actor/event envelopes, without Spring. */
 class BookingPortsTest {
+    @Test void seedEventsAreStampedWithTheBusinessInstantLikeTheirBookings() {
+        var clock = new MockClock(Instant.parse("2026-10-07T10:00:00Z")); var context = new BookingContext(null, clock);
+        var published = new ArrayList<DomainEvent>();
+        var events = new BookingEvents(event -> { published.add(event); return "id"; }, null, context);
+        var asOf = Instant.parse("2026-10-11T18:00:00Z");
+        try (var tenant = TenantContext.open("club-fixture")) {
+            context.asOf(asOf, () -> events.publish(BookingEvent.Kind.BookingCreated, "b", Map.of(), BookingActor.system()));
+            context.asOf(asOf, () -> events.belowMinimum("c", 1, 2, BookingActor.system()));
+            events.publish(BookingEvent.Kind.BookingCreated, "b", Map.of(), BookingActor.system());
+        }
+        assertThat(published).extracting(DomainEvent::occurredAt).containsExactly(asOf, asOf, clock.instant());
+    }
     @Test void attendanceDefaultsCountOnlyPresentAndNoShowMarks() {
         AttendanceStatePort present = id -> Optional.of("PRESENT"), noShow = id -> Optional.of("NO_SHOW"), pending = id -> Optional.of("PENDING"), none = id -> Optional.empty();
         assertThat(List.of(present.marked("b"), noShow.marked("b"), pending.marked("b"), none.marked("b"))).containsExactly(true, true, false, false);

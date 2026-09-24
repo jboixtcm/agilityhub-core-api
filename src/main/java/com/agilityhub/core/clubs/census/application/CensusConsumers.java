@@ -79,8 +79,8 @@ public class CensusConsumers {
             if (!access.enabled(Module.FAMILY_GROUP) || group == null || !"ACTIVE".equals(group.status) || !group.memberIds.contains(dog.memberId)) { return; }
         }
         if (dog.id.equals(training ? member.lastDogForTraining : member.lastDogForClass)) { return; }
-        if (training) { member.lastDogForTraining = dog.id; } else { member.lastDogForClass = dog.id; }
-        access.members.save(member);
+        // @ForeignOwned field: no version bump, so an open census form of the member does not go stale (E5-T08).
+        access.members.setField(member.id, training ? "lastDogForTraining" : "lastDogForClass", dog.id);
     }
     private DomainEventHandler<CensusEvent> handler(String type, java.util.function.Consumer<CensusEvent> work) {
         return new DomainEventHandler<>() {

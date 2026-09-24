@@ -118,9 +118,9 @@ public class DogService {
                 org.springframework.data.mongodb.core.query.Criteria.where("lastDogForClass").is(dogId),
                 org.springframework.data.mongodb.core.query.Criteria.where("lastDogForTraining").is(dogId)))) {
             if (member.erasedAt != null) { continue; }
-            if (dogId.equals(member.lastDogForClass)) { member.lastDogForClass = null; }
-            if (dogId.equals(member.lastDogForTraining)) { member.lastDogForTraining = null; }
-            access.members.save(member);
+            // @ForeignOwned fields: census saves skip them, so they are cleared with the technical single-field write.
+            if (dogId.equals(member.lastDogForClass)) { access.members.setField(member.id, "lastDogForClass", null); }
+            if (dogId.equals(member.lastDogForTraining)) { access.members.setField(member.id, "lastDogForTraining", null); }
         }
     }
     @Transactional

@@ -43,6 +43,10 @@ public class SystemNotificationService {
     public String send(String code, String accountId, Map<String, ?> variables) {
         return deliver(UUID.randomUUID().toString(), code, accountId, variables);
     }
+    /** The account already has an in-app {@code code} about {@code entityId} created at or after {@code since} (S08: N-46 follows only a delivered N-15). */
+    public boolean appSentSince(String code, String accountId, String entityId, java.time.Instant since) {
+        return notifications.appRowSince(code, accountId, entityId, since);
+    }
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }

@@ -22,10 +22,14 @@ public class PublicActivityService {
     public PublicActivityService(PublicClubAccess clubs,ActivityRepository activities,ActivityContext context,ActivityProjection projection,AttachmentStorage storage) {
         this.clubs=clubs; this.activities=activities; this.context=context; this.projection=projection; this.storage=storage;
     }
+    /** The API key is checked first: without a valid key the caller cannot tell whether the club exists or has ACTIVITIES on. */
     private ClubConfig club(String slug,String key,boolean needsKey) {
-        var config=clubs.resolveClub(slug);
+        ClubConfig config;
+        if(!needsKey) config=clubs.resolveClub(slug);
+        else try { config=clubs.resolve(slug,key); }
+        catch(ApiException e) { if(e.code()==ErrorCode.CLUB_NOT_FOUND) throw new ApiException(ErrorCode.INVALID_API_KEY); throw e; }
         if(!config.modules().contains(Module.ACTIVITIES)) throw new ApiException(ErrorCode.MODULE_DISABLED);
-        if(needsKey) clubs.resolve(slug,key); return config;
+        return config;
     }
     public Result read(String clubSlug,String key,String language,String scope,String slug) {
         var club=club(clubSlug,key,true); var locale=PublicClubLocale.resolve(language,club);

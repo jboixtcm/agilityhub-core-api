@@ -37,6 +37,11 @@ class ActivityIT extends ActivityFixtures {
         String first=mvc.perform(request).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertThat(mvc.perform(request).andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).isEqualTo(first);
         assertThat(count("ring_blocks","state","ACTIVE")).isEqualTo(5); assertThat(count("domain_events","type","ActivityPublished")).isEqualTo(1);
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("RingBlockCreated")),Document.class,"domain_events")).hasSize(5)
+                .allSatisfy(e -> assertThat(e.get("payload",Document.class)).containsEntry("activityId",id).containsEntry("reason","ACTIVITY"));
+        String week=call("POST","/weeks",Map.of("startDate","2026-09-14"),"admin","ADMIN",201).path("id").asText();
+        assertThat(call("GET","/weeks/"+week+"/calendar",null,"admin","ADMIN",200).path("ringBlocks")).hasSize(5)
+                .allSatisfy(block -> assertThat(block.path("activityTitle").asText()).isEqualTo("Activitat exemple"));
         var grid=call("GET","/day-grid?date=2026-09-15&view=member",null,"m0","MEMBER",200);
         assertThat(grid.toString()).contains("ACTIVITY","Activitat exemple");
         assertThat(call("POST","/activities/"+id+"/publication",Map.of(),"admin","ADMIN",409).path("code").asText()).isEqualTo("INVALID_STATE");
@@ -49,6 +54,7 @@ class ActivityIT extends ActivityFixtures {
                 .append("ringId","s07-ring-0").append("state","ACTIVE").append("levelIds",List.of("s07-D")).append("instructorIds",List.of())
                 .append("capacity",5).append("capacityMode","MANUAL").append("counters",new Document("booked",3).append("waiting",0)).append("version",0L),"class_sessions");
         scheduling.bookings.put("s07-class",java.util.stream.IntStream.range(0,3).mapToObj(i -> new com.agilityhub.core.clubs.scheduling.application.ports.ClassBookingsPort.BookingRef("booking-"+i,"m"+i,"dog-m"+i,false)).toList());
+        call("POST","/activities/"+id+"/publication",Map.of("cancelClasses",true,"cancelBookings",true,"adminText","Example activity"),"instructor","INSTRUCTOR",403);
         assertThat(call("POST","/activities/"+id+"/publication",Map.of(),"admin","ADMIN",409).path("code").asText()).isEqualTo("RING_BLOCK_CONFLICT");
         assertThat(count("ring_blocks","state","ACTIVE")).isZero();
         assertThat(call("GET","/activities/"+id+"/ring-conflicts",null,"admin","ADMIN",200).path("conflicts")).hasSize(1);
@@ -89,17 +95,47 @@ class ActivityIT extends ActivityFixtures {
         assertThat(register(id,"m1",true,201).path("position").asInt()).isEqualTo(1);
         assertThat(register(id,"m0",false,409).path("code").asText()).isEqualTo("ALREADY_REGISTERED");
         try(var tenant=TenantContext.open(CLUB)) { assertThat(activities.require(id).counters()).isEqualTo(new Activity.Counters(1,1)); }
+        dispatch();
+        assertThat(changes("m0")).singleElement().satisfies(p -> assertThat(p).containsEntry("state","ACTIVE").containsEntry("origin","APP"));
+        assertThat(changes("m1")).singleElement().satisfies(p -> assertThat(p).containsEntry("state","WAITLISTED").containsEntry("origin","APP"));
+        assertThat(notices("m0","N-32b")).singleElement().satisfies(n -> assertThat(n.get("variables",Document.class)).containsEntry("state","ACTIVE"));
+        assertThat(notices("m1","N-32b")).singleElement().satisfies(n -> assertThat(n.get("variables",Document.class)).containsEntry("state","WAITLISTED"));
     }
     @Test void T_07_15_cancellationAndCapacityGrowthPromoteFifoOnlyWithinDeadline() throws Exception {
         String id=published(1,false).path("id").asText(); var first=register(id,"m0",false,201); for(int i=1;i<4;i++) register(id,"m"+i,true,201);
         call("POST","/activity-registrations/"+first.path("id").asText()+"/cancellation",Map.of(),"m0","MEMBER",200);
-        try(var tenant=TenantContext.open(CLUB)) { assertThat(registrations.live(id).stream().filter(r -> r.state()==RegistrationState.ACTIVE).map(ActivityRegistration::memberId)).containsExactly("m1"); }
+        try(var tenant=TenantContext.open(CLUB)) {
+            assertThat(registrations.live(id).stream().filter(r -> r.state()==RegistrationState.ACTIVE).map(ActivityRegistration::memberId)).containsExactly("m1");
+            var promoted=registrations.forMember("m1").getFirst(); assertThat(promoted.promotedAt()).isEqualTo(clock.instant()); assertThat(promoted.position()).isNull();
+            assertThat(activities.require(id).counters()).isEqualTo(new Activity.Counters(1,2));
+        }
+        dispatch();
+        assertThat(changes("m1")).filteredOn(p -> Boolean.TRUE.equals(p.get("promoted"))).singleElement().satisfies(p -> assertThat(p).containsEntry("state","ACTIVE").containsEntry("origin","SYSTEM"));
+        assertThat(notices("m1","N-32b")).extracting(n -> n.get("variables",Document.class).getString("state")).containsExactlyInAnyOrder("WAITLISTED","ACTIVE");
+        assertThat(notices("m1","N-32b")).extracting(n -> n.getString("channel")).containsOnly("APP");
         var a=call("GET","/activities/"+id,null,"admin","ADMIN",200);
         a=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"maxPlaces",3),"admin","ADMIN",200); assertThat(a.path("counters").path("waiting").asInt()).isZero();
         call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"maxPlaces",2),"admin","ADMIN",422);
         clock.setInstant(Instant.parse("2026-09-15T16:00:00Z"));
         String active;try(var tenant=TenantContext.open(CLUB)) { active=registrations.live(id).getFirst().id(); }
         call("POST","/activity-registrations/"+active+"/cancellation",Map.of(),"m1","MEMBER",422);
+        // REGISTRATION_CLOSE: past registrationClosesAt only the club (impersonating) can cancel, and the freed seat is not promoted.
+        clock.setInstant(Instant.parse("2026-09-14T06:00:00Z")); parameter("activities.cancelDeadline","REGISTRATION_CLOSE","enum");
+        var b=ready(1,false); String second=b.path("id").asText();
+        call("PATCH","/activities/"+second,Map.of("version",b.path("version").asLong(),"registrationTo","2026-09-14"),"admin","ADMIN",200);
+        call("POST","/activities/"+second+"/publication",Map.of(),"admin","ADMIN",200);
+        var held=register(second,"m4",false,201); register(second,"m5",true,201);
+        clock.setInstant(Instant.parse("2026-09-15T06:00:00Z"));
+        String path="/activity-registrations/"+held.path("id").asText()+"/cancellation";
+        assertThat(call("POST",path,Map.of(),"m4","MEMBER",422).path("code").asText()).isEqualTo("REGISTRATION_NOT_CANCELLABLE");
+        com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
+        try(var tenant=TenantContext.open(CLUB)) { issued=impersonations.create("s07-admin","m4","Example request"); }
+        mvc.perform(post("/api/v1"+path).header("Host",HOST).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("reason","Member requested")))
+                .with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isOk());
+        try(var tenant=TenantContext.open(CLUB)) {
+            assertThat(registrations.forMember("m5").getFirst().state()).isEqualTo(RegistrationState.WAITLISTED);
+            assertThat(activities.require(second).counters()).isEqualTo(new Activity.Counters(0,1));
+        }
     }
     @Test void T_07_16_memberViewsFilterSelectedDogAndShowOwnRegistrationAndHistory() throws Exception {
         String id=published(4,false).path("id").asText();
@@ -132,10 +168,17 @@ class ActivityIT extends ActivityFixtures {
             assertThat(registrationService.cancelForInactivity("m0",LocalDate.of(2026,10,1),LocalDate.of(2026,10,31))).isZero();
             assertThat(registrationService.cancelForInactivity("m0",LocalDate.of(2026,9,1),LocalDate.of(2026,9,30))).isEqualTo(1);
             assertThat(registrations.forMember("m1").getFirst().state()).isEqualTo(RegistrationState.ACTIVE);
+            dispatch();
+            assertThat(changes("m0")).anySatisfy(p -> assertThat(p).containsEntry("state","CANCELLED").containsEntry("cancelReason","INACTIVITY"));
+            assertThat(notices("m0","N-32b")).extracting(n -> n.get("variables",Document.class).getString("state")).containsExactlyInAnyOrder("ACTIVE","CANCELLED");
+            long before=count("notifications","code","N-32b");
             mongo.updateFirst(Query.query(Criteria.where("_id").is("m1")),new Update().set("status","LEFT"),"members");
             transactions.write(List.of(),() -> { events.publish(new com.agilityhub.core.shared.domain.events.MemberStatusChanged(CLUB,"m1",clock.instant(),Map.of("memberId","m1","before","ACTIVE","after","LEFT","effectiveDate","2026-09-14"),"s07-admin",null,DomainEvent.Origin.BACKOFFICE));return null; });
             dispatch();
             assertThat(registrations.forMember("m1").getFirst().cancelReason()).isEqualTo(RegistrationCancelReason.MEMBER_LEFT);
+            assertThat(changes("m1")).anySatisfy(p -> assertThat(p).containsEntry("state","CANCELLED").containsEntry("cancelReason","MEMBER_LEFT"));
+            assertThat(count("notifications","code","N-32b")).isEqualTo(before);
+            assertThat(notices("m1","N-32b")).extracting(n -> n.get("variables",Document.class).getString("state")).doesNotContain("CANCELLED");
         }
     }
     @Test void T_07_20_htmlAndUploadPurposesRejectInvalidInputs() throws Exception {
@@ -293,6 +336,25 @@ class ActivityIT extends ActivityFixtures {
         dispatch();mvc.perform(get("/api/v1/public/"+CLUB+"/activities").param("scope","past").header("X-Api-Key",KEY)).andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1));
         assertThat(call("GET","/me/activities",null,"m0","MEMBER",200).path("mine")).isEmpty();
         call("GET","/me/activities/"+id,null,"m0","MEMBER",200);
+    }
+    List<Document> changes(String memberId) {
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("ActivityRegistrationChanged").and("payload.memberId").is(memberId)),Document.class,"domain_events")
+                .stream().map(e -> e.get("payload",Document.class)).toList();
+    }
+    List<Document> notices(String member,String code) {
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("accountId").is("s07-"+member).and("code").is(code)),Document.class,"notifications");
+    }
+    @Test void T_07_17_apiKeyIsCheckedBeforeTheClubAndTheModule() throws Exception {
+        String slug=published(5,false).path("slug").asText(); var enabled=EnumSet.allOf(Module.class); enabled.remove(Module.ACTIVITIES); modules(enabled);
+        for(String path:List.of("/api/v1/public/"+CLUB+"/activities","/api/v1/public/"+CLUB+"/activities/"+slug,"/api/v1/public/missing-club/activities","/api/v1/public/missing-club/activities/"+slug)) {
+            mvc.perform(get(path)).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+            mvc.perform(get(path).header("X-Api-Key","wrong")).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+        }
+        // With the right key the module guard answers next; the key of another club never reaches it.
+        mvc.perform(get("/api/v1/public/"+CLUB+"/activities").header("X-Api-Key",KEY)).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("MODULE_DISABLED"));
+        mvc.perform(get("/api/v1/public/"+OTHER+"/activities").header("X-Api-Key",KEY)).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+        modules(EnumSet.allOf(Module.class));
+        mvc.perform(get("/api/v1/public/"+CLUB+"/activities").header("X-Api-Key",KEY)).andExpect(status().isOk());
     }
     void parameter(String key,Object value,String type) {
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB).and("key").is(key)),Parameter.class);

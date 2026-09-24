@@ -3,6 +3,7 @@ package com.agilityhub.core.clubs.bookings.application;
 import com.agilityhub.core.clubs.bookings.persistence.*;
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess.LowAlert;
+import com.agilityhub.core.platform.application.Module;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,7 +27,7 @@ public class BookingCounters {
         var session = classes.find(classSessionId).orElse(null);
         if (session == null || !session.active()) { return; }
         int booked = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
-        int waiting = context.enabled(com.agilityhub.core.platform.application.Module.WAITLIST) ? waitlist.live(classSessionId).size() : 0; // S08 §9
+        int waiting = context.enabled(Module.WAITLIST) ? waitlist.live(classSessionId).size() : 0; // S08 §9; recounted when WAITLIST is back on (BookingConsumers)
         int minDogs = context.integer("classes.minDogs"); var alert = LowAlert.KEEP;
         if (booked >= minDogs && session.lowAlertSentAt() != null) { alert = LowAlert.CLEAR; }
         else if (inTimeCancellation && booked < minDogs && session.lowAlertSentAt() == null && !session.riskExempt()

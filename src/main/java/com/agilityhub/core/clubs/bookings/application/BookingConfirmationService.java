@@ -66,7 +66,7 @@ public class BookingConfirmationService {
                     throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(subject.session().startsAt())));
                 }
                 if (swapTarget == null || !limit.reached() || !limit.canSwap(swapBookingId)) { throw new ApiException(ErrorCode.SWAP_NOT_ALLOWED); }
-                swapped = cancellations.cancelLocked(swapTarget, actor, BookingCancelReason.SWAP, null, true);
+                swapped = cancellations.cancelLocked(swapTarget, actor, BookingCancelReason.SWAP, null, hold.classSessionId());
             }
             var s = subject.session();
             int taken = bookings.forClass(s.id(), BookingRepository.LIVE).size()

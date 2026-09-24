@@ -40,7 +40,7 @@ public class BookingCancellationService {
         var reason = actor.role() == ActorRole.INSTRUCTOR ? BookingCancelReason.INSTRUCTOR_NOTICE : BookingCancelReason.MEMBER;
         return transactions.write(List.of(initial.classSessionId()), () -> {
             locks.lock(initial.classSessionId());
-            return cancelLocked(bookings.require(bookingId), actor, reason, message, false);
+            return cancelLocked(bookings.require(bookingId), actor, reason, message, null);
         });
     }
     /** S13/S15 cancellations (`INACTIVITY`, `LEAVE`, `PAYMENT_TIMEOUT`): always CANCELLED, never late. */
@@ -48,18 +48,22 @@ public class BookingCancellationService {
         var initial = bookings.require(bookingId);
         return transactions.write(List.of(initial.classSessionId()), () -> {
             locks.lock(initial.classSessionId());
-            return cancelLocked(bookings.require(bookingId), BookingActor.system(), reason, null, false);
+            return cancelLocked(bookings.require(bookingId), BookingActor.system(), reason, null, null);
         });
     }
-    /** S15 P5c / S13 contract (not scheduled here): every live booking of the member's dogs starting after now. */
-    public int cancelFutureByMember(String memberId, BookingCancelReason reason) {
+    /**
+     * S15 P5c (`by = SYSTEM`, `LEAVE`) / S13 contract, not scheduled here: every live booking of the member's dogs
+     * starting after now, inside the caller's transaction when there is one. {@code by} is recorded as the canceller;
+     * a SYSTEM cancellation is never late.
+     */
+    public int cancelFutureByMember(String memberId, BookingActor by, BookingCancelReason reason) {
         var live = bookings.liveForMember(memberId, context.now());
         return transactions.write(live.stream().map(Booking::classSessionId).toList(), () -> {
             int count = 0;
             for (var b : live) {
                 locks.lock(b.classSessionId()); var current = bookings.require(b.id());
                 if (!BookingRepository.LIVE.contains(current.state())) { continue; }
-                cancelLocked(current, BookingActor.system(), reason, null, false); count++;
+                cancelLocked(current, by, reason, null, null); count++;
             }
             return count;
         });
@@ -67,9 +71,11 @@ public class BookingCancellationService {
 
     /**
      * The shared transition, inside a transaction that already holds the class's seat lock.
-     * @param swap R-08-09: the old booking of an atomic swap (CANCELLED, `SWAP`, never late)
+     * @param swapToClassId R-08-09: set for the old booking of an atomic swap (CANCELLED, `SWAP`, never late) — the
+     *        class of the new booking. A same-class swap keeps the class's count, so it never raises `ClassBelowMinimum`.
      */
-    Booking cancelLocked(Booking b, BookingActor actor, BookingCancelReason reason, String message, boolean swap) {
+    Booking cancelLocked(Booking b, BookingActor actor, BookingCancelReason reason, String message, String swapToClassId) {
+        boolean swap = swapToClassId != null, sameClassSwap = b.classSessionId().equals(swapToClassId);
         var now = context.now();
         boolean pending = b.state() == BookingState.PAYMENT_PENDING;
         if (!(b.state() == BookingState.ACTIVE || pending && actor.isSystem()) || !now.isBefore(b.classEndsAt()) || attendance.marked(b.id())) {
@@ -89,7 +95,7 @@ public class BookingCancellationService {
         payload.put("minutesBefore", outcome.minutesBefore()); payload.put("origin", actor.origin()); payload.put("reason", after.cancelReason());
         events.publish(BookingEvent.Kind.BookingCancelled, b.id(), payload, actor);
         if (now.isBefore(b.classStartsAt())) { seatReleased(b, now, outcome.minutesBefore(), actor); }
-        counters.recount(b.classSessionId(), !late, actor);
+        counters.recount(b.classSessionId(), !late && !sameClassSwap, actor);
         if (actor.impersonated()) { audit.cancelledByClub(b, after); }
         if (late) { audit.cancelledLate(b, after); } // S14 R-14-09: every late cancellation, impersonated ones too
         return after;

@@ -208,7 +208,11 @@ bin/core seed:demo --club=fifo --seed=42 --week-start=<the same Monday>
 Every scenario action goes through the real services, as the member it belongs to, «as of» a scenario instant.
 Bookings, cancellations and waiting-list joins run through `BookingContext.asOf`, and free training through the same
 instant in `TrainingContext`. The default instant is the opening of the class's booking week, so the classes of the
-anchor week are W0 with limit 2. Blocks, exemptions and overrides go through the S03/S06 services as the demo admin, and
+anchor week are W0 with limit 2. **Timestamps follow that instant**: `bookedAt`, `createdAt`, `cancelledAt`, the waiting
+list's `joinedAt` and the outbox `occurredAt` of the same bookings (E5-T08) can all be ahead of the run date. Only the
+outbox delivery (`nextAttemptAt`) uses the real clock. Processes and reminders that compare
+`bookedAt` with «now» (S15 P7 `bookings.paymentPendingMinutes`, reminders) must run at the scenario's test clock
+(`demoNow` or later), never at the real run date. Blocks, exemptions and overrides go through the S03/S06 services as the demo admin, and
 ring reservations as the instructor. The rows use the **seed login accounts** (the E4 rows never do), so front tests
 can log in as them. Select them by account and state, never by date or by the generated first names. The table below
 lists what each account holds at `demoNow` (anchor week = week 0; ids differ per club):

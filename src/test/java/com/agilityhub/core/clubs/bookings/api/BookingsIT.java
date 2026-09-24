@@ -163,10 +163,51 @@ class BookingsIT extends BookingFixtures {
         assertThat(session("mon").get("counters", Document.class)).containsEntry("booked", 0).containsEntry("waiting", 1);
         assertThat(eventsOf("BookingCreated").stream().filter(e -> e.getString("aggregateId").equals(swapped.path("id").asText())).findFirst().orElseThrow()
                 .get("payload", Document.class)).containsEntry("swapFromBookingId", mon.path("id").asText());
-        // A done or late booking cannot be swapped either.
-        book(as("laura"), "thu", "s08-d-duna"); clock.setInstant(local("2026-10-08T16:00"));
+        // A late (LATE_WINDOW) or done booking cannot be swapped, even while another one is still swappable: SWAP_NOT_ALLOWED, nothing changes.
+        var thu = book(as("laura"), "thu", "s08-d-duna");
+        clock.setInstant(local("2026-10-07T16:00")); // Wednesday 18:50 is inside the 240 min window, Thursday is not
+        var lateHold = hold(as("laura"), "sat", "s08-d-duna", 201);
+        assertThat(lateHold.at("/limit/swappable")).extracting(s -> s.path("startsAtLocal").asText()).containsExactly("2026-10-08T18:50");
+        before = mongo.findAll(Document.class, "bookings");
+        assertThat(code(confirm(as("laura"), lateHold.path("id").asText(), wed.path("id").asText(), 422))).isEqualTo("SWAP_NOT_ALLOWED");
+        assertThat(mongo.findAll(Document.class, "bookings")).isEqualTo(before);
+        clock.setInstant(local("2026-10-07T20:00")); // Wednesday is done
+        var doneHold = hold(as("laura"), "sat", "s08-d-duna", 201);
+        assertThat(doneHold.at("/limit/swappable")).extracting(s -> s.path("startsAtLocal").asText()).containsExactly("2026-10-08T18:50");
+        assertThat(code(confirm(as("laura"), doneHold.path("id").asText(), wed.path("id").asText(), 422))).isEqualTo("SWAP_NOT_ALLOWED");
+        assertThat(mongo.findAll(Document.class, "bookings")).isEqualTo(before);
+        assertThat(booking(thu.path("id").asText()).getString("state")).isEqualTo("ACTIVE");
+        // With both done or late there is nothing to swap: BOOKING_LIMIT_REACHED, no hold.
+        clock.setInstant(local("2026-10-08T16:00"));
         var sat = hold(as("laura"), "sat", "s08-d-duna", 409);
         assertThat(code(sat)).isEqualTo("BOOKING_LIMIT_REACHED");
+    }
+
+    @Test void R_15_12b_aSameClassSwapKeepsTheCountAndNeverAlertsBelowMinimum() throws Exception {
+        parameter("bookings.limitUnit", "MEMBER"); parameter("classes.minDogs", 2);
+        var duna = book(as("laura"), "mon", "s08-d-duna"); book(as("pere"), "mon", "s08-d-nit"); // 2 of 3 seats = minDogs
+        // W1 allows one class per member: Laura's Rock on the same class swaps out Duna's booking.
+        var held = hold(as("laura"), "mon", "s08-d-rock", 201);
+        assertThat(held.at("/limit/reached").asBoolean()).isTrue();
+        var rock = confirm(as("laura"), held.path("id").asText(), duna.path("id").asText(), 201);
+        assertThat(rock.path("swapFromBookingId").asText()).isEqualTo(duna.path("id").asText());
+        assertThat(booking(duna.path("id").asText())).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "SWAP");
+        assertThat(events("ClassBelowMinimum")).isZero();
+        assertThat(session("mon").get("counters", Document.class)).containsEntry("booked", 2);
+        assertThat(session("mon").get("risk", Document.class).get("lowAlertSentAt")).isNull();
+    }
+
+    @Test void R_08_23_bookingsNeverMakeTheMembersCensusFormStale() throws Exception {
+        var version = mongo.findById("s08-m-laura", Document.class, "members").get("version");
+        book(as("laura"), "wed", "s08-d-duna"); book(as("laura"), "thu", "s08-d-duna");
+        dispatch();
+        var member = mongo.findById("s08-m-laura", Document.class, "members");
+        assertThat(member.getString("lastDogForClass")).isEqualTo("s08-d-duna");
+        assertThat(member.get("version")).as("lastDogForClass takes no part in the member's optimistic lock").isEqualTo(version);
+        // The admin saves the form loaded before the bookings: no STALE_VERSION, and the census save keeps lastDogForClass.
+        call(PATCH, "/members/s08-m-laura", Map.of("version", ((Number) version).longValue(), "remarks", "Example remark"), as("admin"), 200);
+        member = mongo.findById("s08-m-laura", Document.class, "members");
+        assertThat(member.getString("remarks")).isEqualTo("Example remark"); assertThat(member.getString("lastDogForClass")).isEqualTo("s08-d-duna");
     }
 
     @Test @AuditCovers(AuditAction.BOOKING_CANCELLED_LATE)
@@ -454,7 +495,7 @@ class BookingsIT extends BookingFixtures {
         var wed = book(as("laura"), "wed", "s08-d-duna"); var rock = book(as("laura"), "mon", "s08-d-rock"); var toby = book(as("joan"), "thu", "s08-d-toby");
         clock.setInstant(local("2026-10-07T18:00")); // inside the threshold of Wednesday: the system is still never late
         int count;
-        try (var t = TenantContext.open(CLUB)) { count = cancellations.cancelFutureByMember("s08-m-laura", BookingCancelReason.LEAVE); }
+        try (var t = TenantContext.open(CLUB)) { count = cancellations.cancelFutureByMember("s08-m-laura", BookingActor.system(), BookingCancelReason.LEAVE); }
         assertThat(count).isEqualTo(2);
         assertThat(booking(wed.path("id").asText())).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "LEAVE").containsEntry("late", false);
         assertThat(booking(rock.path("id").asText()).getString("packRefundMovementId")).isNotNull();
@@ -465,7 +506,7 @@ class BookingsIT extends BookingFixtures {
             assertThat(system.state()).isEqualTo(BookingState.CANCELLED); assertThat(system.late()).isFalse();
             assertThat(catchThrowableOfType(ApiException.class, () -> cancellations.cancelBySystem(toby.path("id").asText(), BookingCancelReason.INACTIVITY)).code())
                     .isEqualTo(ErrorCode.BOOKING_NOT_CANCELLABLE);
-            assertThat(cancellations.cancelFutureByMember("s08-m-laura", BookingCancelReason.LEAVE)).isZero();
+            assertThat(cancellations.cancelFutureByMember("s08-m-laura", BookingActor.system(), BookingCancelReason.LEAVE)).isZero();
         }
         dispatch();
         assertThat(count("notifications", Criteria.where("code").in("N-05", "N-36", "N-40"))).as("S13/S15 notify SYSTEM cancellations themselves").isZero();

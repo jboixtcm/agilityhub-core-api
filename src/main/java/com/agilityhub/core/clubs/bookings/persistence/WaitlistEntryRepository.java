@@ -54,6 +54,10 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").in(dogIds).and("state").in(LIVE).and("classStartsAt").gt(after))
                 .with(Sort.by("classStartsAt", "_id")), WaitlistEntry.class);
     }
+    /** The classes starting after {@code after} that have live entries (the recount when WAITLIST is switched back on). */
+    public List<String> liveClassIds(java.time.Instant after) {
+        return mongo.findDistinct(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").gt(after)), "classSessionId", WaitlistEntry.class, String.class);
+    }
     /** Live entries whose class has started (S15 P8 sweep, R-15-18a). */
     public List<WaitlistEntry> liveStartedBy(java.time.Instant now) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").lte(now)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);

@@ -5,22 +5,25 @@ import com.agilityhub.core.platform.application.audit.AuditActorProvider;
 import com.agilityhub.core.shared.application.*;
 import com.agilityhub.core.shared.domain.DomainEvent;
 import com.agilityhub.core.shared.domain.events.SchedulerEvent;
-import java.time.Clock;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
-/** Outbox publication inside the booking transaction (S08 §7); the event origin is the actor's (R-08-19). */
+/**
+ * Outbox publication inside the booking transaction (S08 §7); the event origin is the actor's (R-08-19). `occurredAt` is
+ * the business time ({@link BookingContext#now}), so a demo-seed booking made «as of» a scenario instant has an event
+ * stamped like its `bookedAt`/`cancelledAt` (E5-T08); the outbox schedules delivery on the real clock regardless.
+ */
 @Service
 public class BookingEvents {
-    private final EventPublisher publisher; private final AuditActorProvider actors; private final Clock clock;
-    public BookingEvents(EventPublisher publisher, AuditActorProvider actors, Clock clock) { this.publisher = publisher; this.actors = actors; this.clock = clock; }
+    private final EventPublisher publisher; private final AuditActorProvider actors; private final BookingContext context;
+    public BookingEvents(EventPublisher publisher, AuditActorProvider actors, BookingContext context) { this.publisher = publisher; this.actors = actors; this.context = context; }
     public String publish(BookingEvent.Kind kind, String aggregateId, Map<String, Object> payload, BookingActor actor) {
-        return publisher.publish(new BookingEvent(kind, TenantContext.require(), aggregateId, clock.instant(), payload,
+        return publisher.publish(new BookingEvent(kind, TenantContext.require(), aggregateId, context.now(), payload,
                 actor.isSystem() ? null : actor.accountId(), actor.impersonatedMemberId(), origin(actor)));
     }
     /** S15 R-15-12b `ClassBelowMinimum` (catalog payload `classId, countedDogs, minDogs`); N-54 is E5-T05. */
     public String belowMinimum(String classId, int countedDogs, int minDogs, BookingActor actor) {
-        return publisher.publish(new SchedulerEvent(SchedulerEvent.Kind.ClassBelowMinimum, TenantContext.require(), classId, clock.instant(),
+        return publisher.publish(new SchedulerEvent(SchedulerEvent.Kind.ClassBelowMinimum, TenantContext.require(), classId, context.now(),
                 Map.of("classId", classId, "countedDogs", countedDogs, "minDogs", minDogs), actor.isSystem() ? null : actor.accountId(),
                 actor.impersonatedMemberId(), origin(actor)));
     }

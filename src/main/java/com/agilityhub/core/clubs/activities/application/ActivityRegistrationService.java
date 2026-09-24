@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ActivityRegistrationService {
+    /** `ActivityRegistrationChanged.origin` of a system promotion; the stored registration keeps its own `APP`/`BACKOFFICE` origin. */
+    static final String SYSTEM_ORIGIN="SYSTEM";
     final ActivityRepository activities; final ActivityRegistrationRepository registrations; final ActivityContext context;
     private final ActivityTransactions transactions; private final ActivityEvents events; private final ActivityAudit audit;
     public ActivityRegistrationService(ActivityRepository activities,ActivityRegistrationRepository registrations,ActivityContext context,
@@ -108,7 +110,9 @@ public class ActivityRegistrationService {
     }
     private void changed(ActivityRegistration r,boolean promoted) {
         var payload=new LinkedHashMap<String,Object>(); payload.put("registrationId",r.id()); payload.put("activityId",r.activityId()); payload.put("memberId",r.memberId());
-        payload.put("state",r.state()); payload.put("origin",r.state()==RegistrationState.CANCELLED?(r.cancelReason()==RegistrationCancelReason.ADMIN?RegistrationOrigin.BACKOFFICE:RegistrationOrigin.APP):r.origin()); if(r.cancelReason()!=null) payload.put("cancelReason",r.cancelReason()); if(promoted) payload.put("promoted",true);
+        // A FIFO promotion is done by the system (S07 §5), whatever the origin of the registration it promotes.
+        Object origin=promoted?SYSTEM_ORIGIN:r.state()==RegistrationState.CANCELLED?(r.cancelReason()==RegistrationCancelReason.ADMIN?RegistrationOrigin.BACKOFFICE:RegistrationOrigin.APP):r.origin();
+        payload.put("state",r.state()); payload.put("origin",origin); if(r.cancelReason()!=null) payload.put("cancelReason",r.cancelReason()); if(promoted) payload.put("promoted",true);
         events.publish(ActivityEvent.Kind.ActivityRegistrationChanged,r.id(),payload);
     }
 }

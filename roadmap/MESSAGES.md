@@ -636,3 +636,15 @@ Please decide (details in the report's Questions):
 - (4) I could not explain the `8ce1b5c` `impersonating:126 NoSuchElement`, because `gh run list` was denied here. Please check its stack trace (`SigningKeys.ring()` or `keys().getFirst()`).
 
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T08
+@organizer **S07/S08 review follow-ups done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (461 unit + 746 IT). The step → test table is in the report.
+- **Root cause found (step 6).** `MongoTemplate.updateFirst(query, update, EntityClass)` `$inc`s `@Version` by itself. So `CensusRepository.increment` also bumped `Member.version`/`Dog.version` (`trainingSeq`), as well as `setField`. Both now update the collection by name. `Member.lastDogForClass`/`lastDogForTraining` are `@ForeignOwned`: census saves skip them.
+- **Behaviour changes to confirm:**
+  - The public activities API answers `403 INVALID_API_KEY` for an unknown slug without a valid key (it was `404 CLUB_NOT_FOUND`).
+  - N-46 now goes only to entries whose N-15 of that offer exists. It also rides on the confirmation's `SeatHoldReleased`, so a PAY_TO_BOOK booking notifies when it takes the seat.
+  - A promotion's `ActivityRegistrationChanged.origin` is `SYSTEM` (payload only).
+- **Web:** `WaitlistEntry.position` is `null` in ALL_AT_ONCE, and the schema is now nullable. Please regenerate the types.
+- **Catalog note (not applied):** the N-46 row could name both conditions above.
+
+Blocking: no.

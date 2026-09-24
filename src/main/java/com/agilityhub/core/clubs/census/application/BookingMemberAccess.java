@@ -26,16 +26,22 @@ public class BookingMemberAccess {
 
     public Optional<Member> member(String id) {
         if (id == null) { return Optional.empty(); }
-        return access.members.findById(id).filter(m -> m.erasedAt == null).map(m -> {
-            var block = map(m.bookingBlock);
-            return new Member(m.id, m.accountId, m.firstName,
-                    java.util.stream.Stream.of(m.firstName, m.lastName1, m.lastName2).filter(Objects::nonNull).collect(java.util.stream.Collectors.joining(" ")),
-                    m.status, m.leaveDate, Boolean.TRUE.equals(block.get("active")), string(block.get("reason")), m.planId, m.lastDogForClass,
-                    string(map(m.signup).getOrDefault("locale", access.config().club().defaultLocale())),
-                    rows(m.contactEmails).stream().map(e -> string(e.get("email"))).filter(Objects::nonNull).findFirst().orElse(null),
-                    rows(m.phones).stream().map(p -> p.get("number") == null ? null : Objects.toString(p.get("prefix"), "") + p.get("number"))
-                            .filter(Objects::nonNull).distinct().toList());
-        });
+        return access.members.findById(id).filter(m -> m.erasedAt == null).map(this::view);
+    }
+    /** One `$in` read for a page of rows (`GET /bookings`, E5-T08); erased members are left out. */
+    public List<Member> members(Collection<String> ids) {
+        if (ids.isEmpty()) { return List.of(); }
+        return access.members.matching(Criteria.where("_id").in(ids).and("erasedAt").is(null)).stream().map(this::view).toList();
+    }
+    private Member view(com.agilityhub.core.clubs.census.persistence.Member m) {
+        var block = map(m.bookingBlock);
+        return new Member(m.id, m.accountId, m.firstName,
+                java.util.stream.Stream.of(m.firstName, m.lastName1, m.lastName2).filter(Objects::nonNull).collect(java.util.stream.Collectors.joining(" ")),
+                m.status, m.leaveDate, Boolean.TRUE.equals(block.get("active")), string(block.get("reason")), m.planId, m.lastDogForClass,
+                string(map(m.signup).getOrDefault("locale", access.config().club().defaultLocale())),
+                rows(m.contactEmails).stream().map(e -> string(e.get("email"))).filter(Objects::nonNull).findFirst().orElse(null),
+                rows(m.phones).stream().map(p -> p.get("number") == null ? null : Objects.toString(p.get("prefix"), "") + p.get("number"))
+                        .filter(Objects::nonNull).distinct().toList());
     }
     public Optional<Member> memberByAccount(String accountId) {
         if (accountId == null) { return Optional.empty(); }

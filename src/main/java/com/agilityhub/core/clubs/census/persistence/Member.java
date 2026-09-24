@@ -39,8 +39,8 @@ public class Member extends CensusEntity {
     public String leftReason;
     public String leaveRequestId;
     public Map<String,Object> bookingBlock;
-    public String lastDogForClass;
-    public String lastDogForTraining;
+    @ForeignOwned public String lastDogForClass;
+    @ForeignOwned public String lastDogForTraining;
     public String familyGroupId;
     public Map<String,Object> notificationPreferences;
     public Instant erasedAt;

@@ -79,7 +79,9 @@ class WaitlistIT extends BookingFixtures {
     @Test void T_08_19_joinLeaveAndADirectBookingConsolidatesTheEntry() throws Exception {
         var pere = book(as("pere"), "last", "s08-d-nit");
         var duna = join(as("laura"), "last", "s08-d-duna", 201);
-        assertThat(duna.path("state").asText()).isEqualTo("ACTIVE"); assertThat(duna.path("position").asInt()).isEqualTo(1);
+        assertThat(duna.path("state").asText()).isEqualTo("ACTIVE"); assertThat(entry(id(duna)).getInteger("position")).isEqualTo(1);
+        assertThat(duna.path("position").isNull()).as("ALL_AT_ONCE: the queue number is not shown").isTrue();
+        assertThat(call(GET, "/waitlist-entries/" + id(duna), null, as("laura"), 200).path("position").isNull()).isTrue();
         assertThat(duna.path("memberId").asText()).isEqualTo("s08-m-laura"); assertThat(duna.path("dogName").asText()).isEqualTo("Duna");
         assertThat(duna.at("/classSession/startsAtLocal").asText()).isEqualTo("2026-10-08T20:00"); assertThat(duna.path("confirmBy").isNull()).isTrue();
         assertThat(entry(id(duna))).containsEntry("bookingWeekKey", "2026-10-04").containsEntry("accountId", "s08-laura");
@@ -88,7 +90,7 @@ class WaitlistIT extends BookingFixtures {
         assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("lastDogForClass")).isEqualTo("s08-d-duna");
         // Laura joins for Joan's Toby (family group): the entry is the owner's, the account and lastDogForClass are Laura's.
         var toby = join(as("laura"), "last", "s08-d-toby", 201);
-        assertThat(toby.path("memberId").asText()).isEqualTo("s08-m-joan"); assertThat(toby.path("position").asInt()).isEqualTo(2);
+        assertThat(toby.path("memberId").asText()).isEqualTo("s08-m-joan"); assertThat(entry(id(toby)).getInteger("position")).isEqualTo(2);
         assertThat(mongo.findById("s08-m-laura", Document.class, "members").getString("lastDogForClass")).isEqualTo("s08-d-toby");
         assertThat(code(join(as("joan"), "last", "s08-d-toby", 409))).isEqualTo("ALREADY_ON_WAITLIST");
         assertThat(code(join(as("pere"), "last", "s08-d-nit", 409))).isEqualTo("ALREADY_BOOKED");
@@ -100,7 +102,7 @@ class WaitlistIT extends BookingFixtures {
         assertThat(code(call(POST, "/waitlist-entries/" + id(toby) + "/cancellation", null, as("joan"), 422))).isEqualTo("WAITLIST_ENTRY_NOT_LIVE");
         assertThat(eventsOf("WaitlistLeft")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("entryId", id(toby)));
         var again = join(as("joan"), "last", "s08-d-toby", 201);
-        assertThat(again.path("position").asInt()).as("max + 1 over every state").isEqualTo(3);
+        assertThat(entry(id(again)).getInteger("position")).as("max + 1 over every state").isEqualTo(3);
         // A direct booking of a waiting dog consolidates its entry (BOOKED_DIRECTLY in the trail, state CONSOLIDATED).
         cancel(as("pere"), id(pere), 200);
         var direct = book(as("laura"), "last", "s08-d-duna");
@@ -334,7 +336,7 @@ class WaitlistIT extends BookingFixtures {
         call(GET, "/class-sessions/s08-last/waitlist-entries", null, impersonating("admin", "s08-m-laura"), 403);
         // Club B never sees club A's entries.
         var otherClub = jwt().jwt(j -> j.subject("s08-admin").claim("clubId", OTHER).claim("memberId", "s08-m-admin")).authorities(() -> "ROLE_ADMIN");
-        assertThat(mvc.perform(get("/api/v1/waitlist-entries/" + duna).header("Host", OTHER_HOST).with(otherClub)).andReturn().getResponse().getStatus()).isIn(403, 404);
+        assertThat(mvc.perform(get("/api/v1/waitlist-entries/" + duna).header("Host", OTHER_HOST).with(otherClub)).andReturn().getResponse().getStatus()).isEqualTo(404);
         // WAITLIST off: 404 everywhere, no notice on release, counters.waiting 0.
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.WAITLIST).toArray(Module[]::new));
         assertThat(code(call(GET, "/waitlist-entries/" + duna, null, as("laura"), 404))).isEqualTo("MODULE_DISABLED");
@@ -347,5 +349,71 @@ class WaitlistIT extends BookingFixtures {
         dispatch();
         try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-last", 1)).isZero(); }
         assertThat(entry(duna)).containsEntry("state", "ACTIVE");
+        // WAITLIST back on (S02 publishes ClubModulesChanged): counters.waiting is recounted, once.
+        modules(Module.values());
+        var before = Arrays.stream(Module.values()).filter(m -> m != Module.WAITLIST).map(Enum::name).sorted().toList();
+        var after = Arrays.stream(Module.values()).map(Enum::name).sorted().toList();
+        for (int i = 0; i < 2; i++) {
+            publish(new com.agilityhub.core.platform.domain.events.ClubModulesChanged(CLUB, clock.instant(), Map.of("diff", Map.of("modules", Map.of("before", before, "after", after))),
+                    "s08-admin", null, DomainEvent.Origin.BACKOFFICE));
+            dispatch();
+            assertThat(session("last").get("counters", Document.class)).containsEntry("waiting", 1);
+        }
+        assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
+    }
+
+    @Test void R_08_13_anOrdinaryBookingNeitherLocksNorWritesForN46() throws Exception {
+        book(as("pere"), "last", "s08-d-nit"); join(as("laura"), "last", "s08-d-duna", 201); // waiting, never offered
+        book(as("joan"), "wed", "s08-d-toby"); book(as("c0"), "thu", "s08-d-c0");
+        var before = mongo.findAll(Document.class, "seat_locks");
+        dispatch();
+        assertThat(mongo.findAll(Document.class, "seat_locks")).as("the N-46 consumers returned before any class lock").isEqualTo(before);
+        assertThat(notifications("N-46", "APP")).isZero(); assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
+    }
+
+    @Test void R_08_13_noN46ForAnOfferWhoseN15WasNeverDelivered() throws Exception {
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), toby = id(join(as("joan"), "last", "s08-d-toby", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
+        cancel(as("pere"), id(pere), 200);
+        try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-last", 1)).isEqualTo(3); } // offered, WaitlistNotified still in the outbox
+        claim(as("joan"), toby, id(holdFor(as("joan"), "last", "s08-d-toby", toby, 201)), null, 201);
+        assertThat(entry(duna)).containsEntry("state", "ACTIVE"); assertThat(entry(c0)).containsEntry("state", "ACTIVE");
+        dispatch(); dispatch();
+        assertThat(notifications("N-15", "APP")).as("the demoted entries are skipped").isZero();
+        assertThat(notifications("N-46", "APP")).as("nobody heard of the offer, nobody is told it is gone").isZero();
+    }
+
+    @Test void R_08_13_R_08_18_aPayToBookBookingTakingTheLastSeatSendsN46WhenTheSeatIsTaken() throws Exception {
+        payToBook();
+        var c1 = book(as("c1"), "last", "s08-d-c1");
+        String toby = id(join(as("joan"), "last", "s08-d-toby", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
+        cancel(as("c1"), id(c1), 200); dispatch();
+        assertThat(entry(toby)).containsEntry("state", "NOTIFIED"); assertThat(notifications("N-15", "APP")).isEqualTo(2);
+        // Pere (PAY_TO_BOOK, not waiting) books the last seat directly: PAYMENT_PENDING, and the offer is gone now.
+        var pending = book(as("pere"), "last", "s08-d-nit");
+        assertThat(pending.path("state").asText()).isEqualTo("PAYMENT_PENDING");
+        assertThat(entry(toby)).containsEntry("state", "ACTIVE"); assertThat(entry(c0)).containsEntry("state", "ACTIVE");
+        dispatch();
+        assertThat(eventsOf("BookingCreated")).as("not paid yet").noneMatch(e -> id(pending).equals(e.getString("aggregateId")));
+        assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).containsExactlyInAnyOrder("s08-joan", "s08-c0");
+    }
+
+    @Test void R_08_15_theClaimOfADemotedEntryAnswersLikeItsHold() throws Exception {
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)); join(as("c0"), "last", "s08-d-c0", 201);
+        cancel(as("pere"), id(pere), 200); dispatch();
+        var joan = book(as("joan"), "last", "s08-d-toby"); // a direct booking takes the offered seat
+        assertThat(entry(duna)).containsEntry("state", "ACTIVE");
+        assertThat(code(claim(as("laura"), duna, "s08-no-hold", null, 409))).isEqualTo("SEAT_TAKEN");
+        assertThat(code(holdFor(as("laura"), "last", "s08-d-duna", duna, 409))).isEqualTo("SEAT_TAKEN");
+        dispatch();
+        assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).containsExactlyInAnyOrder("s08-laura", "s08-c0");
+        // The seat is freed again inside the notice threshold (raised here to 5000 min; the class starts in 58 h): no new offer.
+        parameter("waitlist.notifyThresholdMinutes", 5000);
+        cancel(as("joan"), id(joan), 200); dispatch();
+        assertThat(eventsOf("SeatReleased")).extracting(e -> e.get("payload", Document.class).getBoolean("notifyWaitlist")).containsExactlyInAnyOrder(true, false);
+        assertThat(entry(duna)).containsEntry("state", "ACTIVE");
+        assertThat(code(holdFor(as("laura"), "last", "s08-d-duna", duna, 422))).isEqualTo("WAITLIST_NOT_NOTIFIED");
+        assertThat(code(claim(as("laura"), duna, "s08-no-hold", null, 422))).as("the same code as the hold").isEqualTo("WAITLIST_NOT_NOTIFIED");
     }
 }
