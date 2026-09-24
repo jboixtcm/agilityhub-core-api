@@ -70,9 +70,14 @@ public class TrainingMemberAccess {
     public boolean familyGroups() { return access.enabled(Module.FAMILY_GROUP); }
     /** R-09-09: written on each booking of the person who booked. */
     public void lastDogForTraining(String memberId, String dogId) { access.members.setField(memberId, "lastDogForTraining", dogId); }
-    /** R-09-06 step 1: `$inc` of `Dog.trainingSeq` (unit DOG) or `Member.trainingSeq` (unit MEMBER) serialises the weekly counter. */
-    public void touchTrainingSeq(boolean dogUnit, String id) {
-        if (dogUnit) { access.dogs.increment(id, "trainingSeq"); } else { access.members.increment(id, "trainingSeq"); }
+    /**
+     * R-09-06 step 1: `$inc` of `Dog.trainingSeq` always, plus `Member.trainingSeq` with unit MEMBER. The unit's sequence
+     * serialises its weekly counter; the dog's makes two bookings of one shared dog conflict in Mongo whatever the unit
+     * (two members of a family group booking it on two rings at the same time).
+     */
+    public void touchTrainingSeq(boolean dogUnit, String dogId, String memberId) {
+        access.dogs.increment(dogId, "trainingSeq");
+        if (!dogUnit) { access.members.increment(memberId, "trainingSeq"); }
     }
     /** ACTIVE members and the ACTIVE dogs they own (S16's N-31 audience is computed from these in S09). */
     public List<Dog> activeDogs() { return access.dogs.matching(Criteria.where("status").is("ACTIVE")).stream().map(TrainingMemberAccess::view).toList(); }

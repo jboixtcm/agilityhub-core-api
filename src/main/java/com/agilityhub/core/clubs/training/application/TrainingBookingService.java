@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.bookings.application.BookingQueryService;
 import com.agilityhub.core.clubs.bookings.application.ports.InactivityPort;
 import com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess;
 import com.agilityhub.core.clubs.census.application.TrainingMemberAccess;
+import com.agilityhub.core.clubs.scheduling.application.RingScheduleAccess;
 import com.agilityhub.core.clubs.training.domain.*;
 import com.agilityhub.core.clubs.training.persistence.*;
 import com.agilityhub.core.platform.application.Module;
@@ -19,8 +20,11 @@ import org.springframework.transaction.annotation.*;
  * (1) `$inc` of the unit's `trainingSeq` (serialises the weekly counter); (2) eligibility, ring, member conditions,
  * grid and window; (3) no overlapping training or class booking of the dog; (4) the counter of the slot's training
  * week (by session date) below `training.maxPerWeek` unless an impersonating admin overrides it; (5) the live slot
- * state («Qualsevol» = first FREE ring in catalog order); (6) insert with the lowest free `seatIndex`, the partial
- * unique index being the final guard; (7) `Member.lastDogForTraining`, audit when impersonated, `TrainingBooked`.
+ * state («Qualsevol» = first FREE ring in catalog order) and the `$inc` of the chosen ring's ring-day sequence, which
+ * the S06 writes checking the ring's bookings also touch (R-09-13: a concurrent block or class conflicts in Mongo);
+ * (6) insert with the lowest free `seatIndex`, the partial unique index being the final guard; (7)
+ * `Member.lastDogForTraining`, audit when impersonated, `TrainingBooked`. Step (1) also `$inc`s `Dog.trainingSeq`
+ * whatever the unit, so two bookings of one shared dog conflict in Mongo.
  */
 @Service
 public class TrainingBookingService {
@@ -30,15 +34,21 @@ public class TrainingBookingService {
     private final TrainingContext context; private final TrainingTransactions transactions; private final TrainingBookingRepository bookings;
     private final TrainingMemberAccess census; private final TrainingEligibilityService eligibility; private final TrainingSlotService slots;
     private final BookingQueryService classBookings; private final InactivityPort inactivity; private final TrainingEvents events; private final TrainingAudit audit;
-    private final PlanningCatalogAccess catalogs;
+    private final PlanningCatalogAccess catalogs; private final RingScheduleAccess schedule;
     public TrainingBookingService(TrainingContext context, TrainingTransactions transactions, TrainingBookingRepository bookings, TrainingMemberAccess census,
             TrainingEligibilityService eligibility, TrainingSlotService slots, BookingQueryService classBookings, InactivityPort inactivity, TrainingEvents events,
-            TrainingAudit audit, PlanningCatalogAccess catalogs) {
+            TrainingAudit audit, PlanningCatalogAccess catalogs, RingScheduleAccess schedule) {
         this.context = context; this.transactions = transactions; this.bookings = bookings; this.census = census; this.eligibility = eligibility;
         this.slots = slots; this.classBookings = classBookings; this.inactivity = inactivity; this.events = events; this.audit = audit; this.catalogs = catalogs;
+        this.schedule = schedule;
     }
-    /** The in-process lanes of a booking: the dog, the booking member and the slot instant. */
-    public static List<String> lanes(String dogId, String memberId, Instant startsAt) { return List.of("dog:" + dogId, "member:" + memberId, "slot:" + startsAt); }
+    /**
+     * The in-process lanes of a booking: the dog, the booking member, the slot instant and its club-local day (the
+     * bookings of one day share the ring-day sequences, so they queue locally instead of retrying their conflicts).
+     */
+    public List<String> lanes(String dogId, String memberId, Instant startsAt) {
+        return List.of("dog:" + dogId, "member:" + memberId, "slot:" + startsAt, "day:" + startsAt.atZone(context.zone()).toLocalDate());
+    }
 
     public Booked book(TrainingActor actor, String dogId, Instant startsAt, String ringId, Override override, String idempotencyKey) {
         if (override != null && !actor.impersonated()) { throw new ApiException(ErrorCode.OVERRIDE_NOT_ALLOWED); }
@@ -49,7 +59,7 @@ public class TrainingBookingService {
         var dog = census.reachableDogs(actor.memberId()).stream().map(Map.Entry::getKey).filter(d -> d.id().equals(dogId)).findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE));
         boolean dogUnit = context.dogUnit();
-        census.touchTrainingSeq(dogUnit, dogUnit ? dog.id() : actor.memberId()); // (1)
+        census.touchTrainingSeq(dogUnit, dog.id(), actor.memberId()); // (1)
         // (2) eligibility, ring, member conditions, grid, window
         if (!eligibility.canFreeTrain(dog)) { throw new ApiException(ErrorCode.DOG_NOT_ALLOWED); }
         var bookable = slots.bookableRings();
@@ -95,6 +105,7 @@ public class TrainingBookingService {
         String chosen = ringId != null ? ringId : TrainingWeek.firstFree(cells).orElse(null);
         var cell = chosen == null ? null : cells.get(chosen);
         if (cell == null || !cell.free()) { throw slotTaken(ringId, startsAt, cells, cell); }
+        schedule.lockRingDay(chosen, date);
         // (6) insert with the lowest free seat; the partial unique index is the final guarantee
         var id = UUID.randomUUID().toString();
         var booking = bookings.insert(new TrainingBooking(id, TenantContext.require(), actor.memberId(), dog.id(), chosen, slot.startsAt(), slot.endsAt(),

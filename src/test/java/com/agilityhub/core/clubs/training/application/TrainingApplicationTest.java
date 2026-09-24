@@ -30,6 +30,10 @@ class TrainingApplicationTest {
         return new MongoCommandException(response, new ServerAddress());
     }
 
+    static TrainingTransactions transactions(org.springframework.transaction.support.TransactionTemplate template) {
+        return new TrainingTransactions(template, new com.agilityhub.core.shared.application.LocalLanes(false),
+                new com.agilityhub.core.shared.application.TransactionRetries(new io.micrometer.core.instrument.simple.SimpleMeterRegistry()));
+    }
     @Test void T_09_32_duplicateKeysAndWriteConflictsAreRetriedWholeAtMostThreeTimes() {
         assertThat(TrainingTransactions.retryable(new org.springframework.dao.DuplicateKeyException("seat"))).isTrue();
         assertThat(TrainingTransactions.retryable(new IllegalStateException(mongo(112, null)))).as("a wrapped write conflict").isTrue();
@@ -38,7 +42,7 @@ class TrainingApplicationTest {
         assertThat(TrainingTransactions.retryable(mongo(2, null))).isFalse();
         assertThat(TrainingTransactions.retryable(new ApiException(ErrorCode.SLOT_TAKEN))).isFalse();
         try (var tenant = TenantContext.open("club-a")) {
-            var direct = new DirectTransactions(); var transactions = new TrainingTransactions(direct);
+            var direct = new DirectTransactions(); var transactions = transactions(direct);
             var calls = new AtomicInteger();
             assertThat(transactions.write(List.of("dog:a", "slot:x"), () -> {
                 if (calls.incrementAndGet() < 3) { throw new org.springframework.dao.DuplicateKeyException("seat"); }
@@ -46,11 +50,11 @@ class TrainingApplicationTest {
             })).isEqualTo("booked");
             assertThat(direct.attempts.get()).isEqualTo(3);
             var exhausted = new DirectTransactions();
-            assertThatThrownBy(() -> new TrainingTransactions(exhausted).write(List.of("dog:a"), () -> { throw mongo(112, null); }))
+            assertThatThrownBy(() -> transactions(exhausted).write(List.of("dog:a"), () -> { throw mongo(112, null); }))
                     .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.STALE_VERSION));
             assertThat(exhausted.attempts.get()).isEqualTo(3);
             var business = new DirectTransactions();
-            assertThatThrownBy(() -> new TrainingTransactions(business).write(Arrays.asList("dog:a", null), () -> { throw new ApiException(ErrorCode.SLOT_TAKEN); }))
+            assertThatThrownBy(() -> transactions(business).write(Arrays.asList("dog:a", null), () -> { throw new ApiException(ErrorCode.SLOT_TAKEN); }))
                     .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.SLOT_TAKEN));
             assertThat(business.attempts.get()).as("a business refusal is never retried").isEqualTo(1);
         }

@@ -20,10 +20,11 @@ public class RingBlockService {
     private final RingBlockRepository blocks; private final ClassSessionRepository classes; private final PlanningContext context;
     private final SchedulingTransactions transactions; private final SchedulingEvents events; private final SchedulingAudit audit;
     private final ClassCancellationUseCase cancellations; private final TrainingConflictPort training; private final Clock clock;
+    private final RingDayLockRepository ringDays;
     public RingBlockService(RingBlockRepository blocks,ClassSessionRepository classes,PlanningContext context,SchedulingTransactions transactions,
-            SchedulingEvents events,SchedulingAudit audit,ClassCancellationUseCase cancellations,TrainingConflictPort training,Clock clock) {
+            SchedulingEvents events,SchedulingAudit audit,ClassCancellationUseCase cancellations,TrainingConflictPort training,Clock clock,RingDayLockRepository ringDays) {
         this.blocks=blocks; this.classes=classes; this.context=context; this.transactions=transactions; this.events=events; this.audit=audit;
-        this.cancellations=cancellations; this.training=training; this.clock=clock;
+        this.cancellations=cancellations; this.training=training; this.clock=clock; this.ringDays=ringDays;
     }
     public RingBlock require(String id) { return blocks.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public static boolean role(String role) {
@@ -34,7 +35,7 @@ public class RingBlockService {
     public RingBlock create(String ring,Instant from,Instant to,RingBlockKind kind,RingBlockReason reason,String note,boolean cancelBookings) {
         forcePermission(cancelBookings);
         return transactions.write(() -> {
-            validate(ring,from,to,kind,reason,false);
+            validate(ring,from,to,kind,reason,false); lockDay(ring,from);
             resolve(conflicts(ring,from,to,null,null),new Options(cancelBookings,false,null),events.actor());
             return insert(ring,from,to,kind,reason,note,null,events.actor());
         });
@@ -46,7 +47,7 @@ public class RingBlockService {
             if(b.version()!=version) throw new ApiException(ErrorCode.STALE_VERSION);
             var ring=(String)patch.getOrDefault("ringId",b.ringId()); var from=(Instant)patch.getOrDefault("from",b.from()); var to=(Instant)patch.getOrDefault("to",b.to());
             var kind=(RingBlockKind)patch.getOrDefault("kind",b.kind()); var reason=(RingBlockReason)patch.getOrDefault("reason",b.reason());
-            var note=(String)patch.getOrDefault("note",b.note()); validate(ring,from,to,kind,reason,false);
+            var note=(String)patch.getOrDefault("note",b.note()); validate(ring,from,to,kind,reason,false); lockDay(ring,from);
             resolve(conflicts(ring,from,to,id,null),new Options(cancelBookings,false,null),events.actor());
             var after=new RingBlock(b.id(),b.clubId(),ring,from,to,kind,reason,note,null,b.state(),null,null,b.version()+1,b.createdAt(),b.createdByAccountId(),clock.instant(),events.actor());
             blocks.update(after,version); changed(b,after); return after;
@@ -97,6 +98,14 @@ public class RingBlockService {
             if(hours==null || start.toLocalTime().isBefore(hours.open()) || end.toLocalTime().isAfter(hours.close())) throw new ApiException(ErrorCode.OUTSIDE_OPENING_HOURS);
         }
     }
+    /**
+     * R-09-13: a write that checks the ring's live training bookings `$inc`s the ring-day sequence a training booking also
+     * touches, so a concurrent booking and block conflict in Mongo and the retried side sees the other (no write skew).
+     */
+    private void lockDay(String ring,Instant from) {
+        var config=context.config();
+        if(config.modules().contains(Module.FREE_TRAINING)) ringDays.touch(ring,from.atZone(ZoneId.of(config.club().timeZone())).toLocalDate());
+    }
     private Conflicts conflicts(String ring,Instant from,Instant to,String exceptBlock,String exceptActivity) {
         var result=new ArrayList<Conflict>(); var catalog=context.catalog();
         classes.between(from,to).stream().filter(c -> Objects.equals(c.ringId(),ring) && (c.state()==ClassState.DRAFT || c.state()==ClassState.ACTIVE)).forEach(c ->
@@ -123,6 +132,7 @@ public class RingBlockService {
         if(!context.config().modules().contains(Module.ACTIVITIES)) throw new ApiException(ErrorCode.MODULE_DISABLED);
         context.lockReferences(); forcePermission(options.cancelBookings() || options.cancelClasses());
         for(String ring:new LinkedHashSet<>(request.ringIds())) validate(ring,request.from(),request.to(),RingBlockKind.BLOCK,RingBlockReason.ACTIVITY,true);
+        for(String ring:new TreeSet<>(request.ringIds())) lockDay(ring,request.from());
         resolve(conflictsFor(request),options,request.createdByAccountId());
         var existing=blocks.forActivity(request.activityId());
         for(var block:existing) if(!request.ringIds().contains(block.ringId())) cancelBlock(block);

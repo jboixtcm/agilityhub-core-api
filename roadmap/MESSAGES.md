@@ -621,3 +621,18 @@ Blocking: no.
 **Catalog proposal** (render variable only, applied in the templates): add `audience` (`MEMBER` | `STAFF`) to the N-16 row of `CATALEG_NOTIFICACIONS.md`. It is the ICU `select` that gives the admins' copy its own wording (no empty `dog_name`), like `change` on N-36 and `mode` on N-15.
 **Open point** (review #7, not changed): `domain_events` and `job_runs` without `clubId` are never purged by the per-club P9. Should there be a platform pass, or are they kept forever?
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T07
+@organizer **Concurrency on Mongo + deterministic dispatch done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (459 unit + 739 IT). The five repeated runs of ActivityIT/BookingsIT/WaitlistIT/TrainingIT with `-XX:ActiveProcessorCount=2` in random order are green.
+- **Lanes.** One `shared.application.LocalLanes` keyed per aggregate, switched by `core.concurrency.local-lanes`. The single-instance assumption is in `application.yml` and `docs/DEPLOY.md`.
+- **Mongo paths.** They are proven with the lanes off, each by a held transaction plus the new `core.transactions.retries` meter.
+- **Dog and ring day.** A shared dog now conflicts on `Dog.trainingSeq`. A booking and a ring block/class conflict on the new `ring_day_locks`.
+- **Outbox root cause.** The dispatcher's global, oldest-first, 100-per-call claim was spent on PENDING events that earlier test classes left: up to 724 records, depending on class order. A counterfactual run reproduces the CI symptom and a control run passes. `AbstractIntegrationTest` now discards the backlog, and the Awaitility loop is gone.
+
+Please decide (details in the report's Questions):
+- (1) Add `ring_day_locks` to the model, next to `seat_locks`.
+- (2) With the lanes off, 30–45 % of a 20-request burst on one S07/S08 aggregate ends `STALE_VERSION`. I propose 5 attempts with exponential backoff, only if the API ever runs on more than one instance. Budgets are unchanged.
+- (3) The S06 `SchedulingTransactions` retries without backoff.
+- (4) I could not explain the `8ce1b5c` `impersonating:126 NoSuchElement`, because `gh run list` was denied here. Please check its stack trace (`SigningKeys.ring()` or `keys().getFirst()`).
+
+Blocking: no.

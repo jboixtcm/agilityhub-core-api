@@ -25,21 +25,23 @@ class ActivityInfrastructureTest {
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--club=missing"))).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.CLUB_NOT_FOUND));
     }
     @Test void T_07_24_transactionsRetryOnlyTransientConflictsAndPreserveInterrupts() {
-        var template=mock(TransactionTemplate.class);var service=new ActivityTransactions(template);
+        var template=mock(TransactionTemplate.class);var retries=new com.agilityhub.core.shared.application.TransactionRetries(new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+        var service=new ActivityTransactions(template,new com.agilityhub.core.shared.application.LocalLanes(true),retries);
         var conflict=new com.mongodb.MongoException(112,"Example write conflict");
         try(var tenant=TenantContext.open("example")) {
             when(template.execute(any())).thenThrow(conflict).thenThrow(conflict).thenReturn("committed");
-            assertThat(service.write(() -> "unused")).isEqualTo("committed");verify(template,times(3)).execute(any());
+            assertThat(service.write(List.of("activity-a"),() -> "unused")).isEqualTo("committed");verify(template,times(3)).execute(any());
+            assertThat(retries.retries(ActivityTransactions.CONTEXT,"write_conflict")).isEqualTo(2);
             reset(template);when(template.execute(any())).thenThrow(conflict);
-            assertThatThrownBy(() -> service.write(() -> null)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.STALE_VERSION));
-            verify(template,times(4)).execute(any());
+            assertThatThrownBy(() -> service.write(List.of("activity-a"),() -> null)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.STALE_VERSION));
+            verify(template,times(4)).execute(any());assertThat(retries.exhaustions(ActivityTransactions.CONTEXT)).isEqualTo(1);
             Thread.currentThread().interrupt();
-            try { assertThatThrownBy(() -> service.write(() -> null)).isInstanceOf(IllegalStateException.class);assertThat(Thread.currentThread().isInterrupted()).isTrue(); }
+            try { assertThatThrownBy(() -> service.write(List.of(),() -> null)).isInstanceOf(IllegalStateException.class);assertThat(Thread.currentThread().isInterrupted()).isTrue(); }
             finally { Thread.interrupted(); }
             reset(template);when(template.execute(any())).thenThrow(new IllegalArgumentException("Example invalid input"));
-            assertThatThrownBy(() -> service.write(() -> null)).isInstanceOf(IllegalArgumentException.class);verify(template).execute(any());
+            assertThatThrownBy(() -> service.write(List.of("activity-a"),() -> null)).isInstanceOf(IllegalArgumentException.class);verify(template).execute(any());
             TransactionSynchronizationManager.setActualTransactionActive(true);
-            try { assertThat(service.write(() -> "joined")).isEqualTo("joined"); }
+            try { assertThat(service.write(List.of("activity-a"),() -> "joined")).isEqualTo("joined"); }
             finally { TransactionSynchronizationManager.setActualTransactionActive(false); }
         }
         var labeled=new com.mongodb.MongoException(1,"Example transient failure");labeled.addLabel("TransientTransactionError");

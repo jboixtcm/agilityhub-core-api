@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T07: concurrency guarantees proven on Mongo, and deterministic outbox dispatch in the integration tests.
+  - `shared.application.LocalLanes` replaces the three copies of 256 hashed `ReentrantLock` lanes in
+    `ActivityTransactions`, `BookingTransactions` and `TrainingTransactions`. It keeps one fair lock per aggregate
+    key (`activity:`, `class:`, `dog:`, `member:`, `slot:`, `day:`, prefixed with the open tenant), never one per
+    tenant, taken in key order. The infrastructure property `core.concurrency.local-lanes` (default `true`) switches
+    it. `application.yml` and `docs/DEPLOY.md` record the single-instance assumption (ADR-003).
+  - `shared.application.TransactionRetries`: the meters `core.transactions.retries{context,cause}` and
+    `core.transactions.exhausted{context}` for the retried S07/S08/S09 transactions. The retry budgets are unchanged.
+  - S09: every training booking now `$inc`s `Dog.trainingSeq` whatever `bookings.limitUnit` is, so a shared dog
+    cannot be booked on two rings at once (review E5-T04 #2). The booking and the S06 writes that check the ring's
+    live bookings (ring block create/patch, activity blocks, class moved onto a ring) share a ring-day sequence in
+    the new technical collection `ring_day_locks` (R-09-13, review E5-T04 #3). Training lanes add `day:`.
+  - Mongo-path ITs with the lanes off: `ActivityConcurrencyIT` (T-07-24/25), `BookingLanesOffIT` (T-08-29/31/32)
+    and `TrainingLanesOffIT` (T-09-28/32/33, the dog and ring-day conflicts). Each proves its mechanism with a held
+    transaction and the retry meter.
+  - Integration tests: `AbstractIntegrationTest` discards the PENDING outbox backlog before each test. The claim is
+    global, oldest first and 100 per `dispatch()` call; earlier tests left up to 724 PENDING records, which starved
+    a test's own events depending on class order. The T-07-23 Awaitility loop is removed; `OutboxIT` reproduces the
+    starvation. `ActivityFixtures` is extracted from `ActivityIT`; `support.ConcurrencySupport` is new.
+
 - E5-T06: S08 aggregates (WP-08-D), the E5 demo scenario, `bin/e5-smoke` and the k6 evidence (WP-08-G, WP-09-F, back
   half of WP-15-E).
   - `GET /me/home` (03, `MemberHomeQuery`): the chips (own dogs, plus the family group's with FAMILY_GROUP), the

@@ -108,7 +108,8 @@ class BookingPortsTest {
             if (call == 2) { throw transient_; }
             return "done";
         });
-        var transactions = new BookingTransactions(template);
+        var retries = new com.agilityhub.core.shared.application.TransactionRetries(new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+        var transactions = new BookingTransactions(template, new com.agilityhub.core.shared.application.LocalLanes(true), retries);
         try (var tenant = TenantContext.open("club-fixture")) {
             assertThat(transactions.write(Arrays.asList("class-b", null, "class-a"), () -> "work")).isEqualTo("done");
             assertThat(calls.get()).isEqualTo(3);
@@ -116,6 +117,9 @@ class BookingPortsTest {
             org.mockito.Mockito.doAnswer(invocation -> { calls.incrementAndGet(); throw transient_; }).when(template).execute(org.mockito.ArgumentMatchers.any());
             assertThat(catchThrowableOfType(ApiException.class, () -> transactions.write(List.of("class-a"), () -> "work")).code()).isEqualTo(ErrorCode.STALE_VERSION);
             assertThat(calls.get()).isEqualTo(BookingTransactions.ATTEMPTS);
+            assertThat(retries.retries(BookingTransactions.CONTEXT, "write_conflict")).isEqualTo(1);
+            assertThat(retries.retries(BookingTransactions.CONTEXT, "transient")).isEqualTo(1 + BookingTransactions.ATTEMPTS - 1);
+            assertThat(retries.exhaustions(BookingTransactions.CONTEXT)).isEqualTo(1);
             org.mockito.Mockito.doThrow(new ApiException(ErrorCode.CLASS_FULL)).when(template).execute(org.mockito.ArgumentMatchers.any());
             assertThat(catchThrowableOfType(ApiException.class, () -> transactions.write(List.of("class-a"), () -> "work")).code()).isEqualTo(ErrorCode.CLASS_FULL);
         }

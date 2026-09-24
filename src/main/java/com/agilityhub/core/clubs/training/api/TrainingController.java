@@ -118,7 +118,7 @@ public class TrainingController {
         access.tenant();
         var actor = TrainingActor.member(memberId(jwt));
         var override = request.override() == null ? null : new TrainingBookingService.Override(Boolean.TRUE.equals(request.override().limit()), request.override().reason());
-        return idempotent(TrainingBookingService.lanes(request.dogId(), actor.memberId(), request.startsAt()), 201, () -> view(queries.view(
+        return idempotent(service.lanes(request.dogId(), actor.memberId(), request.startsAt()), 201, () -> view(queries.view(
                 service.book(actor, request.dogId(), request.startsAt(), request.ringId(), override, idempotencyKey.toString())), TrainingBooking.class));
     }
 

@@ -24,7 +24,7 @@ public class ActivityService {
     public Activity require(String id) { context.require(); return activities.require(id); }
     public Activity create(Map<String,String> title,ActivityType type) {
         context.require();
-        return transactions.write(() -> {
+        return transactions.write(List.of(),() -> {
             context.catalogs.lockReferences(); var a=new ActivityEdit(); var now=context.clock.instant();
             a.id=UUID.randomUUID().toString(); a.clubId=TenantContext.require(); a.title=context.text(title,"title",80,true); a.type=type;
             a.slug=SlugGenerator.generate(a.title.values().get(context.config().club().defaultLocale()),slug -> activities.findBySlug(slug).isPresent());
@@ -37,7 +37,7 @@ public class ActivityService {
     @SuppressWarnings("unchecked")
     public Activity patch(String id,long version,Map<String,Object> patch,RingBlockService.Options options) {
         context.require();
-        return transactions.write(() -> {
+        return transactions.write(List.of(id),() -> {
             context.catalogs.lockReferences(); var before=activities.lock(id); if(before.version()!=version) throw new ApiException(ErrorCode.STALE_VERSION);
             if((before.state()==ActivityState.CANCELLED || before.state()==ActivityState.FINISHED) && patch.keySet().stream().anyMatch(k -> !k.equals("internalNotes"))) throw new ApiException(ErrorCode.INVALID_STATE);
             var a=new ActivityEdit(before);
@@ -109,7 +109,7 @@ public class ActivityService {
     public AttachmentService.File document(String id,String key,String name) { return file(id,key,name,false); }
     private AttachmentService.File file(String id,String key,String name,boolean image) {
         context.require();
-        return transactions.write(() -> {
+        return transactions.write(List.of(id),() -> {
             var before=activities.lock(id); editable(before); var a=new ActivityEdit(before);
             if(!image && a.documents.stream().noneMatch(d -> d.fileKey().equals(key)) && a.documents.size()>=10) throw new ApiException(ErrorCode.TOO_MANY_DOCUMENTS);
             var file=attachments.claim(key,image?"ACTIVITY_IMAGE":"ACTIVITY_DOCUMENT",id);
@@ -119,7 +119,7 @@ public class ActivityService {
         });
     }
     public void deleteFile(String id,String docId) {
-        context.require(); transactions.write(() -> {
+        context.require(); transactions.write(List.of(id),() -> {
             var before=activities.lock(id); editable(before); var a=new ActivityEdit(before);
             if(docId==null) a.image=null;
             else { if(a.documents.stream().noneMatch(d -> d.id().equals(docId))) throw new ApiException(ErrorCode.NOT_FOUND); a.documents=a.documents.stream().filter(d -> !d.id().equals(docId)).toList(); }

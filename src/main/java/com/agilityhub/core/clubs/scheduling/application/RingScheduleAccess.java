@@ -15,9 +15,16 @@ public class RingScheduleAccess {
     public record ClassInterval(String id, String ringId, Instant from, Instant to, String description) { }
     public record BlockInterval(String id, String ringId, Instant from, Instant to, String kind, String reason, String note, String createdByName, String activityId) { }
     private final ClassSessionRepository classes; private final RingBlockRepository blocks; private final SessionProjection projection;
-    public RingScheduleAccess(ClassSessionRepository classes, RingBlockRepository blocks, SessionProjection projection) {
-        this.classes = classes; this.blocks = blocks; this.projection = projection;
+    private final RingDayLockRepository ringDays;
+    public RingScheduleAccess(ClassSessionRepository classes, RingBlockRepository blocks, SessionProjection projection, RingDayLockRepository ringDays) {
+        this.classes = classes; this.blocks = blocks; this.projection = projection; this.ringDays = ringDays;
     }
+    /**
+     * R-09-13: `$inc` of the ring-day sequence inside the caller's transaction. A training booking and the S06 writes
+     * that check the ring's live bookings (ring block, class moved onto the ring) both touch it, so they conflict.
+     */
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void lockRingDay(String ringId, java.time.LocalDate date) { ringDays.touch(ringId, date); }
     public List<ClassInterval> classes(Instant from, Instant to, Locale locale) {
         return classes.between(from, to).stream().filter(c -> c.ringId() != null && (c.state() == ClassState.DRAFT || c.state() == ClassState.ACTIVE))
                 .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id))

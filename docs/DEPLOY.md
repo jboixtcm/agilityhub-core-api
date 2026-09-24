@@ -511,6 +511,25 @@ at the Sunday opening. **E5-T06 adds no environment variable**: the aggregates, 
 use the existing settings. E5's only new variable remains `BOOKING_CALENDAR_KEY` (E5-T02, table above). k6 needs no
 secret: the harness mints short-lived impersonation tokens on the disposable stack.
 
+**One API instance and the local lanes (E5-T07):** R1 runs a single API instance (ADR-003). The local lanes only
+bound contention inside one process; with more than one instance they protect nothing and the Mongo mechanisms below
+are the guarantee. `core.concurrency.local-lanes` (default `true` in `application.yml`; Spring's relaxed binding also reads the
+environment variable `CORE_CONCURRENCY_LOCALLANES`) switches them; it is an infrastructure setting, not a club
+parameter, and no deployment needs to set it at R1. The lanes are fair in-process locks, one per aggregate
+(an activity, a class, a dog, a member, a training slot or day), held around each retried booking transaction, so a
+burst on one last seat queues instead of exhausting its retries. The guarantees that hold across instances are:
+
+- S07 registrations: the `$inc registrationSeq` on the activity, `WriteConflict` → at most 3 retries (R-07-08).
+- S08 holds, bookings and waiting lists: the `$inc` on `seat_locks` per class, at most 3 attempts (R-08-07).
+- S09 free training: the partial unique index `training_active_seat` and the `$inc` of `Dog.trainingSeq` (always) and
+  `Member.trainingSeq` (unit `MEMBER`), at most 3 attempts (R-09-06). The ring-day sequence in `ring_day_locks` is
+  written by a training booking and by every ring block or class move that checks the ring's bookings (R-09-13).
+
+With the lanes off, a burst on one aggregate ends partly in `409 STALE_VERSION` (see the E5-T07 report for the
+measured numbers). `core.transactions.retries{context,cause}` and `core.transactions.exhausted{context}` in the
+Prometheus metrics show how often the Mongo mechanisms are reached. Do not scale the API out before a decision on
+a shared lock or larger retry budgets.
+
 Organizer-run checklist for Gate E5 (back); copy its evidence links into the organizer-owned `roadmap/ROADMAP.md`
 after review:
 

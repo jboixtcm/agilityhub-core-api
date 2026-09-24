@@ -207,6 +207,23 @@ class OutboxIT extends AbstractIntegrationTest {
         dispatcher.dispatch();
         assertThat(records.count(DomainEventRecord.Status.PUBLISHED)).isEqualTo(101);
     }
+    /**
+     * E5-T07 root cause of the flaky `dispatch()` ITs: the claim is global and oldest first, 100 per call, so a backlog
+     * other tests left PENDING delays a later event by whole batches (AbstractIntegrationTest now discards it).
+     */
+    @Test void E5_T07_anEarlierPendingBacklogIsClaimedFirstAndDelaysALaterEventByWholeBatches() {
+        transactions.executeWithoutResult(status -> { for (int i = 0; i < 150; i++) { publisher.publish(event("club-foreign")); } });
+        clock.advance(Duration.ofMinutes(1));
+        String ours = publish("club-a");
+        AtomicInteger delivered = new AtomicInteger();
+        var dispatcher = dispatcher(Map.of("ours", handler((id, event) -> { if (event.clubId().equals("club-a")) { delivered.incrementAndGet(); } })), 10);
+        dispatcher.dispatch();
+        assertThat(delivered).as("the first batch is spent on the older backlog").hasValue(0);
+        assertThat(record(ours).status()).isEqualTo(DomainEventRecord.Status.PENDING);
+        dispatcher.dispatch();
+        assertThat(delivered).hasValue(1);
+        assertThat(record(ours).status()).isEqualTo(DomainEventRecord.Status.PUBLISHED);
+    }
     @Test void E0_T04_crashedClaimsCannotRetryForever() {
         String id = publish("club-a");
         records.claim(clock.instant());

@@ -40,6 +40,7 @@ public class ActivityApiService {
     }
     public Map<String,Object> register(String id,boolean waitlist) { var r=registrations.register(id,waitlist); return projection.registration(r,service.require(r.activityId())); }
     public Map<String,Object> registration(String id,boolean staff) { var r=registrations.require(id,staff); return projection.registration(r,service.require(r.activityId())); }
+    public String registrationActivityId(String id) { return registrations.activityOf(id); }
     public Map<String,Object> cancelRegistration(String id,String reason) { var r=registrations.cancel(id,reason); return projection.registration(r,service.require(r.activityId())); }
     public Map<String,Object> mine(String dogId) { return queries.mine(dogId); }
     public Map<String,Object> detail(String id) { return queries.detail(id); }

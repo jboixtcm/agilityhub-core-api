@@ -24,7 +24,7 @@ public class ActivityRegistrationService {
     }
     public ActivityRegistration register(String activityId,boolean joinWaitlist) {
         context.require();
-        try { return transactions.write(() -> {
+        try { return transactions.write(List.of(activityId),() -> {
             var a=activities.lock(activityId); String memberId=context.members.me(); var member=context.members.member(memberId);
             var live=registrations.live(a.id());
             ActivityEligibility.check(a.state(),context.times(a),a.date(),context.eligibility(memberId),a.levelIds(),context.levels(),context.enabled(Module.INACTIVITY),
@@ -42,9 +42,11 @@ public class ActivityRegistrationService {
             changed(r,false); if(impersonated) audit.registered(r); return r;
         }); } catch(org.springframework.dao.DuplicateKeyException duplicate) { throw new ApiException(ErrorCode.ALREADY_REGISTERED); }
     }
+    /** The activity of registration {@code id} (the lane of its writes), or null when it does not exist (the write answers NOT_FOUND). */
+    public String activityOf(String id) { context.require(); return registrations.findById(id).map(ActivityRegistration::activityId).orElse(null); }
     public ActivityRegistration cancel(String id,String reason) {
         context.require();
-        return transactions.write(() -> {
+        return transactions.write(Collections.singletonList(activityOf(id)),() -> {
             var initial=require(id,false); var a=activities.lock(initial.activityId()); var r=require(id,false);
             CancellationDeadline.check(context.clock.instant(),context.deadlinePolicy(),r.state(),context.times(a),context.impersonated(),reason);
             var after=cancelled(r,context.impersonated()?RegistrationCancelReason.ADMIN:RegistrationCancelReason.MEMBER,
@@ -92,7 +94,8 @@ public class ActivityRegistrationService {
         return cancelMatching(memberId,RegistrationCancelReason.MEMBER_LEFT,a -> context.times(a).startsAt().isAfter(context.clock.instant()));
     }
     private int cancelMatching(String memberId,RegistrationCancelReason reason,java.util.function.Predicate<Activity> match) {
-        return transactions.write(() -> {
+        var lanes=registrations.forMember(memberId).stream().map(ActivityRegistration::activityId).distinct().toList();
+        return transactions.write(lanes,() -> {
             int count=0;
             for(var initial:registrations.forMember(memberId)) if(initial.state()!=RegistrationState.CANCELLED) {
                 var a=activities.lock(initial.activityId()); var r=registrations.require(initial.id());

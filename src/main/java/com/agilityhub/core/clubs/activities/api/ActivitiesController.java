@@ -31,8 +31,9 @@ public class ActivitiesController {
         this.service=service; this.mapper=mapper; this.exports=exports; this.validator=validator; this.transactions=transactions;
     }
     private <T> T view(Object value, Class<T> type) { return mapper.convertValue(value,type); }
-    private <T> T mutation(java.util.function.Supplier<?> work,Class<T> type,int status) {
-        return transactions.write(() -> {
+    /** One retried transaction on the lane of {@code activityId} (null: no existing activity) that also stores the Idempotency-Key response. */
+    private <T> T mutation(String activityId,java.util.function.Supplier<?> work,Class<T> type,int status) {
+        return transactions.write(java.util.Collections.singletonList(activityId),() -> {
             com.agilityhub.core.shared.application.IdempotentOperation.lock();
             T result=view(work.get(),type);
             try { com.agilityhub.core.shared.application.IdempotentOperation.complete(status,mapper.writeValueAsBytes(result)); }
@@ -81,7 +82,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, LOCALE_NOT_ENABLED})
     @Operation(summary = "createActivity", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "201", description = "Activity", useReturnTypeSchema = true))
     public Activity createActivity(@Valid @RequestBody ActivityCreateRequest request) {
-        return mutation(() -> service.create(request.title(),request.type()),Activity.class,201);
+        return mutation(null,() -> service.create(request.title(),request.type()),Activity.class,201);
     }
 
     @GetMapping("/api/v1/activities/{id}")
@@ -130,7 +131,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, FILE_NOT_FOUND, TOO_MANY_DOCUMENTS})
     @Operation(summary = "document", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "201", description = "ActivityDocument", useReturnTypeSchema = true))
     public ActivityDocument document(@PathVariable String id, @Valid @RequestBody ActivityDocumentRequest request) {
-        return mutation(() -> service.document(id,request.fileKey(),request.name()),ActivityDocument.class,201);
+        return mutation(id,() -> service.document(id,request.fileKey(),request.name()),ActivityDocument.class,201);
     }
 
     @DeleteMapping("/api/v1/activities/{id}/documents/{docId}")
@@ -155,7 +156,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, RING_BLOCK_CONFLICT, RING_HAS_BOOKINGS, ACTIVITY_INCOMPLETE, ACTIVITY_IN_PAST, OUTSIDE_OPENING_HOURS, ADMIN_TEXT_REQUIRED, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "publish", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "Activity", useReturnTypeSchema = true))
     public Activity publish(@PathVariable String id, @Valid @RequestBody PublicationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
-        return mutation(() -> service.publish(id,Boolean.TRUE.equals(request.notifyEmail()),options(request.cancelBookings(),request.cancelClasses(),request.adminText())),Activity.class,200);
+        return mutation(id,() -> service.publish(id,Boolean.TRUE.equals(request.notifyEmail()),options(request.cancelBookings(),request.cancelClasses(),request.adminText())),Activity.class,200);
     }
 
     @DeleteMapping("/api/v1/activities/{id}/publication")
@@ -179,7 +180,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, ADMIN_TEXT_REQUIRED, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "cancelActivity", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "Activity", useReturnTypeSchema = true))
     public Activity cancelActivity(@PathVariable String id, @Valid @RequestBody ActivityCancellationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
-        return mutation(() -> service.cancel(id,request.reason(),request.adminText()),Activity.class,200);
+        return mutation(id,() -> service.cancel(id,request.reason(),request.adminText()),Activity.class,200);
     }
 
     @GetMapping("/api/v1/activities/{id}/registrations")
@@ -197,7 +198,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, ACTIVITY_NOT_PUBLISHED, REGISTRATION_CLOSED, ACTIVITY_FULL, LEVEL_NOT_ALLOWED, ALREADY_REGISTERED, MEMBER_NOT_ACTIVE, BOOKING_BLOCKED, INACTIVITY_PERIOD, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "register", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "201", description = "ActivityRegistration", useReturnTypeSchema = true))
     public ActivityRegistration register(@Valid @RequestBody ActivityRegistrationRequest request, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey) {
-        return mutation(() -> service.register(request.activityId(),Boolean.TRUE.equals(request.joinWaitlist())),ActivityRegistration.class,201);
+        return mutation(request.activityId(),() -> service.register(request.activityId(),Boolean.TRUE.equals(request.joinWaitlist())),ActivityRegistration.class,201);
     }
 
     @GetMapping("/api/v1/activity-registrations/{id}")
@@ -213,7 +214,7 @@ public class ActivitiesController {
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, REGISTRATION_NOT_CANCELLABLE})
     @Operation(summary = "cancelRegistration", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "ActivityRegistration", useReturnTypeSchema = true))
     public ActivityRegistration cancelRegistration(@PathVariable String id, @Valid @RequestBody RegistrationCancellationRequest request, @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
-        return mutation(() -> service.cancelRegistration(id,request.reason()),ActivityRegistration.class,200);
+        return mutation(service.registrationActivityId(id),() -> service.cancelRegistration(id,request.reason()),ActivityRegistration.class,200);
     }
 
     @GetMapping("/api/v1/me/activities")

@@ -15,7 +15,7 @@ public class ActivityLifecycleService {
     public ActivityLifecycleService(ActivityService service,ActivityRegistrationService registrations) { this.service=service; this.registrations=registrations; }
     public Activity publish(String id,boolean notifyEmail,RingBlockService.Options options) {
         service.context.require();
-        return service.transactions.write(() -> {
+        return service.transactions.write(List.of(id),() -> {
             var before=service.activities.lock(id); ActivityTransitions.activity(before.state(),ActivityState.PUBLISHED);
             var edit=new ActivityEdit(before); service.context.validate(edit,true); service.sync(edit,options);
             edit.state=ActivityState.PUBLISHED; edit.publishedAt=service.context.clock.instant(); edit.publishedByAccountId=service.context.actor();
@@ -26,7 +26,7 @@ public class ActivityLifecycleService {
     }
     public Activity unpublish(String id) {
         service.context.require();
-        return service.transactions.write(() -> {
+        return service.transactions.write(List.of(id),() -> {
             var before=service.activities.lock(id); ActivityTransitions.activity(before.state(),ActivityState.DRAFT);
             if(before.counters().active()+before.counters().waiting()>0) throw new ApiException(ErrorCode.ACTIVITY_HAS_REGISTRATIONS);
             service.blocks.cancelForActivity(id); var edit=new ActivityEdit(before); edit.state=ActivityState.DRAFT; edit.ringBlockIds=List.of();
@@ -35,7 +35,7 @@ public class ActivityLifecycleService {
     }
     public Activity cancel(String id,ActivityCancellationReason reason,String adminText) {
         service.context.require();
-        return service.transactions.write(() -> {
+        return service.transactions.write(List.of(id),() -> {
             var before=service.activities.lock(id); ActivityTransitions.activity(before.state(),ActivityState.CANCELLED);
             var live=registrations.registrations.live(id);
             if(!live.isEmpty() && (adminText==null || adminText.isBlank())) throw new ApiException(ErrorCode.ADMIN_TEXT_REQUIRED);
@@ -55,7 +55,7 @@ public class ActivityLifecycleService {
     public int finishEnded(Instant now) {
         if(!service.context.enabled(Module.ACTIVITIES)) return 0;
         int count=0;
-        for(var candidate:service.activities.findPublished()) count+=service.transactions.write(() -> {
+        for(var candidate:service.activities.findPublished()) count+=service.transactions.write(List.of(candidate.id()),() -> {
             var before=service.activities.lock(candidate.id());
             if(before.state()!=ActivityState.PUBLISHED || !service.context.times(before).endsAt().isBefore(now)) return 0;
             var edit=new ActivityEdit(before); edit.state=ActivityState.FINISHED; edit.finishedAt=now; service.save(edit,before.version());
