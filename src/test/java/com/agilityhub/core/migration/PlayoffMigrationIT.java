@@ -165,11 +165,13 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(entries(report,186)).contains("accounts SKIPPED ").doesNotContain("members WARNING EMAIL_SHARED");
         for (int i=185;i<=189;i++) { assertThat(member(i).get("accountId")).isNull(); }
         assertThat(mongo.count(Query.query(Criteria.where("memberId").in(List.of(member(185).get("_id"),member(186).get("_id")))),"memberships")).isZero();
-        // Without persones.csv each NIF is one person, as before E32.
+    }
+    @Test void T_18_06_E32_withoutThePersonsFileEachNifIsOnePerson() {
+        // On an empty club, as before E32. After a load with the file, removing it is R-18-14 (T_18_08_R_18_14_personsJoinRemoved…).
         var data=new LinkedHashMap<>(input().files()); data.put("persons",List.of());
         var plan=preview(new PlayoffInput(data,List.of()));
-        assertThat(plan.changes().stream().filter(c -> c.entity().equals("members"))).hasSize(188);
-        assertThat(plan.rows()).noneMatch(r -> r.code().equals("PERSON_MERGED"));
+        assertThat(plan.changes().stream().filter(c -> c.entity().equals("members")).map(PlayoffPlanner.Change::id)).hasSize(188).doesNotHaveDuplicates();
+        assertThat(plan.rows()).noneMatch(r -> r.code().equals("PERSON_MERGED") || r.outcome().equals("ERROR"));
     }
     @Test void T_18_06_E32_invalidPersonsRowsAreErrorsAndNeverGuessAPerson() {
         String p62=source(62), p82=source(82), p83=source(83), p1=source(1), p190=source(190);
@@ -230,7 +232,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
             var report=importer.importDirectory(directory,MAPPING,CLUB,dryRun,false,false);
             assertThat(entries(report,63)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=status");
             assertThat(report.hasErrors()).isTrue(); assertThat(report.hasBlockingErrors()).as(report.render()).isFalse();
-            assertThat(report.render()).doesNotContain("Validation failed").contains("REEXECUTION_UNSUPPORTED: 1 records are left untouched and the rest is applied","--reset");
+            assertThat(report.render()).doesNotContain("Validation failed").contains(partial(dryRun,1),"--reset");
             assertThat(entries(report,83)).contains("members WARNING EMAIL_SHARED","accounts SKIPPED ").doesNotContain("accounts CREATED ","accounts UPDATED ");
             assertThat(report.count("members","UPDATED")).isEqualTo(186);
             // Nothing is written for the record, its dog, its account or its membership.
@@ -251,6 +253,7 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
             assertThat(entries(report,82)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=persons");
             assertThat(report.rows()).noneMatch(r -> Set.of("PERSON_MERGED","ID_DOCUMENT_ALREADY_EXISTS").contains(r.code()));
             assertThat(report.hasBlockingErrors()).as(report.render()).isFalse(); assertThat(report.count("members","UPDATED")).isEqualTo(187);
+            assertThat(report.render()).contains(partial(dryRun,1));
             assertThat(member(82)).isEqualTo(own); assertThat(dog(82)).isEqualTo(dog);
             assertThat(((Document)member(62).get("externalIds")).getList("playoff",String.class)).containsExactly(source(62));
             assertThat(member(62).get("idDocument")).isEqualTo(principal.get("idDocument"));
@@ -262,6 +265,99 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(new MigrationReport(true,plan.rows()).hasBlockingErrors()).isFalse();
         assertThat(plan.rows()).anyMatch(r -> r.row()==83 && r.code().equals("REEXECUTION_UNSUPPORTED") && r.field().equals("persons"));
         assertThat(plan.changes()).noneMatch(c -> c.source().row()==83);
+    }
+    @Test void T_18_08_R_18_14_personsJoinRemovedOrChangedAfterALoadLeavesThePersonUntouched() throws Exception {
+        var first=apply(); assertThat(first.hasErrors()).as(first.render()).isFalse();
+        var principal=member(62).get("_id"); assertThat(member(82).get("_id")).isEqualTo(principal); assertThat(member(62).get("accountId")).isNotNull();
+        var before=graph(principal); assertThat(before).hasSize(5);
+        // Without its join, 82 resolves through its alias to the principal's member: two persons on one member id (Codex #1).
+        var removed=copyFixture(); Files.delete(removed.resolve(MAPPING.files().get("persons").name()));
+        var plan=preview(PlayoffInput.read(removed,MAPPING)); assertNothingPlannedFor(plan,principal);
+        for (boolean dryRun:List.of(true,false)) {
+            var report=importer.importDirectory(removed,MAPPING,CLUB,dryRun,false,false);
+            for (int ordinal:new int[]{62,82}) { assertThat(entries(report,ordinal)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=persons"); }
+            assertThat(report.hasBlockingErrors()).as(report.render()).isFalse(); assertThat(report.unsupported()).isEqualTo(2);
+            assertThat(report.count("members","UPDATED")).isEqualTo(186);
+            assertThat(report.render()).contains(partial(dryRun,2)).doesNotContain("Validation failed");
+            assertThat(graph(principal)).isEqualTo(before);
+        }
+        // Changing the join (62 now joins 83, which the first load imported as its own person): 83 is (b), and 62/82 collide as above.
+        var changed=copyFixture(); var persons=PlayoffTable.read(changed.resolve("persones.csv"));
+        var cells=new ArrayList<>(persons.get(1)); cells.set(1,source(83)); persons.set(1,cells); PlayoffTable.write(changed.resolve("persones.csv"),persons);
+        var other=member(83).get("_id"); var otherBefore=graph(other);
+        plan=preview(PlayoffInput.read(changed,MAPPING)); assertNothingPlannedFor(plan,principal); assertNothingPlannedFor(plan,other);
+        for (boolean dryRun:List.of(true,false)) {
+            var report=importer.importDirectory(changed,MAPPING,CLUB,dryRun,false,false);
+            for (int ordinal:new int[]{62,82,83}) { assertThat(entries(report,ordinal)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=persons"); }
+            assertThat(report.hasBlockingErrors()).as(report.render()).isFalse(); assertThat(report.count("members","UPDATED")).isEqualTo(185);
+            assertThat(report.render()).contains(partial(dryRun,3));
+            assertThat(graph(principal)).isEqualTo(before); assertThat(graph(other)).isEqualTo(otherBefore);
+        }
+        assertThat(rows("migration_runs")).hasSize(3).allMatch(d -> "COMPLETED".equals(d.get("status")));
+    }
+    @Test void T_18_08_R_18_14_principalAndFamilyHolderLeftStayUntouchedWithTheirDependantsAndNeverBlock() throws Exception {
+        var directory=copyFixture(); var first=importer.importDirectory(directory,MAPPING,CLUB,false,false,false); assertThat(first.hasErrors()).as(first.render()).isFalse();
+        Object principal=member(62).get("_id"), holder=member(61).get("_id"); var group=rows("family_groups").getFirst();
+        assertThat(group.get("holderMemberId")).isEqualTo(holder); assertThat(member(61).get("accountId")).isNotNull();
+        List<Document> principalBefore=graph(principal), holderBefore=graph(holder);
+        var table=PlayoffTable.read(directory.resolve("socis.csv"));
+        for (int ordinal:new int[]{61,62}) { var cells=new ArrayList<>(table.get(ordinal)); cells.set(4,"Baixa"); cells.set(26,"2026-06-30"); table.set(ordinal,cells); }
+        PlayoffTable.write(directory.resolve("socis.csv"),table);
+        var plan=preview(PlayoffInput.read(directory,MAPPING)); assertNothingPlannedFor(plan,principal); assertNothingPlannedFor(plan,holder);
+        assertThat(plan.changes()).noneMatch(c -> c.entity().equals("family_groups"));
+        for (boolean dryRun:List.of(true,false)) {
+            var report=importer.importDirectory(directory,MAPPING,CLUB,dryRun,false,false);
+            // Codex #2: the joined record of a protected principal and the family group of a protected holder are left untouched too.
+            assertThat(entries(report,62)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=status");
+            assertThat(entries(report,82)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=persons");
+            assertThat(entries(report,61)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=status");
+            assertThat(report.rows().stream().filter(r -> r.entity().equals("familyGroups") && !r.outcome().equals("PROPOSED")).map(r -> r.file()+":"+r.row()+" "+r.outcome()+" "+r.code()+" "+r.field()))
+                    .containsExactly("groups:2 ERROR REEXECUTION_UNSUPPORTED familyGroup");
+            assertThat(report.hasBlockingErrors()).as(report.render()).isFalse(); assertThat(report.unsupported()).isEqualTo(4);
+            assertThat(report.count("members","UPDATED")).isEqualTo(185); assertThat(report.render()).contains(partial(dryRun,4));
+            assertThat(graph(principal)).isEqualTo(principalBefore); assertThat(graph(holder)).isEqualTo(holderBefore);
+            assertThat(mongo.findById(group.get("_id"),Document.class,"family_groups")).isEqualTo(group);
+            // The other member of the group is still applied and keeps its group.
+            assertThat(member(81)).containsEntry("status","ACTIVE").containsEntry("familyGroupId",group.get("_id"));
+        }
+        assertThat(rows("migration_runs")).hasSize(2).allMatch(d -> "COMPLETED".equals(d.get("status")));
+    }
+    @Test void T_18_08_R_18_14_sameNifAliasOfAnAccountHolderThatComesBackLeftIsUntouched() throws Exception {
+        // Records 1 and 184 share a NIF (one person, two dogs); record 1, the older one, gets an email and so owns the account.
+        var directory=copyFixture(); var table=PlayoffTable.read(directory.resolve("socis.csv"));
+        var cells=new ArrayList<>(table.get(1)); cells.set(22,"same-person-owner@example.test"); table.set(1,cells); PlayoffTable.write(directory.resolve("socis.csv"),table);
+        var first=importer.importDirectory(directory,MAPPING,CLUB,false,false,false); assertThat(first.hasErrors()).as(first.render()).isFalse();
+        var person=member(1).get("_id"); assertThat(member(184).get("_id")).isEqualTo(person); assertThat(member(1).get("accountId")).isNotNull();
+        var before=graph(person); assertThat(before).hasSize(5);
+        cells=new ArrayList<>(table.get(1)); cells.set(4,"Baixa"); cells.set(26,"2026-06-30"); table.set(1,cells); PlayoffTable.write(directory.resolve("socis.csv"),table);
+        // Codex #3: the ACTIVE alias 184 resolves to the protected member and plans nothing for it.
+        assertNothingPlannedFor(preview(PlayoffInput.read(directory,MAPPING)),person);
+        for (boolean dryRun:List.of(true,false)) {
+            var report=importer.importDirectory(directory,MAPPING,CLUB,dryRun,false,false);
+            assertThat(entries(report,1)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=status");
+            assertThat(entries(report,184)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=status");
+            assertThat(report.hasBlockingErrors()).as(report.render()).isFalse(); assertThat(report.render()).contains(partial(dryRun,2));
+            assertThat(graph(person)).isEqualTo(before);
+        }
+    }
+    /** R-18-15: the partial line of a run whose only errors are unsupported re-executions. */
+    static String partial(boolean dryRun,long records) {
+        return "REEXECUTION_UNSUPPORTED: "+records+(dryRun ? " records would be left untouched; the rest would be applied" : " records were left untouched; the rest was applied");
+    }
+    /** The stored documents of one member: the member, its dogs, its membership and its account. */
+    List<Document> graph(Object memberId) {
+        var member=mongo.findById(memberId,Document.class,"members"); var out=new ArrayList<Document>(List.of(member));
+        out.addAll(mongo.find(Query.query(Criteria.where("memberId").is(memberId)).with(org.springframework.data.domain.Sort.by("_id")),Document.class,"dogs"));
+        out.addAll(mongo.find(Query.query(Criteria.where("memberId").is(memberId)),Document.class,"memberships"));
+        if (member.get("accountId")!=null) { out.add(mongo.findById(member.get("accountId"),Document.class,"accounts")); }
+        return out;
+    }
+    /** R-18-14: a protected member gets no member, dog or identity change, and no member id is planned twice. */
+    static void assertNothingPlannedFor(PlayoffPlanner.Plan plan,Object memberId) {
+        assertThat(plan.changes()).noneMatch(c -> c.entity().equals("members") && c.id().equals(memberId))
+                .noneMatch(c -> c.entity().equals("dogs") && memberId.equals(c.fields().get("memberId")));
+        assertThat(plan.identities()).noneMatch(i -> i.memberId().equals(memberId));
+        assertThat(plan.changes().stream().filter(c -> c.entity().equals("members")).map(PlayoffPlanner.Change::id)).doesNotHaveDuplicates();
     }
     @Test void T_18_10_allWritesUseTargetTenantAndExistingGlobalAccountsArePreserved() {
         String email=input().files().get("members").get(49).get("email");

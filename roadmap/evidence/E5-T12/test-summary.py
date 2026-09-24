@@ -1,4 +1,4 @@
-"""Round 2 test summary: totals of surefire and failsafe plus the classes this round changes (AGENTS.md rule 4)."""
+"""Round 2 and 3 test summary: totals of surefire and failsafe plus the classes this round changes (AGENTS.md rule 4)."""
 import glob
 import xml.etree.ElementTree as ET
 

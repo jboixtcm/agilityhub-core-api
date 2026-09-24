@@ -17,10 +17,12 @@ public record MigrationReport(boolean dryRun, List<Entry> rows) {
     public long unsupported() { return rows.stream().filter(r -> r.outcome().equals("ERROR") && r.code().equals(REEXECUTION_UNSUPPORTED)).count(); }
     public String render() {
         var out = new StringBuilder(dryRun ? "Playoff DRY_RUN\n" : "Playoff APPLY\n");
+        // R-18-15: a blocked run says only that; a partial line tells a proposal (dry run) from what the apply did.
         if (hasBlockingErrors()) { out.append("Validation failed; no changes applied. Counts below describe the proposed changes.\n"); }
-        if (unsupported() > 0) {
+        else if (unsupported() > 0) {
             out.append(REEXECUTION_UNSUPPORTED).append(": ").append(unsupported())
-                .append(" records are left untouched and the rest is applied (R-18-14). On staging, the way out is --reset and a new load.\n");
+                .append(dryRun ? " records would be left untouched; the rest would be applied" : " records were left untouched; the rest was applied")
+                .append(" (R-18-14). On staging, the way out is --reset and a new load.\n");
         }
         for (String entity : List.of("members", "dogs", "familyGroups", "accounts")) {
             out.append(entity).append(": created=").append(count(entity,"CREATED")).append(" updated=").append(count(entity,"UPDATED"))

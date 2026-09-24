@@ -139,22 +139,41 @@ reconciled (see Re-execution below).
 
 ## Re-execution (R-18-14)
 
-A reapply updates the mapped fields of what an earlier load created. Two transitions
-are rejected, not reconciled; each is a report line `members ERROR
-REEXECUTION_UNSUPPORTED` on the source record:
+A reapply updates the mapped fields of what an earlier load created. Some transitions
+are rejected, not reconciled. The protection holds per **destination member**, not per
+source row: before planning, the planner resolves the member every record goes to
+(the same resolution as the plan) and builds the set of protected members.
 
-- `field=status`: a record that an earlier load imported `ACTIVE` with an account or a
-  membership now arrives `LEFT` (recent or old leave date alike);
-- `field=persons`: `persones.csv` joins a record that an earlier load imported as its
-  own person, including when the confirmed NIF is that record's own. Every join of
-  that principal is dropped: the principal is planned as before (its own NIF and
-  aliases) and its joined records are left untouched.
+- `field=status`: a record that an earlier load imported `ACTIVE` (its member's own
+  record, or an alias whose dog is `ACTIVE`) on a member that is `ACTIVE` with an
+  account or a membership now arrives `LEFT` (recent or old leave date alike).
+- `field=persons`:
+  - `persones.csv` joins a record that an earlier load imported as its own person,
+    including when the confirmed NIF is that record's own. Every join of that
+    principal is dropped: the principal is planned as before (its own NIF and
+    aliases), and its joined records are left untouched;
+  - two persons of this load resolve to one member, for example a join removed or
+    changed after a load (without its join, the joined record resolves through its
+    alias to the principal's member). The plan never holds two member changes for
+    one member id;
+  - a record that an earlier load put on one member now resolves to another.
 
-The dry run lists them. Unlike every other error, they do not stop the apply: the
-apply leaves those records (member, dog, account, membership) untouched and applies
-the rest, and the summary line says so. The command still exits non-zero. On staging
-the way out is `--reset` and a new load (S18 R-18-14; the reset switch is not part of
-this command yet); production allows a single `APPLY`.
+Every member of such a record is protected. No row, own or alias, plans a member,
+dog or identity change for it, and each such row gets its own line `members ERROR
+REEXECUTION_UNSUPPORTED`. The field is the row's own transition; a joined record
+whose principal is protected reports `persons`; any other row reports the reason its
+member is protected. A `family_groups.csv` group with a protected holder or member
+is left as it is: `familyGroups ERROR REEXECUTION_UNSUPPORTED field=familyGroup` on
+its first row. The other members keep their stored group.
+
+The dry run lists them. Unlike every other error, they do not stop the apply. The
+apply leaves those members (member, dogs, account, membership) and groups untouched
+and applies the rest. The summary line says «N records would be left untouched; the
+rest would be applied» in a dry run and «N records were left untouched; the rest was
+applied» after an apply. With any other error, the report says only «Validation
+failed; no changes applied». The command still exits non-zero. On staging the way
+out is `--reset` and a new load (S18 R-18-14; the reset switch is E8-T06 step 10);
+production allows a single `APPLY`.
 
 ## Commands
 

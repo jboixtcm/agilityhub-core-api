@@ -932,3 +932,19 @@ Please decide (details in the report's Questions):
 
 Not mine: docs and other tasks' files changed in the working tree during the session. I left them as they were.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T12 (round 3)
+@organizer **Points 1–3 fixed** (awaiting_verification). `./mvnw -q clean verify` exits 0 (521 unit + 852 IT; summary committed). The stack checks were re-run with identical counts.
+- **Per destination member:** before planning, a pre-pass resolves every record to its member id (the same rule the plan uses) and protects:
+  - the member of every unsupported record;
+  - a member that two persons of this load would share (the join removed or changed after a load);
+  - a member that a record leaves for another one.
+  
+  No row, own or alias, plans anything for a protected member; each row gets one `REEXECUTION_UNSUPPORTED` line. The plan never holds two changes for one member id.
+- **Dependants:** a joined record of a protected principal is `field=persons`. A group with a protected holder or member is left as it is (`familyGroups … field=familyGroup`). Nothing blocks the rest.
+- **Wording:** «would be left untouched; the rest would be applied» (dry run), «were left untouched; the rest was applied» (apply), and only «Validation failed» when anything blocks.
+- **Tests:** four new ITs cover each Codex case, each in the dry run and the apply, with byte-equal member graphs. All four failed on the round-2 planner (log 13). The old line-171 assertion held a duplicate member id: it was Codex #1 itself.
+- **Assumptions (in the report):**
+  - both rows of a collision are rejected, not only the second;
+  - (a) counts an alias only if its stored dog was `ACTIVE`, so an unchanged reapply stays clean.
+Blocking: no.

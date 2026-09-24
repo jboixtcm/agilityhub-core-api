@@ -10,7 +10,7 @@ $ bin/core club:apply seeds/club-canic.yaml        (exit 0)
 + paymentProviders added
   null -> ["MANUAL","SEPA_XML"]
 + legal added
-  null -> {"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","imageConsentText":{"ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club","es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club","en":"I authorize publication of photos of me and my dog within club activities"},"legalTextsVersion":"1"}
+  null -> {"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","imageConsentText":{"en":"I authorize publication of photos of me and my dog within club activities","es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club","ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"legalTextsVersion":"1"}
 + pwa added
   null -> {"name":"Club Agility Cànic","shortName":"Club Agility Cànic","icons":[]}
 + parameters.signup.enabled added

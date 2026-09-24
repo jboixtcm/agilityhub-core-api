@@ -166,9 +166,16 @@ class PlayoffAdapterTest {
         // R-18-14: an unsupported re-execution does not stop the apply, but the command still exits non-zero.
         var unsupported=new MigrationReport(false,List.of(new MigrationReport.Entry("members",3,"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,"status")));
         assertThat(unsupported.hasErrors()).isTrue(); assertThat(unsupported.hasBlockingErrors()).isFalse(); assertThat(unsupported.unsupported()).isEqualTo(1);
-        assertThat(unsupported.render()).doesNotContain("Validation failed").contains("REEXECUTION_UNSUPPORTED: 1 records","--reset","members:3 members ERROR REEXECUTION_UNSUPPORTED field=status");
-        var mixed=new MigrationReport(true,List.of(unsupported.rows().getFirst(),new MigrationReport.Entry("members",2,"members","ERROR","MAPPING_INVALID")));
-        assertThat(mixed.hasBlockingErrors()).isTrue(); assertThat(mixed.render()).contains("Validation failed","REEXECUTION_UNSUPPORTED: 1 records");
+        // The three wordings (R-18-15, Codex #4): the apply did it, the dry run would do it, a blocked run applies nothing.
+        assertThat(unsupported.render()).doesNotContain("Validation failed","would be").contains("REEXECUTION_UNSUPPORTED: 1 records were left untouched; the rest was applied (R-18-14)",
+                "--reset","members:3 members ERROR REEXECUTION_UNSUPPORTED field=status");
+        var dryRun=new MigrationReport(true,unsupported.rows());
+        assertThat(dryRun.render()).doesNotContain("Validation failed","were left").contains("REEXECUTION_UNSUPPORTED: 1 records would be left untouched; the rest would be applied (R-18-14)","--reset");
+        for (boolean dry:List.of(true,false)) {
+            var mixed=new MigrationReport(dry,List.of(unsupported.rows().getFirst(),new MigrationReport.Entry("members",2,"members","ERROR","MAPPING_INVALID")));
+            assertThat(mixed.hasBlockingErrors()).isTrue();
+            assertThat(mixed.render()).contains("Validation failed; no changes applied").doesNotContain("left untouched","the rest","--reset");
+        }
         when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(unsupported);
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("input"))).isInstanceOf(ApiException.class);
         var source=copy(); AnonymizeCommand.run(new DefaultApplicationArguments(source.toString(),temp.resolve("command").toString()),key);

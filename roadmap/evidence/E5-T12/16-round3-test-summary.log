@@ -1,0 +1,5 @@
+surefire: tests=521 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffAdapterTest 6/0/0/0
+failsafe: tests=852 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffMigrationIT 18/0/0/0
+(tests/failures/errors/skipped, read from target/surefire-reports and target/failsafe-reports after ./mvnw -q clean verify, exit 0)

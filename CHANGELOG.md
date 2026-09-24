@@ -100,6 +100,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   apply: those records stay untouched, the rest is applied, the summary points to `--reset` on staging, and the
   command exits non-zero. Before, the apply kept a stale account link, or failed on `member_playoff_ids` /
   `ID_DOCUMENT_ALREADY_EXISTS` after a clean dry run.
+- E5-T12 round 3 (organizer review, R-18-14): the re-execution protection of `migration:playoff` holds per
+  destination member, not per source row.
+  - Before planning, the planner resolves each record's member and protects every member of an unsupported record.
+    It also protects a member that two persons of this load would share, such as a join removed or changed after a
+    load, and a member that a record leaves for another one.
+  - No row, own or alias, plans a member, dog or identity change for a protected member; each row gets its own
+    `REEXECUTION_UNSUPPORTED` line. A joined record of a protected principal reports `field=persons`. A family group
+    with a protected holder or member is left as it is (`familyGroups … field=familyGroup`). None of these blocks the
+    rest of the load.
+  - The summary line tells the dry run («would be left untouched; the rest would be applied») from the apply («were
+    left untouched; the rest was applied»); a report with a blocking error says only «Validation failed».
+  - Before, removing `persones.csv` after a load planned two changes for one member (the second overwrote the first).
+    An ACTIVE same-NIF alias still changed a protected member, and a protected principal or family holder made the
+    whole load fail.
 - E5-T13 (rulings E33 and E34, follow-ups of the E5-T09 and E5-T10 reviews):
   - R-15-05 (E33): the first run of a process in a club with no `JobRun` of it, outside its window, records
     `SKIPPED{MISSED_WINDOW}` as a baseline without `JobFailed`/N-42, and the S17 matrix reads it as «never executed»

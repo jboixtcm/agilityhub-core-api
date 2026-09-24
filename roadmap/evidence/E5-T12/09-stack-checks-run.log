@@ -40,10 +40,10 @@ accounts: created=156 updated=0 skipped=31 errors=0
 Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PERSON_MERGED=1, PLAN_UNMAPPED=13, VALIDATION_ERROR=10}
 Dry run summary (fixtures): EMAIL_SHARED=19 PERSON_MERGED=1 LEVEL_PENDING=8 PLAN_UNMAPPED=13 MAPPING_INVALID=2
 PASS dry run on the fixtures: no Mongo write, EMAIL_SHARED=19, PERSON_MERGED=1, familyGroups proposed=18
-$ bin/core migration:anonymize src/test/resources/fixtures/playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-8gbnfn7w/anonymized -> exit 0 (log 07-migration-anonymize.log)
+$ bin/core migration:anonymize src/test/resources/fixtures/playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-i4i4eu3c/anonymized -> exit 0 (log 07-migration-anonymize.log)
 Anonymized Playoff files written; no input values or key logged.
 Anonymized files: equip.csv, family_groups.csv, nivell.csv, persones.csv, socis.csv, tipologia.csv
-$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-8gbnfn7w/anonymized --dry-run --club=canic -> exit 0 (log 08-migration-dry-run-anonymized.log)
+$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-i4i4eu3c/anonymized --dry-run --club=canic -> exit 0 (log 08-migration-dry-run-anonymized.log)
 Playoff DRY_RUN
 members: created=187 updated=0 skipped=4 errors=0
 dogs: created=189 updated=0 skipped=0 errors=0

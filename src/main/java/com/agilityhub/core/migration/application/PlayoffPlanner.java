@@ -46,8 +46,10 @@ public class PlayoffPlanner {
         // R-18-04 (f): joined record → principal record, and principal record → the NIF the club confirmed.
         final Map<String,String> joins=new HashMap<>(), confirmedDocuments=new HashMap<>(), personBySource=new HashMap<>();
         final Map<String,PlayoffInput.Row> emailOwners=new HashMap<>(); final List<Shared> shared=new ArrayList<>();
-        // R-18-14: records whose re-execution transition is rejected, not reconciled → the report field of the error.
-        final Map<String,String> unsupported=new HashMap<>();
+        // R-18-14: records that are themselves a rejected re-execution transition → the report field; the members that no row
+        // may change (every member of such a record, and every member two persons of this load would share) → the field;
+        // and the member each record resolves to, computed before planning so that a member is protected once for all its rows.
+        final Map<String,String> unsupported=new HashMap<>(), protectedMembers=new HashMap<>(), destinations=new HashMap<>();
         int maximum;
         State(PlayoffInput input,MappingConfig mapping) { this.input=input; this.mapping=mapping; rows.addAll(input.incidents()); }
         void incident(PlayoffInput.Row row,String entity,String outcome,String code) { rows.add(new MigrationReport.Entry(row.file(),row.row(),entity,outcome,code)); }
@@ -69,7 +71,7 @@ public class PlayoffPlanner {
                 if (dog.get("chip")!=null) { chips.put(string(dog.get("chip")),string(dog.get("_id"))); }
             }
             for (var group:census.snapshot("family_groups")) { storedGroups.put(string(group.get("_id")),group); }
-            var candidates=new ArrayList<Candidate>(); var seen=new HashSet<String>();
+            var candidates=new ArrayList<Candidate>(); var skipped=new ArrayList<PlayoffInput.Row>(); var seen=new HashSet<String>();
             Set<String> sourceIds=input.files().get("members").stream().map(r -> r.get("id")).collect(java.util.stream.Collectors.toSet());
             persons(sourceIds);
             for (var row:input.files().get("members")) {
@@ -79,13 +81,10 @@ public class PlayoffPlanner {
                     if (number!=null) { maximum=Math.max(maximum,number); }
                     String status=mapping.statuses().get(normalize(row.get("status")));
                     if (status==null) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
-                    if (status.equals("LEFT") && importedWithAccess(row.get("id"))) { unsupported.put(row.get("id"),"status"); }
-                    if (unsupported.containsKey(row.get("id"))) {
-                        rows.add(new MigrationReport.Entry(row.file(),row.row(),"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,unsupported.get(row.get("id")))); continue;
-                    }
+                    if (status.equals("LEFT") && importedActiveWithAccess(row.get("id"))) { unsupported.put(row.get("id"),"status"); protect(memberBySource.get(row.get("id")),"status"); }
                     LocalDate left=date(row.get("left"));
                     if (status.equals("SKIP") || status.equals("LEFT") && (left==null || left.isBefore(today.minusYears(config.get("migration.leftMaxYears",Integer.class)).withDayOfYear(1)))) {
-                        incident(row,"members","SKIPPED",""); continue;
+                        skipped.add(row); continue;
                     }
                     LocalDate joined=date(row.get("joined"));
                     if (joined==null || row.get("firstName").isEmpty()) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
@@ -96,6 +95,8 @@ public class PlayoffPlanner {
             // «Data alta», then the lowest member number (R-18-04 (a), R-18-12): the first record of an email owns the account.
             candidates.sort(Comparator.comparing((Candidate c) -> joins.containsKey(c.row().get("id"))).thenComparing(c -> !c.status().equals("ACTIVE"))
                     .thenComparing(Candidate::joined).thenComparing(Candidate::number,Comparator.nullsLast(Comparator.naturalOrder())).thenComparingInt(c -> c.row().row()));
+            destinations(candidates,skipped);
+            for (var row:skipped) { if (!rejected(row)) { incident(row,"members","SKIPPED",""); } }
             for (var candidate:candidates) {
                 try { memberAndDog(candidate); }
                 catch (ApiException | IllegalArgumentException bad) { incident(candidate.row(),"members","ERROR",bad instanceof ApiException api ? api.code().name() : "INPUT_SCHEMA_MISMATCH"); }
@@ -123,15 +124,51 @@ public class PlayoffPlanner {
             var rejected=new HashSet<String>();
             joins.forEach((joined,principal) -> { if (memberBySource.containsKey(joined) && !memberBySource.get(joined).equals(memberBySource.get(principal))) { rejected.add(principal); } });
             for (var join:List.copyOf(joins.entrySet())) {
-                if (rejected.contains(join.getValue())) { joins.remove(join.getKey()); unsupported.put(join.getKey(),"persons"); }
+                if (rejected.contains(join.getValue())) { joins.remove(join.getKey()); unsupported.put(join.getKey(),"persons"); protect(memberBySource.get(join.getKey()),"persons"); }
             }
             confirmedDocuments.keySet().removeAll(rejected);
         }
-        /** R-18-14: the record's own member was imported ACTIVE with an account or a membership. */
-        boolean importedWithAccess(String source) {
+        /**
+         * R-18-14 (a): an earlier load imported this record ACTIVE (its member's own record, or its dog ACTIVE) on a member
+         * that is ACTIVE with an account or a membership. The protection holds for the member, whatever row resolves to it.
+         */
+        boolean importedActiveWithAccess(String source) {
             String memberId=memberBySource.get(source); var old=memberId==null ? null : storedMembers.get(memberId);
-            return old!=null && source.equals(string(map(old.get("sourceIds")).get("playoffMemberId"))) && "ACTIVE".equals(old.get("status"))
-                    && (old.get("accountId")!=null || identities.hasMembership(memberId));
+            if (old==null || !"ACTIVE".equals(old.get("status"))) { return false; }
+            var dog=storedDogs.get(id("dog",source));
+            boolean active=source.equals(string(map(old.get("sourceIds")).get("playoffMemberId"))) || dog!=null && "ACTIVE".equals(dog.get("status"));
+            return active && (old.get("accountId")!=null || identities.hasMembership(memberId));
+        }
+        void protect(String memberId,String field) { if (memberId!=null) { protectedMembers.putIfAbsent(memberId,field); } }
+        /**
+         * R-18-14: the member every record resolves to, before any change is planned (the same resolution as memberAndDog).
+         * Two persons of this load on one member (a join removed or changed after a load), or a record that an earlier load
+         * put on another member than the one it resolves to now, protect those members: the plan never holds two member
+         * changes for one member id and never moves a record between persons.
+         */
+        void destinations(List<Candidate> candidates,List<PlayoffInput.Row> skipped) {
+            for (var row:skipped) { String stored=memberBySource.get(row.get("id")); if (stored!=null) { destinations.put(row.get("id"),stored); } }
+            var byPerson=new HashMap<String,String>(); var personByMember=new HashMap<String,String>();
+            for (var c:candidates) {
+                String source=c.row().get("id"), principal=joins.get(source), stored=memberBySource.get(source), destination;
+                if (principal!=null) { destination=destinations.get(principal); }
+                else {
+                    String person=person(c.row());
+                    destination=byPerson.computeIfAbsent(person,k -> memberBySource.getOrDefault(source,id("member",source)));
+                    if (!person.equals(personByMember.computeIfAbsent(destination,m -> person))) { protect(destination,"persons"); }
+                }
+                if (destination==null) { continue; }
+                destinations.put(source,destination);
+                if (stored!=null && !stored.equals(destination)) { protect(stored,"persons"); protect(destination,"persons"); }
+            }
+        }
+        /** R-18-14: a record whose member is protected gets one line and no change; a joined record reports its join. */
+        boolean rejected(PlayoffInput.Row row) {
+            String source=row.get("id"), destination=destinations.get(source);
+            if (!unsupported.containsKey(source) && (destination==null || !protectedMembers.containsKey(destination))) { return false; }
+            String field=unsupported.getOrDefault(source,joins.containsKey(source) ? "persons" : protectedMembers.get(destination));
+            rows.add(new MigrationReport.Entry(row.file(),row.row(),"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,field));
+            return true;
         }
         /** R-18-12: a record left without account proposes a family group with the account holder, unless they already share one. */
         void proposals() {
@@ -143,12 +180,21 @@ public class PlayoffPlanner {
             }
         }
         Plan result() { return new Plan(changes,identityChanges,maximum,rows); }
+        boolean passport(PlayoffInput.Row row) { return !confirmedDocuments.containsKey(row.get("id")) && normalize(row.get("hasPassport")).equals("s"); }
+        String documentOf(PlayoffInput.Row row) {
+            String confirmed=confirmedDocuments.get(row.get("id"));
+            return confirmed!=null ? confirmed : document(passport(row) ? row.get("passport") : row.get("document"));
+        }
+        /** The person key of a record: its NIF (or passport), else its email, else its own id. */
+        String person(PlayoffInput.Row row) {
+            String document=documentOf(row), email=row.get("email").toLowerCase(Locale.ROOT);
+            return document.isEmpty() ? email.isEmpty() ? "id:"+row.get("id") : "email:"+email : "document:"+document;
+        }
         void memberAndDog(Candidate c) {
             var row=c.row(); String source=row.get("id"); String email=row.get("email").toLowerCase(Locale.ROOT);
-            String principal=joins.get(source), confirmed=confirmedDocuments.get(source);
-            boolean passport=confirmed==null && normalize(row.get("hasPassport")).equals("s");
-            String document=confirmed!=null ? confirmed : document(passport ? row.get("passport") : row.get("document"));
-            String person=document.isEmpty() ? email.isEmpty() ? "id:"+source : "email:"+email : "document:"+document;
+            if (rejected(row)) { return; }
+            String principal=joins.get(source); boolean passport=passport(row);
+            String document=documentOf(row), person=person(row);
             if (principal!=null) {
                 // The club confirmed this record as its principal's person: only the dog is added (R-18-04 (f)).
                 person=personBySource.get(principal);
@@ -157,7 +203,7 @@ public class PlayoffPlanner {
             }
             personBySource.put(source,person);
             var personChange=people.get(person);
-            String memberId=personChange==null ? memberBySource.getOrDefault(source,id("member",source)) : personChange.id();
+            String memberId=personChange==null ? destinations.get(source) : personChange.id();
             if (!document.isEmpty() && byDocument.containsKey(document) && !byDocument.get(document).equals(memberId)) { throw new ApiException(ErrorCode.ID_DOCUMENT_ALREADY_EXISTS); }
             String dogId=id("dog",source);
             if (!row.get("chip").isEmpty() && chips.containsKey(row.get("chip")) && !chips.get(row.get("chip")).equals(dogId)) { throw new ApiException(ErrorCode.CHIP_ALREADY_EXISTS); }
@@ -330,6 +376,11 @@ public class PlayoffPlanner {
             var grouped=input.files().get("groups").stream().collect(java.util.stream.Collectors.groupingBy(r -> r.get("groupId"),LinkedHashMap::new,java.util.stream.Collectors.toList()));
             for (var group:grouped.entrySet()) {
                 var source=group.getValue().getFirst(); String groupId=id("group",group.getKey());
+                // R-18-14: a group with a protected holder or member is left as it is; it never blocks the rest of the load.
+                if (java.util.stream.Stream.concat(group.getValue().stream().map(r -> r.get("id")),java.util.stream.Stream.of(source.get("holderId")))
+                        .anyMatch(id -> unsupported.containsKey(id) || protectedMembers.containsKey(destinations.getOrDefault(id,"")))) {
+                    rows.add(new MigrationReport.Entry(source.file(),source.row(),"familyGroups","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,"familyGroup")); continue;
+                }
                 var ids=group.getValue().stream().map(r -> memberBySource.get(r.get("id"))).distinct().toList();
                 String holder=memberBySource.get(source.get("holderId"));
                 if (group.getKey().isEmpty() || ids.contains(null) || ids.size()<2 || !ids.contains(holder)
