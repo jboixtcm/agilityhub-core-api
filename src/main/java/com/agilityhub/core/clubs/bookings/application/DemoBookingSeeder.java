@@ -20,8 +20,10 @@ import org.springframework.stereotype.Service;
  * E4-T05 registrants of the seeded classes, since E5-T02 created through the real S08 services: each booked registrant
  * holds a seat and confirms it as its own member (`origin = APP`), with an in-memory pack opened for the `withPack`
  * ones; the W+2 classes open for booking one week before they start, so the seed books them as of that opening
- * (or the run date when later). Waiting registrants become ACTIVE waiting-list entries until E5-T03 ships the join
- * service. Registrant choice is unchanged (seed 42 picks the same members as before); counters follow the bookings.
+ * (or the run date when later). Waiting registrants are inserted as ACTIVE waiting-list entries: the demo rows set their
+ * waiting counts independently of the class capacity, and `WaitlistService.join` (R-08-12) refuses a class that is not
+ * full; E5-T06 reshapes the seed. Registrant
+ * choice is unchanged (seed 42 picks the same members as before); counters follow the bookings.
  */
 @Service
 public class DemoBookingSeeder implements DemoSeedStep {

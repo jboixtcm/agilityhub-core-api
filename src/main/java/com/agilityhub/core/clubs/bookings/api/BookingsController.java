@@ -30,8 +30,8 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
  * S08: class bookings, seat holds and waiting list. WP-08-B (E5-T02) serves holds, confirmation, detail, lists,
- * `.ics` and cancellation; `/me/home`, `/me/bookable-classes` (E5-T06) and the waiting list (E5-T03) still run their
- * tenant, role, ownership and module guards and then answer 501 NOT_IMPLEMENTED.
+ * `.ics` and cancellation; WP-08-C (E5-T03) the waiting list (join, detail, leave, claim, class list); `/me/home` and
+ * `/me/bookable-classes` (E5-T06) still run their tenant, role and module guards and then answer 501 NOT_IMPLEMENTED.
  */
 @RestController
 public class BookingsController {
@@ -39,11 +39,12 @@ public class BookingsController {
     private final BookingContractAccess access; private final BookingActors actors; private final SeatHoldService holds;
     private final BookingConfirmationService confirmations; private final BookingCancellationService cancellations; private final BookingQueryService queries;
     private final BookingViews views; private final BookingTransactions transactions; private final ListEngine lists; private final ObjectMapper mapper;
+    private final WaitlistService waitlist;
     public BookingsController(BookingContractAccess access, BookingActors actors, SeatHoldService holds, BookingConfirmationService confirmations,
             BookingCancellationService cancellations, BookingQueryService queries, BookingViews views, BookingTransactions transactions,
-            ListEngine lists, ObjectMapper mapper) {
+            ListEngine lists, ObjectMapper mapper, WaitlistService waitlist) {
         this.access = access; this.actors = actors; this.holds = holds; this.confirmations = confirmations; this.cancellations = cancellations;
-        this.queries = queries; this.views = views; this.transactions = transactions; this.lists = lists; this.mapper = mapper;
+        this.queries = queries; this.views = views; this.transactions = transactions; this.lists = lists; this.mapper = mapper; this.waitlist = waitlist;
     }
     private <T> T view(Object value, Class<T> type) { return mapper.convertValue(value, type); }
     private static boolean instructorOnly() {
@@ -205,11 +206,12 @@ public class BookingsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, DOG_NOT_ACCESSIBLE, MODULE_DISABLED, CLASS_NOT_FULL, ALREADY_BOOKED, ALREADY_ON_WAITLIST, WAITLIST_LIMIT,
             BOOKING_LIMIT_REACHED, BOOKING_BLOCKED, INACTIVITY_PERIOD, PACK_EMPTY, LEVEL_NOT_ALLOWED, MEMBER_NOT_ACTIVE})
-    @Operation(summary = "joinWaitlist", description = "Roles: MEMBER (also the impersonation token). R-08-12; details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "joinWaitlist", description = "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "WaitlistEntry", useReturnTypeSchema = true))
-    public WaitlistEntry joinWaitlist(@Valid @RequestBody WaitlistEntryRequest request) {
+    public WaitlistEntry joinWaitlist(@Valid @RequestBody WaitlistEntryRequest request, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        var entry = waitlist.join(actors.member(memberId(jwt)), request.classSessionId(), request.dogId());
+        return view(views.waitlistEntry(entry, false), WaitlistEntry.class);
     }
 
     @GetMapping("/api/v1/waitlist-entries/{id}")
@@ -217,12 +219,12 @@ public class BookingsController {
     @AllowsImpersonation
     @RequiresModule(Module.WAITLIST)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED})
-    @Operation(summary = "waitlistEntry", description = "Roles: MEMBER (own, also the impersonation token), INSTRUCTOR, ADMIN. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "waitlistEntry", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN. Screen 07 «/espera/:id»: class card, position (FIFO order), confirmBy (FIFO only), state. Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "WaitlistEntry", useReturnTypeSchema = true))
     public WaitlistEntry waitlistEntry(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        access.waitlistEntry(id, memberId(jwt), staff());
-        throw new UnsupportedOperationException();
+        boolean staff = staff();
+        return view(views.waitlistEntry(waitlist.visible(id, memberId(jwt), staff), staff), WaitlistEntry.class);
     }
 
     @PostMapping("/api/v1/waitlist-entries/{id}/cancellation")
@@ -230,12 +232,14 @@ public class BookingsController {
     @AllowsImpersonation
     @RequiresModule(Module.WAITLIST)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, WAITLIST_ENTRY_NOT_LIVE})
-    @Operation(summary = "leaveWaitlist", description = "Roles: MEMBER (own, also the impersonation token), ADMIN (cancelReason ADMIN). R-08-16. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "leaveWaitlist", description = "Roles: MEMBER (own or family group, also the impersonation token), ADMIN (D4/D12). R-08-16: ACTIVE or NOTIFIED only (WAITLIST_ENTRY_NOT_LIVE otherwise) → CANCELLED with cancelReason MEMBER, or ADMIN when an administrator acts (directly or impersonating); WaitlistLeft. Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "WaitlistEntry", useReturnTypeSchema = true))
     public WaitlistEntry leaveWaitlist(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        access.waitlistEntry(id, memberId(jwt), staff());
-        throw new UnsupportedOperationException();
+        boolean admin = staff();
+        waitlist.visible(id, memberId(jwt), admin);
+        var left = waitlist.leave(admin ? actors.admin() : actors.member(memberId(jwt)), id);
+        return view(views.waitlistEntry(left, admin), WaitlistEntry.class);
     }
 
     @PostMapping("/api/v1/waitlist-entries/{id}/claim")
@@ -245,13 +249,21 @@ public class BookingsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, SEAT_TAKEN, SEAT_HOLD_EXPIRED, WAITLIST_NOT_NOTIFIED, WAITLIST_OFFER_EXPIRED,
             BOOKING_LIMIT_REACHED, SWAP_NOT_ALLOWED, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "claimSeat", description = "Roles: MEMBER (own, also the impersonation token). R-08-15: same transaction as R-08-08 plus entry → CONSOLIDATED; waiting-list limits do not apply. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "claimSeat", description = "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: a repeated key returns the same response, also a 409/422. Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "Booking", useReturnTypeSchema = true))
     public Booking claimSeat(@PathVariable String id, @Valid @RequestBody ClaimRequest request,
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        access.waitlistEntry(id, memberId(jwt), false);
-        throw new UnsupportedOperationException();
+        waitlist.visible(id, memberId(jwt), false);
+        var actor = actors.member(memberId(jwt));
+        return transactions.write(waitlist.classes(id, request.swapBookingId()), () -> {
+            IdempotentOperation.lock();
+            var confirmed = waitlist.claim(actor, id, request.seatHoldId(), request.swapBookingId());
+            var result = view(views.booking(confirmed.booking(), false, confirmed.checkoutUrl()), Booking.class);
+            try { IdempotentOperation.complete(201, mapper.writeValueAsBytes(result)); }
+            catch (com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
+            return result;
+        });
     }
 
     @GetMapping("/api/v1/class-sessions/{id}/bookings")
@@ -269,11 +281,11 @@ public class BookingsController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @RequiresModule(Module.WAITLIST)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, IMPERSONATION_DENIED})
-    @Operation(summary = "classWaitlist", description = "Roles: INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "classWaitlist", description = "Roles: INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Read for 21/D4/D12 and the S06 cancellation preview: every entry of the class, any state, in position order. Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ClassWaitlist", useReturnTypeSchema = true))
     public ClassWaitlist classWaitlist(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        throw new UnsupportedOperationException();
+        return new ClassWaitlist(waitlist.forClass(id).stream().map(e -> view(views.waitlistEntry(e, true), WaitlistEntry.class)).toList());
     }
 }

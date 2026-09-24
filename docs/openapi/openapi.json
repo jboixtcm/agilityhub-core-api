@@ -12631,7 +12631,7 @@
             "type" : [ "string", "null" ]
           },
           "cancelReason" : {
-            "enum" : [ "MEMBER", "CLASS_CANCELLED", "CLASS_STARTED", "ADMIN", "BOOKED_DIRECTLY" ],
+            "enum" : [ "MEMBER", "CLASS_CANCELLED", "CLASS_STARTED", "ADMIN", "BOOKED_DIRECTLY", "MEMBER_LEFT" ],
             "type" : [ "string", "null" ]
           },
           "cancelledAt" : {
@@ -21823,7 +21823,7 @@
     },
     "/api/v1/class-sessions/{id}/waitlist-entries" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Read for 21/D4/D12 and the S06 cancellation preview: every entry of the class, any state, in position order. Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "classWaitlist",
         "parameters" : [ {
           "in" : "path",
@@ -50033,7 +50033,7 @@
     },
     "/api/v1/waitlist-entries" : {
       "post" : {
-        "description" : "Roles: MEMBER (also the impersonation token). R-08-12; details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). R-08-12: the class must be full by bookings alone (CLASS_NOT_FULL otherwise), the booking eligibility chain runs, then waitlist.maxPerClass, waitlist.maxPerDogPerWeek / maxPerDogPerWeekIfAttended (details WAITLIST_LIMIT{scope: CLASS|DOG_WEEK}) and the seat must be acceptable (BOOKING_LIMIT_REACHED). Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "joinWaitlist",
         "requestBody" : {
           "content" : {
@@ -50182,7 +50182,7 @@
     },
     "/api/v1/waitlist-entries/{id}" : {
       "get" : {
-        "description" : "Roles: MEMBER (own, also the impersonation token), INSTRUCTOR, ADMIN. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN. Screen 07 «/espera/:id»: class card, position (FIFO order), confirmBy (FIFO only), state. Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "waitlistEntry",
         "parameters" : [ {
           "in" : "path",
@@ -50329,7 +50329,7 @@
     },
     "/api/v1/waitlist-entries/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER (own, also the impersonation token), ADMIN (cancelReason ADMIN). R-08-16. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token), ADMIN (D4/D12). R-08-16: ACTIVE or NOTIFIED only (WAITLIST_ENTRY_NOT_LIVE otherwise) → CANCELLED with cancelReason MEMBER, or ADMIN when an administrator acts (directly or impersonating); WaitlistLeft. Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "leaveWaitlist",
         "parameters" : [ {
           "in" : "path",
@@ -50476,7 +50476,7 @@
     },
     "/api/v1/waitlist-entries/{id}/claim" : {
       "post" : {
-        "description" : "Roles: MEMBER (own, also the impersonation token). R-08-15: same transaction as R-08-08 plus entry → CONSOLIDATED; waiting-list limits do not apply. Requires WAITLIST. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token). R-08-15: the entry must be NOTIFIED (FIFO: confirmBy > now) and the seat hold taken with its waitlistEntryId; then the same transaction as R-08-08 (checks, swap with swapBookingId, BR-01) plus entry → CONSOLIDATED and WaitlistConsolidated; in ALL_AT_ONCE the last seat sends the other NOTIFIED entries back to ACTIVE. Waiting-list limits do not apply. Idempotency-Key: a repeated key returns the same response, also a 409/422. Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "claimSeat",
         "parameters" : [ {
           "in" : "path",

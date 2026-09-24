@@ -28,10 +28,12 @@ public class NotificationRepository extends TenantRepository<Notification> {
     public Optional<Notification> findScoped(String id) {
         return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
     }
-    public void appContent(String id,java.util.Map<String,Object> variables) {
+    public void appContent(String id,java.util.Map<String,Object> variables) { content(id,"APP",variables); }
+    /** Renderable variables of an APP or PUSH row (allow-listed: never tokens or contact data). */
+    public void content(String id,String channel,java.util.Map<String,Object> variables) {
         var safe=new java.util.LinkedHashMap<String,Object>();
-        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
-        mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is("APP")),new Update().set("variables",safe),Notification.class);
+        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change","confirm_by","mode")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
+        mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is(channel)),new Update().set("variables",safe),Notification.class);
     }
     public void smsContent(String id,java.util.List<String> phones,String body,java.util.Map<String,Object> variables) {
         mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is("SMS")),new Update().set("recipientPhones",phones).set("body",body)

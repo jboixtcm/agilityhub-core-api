@@ -75,12 +75,7 @@ public class BookingViews {
         var out = new LinkedHashMap<String, Object>();
         out.put("id", b.id()); out.put("state", b.state()); out.put("origin", b.origin()); out.put("classSessionId", b.classSessionId());
         out.put("dogId", b.dogId()); out.put("memberId", b.memberId());
-        var visibility = InstructorVisibility.of(labels.instructorNames().isBlank() ? null : labels.instructorNames(), now, b.classStartsAt(),
-                context.integer("bookings.showInstructorHoursBefore"), staff);
-        var cls = new LinkedHashMap<String, Object>(); cls.put("startsAtLocal", local(b.classStartsAt())); cls.put("endsAtLocal", local(b.classEndsAt()));
-        cls.put("description", labels.description()); cls.put("ringName", labels.ringName());
-        cls.put("instructorName", visibility.instructorName()); cls.put("instructorVisibleAt", visibility.instructorVisibleAt());
-        out.put("classSession", cls); out.put("bookedAt", b.bookedAt());
+        out.put("classSession", classCard(labels, b.classStartsAt(), b.classEndsAt(), now, staff)); out.put("bookedAt", b.bookedAt());
         // Every booking is created with `bookedBy` (R-08-19); only the display name may be empty.
         out.put("bookedBy", map("displayName", Objects.toString(b.bookedBy().displayName(), ""), "viaClub", b.origin() == BookingOrigin.BACKOFFICE));
         out.put("swapFromBookingId", b.swapFromBookingId());
@@ -92,6 +87,27 @@ public class BookingViews {
         out.put("cancellation", b.cancelledAt() == null ? null : map("at", b.cancelledAt(), "byDisplayName", Objects.toString(b.cancelledBy().displayName(), ""),
                 "byRole", b.cancelledBy().role(), "late", b.late(), "minutesBefore", b.minutesBefore(), "message", b.cancelMessage()));
         out.put("displayState", BookingDisplay.of(b.state(), b.classEndsAt(), now, attendance.noShow(b.id())));
+        return out;
+    }
+    /** The `BookingClassSession` card of 07 with R-08-20 instructor visibility. */
+    private Map<String, Object> classCard(ClassSessionBookingAccess.Labels labels, Instant startsAt, Instant endsAt, Instant now, boolean staff) {
+        var visibility = InstructorVisibility.of(labels.instructorNames().isBlank() ? null : labels.instructorNames(), now, startsAt,
+                context.integer("bookings.showInstructorHoursBefore"), staff);
+        var cls = new LinkedHashMap<String, Object>(); cls.put("startsAtLocal", local(startsAt)); cls.put("endsAtLocal", local(endsAt));
+        cls.put("description", labels.description()); cls.put("ringName", labels.ringName());
+        cls.put("instructorName", visibility.instructorName()); cls.put("instructorVisibleAt", visibility.instructorVisibleAt());
+        return cls;
+    }
+    /** S08 §6 `WaitlistEntry` (07 «/espera/:id», 21/D4/D12): the class card, `position`, `confirmBy` (FIFO), state and outcome. */
+    public Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff) {
+        var session = classes.find(e.classSessionId()); var labels = labelsOf(e.classSessionId());
+        var out = new LinkedHashMap<String, Object>();
+        out.put("id", e.id()); out.put("state", e.state()); out.put("classSessionId", e.classSessionId()); out.put("dogId", e.dogId());
+        out.put("dogName", census.dog(e.dogId()).map(BookingMemberAccess.Dog::name).orElse(null)); out.put("memberId", e.memberId());
+        out.put("position", e.position()); out.put("joinedAt", e.joinedAt());
+        out.put("classSession", classCard(labels, e.classStartsAt(), session.map(ClassSessionBookingAccess.Session::endsAt).orElse(e.classStartsAt()), context.now(), staff));
+        out.put("notifiedAt", e.notifiedAt()); out.put("confirmBy", e.confirmBy()); out.put("bookingId", e.bookingId());
+        out.put("cancelledAt", e.cancelledAt()); out.put("cancelReason", e.cancelReason());
         return out;
     }
     public Map<String, Object> calendarLinks(Booking b, ClassSessionBookingAccess.Labels labels) {

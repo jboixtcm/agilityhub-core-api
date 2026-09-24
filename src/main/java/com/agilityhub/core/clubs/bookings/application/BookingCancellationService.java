@@ -24,11 +24,13 @@ public class BookingCancellationService {
     private final BookingRepository bookings; private final SeatHoldRepository holds; private final WaitlistEntryRepository waitlist;
     private final PackBalancePort packs; private final AttendanceStatePort attendance; private final BookingEvents events;
     private final BookingCounters counters; private final BookingAudit audit; private final ClassSessionBookingAccess classes;
+    private final WaitlistTransitions transitions;
     public BookingCancellationService(BookingContext context, BookingTransactions transactions, SeatLockRepository locks, BookingRepository bookings,
             SeatHoldRepository holds, WaitlistEntryRepository waitlist, PackBalancePort packs, AttendanceStatePort attendance, BookingEvents events,
-            BookingCounters counters, BookingAudit audit, ClassSessionBookingAccess classes) {
+            BookingCounters counters, BookingAudit audit, ClassSessionBookingAccess classes, WaitlistTransitions transitions) {
         this.context = context; this.transactions = transactions; this.locks = locks; this.bookings = bookings; this.holds = holds; this.waitlist = waitlist;
         this.packs = packs; this.attendance = attendance; this.events = events; this.counters = counters; this.audit = audit; this.classes = classes;
+        this.transitions = transitions;
     }
 
     /** `POST /bookings/{id}/cancellation` (member, impersonating admin) and the S10 «ha avisat» call (instructor). */
@@ -105,7 +107,7 @@ public class BookingCancellationService {
     /**
      * R-08-21 / S06 R-06-10: called by `ClassCancellationUseCase` inside its transaction, which already holds the class
      * (no seat lock here). Live bookings → CANCELLED_BY_CLUB (pack refunded, PAYMENT_PENDING included), live waiting-list
-     * entries → CANCELLED{CLASS_CANCELLED} (R-08-16; E5-T03 moves this half into its waiting-list service), holds
+     * entries → CANCELLED{CLASS_CANCELLED} (R-08-16, {@link WaitlistTransitions#cancelAll}), holds
      * deleted — all or nothing. No `BookingCancelled`/`WaitlistLeft`: N-08a notifies. Counters are set by the caller.
      */
     @Transactional(propagation = Propagation.MANDATORY)
@@ -120,13 +122,7 @@ public class BookingCancellationService {
                     false, CancellationPolicy.minutesBefore(b.classStartsAt(), now), b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(),
                     b.packMovementId(), refund, b.charge(), b.reminderSentAt(), b.version() + 1, b.createdAt(), b.createdByAccountId(), now, actorAccountId), b.version()));
         }
-        var entries = new ArrayList<WaitlistEntry>();
-        for (var e : waitlist.live(classSessionId)) {
-            entries.add(waitlist.update(new WaitlistEntry(e.id(), e.clubId(), e.classSessionId(), e.dogId(), e.memberId(), e.accountId(), e.joinedAt(),
-                    WaitlistState.CANCELLED, e.position(), e.notifiedAt(), e.confirmBy(), e.bookingId(), now, WaitlistCancelReason.CLASS_CANCELLED,
-                    e.classStartsAt(), e.bookingWeekKey(), e.version() == null ? 1L : e.version() + 1, e.createdAt(), e.createdByAccountId(), now, actorAccountId),
-                    e.version() == null ? 0L : e.version()));
-        }
+        var entries = transitions.cancelAll(classSessionId, actorAccountId);
         holds.deleteForClass(classSessionId);
         return new ClubCancellation(cancelled, entries);
     }

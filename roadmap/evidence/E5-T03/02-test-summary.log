@@ -1,0 +1,37 @@
+  ArchitectureTest           tests=6   failures=0 errors=0 skipped=0
+  BookingPortsTest           tests=8   failures=0 errors=0 skipped=0
+  WaitlistRulesTest          tests=3   failures=0 errors=0 skipped=0
+      T_08_08_waitingListLimitsPerClassPerDogWeekAttendedAndAcceptance
+      T_08_20_T_08_21_T_08_45_offersPerModeNeverRepeatAnOpenOffer
+      T_08_21_fifoConfirmByIsTheShorterOfTheWindowAndTheClassStart
+  AuditContractTest          tests=1   failures=0 errors=0 skipped=0
+  MessageParityTest          tests=1   failures=0 errors=0 skipped=0
+  EventCatalogContractTest   tests=2   failures=0 errors=0 skipped=0
+unit/contract (surefire): tests=433 failures=0 errors=0 skipped=0
+  BookingConcurrencyIT       tests=5   failures=0 errors=0 skipped=0
+      T_08_29_twentyParallelHoldsForTheLastSeatGiveOneHoldAndNoOverbooking
+      T_08_30_tenNotifiedEntriesClaimInParallelOnlyTheFreeSeatsAreTakenAndTheRestGoBackToActive
+      T_08_31_aDoubleClickBooksOnceAndTwoKeysForOneHoldGiveOneBookingAndSeatHoldExpired
+      T_08_32_aSwapRacingACancellationOfTheSameOldBookingLeavesCoherentCounters
+      T_08_33_anExpiredHoldNotYetRemovedByTheTtlNeitherCountsNorConfirms
+  BookingsIT                 tests=15  failures=0 errors=0 skipped=0
+  WaitlistIT                 tests=9   failures=0 errors=0 skipped=0
+      R_08_16_R_08_21_silentCancellationsSweepStartedClassesMembersWhoLeaveAndClassCancellations
+      T_08_08_T_08_19_joiningNeedsAFullClassAndRespectsTheClassDogWeekAndAcceptanceLimits
+      T_08_19_joinLeaveAndADirectBookingConsolidatesTheEntry
+      T_08_20_allAtOnceNotifiesEveryWaitingMemberOnceTheFirstClaimWinsAndTheRestReturnToActiveWithN46
+      T_08_21_fifoOffersTheFirstEntryUntilConfirmByAndTheExpiryMovesToTheNext
+      T_08_22_claimNeedsTheOfferedHoldAndStillRespectsTheWeeklyLimitWithSwap
+      T_08_26_waitlistRolesTenantImpersonationAndModuleOff
+      T_08_34_aDuplicateWaitlistExpiredProducesASingleOffer
+      T_08_45_fifoWithTwoSeatsReleasedAtOnceNotifiesTheFirstTwoEachWithItsConfirmBy
+  E5ContractIT               tests=38  failures=0 errors=0 skipped=0
+integration (failsafe): tests=665 failures=0 errors=0 skipped=0
+coverage (merged unit + integration, jacoco.csv):
+  com.agilityhub.core.clubs.bookings.domain            lines 100.0 %  branches  93.4 %
+  com.agilityhub.core.clubs.bookings.application       lines  99.4 %  branches  84.8 %
+  com.agilityhub.core.clubs.bookings.application.ports lines 100.0 %  branches 100.0 %
+  com.agilityhub.core.clubs.bookings.api               lines  94.7 %  branches  85.7 %
+  com.agilityhub.core.clubs.bookings.persistence       lines  98.7 %  branches  75.0 %
+  com.agilityhub.core.clubs.messaging.application      lines  99.0 %  branches  87.7 %
+  com.agilityhub.core.clubs.messaging.persistence      lines  97.1 %  branches  95.0 %

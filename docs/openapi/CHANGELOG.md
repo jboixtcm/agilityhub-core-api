@@ -3,6 +3,18 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T03 · S08 WP-08-C waiting list served (5 operations no longer 501)
+
+No path, parameter, request body or response change. Two things change:
+- The `description` of the five waiting-list operations drops «Contract only; returns 501…» and states the
+  served rules: `POST /waitlist-entries` · `GET /waitlist-entries/{id}` (member own **or family group**) ·
+  `POST /waitlist-entries/{id}/cancellation` · `POST /waitlist-entries/{id}/claim` ·
+  `GET /class-sessions/{id}/waitlist-entries` («every entry of the class, any state, in position order»).
+- One enum value is added: `WaitlistEntry.cancelReason` gains **`MEMBER_LEFT`**. This is the S15 §13 catalog
+  proposal, set by `WaitlistService.cancelByMember` when a member leaves.
+
+Web adopters: regenerate the types for the new enum value; nothing else.
+
 ## 2026-09-24 · E5-T02 · S08 WP-08-B served (9 operations no longer 501)
 
 No path, parameter, request body, response or schema changes: only the `description` of nine

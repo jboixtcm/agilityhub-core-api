@@ -19,7 +19,8 @@ import org.springframework.context.annotation.Bean;
 /**
  * S08 adapters and port defaults. Ordered before the S06 and S14 null objects, so the real `ClassBookingsPort` and
  * `BookingActivity` replace them (E5-T02 retires E4-T05's demo adapter); every bean backs off when an application or
- * test bean is registered. The E8/E6/E5-T03 ports start as null objects; local/test register the in-memory ones.
+ * test bean is registered. The E8/E6 ports start as null objects; local/test register the in-memory ones. The
+ * waiting-list consolidation port is served by {@link WaitlistTransitions} (E5-T03, same context).
  */
 @AutoConfiguration(before = {SchedulingPortDefaults.class, DashboardPortDefaults.class})
 public class BookingsAutoConfiguration {
@@ -41,8 +42,6 @@ public class BookingsAutoConfiguration {
     }
     @Bean @ConditionalOnMissingBean(AttendanceStatePort.class)
     AttendanceStatePort noAttendance() { return bookingId -> Optional.empty(); }
-    @Bean @ConditionalOnMissingBean(WaitlistConsolidationPort.class)
-    WaitlistConsolidationPort noWaitlistConsolidation() { return (classSessionId, dogId, bookingId) -> Optional.empty(); }
     @Bean @ConditionalOnMissingBean(SingleClassChargePort.class)
     SingleClassChargePort singleClassCharges(BookingMemberAccess census, UpfrontPayments payments, ObjectProvider<PaymentProvider> gateways,
             BookingContext context, CensusClubSettings clubs) {

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * `ClassSession.counters` follow the bookings in the same transaction (E4-T03 contract): `booked` = ACTIVE +
- * PAYMENT_PENDING, `waiting` = live entries. S15 R-15-12b: an in-time cancellation that leaves an ACTIVE, future,
+ * PAYMENT_PENDING, `waiting` = live entries (0 with WAITLIST off). S15 R-15-12b: an in-time cancellation that leaves an ACTIVE, future,
  * non-exempt class below `classes.minDogs` emits `ClassBelowMinimum` once, guarded by `risk.lowAlertSentAt`,
  * which is cleared when the count reaches the minimum again (so a second drop alerts again).
  */
@@ -22,7 +22,8 @@ public class BookingCounters {
     public void recount(String classSessionId, boolean inTimeCancellation, BookingActor actor) {
         var session = classes.find(classSessionId).orElse(null);
         if (session == null || !session.active()) { return; }
-        int booked = bookings.forClass(classSessionId, BookingRepository.LIVE).size(), waiting = waitlist.live(classSessionId).size();
+        int booked = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
+        int waiting = context.enabled(com.agilityhub.core.platform.application.Module.WAITLIST) ? waitlist.live(classSessionId).size() : 0; // S08 §9
         int minDogs = context.integer("classes.minDogs"); var alert = LowAlert.KEEP;
         if (booked >= minDogs && session.lowAlertSentAt() != null) { alert = LowAlert.CLEAR; }
         else if (inTimeCancellation && booked < minDogs && session.lowAlertSentAt() == null && !session.riskExempt()

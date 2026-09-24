@@ -34,14 +34,15 @@ public class SeatHoldService {
                 locks.lock(classSessionId);
                 var subject = checks.subject(actor, classSessionId, dogId, now);
                 checks.notBookedYet(subject);
-                if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now); }
+                int active = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
+                long others = holds.live(classSessionId, now).stream().filter(h -> !h.dogId().equals(dogId)).count();
+                boolean full = active + others >= subject.session().capacity();
+                if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now, full); }
                 var limit = checks.limit(subject, now);
                 if (limit.done()) {
                     throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(subject.session().startsAt())));
                 }
-                int active = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
-                long others = holds.live(classSessionId, now).stream().filter(h -> !h.dogId().equals(dogId)).count();
-                if (active + others >= subject.session().capacity()) {
+                if (full) {
                     if (waitlistEntryId != null) { throw new ApiException(ErrorCode.SEAT_TAKEN); }
                     throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", active < subject.session().capacity()));
                 }
@@ -69,12 +70,20 @@ public class SeatHoldService {
         var payload = new LinkedHashMap<String, Object>(); payload.put("classId", hold.classSessionId()); payload.put("memberId", hold.memberId());
         payload.put("dogId", hold.dogId()); payload.put("expiresAt", hold.expiresAt()); return payload;
     }
-    /** R-08-15 hold of a claim: the entry must be the dog's, NOTIFIED and (FIFO) still inside `confirmBy`. The claim itself is E5-T03. */
-    private void offer(String entryId, String classSessionId, String dogId, Instant now) {
+    /**
+     * R-08-15 hold of a claim: the entry must be the dog's, NOTIFIED and (FIFO) still inside `confirmBy`. An ALL_AT_ONCE
+     * entry demoted because somebody else took the seat (ACTIVE with `notifiedAt`) answers SEAT_TAKEN while the class
+     * stays full, and a FIFO offer that already expired answers WAITLIST_OFFER_EXPIRED. The claim is {@link WaitlistService#claim}.
+     */
+    private void offer(String entryId, String classSessionId, String dogId, Instant now, boolean full) {
         var entry = waitlist.findById(entryId).filter(e -> e.classSessionId().equals(classSessionId) && e.dogId().equals(dogId))
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        if (entry.state() != WaitlistState.NOTIFIED) { throw new ApiException(ErrorCode.WAITLIST_NOT_NOTIFIED); }
-        if (entry.confirmBy() != null && !entry.confirmBy().isAfter(now)) { throw new ApiException(ErrorCode.WAITLIST_OFFER_EXPIRED); }
+        switch (entry.state()) {
+            case NOTIFIED -> { if (entry.confirmBy() != null && !entry.confirmBy().isAfter(now)) { throw new ApiException(ErrorCode.WAITLIST_OFFER_EXPIRED); } }
+            case EXPIRED -> throw new ApiException(ErrorCode.WAITLIST_OFFER_EXPIRED);
+            case ACTIVE -> throw new ApiException(entry.notifiedAt() != null && full ? ErrorCode.SEAT_TAKEN : ErrorCode.WAITLIST_NOT_NOTIFIED);
+            default -> throw new ApiException(ErrorCode.WAITLIST_NOT_NOTIFIED);
+        }
     }
     Optional<SingleClassChargePort.Terms> singleClass(String ownerMemberId) {
         return context.enabled(Module.SINGLE_CLASS) ? charges.terms(ownerMemberId) : Optional.empty();

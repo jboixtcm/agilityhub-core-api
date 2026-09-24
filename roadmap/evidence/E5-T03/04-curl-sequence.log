@@ -1,0 +1,191 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_waitlist, local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0
+  + catalogs.faq.FAQ_6
+  + catalogs.faq.FAQ_7
+  + catalogs: 31 catalog changes
+  + messageTemplates: schema accepted; application deferred to E7
+  + pages: 3 page changes
+  15 changes (applied)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+  205 changes (demo planning, week start 2026-09-21)
+10 member logins with an ACTIVE dog; 37 ACTIVE classes; parameter waitlist.mode = (catalog default ALL_AT_ONCE)
+API jar up on a random loopback port (local profile); the seed outbox is drained
+
+=== ALL_AT_ONCE: class 2026-10-05 08:30 capacity 4, 3 seeded bookings, 1 login booking(s) to fill it, waiting: member.2, member.3, member.4
+curl POST /api/v1/test/clock -> 200   [test clock]
+  test clock -> 2026-10-05T01:30:00Z (club-local Mon 05-10 03:30)
+curl PATCH /api/v1/class-sessions/ff86c98f… -> 200   [admin sets the capacity]
+  capacity 4 -> 4 (seeded bookings 3)
+  outbox ClassSessionUpdated PUBLISHED ff86c98f… {"classId":"ff86c98f…","diff":{"capacity":{"before":null,"after":4}},"bookedCount":3}
+
+1. fill the class (hold + confirm)
+curl POST /api/v1/seat-holds -> 201   [member]
+curl POST /api/v1/bookings -> 201   [confirm]
+class counters {"booked":4,"waiting":0} capacity 4
+  outbox SeatHeld PUBLISHED cecb5b11… {"classId":"ff86c98f…","memberId":"518eb906…","dogId":"31dafc09…","expiresAt":{"$date":"2026-10-05T01:30:35.145Z"}}
+  outbox BookingCreated PUBLISHED 1a60d047… {"bookingId":"1a60d047…","classId":"ff86c98f…","memberId":"518eb906…","dogId":"31dafc09…","origin":"APP"}
+  outbox SeatHoldReleased PUBLISHED cecb5b11… {"classId":"ff86c98f…","memberId":"518eb906…","dogId":"31dafc09…","expiresAt":{"$date":"2026-10-05T01:30:35.145Z"}}
+  outbox NotificationQueued PUBLISHED 05e7809f…:518eb906…:app {"channel":"EMAIL","notificationId":"05e7809f…:518eb906…:app"}
+  notification N-04 APP SENT account b5690e08… {"club_name":"Club Agility Cànic","dog_name":"Suro 190","entityId":"1a60d047…","action":"OPEN_BOOKING","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","class_description":"C+D+E","ring_name":"Muntanya","calendar_links":"https://app.agilitycanic.cat/api/v1/bookings/1a60d047…/calendar.ics?token=[truncated]"}
+
+2. three members join the waiting list
+curl POST /api/v1/waitlist-entries -> 201   [member.2]
+  entry 6ba1c9f2… state=ACTIVE position=1 dog=Ginesta 191
+curl POST /api/v1/waitlist-entries -> 201   [member.3]
+  entry b17d2698… state=ACTIVE position=2 dog=Neu 192
+curl POST /api/v1/waitlist-entries -> 201   [member.4]
+  entry 357a3c87… state=ACTIVE position=3 dog=Suro 193
+class counters {"booked":4,"waiting":3}
+  outbox WaitlistJoined PUBLISHED 6ba1c9f2… {"entryId":"6ba1c9f2…","classId":"ff86c98f…","memberId":"f3a3d555…","dogId":"10e3f2fc…"}
+  outbox WaitlistJoined PUBLISHED b17d2698… {"entryId":"b17d2698…","classId":"ff86c98f…","memberId":"e08c6283…","dogId":"a9732ab5…"}
+  outbox WaitlistJoined PUBLISHED 357a3c87… {"entryId":"357a3c87…","classId":"ff86c98f…","memberId":"4809f332…","dogId":"37e8be28…"}
+
+3. a booked member cancels 5 h before (in time, > 30 min: the waiting list is told)
+curl POST /api/v1/bookings/1a60d047…/cancellation -> 200   [member]
+  booking state=CANCELLED late=False minutesBefore=299
+  outbox BookingCancelled PUBLISHED 1a60d047… {"bookingId":"1a60d047…","by":"MEMBER","late":false,"minutesBefore":299,"origin":"APP","reason":"MEMBER"}
+  outbox SeatReleased PUBLISHED ff86c98f… {"classId":"ff86c98f…","freeSeats":1,"minutesBefore":299,"notifyWaitlist":true}
+  outbox NotificationQueued PUBLISHED 4d99e078…:518eb906…:app {"channel":"EMAIL","notificationId":"4d99e078…:518eb906…:app"}
+  outbox WaitlistNotified PUBLISHED ff86c98f… {"entryIds":["6ba1c9f2…","b17d2698…","357a3c87…"],"classId":"ff86c98f…","mode":"ALL_AT_ONCE"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:357a3c87…:app {"channel":"EMAIL","notificationId":"1fc20474…:357a3c87…:app"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:357a3c87…:sms {"channel":"EMAIL","notificationId":"1fc20474…:357a3c87…:sms"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:357a3c87…:push {"channel":"EMAIL","notificationId":"1fc20474…:357a3c87…:push"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:6ba1c9f2…:app {"channel":"EMAIL","notificationId":"1fc20474…:6ba1c9f2…:app"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:6ba1c9f2…:sms {"channel":"EMAIL","notificationId":"1fc20474…:6ba1c9f2…:sms"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:6ba1c9f2…:push {"channel":"EMAIL","notificationId":"1fc20474…:6ba1c9f2…:push"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:b17d2698…:app {"channel":"EMAIL","notificationId":"1fc20474…:b17d2698…:app"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:b17d2698…:sms {"channel":"EMAIL","notificationId":"1fc20474…:b17d2698…:sms"}
+  outbox NotificationQueued PUBLISHED 1fc20474…:b17d2698…:push {"channel":"EMAIL","notificationId":"1fc20474…:b17d2698…:push"}
+  notification N-05 APP SENT account b5690e08… {"club_name":"Club Agility Cànic","dog_name":"Suro 190","entityId":"1a60d047…","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","class_description":"C+D+E","ring_name":"Muntanya","late":false}
+  notification N-15 APP SENT account 24d10f1a… {"club_name":"Club Agility Cànic","dog_name":"Ginesta 191","entityId":"6ba1c9f2…","action":"CLAIM_SEAT","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","mode":"ALL_AT_ONCE"}
+  notification N-15 APP SENT account 56906328… {"club_name":"Club Agility Cànic","dog_name":"Neu 192","entityId":"b17d2698…","action":"CLAIM_SEAT","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","mode":"ALL_AT_ONCE"}
+  notification N-15 APP SENT account e64c7b4f… {"club_name":"Club Agility Cànic","dog_name":"Suro 193","entityId":"357a3c87…","action":"CLAIM_SEAT","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","mode":"ALL_AT_ONCE"}
+  notification N-15 PUSH QUEUED account 24d10f1a… {"club_name":"Club Agility Cànic","dog_name":"Ginesta 191","entityId":"6ba1c9f2…","action":"CLAIM_SEAT","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","mode":"ALL_AT_ONCE"}
+  notification N-15 PUSH QUEUED account 56906328… {"club_name":"Club Agility Cànic","dog_name":"Neu 192","entityId":"b17d2698…","action":"CLAIM_SEAT","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","mode":"ALL_AT_ONCE"}
+  notification N-15 PUSH QUEUED account e64c7b4f… {"club_name":"Club Agility Cànic","dog_name":"Suro 193","entityId":"357a3c87…","action":"CLAIM_SEAT","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","mode":"ALL_AT_ONCE"}
+  notification N-15 SMS QUEUED account 24d10f1a… sms(123): Club Agility Canic: placa lliure a la classe de Ginesta 191 del dilluns, 5 d'octubre de 2026 a les 08:30. Agafa-la a l'app.
+  notification N-15 SMS QUEUED account 56906328… sms(119): Club Agility Canic: placa lliure a la classe de Neu 192 del dilluns, 5 d'octubre de 2026 a les 08:30. Agafa-la a l'app.
+  notification N-15 SMS QUEUED account e64c7b4f… sms(120): Club Agility Canic: placa lliure a la classe de Suro 193 del dilluns, 5 d'octubre de 2026 a les 08:30. Agafa-la a l'app.
+  member.2: {"state": "NOTIFIED", "position": 1, "notifiedAt": "2026-10-05T01:30:16.245Z", "confirmBy": null}
+  member.3: {"state": "NOTIFIED", "position": 2, "notifiedAt": "2026-10-05T01:30:16.245Z", "confirmBy": null}
+  member.4: {"state": "NOTIFIED", "position": 3, "notifiedAt": "2026-10-05T01:30:16.245Z", "confirmBy": null}
+
+4. member.3 takes the seat: hold through the offer → claim
+  (the other two are NOTIFIED too; the first to hold and claim wins)
+curl POST /api/v1/seat-holds -> 201   [hold]
+curl POST /api/v1/seat-holds -> 409 SEAT_TAKEN   [another waiting member while the seat is held]
+curl POST /api/v1/waitlist-entries/b17d2698…/claim -> 201   [claim]
+  booking 8ca9a73d… state=ACTIVE origin=APP
+  outbox SeatHeld PUBLISHED 9caa04ab… {"classId":"ff86c98f…","memberId":"e08c6283…","dogId":"a9732ab5…","expiresAt":{"$date":"2026-10-05T01:30:50.716Z"}}
+  outbox WaitlistConsolidated PUBLISHED b17d2698… {"entryId":"b17d2698…","bookingId":"8ca9a73d…"}
+  outbox SeatHoldReleased PUBLISHED 9caa04ab… {"classId":"ff86c98f…","memberId":"e08c6283…","dogId":"a9732ab5…","expiresAt":{"$date":"2026-10-05T01:30:50.716Z"}}
+  outbox BookingCreated PUBLISHED 8ca9a73d… {"bookingId":"8ca9a73d…","classId":"ff86c98f…","memberId":"e08c6283…","dogId":"a9732ab5…","origin":"APP","waitlistEntryId":"b17d2698…"}
+  outbox NotificationQueued PUBLISHED N-46:6ba1c9f2…:1791163816245:app {"channel":"EMAIL","notificationId":"N-46:6ba1c9f2…:1791163816245:app"}
+  outbox NotificationQueued PUBLISHED N-46:357a3c87…:1791163816245:app {"channel":"EMAIL","notificationId":"N-46:357a3c87…:1791163816245:app"}
+  outbox NotificationQueued PUBLISHED 4deb6342…:e08c6283…:app {"channel":"EMAIL","notificationId":"4deb6342…:e08c6283…:app"}
+  notification N-04 APP SENT account 56906328… {"club_name":"Club Agility Cànic","dog_name":"Neu 192","entityId":"8ca9a73d…","action":"OPEN_BOOKING","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30","class_description":"C+D+E","ring_name":"Muntanya","calendar_links":"https://app.agilitycanic.cat/api/v1/bookings/8ca9a73d…/calendar.ics?token=[truncated]"}
+  notification N-46 APP SENT account 24d10f1a… {"club_name":"Club Agility Cànic","dog_name":"Ginesta 191","entityId":"6ba1c9f2…","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30"}
+  notification N-46 APP SENT account e64c7b4f… {"club_name":"Club Agility Cànic","dog_name":"Suro 193","entityId":"357a3c87…","class_date":"dilluns, 5 d’octubre de 2026","class_time":"08:30"}
+  member.2: {"state": "ACTIVE", "notifiedAt": "2026-10-05T01:30:16.245Z", "confirmBy": null, "bookingId": null}
+  member.3: {"state": "CONSOLIDATED", "notifiedAt": "2026-10-05T01:30:16.245Z", "confirmBy": null, "bookingId": "8ca9a73d…"}
+  member.4: {"state": "ACTIVE", "notifiedAt": "2026-10-05T01:30:16.245Z", "confirmBy": null, "bookingId": null}
+class counters {"booked":4,"waiting":2}
+
+5. member.4 leaves the waiting list
+curl POST /api/v1/waitlist-entries/357a3c87…/cancellation -> 200   [leave]
+  entry state=CANCELLED cancelReason=MEMBER
+  outbox WaitlistLeft PUBLISHED 357a3c87… {"entryId":"357a3c87…","classId":"ff86c98f…","memberId":"4809f332…","dogId":"37e8be28…"}
+class counters {"booked":4,"waiting":1}
+
+--- restart the API with waitlist.mode = FIFO (club parameter written before start, so the config cache starts fresh)
+API restarted; parameter waitlist.mode = FIFO
+
+=== FIFO: class 2026-10-08 18:50 capacity 5, 2 seeded bookings, 1 login booking(s) to fill it, waiting: member.6, member.7, member.8
+curl POST /api/v1/test/clock -> 200   [test clock]
+  test clock -> 2026-10-08T11:50:00Z (club-local Thu 08-10 13:50)
+curl PATCH /api/v1/class-sessions/697cf618… -> 200   [admin sets the capacity]
+  capacity 5 -> 3 (seeded bookings 2)
+  outbox ClassSessionUpdated PUBLISHED 697cf618… {"diff":{"capacity":{"before":null,"after":3}},"bookedCount":2,"classId":"697cf618…"}
+
+1. fill the class (hold + confirm)
+curl POST /api/v1/seat-holds -> 201   [member.5]
+curl POST /api/v1/bookings -> 201   [confirm]
+class counters {"booked":3,"waiting":0} capacity 3
+  outbox SeatHeld PUBLISHED b65af461… {"classId":"697cf618…","memberId":"cf730db8…","dogId":"e0a859a5…","expiresAt":{"$date":"2026-10-08T11:50:35.266Z"}}
+  outbox BookingCreated PUBLISHED cacb84c8… {"bookingId":"cacb84c8…","classId":"697cf618…","memberId":"cf730db8…","dogId":"e0a859a5…","origin":"APP"}
+  outbox SeatHoldReleased PUBLISHED b65af461… {"classId":"697cf618…","memberId":"cf730db8…","dogId":"e0a859a5…","expiresAt":{"$date":"2026-10-08T11:50:35.266Z"}}
+  outbox NotificationQueued PUBLISHED 21e81db0…:cf730db8…:app {"notificationId":"21e81db0…:cf730db8…:app","channel":"EMAIL"}
+  notification N-04 APP SENT account 2b05691f… {"club_name":"Club Agility Cànic","dog_name":"Ginesta 10","entityId":"cacb84c8…","action":"OPEN_BOOKING","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","class_description":"Cadells","ring_name":"Cadells","calendar_links":"https://app.agilitycanic.cat/api/v1/bookings/cacb84c8…/calendar.ics?token=[truncated]"}
+
+2. three members join the waiting list
+curl POST /api/v1/waitlist-entries -> 201   [member.6]
+  entry e92692d4… state=ACTIVE position=1 dog=Vent 11
+curl POST /api/v1/waitlist-entries -> 201   [member.7]
+  entry edcb704e… state=ACTIVE position=2 dog=Suro 12
+curl POST /api/v1/waitlist-entries -> 201   [member.8]
+  entry af99c757… state=ACTIVE position=3 dog=Suro 13
+class counters {"booked":3,"waiting":3}
+  outbox WaitlistJoined PUBLISHED e92692d4… {"entryId":"e92692d4…","classId":"697cf618…","memberId":"419229cf…","dogId":"a6d29605…"}
+  outbox WaitlistJoined PUBLISHED edcb704e… {"entryId":"edcb704e…","classId":"697cf618…","memberId":"fdcba2c1…","dogId":"60be8c4a…"}
+  outbox WaitlistJoined PUBLISHED af99c757… {"entryId":"af99c757…","classId":"697cf618…","memberId":"ba76b1b3…","dogId":"330336a7…"}
+
+3. a booked member cancels 5 h before (in time, > 30 min: the waiting list is told)
+curl POST /api/v1/bookings/cacb84c8…/cancellation -> 200   [member.5]
+  booking state=CANCELLED late=False minutesBefore=299
+  outbox BookingCancelled PUBLISHED cacb84c8… {"bookingId":"cacb84c8…","by":"MEMBER","late":false,"minutesBefore":299,"origin":"APP","reason":"MEMBER"}
+  outbox SeatReleased PUBLISHED 697cf618… {"classId":"697cf618…","freeSeats":1,"minutesBefore":299,"notifyWaitlist":true}
+  outbox NotificationQueued PUBLISHED c3d9ac81…:cf730db8…:app {"notificationId":"c3d9ac81…:cf730db8…:app","channel":"EMAIL"}
+  outbox WaitlistNotified PUBLISHED 697cf618… {"entryIds":["e92692d4…"],"classId":"697cf618…","confirmBy":{"$date":"2026-10-08T12:20:16.679Z"},"mode":"FIFO"}
+  outbox NotificationQueued PUBLISHED 358ea657…:e92692d4…:app {"notificationId":"358ea657…:e92692d4…:app","channel":"EMAIL"}
+  outbox NotificationQueued PUBLISHED 358ea657…:e92692d4…:sms {"notificationId":"358ea657…:e92692d4…:sms","channel":"EMAIL"}
+  outbox NotificationQueued PUBLISHED 358ea657…:e92692d4…:push {"notificationId":"358ea657…:e92692d4…:push","channel":"EMAIL"}
+  notification N-05 APP SENT account 2b05691f… {"club_name":"Club Agility Cànic","dog_name":"Ginesta 10","entityId":"cacb84c8…","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","class_description":"Cadells","ring_name":"Cadells","late":false}
+  notification N-15 APP SENT account d1632925… {"club_name":"Club Agility Cànic","dog_name":"Vent 11","entityId":"e92692d4…","action":"CLAIM_SEAT","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","confirm_by":"14:20","mode":"FIFO"}
+  notification N-15 PUSH QUEUED account d1632925… {"club_name":"Club Agility Cànic","dog_name":"Vent 11","entityId":"e92692d4…","action":"CLAIM_SEAT","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","confirm_by":"14:20","mode":"FIFO"}
+  notification N-15 SMS QUEUED account d1632925… sms(140): Club Agility Canic: placa lliure a la classe de Vent 11 del dijous, 8 d'octubre de 2026 a les 18:50. Confirma-la a l'app abans de les 14:20.
+  member.6: {"state": "NOTIFIED", "position": 1, "notifiedAt": "2026-10-08T11:50:16.679Z", "confirmBy": "2026-10-08T12:20:16.679Z"}
+  member.7: {"state": "ACTIVE", "position": 2, "notifiedAt": null, "confirmBy": null}
+  member.8: {"state": "ACTIVE", "position": 3, "notifiedAt": null, "confirmBy": null}
+
+4. the offer of the first expires: test clock +31 min, the entry → EXPIRED as S15 P6 (E5-T05) does, manual WaitlistExpired in the outbox
+curl POST /api/v1/test/clock -> 200   [test clock]
+  test clock -> 2026-10-08T12:21:00Z (club-local Thu 08-10 14:21)
+  outbox WaitlistExpired PUBLISHED e92692d4… {"entryId":"e92692d4…","classId":"697cf618…"}
+  outbox WaitlistNotified PUBLISHED 697cf618… {"entryIds":["edcb704e…"],"classId":"697cf618…","confirmBy":{"$date":"2026-10-08T12:51:00.933Z"},"mode":"FIFO"}
+  outbox NotificationQueued PUBLISHED 51f60ab3…:edcb704e…:app {"notificationId":"51f60ab3…:edcb704e…:app","channel":"EMAIL"}
+  outbox NotificationQueued PUBLISHED 51f60ab3…:edcb704e…:sms {"notificationId":"51f60ab3…:edcb704e…:sms","channel":"EMAIL"}
+  outbox NotificationQueued PUBLISHED 51f60ab3…:edcb704e…:push {"notificationId":"51f60ab3…:edcb704e…:push","channel":"EMAIL"}
+  notification N-15 APP SENT account f1d3b7cb… {"club_name":"Club Agility Cànic","dog_name":"Suro 12","entityId":"edcb704e…","action":"CLAIM_SEAT","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","confirm_by":"14:51","mode":"FIFO"}
+  notification N-15 PUSH QUEUED account f1d3b7cb… {"club_name":"Club Agility Cànic","dog_name":"Suro 12","entityId":"edcb704e…","action":"CLAIM_SEAT","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","confirm_by":"14:51","mode":"FIFO"}
+  notification N-15 SMS QUEUED account f1d3b7cb… sms(140): Club Agility Canic: placa lliure a la classe de Suro 12 del dijous, 8 d'octubre de 2026 a les 18:50. Confirma-la a l'app abans de les 14:51.
+  member.6: {"state": "EXPIRED", "notifiedAt": "2026-10-08T11:50:16.679Z", "confirmBy": "2026-10-08T12:20:16.679Z"}
+  member.7: {"state": "NOTIFIED", "notifiedAt": "2026-10-08T12:21:00.933Z", "confirmBy": "2026-10-08T12:51:00.933Z"}
+  member.8: {"state": "ACTIVE", "notifiedAt": null, "confirmBy": null}
+curl POST /api/v1/seat-holds -> 422 WAITLIST_OFFER_EXPIRED   [expired offer]
+
+5. member.7 takes the seat: hold through the offer → claim
+curl POST /api/v1/seat-holds -> 201   [hold]
+curl POST /api/v1/waitlist-entries/edcb704e…/claim -> 201   [claim]
+  booking 9a5e011a… state=ACTIVE origin=APP
+  outbox SeatHeld PUBLISHED 1f5ea575… {"classId":"697cf618…","memberId":"fdcba2c1…","dogId":"60be8c4a…","expiresAt":{"$date":"2026-10-08T12:21:35.649Z"}}
+  outbox WaitlistConsolidated PUBLISHED edcb704e… {"entryId":"edcb704e…","bookingId":"9a5e011a…"}
+  outbox SeatHoldReleased PUBLISHED 1f5ea575… {"classId":"697cf618…","memberId":"fdcba2c1…","dogId":"60be8c4a…","expiresAt":{"$date":"2026-10-08T12:21:35.649Z"}}
+  outbox BookingCreated PUBLISHED 9a5e011a… {"bookingId":"9a5e011a…","classId":"697cf618…","memberId":"fdcba2c1…","dogId":"60be8c4a…","origin":"APP","waitlistEntryId":"edcb704e…"}
+  outbox NotificationQueued PUBLISHED db7bae96…:fdcba2c1…:app {"notificationId":"db7bae96…:fdcba2c1…:app","channel":"EMAIL"}
+  notification N-04 APP SENT account f1d3b7cb… {"club_name":"Club Agility Cànic","dog_name":"Suro 12","entityId":"9a5e011a…","action":"OPEN_BOOKING","class_date":"dijous, 8 d’octubre de 2026","class_time":"18:50","class_description":"Cadells","ring_name":"Cadells","calendar_links":"https://app.agilitycanic.cat/api/v1/bookings/9a5e011a…/calendar.ics?token=[truncated]"}
+  member.6: {"state": "EXPIRED", "notifiedAt": "2026-10-08T11:50:16.679Z", "confirmBy": "2026-10-08T12:20:16.679Z", "bookingId": null}
+  member.7: {"state": "CONSOLIDATED", "notifiedAt": "2026-10-08T12:21:00.933Z", "confirmBy": "2026-10-08T12:51:00.933Z", "bookingId": "9a5e011a…"}
+  member.8: {"state": "ACTIVE", "notifiedAt": null, "confirmBy": null, "bookingId": null}
+class counters {"booked":3,"waiting":1}
+
+6. member.8 leaves the waiting list
+curl POST /api/v1/waitlist-entries/af99c757…/cancellation -> 200   [leave]
+  entry state=CANCELLED cancelReason=MEMBER
+  outbox WaitlistLeft PUBLISHED af99c757… {"entryId":"af99c757…","classId":"697cf618…","memberId":"ba76b1b3…","dogId":"330336a7…"}
+class counters {"booked":3,"waiting":0}
+
+PASS waiting-list curl sequence (ALL_AT_ONCE and FIFO)
+Removed the disposable Mongo container and runtime directory

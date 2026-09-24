@@ -18,5 +18,11 @@ public class BookingActors {
         String name = census.member(jwtMemberId).map(BookingMemberAccess.Member::firstName).orElse(user.name());
         return BookingActor.member(user.accountId(), jwtMemberId, name);
     }
+    /** An administrator acting from the back office without impersonation (D4/D12: removing a waiting-list entry). */
+    public BookingActor admin() {
+        var user = CurrentUser.current();
+        return new BookingActor(user.accountId(), null, user.name(), null, com.agilityhub.core.clubs.bookings.domain.BookingOrigin.BACKOFFICE,
+                com.agilityhub.core.clubs.bookings.domain.ActorRole.ADMIN);
+    }
     public BookingActor instructor() { var user = CurrentUser.current(); return BookingActor.instructor(user.accountId(), user.name()); }
 }

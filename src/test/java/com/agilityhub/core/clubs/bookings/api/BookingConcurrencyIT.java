@@ -89,6 +89,39 @@ class BookingConcurrencyIT extends BookingFixtures {
         }
     }
 
+    @Test void T_08_30_tenNotifiedEntriesClaimInParallelOnlyTheFreeSeatsAreTakenAndTheRestGoBackToActive() throws Exception {
+        for (int seats : List.of(1, 2)) {
+            fixtures(); parameter("waitlist.maxPerClass", 10);
+            session("claim", "2026-10-08T12:00", seats, List.of());
+            var booked = new ArrayList<String>();
+            for (String holder : List.of("pere:s08-d-nit", "joan:s08-d-toby").subList(0, seats)) {
+                booked.add(book(as(holder.split(":")[0]), "claim", holder.split(":")[1]).path("id").asText());
+            }
+            var entries = new ArrayList<String>();
+            for (int i = 0; i < 10; i++) { entries.add(join(as("c" + i), "claim", "s08-d-c" + i, 201).path("id").asText()); }
+            for (int i = 0; i < seats; i++) { cancel(as(i == 0 ? "pere" : "joan"), booked.get(i), 200); }
+            dispatch();
+            assertThat(count("waitlist_entries", Criteria.where("classSessionId").is("s08-claim").and("state").is("NOTIFIED"))).isEqualTo(10);
+            var replies = parallel(10, i -> () -> {
+                var held = send("/seat-holds", Map.of("classSessionId", "s08-claim", "dogId", "s08-d-c" + i, "waitlistEntryId", entries.get(i)), as("c" + i), null);
+                if (held.status() != 201) { return held; }
+                return send("/waitlist-entries/" + entries.get(i) + "/claim", Map.of("seatHoldId", held.body().path("id").asText()), as("c" + i), UUID.randomUUID().toString());
+            });
+            var counts = tally(replies);
+            var states = new TreeMap<String, Long>();
+            for (String state : List.of("CONSOLIDATED", "ACTIVE", "NOTIFIED")) {
+                states.put(state, count("waitlist_entries", Criteria.where("classSessionId").is("s08-claim").and("state").is(state)));
+            }
+            System.out.println("T-08-30 " + seats + " seat(s), 10 notified entries hold + claim in parallel: " + counts + " → entries " + states);
+            assertThat(counts).containsExactly(Map.entry("201", (long) seats), Map.entry("409 SEAT_TAKEN", 10L - seats));
+            assertThat(states).containsEntry("CONSOLIDATED", (long) seats).containsEntry("ACTIVE", 10L - seats).containsEntry("NOTIFIED", 0L);
+            assertThat(count("bookings", Criteria.where("classSessionId").is("s08-claim").and("state").is("ACTIVE"))).isEqualTo(seats);
+            assertThat(session("claim").get("counters", Document.class)).containsEntry("booked", seats).containsEntry("waiting", 10 - seats);
+            dispatch();
+            assertThat(count("notifications", Criteria.where("code").is("N-46"))).isEqualTo(10L - seats);
+        }
+    }
+
     @Test void T_08_33_anExpiredHoldNotYetRemovedByTheTtlNeitherCountsNorConfirms() throws Exception {
         var pere = hold(as("pere"), "last", "s08-d-nit", 201);
         clock.advance(Duration.ofSeconds(31));

@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
  * every check runs again; at the limit the chosen swappable booking is cancelled first (CANCELLED/SWAP, pack
  * refunded, `SeatReleased`); the booking is created ACTIVE — or PAYMENT_PENDING with a checkout for PAY_TO_BOOK
  * (R-08-18) — with the class times and week denormalised; pack consumed, hold deleted, waiting-list entry
- * consolidated, `Member.lastDogForClass` of the booker written, `BookingCreated` + `SeatHoldReleased` emitted.
+ * consolidated, `Member.lastDogForClass` of the booker written, `BookingCreated` + `SeatHoldReleased` emitted; in
+ * ALL_AT_ONCE a booking that takes the last seat demotes the other NOTIFIED entries (R-08-13). The claim of
+ * R-08-15 is this same transaction, entered through {@link WaitlistService#claim}.
  */
 @Service
 public class BookingConfirmationService {
@@ -72,7 +74,7 @@ public class BookingConfirmationService {
             boolean payToBook = terms.filter(t -> t.mode() == ChargeMode.PAY_TO_BOOK).isPresent();
             String id = UUID.randomUUID().toString();
             String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id) : null;
-            String entry = context.enabled(Module.WAITLIST) ? waitlist.consolidate(s.id(), subject.dog().id(), id).orElse(null) : null;
+            String entry = context.enabled(Module.WAITLIST) ? waitlist.consolidate(s.id(), subject.dog().id(), id, hold.waitlistEntryId() != null, actor).orElse(null) : null;
             String checkoutUrl = null;
             if (payToBook) {
                 var checkout = charges.checkout(subject.owner().id(), subject.dog().id(), id, terms.get().price(), views.labels(s).description());
@@ -90,6 +92,7 @@ public class BookingConfirmationService {
             if (!payToBook) { created(booking, actor); }
             events.publish(BookingEvent.Kind.SeatHoldReleased, hold.id(), SeatHoldService.payload(hold), actor);
             counters.recount(s.id(), false, actor);
+            waitlist.demoteIfFull(s.id(), actor); // R-08-13: the last seat is gone → the other NOTIFIED entries go back to ACTIVE
             if (actor.impersonated()) { audit.createdByClub(booking); }
             return new Confirmed(booking, checkoutUrl);
         });

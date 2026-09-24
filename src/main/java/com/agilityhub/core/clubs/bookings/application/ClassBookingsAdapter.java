@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.*;
 
 /**
  * The real S06 {@link ClassBookingsPort} (E4-T03 contract): live bookings (ACTIVE + PAYMENT_PENDING), the live
- * waiting list (empty until E5-T03 creates entries) and `cancelAllByClub` inside the S06 transaction.
+ * waiting list (ACTIVE + NOTIFIED entries) and `cancelAllByClub` inside the S06 transaction (bookings and entries).
  */
 public class ClassBookingsAdapter implements ClassBookingsPort {
     private final BookingRepository bookings; private final WaitlistEntryRepository waitlist; private final BookingCancellationService cancellations;

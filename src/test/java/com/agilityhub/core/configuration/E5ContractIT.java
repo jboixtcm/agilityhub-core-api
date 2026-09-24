@@ -54,12 +54,14 @@ class E5ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
-        /** E5-T02 serves the S08 WP-08-B routes; the rest stay 501 until E5-T03…T06. */
+        /** E5-T02 serves the S08 WP-08-B routes, E5-T03 the WP-08-C waiting list; the rest stay 501 until E5-T04…T06. */
         boolean implemented() { return IMPLEMENTED.contains(method + " " + path); }
     }
     static final Set<String> IMPLEMENTED = Set.of("POST /api/v1/seat-holds", "DELETE /api/v1/seat-holds/{id}", "POST /api/v1/bookings",
             "GET /api/v1/me/bookings", "GET /api/v1/bookings/{id}", "GET /api/v1/bookings/{id}/calendar.ics", "POST /api/v1/bookings/{id}/cancellation",
-            "GET /api/v1/bookings", "GET /api/v1/class-sessions/{id}/bookings");
+            "GET /api/v1/bookings", "GET /api/v1/class-sessions/{id}/bookings",
+            "POST /api/v1/waitlist-entries", "GET /api/v1/waitlist-entries/{id}", "POST /api/v1/waitlist-entries/{id}/cancellation",
+            "POST /api/v1/waitlist-entries/{id}/claim", "GET /api/v1/class-sessions/{id}/waitlist-entries");
     /** An implemented route passed its guards: whatever business answer it gives, it is not an auth failure, a stub or a crash. */
     private void served(MockHttpServletRequestBuilder request) throws Exception {
         var result = mvc.perform(request).andReturn();
@@ -183,12 +185,13 @@ class E5ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().filter(r -> r.resource() && r.club() && r.roles().contains("MEMBER")).toList()) {
             error(call(route, CLUB, "MEMBER", "someone-else"), 404, "NOT_FOUND");
         }
-        // Staff read another member's booking (served since E5-T02), waiting-list entry and training booking (then 501).
+        // Staff read another member's booking (served since E5-T02) and waiting-list entry (E5-T03); the training booking is still 501.
         mvc.perform(get("/api/v1/bookings/e5-booking-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e5-booking-a"));
-        for (String path : List.of("/api/v1/waitlist-entries/e5-entry-a", "/api/v1/training-bookings/e5-training-a")) {
-            error(get(path).header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")), 501, "NOT_IMPLEMENTED");
-        }
+        mvc.perform(get("/api/v1/waitlist-entries/e5-entry-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e5-entry-a")).andExpect(jsonPath("$.state").value("ACTIVE"));
+        error(get("/api/v1/training-bookings/e5-training-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")),
+                501, "NOT_IMPLEMENTED");
         // T-08-47 / T-09-30: MEMBER on the universal lists → 403.
         for (String path : List.of("/api/v1/bookings", "/api/v1/training-bookings", "/api/v1/risk-review")) {
             error(get(path).header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER")), 403, "FORBIDDEN");

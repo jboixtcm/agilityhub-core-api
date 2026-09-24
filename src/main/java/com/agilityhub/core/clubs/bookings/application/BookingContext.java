@@ -34,6 +34,9 @@ public class BookingContext {
     public boolean flag(String key) { return Boolean.TRUE.equals(config().get(key, Boolean.class)); }
     public BookingWeeks weeks() { return new BookingWeeks(BookingWeeks.Opening.of(config().get("bookings.weekOpensAt", Map.class)), zone()); }
     public LimitUnit unit() { return LimitUnit.valueOf(config().get("bookings.limitUnit", String.class)); }
+    public com.agilityhub.core.clubs.bookings.domain.WaitlistMode waitlistMode() {
+        return com.agilityhub.core.clubs.bookings.domain.WaitlistMode.valueOf(config().get("waitlist.mode", String.class));
+    }
     public Duration lateThreshold() { return Duration.ofMinutes(integer("bookings.lateCancelThresholdMinutes")); }
     public LocalDate today() { return now().atZone(zone()).toLocalDate(); }
 }

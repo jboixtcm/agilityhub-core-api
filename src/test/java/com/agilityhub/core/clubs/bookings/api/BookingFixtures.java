@@ -150,6 +150,21 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
     JsonNode cancel(RequestPostProcessor auth, String bookingId, int expected) throws Exception {
         return call(HttpMethod.POST, "/bookings/" + bookingId + "/cancellation", Map.of(), auth, expected);
     }
+    JsonNode join(RequestPostProcessor auth, String classId, String dogId, int expected) throws Exception {
+        return call(HttpMethod.POST, "/waitlist-entries", Map.of("classSessionId", "s08-" + classId, "dogId", dogId), auth, expected);
+    }
+    /** [AGAFA LA PLAÇA]: the seat hold of an offered entry. */
+    JsonNode holdFor(RequestPostProcessor auth, String classId, String dogId, String entryId, int expected) throws Exception {
+        return call(HttpMethod.POST, "/seat-holds", Map.of("classSessionId", "s08-" + classId, "dogId", dogId, "waitlistEntryId", entryId), auth, expected);
+    }
+    JsonNode claim(RequestPostProcessor auth, String entryId, String holdId, String swapId, int expected, String key) throws Exception {
+        var body = new LinkedHashMap<String, Object>(); body.put("seatHoldId", holdId); if (swapId != null) { body.put("swapBookingId", swapId); }
+        return call(HttpMethod.POST, "/waitlist-entries/" + entryId + "/claim", body, auth, expected, key);
+    }
+    JsonNode claim(RequestPostProcessor auth, String entryId, String holdId, String swapId, int expected) throws Exception {
+        return claim(auth, entryId, holdId, swapId, expected, UUID.randomUUID().toString());
+    }
+    Document entry(String id) { return mongo.findById(id, Document.class, "waitlist_entries"); }
     long count(String collection, Criteria criteria) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection); }
     long events(String type) { return count("domain_events", Criteria.where("type").is(type)); }
     List<Document> eventsOf(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }

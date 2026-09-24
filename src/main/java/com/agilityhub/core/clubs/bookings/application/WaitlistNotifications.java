@@ -1,0 +1,115 @@
+package com.agilityhub.core.clubs.bookings.application;
+
+import com.agilityhub.core.clubs.bookings.domain.*;
+import com.agilityhub.core.clubs.bookings.persistence.*;
+import com.agilityhub.core.clubs.census.application.BookingMemberAccess;
+import com.agilityhub.core.clubs.messaging.application.SystemNotificationService;
+import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
+import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.shared.application.*;
+import java.time.Instant;
+import java.time.format.*;
+import java.util.*;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.*;
+
+/**
+ * S08 §8 waiting-list notifications, produced only by outbox consumers:
+ * <ul>
+ * <li>`notifications.N-15` on `WaitlistNotified` → «S'ha alliberat una plaça!» to the owner of each notified entry: APP
+ * + SMS intent (QUEUED, ≤ 160 GSM-7, or SKIPPED_MODULE_OFF without SMS) + PUSH intent (QUEUED, or SKIPPED_MODULE_OFF
+ * without PUSH), action CLAIM_SEAT; ids `eventId:entryId:channel`, so one N-15 per entry and offer.</li>
+ * <li>`notifications.N-46` on `WaitlistConsolidated` and `notifications.N-46.booked` on `BookingCreated` (ALL_AT_ONCE):
+ * first the idempotent demotion of R-08-13 in its own transaction (the booking transaction normally did it already),
+ * then «La plaça ja s'ha ocupat» → APP to every ACTIVE entry whose offer was taken (ACTIVE with `notifiedAt`); ids
+ * `N-46:entryId:notifiedAt:app`, so each lost offer is told exactly once, whichever event gets there first.</li>
+ * </ul>
+ * Rendered in the recipient's locale with the club time zone.
+ */
+@Service
+public class WaitlistNotifications {
+    private final WaitlistEntryRepository waitlist; private final BookingMemberAccess census; private final ClassSessionBookingAccess classes;
+    private final NotificationAccounts accounts; private final SystemNotificationService notifications; private final BookingContext context;
+    private final IcuMessageSource messages; private final WaitlistTransitions transitions; private final BookingTransactions transactions;
+    private final SeatLockRepository locks;
+    public WaitlistNotifications(WaitlistEntryRepository waitlist, BookingMemberAccess census, ClassSessionBookingAccess classes, NotificationAccounts accounts,
+            SystemNotificationService notifications, BookingContext context, IcuMessageSource messages, WaitlistTransitions transitions,
+            BookingTransactions transactions, SeatLockRepository locks) {
+        this.waitlist = waitlist; this.census = census; this.classes = classes; this.accounts = accounts; this.notifications = notifications;
+        this.context = context; this.messages = messages; this.transitions = transitions; this.transactions = transactions; this.locks = locks;
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void offered(String eventId, BookingEvent event) {
+        try (var tenant = TenantContext.open(event.clubId())) {
+            var ids = event.payload().get("entryIds") instanceof Collection<?> list ? list.stream().map(Object::toString).toList() : List.<String>of();
+            for (var entry : waitlist.byIds(ids)) {
+                if (entry.state() != WaitlistState.NOTIFIED) { continue; } // taken, left or demoted before the delivery
+                send(eventId + ":" + entry.id(), "N-15", entry);
+            }
+        }
+    }
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void seatTaken(String eventId, BookingEvent event) {
+        try (var tenant = TenantContext.open(event.clubId())) {
+            if (!context.enabled(Module.WAITLIST) || context.waitlistMode() != WaitlistMode.ALL_AT_ONCE) { return; }
+            String classId = event.kind() == BookingEvent.Kind.WaitlistConsolidated
+                    ? waitlist.findById(event.aggregateId()).map(WaitlistEntry::classSessionId).orElse(null)
+                    : Objects.toString(event.payload().get("classId"), null);
+            if (classId == null) { return; }
+            transactions.write(List.of(classId), () -> { locks.lock(classId); return transitions.demoteIfFull(classId, BookingActor.system()); });
+            for (var entry : waitlist.live(classId)) {
+                if (entry.state() != WaitlistState.ACTIVE || entry.notifiedAt() == null) { continue; }
+                send("N-46:" + entry.id() + ":" + entry.notifiedAt().toEpochMilli(), "N-46", entry);
+            }
+        }
+    }
+
+    private void send(String key, String code, WaitlistEntry entry) {
+        var session = classes.find(entry.classSessionId()).orElse(null); if (session == null) { return; }
+        var member = census.member(entry.memberId()).orElse(null); if (member == null) { return; }
+        var account = member.accountId() == null ? null : accounts.find(member.accountId()).orElse(null);
+        var locale = locale(account == null ? member.locale() : account.locale());
+        var variables = variables(code, entry, session, locale);
+        if (account != null) { notifications.appOnce(key + ":app", code, account.id(), variables); }
+        if (!code.equals("N-15")) { return; }
+        if (!member.phones().isEmpty()) {
+            notifications.smsIntentOnce(key + ":sms", code, member.accountId(), locale.toLanguageTag(), member.phones(),
+                    BookingSms.compact(messages.format("notif.N-15.sms", variables, locale)), context.enabled(Module.SMS), variables);
+        }
+        if (account != null) { notifications.pushIntentOnce(key + ":push", code, account.id(), locale.toLanguageTag(), context.enabled(Module.PUSH), variables); }
+    }
+    private Locale locale(String tag) {
+        return tag != null && Set.of("ca", "es", "en").contains(tag) ? Locale.forLanguageTag(tag) : Locale.forLanguageTag(context.config().club().defaultLocale());
+    }
+    private Map<String, Object> variables(String code, WaitlistEntry e, ClassSessionBookingAccess.Session session, Locale locale) {
+        var start = session.startsAt().atZone(context.zone()); var values = new LinkedHashMap<String, Object>();
+        values.put("club_name", context.config().club().name());
+        values.put("dog_name", census.dog(e.dogId()).map(BookingMemberAccess.Dog::name).orElse(""));
+        values.put("class_date", start.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)));
+        values.put("class_time", start.toLocalTime().toString());
+        if (code.equals("N-15")) {
+            // `mode` only selects the wording (like N-36's `change`); `confirm_by` exists in FIFO only (catalog).
+            values.put("mode", e.confirmBy() == null ? WaitlistMode.ALL_AT_ONCE.name() : WaitlistMode.FIFO.name());
+            if (e.confirmBy() != null) { values.put("confirm_by", localTime(e.confirmBy())); }
+            values.put("action", "CLAIM_SEAT");
+        }
+        values.put("entityId", e.id());
+        return values;
+    }
+    private String localTime(Instant instant) { return instant.atZone(context.zone()).toLocalTime().withSecond(0).withNano(0).toString(); }
+
+    @Configuration(proxyBeanMethods = false)
+    static class Consumers {
+        @Bean("notifications.N-15") DomainEventHandler<BookingEvent> n15(WaitlistNotifications s) { return handler("WaitlistNotified", s::offered); }
+        @Bean("notifications.N-46") DomainEventHandler<BookingEvent> n46(WaitlistNotifications s) { return handler("WaitlistConsolidated", s::seatTaken); }
+        @Bean("notifications.N-46.booked") DomainEventHandler<BookingEvent> n46Booked(WaitlistNotifications s) { return handler("BookingCreated", s::seatTaken); }
+        private DomainEventHandler<BookingEvent> handler(String type, java.util.function.BiConsumer<String, BookingEvent> action) {
+            return new DomainEventHandler<>() {
+                public String eventType() { return type; } public Class<BookingEvent> eventClass() { return BookingEvent.class; }
+                public void handle(String id, BookingEvent event) { action.accept(id, event); }
+            };
+        }
+    }
+}

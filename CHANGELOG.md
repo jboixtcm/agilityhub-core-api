@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T03: S08 class waiting list (WP-08-C).
+  - `POST /waitlist-entries` (R-08-12): the class must be full by bookings alone, then the booking eligibility
+    chain, then `waitlist.maxPerClass`, `maxPerDogPerWeek` / `maxPerDogPerWeekIfAttended` (per owner with
+    `limitUnit = MEMBER`), and the seat must be acceptable. `position = max + 1`; writes `lastDogForClass`.
+  - Reads: `GET /waitlist-entries/{id}` and `GET /class-sessions/{id}/waitlist-entries`.
+  - Leaving: `POST /waitlist-entries/{id}/cancellation` sets `MEMBER` or `ADMIN` and emits `WaitlistLeft`.
+  - Claim: `POST /waitlist-entries/{id}/claim` runs the R-08-08 confirmation transaction (swap, BR-01). A hold
+    through a taken offer answers `SEAT_TAKEN`, an expired FIFO offer `WAITLIST_OFFER_EXPIRED`.
+  - Offers: the `SeatReleased` consumer notifies every entry (`ALL_AT_ONCE`) or one per free seat (`FIFO`, with
+    `confirmBy`). The `WaitlistExpired` consumer calls `offerNext`. Both are idempotent by state.
+  - Demotion: in `ALL_AT_ONCE`, the booking that takes the last seat sends the other NOTIFIED entries back to
+    ACTIVE, inside the same transaction.
+  - Consolidation: a direct booking consolidates the dog's entry (`BOOKED_DIRECTLY`).
+  - Silent cancellations: `WaitlistTransitions.cancelAll` (S06), and `WaitlistService.sweepStarted` (for E6's P8,
+    not scheduled here) and `cancelByMember` (`MEMBER_LEFT`, S15 §13 proposal).
+  - Notifications, only from outbox consumers: N-15 (APP + SMS intent + PUSH intent, action `CLAIM_SEAT`) and
+    N-46 (APP).
+  - `counters.waiting` is kept in each transaction and is 0 with WAITLIST off.
+  - The `ClassSessionUpdated` consumer also refreshes the class start and week copied onto live entries.
 - E5-T02: S08 class bookings (WP-08-B). Booking weeks from `bookings.weekOpensAt` in club-local
   time (DST-safe, no weekday literal), weekly limits by dog or owner with swappable / not
   selectable bookings, one ordered eligibility pipeline (dog, member, block, leaving, inactivity,

@@ -27,6 +27,31 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId).and("state").in(LIVE))
                 .with(Sort.by("position", "_id")), WaitlistEntry.class);
     }
+    public Optional<WaitlistEntry> live(String classSessionId, String dogId) {
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId).and("dogId").is(dogId)
+                .and("state").in(LIVE)), WaitlistEntry.class));
+    }
+    /** Every entry of a class, any state, in position order (21/D4/D12 and the S06 cancellation preview). */
+    public List<WaitlistEntry> forClass(String classSessionId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId)).with(Sort.by("position", "_id")), WaitlistEntry.class);
+    }
+    /** Live entries of a booking week for the unit (`dogId`, or `memberId` = the dogs' owner with `limitUnit = MEMBER`). */
+    public List<WaitlistEntry> liveInWeek(String bookingWeekKey, String field, String value) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where(field).is(value).and("bookingWeekKey").is(bookingWeekKey).and("state").in(LIVE)), WaitlistEntry.class);
+    }
+    /** Highest position ever given in the class (any state), so a new entry always queues last. */
+    public int maxPosition(String classSessionId) {
+        var last = mongo.findOne(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId))
+                .with(Sort.by(Sort.Direction.DESC, "position")).limit(1), WaitlistEntry.class);
+        return last == null ? 0 : last.position();
+    }
+    public List<WaitlistEntry> liveForMember(String memberId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in(LIVE)).with(Sort.by("classStartsAt", "_id")), WaitlistEntry.class);
+    }
+    /** Live entries whose class has started (S15 P8 sweep, R-15-18a). */
+    public List<WaitlistEntry> liveStartedBy(java.time.Instant now) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").lte(now)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
+    }
     public WaitlistEntry update(WaitlistEntry next, long expectedVersion) {
         var saved = mongo.findAndReplace(tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(expectedVersion)),
                 next, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());

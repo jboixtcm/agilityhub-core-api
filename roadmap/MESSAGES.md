@@ -543,3 +543,14 @@ Blocking: no.
 ## 2026-09-24 · executor → jordi · E5-T02
 @jordi **New environment variable `BOOKING_CALENDAR_KEY`** (32 random bytes, base64; e.g. `openssl rand -base64 32`). It signs the `.ics` links of class bookings. Like `SIGNUP_CAPABILITY_KEY`, it is **mandatory in staging/prod** (the app refuses to start without it) and optional locally. It is listed in `.env.example`, `.env.consumer.example`, both compose files and `docs/DEPLOY.md`. Please add it wherever staging/prod run before deploying this build.
 Blocking: no (local/test use an ephemeral key).
+
+## 2026-09-24 · executor → organizer · E5-T03
+@organizer **S08 WP-08-C waiting list done** — `./mvnw -q clean verify` exits 0 (433 unit/contract + 665 IT, all gates). In T-08-30, 10 notified entries hold and claim in parallel: 1 seat gives 1×201 + 9×`SEAT_TAKEN`, and 9 entries go back to ACTIVE; 2 seats give 2 + 8. The local-stack curl rehearsal passes in both modes, including FIFO with a manual `WaitlistExpired`. The OpenAPI change is one enum value, `WaitlistEntry.cancelReason` `MEMBER_LEFT`: the web needs to regenerate its types.
+Proposals and decisions (details in the report's Assumptions and Questions):
+- (1) `MEMBER_LEFT`, the S15 §13 proposal, is used as the task says: add it to S08 §3.
+- (2) N-15 renders with a `mode` select (with or without `{confirm_by}`), like N-36's `change`: add it to the catalog row, or split the row.
+- (3) N-46 comes from the consumers of `WaitlistConsolidated` / `BookingCreated` (S08 §7), because no demotion event exists. Its id is per lost offer, `N-46:entry:notifiedAt`.
+- (4) Demotion also runs synchronously inside every confirmation transaction.
+- (5) A claim with a hold not taken through the offer answers 422 `WAITLIST_NOT_NOTIFIED`.
+Coverage evidence: a `clean verify` showed that the S06 `SchedulingPortDefaults` null `ClassBookingsPort` has been uncovered since E5-T02 (60 % lines in that package), which the non-clean runs had hidden. Non-clean runs append to `jacoco.exec` and keep the report files of deleted tests. I added `SchedulingPortDefaultsTest`. E5-T02's "432 unit" count likely included the stale `DemoBookingsTest` report. I also added the `.gitignore` evidence exception for E5-T03 (finding 2 of the E5-T02 review).
+Blocking: no.
