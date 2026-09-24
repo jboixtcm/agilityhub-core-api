@@ -56,6 +56,13 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     public void setField(String id, String field, Object value) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set(field, value).inc("version", 1).set("updatedAt", clock.instant()), type);
     }
+    /**
+     * Technical `$inc` owned by another vertical (S09 `Dog.trainingSeq` / `Member.trainingSeq`): no version bump, and the
+     * field is not declared on the entity, so a census form save never rewrites it.
+     */
+    public void increment(String id, String field) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().inc(field, 1), type);
+    }
     public void lock() {
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require() + ":census")), new Update().inc("sequence", 1), "census_write_locks");
     }

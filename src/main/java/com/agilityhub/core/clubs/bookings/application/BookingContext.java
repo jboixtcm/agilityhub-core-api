@@ -34,6 +34,9 @@ public class BookingContext {
     public boolean flag(String key) { return Boolean.TRUE.equals(config().get(key, Boolean.class)); }
     public BookingWeeks weeks() { return new BookingWeeks(BookingWeeks.Opening.of(config().get("bookings.weekOpensAt", Map.class)), zone()); }
     public LimitUnit unit() { return LimitUnit.valueOf(config().get("bookings.limitUnit", String.class)); }
+    /** `[O, next O)` around an instant, `O` = the last local `bookings.weekOpensAt` ≤ it (S09 R-09-05 reuses R-08-01's weeks). */
+    public record WeekSpan(Instant start, Instant end) { }
+    public WeekSpan weekSpan(Instant instant) { var week = weeks().week(instant); return new WeekSpan(week.start(), week.end()); }
     public com.agilityhub.core.clubs.bookings.domain.WaitlistMode waitlistMode() {
         return com.agilityhub.core.clubs.bookings.domain.WaitlistMode.valueOf(config().get("waitlist.mode", String.class));
     }

@@ -27,6 +27,21 @@ public class PlanningCatalogAccess {
     public record RingView(String id,String name,String shortName,String color,int order,boolean active,String activeSetupId) { }
     public List<RingView> rings() { return rings.findAll().stream().sorted(Comparator.comparingInt(Ring::order).thenComparing(Ring::id))
             .map(r -> new RingView(r.id(),r.name(),r.shortName(),r.color(),r.order(),r.active(),r.activeSetupId())).toList(); }
+    /** S09 R-09-02/R-09-07: every ring with its free-training fields, in catalog order (`order`, then `name`). */
+    public record TrainingRingView(String id, String name, String shortName, String color, int order, boolean active, boolean allowsFreeTraining,
+            Integer trainingCapacity, String activeSetupId) { }
+    public List<TrainingRingView> trainingRings() {
+        return rings.findAll().stream().sorted(Comparator.comparingInt(Ring::order).thenComparing(Ring::name).thenComparing(Ring::id))
+                .map(r -> new TrainingRingView(r.id(), r.name(), r.shortName(), r.color(), r.order(), r.active(), r.allowsFreeTraining(), r.trainingCapacity(), r.activeSetupId()))
+                .toList();
+    }
+    /** S09 R-09-01: `Level.grantsFreeTraining` and the localized name shown in `eligibleDogs`. */
+    public record TrainingLevelView(String id, LocalizedText name, boolean grantsFreeTraining, boolean active) { }
+    public Map<String, TrainingLevelView> trainingLevels() {
+        var result = new LinkedHashMap<String, TrainingLevelView>();
+        levels.findAll().forEach(l -> result.put(l.id(), new TrainingLevelView(l.id(), l.name(), l.grantsFreeTraining(), l.active())));
+        return result;
+    }
     /** Seed-file references (E4-T05): level codes and ring short names are the club-as-code keys. */
     public Map<String, String> levelIdsByCode() {
         var result = new LinkedHashMap<String, String>(); levels.findAll().forEach(l -> result.put(l.code(), l.id())); return result;

@@ -32,7 +32,7 @@ public class NotificationRepository extends TenantRepository<Notification> {
     /** Renderable variables of an APP or PUSH row (allow-listed: never tokens or contact data). */
     public void content(String id,String channel,java.util.Map<String,Object> variables) {
         var safe=new java.util.LinkedHashMap<String,Object>();
-        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change","confirm_by","mode")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
+        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change","confirm_by","mode","time","has_admin_text")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
         mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is(channel)),new Update().set("variables",safe),Notification.class);
     }
     public void smsContent(String id,java.util.List<String> phones,String body,java.util.Map<String,Object> variables) {

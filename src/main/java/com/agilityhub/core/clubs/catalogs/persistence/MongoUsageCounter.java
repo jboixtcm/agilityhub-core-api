@@ -33,7 +33,8 @@ public class MongoUsageCounter extends TenantRepository<MongoUsageCounter.Refere
                     "futureClassSessions", count("class_sessions", future("levelIds", id, "state")),
                     "templateClasses", templateClasses("levelIds", id));
             case RING -> Map.of("futureClassSessions", count("class_sessions", future("ringId", id, "state")),
-                    "futureTrainingBookings", count("training_bookings", future("ringId", id, "status")),
+                    // S09 §3: a live training booking is `state = ACTIVE` (CANCELLED and CANCELLED_BY_CLUB free the ring).
+                    "futureTrainingBookings", count("training_bookings", Criteria.where("ringId").is(id).and("startsAt").gt(clock.instant()).and("state").is("ACTIVE")),
                     "templateClasses", templateClasses("ringId", id),
                     "ringBlocks", count("ring_blocks", Criteria.where("ringId").is(id).and("state").is("ACTIVE")));
             case FAQ -> Map.of();

@@ -1,0 +1,65 @@
+  ArchitectureTest           tests=6   failures=0 errors=0 skipped=0
+  TrainingApplicationTest    tests=4   failures=0 errors=0 skipped=0
+      T_09_16_T_09_21_eachEventMapsToTheRightCatalogNotification
+      T_09_28_theCallerReasonMapsToTheCatalogCancelReason
+      T_09_32_duplicateKeysAndWriteConflictsAreRetriedWholeAtMostThreeTimes
+      theSystemActorHasNoAccountAndAnImpersonationKeepsTheAdmin
+  TrainingRulesTest          tests=14  failures=0 errors=0 skipped=0
+      T_09_01_theRightFollowsTheOverrideThenTheLevelAndOnlyTheOverrideWithoutLevels
+      T_09_03_capacityDecidesWhenASeatedRingIsBooked
+      T_09_04_openingHoursGiveThirtySlotsAndAHolidayNone
+      T_09_05_theDstChangeDayKeepsThirtySlotsInBothZones
+      T_09_06_classesBlocksAndBookingsGiveThePriorityStates
+      T_09_07_theWindowOpensAWholeDayAtLocalMidnight
+      T_09_08_theCounterIsBySessionWeekCountingDoneAndNotCancelledBookings
+      T_09_09_theTrainingWeekStartsAtTheLastLocalOpeningAcrossDst
+      T_09_10_withTheMemberUnitTheLimitListsOnlyTheFutureBookingsInsideTheThreshold
+      T_09_11_anyRingPicksTheFirstFreeInCatalogOrder
+      T_09_12_theCancellationThresholdIsInstantArithmetic
+      T_09_14_misalignedEarlyAndHolidayStartsAreRejectedByTheGrid
+      T_09_15_aSlotThatAlreadyStartedIsNeverBookable
+      smsBodiesAreGsm7AndAtMost160Characters
+  AuditContractTest          tests=1   failures=0 errors=0 skipped=0
+  MessageParityTest          tests=1   failures=0 errors=0 skipped=0
+  EventCatalogContractTest   tests=2   failures=0 errors=0 skipped=0
+unit/contract (surefire): tests=451 failures=0 errors=0 skipped=0
+  CatalogsIT                 tests=19  failures=0 errors=0 skipped=0
+  TrainingConcurrencyIT      tests=3   failures=0 errors=0 skipped=0
+      T_09_32_twentyDogsOnOneCapacityOneSlotLeaveExactlyOneBookingAndCapacityTwoLeavesTwo
+      T_09_33_fiveParallelBookingsOfADogAtTwoOfThreeLeaveOneAndFourLimitReached
+      T_09_34_threeParallelAnyRingBookingsTakeThreeRingsInCatalogOrder
+  TrainingIT                 tests=21  failures=0 errors=0 skipped=0
+      T_09_02_eligibleDogsFollowTheFamilyGroupAndTheLevels
+      T_09_03_T_09_04_T_09_22_theGridListsReservableRingsDaysAndMountedSetups
+      T_09_06_T_09_27_classesBlocksAndBookingsShowInTheGridRedactedForMembers
+      T_09_07_T_09_14_T_09_15_theWindowTheGridAndStartedSlotsAreEnforcedOnBooking
+      T_09_08_T_09_35_theSummaryCountsTheSessionWeekAndMovesAtTheOpening
+      T_09_10_withTheMemberUnitTheWholeFamilyCountsAndTheLimitListsCancellableOnes
+      T_09_11_anyRingIsAssignedInCatalogOrderAndSlotTakenListsFreeRings
+      T_09_12_T_09_25_cancellationFollowsTheThresholdFreesTheSeatAndIsIdempotent
+      T_09_13_T_09_19_T_09_26_ringBlocksOfTheInstructorValidateBlockTheGridAndFeedTheOccupancy
+      T_09_16_theHappyPathBooksRemembersTheDogPublishesAndNotifiesOnce
+      T_09_17_memberConditionsRejectTheBookingButNeverTheCancellation
+      T_09_18_aDogInAClassAtThatTimeCannotTrain
+      T_09_20_T_09_21_aBlockOverALiveBookingNeedsTheAdminAndCancelsItInTheSameTransaction
+      T_09_23_impersonationIsBackofficeAuditedMayOverrideTheLimitAndCancelLateWithAReason
+      T_09_24_T_09_30_theUsageRegisterIsAUniversalListForStaffOnly
+      T_09_27_theDayGridShowsTrainingAsOccupiedForMembersAndNamedForStaff
+      T_09_28_conflictsSeeLiveBookingsAndTheClubCancelsThemWithTheRightReason
+      T_09_29_aNewClassInvalidatesTheWarmGridCacheOfItsDay
+      T_09_29_everyTrainingConsumerReadsACatalogEventAndOnlyDropsTheCache
+      T_09_31_withFreeTrainingOffTheRoutesAreGoneAndOnlyBlocksRemain
+      systemCancellationsFollowR_09_14WithoutNotifyingMembersWhoLeft
+  E5ContractIT               tests=38  failures=0 errors=0 skipped=0
+integration (failsafe): tests=689 failures=0 errors=0 skipped=0
+coverage (merged unit + integration, jacoco.csv):
+  com.agilityhub.core.clubs.training.domain            lines 100.0 %  branches  96.7 %
+  com.agilityhub.core.clubs.training.application       lines  99.5 %  branches  83.9 %
+  com.agilityhub.core.clubs.training.application.ports lines 100.0 %  branches 100.0 %
+  com.agilityhub.core.clubs.training.api               lines  96.2 %  branches  80.8 %
+  com.agilityhub.core.clubs.training.persistence       lines  96.7 %  branches  70.0 %
+  com.agilityhub.core.clubs.census.application         lines  98.8 %  branches  81.8 %
+  com.agilityhub.core.clubs.catalogs.application       lines  99.4 %  branches  90.8 %
+  com.agilityhub.core.clubs.scheduling.application     lines  98.7 %  branches  86.5 %
+  com.agilityhub.core.clubs.bookings.application       lines  99.4 %  branches  84.9 %
+  com.agilityhub.core.clubs.messaging.application      lines  99.0 %  branches  87.7 %

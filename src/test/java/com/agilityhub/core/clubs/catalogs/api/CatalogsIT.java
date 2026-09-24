@@ -80,7 +80,7 @@ class CatalogsIT extends AbstractIntegrationTest {
         if (collection.equals("week_templates")) {
             row.append("kind", "WEEKDAYS").append("name", row.getString("_id")).append("classes", List.of(new Document(field, id)));
         } else {
-            row.append(field, id).append(collection.equals("class_sessions") || collection.equals("ring_blocks") ? "state" : "status", status)
+            row.append(field, id).append(Set.of("class_sessions", "ring_blocks", "training_bookings").contains(collection) ? "state" : "status", status)
                     .append("startsAt", Date.from(clock.instant().plus(Duration.ofHours(futureHours))));
         }
         mongo.insert(row, collection);
@@ -209,7 +209,10 @@ class CatalogsIT extends AbstractIntegrationTest {
         reference("class_sessions", CLUB, "ringId", id, "SCHEDULED", 24);
         admin(body(patch("/api/v1/rings/" + id), Map.of("active", false, "version", 0))).andExpect(status().isConflict()).andExpect(jsonPath("$.details.futureClassSessions").value(1));
         mongo.remove(new Query(), "class_sessions");
-        reference("training_bookings", CLUB, "ringId", id, "CONFIRMED", 24);
+        reference("training_bookings", CLUB, "ringId", id, "CANCELLED_BY_CLUB", 24); // S09: only ACTIVE training bookings hold the ring
+        try (var scope = TenantContext.open(CLUB)) { assertThat(usage.usage(CatalogKind.RING, id)).containsEntry("futureTrainingBookings", 0L); }
+        mongo.remove(new Query(), "training_bookings");
+        reference("training_bookings", CLUB, "ringId", id, "ACTIVE", 24);
         admin(body(patch("/api/v1/rings/" + id), Map.of("allowsFreeTraining", false, "version", 0))).andExpect(status().isConflict()).andExpect(jsonPath("$.details.futureTrainingBookings").value(1));
         admin(body(patch("/api/v1/rings/" + id), Map.of("active", false, "version", 0))).andExpect(status().isConflict());
         mongo.remove(new Query(), "training_bookings");

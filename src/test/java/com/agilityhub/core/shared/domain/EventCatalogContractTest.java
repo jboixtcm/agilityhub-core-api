@@ -86,6 +86,10 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.bookings.domain.ForeignEvent.class,
                 () -> new com.agilityhub.core.clubs.bookings.domain.ForeignEvent("ClassSessionUpdated", null, "club-a", "ClassSession", "class-a",
                         Instant.parse("2030-01-01T00:00:00Z"), Map.of("classId", "class-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        // E5-T04: the read-only envelope of the events S09 consumes (it never publishes); every type it reads is a catalog name.
+        samples.put(com.agilityhub.core.clubs.training.domain.TrainingForeignEvent.class,
+                () -> new com.agilityhub.core.clubs.training.domain.TrainingForeignEvent(null, "ClassSessionCreated", "club-a", "ClassSession", "class-a",
+                        Instant.parse("2030-01-01T00:00:00Z"), Map.of("classId", "class-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         samples.put(com.agilityhub.core.clubs.bookings.domain.BookingEvent.class,
                 () -> new com.agilityhub.core.clubs.bookings.domain.BookingEvent(com.agilityhub.core.clubs.bookings.domain.BookingEvent.Kind.BookingCreated,
                         "club-a", "booking-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("bookingId", "booking-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
@@ -185,7 +189,7 @@ class EventCatalogContractTest {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());
                 assertThat(event.payload()).containsKey("diff");
-            } else if (event instanceof com.agilityhub.core.clubs.bookings.domain.ForeignEvent) {
+            } else if (event instanceof com.agilityhub.core.clubs.bookings.domain.ForeignEvent || event instanceof com.agilityhub.core.clubs.training.domain.TrainingForeignEvent) {
                 assertThat(event.aggregateType()).isEqualTo("ClassSession"); assertThat(event.payload()).containsKey("classId");
             } else {
                 assertThat(event.aggregateType()).isEqualTo("Parameter");

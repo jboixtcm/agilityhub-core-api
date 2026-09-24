@@ -58,6 +58,11 @@ public class BookingRepository extends TenantRepository<Booking> {
     public List<Booking> startingBetween(Instant from, Instant until, Collection<BookingState> states) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("classStartsAt").gte(from).lt(until).and("state").in(states)), Booking.class);
     }
+    /** Live bookings of a dog whose class overlaps `[from, to)` (S09 R-09-06 step 3). */
+    public List<Booking> liveOverlapping(String dogId, Instant from, Instant to) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").is(dogId).and("state").in(LIVE).and("classStartsAt").lt(to).and("classEndsAt").gt(from)),
+                Booking.class);
+    }
     public List<Booking> liveForMember(String memberId, Instant after) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in(LIVE).and("classStartsAt").gt(after))
                 .with(Sort.by("classStartsAt", "_id")), Booking.class);

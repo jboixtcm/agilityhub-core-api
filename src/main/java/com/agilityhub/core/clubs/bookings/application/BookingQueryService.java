@@ -51,6 +51,8 @@ public class BookingQueryService implements ListProvider {
         return com.agilityhub.core.clubs.bookings.domain.BookingCalendar.ics(views.event(booking, session));
     }
     public List<Map<String, Object>> forClass(String classSessionId) { return items(bookings.forClass(classSessionId)); }
+    /** S09 R-09-06 step 3: the dog already has a live class booking overlapping `[from, to)` (DOG_ALREADY_BOOKED). */
+    public boolean dogInClass(String dogId, java.time.Instant from, java.time.Instant to) { return !bookings.liveOverlapping(dogId, from, to).isEmpty(); }
 
     @Override public Set<String> keys() { return Set.of("bookings"); }
     @Override public ListDataset dataset(String key) {

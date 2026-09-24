@@ -1,3 +1,4 @@
 com.agilityhub.core.clubs.dashboard.application.ports.DashboardPortDefaults
 com.agilityhub.core.clubs.scheduling.application.ports.SchedulingPortDefaults
 com.agilityhub.core.clubs.bookings.application.BookingsAutoConfiguration
+com.agilityhub.core.clubs.training.application.TrainingAutoConfiguration

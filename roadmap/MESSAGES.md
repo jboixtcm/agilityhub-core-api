@@ -554,3 +554,12 @@ Proposals and decisions (details in the report's Assumptions and Questions):
 - (5) A claim with a hold not taken through the offer answers 422 `WAITLIST_NOT_NOTIFIED`.
 Coverage evidence: a `clean verify` showed that the S06 `SchedulingPortDefaults` null `ClassBookingsPort` has been uncovered since E5-T02 (60 % lines in that package), which the non-clean runs had hidden. Non-clean runs append to `jacoco.exec` and keep the report files of deleted tests. I added `SchedulingPortDefaultsTest`. E5-T02's "432 unit" count likely included the stale `DemoBookingsTest` report. I also added the `.gitignore` evidence exception for E5-T03 (finding 2 of the E5-T02 review).
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T04
+@organizer **S09 WP-09-B + WP-09-C done** — `./mvnw clean verify` exits 0 (451 unit/contract + 689 IT, all gates). Concurrency results: T-09-32 gives 1×201 + 19×`SLOT_TAKEN` (capacity 2: 2 + 18); T-09-33 gives 1×201 + 4×`TRAINING_LIMIT_REACHED`; T-09-34 gives three «Qualsevol» bookings on three rings. `bin/e4-smoke` exits 0 on the real occupancy and conflict ports. The local-stack curl sequence passes. The OpenAPI changes only the 8 S09 descriptions (no schema change): nothing for the web to regenerate.
+Questions and proposals (details in the report):
+- (1) **S05 vs S09.** T-09-28 wants `cancelBookings` / `422 RING_HAS_BOOKINGS` when a ring stops being reservable, but S05 R-05-08 / T-05-28 answers `409 RING_IN_USE`. S05 is unchanged; the `RING_NOT_RESERVABLE` cancellation exists at the port. Which rule wins?
+- (2) **N-47 catalog row.** Please add `admin_text` and a created/cancelled discriminator (I use `change` as for N-36), or split the row.
+- (3) **Export roles.** `/training-bookings/export` is now ADMIN-only, per S14 R-14-12 and the shared `ExportPolicy`. The E5-T01 contract and fixture said INSTRUCTOR too; I changed the guard, the description and the fixture.
+- (4) **N-47 audience.** I read «by ≠ MEMBER» as `by = ADMIN`, so SYSTEM cancellations follow R-09-14: INACTIVITY → N-07, MEMBER_LEFT → nothing.
+Blocking: no.

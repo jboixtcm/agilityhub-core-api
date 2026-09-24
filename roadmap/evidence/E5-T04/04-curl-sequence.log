@@ -1,0 +1,81 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_training, local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0
+  + catalogs.faq.FAQ_6
+  + catalogs.faq.FAQ_7
+  + catalogs: 31 catalog changes
+  + messageTemplates: schema accepted; application deferred to E7
+  + pages: 3 page changes
+  15 changes (applied)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+  205 changes (demo planning, week start 2026-09-21)
+API jar up on a random loopback port (local profile); the seed outbox is drained
+curl POST /api/v1/test/clock -> 200   [test clock]
+  test clock -> 2026-09-24T04:00:00Z (club-local Thu 24-09 06:00)
+10 member logins with an eligible own dog: member (Suro 190), member.2 (Ginesta 191), member.3 (Neu 192), member.4 (Suro 193), member.5 (Bruc 194), member.6 (Ona 195), member.7 (Neu 196), member.8 (Bruc 197), member.9 (Vent 198), member.10 (Lluna 199)
+
+1. GET /me/training-summary
+curl GET /api/v1/me/training-summary -> 200   [member]
+  {"defaultDogId": "d7283096…", "limitUnit": "DOG", "weekOpensAt": {"dayOfWeek": "SUNDAY", "time": "20:00"}, "counter": {"used": 0, "limit": 3, "remaining": 3, "resetsAt": "2026-09-27T18:00:00Z"}}
+  eligibleDogs [{"name": "Suro 190", "levelName": "E", "ownerName": null, "rightSource": "LEVEL"}, {"name": "Bruc 189", "levelName": "E", "ownerName": "Laia", "rightSource": "LEVEL"}]
+
+2. GET /training-slots for the booking window
+curl GET /api/v1/training-slots -> 200   [member]
+  window {'from': '2026-09-24', 'to': '2026-09-27'} · rings (catalog order) ['Muntanya', 'Central', 'Carretera'] · days ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27'] · slots per open day [30, 30, 30, 30]
+  chosen slot 2026-09-25 07:00–07:30 (2026-09-25T05:00:00Z): every reservable ring FREE
+
+3. POST /training-bookings without ringId («Qualsevol»)
+curl POST /api/v1/training-bookings -> 201   [book]
+  {"id": "bd1118c9…", "ringName": "Muntanya", "slotId": "665165a6-1f61-4f03-a09d-01a6938d20e6_2026-09-25T05:00:00Z", "startsAtLocal": "07:00", "endsAtLocal": "07:30", "state": "ACTIVE", "origin": "APP", "cancellableUntil": "2026-09-25T03:00:00Z", "counter": {"used": 1, "limit": 3, "remaining": 2, "resetsAt": "2026-09-27T18:00:00Z"}}
+  outbox TrainingBooked PUBLISHED bd1118c9… {"trainingBookingId":"bd1118c9…","slotId":"665165a6-1f61-4f03-a09d-01a6938d20e6_2026-09-25T05:00:00Z","ringId":"665165a6…","memberId":"0dceff33…","dogId":"d7283096…","origin":"APP"}
+  outbox NotificationQueued PUBLISHED a943ca5f…:0dceff33…:app {"notificationId":"a943ca5f…:0dceff33…:app","channel":"EMAIL"}
+  notification N-06 APP SENT account 40f1adb4… {"club_name":"Club Agility Cànic","dog_name":"Suro 190","entityId":"bd1118c9…","date":"divendres, 25 de setembre de 2026","ring_name":"Muntanya","time":"7:00–7:30"}
+
+4. the slot turns BOOKED/OWN_TRAINING
+curl GET /api/v1/training-slots -> 200   [member]
+  cell {"state": "BOOKED", "reason": "OWN_TRAINING", "bookingId": "bd1118c9…", "occupants": null, "block": null, "classSession": null}
+
+5. a second dog on the same ring and slot
+curl POST /api/v1/training-bookings -> 409 SLOT_TAKEN   [member.2]
+  details {"ringId": "665165a6…", "startsAt": "2026-09-25T05:00:00Z", "reason": "TRAINING", "freeRings": ["1d15867a…", "ad48a326…"]}
+
+6. the instructor blocks the ring over the booking
+curl POST /api/v1/ring-blocks -> 422 RING_HAS_BOOKINGS   [instructor]
+  details {"bookings": [{"id": "bd1118c9…", "ringId": "665165a6…", "from": "2026-09-25T05:00:00Z", "to": "2026-09-25T05:30:00Z", "memberName": "Laia", "dogName": "Suro 190"}]}
+
+7. the admin repeats it with cancelBookings: true
+curl POST /api/v1/ring-blocks -> 201   [admin]
+  block c4601e1a… 07:00–08:00 BLOCK/MAINTENANCE
+curl GET /api/v1/training-bookings/bd1118c9… -> 200   [member reads the booking]
+  booking {"state": "CANCELLED_BY_CLUB", "cancelledBy": "ADMIN", "cancelReason": "RING_BLOCK"}
+  outbox TrainingCancelled PUBLISHED bd1118c9… {"trainingBookingId":"bd1118c9…","slotId":"665165a6-1f61-4f03-a09d-01a6938d20e6_2026-09-25T05:00:00Z","ringId":"665165a6…","memberId":"0dceff33…","dogId":"d7283096…","origin":"BACKOFFICE","by":"ADMIN","cancelReason":"RING_BLOCK","late":false}
+  outbox RingBlockCreated PUBLISHED c4601e1a… {"blockId":"c4601e1a…","ringId":"665165a6…","from":{"$date":"2026-09-25T05:00:00Z"},"to":{"$date":"2026-09-25T06:00:00Z"},"reason":"MAINTENANCE"}
+  outbox NotificationQueued PUBLISHED 1b5c1347…:0dceff33…:app {"notificationId":"1b5c1347…:0dceff33…:app","channel":"EMAIL"}
+  outbox NotificationQueued PUBLISHED 1b5c1347…:0dceff33…:email {"notificationId":"1b5c1347…:0dceff33…:email","channel":"EMAIL"}
+  outbox NotificationSent PUBLISHED 1b5c1347…:0dceff33…:email {"notificationId":"1b5c1347…:0dceff33…:email","channel":"EMAIL"}
+  outbox NotificationQueued PUBLISHED 1b5c1347…:0dceff33…:sms {"notificationId":"1b5c1347…:0dceff33…:sms","channel":"EMAIL"}
+  notification N-47 APP SENT account 40f1adb4… {"club_name":"Club Agility Cànic","dog_name":"Suro 190","entityId":"bd1118c9…","action":"OPEN_BOOKING","admin_text":"","date":"divendres, 25 de setembre de 2026","ring_name":"Muntanya","change":"CANCELLED","time":"7:00–7:30","has_admin_text":false}
+  notification N-47 EMAIL SENT account 40f1adb4…
+  notification N-47 SMS QUEUED account 40f1adb4… sms(128): Club Agility Canic: el club ha anul lat l'entrenament de Suro 190 del divendres, 25 de setembre de 2026 de 7:00-7:30 (Muntanya).
+
+8. a cancellation past the threshold
+curl POST /api/v1/training-bookings -> 201   [book another slot]
+  booking 34dfde80… 09:00 Muntanya cancellableUntil 2026-09-25T05:00:00Z
+  outbox TrainingBooked PUBLISHED 34dfde80… {"trainingBookingId":"34dfde80…","slotId":"665165a6-1f61-4f03-a09d-01a6938d20e6_2026-09-25T07:00:00Z","ringId":"665165a6…","memberId":"0dceff33…","dogId":"d7283096…","origin":"APP"}
+  outbox NotificationQueued PUBLISHED b04af955…:0dceff33…:app {"notificationId":"b04af955…:0dceff33…:app","channel":"EMAIL"}
+  notification N-06 APP SENT account 40f1adb4… {"club_name":"Club Agility Cànic","dog_name":"Suro 190","entityId":"34dfde80…","date":"divendres, 25 de setembre de 2026","ring_name":"Muntanya","time":"9:00–9:30"}
+curl POST /api/v1/test/clock -> 200   [test clock]
+  test clock -> 2026-09-25T05:01:00Z (club-local Fri 25-09 07:01)
+curl POST /api/v1/training-bookings/34dfde80…/cancellation -> 422 TRAINING_CANCEL_TOO_LATE   [member, 119 min before]
+  details {"minutesBefore": 118, "thresholdMinutes": 120}
+
+9. GET /day-grid for 2026-09-25, both views
+curl GET /api/v1/day-grid -> 200   [view=member]
+curl GET /api/v1/day-grid -> 200   [view=instructor]
+  view=member: [{"time": "07:00", "ringId": "665165a6…", "kind": "OCCUPIED", "reason": "MAINTENANCE", "endTime": "08:00"}, {"time": "09:00", "ringId": "665165a6…", "kind": "OCCUPIED", "reason": "TRAINING", "endTime": "09:30"}]
+  view=instructor: [{"time": "07:00", "ringId": "665165a6…", "kind": "BLOCK", "reason": "MAINTENANCE", "note": "Reg de la pista (fictici)", "blockId": "c4601e1a…", "endTime": "08:00"}, {"time": "09:00", "ringId": "665165a6…", "kind": "TRAINING", "reason": "TRAINING", "who": ["Laia + Suro 190"], "trainingBookingIds": ["34dfde80…"], "endTime": "09:30"}]
+
+PASS free-training curl sequence
+Removed the disposable Mongo container and runtime directory

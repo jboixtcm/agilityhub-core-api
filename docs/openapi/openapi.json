@@ -35681,7 +35681,7 @@
     },
     "/api/v1/me/training-bookings" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token). Own and family-group bookings with cancellableUntil. Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). Own and family-group bookings with cancellableUntil. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "memberTrainingBookings",
         "parameters" : [ {
           "in" : "query",
@@ -35845,7 +35845,7 @@
     },
     "/api/v1/me/training-summary" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token). Eligible dogs (R-09-01), default dog (R-09-09) and the counter of the training week of date (R-09-05; default today). Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). Eligible dogs (R-09-01), default dog (R-09-09) and the counter of the training week of date (R-09-05; default today, counted by session date). Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingSummary",
         "parameters" : [ {
           "in" : "query",
@@ -48910,7 +48910,7 @@
     },
     "/api/v1/training-bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings. Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingBookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -49135,7 +49135,7 @@
         "x-sortable" : [ "startsAt" ]
       },
       "post" : {
-        "description" : "Roles: MEMBER (also the impersonation token: origin BACKOFFICE, override{limit, reason} allowed). R-09-06 transaction; the partial unique index {clubId, ringId, startsAt, seatIndex} on ACTIVE is the final guard. details: TRAINING_LIMIT_REACHED{limit, used, weekStart, weekEnd, cancellableBookings[]}, SLOT_TAKEN{ringId, startsAt, reason, freeRings[]}, SLOT_OUT_OF_WINDOW{from, to}. Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token: origin BACKOFFICE, override{limit, reason} allowed). R-09-06 transaction; the partial unique index {clubId, ringId, startsAt, seatIndex} on ACTIVE is the final guard; without ringId («Qualsevol») the first FREE ring in catalog order. details: TRAINING_LIMIT_REACHED{limit, used, weekStart, weekEnd, cancellableBookings[]}, SLOT_TAKEN{ringId, startsAt, reason, freeRings[]}, SLOT_OUT_OF_WINDOW{from, to}. A repeated Idempotency-Key returns the same response, also a 409/422. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "bookTraining",
         "parameters" : [ {
           "in" : "header",
@@ -49293,7 +49293,7 @@
     },
     "/api/v1/training-bookings/export" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Same q/filter/sort and selected columns as GET /training-bookings (listKey training-bookings); 200 file or 202 ExportAccepted. Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (S14 R-14-12: list exports are ADMIN only; INSTRUCTOR → 403). Same q/filter/sort and selected columns as GET /training-bookings (listKey training-bookings); 200 file or 202 ExportAccepted. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "exportTrainingBookings",
         "parameters" : [ {
           "in" : "query",
@@ -49552,7 +49552,7 @@
     },
     "/api/v1/training-bookings/{id}" : {
       "get" : {
-        "description" : "Roles: MEMBER (own, also the impersonation token), INSTRUCTOR, ADMIN. Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR, ADMIN; another member's booking is 404. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingBooking",
         "parameters" : [ {
           "in" : "path",
@@ -49699,7 +49699,7 @@
     },
     "/api/v1/training-bookings/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER (own, also the impersonation token). R-09-10: until startsAt - training.cancelThresholdMinutes; later only with the impersonation token and a reason (ADMIN_LATE). details TRAINING_CANCEL_TOO_LATE{thresholdMinutes, minutesBefore}. An optional Idempotency-Key replays the same 200. Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token). R-09-10: until startsAt - training.cancelThresholdMinutes; later only with the impersonation token and a reason (ADMIN_LATE, audited). A booking block never prevents it; a second call is INVALID_STATE. details TRAINING_CANCEL_TOO_LATE{thresholdMinutes, minutesBefore}. An optional Idempotency-Key replays the same 200. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "cancelTraining",
         "parameters" : [ {
           "in" : "path",
@@ -49863,7 +49863,7 @@
     },
     "/api/v1/training-slots" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token; interval cut to the booking window, R-09-04), INSTRUCTOR, ADMIN (at most 31 days; cells add occupants[], block and classSession). Requires FREE_TRAINING. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token; interval cut to the booking window, R-09-04), INSTRUCTOR, ADMIN (at most 31 days; cells add occupants[], block and classSession). R-09-03 computed grid: holidays and days without opening hours are closed; cells BLOCKED/CLASS > BLOCKED/RING_BLOCK > BOOKED/TRAINING (OWN_TRAINING for dogId) > FREE. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingSlots",
         "parameters" : [ {
           "in" : "query",

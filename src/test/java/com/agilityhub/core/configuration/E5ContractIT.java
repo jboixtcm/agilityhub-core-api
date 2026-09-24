@@ -61,7 +61,11 @@ class E5ContractIT extends AbstractIntegrationTest {
             "GET /api/v1/me/bookings", "GET /api/v1/bookings/{id}", "GET /api/v1/bookings/{id}/calendar.ics", "POST /api/v1/bookings/{id}/cancellation",
             "GET /api/v1/bookings", "GET /api/v1/class-sessions/{id}/bookings",
             "POST /api/v1/waitlist-entries", "GET /api/v1/waitlist-entries/{id}", "POST /api/v1/waitlist-entries/{id}/cancellation",
-            "POST /api/v1/waitlist-entries/{id}/claim", "GET /api/v1/class-sessions/{id}/waitlist-entries");
+            "POST /api/v1/waitlist-entries/{id}/claim", "GET /api/v1/class-sessions/{id}/waitlist-entries",
+            // E5-T04 serves every S09 route.
+            "GET /api/v1/training-slots", "GET /api/v1/me/training-summary", "GET /api/v1/me/training-bookings", "POST /api/v1/training-bookings",
+            "GET /api/v1/training-bookings/{id}", "POST /api/v1/training-bookings/{id}/cancellation", "GET /api/v1/training-bookings",
+            "GET /api/v1/training-bookings/export");
     /** An implemented route passed its guards: whatever business answer it gives, it is not an auth failure, a stub or a crash. */
     private void served(MockHttpServletRequestBuilder request) throws Exception {
         var result = mvc.perform(request).andReturn();
@@ -185,13 +189,13 @@ class E5ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().filter(r -> r.resource() && r.club() && r.roles().contains("MEMBER")).toList()) {
             error(call(route, CLUB, "MEMBER", "someone-else"), 404, "NOT_FOUND");
         }
-        // Staff read another member's booking (served since E5-T02) and waiting-list entry (E5-T03); the training booking is still 501.
+        // Staff read another member's booking (served since E5-T02), waiting-list entry (E5-T03) and training booking (E5-T04).
         mvc.perform(get("/api/v1/bookings/e5-booking-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e5-booking-a"));
         mvc.perform(get("/api/v1/waitlist-entries/e5-entry-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e5-entry-a")).andExpect(jsonPath("$.state").value("ACTIVE"));
-        error(get("/api/v1/training-bookings/e5-training-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")),
-                501, "NOT_IMPLEMENTED");
+        mvc.perform(get("/api/v1/training-bookings/e5-training-a").header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_INSTRUCTOR")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value("e5-training-a")).andExpect(jsonPath("$.state").value("ACTIVE"));
         // T-08-47 / T-09-30: MEMBER on the universal lists → 403.
         for (String path : List.of("/api/v1/bookings", "/api/v1/training-bookings", "/api/v1/risk-review")) {
             error(get(path).header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER")), 403, "FORBIDDEN");

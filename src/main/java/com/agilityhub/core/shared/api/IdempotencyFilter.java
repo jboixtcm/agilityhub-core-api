@@ -134,7 +134,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // S07 executes serialization inside its retryable use-case transaction. Other routes keep
         // the existing request transaction. Both paths commit the idempotency row with effects.
         // S08 confirmation and claim replay their business conflicts too (R-08-08: «també si va ser 409»).
-        boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim");
+        // S09 bookings and cancellations retry DuplicateKey/WriteConflict inside their own transaction (R-09-06) and replay likewise.
+        boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim")
+                || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation");
         if (bookings || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();

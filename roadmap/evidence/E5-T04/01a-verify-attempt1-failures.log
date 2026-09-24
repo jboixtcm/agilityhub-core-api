@@ -1,0 +1,48 @@
+910:             Body = {"openapi":"3.1.0","info":{"title":"AgilityHub Core API","version":"v1"},"servers":[{"url":"https://core.agilitydoghub.com"},{"url":"http://localhost:8080"}],"security":[{"bearer":[]}],"paths":{"/api/v1/members/export":{"get":{"tags":["clubs.common"],"summary":"Export members","description":"S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary fi
+914:[ERROR] Tests run: 9, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.753 s <<< FAILURE! -- in com.agilityhub.core.configuration.OpenApiSnapshotTest
+915:[ERROR] com.agilityhub.core.configuration.OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract -- Time elapsed: 0.855 s <<< FAILURE!
+918:expected: 
+23226:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+23387:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+23534:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+23689:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+35789:              "description" : "FORBIDDEN for impersonated accounts"
+42989:              "description" : "FORBIDDEN"
+43144:              "description" : "FORBIDDEN or ACCOUNT_BLOCKED"
+55520: but was: 
+77828:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+77989:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+78136:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+78291:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+90391:              "description" : "FORBIDDEN for impersonated accounts"
+97591:              "description" : "FORBIDDEN"
+97746:              "description" : "FORBIDDEN or ACCOUNT_BLOCKED"
+110133:[ERROR] Tests run: 38, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.442 s <<< FAILURE! -- in com.agilityhub.core.configuration.E5ContractIT
+110134:[ERROR] com.agilityhub.core.configuration.E5ContractIT.T_08_26_T_09_30_T_15_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route)[24] -- Time elapsed: 0.023 s <<< FAILURE!
+110136:[GET /api/v1/training-bookings/export {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"51b8021a-017b-456d-873c-922afb6faea3"}] 
+110137:Expecting actual:
+110139:not to be in:
+112598:[ERROR] Tests run: 9, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.709 s <<< FAILURE! -- in com.agilityhub.core.platform.persistence.PlatformIT
+112599:[ERROR] com.agilityhub.core.platform.persistence.PlatformIT.T_02_01_outboxParameterAndClubEventsInvalidateCaches -- Time elapsed: 0.031 s <<< FAILURE!
+112602:Expecting value to be false but was true
+114242:[ERROR]   E5ContractIT.T_08_26_T_09_30_T_15_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501:149->served:73 [GET /api/v1/training-bookings/export {"code":"FORBIDDEN","message":"No tens permís per fer aquesta acció.","details":{},"traceId":"51b8021a-017b-456d-873c-922afb6faea3"}] 
+114243:Expecting actual:
+114245:not to be in:
+114249:expected: 
+136557:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+136718:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+136865:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+137020:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+149120:              "description" : "FORBIDDEN for impersonated accounts"
+156320:              "description" : "FORBIDDEN"
+156475:              "description" : "FORBIDDEN or ACCOUNT_BLOCKED"
+168851: but was: 
+191159:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+191320:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+191467:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+191622:              "description" : "FORBIDDEN, TENANT_MISMATCH"
+203722:              "description" : "FORBIDDEN for impersonated accounts"
+210922:              "description" : "FORBIDDEN"
+211077:              "description" : "FORBIDDEN or ACCOUNT_BLOCKED"
+223454:Expecting value to be false but was true
+223455:[ERROR] Tests run: 689, Failures: 3, Errors: 0, Skipped: 0

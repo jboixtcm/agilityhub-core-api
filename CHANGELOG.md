@@ -8,6 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T04: S09 free training (WP-09-B + WP-09-C).
+  - `GET /training-slots` (R-09-02/03/04/15): computed grid (never persisted) from opening hours, holidays, DRAFT/ACTIVE
+    classes, ACTIVE ring blocks and ACTIVE bookings, with Java DST semantics; MEMBER clipped to the booking window, staff
+    ≤ 31 days with `occupants[]`, `block`, `classSession`; `setup` with COURSES through the new `RingSetupPort` (null
+    object until S16). Static layer cached per `{clubId, date}` (60 s, invalidated by the `training` consumers); the
+    booking path always reads live data.
+  - `POST /training-bookings` (R-09-05…09, R-09-16): one Mongo transaction retried whole on DuplicateKey/WriteConflict,
+    `trainingSeq` `$inc` per unit, the partial unique seat index as final guard, «Qualsevol» in catalog order, counter by
+    session week, impersonation (`BACKOFFICE`, `override.limit`, audit `TRAINING_BOOKED_BY_CLUB`).
+  - `POST /training-bookings/{id}/cancellation` (R-09-10): threshold on instants, ADMIN_LATE with a reason for the
+    impersonating admin (audit `TRAINING_CANCELLED_BY_CLUB`); system paths `cancelFutureByMember`, `cancelForInactivity`,
+    `cancelForDog` (not scheduled here) and `cancelByClub` (R-09-13, `Propagation.MANDATORY`).
+  - `GET /me/training-summary`, `GET /me/training-bookings`, `GET /training-bookings/{id}`, the universal list
+    `GET /training-bookings` and its ADMIN export.
+  - Real `TrainingOccupancyPort`, `TrainingConflictPort` (S06 day grids, class and ring-block conflicts, S07) and
+    `TrainingBookingsQuery` (S14 dashboard), registered by `TrainingAutoConfiguration`.
+  - Notifications N-06, N-07 and N-47 (APP + EMAIL + SMS intent) from outbox consumers, with `notif.*` keys in ca/es/en.
+
+### Changed
+
+- E5-T04: `MongoUsageCounter` counts `training_bookings.state = ACTIVE` (was the provisional `status`); the export of
+  `/training-bookings` is ADMIN only (S14 R-14-12, the shared `ExportPolicy`); the APP notification variables keep
+  `time` and `has_admin_text`; the idempotency filter runs `/training-bookings` and its cancellation in their own
+  retried transaction and replays business 409/422 like S08.
+
+### Added
+
 - E5-T03: S08 class waiting list (WP-08-C).
   - `POST /waitlist-entries` (R-08-12): the class must be full by bookings alone, then the booking eligibility
     chain, then `waitlist.maxPerClass`, `maxPerDogPerWeek` / `maxPerDogPerWeekIfAttended` (per owner with
