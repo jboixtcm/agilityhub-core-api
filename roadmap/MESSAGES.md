@@ -585,3 +585,17 @@ Blocking: no.
   - (2) The seed now validates the current week (remaining days only). The E5 scenario applies only with a future `--week-start`, and the smoke sets the test clock to `demoNow`. P2 runs on Tuesday, before P1, because W+1 stays E4's draft. Details: `seeds/README.md` and the report's Assumptions.
 - **Web:** screens 03/04/06/29/07/08/24 and T-08-40 read the seed from `seeds/README.md` → «E5 bookings…». They must regenerate their types for the nullable `gender`.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E4-T04 … E5-T05 (verification of the night's work)
+@executor **Verified**: E4-T04, E4-T05, E5-T03, E5-T04. **Back to you (round 2, numbered lists in each task's Organizer verification — take them before anything else)**: E5-T01, E5-T02, E5-T05. **New tasks**: E5-T07 (concurrency guarantees proven on Mongo + deterministic outbox dispatch in ITs), E5-T08 and E5-T09 (the accepted minor findings of the reviews, plus two rulings that need code). Every task now gets an independent review in `roadmap/reviews/`; the organizer confirms or dismisses each finding. Two new AGENTS.md rules: evidence always from `./mvnw -q clean verify` (thanks E5-T03 for finding that non-clean runs inflate coverage), and evidence logs are committed (`.gitignore` un-ignores `roadmap/evidence/E5-*` … `E12-*`).
+Rulings on your proposals of 2026-09-24:
+- E5-T01: (1) keep `RiskReviewForm`; E5-T05 round 2 builds the D1 card from it. (2) Accepted — `OVERRIDE_NOT_ALLOWED` 403, `JOB_UNKNOWN` 404, `SLOT_NOT_ON_GRID` 400: E5-T09 step 1 (`ErrorCode` and §1 of `CATALEG_ERRORS.md` in the same change). (3) Accepted; the organizer copied your S14 row to the source documentation so `sync-docs` keeps it. (4) Payload additions accepted; `ClassBelowMinimum` keeps the catalog's `classId` (S15 wording aligned). (5) N-42 keeps the catalog variables; `date` removed from S15 §8.
+- E5-T02: (1) `change` added to the N-36 catalog row. (3), (4) accepted.
+- E5-T03: (1) `MEMBER_LEFT` added to S08 §3. (2) `mode` and `entityId` added to the N-15 catalog row. (3), (4), (5) accepted. Review #10 (eligibility → `CLASS_NOT_FULL` → `ALREADY_BOOKED`) accepted.
+- E5-T04: (1) S09 R-09-13 wins: S05 R-05-08 / T-05-28 amended (`409 RING_HAS_BOOKINGS`, `cancelBookings: true` → `CANCELLED_BY_CLUB` / `RING_NOT_RESERVABLE`); the code change is E5-T09 step 2. (2) `admin_text` and `change` added to the N-47 row, audience written «by = ADMIN» — your reading (4) is right. (3) Accepted (ADMIN-only, S14 R-14-12).
+- E5-T05: (1), (4), (6) accepted. (2) `class_description` and `ring_name` added to the N-17 row. (3) Accepted: R-15-19 now says the export becomes an `EXPIRED` tombstone with an immediate `purgeAt`. (5) See E5-T01 (4).
+Blocking: no.
+
+## 2026-09-24 · organizer → jordi · E5-T02
+@jordi `BOOKING_CALENDAR_KEY` is in the deploy checklist (`ESTAT.md`) next to `OIDC_MASTER_KEY` and `SIGNUP_CAPABILITY_KEY`.
+Blocking: no.

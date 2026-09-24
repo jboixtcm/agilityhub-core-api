@@ -1,0 +1,92 @@
+  ArchitectureTest           tests=6   failures=0 errors=0 skipped=0
+      E0_T01_contextsHaveNoCycles
+      E0_T01_crossContextAccessUsesApplication
+      E0_T01_domainHasNoWebDataSecurityOrServletDependencies
+      E0_T01_sharedDependsOnNoOtherContext
+      E3_T02_signupDomainHasNoSpringOrMongo
+      E5_T01_timeComesFromTheClock
+  BookingPortsTest           tests=8   failures=0 errors=0 skipped=0
+      actorsAndForeignEnvelopes
+      attendanceDefaultsCountOnlyPresentAndNoShowMarks
+      calendarTokensAreTenantBoundExpireAtClassEndAndNeedAKeyInStagingOrProd
+      demoRowsRejectImpossibleCounts
+      notificationCodesFollowOriginActorAndReason
+      theInactivityStandInCoversInclusiveAndOpenEndedPeriodsPerClub
+      thePackStandInConsumesRefundsAndNeverRevivesAnExpiredPack
+      transactionsRetryWriteConflictsAtMostThreeTimesAndNeverOtherFailures
+  BookingRulesTest           tests=14  failures=0 errors=0 skipped=0
+      T_08_01_weeksOpenAtTheLocalOccurrenceAndClassesBelongToTheWeekOfTheirStart
+      T_08_02_theDaylightSavingWeekLasts169HoursWithCorrectKeysAndOpenings
+      T_08_03_theDogCounterCountsActivePendingAndLateOnly
+      T_08_04_theMemberCounterSumsTheOwnersDogsWhoeverBooked
+      T_08_05_rowStatesFollowThePriorityAndLimitDoneNeedsNoSwappable
+      T_08_06_lateIsStrictlyAfterTheThresholdAndMinutesBeforeTurnsNegative
+      T_08_07_theWaitingListIsToldOnlyStrictlyAboveTheNoticeThreshold
+      T_08_09_theInstructorIsVisibleFromExactly24HoursBeforeAndZeroMeansAlways
+      T_08_10_levelsDisabledAdmitEverythingAndAnEmptyListAdmitsAll
+      T_08_11_anEmptyOrExpiredPackRejectsAndChecksRunInTheirFixedOrder
+      T_08_42_daylightSavingCancellationNoticeAndInstructorVisibilityDifferPerClubZone
+      T_08_43_withMemberUnitTheOwnersOtherDogsAreSwappableAndWithDogUnitTheyAreNot
+      T_08_44_aMondayMidnightOpeningGivesCalendarWeeksWithoutAnyWeekdayLiteral
+      displayStateAndCalendarBodies
+  AuditContractTest          tests=1   failures=0 errors=0 skipped=0
+      T_14_12_everyActionHasAnAnnotatedExecutableTest
+  MessageParityTest          tests=1   failures=0 errors=0 skipped=0
+      E0_T08_everyErrorHasANonemptyValidIcuMessageInAllProductLocales
+  ErrorCatalogContractTest   tests=3   failures=0 errors=0 skipped=0
+      E0_T04_errorCatalogMatchesEveryConcreteCodeAndCanonicalStatus
+      T_06_20_T_07_17_schedulingAndActivityErrorsFollowTheLiteralCatalogStatusRule
+      T_08_47_T_09_24_T_15_29_bookingTrainingAndJobErrorsFollowTheLiteralCatalogStatusRule
+  EventCatalogContractTest   tests=2   failures=0 errors=0 skipped=0
+      E0_T04_everyEventImplementationEmitsACatalogName
+      T_04_11_T_04_17_T_04_19_T_04_21_signupEventsKeepS04PayloadContracts
+unit/contract (surefire): tests=432 failures=0 errors=0 skipped=0
+  BookingConcurrencyIT       tests=4   failures=0 errors=0 skipped=0
+      T_08_29_twentyParallelHoldsForTheLastSeatGiveOneHoldAndNoOverbooking
+      T_08_31_aDoubleClickBooksOnceAndTwoKeysForOneHoldGiveOneBookingAndSeatHoldExpired
+      T_08_32_aSwapRacingACancellationOfTheSameOldBookingLeavesCoherentCounters
+      T_08_33_anExpiredHoldNotYetRemovedByTheTtlNeitherCountsNorConfirms
+  BookingsIT                 tests=15  failures=0 errors=0 skipped=0
+      R_08_15_theHoldOfAClaimNeedsTheDogsNotifiedEntryStillOnOffer
+      S15_P5c_S13_systemCancellationsOfAMemberAreNeverLateAndRefundThePack
+      T_08_14_holdCreatesRefreshesAndRejectsWithTheRightDetails
+      T_08_15_T_08_11_confirmationBooksConsumesThePackAndPublishesCalendarLinks
+      T_08_16_theSameIdempotencyKeyReplaysTheResponseAlsoAStored409
+      T_08_17_swapCancelsTheOldBookingAndCreatesTheNewOneAtomically
+      T_08_18_cancellationInTimeLateAndRejectedWithSeatReleaseAndMinimumAlert
+      T_08_23_bookingBlockAndInactivityRejectNewBookingsButKeepExistingOnes
+      T_08_24_singleClassPayToBookChargeOnAttendanceAndModuleOff
+      T_08_25_cancelByClubCancelsBookingsEntriesAndHoldsAllOrNothing
+      T_08_26_rolesTenantAndOwnershipPerEndpoint
+      T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+      T_08_28_theInstructorNoticeCancelsWithOriginInstructorAndN05WithoutSms
+      T_08_46_levelChangesKeepBookingsAndClassTimeChangesRefreshTheDenormalisedCopies
+      T_08_47_theUniversalListFiltersByDeclaredFieldsOnlyForStaff
+  DemoPlanningSeedIT         tests=5   failures=0 errors=0 skipped=0
+      T_06_28_D4cCancellationOfTheSeededClassNotifiesTheDemoRegistrants
+      T_06_28_T_07_32_demoSeedHoldsThePlanningAndActivityStatesOfTheGate
+      T_06_28_demoPlanningIsDeterministicIdempotentAndGuarded
+      T_06_28_planningNeedsTheCensusDemoFirst
+      T_06_28_seedSourcesContainNoRealStaffOrMockupFirstNames
+  E5ContractIT               tests=38  failures=0 errors=0 skipped=0
+      T_08_26_T_09_30_T_15_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501
+      T_08_26_T_09_30_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs
+      T_08_27_T_09_23_T_15_08_impersonationIsAcceptedOnlyOnTheMemberRoutes
+      T_08_47_T_09_24_T_15_29_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+      T_08_47_T_09_24_T_15_29_theStubsWriteNothing
+      T_09_31_T_08_19_disabledModulesAnswer404BeforeTheStub
+      T_15_29_testClockMovesTheInjectedClockOnlyUnderTheTestProfile
+  SecurityHeadersIT          tests=2   failures=0 errors=0 skipped=0
+      E0_T12_productionDocumentationIsDeniedEvenWithAnAuthenticatedPlatformRole
+      T_01_25_productionHttpsHeadersCoverPublicOAuthProtectedAndRejectedRequests
+integration (failsafe): tests=655 failures=0 errors=0 skipped=0
+coverage (merged unit + integration, jacoco.csv):
+  com.agilityhub.core.clubs.bookings.domain            lines 100.0 %  branches  93.2 %
+  com.agilityhub.core.clubs.bookings.application       lines  99.5 %  branches  85.3 %
+  com.agilityhub.core.clubs.bookings.application.ports lines 100.0 %  branches 100.0 %
+  com.agilityhub.core.clubs.bookings.api               lines  93.5 %  branches  84.6 %
+  com.agilityhub.core.clubs.bookings.persistence       lines  98.5 %  branches  72.2 %
+  com.agilityhub.core.clubs.census.application         lines  98.9 %  branches  82.0 %
+  com.agilityhub.core.clubs.scheduling.application     lines  98.6 %  branches  85.5 %
+  com.agilityhub.core.payments.application             lines 100.0 %  branches  82.0 %
+  com.agilityhub.core.shared.api                       lines  94.4 %  branches  90.6 %

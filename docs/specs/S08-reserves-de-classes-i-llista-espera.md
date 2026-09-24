@@ -58,7 +58,7 @@ Col·leccions pròpies: `bookings`, `seat_holds`, `waitlist_entries`, `seat_lock
 | state | enum | sí | `ACTIVE` · `NOTIFIED` · `CONSOLIDATED` · `EXPIRED` · `CANCELLED` |
 | position | int | FIFO | ordre d'entrada (`max + 1` a l'alta); en `ALL_AT_ONCE` es guarda però no s'usa |
 | notifiedAt, confirmBy | instant | no | `confirmBy` només FIFO (R-08-14) |
-| bookingId, cancelledAt, cancelReason | | no | `cancelReason`: `MEMBER` · `CLASS_CANCELLED` · `CLASS_STARTED` · `ADMIN` · `BOOKED_DIRECTLY` |
+| bookingId, cancelledAt, cancelReason | | no | `cancelReason`: `MEMBER` · `CLASS_CANCELLED` · `CLASS_STARTED` · `ADMIN` · `BOOKED_DIRECTLY` · `MEMBER_LEFT` (baixa del soci, S13/S15; organitzador 24-09) |
 | classStartsAt, bookingWeekKey | | sí | desnormalitzats com a `Booking` |
 
 ### Tècniques

@@ -22,6 +22,14 @@ __pycache__/
 .local/exports/
 
 # Commit the task verification evidence required by the roadmap protocol.
+!roadmap/evidence/E5-*/*.log
+!roadmap/evidence/E6-*/*.log
+!roadmap/evidence/E7-*/*.log
+!roadmap/evidence/E8-*/*.log
+!roadmap/evidence/E9-*/*.log
+!roadmap/evidence/E10-*/*.log
+!roadmap/evidence/E11-*/*.log
+!roadmap/evidence/E12-*/*.log
 !roadmap/evidence/E2-T12/*.log
 !roadmap/evidence/E2-T09/*.log
 !roadmap/evidence/E2-T13/*.log

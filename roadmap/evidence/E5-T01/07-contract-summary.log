@@ -1,0 +1,40 @@
+operations added: 32
+  GET    /api/v1/bookings  [bookings]  x-filterable=state,dogId,memberId,classSessionId,bookingWeekKey,origin,classStartsAt
+  POST   /api/v1/bookings  [confirmBooking]
+  GET    /api/v1/bookings/{id}  [booking]
+  GET    /api/v1/bookings/{id}/calendar.ics  [bookingCalendar]
+  POST   /api/v1/bookings/{id}/cancellation  [cancelBooking]
+  GET    /api/v1/class-sessions/{id}/bookings  [classBookings]
+  GET    /api/v1/class-sessions/{id}/waitlist-entries  [classWaitlist]
+  GET    /api/v1/jobs  [jobs]
+  GET    /api/v1/jobs/{name}/runs  [jobRuns]  x-filterable=status,scheduledFor,trigger,dryRun
+  GET    /api/v1/jobs/{name}/runs/{runId}  [jobRun]
+  PUT    /api/v1/jobs/{name}/switch  [switchJob]
+  POST   /api/v1/jobs/{name}/trigger  [triggerJob]
+  GET    /api/v1/me/bookable-classes  [bookableClasses]
+  GET    /api/v1/me/bookings  [memberBookings]
+  GET    /api/v1/me/home  [memberHome]
+  GET    /api/v1/me/training-bookings  [memberTrainingBookings]
+  GET    /api/v1/me/training-summary  [trainingSummary]
+  POST   /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger  [platformTriggerJob]
+  GET    /api/v1/platform/jobs/overview  [platformJobsOverview]
+  GET    /api/v1/risk-review  [riskReview]
+  POST   /api/v1/seat-holds  [holdSeat]
+  DELETE /api/v1/seat-holds/{id}  [releaseSeat]
+  GET    /api/v1/training-bookings  [trainingBookings]  x-filterable=date,ringId,memberId,dogId,state,origin
+  POST   /api/v1/training-bookings  [bookTraining]
+  GET    /api/v1/training-bookings/export  [exportTrainingBookings]  x-filterable=date,ringId,memberId,dogId,state,origin
+  GET    /api/v1/training-bookings/{id}  [trainingBooking]
+  POST   /api/v1/training-bookings/{id}/cancellation  [cancelTraining]
+  GET    /api/v1/training-slots  [trainingSlots]
+  POST   /api/v1/waitlist-entries  [joinWaitlist]
+  GET    /api/v1/waitlist-entries/{id}  [waitlistEntry]
+  POST   /api/v1/waitlist-entries/{id}/cancellation  [leaveWaitlist]
+  POST   /api/v1/waitlist-entries/{id}/claim  [claimSeat]
+operations removed: 0 []
+paths added: 30
+existing operations changed: 0 []
+schemas added: 96
+  BookableActivity, BookableClass, BookableClasses, BookableDog, BookedBy, Booking, BookingBlockNotice, BookingCancellation, BookingCancellationRequest, BookingCharge, BookingClassSession, BookingImpersonation, BookingLimitReachedDetails, BookingListItem, BookingRequest, CalendarLinks, CancellableTraining, ClaimRequest, ClassBookings, ClassFullDetails, ClassWaitlist, EligibleDog, HoldClassSession, HoldDog, HoldPayment, HomeDog, HomeHistory, HomeLimits, HomeMember, HomeNotifications, InactivityPeriodDetails, InactivityWindow, JobEffectItem, JobEffects, JobError, JobLastRun, JobRun, JobRunListItem, JobScheduleView, JobSummaries, JobSummary, JobSwitchRequest, JobSwitchResponse, JobTriggerRequest, LimitStatus, ListPageBookingListItem, ListPageJobRunListItem, ListPageTrainingBookingListItem, MeHome, MemberBookings, MemberTrainingBookings, NotSelectable, NotYetOpenDetails, PackBalance, PackCard, PlatformClubJobs, PlatformJobCell, PlatformJobsOverview, ReservationRow, RingHasBookingsDetails, RingSetupSummary, RiskReviewForm, RiskReviewItem, RiskReviewNotified, SeatHoldRequest, SeatHoldResponse, SingleClassTerms, SlotBlock, SlotCell, SlotClassSession, SlotOccupant, SlotOutOfWindowDetails, SlotTakenDetails, SwapOption, TrainingBooking, TrainingBookingBlock, TrainingBookingListItem, TrainingBookingRequest, TrainingCancelTooLateDetails, TrainingCancellationRequest, TrainingCounter, TrainingDay, TrainingImpersonation, TrainingLimitReachedDetails, TrainingOverride, TrainingRing, TrainingSlot, TrainingSlots, TrainingSummary, TrainingWeek, TrainingWindow, WaitlistEntry, WaitlistEntryRequest, WaitlistLimitDetails, WeekCount, WeekOpensAt
+schemas removed: []
+existing schemas changed: ['AuditAction']
