@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.common.persistence.CleanupRepository;
 import com.agilityhub.core.clubs.common.persistence.ExportJob;
 import com.agilityhub.core.clubs.common.persistence.ListExportRepository;
 import com.agilityhub.core.clubs.followup.application.AttachmentStorage;
+import com.agilityhub.core.platform.application.ParameterCatalog;
 import com.agilityhub.core.platform.application.jobs.*;
 import java.time.Duration;
 import java.time.Instant;
@@ -18,6 +19,11 @@ import org.springframework.stereotype.Component;
  * and `job_runs` except the last five of each process (`jobRunsDeleted`). No business event. Every item is a `DELETE`;
  * a dry run records the same totals as `WOULD_DELETE_*` counters. Counter keys carry no dots (they are Mongo map keys).
  * All cut-offs derive from the occurrence (`scheduledFor`), so the plan and the effects see the same data.
+ * <p>
+ * Platform pass (E5-T10, organizer ruling of 24-09): the `domain_events` and `job_runs` without a `clubId` follow the
+ * same rules (catalog retention, the last five real executions per process kept), once per P9 cycle: the first real
+ * run of the UTC day claims it ({@link CleanupRepository#claimPlatformCycle}), whatever the club. Counters
+ * `platformPass`, `platformDomainEventsDeleted`, `platformJobRunsDeleted`.
  */
 @Component
 public class CleanupJob implements Job {
@@ -26,9 +32,16 @@ public class CleanupJob implements Job {
     /** The `idempotency_records` TTL (`IdempotencyRepository`, 24 h): older records are only waiting for Mongo's TTL monitor. */
     static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
     private final CleanupRepository cleanup; private final ListExportRepository exports; private final ExportStorage exportFiles;
-    private final AttachmentStorage uploads;
-    public CleanupJob(CleanupRepository cleanup, ListExportRepository exports, ExportStorage exportFiles, AttachmentStorage uploads) {
-        this.cleanup = cleanup; this.exports = exports; this.exportFiles = exportFiles; this.uploads = uploads;
+    private final AttachmentStorage uploads; private final ParameterCatalog parameters;
+    public CleanupJob(CleanupRepository cleanup, ListExportRepository exports, ExportStorage exportFiles, AttachmentStorage uploads, ParameterCatalog parameters) {
+        this.cleanup = cleanup; this.exports = exports; this.exportFiles = exportFiles; this.uploads = uploads; this.parameters = parameters;
+    }
+    /** Platform rows belong to no club, so their retention is the catalog's product value, never a club's (R-15-19). */
+    private record PlatformCutoffs(Instant events, Instant runs) { }
+    private PlatformCutoffs platformCutoffs(JobContext context) {
+        Instant now = context.scheduledFor();
+        return new PlatformCutoffs(now.minus(Duration.ofDays(parameters.defaultInteger("jobs.retention.domainEventsDays"))),
+                now.minus(Duration.ofDays(parameters.defaultInteger("jobs.retention.jobRunsDays"))));
     }
     @Override public JobName name() { return JobName.CLEANUP; }
 
@@ -69,11 +82,29 @@ public class CleanupJob implements Job {
             if (expired > 0) { items.add(new JobItem("JobRuns", job.name(), DELETE, Map.of("count", (long) expired))); runs += expired; }
         }
         totals.put("jobRuns", runs);
+        // A dry run only looks (a real run of this occurrence would still get the pass); a real run claims the cycle.
+        boolean platformPass = context.dryRun() ? cleanup.platformCycleOpen(now) : cleanup.claimPlatformCycle(club, now);
+        recorder.count("platformPass", platformPass ? 1 : 0);
+        if (platformPass) { totals.putAll(platformItems(context, items)); }
         if (context.dryRun()) { totals.forEach((key, value) -> recorder.count("WOULD_DELETE_" + key, value)); }
         else {
-            for (String key : List.of("orphanUploadsDeleted", "exportsPurged", "domainEventsDeleted", "stripeEventsDeleted", "jobRunsDeleted")) { recorder.count(key, 0); }
+            for (String key : List.of("orphanUploadsDeleted", "exportsPurged", "domainEventsDeleted", "stripeEventsDeleted", "jobRunsDeleted",
+                    "platformDomainEventsDeleted", "platformJobRunsDeleted")) { recorder.count(key, 0); }
         }
         return items;
+    }
+    private Map<String, Long> platformItems(JobContext context, List<JobItem> items) {
+        var cut = platformCutoffs(context); var totals = new LinkedHashMap<String, Long>();
+        long events = cleanup.processedPlatformEvents(cut.events());
+        if (events > 0) { items.add(new JobItem("PlatformDomainEvents", CleanupRepository.DOMAIN_EVENTS, DELETE, Map.of("count", events))); }
+        totals.put("platformDomainEvents", events);
+        long runs = 0;
+        for (JobName job : JobName.values()) {
+            int expired = cleanup.expiredPlatformRuns(job.name(), cut.runs(), KEEP_RUNS).size();
+            if (expired > 0) { items.add(new JobItem("PlatformJobRuns", job.name(), DELETE, Map.of("count", (long) expired))); runs += expired; }
+        }
+        totals.put("platformJobRuns", runs);
+        return totals;
     }
 
     @Override public JobEffect apply(JobContext context, JobItem item) {
@@ -92,6 +123,9 @@ public class CleanupJob implements Job {
             case "DomainEvents" -> counted(item, "domainEventsDeleted", cleanup.deleteProcessedEvents(club, cut.events()));
             case "StripeEvents" -> counted(item, "stripeEventsDeleted", cleanup.deleteStripeEvents(club, cut.stripe()));
             case "JobRuns" -> counted(item, "jobRunsDeleted", cleanup.deleteRuns(club, cleanup.expiredRuns(club, item.entityId(), cut.runs(), KEEP_RUNS)));
+            case "PlatformDomainEvents" -> counted(item, "platformDomainEventsDeleted", cleanup.deleteProcessedPlatformEvents(platformCutoffs(context).events()));
+            case "PlatformJobRuns" -> counted(item, "platformJobRunsDeleted",
+                    cleanup.deletePlatformRuns(cleanup.expiredPlatformRuns(item.entityId(), platformCutoffs(context).runs(), KEEP_RUNS)));
             default -> throw new IllegalArgumentException("Unknown cleanup item " + item.entityType());
         };
     }

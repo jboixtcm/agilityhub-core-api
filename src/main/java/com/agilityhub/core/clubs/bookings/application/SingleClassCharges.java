@@ -33,6 +33,8 @@ public class SingleClassCharges implements SingleClassChargePort {
         return Optional.of(new Terms(ChargeMode.valueOf(plan.chargeMode()), plan.price()));
     }
     @Override public Pending prepare(String ownerMemberId, String dogId, String bookingId, Money price, String description) {
+        // The same guards as the signup checkout (CheckoutService.create): the club has the provider enabled, and a gateway exists.
+        if (!clubs.providerEnabled("STRIPE")) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
         if (gateways.getIfAvailable() == null) { throw new ApiException(ErrorCode.NOT_IMPLEMENTED); }
         var expiresAt = context.now().plus(Duration.ofMinutes(context.integer("bookings.paymentPendingMinutes")));
         var checkout = checkouts.prepareBooking(ownerMemberId, bookingId, new UpfrontPayments.Charge("SINGLE_CLASS", dogId, price), expiresAt);
@@ -48,5 +50,5 @@ public class SingleClassCharges implements SingleClassChargePort {
                 null, base + "?payment=success", base + "?payment=cancel", pending.expiresAt());
         return gateways.getObject().createCheckoutSession(request);
     }
-    @Override public void abandon(Pending pending) { checkouts.expire(pending.sessionId()); }
+    @Override public void abandon(String checkoutSessionId) { checkouts.expire(checkoutSessionId); }
 }

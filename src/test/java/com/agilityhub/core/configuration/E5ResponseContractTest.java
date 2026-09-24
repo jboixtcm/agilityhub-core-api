@@ -114,9 +114,12 @@ class E5ResponseContractTest {
     @Test void T_08_47_T_09_24_T_15_29_notificationsMatchTheirCatalogRowsAndVariables() throws Exception {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_NOTIFICACIONS.md"));
         var fixtures = mapper.readTree(getClass().getResourceAsStream("/fixtures/contracts/e5-notifications.json"));
-        assertThat(fixtures.fieldNames()).toIterable().containsExactly("N-04", "N-05", "N-06", "N-07", "N-15", "N-36", "N-40", "N-42", "N-46", "N-47");
+        // E5-T10: also the E5-T05 notices; N-16 once per audience (`audience` is the ICU select of its template).
+        assertThat(fixtures.fieldNames()).toIterable().containsExactly("N-04", "N-05", "N-06", "N-07", "N-15", "N-16#MEMBER", "N-16#STAFF", "N-17", "N-33",
+                "N-36", "N-40", "N-42", "N-46", "N-47", "N-54");
         fixtures.fields().forEachRemaining(entry -> {
-            String row = catalog.lines().filter(line -> line.startsWith("| " + entry.getKey() + " |")).findFirst().orElseThrow();
+            String code = entry.getKey().split("#")[0];
+            String row = catalog.lines().filter(line -> line.startsWith("| " + code + " |")).findFirst().orElseThrow();
             assertThat(row).contains("`" + entry.getValue().path("event").asText());
             // N-07 writes «idem»: its variables are the ones of N-06.
             String variables = row.contains("| idem |") ? catalog.lines().filter(line -> line.startsWith("| N-06 |")).findFirst().orElseThrow() : row;

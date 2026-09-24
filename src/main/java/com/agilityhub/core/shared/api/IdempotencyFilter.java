@@ -141,7 +141,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;
-            try (var operation = com.agilityhub.core.shared.application.IdempotentOperation.open(
+            var operation = com.agilityhub.core.shared.application.IdempotentOperation.open(
                     () -> records.lock(record), (status, bytes) -> {
                         records.complete(record, status, bytes, Map.of("Content-Type", List.of("application/json"),
                                 "Content-Language", List.of(com.agilityhub.core.shared.application.LocaleContext.current().toLanguageTag())));
@@ -149,11 +149,13 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                                 new org.springframework.transaction.support.TransactionSynchronization() {
                                     @Override public void afterCommit() { completed.set(true); }
                                 });
-                    })) {
+                    });
+            try {
                 chain.doFilter(new BufferedRequest(request, body), target);
             } finally {
+                operation.close();
                 if (!completed.get()) {
-                    if (target instanceof ContentCachingResponseWrapper cached && (cached.getStatus() == 409 || cached.getStatus() == 422)
+                    if (!operation.released() && target instanceof ContentCachingResponseWrapper cached && (cached.getStatus() == 409 || cached.getStatus() == 422)
                             && !transientOutcome(cached.getContentAsByteArray())) {
                         transactions.executeWithoutResult(status -> {
                             records.lock(record);

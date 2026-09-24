@@ -1,11 +1,14 @@
 package com.agilityhub.core.clubs.bookings.application;
 
 import com.agilityhub.core.clubs.bookings.domain.BookingEvent;
-import com.agilityhub.core.clubs.bookings.persistence.*;
-import com.agilityhub.core.shared.application.*;
+import com.agilityhub.core.clubs.bookings.persistence.WaitlistEntry;
+import com.agilityhub.core.clubs.bookings.persistence.WaitlistEntryRepository;
+import com.agilityhub.core.shared.application.DomainEventHandler;
+import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.events.SchedulerEvent;
 import java.util.Objects;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * S08 §7 consumed waiting-list events, idempotent by state (a redelivery finds nothing left to offer):

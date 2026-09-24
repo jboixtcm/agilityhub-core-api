@@ -25,5 +25,11 @@ public record Booking(@Id String id, String clubId, String classSessionId, Strin
         @Version Long version, Instant createdAt, String createdByAccountId, Instant updatedAt, String updatedByAccountId) implements TenantEntity {
     public record Actor(String accountId, String impersonatedMemberId, String displayName) { }
     public record Canceller(String accountId, ActorRole role, String displayName, String impersonatedMemberId) { }
-    public record Charge(ChargeMode mode, Money price, String chargeInvoiceLineRef, String checkoutSessionId, String paymentIntentId, Instant paidAt) { }
+    /** `checkoutUrl` is the provider's checkout of a PAY_TO_BOOK booking, kept only while it is PAYMENT_PENDING (S08 §6, E5-T10). */
+    public record Charge(ChargeMode mode, Money price, String chargeInvoiceLineRef, String checkoutSessionId, String paymentIntentId, Instant paidAt,
+            String checkoutUrl) {
+        public Charge withCheckoutUrl(String url) { return new Charge(mode, price, chargeInvoiceLineRef, checkoutSessionId, paymentIntentId, paidAt, url); }
+        /** The charge once its booking leaves PAYMENT_PENDING: the checkout link is gone. */
+        public static Charge settled(Charge charge) { return charge == null || charge.checkoutUrl() == null ? charge : charge.withCheckoutUrl(null); }
+    }
 }

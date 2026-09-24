@@ -20,17 +20,18 @@ public class BookingCounters {
         this.context = context; this.classes = classes; this.bookings = bookings; this.waitlist = waitlist; this.events = events;
     }
     /**
-     * @param inTimeCancellation a `BookingCancelled{late: false}` of this class happened in the transaction, or a
-     *        `WaitlistExpired` left it unchanged (R-15-12b): the drops that may alert
+     * @param alertIfBelowMinimum the two R-15-12b triggers: a `BookingCancelled{late: false}` of this class happened in
+     *        the transaction, or a `WaitlistExpired` (P6) left it unchanged. A P6 expiry alerts whenever the class is
+     *        below the minimum with no standing alert, even without a drop (E5-T10).
      */
-    public void recount(String classSessionId, boolean inTimeCancellation, BookingActor actor) {
+    public void recount(String classSessionId, boolean alertIfBelowMinimum, BookingActor actor) {
         var session = classes.find(classSessionId).orElse(null);
         if (session == null || !session.active()) { return; }
         int booked = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
         int waiting = context.enabled(Module.WAITLIST) ? waitlist.live(classSessionId).size() : 0; // S08 §9; recounted when WAITLIST is back on (BookingConsumers)
         int minDogs = context.integer("classes.minDogs"); var alert = LowAlert.KEEP;
         if (booked >= minDogs && session.lowAlertSentAt() != null) { alert = LowAlert.CLEAR; }
-        else if (inTimeCancellation && booked < minDogs && session.lowAlertSentAt() == null && !session.riskExempt()
+        else if (alertIfBelowMinimum && booked < minDogs && session.lowAlertSentAt() == null && !session.riskExempt()
                 && context.now().isBefore(session.startsAt())) {
             alert = LowAlert.SET; events.belowMinimum(classSessionId, booked, minDogs, actor);
         }

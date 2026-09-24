@@ -73,7 +73,7 @@ public class BookingConfirmationService {
                     + (int) holds.live(s.id(), now).stream().filter(h -> !h.id().equals(hold.id())).count();
             if (taken >= s.capacity()) { throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", bookings.forClass(s.id(), BookingRepository.LIVE).size() < s.capacity())); }
             var terms = seatHolds.singleClass(subject.owner().id());
-            var charge = terms.map(t -> new Booking.Charge(t.mode(), t.price(), null, null, null, null)).orElse(null);
+            var charge = terms.map(t -> new Booking.Charge(t.mode(), t.price(), null, null, null, null, null)).orElse(null);
             boolean payToBook = terms.filter(t -> t.mode() == ChargeMode.PAY_TO_BOOK).isPresent();
             String id = UUID.randomUUID().toString();
             String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id) : null;
@@ -81,7 +81,7 @@ public class BookingConfirmationService {
             SingleClassChargePort.Pending checkout = null;
             if (payToBook) { // R-08-18: the due line and the session only; the provider is called after the commit (openCheckout)
                 checkout = charges.prepare(subject.owner().id(), subject.dog().id(), id, terms.get().price(), views.labels(s).description());
-                charge = new Booking.Charge(charge.mode(), charge.price(), null, checkout.sessionId(), null, null);
+                charge = new Booking.Charge(charge.mode(), charge.price(), null, checkout.sessionId(), null, null, null);
             }
             var booking = bookings.insert(new Booking(id, TenantContext.require(), s.id(), subject.dog().id(), subject.owner().id(),
                     payToBook ? BookingState.PAYMENT_PENDING : BookingState.ACTIVE, actor.origin(), now,
@@ -103,19 +103,41 @@ public class BookingConfirmationService {
 
     /**
      * R-08-18 PAY_TO_BOOK, after the booking transaction committed (never inside the retried transaction, no seat lock
-     * held): the provider is asked once for the checkout. If that call fails, the checkout is abandoned and the
-     * PAYMENT_PENDING booking is cancelled by the system (PAYMENT_TIMEOUT: the seat is released now instead of after
-     * `bookings.paymentPendingMinutes`) and the failure is rethrown.
+     * held): the provider is asked once for the checkout, and its URL is kept on the booking (S08 §6) so that
+     * `GET /bookings/{id}` shows it again even if the 201 is never stored. If either step fails:
+     * <ul>
+     * <li>the booking is cancelled by the system only if it is still PAYMENT_PENDING (PAYMENT_TIMEOUT, `checkoutFailed`:
+     * no N-40, E30; the seat is released now instead of after `bookings.paymentPendingMinutes`). The
+     * `UpfrontPaymentFailed` consumer may have cancelled it first; then nothing more happens;</li>
+     * <li>then the checkout is abandoned, so its `UpfrontPaymentFailed` finds the booking already cancelled;</li>
+     * <li>the original failure is rethrown, with any later failure added as suppressed.</li>
+     * </ul>
      */
     public Confirmed openCheckout(Confirmed confirmed) {
         if (confirmed.checkout() == null) { return confirmed; }
         if (TransactionSynchronizationManager.isActualTransactionActive()) { throw new IllegalStateException("The PAY_TO_BOOK checkout opens after the commit"); }
-        try { return new Confirmed(confirmed.booking(), charges.open(confirmed.checkout()), null); }
-        catch (RuntimeException failure) {
-            charges.abandon(confirmed.checkout());
-            cancellations.cancelBySystem(confirmed.booking().id(), BookingCancelReason.PAYMENT_TIMEOUT);
+        String bookingId = confirmed.booking().id();
+        try {
+            String url = charges.open(confirmed.checkout());
+            return new Confirmed(keepCheckoutUrl(confirmed.booking(), url), url, null);
+        } catch (RuntimeException failure) {
+            try { cancellations.cancelPaymentPending(bookingId, true); } catch (RuntimeException later) { failure.addSuppressed(later); }
+            try { charges.abandon(confirmed.checkout().sessionId()); } catch (RuntimeException later) { failure.addSuppressed(later); }
             throw failure;
         }
+    }
+    /** The URL is written only while the booking is still PAYMENT_PENDING; it is cleared when the booking leaves that state. */
+    private Booking keepCheckoutUrl(Booking created, String url) {
+        return transactions.write(List.of(created.classSessionId()), () -> {
+            locks.lock(created.classSessionId());
+            var b = bookings.require(created.id());
+            if (b.state() != BookingState.PAYMENT_PENDING) { return b; }
+            return bookings.update(new Booking(b.id(), b.clubId(), b.classSessionId(), b.dogId(), b.memberId(), b.state(), b.origin(), b.bookedAt(),
+                    b.bookedBy(), b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), b.cancelledAt(), b.cancelledBy(), b.cancelReason(),
+                    b.cancelMessage(), b.late(), b.minutesBefore(), b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(), b.packMovementId(),
+                    b.packRefundMovementId(), b.charge().withCheckoutUrl(url), b.reminderSentAt(), b.version() + 1, b.createdAt(),
+                    b.createdByAccountId(), b.updatedAt(), b.updatedByAccountId()), b.version());
+        });
     }
     void created(Booking b, BookingActor actor) {
         var payload = new LinkedHashMap<String, Object>(); payload.put("bookingId", b.id()); payload.put("classId", b.classSessionId());
@@ -141,7 +163,7 @@ public class BookingConfirmationService {
             if (b.state() != BookingState.PAYMENT_PENDING) { return null; }
             // Only a PAY_TO_BOOK booking is PAYMENT_PENDING, so it always carries its charge.
             var now = context.now(); var charge = new Booking.Charge(b.charge().mode(), b.charge().price(),
-                    b.charge().chargeInvoiceLineRef(), b.charge().checkoutSessionId(), b.charge().paymentIntentId(), now);
+                    b.charge().chargeInvoiceLineRef(), b.charge().checkoutSessionId(), b.charge().paymentIntentId(), now, null);
             var after = bookings.update(new Booking(b.id(), b.clubId(), b.classSessionId(), b.dogId(), b.memberId(), BookingState.ACTIVE, b.origin(),
                     b.bookedAt(), b.bookedBy(), b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), null, null, null, null, null, null,
                     b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(), b.packMovementId(), b.packRefundMovementId(), charge,

@@ -65,10 +65,47 @@ public class CleanupRepository {
      * Published (fully processed) outbox events of the club before `before`; PENDING/FAILED ones are never touched.
      * Events without a `clubId` (platform, identity) are outside every club's cleanup.
      */
-    public long processedEvents(String clubId, Instant before) { return mongo.count(processed(clubId, before), DOMAIN_EVENTS); }
-    public long deleteProcessedEvents(String clubId, Instant before) { return mongo.remove(processed(clubId, before), DOMAIN_EVENTS).getDeletedCount(); }
-    private static Query processed(String clubId, Instant before) {
-        return Query.query(scope(clubId).and("status").is("PUBLISHED").and("publishedAt").lt(before));
+    public long processedEvents(String clubId, Instant before) { return mongo.count(processed(scope(clubId), before), DOMAIN_EVENTS); }
+    public long deleteProcessedEvents(String clubId, Instant before) { return mongo.remove(processed(scope(clubId), before), DOMAIN_EVENTS).getDeletedCount(); }
+    private static Query processed(Criteria owner, Instant before) {
+        return Query.query(owner.and("status").is("PUBLISHED").and("publishedAt").lt(before));
+    }
+
+    /*
+     * The platform pass (organizer ruling of 24-09 on E5-T05 round 2): the `domain_events` and `job_runs` with no
+     * `clubId` (platform and identity rows), with the club pass's rules, once per P9 cycle. `platform()` matches only
+     * rows without a `clubId`, so this pass can never touch a club row.
+     */
+    static final String PLATFORM_CYCLE = "platform:CLEANUP";
+    private static Criteria platform() { return Criteria.where("clubId").is(null); }
+
+    /**
+     * The P9 cycle is the UTC day of the occurrence: the first real P9 run of that day (any club) claims the platform
+     * pass until the day ends; every other run of the same day, and a late catch-up of an older day, gets false. The
+     * claim is a `job_locks` lease (`holder` = the club whose run does the pass), so Mongo's TTL removes it afterwards.
+     */
+    public boolean claimPlatformCycle(String clubId, Instant occurrence) {
+        String holder = tenant(clubId);
+        var cycleEnd = occurrence.atZone(java.time.ZoneOffset.UTC).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        try {
+            var query = Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").lte(occurrence));
+            var update = new org.springframework.data.mongodb.core.query.Update().set("holder", holder).set("acquiredAt", occurrence).set("expiresAt", cycleEnd);
+            return mongo.findAndModify(query, update, org.springframework.data.mongodb.core.FindAndModifyOptions.options().upsert(true).returnNew(true),
+                    Document.class, "job_locks") != null;
+        } catch (org.springframework.dao.DuplicateKeyException claimed) {
+            return false;
+        }
+    }
+    /** For a dry run: would a real run of this occurrence still get the platform pass? (claims nothing) */
+    public boolean platformCycleOpen(Instant occurrence) {
+        return !mongo.exists(Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").gt(occurrence)), "job_locks");
+    }
+    public long processedPlatformEvents(Instant before) { return mongo.count(processed(platform(), before), DOMAIN_EVENTS); }
+    public long deleteProcessedPlatformEvents(Instant before) { return mongo.remove(processed(platform(), before), DOMAIN_EVENTS).getDeletedCount(); }
+    public List<String> expiredPlatformRuns(String job, Instant before, int keep) { return expiredRuns(platform(), platform(), job, before, keep); }
+    public long deletePlatformRuns(Collection<String> ids) {
+        if (ids.isEmpty()) { return 0; }
+        return mongo.remove(Query.query(platform().and("_id").in(ids)), JOB_RUNS).getDeletedCount();
     }
 
     /** `stripe_events` arrives with S12 (E8): until the collection exists there is nothing to delete. */
@@ -81,10 +118,12 @@ public class CleanupRepository {
      * Runs of one process finished before `before`, except the `keep` most recent **executions** of that process: real
      * runs that did work (not dry runs, not `SKIPPED` rows), so an admin's simulations never push the history out.
      */
-    public List<String> expiredRuns(String clubId, String job, Instant before, int keep) {
-        var latest = mongo.find(Query.query(scope(clubId).and("job").is(job).and("dryRun").ne(true).and("status").ne("SKIPPED"))
+    public List<String> expiredRuns(String clubId, String job, Instant before, int keep) { return expiredRuns(scope(clubId), scope(clubId), job, before, keep); }
+    /** `owner` twice: a Criteria is mutable, so each of the two queries gets its own instance. */
+    private List<String> expiredRuns(Criteria latestOwner, Criteria expiredOwner, String job, Instant before, int keep) {
+        var latest = mongo.find(Query.query(latestOwner.and("job").is(job).and("dryRun").ne(true).and("status").ne("SKIPPED"))
                 .with(Sort.by(Sort.Direction.DESC, "startedAt", "_id")).limit(keep), Document.class, JOB_RUNS).stream().map(d -> d.getString("_id")).toList();
-        return mongo.find(Query.query(scope(clubId).and("job").is(job).and("finishedAt").lt(before).and("_id").nin(latest))
+        return mongo.find(Query.query(expiredOwner.and("job").is(job).and("finishedAt").lt(before).and("_id").nin(latest))
                 .with(Sort.by("startedAt", "_id")), Document.class, JOB_RUNS).stream().map(d -> d.getString("_id")).toList();
     }
     public long deleteRuns(String clubId, Collection<String> ids) {

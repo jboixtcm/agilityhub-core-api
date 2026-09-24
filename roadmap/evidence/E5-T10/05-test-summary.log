@@ -1,0 +1,254 @@
+Source: target/surefire-reports/TEST-*.xml and target/failsafe-reports/TEST-*.xml after ./mvnw -q clean verify (exit 0)
+unit/contract (surefire): {'tests': 469, 'failures': 0, 'errors': 0, 'skipped': 0}
+integration (failsafe):   {'tests': 758, 'failures': 0, 'errors': 0, 'skipped': 0}
+
+Methods of the classes this task touched:
+  PASS ArchitectureTest.E3_T02_signupDomainHasNoSpringOrMongo
+  PASS ArchitectureTest.E0_T01_domainHasNoWebDataSecurityOrServletDependencies
+  PASS ArchitectureTest.E0_T01_contextsHaveNoCycles
+  PASS ArchitectureTest.E0_T01_crossContextAccessUsesApplication
+  PASS ArchitectureTest.E0_T01_sharedDependsOnNoOtherContext
+  PASS ArchitectureTest.E5_T01_timeComesFromTheClock
+  PASS ArchitectureTest.E5_T09_onlyDemoSeedClassesRunAsTheSeedActor
+  PASS ArchitectureTest.E5_T09_onlyTheBookingWritersSetTheClassCounters
+  PASS ArchitectureTest.E5_T09_consumerEnvelopesAreNotPublishable
+  PASS ClockRuleTest.T_15_07_systemClocksAndNewDateOutsideTheClockConfigurationAreViolations
+  PASS ClockRuleTest.T_15_07_systemClockCallsOutsideTheClockBeansAreViolations
+  PASS ClockRuleTest.T_15_07_injectedClockReadsPass
+  PASS ClockRuleTest.T_15_07_nowWithAZoneAndCalendarGetInstanceAreViolations
+  PASS BookingPortsTest.transactionsRetryWriteConflictsAtMostThreeTimesAndNeverOtherFailures
+  PASS BookingPortsTest.theInactivityStandInCoversInclusiveAndOpenEndedPeriodsPerClub
+  PASS BookingPortsTest.thePackStandInConsumesRefundsAndNeverRevivesAnExpiredPack
+  PASS BookingPortsTest.calendarTokensAreTenantBoundExpireAtClassEndAndNeedAKeyInStagingOrProd
+  PASS BookingPortsTest.aPayToBookCheckoutIsNeverOpenedInsideATransaction
+  PASS BookingPortsTest.notificationCodesFollowOriginActorAndReason
+  PASS BookingPortsTest.demoRowsRejectImpossibleCounts
+  PASS BookingPortsTest.actorsAndForeignEnvelopes
+  PASS BookingPortsTest.seedEventsAreStampedWithTheBusinessInstantLikeTheirBookings
+  PASS BookingPortsTest.attendanceDefaultsCountOnlyPresentAndNoShowMarks
+  PASS RiskReviewQueryTest.R_15_12_T_14_05_theRiskRowsOfAWindowReadBookingsMembersAndDogsOnceEach
+  PASS SchedulingPortDefaultsTest.E4_T03_nullObjectsAnswerEmptyUntilTheOwningContextsReplaceThem
+  PASS E5ResponseContractTest.T_08_47_T_09_24_T_15_29_notificationsMatchTheirCatalogRowsAndVariables
+  PASS E5ResponseContractTest.T_08_47_T_09_24_T_15_29_formsKeepEveryDocumentedFieldDuringRoundTrip
+  PASS E5ResponseContractTest.T_08_47_T_09_24_T_15_29_eventsHaveExactlyTheApprovedPayloadFieldsAndEnvelope
+  PASS E5ResponseContractTest.T_09_24_memberProjectionsNeverExposeTheSeatGuardOrStaffOnlyDataByName
+  PASS BookingJobsIT.T_15_25_T_08_35_aStalePaymentPendingBookingIsCancelledOnceAndItsSeatReleased
+  PASS BookingJobsIT.T_15_24_T_08_34_aFifoOfferExpiresAtConfirmByIntoTheNextEntryOnce
+  PASS BookingJobsIT.R_15_12b_aFifoExpiryThatLeavesTheClassBelowTheMinimumAlertsStaffInTheSameTransaction
+  PASS CleanupJobIT.T_15_27_thePlatformPassPurgesRowsWithoutAClubOncePerCycleAndNoClubRow
+  PASS CleanupJobIT.T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns
+  PASS CleanupJobIT.T_15_27_cleanupIsBoundToItsClubAndKeepsTheLastFiveExecutionsNotDryRunsOrSkips
+  PASS RiskReviewJobIT.T_15_15_riskReviewServesFormAWithStatusesAndNamesForStaffOnlyAndPerClub
+  PASS RiskReviewJobIT.T_15_06_dryRunPlanMatchesTheRealRunAndWritesNothing
+  PASS RiskReviewJobIT.T_15_04_riskReviewCatchesUpUntilTheEndOfTheLocalDayThenMissesItsWindow
+  PASS RiskReviewJobIT.T_15_14_exemptSameDayOffMinimumStartedPendingDraftAndStaleCounters
+  PASS RiskReviewJobIT.T_15_13_theReviewCancelsTodayWarnsTheNextDaysOnceAndNotifiesStaffAndStudents
+  PASS RiskReviewJobIT.R_15_12b_anInTimeDropBelowTheMinimumAlertsStaffOnceAndClearsWhenRecovered
+  PASS RiskReviewJobIT.T_15_15_T_14_05_theDashboardRiskCardIsTheRiskReviewFormA
+  PASS SingleClassCheckoutIT.T_15_25_R_08_18_aTimedOutBookingExpiresItsCheckoutSoALateSuccessNeverSettlesItAndN40IsSent
+  PASS SingleClassCheckoutIT.T_08_24_aProviderFailureWithABusinessStatusStillReleasesTheKey
+  PASS SingleClassCheckoutIT.T_08_24_aRetriedConfirmationOpensOneProviderCheckoutAfterTheCommit
+  PASS SingleClassCheckoutIT.T_08_24_theCheckoutUrlIsKeptOnTheBookingWhenTheResponseIsNotStored
+  PASS SingleClassCheckoutIT.T_08_24_whenTheFailedPaymentConsumerCancelsFirstTheProviderFailureIsRethrownAndTheKeyReleased
+  PASS SingleClassCheckoutIT.T_08_24_aFailedProviderCallCancelsTheBookingAndReleasesTheSeatAtOnce
+  PASS SingleClassCheckoutIT.T_08_24_payToBookNeedsTheProviderEnabledForTheClub
+  PASS DashboardIT.T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants
+  PASS DashboardIT.T_14_22_crossTenantJoinsRolesAndRealImpersonationAreDenied
+  PASS DashboardIT.T_14_04_pendingAggregateUsesOldestPendingDogAllWarningsAndTenantScopedJoins
+  PASS DashboardIT.T_14_11_validationInvalidatesDashboardAndCountersThroughActualOutbox
+  PASS DashboardIT.T_14_11_concurrentReadersShareOneClubLoadAndUnauthenticatedCallsFail
+  PASS DashboardIT.T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner
+  PASS DashboardIT.T_14_06_sharedActivityCountsOnlyActiveDogsOfActiveTenantOwners
+  PASS DashboardIT.T_14_02_monthDeltaIncludesReadmissionsAndEffectiveLocalLeaves
+  PASS DashboardIT.T_14_11_allRegisteredInvalidationsCommitOnlyAndPreserveOtherClubs
+  PASS JobFrameworkIT.T_15_31_aRunWhoseLeaseExpiredIsFailedAndTakenAgainAsCatchUp
+  PASS JobFrameworkIT.T_15_08_manualTriggerIsAuditedAndRefusedWhileRunning
+  PASS JobFrameworkIT.T_15_03_anOccurrenceRunsOnceAcrossTicksInstancesAndTheUniqueIndex
+  PASS JobFrameworkIT.T_15_05_missedWindowSkipsAndAlerts
+  PASS JobFrameworkIT.T_15_06_dryRunRecordsOnlyThePlanAndThePlanMatchesTheRealEffects
+  PASS JobFrameworkIT.T_15_05_aClubWithNoRunHistoryStartsFromItsLatestOccurrenceOnly
+  PASS JobFrameworkIT.T_15_31_aRunThatFinishesBetweenTheReapersReadAndWriteStaysSucceeded
+  PASS JobFrameworkIT.T_15_01_aTickThatLastsPastTheNextMinuteIsAnOverrunAndSettlesItsLease
+  PASS JobFrameworkIT.T_15_05_switchModuleAndClubStatusRecordSkippedRunsOncePerOccurrenceOrHour
+  PASS JobFrameworkIT.T_15_31_aSlowCatchUpHolderReapedMidRunDoesNotOverwriteAndIsRetakenAsCatchUp
+  PASS JobFrameworkIT.T_15_31_aReapedHolderAppliesNoFurtherItemOfItsPlan
+  PASS JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay
+  PASS JobFrameworkIT.T_15_01_tickRunsEveryClubInCatalogOrderOncePerMinute
+
+Per class (tests / failures / errors / skipped):
+  unit ArchitectureRulesTest: 20 / 0 / 0 / 0
+  unit ArchitectureTest: 9 / 0 / 0 / 0
+  unit ClockRuleTest: 4 / 0 / 0 / 0
+  unit SeedAndWriterRulesTest: 3 / 0 / 0 / 0
+  unit CoreCliTest: 2 / 0 / 0 / 0
+  unit ActivityInfrastructureTest: 2 / 0 / 0 / 0
+  unit ActivityRulesTest: 9 / 0 / 0 / 0
+  unit BookingPortsTest: 10 / 0 / 0 / 0
+  unit BookingQueryServiceTest: 1 / 0 / 0 / 0
+  unit BookingRulesTest: 15 / 0 / 0 / 0
+  unit WaitlistRulesTest: 3 / 0 / 0 / 0
+  unit OfferTransactionsTest: 2 / 0 / 0 / 0
+  unit CapacityCalculatorTest: 6 / 0 / 0 / 0
+  unit OfferCalculatorsTest: 5 / 0 / 0 / 0
+  unit CensusValidationTest: 4 / 0 / 0 / 0
+  unit CensusRulesTest: 5 / 0 / 0 / 0
+  unit DemoDatasetTest: 3 / 0 / 0 / 0
+  unit ExportLifecycleTest: 3 / 0 / 0 / 0
+  unit ExportStorageTest: 3 / 0 / 0 / 0
+  unit ListExportTest: 2 / 0 / 0 / 0
+  unit ExportNamesTest: 1 / 0 / 0 / 0
+  unit ForeignEventTest: 1 / 0 / 0 / 0
+  unit PageContentTest: 27 / 0 / 0 / 0
+  unit DashboardPortDefaultsTest: 2 / 0 / 0 / 0
+  unit DashboardBuildersTest: 6 / 0 / 0 / 0
+  unit AttachmentServiceTest: 6 / 0 / 0 / 0
+  unit AttachmentStorageTest: 2 / 0 / 0 / 0
+  unit SendGridEmailSenderTest: 8 / 0 / 0 / 0
+  unit SendGridSignatureVerifierTest: 1 / 0 / 0 / 0
+  unit CoverageQueryTest: 1 / 0 / 0 / 0
+  unit RiskNotificationTextsTest: 1 / 0 / 0 / 0
+  unit RiskReviewQueryTest: 1 / 0 / 0 / 0
+  unit SchedulingTransactionsTest: 1 / 0 / 0 / 0
+  unit TemplateQueryTest: 2 / 0 / 0 / 0
+  unit SchedulingPortDefaultsTest: 1 / 0 / 0 / 0
+  unit CalendarRulesTest: 4 / 0 / 0 / 0
+  unit PlanningRulesTest: 7 / 0 / 0 / 0
+  unit SignupCatalogAdapterTest: 2 / 0 / 0 / 0
+  unit SignupContactsTest: 11 / 0 / 0 / 0
+  unit SignupPaymentsTest: 16 / 0 / 0 / 0
+  unit SignupPolicyTest: 6 / 0 / 0 / 0
+  unit TrainingApplicationTest: 4 / 0 / 0 / 0
+  unit TrainingRulesTest: 14 / 0 / 0 / 0
+  unit AuditConfigurationTest: 2 / 0 / 0 / 0
+  unit E2ResponseContractTest: 2 / 0 / 0 / 0
+  unit E3ResponseContractTest: 4 / 0 / 0 / 0
+  unit E4ResponseContractTest: 4 / 0 / 0 / 0
+  unit E5ResponseContractTest: 4 / 0 / 0 / 0
+  unit EmailConfigurationTest: 7 / 0 / 0 / 0
+  unit JwtConfigurationTest: 2 / 0 / 0 / 0
+  unit OidcClientConfigurationTest: 1 / 0 / 0 / 0
+  unit OpenApiConfigurationTest: 1 / 0 / 0 / 0
+  unit OpenApiRequiredContractTest: 3 / 0 / 0 / 0
+  unit OpenApiSnapshotTest: 9 / 0 / 0 / 0
+  unit ProfileConfigurationTest: 4 / 0 / 0 / 0
+  unit SecurityRetentionConfigurationTest: 1 / 0 / 0 / 0
+  unit SeedProfileTest: 8 / 0 / 0 / 0
+  unit PasswordGrantConverterTest: 2 / 0 / 0 / 0
+  unit RefreshCookiesTest: 2 / 0 / 0 / 0
+  unit CompromisedPasswordsTest: 3 / 0 / 0 / 0
+  unit ImportLearnCommandTest: 2 / 0 / 0 / 0
+  unit LearnCsvTest: 2 / 0 / 0 / 0
+  unit PasswordHasherTest: 4 / 0 / 0 / 0
+  unit EmailNormalisationTest: 1 / 0 / 0 / 0
+  unit LoginLockoutTest: 2 / 0 / 0 / 0
+  unit PlayoffAdapterTest: 5 / 0 / 0 / 0
+  unit ClubCorsConfigurationSourceTest: 1 / 0 / 0 / 0
+  unit RequiresModuleInterceptorTest: 1 / 0 / 0 / 0
+  unit ClubConfigServiceTest: 4 / 0 / 0 / 0
+  unit ClubEmailSettingsTest: 1 / 0 / 0 / 0
+  unit ClubFormatsTest: 7 / 0 / 0 / 0
+  unit ClubLocaleSettingsProviderTest: 1 / 0 / 0 / 0
+  unit CountryCsvTest: 1 / 0 / 0 / 0
+  unit ModuleCatalogContractTest: 1 / 0 / 0 / 0
+  unit ModuleDependencyValidatorTest: 20 / 0 / 0 / 0
+  unit ParameterCatalogContractTest: 1 / 0 / 0 / 0
+  unit AuditContractTest: 1 / 0 / 0 / 0
+  unit AuditedAspectTest: 3 / 0 / 0 / 0
+  unit ClubDefinitionCodecTest: 5 / 0 / 0 / 0
+  unit JobOccurrencesTest: 6 / 0 / 0 / 0
+  unit CountryProfileTest: 2 / 0 / 0 / 0
+  unit HostNamesTest: 1 / 0 / 0 / 0
+  unit ParameterValidatorTest: 8 / 0 / 0 / 0
+  unit AuditDiffTest: 7 / 0 / 0 / 0
+  unit AuditReadMaskerTest: 2 / 0 / 0 / 0
+  unit ApiExceptionHandlerTest: 8 / 0 / 0 / 0
+  unit HealthControllerTest: 12 / 0 / 0 / 0
+  unit RequestLocaleResolverTest: 12 / 0 / 0 / 0
+  unit TenantFilterTest: 3 / 0 / 0 / 0
+  unit ClubClockTest: 1 / 0 / 0 / 0
+  unit IcuFormatTest: 4 / 0 / 0 / 0
+  unit LocalLanesTest: 3 / 0 / 0 / 0
+  unit LocaleContextTest: 1 / 0 / 0 / 0
+  unit MessageParityTest: 1 / 0 / 0 / 0
+  unit OffsetClockTest: 1 / 0 / 0 / 0
+  unit RateLimitsTest: 2 / 0 / 0 / 0
+  unit TenantContextTest: 1 / 0 / 0 / 0
+  unit ListQueryTest: 32 / 0 / 0 / 0
+  unit ErrorCatalogContractTest: 3 / 0 / 0 / 0
+  unit EventCatalogContractTest: 2 / 0 / 0 / 0
+  unit LocalizedTextTest: 2 / 0 / 0 / 0
+  unit MoneyTest: 3 / 0 / 0 / 0
+  unit FixturesTest: 2 / 0 / 0 / 0
+  unit MockClockTest: 1 / 0 / 0 / 0
+  IT   ActivityConcurrencyIT: 3 / 0 / 0 / 0
+  IT   ActivityIT: 25 / 0 / 0 / 0
+  IT   BookingConcurrencyIT: 5 / 0 / 0 / 0
+  IT   BookingJobsIT: 3 / 0 / 0 / 0
+  IT   BookingLanesOffIT: 4 / 0 / 0 / 0
+  IT   BookingsIT: 18 / 0 / 0 / 0
+  IT   CleanupJobIT: 3 / 0 / 0 / 0
+  IT   JobsApiIT: 3 / 0 / 0 / 0
+  IT   MemberAggregatesIT: 6 / 0 / 0 / 0
+  IT   RiskReviewJobIT: 7 / 0 / 0 / 0
+  IT   SingleClassCheckoutIT: 7 / 0 / 0 / 0
+  IT   WaitlistIT: 13 / 0 / 0 / 0
+  IT   WeekOpeningJobIT: 4 / 0 / 0 / 0
+  IT   CatalogsIT: 19 / 0 / 0 / 0
+  IT   PlansIT: 15 / 0 / 0 / 0
+  IT   TeamIT: 13 / 0 / 0 / 0
+  IT   CensusIT: 37 / 0 / 0 / 0
+  IT   SignupIT: 31 / 0 / 0 / 0
+  IT   DemoPlanningSeedIT: 6 / 0 / 0 / 0
+  IT   DemoScenarioSeedIT: 4 / 0 / 0 / 0
+  IT   DemoSeedsIT: 8 / 0 / 0 / 0
+  IT   ExportEngineIT: 9 / 0 / 0 / 0
+  IT   UniversalListsIT: 23 / 0 / 0 / 0
+  IT   ClubPagesIT: 8 / 0 / 0 / 0
+  IT   DashboardIT: 9 / 0 / 0 / 0
+  IT   SendGridWebhookIT: 10 / 0 / 0 / 0
+  IT   SystemNotificationServiceIT: 15 / 0 / 0 / 0
+  IT   CalendarIT: 12 / 0 / 0 / 0
+  IT   PlanningIT: 10 / 0 / 0 / 0
+  IT   TrainingConcurrencyIT: 3 / 0 / 0 / 0
+  IT   TrainingIT: 22 / 0 / 0 / 0
+  IT   TrainingLanesOffIT: 9 / 0 / 0 / 0
+  IT   E2ContractIT: 14 / 0 / 0 / 0
+  IT   E3ContractIT: 17 / 0 / 0 / 0
+  IT   E4ContractIT: 63 / 0 / 0 / 0
+  IT   E4PersistenceIT: 3 / 0 / 0 / 0
+  IT   E5ContractIT: 38 / 0 / 0 / 0
+  IT   E5PersistenceIT: 4 / 0 / 0 / 0
+  IT   ManagementIT: 1 / 0 / 0 / 0
+  IT   MongoTransactionSmokeIT: 2 / 0 / 0 / 0
+  IT   OpenApiSnapshotTest: 9 / 0 / 0 / 0
+  IT   CookieRefreshIT: 4 / 0 / 0 / 0
+  IT   CorsIT: 3 / 0 / 0 / 0
+  IT   IdentityContractIT: 11 / 0 / 0 / 0
+  IT   IdentityCoreIT: 26 / 0 / 0 / 0
+  IT   IdentityCurlIT: 2 / 0 / 0 / 0
+  IT   ImpersonationHandoffIT: 8 / 0 / 0 / 0
+  IT   LearnImportIT: 8 / 0 / 0 / 0
+  IT   MeIT: 10 / 0 / 0 / 0
+  IT   OidcIT: 8 / 0 / 0 / 0
+  IT   OnboardingIT: 24 / 0 / 0 / 0
+  IT   PasswordGrantIT: 8 / 0 / 0 / 0
+  IT   PlatformRolesIT: 5 / 0 / 0 / 0
+  IT   RateLimitIT: 7 / 0 / 0 / 0
+  IT   SecurityEventIT: 4 / 0 / 0 / 0
+  IT   SecurityHeadersIT: 2 / 0 / 0 / 0
+  IT   SeedTestAccountsIT: 4 / 0 / 0 / 0
+  IT   TokenScopeIT: 4 / 0 / 0 / 0
+  IT   PlayoffMigrationIT: 9 / 0 / 0 / 0
+  IT   AuditQueriesIT: 7 / 0 / 0 / 0
+  IT   RequiresModuleIT: 9 / 0 / 0 / 0
+  IT   SettingsIT: 14 / 0 / 0 / 0
+  IT   AuditedAspectIT: 14 / 0 / 0 / 0
+  IT   ClubDefinitionsIT: 6 / 0 / 0 / 0
+  IT   JobFrameworkIT: 13 / 0 / 0 / 0
+  IT   JobFrameworkTwoInstancesIT: 1 / 0 / 0 / 0
+  IT   PlatformIT: 9 / 0 / 0 / 0
+  IT   HealthIndependenceIT: 1 / 0 / 0 / 0
+  IT   ResponseLocaleIT: 2 / 0 / 0 / 0
+  IT   IdempotencyIT: 9 / 0 / 0 / 0
+  IT   OutboxIT: 9 / 0 / 0 / 0
+  IT   IntegrationTestSupportIT: 2 / 0 / 0 / 0

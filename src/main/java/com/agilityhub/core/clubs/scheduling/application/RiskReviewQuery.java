@@ -54,38 +54,52 @@ public class RiskReviewQuery {
         boolean autoCancel = config.get("classes.riskAutoCancelSameDay", Boolean.class);
         var reviewTime = LocalTime.parse(config.get("classes.riskReviewTime", String.class));
         var catalog = context.catalog();
+        var window = classes.startingBetween(date.atStartOfDay(zone).toInstant(), date.plusDays(lookahead + 1L).atStartOfDay(zone).toInstant());
+        // E5-T10: every read below is one batch over the window's classes, never one read per class or per registrant.
+        var cancelled = window.stream().filter(RiskReviewQuery::cancelledByReview).map(ClassSession::id).toList();
+        // A class that has begun is out of the review's reach (RiskReviewJob's skippedStarted): nothing will act on it.
+        var candidates = window.stream().filter(c -> c.state() == ClassState.ACTIVE && !(c.risk() != null && c.risk().exempt()) && c.startsAt().isAfter(now))
+                .map(ClassSession::id).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        var affected = cancelled.isEmpty() ? Map.<String, List<ClassBookingsPort.BookingRef>>of() : bookings.clubCancelledByClass(cancelled);
+        var live = candidates.isEmpty() ? Map.<String, List<ClassBookingsPort.BookingRef>>of() : bookings.activeBookingsByClass(candidates);
+        var atRisk = window.stream().filter(c -> candidates.contains(c.id()) && live.getOrDefault(c.id(), List.of()).size() < minDogs).toList();
+        var atRiskIds = atRisk.stream().map(ClassSession::id).collect(java.util.stream.Collectors.toSet());
+        var warnedIds = atRisk.stream().flatMap(c -> notifiedIds(c).stream()).distinct().toList();
+        var warned = new HashMap<String, ClassBookingsPort.BookingRef>();
+        if (!warnedIds.isEmpty()) { bookings.bookings(warnedIds).forEach(b -> warned.put(b.bookingId(), b)); }
+        var refs = new ArrayList<ClassBookingsPort.BookingRef>(warned.values()); affected.values().forEach(refs::addAll);
+        var people = census.people(refs.stream().map(ClassBookingsPort.BookingRef::memberId).collect(java.util.stream.Collectors.toSet()));
+        var dogs = census.dogs(refs.stream().map(ClassBookingsPort.BookingRef::dogId).collect(java.util.stream.Collectors.toSet()));
+        java.util.function.Function<List<ClassBookingsPort.BookingRef>, List<Notified>> names = list -> list.stream().map(b -> {
+            var person = people.getOrDefault(b.memberId(), new SchedulingRecipients.Person("", null));
+            var dog = dogs.get(b.dogId());
+            return new Notified(person.firstName() == null ? "" : person.firstName(), person.gender(), dog == null ? "" : dog.name());
+        }).toList();
         var rows = new ArrayList<Row>();
-        for (ClassSession c : classes.startingBetween(date.atStartOfDay(zone).toInstant(), date.plusDays(lookahead + 1L).atStartOfDay(zone).toInstant())) {
+        for (ClassSession c : window) {
             String label = c.date().equals(date) ? "TODAY" : c.date().equals(date.plusDays(1)) ? "TOMORROW" : "OTHER";
             String ring = catalog.rings().stream().filter(r -> r.id().equals(c.ringId())).map(SchedulingCatalog.Resource::name).findFirst().orElse(null);
-            if (c.state() == ClassState.CANCELLED && c.cancellation() != null && c.cancellation().reason() == ClassCancellationReason.RISK_REVIEW) {
-                rows.add(new Row(c, label, ring, c.cancellation().affectedBookings(), "AUTO_CANCELLED", c.cancellation().at(), null, cancellationNotified(c)));
+            if (cancelledByReview(c)) {
+                rows.add(new Row(c, label, ring, c.cancellation().affectedBookings(), "AUTO_CANCELLED", c.cancellation().at(), null,
+                        names.apply(affected.getOrDefault(c.id(), List.of()))));
                 continue;
             }
-            // A class that has begun is out of the review's reach (RiskReviewJob's skippedStarted): nothing will act on it.
-            if (c.state() != ClassState.ACTIVE || c.risk() != null && c.risk().exempt() || !c.startsAt().isAfter(now)) { continue; }
-            int booked = bookings.activeBookings(c.id()).size();
-            if (booked >= minDogs) { continue; }
-            var notified = riskNotified(c);
-            boolean warned = !notified.isEmpty() || c.risk() != null && c.risk().adminNotifiedAt() != null;
+            if (!atRiskIds.contains(c.id())) { continue; }
+            int booked = live.getOrDefault(c.id(), List.of()).size();
+            // The registrants the review has warned (N-16), in the order of the mark.
+            var notified = names.apply(notifiedIds(c).stream().distinct().map(warned::get).filter(Objects::nonNull).toList());
+            boolean wasWarned = !notified.isEmpty() || c.risk() != null && c.risk().adminNotifiedAt() != null;
             // AT_RISK = warned registrants; otherwise the review will act (WILL_CANCEL), or the club decides (WILL_REVIEW).
-            String status = warned && booked > 0 ? "AT_RISK" : autoCancel ? "WILL_CANCEL" : "WILL_REVIEW";
+            String status = wasWarned && booked > 0 ? "AT_RISK" : autoCancel ? "WILL_CANCEL" : "WILL_REVIEW";
             rows.add(new Row(c, label, ring, booked, status, null, WeekCalendarRules.resolve(c.date(), reviewTime, zone).instant(), notified));
         }
         return new Rows(date, reviewTime.toString(), lookahead, minDogs, autoCancel, List.copyOf(rows));
     }
 
-    /** The registrants the review has warned (N-16), by booking. */
-    public List<Notified> riskNotified(ClassSession c) {
-        var ids = c.risk() == null || c.risk().notifiedBookingIds() == null ? List.<String>of() : c.risk().notifiedBookingIds();
-        return ids.isEmpty() ? List.of() : names(bookings.bookings(ids));
+    private static boolean cancelledByReview(ClassSession c) {
+        return c.state() == ClassState.CANCELLED && c.cancellation() != null && c.cancellation().reason() == ClassCancellationReason.RISK_REVIEW;
     }
-    /** The registrants a club cancellation affected (N-08a). */
-    public List<Notified> cancellationNotified(ClassSession c) { return names(bookings.clubCancelled(c.id())); }
-    private List<Notified> names(List<ClassBookingsPort.BookingRef> refs) {
-        return refs.stream().map(b -> {
-            var person = census.person(b.memberId()).orElse(new SchedulingRecipients.Person("", null));
-            return new Notified(person.firstName() == null ? "" : person.firstName(), person.gender(), census.dog(b.dogId()).map(SchedulingRecipients.Dog::name).orElse(""));
-        }).toList();
+    private static List<String> notifiedIds(ClassSession c) {
+        return c.risk() == null || c.risk().notifiedBookingIds() == null ? List.of() : c.risk().notifiedBookingIds();
     }
 }

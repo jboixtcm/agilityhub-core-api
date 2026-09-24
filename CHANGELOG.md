@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T10: round-2 review follow-ups (E5-T01, E5-T02, E5-T05), ruling E30 and the platform purge.
+  - Jobs: the R-15-22 clock rule also forbids `now(ZoneId)` and `Calendar.getInstance()`. A holder whose lease renewal
+    fails applies no further item and closes as a lost lease. The reaper's `FAILED` is counted in
+    `jobs.run.duration`. The WARN of a reaped holder carries its local counters.
+  - PAY_TO_BOOK: a failed provider call cancels the booking only if it is still `PAYMENT_PENDING`, then abandons the
+    checkout and rethrows the original failure. The idempotency key is always released
+    (`IdempotentOperation.release()`). The provider must be enabled for the club (`422 PAYMENT_PROVIDER_NOT_ENABLED`).
+    `checkoutUrl` is kept on `Booking.charge` while `PAYMENT_PENDING`, so `GET /bookings/{id}` shows it again. P7 also
+    expires the timed-out booking's checkout session and line.
+  - E30: a booking cancelled because the provider call failed carries `checkoutFailed: true` in `BookingCancelled` and
+    sends no N-40. The P7 timeout still sends N-40.
+  - D1: the risk rows come from one batched read per collection (`activeBookingsByClass`, `clubCancelledByClass`,
+    `bookings`, `people`, `dogs`). The D1 labels (the three languages, the no-ring text, the club's default locale)
+    are built by `SessionProjection`. `bin/e5-smoke` asserts that `GET /dashboard .riskReview` equals
+    `GET /risk-review`.
+  - N-17 stores `class_description` and `ring_name` (its catalog row since 24-09). The notification contract fixture
+    covers N-16 (both audiences), N-17, N-33 and N-54.
+  - P9: a platform pass purges the `domain_events` and `job_runs` without `clubId` (catalog retention, the last five
+    real executions per process kept), once per UTC day, claimed by the first real P9 run of the day.
+
 - E5-T09: review follow-ups for S09/S15/S06 and the seeds (E4-T05, E5-T01, E5-T04, E5-T05 reviews) and two organizer
   rulings of 2026-09-24.
   - Errors: `JOB_UNKNOWN` is 404, `SLOT_NOT_ON_GRID` 400 and `OVERRIDE_NOT_ALLOWED` 403 (`ErrorCode` and §1 of

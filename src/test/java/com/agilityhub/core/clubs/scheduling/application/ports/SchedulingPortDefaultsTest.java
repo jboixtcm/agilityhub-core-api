@@ -22,5 +22,9 @@ class SchedulingPortDefaultsTest {
         assertThat(training.findActiveBookings("ring", Instant.EPOCH, Instant.EPOCH.plusSeconds(60))).isEmpty();
         assertThatCode(() -> training.cancelByClub(List.of("booking"), "RING_BLOCK")).doesNotThrowAnyException();
         assertThat(defaults.activityTitles().titles(Set.of("activity"), Locale.ENGLISH)).isEmpty();
+        // E5-T10: the batched reads default to the per-class ones, with every requested class as a key.
+        assertThat(bookings.activeBookingsByClass(List.of("a", "b"))).containsOnlyKeys("a", "b").allSatisfy((id, refs) -> assertThat(refs).isEmpty());
+        assertThat(bookings.clubCancelledByClass(List.of("a"))).containsOnlyKeys("a").allSatisfy((id, refs) -> assertThat(refs).isEmpty());
+        assertThat(bookings.bookings(List.of("booking"))).isEmpty();
     }
 }

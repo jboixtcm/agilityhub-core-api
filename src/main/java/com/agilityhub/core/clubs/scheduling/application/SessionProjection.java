@@ -29,6 +29,18 @@ public class SessionProjection {
                         config.get("classes.riskLookaheadDays",Integer.class),config.get("classes.riskAutoCancelSameDay",Boolean.class),zone()),clock.instant(),LocaleContext.current());
     }
     public String description(ClassSession c,Locale locale) { return context.descriptions().resolve(c.description(),c.levelIds(),context.catalog(),locale); }
+    private static final List<String> PRODUCT_LANGUAGES=List.of("ca","es","en");
+    /** S14 D1: the class description in the three product languages, falling back to the club's default language (E5-T10). */
+    public LocalizedText descriptions(ClassSession c) {
+        var values=new LinkedHashMap<String,String>(); for(String tag:PRODUCT_LANGUAGES) values.put(tag,description(c,Locale.forLanguageTag(tag)));
+        return new LocalizedText(values,context.config().club().defaultLocale());
+    }
+    /** S14 D1: the ring's name (never translated), or `scheduling.noRing` in each product language when the class has none (E5-T10). */
+    public LocalizedText ringNames(String ringName) {
+        var values=new LinkedHashMap<String,String>();
+        for(String tag:PRODUCT_LANGUAGES) values.put(tag,ringName!=null?ringName:messages.format("scheduling.noRing",Map.of(),Locale.forLanguageTag(tag)));
+        return new LocalizedText(values,context.config().club().defaultLocale());
+    }
     public String instructorName(ClassSession c,boolean staff) {
         int hours=context.config().get("bookings.showInstructorHoursBefore",Integer.class);
         if(!staff && hours!=0 && clock.instant().isBefore(c.startsAt().minusSeconds(hours*3600L))) return null;

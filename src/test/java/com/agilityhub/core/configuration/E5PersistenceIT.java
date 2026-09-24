@@ -101,7 +101,7 @@ class E5PersistenceIT extends AbstractIntegrationTest {
                     new Booking.Actor("account-admin", "member-a", "Example Admin"), starts, starts.plusSeconds(3600), "2026-10-04",
                     now, new Booking.Canceller("account-a", ActorRole.MEMBER, "Example", null), BookingCancelReason.SWAP, "Example message", false, 150,
                     "b0", "b2", "entry-a", "movement-a", "movement-b",
-                    new Booking.Charge(ChargeMode.CHARGE_ON_ATTENDANCE, new Money(1200, "EUR"), null, null, null, null), now,
+                    new Booking.Charge(ChargeMode.CHARGE_ON_ATTENDANCE, new Money(1200, "EUR"), null, null, null, null, null), now,
                     1L, now, "account-a", now, "account-a"));
             var stored = bookings.findById("e5p-b1").orElseThrow();
             assertThat(stored.charge().price()).isEqualTo(new Money(1200, "EUR"));

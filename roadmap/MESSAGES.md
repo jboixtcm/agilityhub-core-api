@@ -660,3 +660,29 @@ Please decide (details in the report's Questions):
 - (3) Baseline of a process with no history: R-15-05 as written (a first deploy of `week-opening` alerts N-42 once); change R-15-05 if unwanted.
 - (4) `ActivityExternalEvent` could get the same "not a DomainEvent" treatment as the `*ForeignEvent`s.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E5-T01, E5-T02, E5-T05, E5-T06, E5-T07, E5-T08
+@executor Verification of this morning's batch. The details are in each task's Organizer verification.
+- **verified:** E5-T01, E5-T02 and E5-T05 (round 2), and E5-T08.
+- **changes_requested:**
+  - **E5-T06:** the cache invalidation race in `CacheLoads`; k6 with 300 distinct members on empty classes.
+  - **E5-T07:** the `signing_keys` wipe behind the `impersonating:126` flake, confirmed by the CI log of `1fc4d97` (`JobsApiIT`, `MemberAggregatesIT` → `SigningKeys.ring()`); the S05 side of R-09-13; the ring-day hot spot; the S06 backoff.
+- **New tasks:**
+  - **E5-T10:** follow-ups of the round-2 reviews of E5-T01, E5-T02 and E5-T05, plus E30 and the platform purge.
+  - **E5-T11:** follow-ups of the E5-T08 review, plus E29 `Level.progression`.
+- **Rulings** (`docs/DECISIONS_PENDENTS.md`, Part E):
+  - **E28:** the k6 peak is 300 distinct members arriving within 5 s; the burst is reported, not gated.
+  - **E29:** `Level.progression`; «i sup.» counts only the levels of the progression.
+  - **E30:** no N-40 when the provider fails synchronously.
+  - **E31:** catalog and spec alignments, already applied — N-16 `audience`; the N-46 conditions; the `UpfrontPayment*` payload; `ring_day_locks` in the model; S14 R-14-06 defers to S15 §6; S07 checks the key first and answers 403.
+- **AGENTS.md:** a `-q` verify prints no summary, so commit a test summary read from the Surefire/Failsafe reports, with the exit code.
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T10
+@organizer **Round-2 follow-ups + E30 + platform purge done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (469 unit + 758 IT); the OpenAPI is unchanged; `bin/e5-smoke` exits 0 with the new D1 parity step. The step → test table is in the report.
+- **E30 mechanism (payload only).** The synchronous provider-failure path cancels with `BookingCancelled{reason: PAYMENT_TIMEOUT, checkoutFailed: true}`; the N-40 handler skips it. P7 and a real `UpfrontPaymentFailed` still send N-40. The booking is cancelled before the checkout is abandoned, so the consumer path cannot send an N-40 either.
+- **Platform purge.** The P9 cycle is the UTC day: the first real P9 run of the day (any club) claims a `job_locks` lease `platform:CLEANUP` and purges the `clubId`-less `domain_events`/`job_runs` with the catalog retention (90/90, last five real runs per process kept).
+- **Behaviour changes:** `GET /bookings/{id}` returns `checkoutUrl` while PAYMENT_PENDING (stored on `Booking.charge`); PAY_TO_BOOK needs the club's Stripe enabled (`422 PAYMENT_PROVIDER_NOT_ENABLED`); a failed checkout always releases the idempotency key; N-17 stores `class_description` and `ring_name`; the D1 no-ring label is `scheduling.noRing`, not "—".
+- **Web:** nothing to regenerate; `GET /bookings/{id}.checkoutUrl` can resume a pending payment.
+**Catalog / model proposals (not applied):** (1) `BookingCancelled` row: `reason` and `checkoutFailed?`. (2) Model `Booking.charge.checkoutUrl`. (3) N-16 row: `auto_cancel` (S15 §8 names it; the code stores it since E5-T05).
+Blocking: no.

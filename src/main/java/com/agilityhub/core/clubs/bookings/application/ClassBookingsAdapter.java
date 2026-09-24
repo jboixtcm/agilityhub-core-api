@@ -29,6 +29,17 @@ public class ClassBookingsAdapter implements ClassBookingsPort {
     @Override public List<BookingRef> clubCancelled(String classId) {
         return bookings.forClass(classId, List.of(com.agilityhub.core.clubs.bookings.domain.BookingState.CANCELLED_BY_CLUB)).stream().map(ClassBookingsAdapter::ref).toList();
     }
+    @Override public Map<String, List<BookingRef>> activeBookingsByClass(Collection<String> classIds) {
+        return byClass(classIds, bookings.forClasses(classIds, BookingRepository.LIVE));
+    }
+    @Override public Map<String, List<BookingRef>> clubCancelledByClass(Collection<String> classIds) {
+        return byClass(classIds, bookings.forClasses(classIds, List.of(com.agilityhub.core.clubs.bookings.domain.BookingState.CANCELLED_BY_CLUB)));
+    }
+    private static Map<String, List<BookingRef>> byClass(Collection<String> classIds, List<Booking> found) {
+        var result = new LinkedHashMap<String, List<BookingRef>>(); classIds.forEach(id -> result.put(id, new ArrayList<>()));
+        found.forEach(b -> result.computeIfAbsent(b.classSessionId(), id -> new ArrayList<>()).add(ref(b)));
+        return result;
+    }
     @Override @Transactional(propagation = Propagation.MANDATORY)
     public CancellationEffects cancelAllByClub(String classId, String reason, String actorAccountId) {
         var result = cancellations.cancelByClub(classId, reason, null, actorAccountId);

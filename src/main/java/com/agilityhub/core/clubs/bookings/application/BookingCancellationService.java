@@ -52,6 +52,22 @@ public class BookingCancellationService {
         });
     }
     /**
+     * R-08-18 `PAYMENT_TIMEOUT` of a PAY_TO_BOOK booking (P7, `UpfrontPaymentFailed`, a provider call that failed): the
+     * booking is re-read under the class's seat lock and cancelled only if it is still PAYMENT_PENDING, so two of these
+     * paths racing cancel once and the loser changes nothing (E5-T10). `checkoutFailed` marks the synchronous provider
+     * failure in the `BookingCancelled` payload: the member already saw the error, so it sends no N-40 (E30).
+     */
+    public Optional<Booking> cancelPaymentPending(String bookingId, boolean checkoutFailed) {
+        var initial = bookings.findById(bookingId).orElse(null);
+        if (initial == null || initial.state() != BookingState.PAYMENT_PENDING) { return Optional.empty(); }
+        return transactions.write(List.of(initial.classSessionId()), () -> {
+            locks.lock(initial.classSessionId());
+            var current = bookings.require(bookingId);
+            if (current.state() != BookingState.PAYMENT_PENDING) { return Optional.<Booking>empty(); }
+            return Optional.of(cancelLocked(current, BookingActor.system(), BookingCancelReason.PAYMENT_TIMEOUT, null, null, checkoutFailed));
+        });
+    }
+    /**
      * S15 P5c (`by = SYSTEM`, `LEAVE`) / S13 contract, not scheduled here: every live booking of the member's dogs
      * starting after now, inside the caller's transaction when there is one. {@code by} is recorded as the canceller;
      * a SYSTEM cancellation is never late.
@@ -75,6 +91,9 @@ public class BookingCancellationService {
      *        class of the new booking. A same-class swap keeps the class's count, so it never raises `ClassBelowMinimum`.
      */
     Booking cancelLocked(Booking b, BookingActor actor, BookingCancelReason reason, String message, String swapToClassId) {
+        return cancelLocked(b, actor, reason, message, swapToClassId, false);
+    }
+    private Booking cancelLocked(Booking b, BookingActor actor, BookingCancelReason reason, String message, String swapToClassId, boolean checkoutFailed) {
         boolean swap = swapToClassId != null, sameClassSwap = b.classSessionId().equals(swapToClassId);
         var now = context.now();
         boolean pending = b.state() == BookingState.PAYMENT_PENDING;
@@ -89,10 +108,11 @@ public class BookingCancellationService {
                 b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), now,
                 new Booking.Canceller(actor.accountId(), actor.role(), actor.displayName(), actor.impersonatedMemberId()),
                 swap ? BookingCancelReason.SWAP : reason, message, late, outcome.minutesBefore(), b.swapFromBookingId(), b.swapToBookingId(),
-                b.waitlistEntryId(), b.packMovementId(), refund, b.charge(), b.reminderSentAt(),
+                b.waitlistEntryId(), b.packMovementId(), refund, Booking.Charge.settled(b.charge()), b.reminderSentAt(),
                 b.version() + 1, b.createdAt(), b.createdByAccountId(), now, actor.accountId()), b.version());
         var payload = new LinkedHashMap<String, Object>(); payload.put("bookingId", b.id()); payload.put("by", actor.role()); payload.put("late", late);
         payload.put("minutesBefore", outcome.minutesBefore()); payload.put("origin", actor.origin()); payload.put("reason", after.cancelReason());
+        if (checkoutFailed) { payload.put("checkoutFailed", true); } // E30: payload only, no new reason value
         events.publish(BookingEvent.Kind.BookingCancelled, b.id(), payload, actor);
         if (now.isBefore(b.classStartsAt())) { seatReleased(b, now, outcome.minutesBefore(), actor); }
         counters.recount(b.classSessionId(), !late && !sameClassSwap, actor);
@@ -127,7 +147,7 @@ public class BookingCancellationService {
                     b.origin(), b.bookedAt(), b.bookedBy(), b.classStartsAt(), b.classEndsAt(), b.bookingWeekKey(), now,
                     new Booking.Canceller(actorAccountId, actorAccountId == null ? ActorRole.SYSTEM : ActorRole.ADMIN, null, null), cause, adminText,
                     false, CancellationPolicy.minutesBefore(b.classStartsAt(), now), b.swapFromBookingId(), b.swapToBookingId(), b.waitlistEntryId(),
-                    b.packMovementId(), refund, b.charge(), b.reminderSentAt(), b.version() + 1, b.createdAt(), b.createdByAccountId(), now, actorAccountId), b.version()));
+                    b.packMovementId(), refund, Booking.Charge.settled(b.charge()), b.reminderSentAt(), b.version() + 1, b.createdAt(), b.createdByAccountId(), now, actorAccountId), b.version()));
         }
         var entries = transitions.cancelAll(classSessionId, actorAccountId);
         holds.deleteForClass(classSessionId);

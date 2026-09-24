@@ -32,4 +32,17 @@ public class SchedulingRecipients {
                 .filter(m -> owners.contains(m.id)).map(m -> member(m.id).orElse(null)).filter(Objects::nonNull).toList();
     }
     public Optional<Dog> dog(String id) { return access.dogs.findById(id).map(d -> new Dog(d.id,d.name,d.levelId)); }
+    /** {@link #person} of many members in one `$in` read (the D1 risk card, E5-T10); erased and unknown ids are absent. */
+    public Map<String,Person> people(Collection<String> ids) {
+        var result=new HashMap<String,Person>(); if(ids.isEmpty()) return result;
+        access.members.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in(ids)).stream().filter(m -> m.erasedAt==null)
+                .forEach(m -> result.put(m.id,new Person(m.firstName,m.gender)));
+        return result;
+    }
+    /** {@link #dog} of many dogs in one `$in` read (the D1 risk card, E5-T10); unknown ids are absent. */
+    public Map<String,Dog> dogs(Collection<String> ids) {
+        var result=new HashMap<String,Dog>(); if(ids.isEmpty()) return result;
+        access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in(ids)).forEach(d -> result.put(d.id,new Dog(d.id,d.name,d.levelId)));
+        return result;
+    }
 }

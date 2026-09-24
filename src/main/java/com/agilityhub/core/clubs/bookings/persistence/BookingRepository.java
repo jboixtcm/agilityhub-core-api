@@ -33,6 +33,12 @@ public class BookingRepository extends TenantRepository<Booking> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId).and("state").in(states))
                 .with(Sort.by("bookedAt", "_id")), Booking.class);
     }
+    /** {@link #forClass(String, Collection)} for many classes in one `$in` read (the D1 risk card, E5-T10). */
+    public List<Booking> forClasses(Collection<String> classSessionIds, Collection<BookingState> states) {
+        if (classSessionIds.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").in(classSessionIds).and("state").in(states))
+                .with(Sort.by("bookedAt", "_id")), Booking.class);
+    }
     public List<Booking> forClass(String classSessionId) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("classSessionId").is(classSessionId)).with(Sort.by("bookedAt", "_id")), Booking.class);
     }

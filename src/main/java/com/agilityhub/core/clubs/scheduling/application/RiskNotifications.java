@@ -119,7 +119,8 @@ public class RiskNotifications {
             // ICU `select` of the N-16 template: will the class be cancelled automatically on its own day?
             values.put("auto_cancel", Boolean.TRUE.equals(config.get("classes.riskAutoCancelSameDay", Boolean.class)) ? "true" : "false");
         } else {
-            if (code.equals("N-54")) {
+            // N-54, and N-17 since the organizer ruling of 24-09 (E5-T05 proposal 1) added them to its catalog row.
+            if (code.equals("N-54") || code.equals("N-17")) {
                 values.put("class_description", projection.description(c, locale));
                 values.put("ring_name", context.catalog().rings().stream().filter(r -> r.id().equals(c.ringId())).map(SchedulingCatalog.Resource::name).findFirst().orElse(""));
             }

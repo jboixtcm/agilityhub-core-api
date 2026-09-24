@@ -174,6 +174,7 @@ public class JobRunner {
         var errors = new ArrayList<JobRun.RunError>();
         JobStatus status;
         Instant renewed = clock.instant();
+        boolean leaseLost = false;
         try {
             List<JobItem> plan = request.job().plan(context);
             if (request.dryRun()) {
@@ -185,7 +186,8 @@ public class JobRunner {
                 for (JobItem item : plan) {
                     if (Duration.between(renewed, clock.instant()).compareTo(RENEWAL) >= 0) {
                         renewed = clock.instant();
-                        locks.renew(lock, holder, renewed, LEASE);
+                        // E5-T10: a holder whose lease was reaped (or taken by a retake) applies nothing more of its stale plan.
+                        if (!locks.renew(lock, holder, renewed, LEASE)) { leaseLost = true; break; }
                     }
                     try {
                         JobEffect effect = write(() -> request.job().apply(context, item));
@@ -199,18 +201,26 @@ public class JobRunner {
                     }
                 }
             }
-            status = errors.isEmpty() ? JobStatus.SUCCEEDED : JobStatus.PARTIAL;
+            if (leaseLost) {
+                errors.addFirst(new JobRun.RunError(null, ErrorCode.INTERNAL_ERROR.name(), "Lease lost before the run finished",
+                        UUID.randomUUID().toString()));
+                status = JobStatus.FAILED;
+            } else {
+                status = errors.isEmpty() ? JobStatus.SUCCEEDED : JobStatus.PARTIAL;
+            }
         } catch (RuntimeException failure) {
             errors.addFirst(error(null, failure));
             status = JobStatus.FAILED;
             LOG.error("Job failed jobRunId={} job={} clubId={} traceId={}", running.id(), running.job(), request.clubId(),
                     errors.getFirst().traceId(), failure);
         }
-        var finished = running.finished(status, clock.instant(), entries(recorder.counters), items, errors, entries(recorder.snapshot), false);
+        // A lost lease closes the row like the reaper would (not exclusive), so the next tick can retake the occurrence.
+        var finished = running.finished(status, clock.instant(), entries(recorder.counters), items, errors, entries(recorder.snapshot), leaseLost);
         if (!complete(finished)) {
             // A slow holder whose lease was reaped: the reaper's FAILED row stands and the retake owns the occurrence.
-            LOG.warn("Job finished after its lease was reaped jobRunId={} job={} clubId={} status={}", running.id(), running.job(),
-                    request.clubId(), status);
+            // That row keeps the reaper's counters, so this WARN is the only trace of what the holder really applied (E5-T10).
+            LOG.warn("Job finished after its lease was reaped jobRunId={} job={} clubId={} status={} leaseLost={} counters={} items={}",
+                    running.id(), running.job(), request.clubId(), status, leaseLost, recorder.counters, items.size());
             return runs.findById(running.id()).orElse(finished);
         }
         metrics.finished(request.clubId(), running.job(), status, Duration.ofMillis(finished.durationMs()), recorder.counters);
@@ -228,9 +238,12 @@ public class JobRunner {
         // A dry run holds no lease: it is dead only once it has been RUNNING for longer than a lease would last.
         if (run.dryRun() ? run.startedAt().plus(LEASE).isAfter(now) : locks.held(clubId + ":" + run.job(), run.holder(), now)) { return false; }
         var error = new JobRun.RunError(null, ErrorCode.INTERNAL_ERROR.name(), "Lease expired before the run finished", UUID.randomUUID().toString());
-        if (!complete(run.finished(JobStatus.FAILED, now, run.counters(), run.items(), List.of(error), run.parametersSnapshot(), true))) {
+        var closed = run.finished(JobStatus.FAILED, now, run.counters(), run.items(), List.of(error), run.parametersSnapshot(), true);
+        if (!complete(closed)) {
             return false;
         }
+        // R-15-10: the reaper's FAILED is the outcome of record, so it is the one counted in jobs.run.duration (E5-T10).
+        metrics.finished(clubId, run.job(), JobStatus.FAILED, Duration.ofMillis(closed.durationMs()), Map.of());
         LOG.error("Job lease expired jobRunId={} job={} clubId={}", run.id(), run.job(), clubId);
         return true;
     }

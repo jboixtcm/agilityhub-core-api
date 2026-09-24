@@ -81,7 +81,9 @@ public class BookingViews {
         out.put("swapFromBookingId", b.swapFromBookingId());
         out.put("pack", context.enabled(Module.PACKS) ? packs.balance(b.memberId(), b.dogId()).map(p -> map("available", p.available(), "expiresOn", p.expiresOn())).orElse(null) : null);
         out.put("charge", b.charge() == null || !context.enabled(Module.SINGLE_CLASS) ? null : map("mode", b.charge().mode(), "price", b.charge().price(), "paidAt", b.charge().paidAt()));
-        out.put("checkoutUrl", b.state() == BookingState.PAYMENT_PENDING ? checkoutUrl : null);
+        // S08 §6: kept on the booking while PAYMENT_PENDING, so every read shows it again (E5-T10).
+        String kept = checkoutUrl != null ? checkoutUrl : b.charge() == null ? null : b.charge().checkoutUrl();
+        out.put("checkoutUrl", b.state() == BookingState.PAYMENT_PENDING ? kept : null);
         out.put("calendarLinks", calendarLinks(b, labels));
         // A cancellation always records `cancelledBy`, `late` and `minutesBefore` together with `cancelledAt`.
         out.put("cancellation", b.cancelledAt() == null ? null : map("at", b.cancelledAt(), "byDisplayName", Objects.toString(b.cancelledBy().displayName(), ""),

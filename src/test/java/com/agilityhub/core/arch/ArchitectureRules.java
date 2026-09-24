@@ -82,15 +82,22 @@ final class ArchitectureRules {
             .orShould().callMethod(java.time.ZonedDateTime.class, "now")
             .orShould().callMethod(java.time.OffsetDateTime.class, "now")
             .orShould().callMethod(java.time.LocalTime.class, "now")
+            // E5-T10: the now(ZoneId) overloads read the system clock too; only now(Clock) is allowed.
+            .orShould().callMethod(java.time.LocalDate.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.LocalDateTime.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.ZonedDateTime.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.OffsetDateTime.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.LocalTime.class, "now", java.time.ZoneId.class)
             .orShould().callMethod(System.class, "currentTimeMillis")
             .because("S15 R-15-22: time comes from the injected Clock (MutableClock in tests)");
-    /** Only the clock configuration builds a system clock; `new Date()` reads the system time too. */
+    /** Only the clock configuration builds a system clock; `new Date()` and `Calendar.getInstance()` read the system time too. */
     static final ArchRule SYSTEM_CLOCKS = noClasses()
             .that(outside(List.of(BASE_PACKAGE + "configuration.ClockConfiguration"), "are not the clock configuration"))
             .should().callMethod(java.time.Clock.class, "systemUTC")
             .orShould().callMethod(java.time.Clock.class, "systemDefaultZone")
             .orShould().callMethod(java.time.Clock.class, "system", java.time.ZoneId.class)
             .orShould().callConstructor(java.util.Date.class)
+            .orShould().callMethod(java.util.Calendar.class, "getInstance")
             .because("S15 R-15-22: the Clock bean is the only system clock");
     static final ArchRule TIME_FROM_CLOCK = CompositeArchRule.of(NOW_CALLS).and(SYSTEM_CLOCKS);
 

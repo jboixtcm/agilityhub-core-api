@@ -105,7 +105,8 @@ class RiskReviewJobIT extends BookingFixtures {
         assertThat(laura.get("variables", Document.class).getString("admin_text")).contains("2");
         assertThat(laura.get("variables", Document.class)).containsEntry("action", "CHANGE_CLASS").containsEntry("dog_name", "Duna");
         assertThat(notifications("N-17")).filteredOn(n -> n.getString("channel").equals("APP") && "s08-c1".equals(n.get("variables", Document.class).getString("entityId")))
-                .isNotEmpty().allSatisfy(n -> assertThat(n.get("variables", Document.class)).containsEntry("dogs_count", 0).doesNotContainKey("review_time"));
+                .isNotEmpty().allSatisfy(n -> assertThat(n.get("variables", Document.class)).containsEntry("dogs_count", 0).doesNotContainKey("review_time")
+                        .containsKeys("class_description", "ring_name"));
         // N-16: Pere (APP + EMAIL) for c3, the admins (APP) for c3 and c4.
         assertThat(notifications("N-16")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
                 .containsExactlyInAnyOrder("s08-pere:APP", "s08-pere:EMAIL", "s08-admin:APP", "s08-admin:APP");

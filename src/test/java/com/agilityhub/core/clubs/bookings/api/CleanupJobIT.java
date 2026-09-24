@@ -52,6 +52,61 @@ class CleanupJobIT extends BookingFixtures {
         mongo.insert(new Document("_id", "s08-token").append("clubId", CLUB).append("tokenHash", "s08-hash-" + UUID.randomUUID()).append("expiresAt", Date.from(RUN.minusSeconds(30))), "magic_link_tokens");
         mongo.insert(new Document("_id", "s08-idem").append("clubId", CLUB).append("createdAt", Date.from(RUN.minus(Duration.ofHours(25)))), "idempotency_records");
         mongo.insert(new Document("_id", CLUB + ":REMINDERS").append("holder", "gone").append("expiresAt", Date.from(RUN.minusSeconds(30))), "job_locks");
+        // The platform pass of this cycle is already taken (by no club of this fixture): the club tests see only their club.
+        mongo.insert(new Document("_id", "platform:CLEANUP").append("holder", "elsewhere").append("acquiredAt", Date.from(RUN.minusSeconds(60)))
+                .append("expiresAt", Date.from(RUN.plus(Duration.ofDays(1)))), "job_locks");
+    }
+    private void platformEvent(String id, String status, int daysAgo) {
+        var event = new Document("_id", id).append("type", "AccountCreated").append("status", status).append("occurredAt", Date.from(RUN.minus(Duration.ofDays(daysAgo))));
+        if (status.equals("PUBLISHED")) { event.append("publishedAt", Date.from(RUN.minus(Duration.ofDays(daysAgo)))); }
+        mongo.insert(event, "domain_events");
+    }
+    private void platformRun(String id, JobName name, Instant at) {
+        mongo.insert(new Document("_id", id).append("job", name.name()).append("scheduledFor", Date.from(at)).append("trigger", "SCHEDULE").append("dryRun", false)
+                .append("status", "SUCCEEDED").append("startedAt", Date.from(at)).append("finishedAt", Date.from(at)).append("exclusive", false), "job_runs");
+    }
+    private Map<String, Long> sum(JobRun... runs) {
+        var total = new TreeMap<String, Long>(); for (var run : runs) { counters(run).forEach((key, value) -> total.merge(key, value, Long::sum)); } return total;
+    }
+
+    @Test void T_15_27_thePlatformPassPurgesRowsWithoutAClubOncePerCycleAndNoClubRow() {
+        // Platform rows (no clubId) only from this fixture: processed of 91 days (deleted), processed of 10 days and PENDING of 200 days (kept),
+        // eight old runs of one process (the last five kept); the other club keeps its own expired rows until its own pass.
+        mongo.remove(Query.query(Criteria.where("clubId").is(null)), "domain_events"); mongo.remove(Query.query(Criteria.where("clubId").is(null)), "job_runs");
+        mongo.remove(Query.query(Criteria.where("_id").is("platform:CLEANUP")), "job_locks");
+        platformEvent("platform-event-old", "PUBLISHED", 91); platformEvent("platform-event-recent", "PUBLISHED", 10); platformEvent("platform-event-stuck", "PENDING", 200);
+        for (int i = 0; i < 8; i++) { platformRun("platform-run-" + i, JobName.WEEK_OPENING, RUN.minus(Duration.ofDays(108 - i))); }
+        mongo.save(new Document("_id", "s08-other-event-old").append("clubId", OTHER).append("type", "BookingCreated").append("status", "PUBLISHED")
+                .append("occurredAt", Date.from(RUN.minus(Duration.ofDays(91)))).append("publishedAt", Date.from(RUN.minus(Duration.ofDays(91)))), "domain_events");
+        for (int i = 0; i < 8; i++) { run("s08-other-wo-" + i, OTHER, JobName.WEEK_OPENING, RUN.minus(Duration.ofDays(108 - i)), false, JobStatus.SUCCEEDED, null); }
+
+        // A dry run only looks: it reports the platform pass and claims nothing.
+        var dry = runner.manual(CLUB, JobName.CLEANUP, true, "s08-admin");
+        assertThat(counters(dry)).containsEntry("platformPass", 1L).containsEntry("WOULD_DELETE_platformDomainEvents", 1L).containsEntry("WOULD_DELETE_platformJobRuns", 3L);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).isNull();
+        // The first real run of the cycle does the platform pass, and touches no row of another club.
+        var first = runner.scheduled(CLUB, true, job, RUN).orElseThrow();
+        assertThat(counters(first)).containsEntry("platformPass", 1L).containsEntry("platformDomainEventsDeleted", 1L).containsEntry("platformJobRunsDeleted", 3L);
+        assertThat(first.items()).extracting(JobRun.Item::entityType).contains("PlatformDomainEvents", "PlatformJobRuns");
+        assertThat(mongo.findById("platform-event-old", Document.class, "domain_events")).isNull();
+        assertThat(mongo.findById("platform-event-recent", Document.class, "domain_events")).isNotNull();
+        assertThat(mongo.findById("platform-event-stuck", Document.class, "domain_events")).isNotNull();
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(null).and("job").is("WEEK_OPENING")), Document.class, "job_runs"))
+                .extracting(d -> d.getString("_id")).containsExactlyInAnyOrder("platform-run-3", "platform-run-4", "platform-run-5", "platform-run-6", "platform-run-7");
+        assertThat(mongo.findById("s08-other-event-old", Document.class, "domain_events")).isNotNull();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("job").is("WEEK_OPENING")), "job_runs")).isEqualTo(8);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", CLUB);
+        // The second club's P9 of the same cycle runs its own pass only; together the platform rows were purged once.
+        var second = runner.scheduled(OTHER, true, job, RUN).orElseThrow();
+        assertThat(counters(second)).containsEntry("platformPass", 0L).containsEntry("domainEventsDeleted", 1L).containsEntry("jobRunsDeleted", 3L)
+                .containsEntry("platformDomainEventsDeleted", 0L).containsEntry("platformJobRunsDeleted", 0L);
+        assertThat(second.items()).extracting(JobRun.Item::entityType).doesNotContain("PlatformDomainEvents", "PlatformJobRuns");
+        assertThat(sum(first, second)).containsEntry("platformPass", 1L).containsEntry("platformDomainEventsDeleted", 1L).containsEntry("platformJobRunsDeleted", 3L);
+        assertThat(mongo.findById("s08-other-event-old", Document.class, "domain_events")).isNull();
+        // The next day is a new cycle: the first real run takes the platform pass again (nothing left to purge).
+        var next = runner.scheduled(OTHER, true, job, RUN.plus(Duration.ofDays(1))).orElseThrow();
+        assertThat(counters(next)).containsEntry("platformPass", 1L).containsEntry("platformDomainEventsDeleted", 0L);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", OTHER);
     }
     /** Unique per test run: the local attachment store keeps its files between runs. */
     private final String batch = UUID.randomUUID().toString();

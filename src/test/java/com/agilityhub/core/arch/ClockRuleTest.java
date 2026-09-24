@@ -4,7 +4,12 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +27,15 @@ class ClockRuleTest {
         Instant zoned() { return Clock.system(ZoneId.of("Europe/Madrid")).instant(); }
         Date date() { return new Date(); }
         Date fromInstant(Instant instant) { return Date.from(instant); }
+    }
+    static final class ReadsTheSystemClockInAZone {
+        private static final ZoneId ZONE = ZoneId.of("Europe/Madrid");
+        LocalDate today() { return LocalDate.now(ZONE); }
+        LocalDateTime dateTime() { return LocalDateTime.now(ZONE); }
+        LocalTime time() { return LocalTime.now(ZONE); }
+        ZonedDateTime zoned() { return ZonedDateTime.now(ZONE); }
+        OffsetDateTime offset() { return OffsetDateTime.now(ZONE); }
+        Calendar calendar() { return Calendar.getInstance(); }
     }
     static final class ReadsTheInjectedClock {
         private final Clock clock;
@@ -47,6 +61,17 @@ class ClockRuleTest {
                 .anyMatch(line -> line.contains("Date.<init>()"));
         // Date.from(instant) converts a value that came from the Clock: allowed.
         assertThat(details).noneMatch(line -> line.contains("Date.from("));
+    }
+
+    @Test void T_15_07_nowWithAZoneAndCalendarGetInstanceAreViolations() {
+        var result = ArchitectureRules.TIME_FROM_CLOCK.evaluate(new ClassFileImporter().importClasses(ReadsTheSystemClockInAZone.class));
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails()).anyMatch(line -> line.contains("LocalDate.now(java.time.ZoneId)"))
+                .anyMatch(line -> line.contains("LocalDateTime.now(java.time.ZoneId)"))
+                .anyMatch(line -> line.contains("LocalTime.now(java.time.ZoneId)"))
+                .anyMatch(line -> line.contains("ZonedDateTime.now(java.time.ZoneId)"))
+                .anyMatch(line -> line.contains("OffsetDateTime.now(java.time.ZoneId)"))
+                .anyMatch(line -> line.contains("Calendar.getInstance()"));
     }
 
     @Test void T_15_07_injectedClockReadsPass() {

@@ -28,10 +28,9 @@ public class SchedulingDashboard {
             requireTenant(club); var rows=risk.rows(today); var reviewTime=LocalTime.parse(rows.reviewTime());
             return rows.rows().stream().map(r -> {
                 var c=r.session();
-                var descriptions=new LinkedHashMap<String,String>(); for(String tag:List.of("ca","es","en")) descriptions.put(tag,projection.description(c,Locale.forLanguageTag(tag)));
                 var reviewAt=r.reviewAt()!=null?r.reviewAt():WeekCalendarRules.resolve(c.date(),reviewTime,projection.zone()).instant();
-                return new RiskReviewSource.Row(c.id(),c.date(),LocalTime.parse(c.startTime()),new LocalizedText(descriptions,"ca"),
-                        new LocalizedText(Map.of("ca",r.ringName()==null?"—":r.ringName()),"ca"),r.bookedCount(),r.status(),names(r.notified()),reviewAt);
+                return new RiskReviewSource.Row(c.id(),c.date(),LocalTime.parse(c.startTime()),projection.descriptions(c),
+                        projection.ringNames(r.ringName()),r.bookedCount(),r.status(),names(r.notified()),reviewAt);
             }).toList();
         };
     }

@@ -25,6 +25,7 @@ public class TestNoopJob implements Job {
     private volatile int failAt;
     private volatile boolean failPlan;
     private final AtomicInteger applied = new AtomicInteger();
+    private final List<String> appliedBy = java.util.Collections.synchronizedList(new ArrayList<>());
     private final AtomicReference<Runnable> duringApply = new AtomicReference<>();
     private final AtomicReference<Runnable> duringPlan = new AtomicReference<>();
 
@@ -45,11 +46,12 @@ public class TestNoopJob implements Job {
         if (hook != null) { hook.run(); }
         if (item.entityId().equals("item-" + failAt)) { throw new ApiException(ErrorCode.INVALID_STATE); }
         applied.incrementAndGet();
+        appliedBy.add(Thread.currentThread().getName() + "/" + item.entityId());
         return JobEffect.of("NOOP", "applied");
     }
 
     public void configure(JobDefinition definition, int items, int failAt, boolean failPlan) {
-        this.definition = definition; this.items = items; this.failAt = failAt; this.failPlan = failPlan; applied.set(0); duringApply.set(null);
+        this.definition = definition; this.items = items; this.failAt = failAt; this.failPlan = failPlan; applied.set(0); appliedBy.clear(); duringApply.set(null);
         duringPlan.set(null);
     }
     /** Runs `hook` once, inside the next `apply` (while the run is RUNNING): lets a test interleave a reaper or another instance. */
@@ -58,4 +60,6 @@ public class TestNoopJob implements Job {
     public void duringNextPlan(Runnable hook) { duringPlan.set(hook); }
     public void reset() { configure(DEFAULT, 0, 0, false); }
     public int applied() { return applied.get(); }
+    /** `thread/entityId` of every applied item, in order: tells which holder applied which item. */
+    public List<String> appliedBy() { synchronized (appliedBy) { return List.copyOf(appliedBy); } }
 }

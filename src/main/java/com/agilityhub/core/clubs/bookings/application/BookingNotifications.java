@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.*;
  * N-04 `BookingCreated{origin ∈ APP, INSTRUCTOR}` → APP to the dog's owner and to the group member who booked (A20b);
  * N-05 `BookingCancelled{by ∈ MEMBER, INSTRUCTOR}` → APP (the instructor's «ha avisat» has no SMS, §13-7);
  * N-36 BACKOFFICE creation/cancellation → APP + EMAIL + SMS intent (QUEUED, or SKIPPED_MODULE_OFF without SMS);
- * N-40 `BookingCancelled{reason: PAYMENT_TIMEOUT}` → APP + EMAIL. Rendered in the recipient's locale and the club's
+ * N-40 `BookingCancelled{reason: PAYMENT_TIMEOUT}` → APP + EMAIL, except with `checkoutFailed` (E30). Rendered in the recipient's locale and the club's
  * time zone; notification ids are `eventId:memberId:channel`, so a redelivered event creates nothing new.
  */
 @Service
@@ -39,7 +39,8 @@ public class BookingNotifications {
             case "N-04" -> created && Set.of("APP", "INSTRUCTOR").contains(origin) ? "N-04" : null;
             case "N-05" -> !created && Set.of("MEMBER", "INSTRUCTOR").contains(by) && !"BACKOFFICE".equals(origin) && !"PAYMENT_TIMEOUT".equals(reason) ? "N-05" : null;
             case "N-36" -> "BACKOFFICE".equals(origin) ? "N-36" : null;
-            case "N-40" -> !created && "PAYMENT_TIMEOUT".equals(reason) ? "N-40" : null;
+            // E30: a checkout the provider failed to open was already reported to the member as an error.
+            case "N-40" -> !created && "PAYMENT_TIMEOUT".equals(reason) && !Boolean.TRUE.equals(p.get("checkoutFailed")) ? "N-40" : null;
             default -> null;
         });
     }

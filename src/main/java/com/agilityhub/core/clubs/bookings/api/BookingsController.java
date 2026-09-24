@@ -131,8 +131,9 @@ public class BookingsController {
     }
     /**
      * Confirmation and claim: the booking and the idempotent 201 commit together; a PAY_TO_BOOK booking (R-08-18)
-     * commits first, then its provider checkout opens outside the retried transaction and the 201 carrying the
-     * `checkoutUrl` is stored in a second, short transaction.
+     * commits first, then its provider checkout opens outside the retried transaction, its `checkoutUrl` is kept on
+     * the booking, and the 201 carrying it is stored in a second, short transaction. A checkout that cannot be opened
+     * releases the idempotency key, whatever the status of the failure.
      */
     private Booking confirmed(java.util.Collection<String> classes, java.util.function.Supplier<BookingConfirmationService.Confirmed> work) {
         var committed = transactions.write(classes, () -> {
@@ -141,7 +142,13 @@ public class BookingsController {
             return confirmed.checkout() == null ? new Committed(stored(confirmed), null) : new Committed(null, confirmed);
         });
         if (committed.pendingCheckout() == null) { return committed.response(); }
-        var opened = confirmations.openCheckout(committed.pendingCheckout());
+        BookingConfirmationService.Confirmed opened;
+        try { opened = confirmations.openCheckout(committed.pendingCheckout()); }
+        catch (RuntimeException failure) {
+            // E5-T10: the booking is already cancelled (or settled by the consumer); no outcome of this key is ever replayed.
+            IdempotentOperation.release();
+            throw failure;
+        }
         return transactions.write(java.util.List.of(), () -> { IdempotentOperation.lock(); return stored(opened); });
     }
     private record Committed(Booking response, BookingConfirmationService.Confirmed pendingCheckout) { }

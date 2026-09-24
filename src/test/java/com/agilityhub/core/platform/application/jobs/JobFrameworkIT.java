@@ -202,6 +202,47 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(mongo.findById(CLUB + ":TEST_NOOP", Document.class, "job_locks")).isNull();
     }
 
+    @Test void T_15_31_aReapedHolderAppliesNoFurtherItemOfItsPlan() throws Exception {
+        job.configure(DAILY, 2, 0, false);
+        clock.setInstant(at("2026-10-05T04:03:00Z"));
+        var failedTimer = metrics.find("jobs.run.duration").tags("job", "TEST_NOOP", "status", "FAILED").timer();
+        long failedBefore = failedTimer == null ? 0 : failedTimer.count();
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(JobRunner.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start(); logger.addAppender(appender);
+        var retake = new AtomicReference<JobRun>();
+        String slowThread = Thread.currentThread().getName();
+        job.duringNextApply(() -> {
+            // While the slow holder applies item-1, its lease expires and another instance reaps and retakes the occurrence.
+            var other = Executors.newSingleThreadExecutor();
+            try {
+                clock.setInstant(at("2026-10-05T04:09:00Z"));
+                retake.set(other.submit(() -> runner.scheduled(CLUB, true, job, at("2026-10-05T04:09:00Z")).orElseThrow()).get());
+            } catch (Exception failure) {
+                throw new IllegalStateException(failure);
+            } finally { other.shutdownNow(); }
+        });
+        try {
+            var slow = runner.scheduled(CLUB, true, job, at("2026-10-05T04:03:00Z")).orElseThrow();
+            // The renewal before item-2 fails: the slow holder stops, and the reaper's FAILED row stands untouched.
+            assertThat(job.appliedBy()).filteredOn(entry -> entry.startsWith(slowThread + "/")).containsExactly(slowThread + "/item-1");
+            assertThat(job.appliedBy()).filteredOn(entry -> !entry.startsWith(slowThread + "/")).hasSize(2);
+            assertThat(job.applied()).isEqualTo(3);
+            assertThat(slow.status()).isEqualTo(JobStatus.FAILED);
+            assertThat(slow.leaseExpired()).isTrue();
+            assertThat(slow.errors()).singleElement().extracting(JobRun.RunError::message).isEqualTo("Lease expired before the run finished");
+            assertThat(mongo.findById(slow.id(), JobRun.class)).isEqualTo(slow);
+            assertThat(retake.get().status()).isEqualTo(JobStatus.SUCCEEDED);
+            assertThat(events("JobFailed")).singleElement()
+                    .satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("runId", slow.id()));
+            // The reaper's FAILED is the one counted (E5-T01 review #3); the WARN keeps the holder's local counters (#4).
+            assertThat(metrics.find("jobs.run.duration").tags("job", "TEST_NOOP", "status", "FAILED").timer().count()).isEqualTo(failedBefore + 1);
+            assertThat(appender.list).filteredOn(event -> event.getLevel() == ch.qos.logback.classic.Level.WARN)
+                    .singleElement().extracting(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage).asString()
+                    .contains("jobRunId=" + slow.id()).contains("leaseLost=true").contains("counters={applied=1}").contains("items=1");
+        } finally { logger.detachAppender(appender); appender.stop(); }
+    }
+
     @Test void T_15_05_switchModuleAndClubStatusRecordSkippedRunsOncePerOccurrenceOrHour() {
         job.configure(DAILY, 1, 0, false);
         parameter("jobs.cleanup.enabled", false);

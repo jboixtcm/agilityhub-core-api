@@ -105,6 +105,9 @@ class BookingPortsTest {
         var all = List.of(createdApp, createdInstructor, createdClub, byMember, byInstructor, byClub, bySystem, timeout, memberTimeout, clubAsMember);
         cases.forEach((code, expected) -> assertThat(all.stream().filter(e -> BookingNotifications.code(code, e).isPresent()).toList()).as(code).isEqualTo(expected));
         assertThat(BookingNotifications.code("N-15", createdApp)).isEmpty();
+        // E30: a checkout the provider failed to open is cancelled without N-40 (nor N-05).
+        var checkoutFailed = event.apply(BookingEvent.Kind.BookingCancelled, Map.of("origin", "SYSTEM", "by", "SYSTEM", "reason", "PAYMENT_TIMEOUT", "checkoutFailed", true));
+        for (String code : List.of("N-04", "N-05", "N-36", "N-40")) { assertThat(BookingNotifications.code(code, checkoutFailed)).as(code).isEmpty(); }
         assertThat(BookingNotifications.code("N-05", event.apply(BookingEvent.Kind.BookingCancelled, Map.of()))).isEmpty();
     }
 

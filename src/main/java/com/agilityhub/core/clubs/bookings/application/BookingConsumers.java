@@ -60,8 +60,8 @@ public class BookingConsumers {
                     if (!live.isEmpty()) { LOG.warn("Class {} cancelled by the club still has {} live bookings", event.aggregateId(), live.size()); }
                 }
                 case "UpfrontPaymentSucceeded" -> booking(event).ifPresent(confirmations::paymentSucceeded);
-                case "UpfrontPaymentFailed" -> booking(event).ifPresent(id -> bookings.findById(id)
-                        .filter(b -> b.state() == BookingState.PAYMENT_PENDING).ifPresent(b -> cancellations.cancelBySystem(id, BookingCancelReason.PAYMENT_TIMEOUT)));
+                // Re-checked under the seat lock: a booking the provider-failure path or P7 cancelled first is left as it is.
+                case "UpfrontPaymentFailed" -> booking(event).ifPresent(id -> cancellations.cancelPaymentPending(id, false));
                 default -> { }
             }
         }
