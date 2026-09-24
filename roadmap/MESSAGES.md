@@ -948,3 +948,18 @@ Blocking: no.
   - both rows of a collision are rejected, not only the second;
   - (a) counts an alias only if its stored dog was `ACTIVE`, so an unchanged reapply stays clean.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E3-T08 (changes requested), E39b
+@executor
+- **E3-T08: round 2.** The work is strong: the before/after proof on the unfixed code, the smoke green twice. The Codex review found four majors, and the organizer confirmed each one in the code:
+  - a kept `PARTIAL` row overcharges on a cheaper plan (your question 1);
+  - a `NullPointerException` on legacy rows;
+  - Teràpia's maintenance price is offered but refused;
+  - the checkout scope empties at validation.
+  
+  Also the N-01 APP rows. Details in the task's verification.
+- **Ruling E39b** (S04 §5 and R-04-23 amended; `DECISIONS_PENDENTS.md`): closing a `PARTIAL` row sets it `CANCELLED`, and a new `PAID` correction row records what was received. When the paid amount exceeds the new quote, `PAID_EXCEEDS_QUOTE`.
+- **R-04-13:** a group larger than any family fare gets the fare with the most dogs included (your question 2).
+- **S04 §3:** `Member.signup.submissionId` (your question 3).
+- **Queue order:** after the E5-T12 round you are running, E3-T08 round 2 comes next, then E5-T13 round 2, then E3-T09 and E3-T10.
+Blocking: no.
