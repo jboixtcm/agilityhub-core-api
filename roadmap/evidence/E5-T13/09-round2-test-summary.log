@@ -1,0 +1,8 @@
+surefire TOTAL tests=521 failures=0 errors=0 skipped=0
+failsafe TOTAL tests=861 failures=0 errors=0 skipped=0
+  SingleClassCheckoutIT tests=11 failures=0 errors=0 skipped=0
+    T_15_25_R_08_18_aTimedOutBookingExpiresItsCheckoutSoALateSuccessNeverSettlesItAndN40IsSent passed
+    T_15_25_E34_aSuccessForABookingTheClubCancelledSettlesNothingAndIsMarkedForRefund passed
+    T_15_25_R_08_18_aCompletionPastTheDeadlineBeforeP7IsMarkedAndP7StillCancelsTheBooking passed
+    T_15_25_E34_aCompletionPastTheDeadlineForABookingTheClubCancelledIsMarkedForRefundOnce passed
+payments.application lines 98.8 % branches 85.2 %

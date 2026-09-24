@@ -148,6 +148,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `UpfrontPaymentSucceeded` for a booking that is already cancelled, logs a WARN and marks the checkout session
     (`lateCompletionAt`, `providerPaymentId`) for the S12 refund (E8-T04 step 12). No event, no catalog change.
     `CheckoutService.complete` takes the provider payment id.
+  - R-15-17 (E34, round 2): a completion of a `PENDING` PAY_TO_BOOK checkout past its `expiresAt` is a late
+    completion, not an `INVALID_STATE`. The session is expired (line `CANCELLED`, `UpfrontPaymentFailed`, as P7 would
+    do) and marked, with the WARN line, and the booking is never confirmed. This covers a booking the club cancelled
+    (P7 never sees it) and a `PAYMENT_PENDING` booking whose deadline passed before P7 ran. A provider retry keeps the
+    first mark.
   - P9: a run that claimed the platform cycle and ends `FAILED` (its own failure, a lost lease, or the reaper) gives
     the claim back through the new `Job.failed` hook. The claim records its `runId`.
   - AGENTS rule 4: the club-scoped views of a run leave out the platform-pass counters and items: `GET /jobs`

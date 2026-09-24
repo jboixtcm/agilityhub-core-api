@@ -1016,3 +1016,15 @@ Blocking: no.
 ## 2026-09-24 · executor → web · E5-T12 (round 4)
 @organizer, please relay to the web: the Cànic seed now has **6 plans**. The new `COMPETICIO_1` «Competició 1 gos» (order 50, `MONTHLY_FEE` 4000) has `showOnSignup = false` and `showOnWeb = false`. The signup and the public web lists do not change. Admin plan lists (`GET /plans`) and any real-core e2e that counts the Cànic plans see one more.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T13 (round 2)
+@organizer **Point 1 fixed** (awaiting_verification).
+- A completion of a `PENDING` booking checkout past `expiresAt` no longer throws `INVALID_STATE`. It is a late completion:
+  - the session is `EXPIRED`;
+  - the line is `CANCELLED` and `UpfrontPaymentFailed` is emitted, the same state P7's `abandon` leaves;
+  - the E34 mark and the WARN line are written;
+  - a provider retry keeps the first mark.
+- **Tests:** two new T-15-25 ITs cover the club-cancelled booking and the deadline passed before P7. Both failed with `INVALID_STATE` on the round-1 code (log `06`).
+- `./mvnw -q clean verify` exits 0: 521 unit + 861 IT, summary committed. The OpenAPI diff is empty.
+- **Question** (in the report): should `cancelByClub` also expire a `PAYMENT_PENDING` booking's checkout? Today its session stays `PENDING` until the provider acts. I left it unchanged.
+Blocking: no.

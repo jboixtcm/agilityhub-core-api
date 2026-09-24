@@ -65,7 +65,11 @@ public class CheckoutService {
         return new BookingCheckout(id,paymentId);
     }
     public record BookingCheckout(String sessionId,String paymentId) { }
-    /** The provider completed the session; `providerPaymentId` is its payment (kept on the session for S12 reconciliation). */
+    /**
+     * The provider completed the session; `providerPaymentId` is its payment (kept on the session for S12 reconciliation).
+     * A booking session completed after its `expiresAt` (or already EXPIRED) is a late completion (E34): WARN + mark, never
+     * a confirmation and never an error; a provider retry keeps the first mark.
+     */
     public void complete(String sessionId,String providerPaymentId,Map<String,Object> card) { finish(sessionId,true,providerPaymentId,card); }
     public void expire(String sessionId) { finish(sessionId,false,null,Map.of()); }
     private void finish(String id,boolean complete,String providerPaymentId,Map<String,Object> card) {
@@ -74,7 +78,15 @@ public class CheckoutService {
             // E34: P7 (or a failed provider call) expired the booking checkout on our side, but the provider still took the money.
             if(complete&&session.bookingId()!=null&&"EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return null; }
             if(!"PENDING".equals(session.status())) return null;
-            if(complete&&!session.expiresAt().isAfter(clock.instant())) throw new ApiException(ErrorCode.INVALID_STATE);
+            if(complete&&!session.expiresAt().isAfter(clock.instant())) {
+                if(session.bookingId()==null) throw new ApiException(ErrorCode.INVALID_STATE);
+                // E34: past `bookings.paymentPendingMinutes` the booking is never confirmed. The session expires as P7 would expire
+                // it (line CANCELLED + UpfrontPaymentFailed) and keeps the mark, also when the club already cancelled the booking.
+                if(!sessions.finish(id,"EXPIRED",providerPaymentId)) return null;
+                payments.checkout(session.memberId(),id,false);
+                lateCompletion(session,providerPaymentId,"the checkout deadline passed");
+                return null;
+            }
             if(!sessions.finish(id,complete?"COMPLETE":"EXPIRED",complete?providerPaymentId:null)) return null;
             payments.checkout(session.memberId(),id,complete);
             if(complete&&session.bookingId()==null) members.card(session.memberId(),card); // a booking payment never changes the payment method

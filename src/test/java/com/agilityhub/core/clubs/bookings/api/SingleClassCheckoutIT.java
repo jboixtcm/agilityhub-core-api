@@ -209,6 +209,92 @@ class SingleClassCheckoutIT extends BookingFixtures {
         assertThat(marked.getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(5)));
     }
 
+    @Test void T_15_25_E34_aCompletionPastTheDeadlineForABookingTheClubCancelledIsMarkedForRefundOnce() throws Exception {
+        payToBook();
+        var booking = book(as("laura"), "wed", "s08-d-duna");
+        String bookingId = booking.path("id").asText(), sessionId = checkoutSession(bookingId);
+        dispatch();
+        try (var tenant = TenantContext.open(CLUB)) {
+            tx.executeWithoutResult(status -> cancellations.cancelByClub("s08-wed", "CLASS_CANCELLED", null, "s08-admin"));
+        }
+        // P7 selects only PAYMENT_PENDING bookings, so nothing on our side ever expires this session.
+        assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("status", "PENDING");
+        var warnings = checkoutWarnings();
+        try {
+            // The provider completes it after `bookings.paymentPendingMinutes` (30): a late completion, not an INVALID_STATE.
+            clock.setInstant(NOW.plus(Duration.ofMinutes(31)));
+            gateway.complete(sessionId); dispatch();
+            assertThat(booking(bookingId)).containsEntry("state", "CANCELLED_BY_CLUB");
+            assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
+            assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
+            assertThat(events("BookingCreated")).isZero();
+            var marked = mongo.findById(sessionId, Document.class, "checkout_sessions");
+            assertThat(marked).containsEntry("status", "EXPIRED").containsEntry("providerPaymentId", "fake_payment_" + sessionId);
+            assertThat(marked.getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(31)));
+            assertThat(warnings.list).singleElement().satisfies(w -> {
+                assertThat(w.getLevel()).isEqualTo(ch.qos.logback.classic.Level.WARN);
+                assertThat(w.getFormattedMessage()).startsWith("Late provider completion to refund").contains("checkoutSessionId=" + sessionId)
+                        .contains("bookingId=" + bookingId).contains("providerPaymentId=fake_payment_" + sessionId);
+            });
+            // A provider retry adds nothing: the first mark, one WARN line, no second event.
+            clock.setInstant(NOW.plus(Duration.ofMinutes(40)));
+            gateway.complete(sessionId); dispatch();
+            assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions").getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(31)));
+            assertThat(warnings.list).hasSize(1);
+            assertThat(events("UpfrontPaymentFailed")).isEqualTo(1);
+            assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
+            assertThat(booking(bookingId)).containsEntry("state", "CANCELLED_BY_CLUB");
+        } finally { stop(warnings); }
+    }
+
+    @Test void T_15_25_R_08_18_aCompletionPastTheDeadlineBeforeP7IsMarkedAndP7StillCancelsTheBooking() throws Exception {
+        payToBook();
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs"); mongo.remove(new Query(), "job_locks");
+        var booking = book(as("laura"), "wed", "s08-d-duna");
+        String bookingId = booking.path("id").asText(), sessionId = checkoutSession(bookingId);
+        dispatch();
+        var warnings = checkoutWarnings();
+        try {
+            // The deadline passed at +30 min and P7 has not run yet when the provider completes the session.
+            clock.setInstant(NOW.plus(Duration.ofMinutes(31)));
+            gateway.complete(sessionId);
+            var marked = mongo.findById(sessionId, Document.class, "checkout_sessions");
+            assertThat(marked).containsEntry("status", "EXPIRED").containsEntry("providerPaymentId", "fake_payment_" + sessionId);
+            assertThat(marked.getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(31)));
+            assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
+            assertThat(booking(bookingId)).containsEntry("state", "PAYMENT_PENDING");
+            assertThat(warnings.list).singleElement().satisfies(w -> assertThat(w.getFormattedMessage()).contains("checkoutSessionId=" + sessionId));
+            // P7 then cancels the booking as usual; the line was never PAID and the booking never ACTIVE.
+            var run = runner.scheduled(CLUB, true, timeouts, clock.instant()).orElseThrow();
+            assertThat(run.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple(bookingId, "CANCEL"));
+            dispatch();
+            assertThat(booking(bookingId)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "PAYMENT_TIMEOUT");
+            assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
+            assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
+            assertThat(events("BookingCreated")).isZero();
+            assertThat(events("BookingCancelled")).isEqualTo(1);
+            assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-40")), Document.class, "notifications"))
+                    .extracting(n -> n.getString("accountId")).containsOnly("s08-laura").isNotEmpty();
+            // A provider retry keeps the first mark and logs nothing more.
+            clock.setInstant(NOW.plus(Duration.ofMinutes(40)));
+            gateway.complete(sessionId); dispatch();
+            assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions").getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(31)));
+            assertThat(warnings.list).hasSize(1);
+            assertThat(booking(bookingId)).containsEntry("state", "CANCELLED");
+        } finally { stop(warnings); }
+    }
+
+    private static ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> checkoutWarnings() {
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(com.agilityhub.core.payments.application.CheckoutService.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start(); logger.addAppender(appender);
+        return appender;
+    }
+    private static void stop(ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> appender) {
+        ((ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(com.agilityhub.core.payments.application.CheckoutService.class)).detachAppender(appender);
+        appender.stop();
+    }
+
     @Test void T_08_24_aRedeliveredSuccessForAPaidThenCancelledBookingLeavesNoRefundMark() throws Exception {
         payToBook();
         var booking = book(as("laura"), "wed", "s08-d-duna");
