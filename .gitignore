@@ -50,3 +50,4 @@ __pycache__/
 !roadmap/evidence/E5-T04/*.log
 !roadmap/evidence/E5-T05/*.log
 !roadmap/evidence/E5-T06/*.log
+!roadmap/evidence/E3-T07/*.log

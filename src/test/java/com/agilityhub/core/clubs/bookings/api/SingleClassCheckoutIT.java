@@ -1,6 +1,9 @@
 package com.agilityhub.core.clubs.bookings.api;
 
+import com.agilityhub.core.clubs.bookings.application.BookingCancellationService;
+import com.agilityhub.core.clubs.bookings.application.BookingConfirmationService;
 import com.agilityhub.core.clubs.bookings.application.PaymentTimeoutsJob;
+import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.clubs.bookings.application.ports.SingleClassChargePort;
 import com.agilityhub.core.payments.application.FakeCheckoutGateway;
 import com.agilityhub.core.platform.application.jobs.JobRunner;
@@ -34,6 +37,8 @@ class SingleClassCheckoutIT extends BookingFixtures {
     @MockitoSpyBean IdempotencyRepository records;
     @Autowired JobRunner runner;
     @Autowired PaymentTimeoutsJob timeouts;
+    @Autowired BookingCancellationService cancellations;
+    @Autowired BookingConfirmationService confirmations;
 
     @Test void T_08_24_aRetriedConfirmationOpensOneProviderCheckoutAfterTheCommit() throws Exception {
         payToBook();
@@ -160,14 +165,60 @@ class SingleClassCheckoutIT extends BookingFixtures {
         assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("status", "EXPIRED");
         assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
         // A late provider success finds the session EXPIRED: nothing is settled, the booking stays CANCELLED.
+        clock.setInstant(NOW.plus(Duration.ofMinutes(32)));
         gateway.complete(sessionId); dispatch();
         assertThat(booking(bookingId).getString("state")).isEqualTo("CANCELLED");
         assertThat(line(bookingId)).containsEntry("status", "CANCELLED");
         assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
         assertThat(events("BookingCancelled")).isEqualTo(1);
+        // E34: the money was taken at the provider, so the session keeps the reconciliation mark for the S12 refund (E8-T04).
+        var late = mongo.findById(sessionId, Document.class, "checkout_sessions");
+        assertThat(late).containsEntry("status", "EXPIRED").containsEntry("providerPaymentId", "fake_payment_" + sessionId);
+        assertThat(late.getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(32)));
+        // A provider retry of the same completion keeps the first mark.
+        clock.setInstant(NOW.plus(Duration.ofMinutes(40)));
+        gateway.complete(sessionId); dispatch();
+        assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions").getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(32)));
+        assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
         // E30 changes nothing on the timeout path: N-40 is sent.
         assertThat(eventsOf("BookingCancelled")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).doesNotContainKey("checkoutFailed"));
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-40")), Document.class, "notifications"))
                 .extracting(n -> n.getString("accountId")).containsOnly("s08-laura").isNotEmpty();
+    }
+
+    @Test void T_15_25_E34_aSuccessForABookingTheClubCancelledSettlesNothingAndIsMarkedForRefund() throws Exception {
+        payToBook();
+        var booking = book(as("laura"), "wed", "s08-d-duna");
+        String bookingId = booking.path("id").asText(), sessionId = checkoutSession(bookingId);
+        dispatch();
+        // S06 cancels the class while the booking is PAYMENT_PENDING: the booking goes, the checkout stays open at the provider.
+        try (var tenant = TenantContext.open(CLUB)) {
+            tx.executeWithoutResult(status -> cancellations.cancelByClub("s08-wed", "CLASS_CANCELLED", null, "s08-admin"));
+        }
+        assertThat(booking(bookingId)).containsEntry("state", "CANCELLED_BY_CLUB");
+        assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("status", "PENDING");
+        // The provider completes it: the line is PAID and UpfrontPaymentSucceeded goes to S12, but the booking is not revived.
+        clock.setInstant(NOW.plus(Duration.ofMinutes(5)));
+        gateway.complete(sessionId); dispatch();
+        assertThat(booking(bookingId)).containsEntry("state", "CANCELLED_BY_CLUB");
+        assertThat(line(bookingId)).containsEntry("status", "PAID");
+        assertThat(eventsOf("UpfrontPaymentSucceeded")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("bookingId", bookingId));
+        assertThat(events("BookingCreated")).isZero();
+        var marked = mongo.findById(sessionId, Document.class, "checkout_sessions");
+        assertThat(marked).containsEntry("status", "COMPLETE").containsEntry("providerPaymentId", "fake_payment_" + sessionId);
+        assertThat(marked.getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(5)));
+    }
+
+    @Test void T_08_24_aRedeliveredSuccessForAPaidThenCancelledBookingLeavesNoRefundMark() throws Exception {
+        payToBook();
+        var booking = book(as("laura"), "wed", "s08-d-duna");
+        String bookingId = booking.path("id").asText(), sessionId = checkoutSession(bookingId);
+        gateway.complete(sessionId); dispatch();
+        assertThat(booking(bookingId)).containsEntry("state", "ACTIVE");
+        cancel(as("laura"), bookingId, 200);
+        // The success is delivered again (at-least-once): the booking was settled by it once, so there is nothing to refund here.
+        try (var tenant = TenantContext.open(CLUB)) { confirmations.paymentSucceeded(bookingId); }
+        assertThat(booking(bookingId).getString("state")).startsWith("CANCELLED");
+        assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("status", "COMPLETE").doesNotContainKey("lateCompletionAt");
     }
 }

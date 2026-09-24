@@ -54,6 +54,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   apply: those records stay untouched, the rest is applied, the summary points to `--reset` on staging, and the
   command exits non-zero. Before, the apply kept a stale account link, or failed on `member_playoff_ids` /
   `ID_DOCUMENT_ALREADY_EXISTS` after a clean dry run.
+- E5-T13 (rulings E33 and E34, follow-ups of the E5-T09 and E5-T10 reviews):
+  - R-15-05 (E33): the first run of a process in a club with no `JobRun` of it, outside its window, records
+    `SKIPPED{MISSED_WINDOW}` as a baseline without `JobFailed`/N-42, and the S17 matrix reads it as «never executed»
+    (OK). The next misses alert as before.
+  - R-15-17 (E34): a provider completion that reaches an `EXPIRED` PAY_TO_BOOK checkout, or an
+    `UpfrontPaymentSucceeded` for a booking that is already cancelled, logs a WARN and marks the checkout session
+    (`lateCompletionAt`, `providerPaymentId`) for the S12 refund (E8-T04 step 12). No event, no catalog change.
+    `CheckoutService.complete` takes the provider payment id.
+  - P9: a run that claimed the platform cycle and ends `FAILED` (its own failure, a lost lease, or the reaper) gives
+    the claim back through the new `Job.failed` hook. The claim records its `runId`.
+  - AGENTS rule 4: the club-scoped views of a run leave out the platform-pass counters and items: `GET /jobs`
+    `lastRun`, `GET /jobs/{name}/runs`, the run sheet, the club's `POST /jobs/{name}/trigger` response and the
+    `JOB_TRIGGERED` audit. The stored `JobRun`, the platform trigger and `GET /platform/jobs/overview` keep them.
+  - `TIME_FROM_CLOCK` also forbids `OffsetTime`, `Year`, `YearMonth` and `MonthDay` `now()`/`now(ZoneId)`.
+  - OpenAPI: the five `/jobs*` operations and `/platform/clubs/{clubId}/jobs/{name}/trigger` no longer publish a bare
+    `422` (`@ContractErrors(omit = 422)`); the snapshot loses 60 lines.
+  - Tests renamed from `T_15_05_…` to `T_15_04_…` (T-15-04 is the R-15-05 test). `SchedulerTick` documents that it
+    renews its lease only between clubs.
 
 ### Fixed
 

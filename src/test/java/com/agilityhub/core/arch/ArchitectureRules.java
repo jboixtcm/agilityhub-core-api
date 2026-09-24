@@ -88,6 +88,15 @@ final class ArchitectureRules {
             .orShould().callMethod(java.time.ZonedDateTime.class, "now", java.time.ZoneId.class)
             .orShould().callMethod(java.time.OffsetDateTime.class, "now", java.time.ZoneId.class)
             .orShould().callMethod(java.time.LocalTime.class, "now", java.time.ZoneId.class)
+            // E5-T13 (review E5-T10 #8): the other java.time types that read the system clock, with or without a zone.
+            .orShould().callMethod(java.time.OffsetTime.class, "now")
+            .orShould().callMethod(java.time.OffsetTime.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.Year.class, "now")
+            .orShould().callMethod(java.time.Year.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.YearMonth.class, "now")
+            .orShould().callMethod(java.time.YearMonth.class, "now", java.time.ZoneId.class)
+            .orShould().callMethod(java.time.MonthDay.class, "now")
+            .orShould().callMethod(java.time.MonthDay.class, "now", java.time.ZoneId.class)
             .orShould().callMethod(System.class, "currentTimeMillis")
             .because("S15 R-15-22: time comes from the injected Clock (MutableClock in tests)");
     /** Only the clock configuration builds a system clock; `new Date()` and `Calendar.getInstance()` read the system time too. */

@@ -61,13 +61,14 @@ public class JobAdminService {
                 : JobOccurrences.next(clock.instant(), schedule, zone).map(at -> at.atZone(zone).toLocalDateTime().format(LOCAL)).orElse(null);
         return new JobSummary(definition.routeId(), definition.name().name(), definition.module(), enabled(definition, config),
                 new JobScheduleView(schedule.kind(), schedule.localTime() == null ? null : schedule.localTime().toString(), schedule.dayOfWeek(), schedule.dayOfMonth()),
-                next, runs.last(definition.name()).map(JobAdminService::lastRun).orElse(null));
+                next, runs.last(definition.name()).map(run -> lastRun(run, true)).orElse(null));
     }
     private static boolean enabled(JobDefinition definition, ClubConfig config) {
         return definition.switchParameter() == null || Boolean.TRUE.equals(config.get(definition.switchParameter(), Boolean.class));
     }
-    static JobLastRun lastRun(JobRun run) {
-        var view = JobViews.view(run);
+    /** `club` = a club-scoped view (D11), without the platform pass counters; the S17 console shows them. */
+    static JobLastRun lastRun(JobRun run, boolean club) {
+        var view = club ? JobViews.forClub(run) : JobViews.view(run);
         return new JobLastRun(run.id(), run.status(), run.finishedAt(), run.trigger(), run.dryRun(), view.effects().counters());
     }
 
@@ -88,7 +89,7 @@ public class JobAdminService {
         var ids = page.items().stream().map(row -> row.get("id").toString()).toList();
         var byId = new HashMap<String, JobRun>(); runs.byIds(ids).forEach(run -> byId.put(run.id(), run));
         var items = ids.stream().map(byId::get).filter(Objects::nonNull).map(run -> {
-            var view = JobViews.view(run);
+            var view = JobViews.forClub(run);
             return new JobRunListItem(run.id(), run.scheduledFor(), run.scheduledForLocal(), run.trigger(), run.dryRun(), run.status(), run.skipReason(),
                     run.startedAt(), run.finishedAt(), run.durationMs(), view.effects().counters(), run.errors().size());
         }).toList();
@@ -98,11 +99,12 @@ public class JobAdminService {
     /** `GET /jobs/{name}/runs/{runId}` (R-15-21 run sheet). */
     public JobRunView run(String routeId, String runId) {
         var definition = access.job(routeId);
-        return runs.forJob(definition.name(), runId).map(JobViews::view).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return runs.forJob(definition.name(), runId).map(JobViews::forClub).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
 
-    /** `POST /jobs/{name}/trigger` (R-15-09): same lock and code as the calendar, also with the switch off. */
-    public JobRunView trigger(String routeId, boolean dryRun) {
+    /** `POST /jobs/{name}/trigger` (R-15-09): same lock and code as the calendar, also with the switch off. Club-scoped view. */
+    public JobRunView trigger(String routeId, boolean dryRun) { return JobViews.forClub(triggered(routeId, dryRun)); }
+    private JobRunView triggered(String routeId, boolean dryRun) {
         var definition = access.job(routeId);
         return triggers.trigger(definition.name(), dryRun);
     }
@@ -118,13 +120,13 @@ public class JobAdminService {
     /** `POST /platform/clubs/{clubId}/jobs/{name}/trigger`: the club route inside the addressed club's scope. */
     public JobRunView platformTrigger(String clubId, String routeId, boolean dryRun) {
         access.platformJob(clubId, routeId);
-        try (var scope = TenantContext.open(clubId)) { return trigger(routeId, dryRun); }
+        try (var scope = TenantContext.open(clubId)) { return triggered(routeId, dryRun); }
     }
 
     /**
      * `GET /platform/jobs/overview` (S17): OK = last success inside the period · WARN = last execution PARTIAL ·
      * ALERT = last execution FAILED / MISSED_WINDOW, or no success in more than two periods. A process switched off,
-     * or one that has never executed, is OK: nothing is overdue.
+     * or one that has never executed (its only trace is the E33 first-run baseline), is OK: nothing is overdue.
      */
     public PlatformJobsOverview overview(String clubId, JobHealth status) {
         var result = new ArrayList<PlatformClubJobs>();
@@ -138,15 +140,20 @@ public class JobAdminService {
                     if (job == null || !JobRunner.moduleOn(job, config)) { continue; }
                     boolean on = enabled(definition, config);
                     var last = runs.last(definition.name()).orElse(null);
-                    var health = health(definition, on, runs.lastExecution(definition.name(), NEUTRAL_SKIPS).orElse(null),
-                            runs.lastSuccess(definition.name()).orElse(null));
-                    if (status == null || status == health) { cells.add(new PlatformJobCell(definition.routeId(), on, last == null ? null : lastRun(last), health)); }
+                    var latest = runs.lastExecution(definition.name(), NEUTRAL_SKIPS).orElse(null);
+                    var health = health(definition, on, baseline(latest) ? null : latest, runs.lastSuccess(definition.name()).orElse(null));
+                    if (status == null || status == health) { cells.add(new PlatformJobCell(definition.routeId(), on, last == null ? null : lastRun(last, false), health)); }
                 }
                 if (!cells.isEmpty()) { result.add(new PlatformClubJobs(club.id(), config.club().name(), config.club().timeZone(), cells)); }
             }
         }
         if (clubId != null && result.isEmpty() && clubs.findById(clubId).isEmpty()) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return new PlatformJobsOverview(result);
+    }
+    /** R-15-05 (E33): a MISSED_WINDOW that is the first JobRun of the process is its baseline, so it reads as «never executed». */
+    private boolean baseline(JobRun latest) {
+        return latest != null && latest.skipReason() == SkipReason.MISSED_WINDOW
+                && runs.first(latest.job()).map(JobRun::id).filter(latest.id()::equals).isPresent();
     }
     JobHealth health(JobDefinition definition, boolean enabled, JobRun latest, JobRun success) {
         if (!enabled || latest == null) { return JobHealth.OK; }

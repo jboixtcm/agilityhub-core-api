@@ -27,4 +27,9 @@ public interface SingleClassChargePort {
      * longer PENDING is left as it is.
      */
     void abandon(String checkoutSessionId);
+    /**
+     * E34: the provider completed the checkout of a booking that was already cancelled (for example by the club while it was
+     * PAYMENT_PENDING). The session keeps a reconciliation mark so S12 refunds it (E8-T04 step 12); no event, no state change.
+     */
+    void lateCompletion(String checkoutSessionId);
 }

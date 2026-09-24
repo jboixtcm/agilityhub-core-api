@@ -34296,16 +34296,6 @@
             },
             "description" : "Conflict"
           },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
           "429" : {
             "content" : {
               "application/json" : {
@@ -34502,16 +34492,6 @@
             },
             "description" : "Conflict"
           },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
           "429" : {
             "content" : {
               "application/json" : {
@@ -34686,16 +34666,6 @@
             },
             "description" : "Conflict"
           },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
           "429" : {
             "content" : {
               "application/json" : {
@@ -34844,16 +34814,6 @@
             },
             "description" : "Conflict"
           },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
-          },
           "429" : {
             "content" : {
               "application/json" : {
@@ -35001,16 +34961,6 @@
               }
             },
             "description" : "JOB_ALREADY_RUNNING"
-          },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -46646,16 +46596,6 @@
               }
             },
             "description" : "JOB_ALREADY_RUNNING"
-          },
-          "422" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {

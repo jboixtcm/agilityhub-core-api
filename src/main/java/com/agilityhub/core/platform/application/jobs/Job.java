@@ -16,4 +16,10 @@ public interface Job {
     default JobDefinition definition() { return JobCatalog.definition(name()); }
     /** Extra guard beyond the module (for example `waitlist.mode = FIFO`); false records SKIPPED{MODULE_OFF}. */
     default boolean activeFor(ClubConfig config) { return true; }
+    /**
+     * A real run of this process ended FAILED and its row is closed: by its own holder (a job-level exception or a lost
+     * lease) or by the reaper after its process died. Lets a process give back what its plan claimed (E5-T13: the P9
+     * platform cycle). Called inside the run's club scope and outside any transaction; a failure here is only logged.
+     */
+    default void failed(String clubId, String runId) { }
 }

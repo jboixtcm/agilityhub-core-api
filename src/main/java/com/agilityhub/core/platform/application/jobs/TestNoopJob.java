@@ -26,6 +26,7 @@ public class TestNoopJob implements Job {
     private volatile boolean failPlan;
     private final AtomicInteger applied = new AtomicInteger();
     private final List<String> appliedBy = java.util.Collections.synchronizedList(new ArrayList<>());
+    private final List<String> failedRuns = java.util.Collections.synchronizedList(new ArrayList<>());
     private final AtomicReference<Runnable> duringApply = new AtomicReference<>();
     private final AtomicReference<Runnable> duringPlan = new AtomicReference<>();
 
@@ -50,10 +51,15 @@ public class TestNoopJob implements Job {
         return JobEffect.of("NOOP", "applied");
     }
 
+    /** {@link Job#failed}: records `clubId/runId` of every closed FAILED real run. */
+    @Override public void failed(String clubId, String runId) { failedRuns.add(clubId + "/" + runId); }
+
     public void configure(JobDefinition definition, int items, int failAt, boolean failPlan) {
         this.definition = definition; this.items = items; this.failAt = failAt; this.failPlan = failPlan; applied.set(0); appliedBy.clear(); duringApply.set(null);
-        duringPlan.set(null);
+        duringPlan.set(null); failedRuns.clear();
     }
+    /** `clubId/runId` of the FAILED runs the framework reported through {@link Job#failed}, in order. */
+    public List<String> failedRuns() { synchronized (failedRuns) { return List.copyOf(failedRuns); } }
     /** Runs `hook` once, inside the next `apply` (while the run is RUNNING): lets a test interleave a reaper or another instance. */
     public void duringNextApply(Runnable hook) { duringApply.set(hook); }
     /** Runs `hook` once, inside the next `plan` (also a dry run's): lets a test observe the framework's writes while it plans. */

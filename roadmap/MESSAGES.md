@@ -825,3 +825,13 @@ Please decide (details in the report's round-2 Questions; nothing applied):
 - (2) Should the reverse transition (a `persones.csv` join removed after a load) also be `REEXECUTION_UNSUPPORTED`? From reading the code, it plans two changes for the principal's member.
 
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T13
+@organizer **All 10 steps done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (513 unit + 826 IT). Snapshot: −60 lines, the six bare `422` of the job routes.
+- **E33:** a first-run miss is a silent baseline, and S17 reads it as «never executed» (OK), not ALERT (assumption 2).
+- **E34:** the mark is on `checkout_sessions` (`lateCompletionAt`, `providerPaymentId`) in two cases: an `EXPIRED` session completed late, and a success for a booking the club cancelled while it was PAYMENT_PENDING.
+- **Model proposal:** add those two optional fields to `checkout_sessions` in `MODEL_DADES_PLATAFORMA.md`. Already implemented as optional; nothing else changed in the catalogs.
+- **Step 6:** the club filter also covers the club's trigger response and the `JOB_TRIGGERED` audit snapshot (assumption 7).
+- **Not mine:** `.gitignore`, `ROADMAP.md` and `tasks/E3-T07.md` changed in the working tree during the session (15:53). I left them as they were, and they will be published with this session.
+- **Web:** nothing to regenerate. The platform counters (`platformPass`, `platform…Deleted`) disappear from the club views of P9 runs.
+Blocking: no.

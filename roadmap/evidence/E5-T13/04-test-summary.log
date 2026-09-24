@@ -1,0 +1,36 @@
+Command: ./mvnw -q clean verify -> exit=0 (03-clean-verify.log)
+surefire TOTAL tests=513 failures=0 errors=0 skipped=0
+  ArchitectureRulesTest tests=20 failures=0 errors=0 skipped=0
+  ArchitectureTest tests=12 failures=0 errors=0 skipped=0
+  ClockRuleTest tests=5 failures=0 errors=0 skipped=0
+  BookingConfirmationServiceTest tests=2 failures=0 errors=0 skipped=0
+  new/changed methods:
+    ClockRuleTest.T_15_07_offsetTimeYearYearMonthAndMonthDayNowAreViolationsWithOrWithoutAZone passed
+    ClockRuleTest.T_15_07_injectedClockReadsPass passed
+    BookingConfirmationServiceTest.T_08_24_whenAbandonThrowsAfterTheProviderFailureTheOriginalIsRethrownWithTheAbandonSuppressed passed
+    BookingConfirmationServiceTest.T_08_24_whenTheCancellationAndTheAbandonBothThrowBothAreSuppressedInOrder passed
+failsafe TOTAL tests=826 failures=0 errors=0 skipped=0
+  CleanupJobIT tests=4 failures=0 errors=0 skipped=0
+  JobsApiIT tests=4 failures=0 errors=0 skipped=0
+  RiskReviewJobIT tests=7 failures=0 errors=0 skipped=0
+  SingleClassCheckoutIT tests=9 failures=0 errors=0 skipped=0
+  WeekOpeningJobIT tests=4 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest tests=10 failures=0 errors=0 skipped=0
+  JobFrameworkIT tests=16 failures=0 errors=0 skipped=0
+  new/changed methods:
+    CleanupJobIT.T_15_27_aFailedRunThatClaimedThePlatformCycleReleasesItForAnotherRunOfTheSameDay passed
+    JobsApiIT.T_15_27_thePlatformPassStaysOutOfTheRunViewsOfTheClubThatClaimedIt passed
+    RiskReviewJobIT.T_15_04_riskReviewCatchesUpUntilTheEndOfTheLocalDayThenMissesItsWindow passed
+    SingleClassCheckoutIT.T_15_25_R_08_18_aTimedOutBookingExpiresItsCheckoutSoALateSuccessNeverSettlesItAndN40IsSent passed
+    SingleClassCheckoutIT.T_15_25_E34_aSuccessForABookingTheClubCancelledSettlesNothingAndIsMarkedForRefund passed
+    SingleClassCheckoutIT.T_08_24_aRedeliveredSuccessForAPaidThenCancelledBookingLeavesNoRefundMark passed
+    WeekOpeningJobIT.T_15_04_T_15_06_theOpeningCatchesUpForADayThePlanMatchesAndNothingIsLostWhenMissed passed
+    OpenApiSnapshotTest.T_15_09_jobRoutesPublishNo422ThatNoCodeMapsTo passed
+    OpenApiSnapshotTest.E0_T12_downloadAndWriteStableOpenApi31Contract passed
+    JobFrameworkIT.T_15_31_aHolderWhoseLeaseVanishedWithoutAReaperFailsItsOwnRunAndStops passed
+    JobFrameworkIT.T_15_04_E33_aFirstRunOutsideItsWindowIsASilentBaselineAndTheNextMissAlerts passed
+    JobFrameworkIT.T_15_31_aRunWhoseLeaseExpiredIsFailedAndTakenAgainAsCatchUp passed
+    JobFrameworkIT.T_15_04_missedWindowSkipsAndAlerts passed
+    JobFrameworkIT.T_15_04_aClubWithNoRunHistoryStartsFromItsLatestOccurrenceOnly passed
+    JobFrameworkIT.T_15_01_aTickPastSecondThirtyRenewsItsLeaseBeforeTheNextClub passed
+    JobFrameworkIT.T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay passed

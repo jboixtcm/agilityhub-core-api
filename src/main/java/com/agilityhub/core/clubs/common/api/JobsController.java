@@ -32,7 +32,7 @@ public class JobsController {
 
     @GetMapping("/api/v1/jobs")
     @PreAuthorize(ADMIN)
-    @ContractErrors({IMPERSONATION_DENIED})
+    @ContractErrors(value = {IMPERSONATION_DENIED}, omit = 422)
     @Operation(summary = "jobs", description = "Roles: ADMIN (impersonation → IMPERSONATION_DENIED). One row per process with a registered implementation whose module is on (D11). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "JobSummaries", useReturnTypeSchema = true))
     public JobSummaries jobs() {
@@ -44,7 +44,7 @@ public class JobsController {
     @PreAuthorize(ADMIN)
     @ListContract(filterable = {"status", "scheduledFor", "trigger", "dryRun"}, sortable = {"scheduledFor", "startedAt"},
             columns = {"scheduledForLocal*", "trigger*", "status*", "dryRun*", "durationMs", "counters*", "errorCount*", "skipReason"}, paged = true, exportable = false)
-    @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED})
+    @ContractErrors(value = {VALIDATION_ERROR, INVALID_FILTER, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED}, omit = 422)
     @Operation(summary = "jobRuns", description = "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4); unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<JobRunListItem>", useReturnTypeSchema = true))
     public ListPage<JobRunListItem> jobRuns(@PathVariable @Parameter(description = NAME) String name,
@@ -55,7 +55,7 @@ public class JobsController {
 
     @GetMapping("/api/v1/jobs/{name}/runs/{runId}")
     @PreAuthorize(ADMIN)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED})
+    @ContractErrors(value = {VALIDATION_ERROR, NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED}, omit = 422)
     @Operation(summary = "jobRun", description = "Roles: ADMIN. Run sheet with effects.items, errors and parametersSnapshot (R-15-21). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "JobRun", useReturnTypeSchema = true))
     public JobRunView jobRun(@PathVariable @Parameter(description = NAME) String name, @PathVariable String runId) {
@@ -65,7 +65,7 @@ public class JobsController {
 
     @PostMapping("/api/v1/jobs/{name}/trigger")
     @PreAuthorize(ADMIN)
-    @ContractErrors({VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING, IMPERSONATION_DENIED})
+    @ContractErrors(value = {VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING, IMPERSONATION_DENIED}, omit = 422)
     @Operation(summary = "triggerJob", description = "Roles: ADMIN. [Simula] (dryRun true: only the plan, actions WOULD_*, nothing written but the JobRun) or [Executa ara]; synchronous, also when the switch is off; audited JOB_TRIGGERED (R-15-09). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "JobRun", useReturnTypeSchema = true))
     public JobRunView triggerJob(@PathVariable @Parameter(description = NAME) String name, @Valid @RequestBody JobTriggerRequest request) {
@@ -75,7 +75,7 @@ public class JobsController {
 
     @PutMapping("/api/v1/jobs/{name}/switch")
     @PreAuthorize(ADMIN)
-    @ContractErrors({VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED})
+    @ContractErrors(value = {VALIDATION_ERROR, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED}, omit = 422)
     @Operation(summary = "switchJob", description = "Roles: ADMIN. Writes jobs.<name>.enabled through the parameter service (ParameterChanged, audited PARAMETER_CHANGED). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "JobSwitchResponse", useReturnTypeSchema = true))
     public JobSwitchResponse switchJob(@PathVariable @Parameter(description = NAME) String name, @Valid @RequestBody JobSwitchRequest request) {

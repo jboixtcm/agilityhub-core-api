@@ -18,6 +18,10 @@ import org.springframework.stereotype.Component;
  * The `tick` lease (55 s, never released early) keeps one active tick per minute across instances; another instance
  * that finds it held in the same minute skips (normal contention, not an overrun). A tick still running after 30 s
  * renews the lease before each club, so no other instance starts a second tick meanwhile, and settles it when it ends.
+ * Limit (E5-T09 review #5): the renewal happens only <em>between</em> clubs. A single club whose processes take more
+ * than 55 s after the last renewal can lose the `tick` lease in the middle of that club, and then another instance may
+ * start the next minute's tick. That is harmless for the runs themselves (each run holds its own per-club lease and
+ * claims its occurrence, R-15-04/R-15-06); it only lets two ticks overlap.
  * A tick that lasts past the next minute's tick is an overrun: `jobs.tick.overrun` counts the minute ticks it skipped
  * (Spring's single scheduler thread does not fire them, and the renewed lease stops the other instances).
  */

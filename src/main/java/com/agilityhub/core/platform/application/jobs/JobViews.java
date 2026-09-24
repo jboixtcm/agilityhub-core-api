@@ -63,6 +63,32 @@ public final class JobViews {
     public record PlatformClubJobs(String clubId, String name, String timeZone, List<PlatformJobCell> jobs) { }
     public record PlatformJobsOverview(List<PlatformClubJobs> clubs) { }
 
+    /**
+     * AGENTS rule 4 (E5-T13, review E5-T10 #5): the club-scoped views of a run (D11 rows and history, the run sheet, the
+     * club's manual trigger and its audit) leave out what the run did outside the tenant, the P9 platform pass: the
+     * `platform…` counters (`WOULD_…_platform…` in a dry run) and the `Platform…` items. In a dry run the plan counter of
+     * each hidden item (`WOULD_<action>`) is lowered too. The stored JobRun and the platform console keep everything.
+     */
+    public static JobRunView forClub(JobRunView view) {
+        var counters = clubCounters(view.effects().counters());
+        var items = new java.util.ArrayList<JobEffectItem>();
+        for (JobEffectItem item : view.effects().items()) {
+            if (!item.entityType().startsWith("Platform")) { items.add(item); }
+            else if (view.dryRun()) { counters.computeIfPresent(item.action(), (key, value) -> value - 1); }
+        }
+        return new JobRunView(view.runId(), view.job(), view.scheduledFor(), view.scheduledForLocal(), view.timeZone(), view.trigger(), view.dryRun(),
+                view.status(), view.skipReason(), view.startedAt(), view.finishedAt(), view.durationMs(), new JobEffects(counters, List.copyOf(items)),
+                view.errors(), view.actorAccountId(), view.parametersSnapshot());
+    }
+    public static JobRunView forClub(com.agilityhub.core.platform.persistence.jobs.JobRun run) { return forClub(view(run)); }
+    /** The counters without the platform pass ones (see {@link #forClub(JobRunView)}). */
+    public static Map<String, Long> clubCounters(Map<String, Long> counters) {
+        var result = new java.util.LinkedHashMap<String, Long>();
+        counters.forEach((key, value) -> { if (!platformCounter(key)) { result.put(key, value); } });
+        return result;
+    }
+    static boolean platformCounter(String key) { return key.startsWith("platform") || key.startsWith("WOULD_") && key.contains("_platform"); }
+
     public static JobRunView view(com.agilityhub.core.platform.persistence.jobs.JobRun run) {
         var counters = new java.util.LinkedHashMap<String, Long>();
         run.counters().forEach(entry -> counters.put(entry.key(), ((Number) entry.value()).longValue()));

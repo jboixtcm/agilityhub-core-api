@@ -29,6 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         properties = {"management.server.port=0", "shared.scheduling.enabled=false"})
 @AutoConfigureMockMvc
 class OpenApiSnapshotTest extends AbstractIntegrationTest {
+    /** S15 §6 routes whose codes never map to 422, so the generic 422 is left out (`@ContractErrors(omit = 422)`). */
+    static final List<String> JOB_ROUTES = List.of("/api/v1/jobs", "/api/v1/jobs/{name}/runs", "/api/v1/jobs/{name}/runs/{runId}",
+            "/api/v1/jobs/{name}/trigger", "/api/v1/jobs/{name}/switch", "/api/v1/platform/clubs/{clubId}/jobs/{name}/trigger");
     @LocalServerPort int port;
     @Autowired ObjectMapper mapper;
     @Autowired MockMvc mvc;
@@ -44,6 +47,21 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(publicRoute.path("parameters").findValuesAsText("name")).contains("X-Api-Key", "Accept-Language");
         assertThat(document.path("paths").path("/api/v1/club-pages").path("post").path("responses").has("201")).isTrue();
         assertThat(document.path("paths").path("/api/v1/club-pages/{key}").path("patch").path("responses").has("409")).isTrue();
+    }
+
+    /** E5-T13 (review E5-T09 #8): the S15 process routes publish no bare 422 (JOB_UNKNOWN moved to 404); the codes they have stay. */
+    @Test void T_15_09_jobRoutesPublishNo422ThatNoCodeMapsTo() throws Exception {
+        var document = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        int operations = 0;
+        for (String route : JOB_ROUTES) {
+            for (var operation : document.path("paths").path(route)) {
+                operations++;
+                assertThat(names(operation.path("responses"))).as(route).doesNotContain("422").contains("400", "403", "404", "409", "429", "500");
+            }
+        }
+        assertThat(operations).isEqualTo(6);
+        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1trigger/post/responses/409/description").asText()).isEqualTo("JOB_ALREADY_RUNNING");
+        assertThat(document.at("/paths/~1api~1v1~1jobs~1{name}~1runs/get/responses/404/description").asText()).isEqualTo("JOB_UNKNOWN, MODULE_DISABLED");
     }
 
     @Test void T_14_13_auditReadAndExportSchemasRetainTypedUniversalContracts() throws Exception {
@@ -84,9 +102,11 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
         assertThat(names(error.path("properties"))).containsExactlyInAnyOrder("code", "message", "details", "traceId");
         assertThat(strings(error.path("required"))).containsExactlyInAnyOrder("code", "message", "traceId");
         assertThat(error.at("/properties/details/additionalProperties").asBoolean()).isTrue();
-        document.path("paths").forEach(path -> path.forEach(operation -> {
+        document.path("paths").fields().forEachRemaining(path -> path.getValue().forEach(operation -> {
             assertThat(strings(operation.path("tags"))).hasSize(1).noneMatch(tag -> tag.endsWith("-controller"));
-            assertThat(names(operation.path("responses"))).contains("400", "401", "403", "404", "409", "422", "429", "500", "4XX", "5XX");
+            assertThat(names(operation.path("responses"))).contains("400", "401", "403", "404", "409", "429", "500", "4XX", "5XX");
+            // E5-T13 (review E5-T09 #8): only the S15 process routes leave out a 422 that none of their codes maps to.
+            if (!JOB_ROUTES.contains(path.getKey())) { assertThat(names(operation.path("responses"))).contains("422"); }
             assertThat(names(operation.path("responses"))).anyMatch(code -> code.matches("[23][0-9]{2}"));
             operation.path("responses").fields().forEachRemaining(entry -> {
                 if (entry.getKey().matches("[45](?:[0-9]{2}|XX)")) {

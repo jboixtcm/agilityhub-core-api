@@ -322,8 +322,10 @@ class RiskReviewJobIT extends BookingFixtures {
         var catchUp = review("2026-10-06T23:58");
         assertThat(catchUp.trigger()).isEqualTo(JobTrigger.CATCH_UP);
         assertThat(catchUp.scheduledFor()).isEqualTo(Instant.parse("2026-10-06T05:30:00Z"));
-        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
-        var missed = review("2026-10-07T00:01");
+        // The next day's occurrence (07-10 07:30), checked at 00:01 on the day after it: the catch-up above is the process's
+        // history, so this miss is a lost run and alerts (a first run without history would be the silent E33 baseline).
+        var missed = review("2026-10-08T00:01");
+        assertThat(missed.scheduledFor()).isEqualTo(Instant.parse("2026-10-07T05:30:00Z"));
         assertThat(missed.status()).isEqualTo(JobStatus.SKIPPED);
         assertThat(missed.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
         assertThat(eventsOf("JobFailed")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).getString("job")).isEqualTo("RISK_REVIEW"));

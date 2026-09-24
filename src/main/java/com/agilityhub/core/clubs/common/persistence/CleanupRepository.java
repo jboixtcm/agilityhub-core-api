@@ -82,19 +82,29 @@ public class CleanupRepository {
     /**
      * The P9 cycle is the UTC day of the occurrence: the first real P9 run of that day (any club) claims the platform
      * pass until the day ends; every other run of the same day, and a late catch-up of an older day, gets false. The
-     * claim is a `job_locks` lease (`holder` = the club whose run does the pass), so Mongo's TTL removes it afterwards.
+     * claim is a `job_locks` lease (`holder` = the club whose run does the pass, `runId` = that run), so Mongo's TTL
+     * removes it afterwards.
      */
-    public boolean claimPlatformCycle(String clubId, Instant occurrence) {
+    public boolean claimPlatformCycle(String clubId, Instant occurrence, String runId) {
         String holder = tenant(clubId);
         var cycleEnd = occurrence.atZone(java.time.ZoneOffset.UTC).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
         try {
             var query = Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").lte(occurrence));
-            var update = new org.springframework.data.mongodb.core.query.Update().set("holder", holder).set("acquiredAt", occurrence).set("expiresAt", cycleEnd);
+            var update = new org.springframework.data.mongodb.core.query.Update().set("holder", holder).set("runId", runId).set("acquiredAt", occurrence)
+                    .set("expiresAt", cycleEnd);
             return mongo.findAndModify(query, update, org.springframework.data.mongodb.core.FindAndModifyOptions.options().upsert(true).returnNew(true),
                     Document.class, "job_locks") != null;
         } catch (org.springframework.dao.DuplicateKeyException claimed) {
             return false;
         }
+    }
+    /**
+     * E5-T13 (review E5-T10 #4): the run that claimed the cycle ended FAILED, so the claim is given back and another run of
+     * the same UTC day (another club's, or this club's retake) can do the pass. Only that run's claim is removed.
+     */
+    public boolean releasePlatformCycle(String clubId, String runId) {
+        var query = Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("holder").is(tenant(clubId)).and("runId").is(runId));
+        return mongo.remove(query, "job_locks").getDeletedCount() == 1;
     }
     /** For a dry run: would a real run of this occurrence still get the platform pass? (claims nothing) */
     public boolean platformCycleOpen(Instant occurrence) {

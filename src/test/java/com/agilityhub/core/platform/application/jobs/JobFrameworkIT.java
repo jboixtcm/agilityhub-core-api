@@ -25,6 +25,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import org.bson.Document;
@@ -243,6 +244,35 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         } finally { logger.detachAppender(appender); appender.stop(); }
     }
 
+    /** E5-T13 (review E5-T10 #2): a lease lost without a reaper (the TTL removed the lock) closes the holder's own row. */
+    @Test void T_15_31_aHolderWhoseLeaseVanishedWithoutAReaperFailsItsOwnRunAndStops() {
+        job.configure(DAILY, 2, 0, false);
+        job.duringNextApply(() -> {
+            // While item-1 is applied, more than a renewal period passes and the lock document disappears, with no reaper and no retake.
+            CompletableFuture.runAsync(() -> mongo.remove(Query.query(Criteria.where("_id").is(CLUB + ":TEST_NOOP")), "job_locks")).join();
+            clock.setInstant(at("2026-10-05T04:01:30Z"));
+        });
+        var lost = runner.scheduled(CLUB, true, job, at("2026-10-05T04:00:00Z")).orElseThrow();
+        // The renewal before item-2 fails: only item-1 was applied, and the holder closes its row as FAILED itself.
+        assertThat(job.appliedBy()).extracting(entry -> entry.substring(entry.indexOf('/') + 1)).containsExactly("item-1");
+        assertThat(lost.status()).isEqualTo(JobStatus.FAILED);
+        assertThat(lost.leaseExpired()).isTrue();
+        assertThat(lost.exclusive()).isFalse();
+        assertThat(lost.items()).extracting(JobRun.Item::entityId).containsExactly("item-1");
+        assertThat(lost.errors()).first().extracting(JobRun.RunError::message).isEqualTo("Lease lost before the run finished");
+        assertThat(mongo.findById(lost.id(), JobRun.class)).isEqualTo(lost);
+        assertThat(events("JobFailed")).singleElement()
+                .satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("runId", lost.id()).containsEntry("status", "FAILED"));
+        // The process is told its run failed, so it can give back what its plan claimed (E5-T13, P9 platform cycle).
+        assertThat(job.failedRuns()).containsExactly(CLUB + "/" + lost.id());
+        // The row gave up its claim, so the next tick retakes the occurrence as CATCH_UP.
+        clock.setInstant(at("2026-10-05T04:03:00Z"));
+        var retake = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(retake.trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(retake.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(retake.scheduledFor()).isEqualTo(at("2026-10-05T04:00:00Z"));
+    }
+
     @Test void T_15_05_switchModuleAndClubStatusRecordSkippedRunsOncePerOccurrenceOrHour() {
         job.configure(DAILY, 1, 0, false);
         parameter("jobs.cleanup.enabled", false);
@@ -346,6 +376,8 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(failed.status()).isEqualTo(JobStatus.FAILED);
         assertThat(failed.errors().getFirst().entityId()).isNull();
         assertThat(failed.errors().getFirst().code()).isEqualTo("INTERNAL_ERROR");
+        // Job#failed only for the FAILED run, not for the PARTIAL one before it (E5-T13).
+        assertThat(job.failedRuns()).containsExactly(CLUB + "/" + failed.id());
         clock.setInstant(at("2026-10-05T09:00:00Z"));
         runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN);
         var jobFailed = events("JobFailed");
@@ -373,25 +405,54 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(metrics.find("jobs.last_success_age_seconds").tags("job", "TEST_NOOP", "club", CLUB).gauge().value()).isZero();
     }
 
-    @Test void T_15_05_missedWindowSkipsAndAlerts() {
+    @Test void T_15_04_missedWindowSkipsAndAlerts() throws Exception {
         job.configure(new JobDefinition(JobName.TEST_NOOP, "test-noop", Cadence.DAILY, "jobs.dailyTime", null, null,
                 CatchUpWindow.END_OF_LOCAL_DAY, "jobs.cleanup.enabled"), 1, 0, false);
-        var missed = runner.scheduled(CLUB, true, job, at("2026-10-05T22:30:00Z")).orElseThrow();
+        // A first run gives the process a history, so the next miss is a lost run and alerts.
+        assertThat(runner.scheduled(CLUB, true, job, at("2026-10-05T04:00:00Z")).orElseThrow().status()).isEqualTo(JobStatus.SUCCEEDED);
+        var missed = runner.scheduled(CLUB, true, job, at("2026-10-06T22:30:00Z")).orElseThrow();
         assertThat(missed.status()).isEqualTo(JobStatus.SKIPPED);
         assertThat(missed.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
         assertThat(missed.trigger()).isEqualTo(JobTrigger.CATCH_UP);
         assertThat(events("JobFailed")).singleElement().satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("status", "SKIPPED"));
-        assertThat(job.applied()).isZero();
-        var caughtUp = runner.scheduled(CLUB, true, job, at("2026-10-06T21:00:00Z")).orElseThrow();
+        alerts.deliver(mapper.readValue(events("JobFailed").getFirst().getString("eventJson"), SchedulerEvent.class));
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-42")), "notifications")).isPositive();
+        assertThat(job.applied()).isEqualTo(1);
+        var caughtUp = runner.scheduled(CLUB, true, job, at("2026-10-07T21:00:00Z")).orElseThrow();
         assertThat(caughtUp.trigger()).isEqualTo(JobTrigger.CATCH_UP);
         assertThat(caughtUp.status()).isEqualTo(JobStatus.SUCCEEDED);
+    }
+
+    /** R-15-05 amended 24-09 (E33): the first run of a process in a club with no JobRun of it, outside its window, is a silent baseline. */
+    @Test void T_15_04_E33_aFirstRunOutsideItsWindowIsASilentBaselineAndTheNextMissAlerts() {
+        job.configure(new JobDefinition(JobName.TEST_NOOP, "test-noop", Cadence.DAILY, "jobs.dailyTime", null, null,
+                CatchUpWindow.END_OF_LOCAL_DAY, "jobs.cleanup.enabled"), 1, 0, false);
+        assertThat(runs()).isEmpty();
+        // Deployment day, 00:30 local: yesterday's 06:00 is outside its window → SKIPPED{MISSED_WINDOW}, without JobFailed (so no N-42).
+        var baseline = runner.scheduled(CLUB, true, job, at("2026-10-05T22:30:00Z")).orElseThrow();
+        assertThat(baseline.status()).isEqualTo(JobStatus.SKIPPED);
+        assertThat(baseline.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
+        assertThat(baseline.scheduledFor()).isEqualTo(at("2026-10-05T04:00:00Z"));
+        assertThat(events("JobFailed")).isEmpty();
+        assertThat(events("SchedulerRun")).isEmpty();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-42")), "notifications")).isZero();
+        assertThat(job.applied()).isZero();
+        // The baseline claims its occurrence like any MISSED_WINDOW: the next tick of the same day finds nothing due.
+        assertThat(runner.scheduled(CLUB, true, job, at("2026-10-05T22:31:00Z"))).isEmpty();
+        // The next miss has a history now, so it alerts as before.
+        var next = runner.scheduled(CLUB, true, job, at("2026-10-06T22:30:00Z")).orElseThrow();
+        assertThat(next.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
+        assertThat(events("JobFailed")).singleElement().satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("runId", next.id()));
+        // Another club's history does not count: its first miss is its own baseline.
+        assertThat(runner.scheduled(SUSPENDED, true, job, at("2026-10-06T22:30:00Z")).orElseThrow().skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(SUSPENDED).and("type").is("JobFailed")), "domain_events")).isZero();
     }
 
     /**
      * E5-T09 (E5-T01 review #5): the baseline of a club or process with no run history is its latest occurrence ≤ now,
      * judged by R-15-05 like any other tick: older occurrences are never enumerated, so a first tick produces at most one row.
      */
-    @Test void T_15_05_aClubWithNoRunHistoryStartsFromItsLatestOccurrenceOnly() {
+    @Test void T_15_04_aClubWithNoRunHistoryStartsFromItsLatestOccurrenceOnly() {
         assertThat(runs()).isEmpty();
         // Unlimited window, three days after the club's first occurrence: one CATCH_UP for today's 06:00, nothing for the days before.
         job.configure(DAILY, 1, 0, false);
@@ -413,7 +474,7 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(continuous.scheduledFor()).isEqualTo(at("2026-10-10T03:00:00Z"));
         assertThat(continuous.trigger()).isEqualTo(JobTrigger.SCHEDULE);
         assertThat(runs()).hasSize(1);
-        // Outside the window the baseline is SKIPPED{MISSED_WINDOW} + JobFailed (R-15-05/R-15-10 as written): see T_15_05_missedWindowSkipsAndAlerts.
+        // Outside the window the baseline is SKIPPED{MISSED_WINDOW} without JobFailed (E33): see T_15_04_E33_aFirstRunOutsideItsWindow….
     }
 
     @Test void T_15_31_aRunWhoseLeaseExpiredIsFailedAndTakenAgainAsCatchUp() {
@@ -434,6 +495,8 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(reaped.leaseExpired()).isTrue();
         assertThat(reaped.exclusive()).isFalse();
         assertThat(events("JobFailed")).hasSize(1);
+        // The reaper tells the process too (E5-T13): its dead run can no longer give anything back itself.
+        assertThat(job.failedRuns()).containsExactly(CLUB + "/dead-run");
     }
 
     @Test @AuditCovers(AuditAction.JOB_TRIGGERED)
@@ -478,6 +541,33 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         clock.setInstant(at("2026-10-06T04:00:00Z"));
         assertThat(tick.run(clock.instant())).isTrue();
         assertThat(runs()).last().satisfies(run -> assertThat(run.getString("status")).isEqualTo("FAILED"));
+    }
+
+    /** E5-T13 (review E5-T09 #5): the RENEW_AFTER branch of the tick, driven through `tick.run` with two clubs. */
+    @Test void T_15_01_aTickPastSecondThirtyRenewsItsLeaseBeforeTheNextClub() {
+        // Both fixture clubs are active and due (they are consecutive in `_id` order); the first applied item takes 40 s.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(SUSPENDED)), new org.springframework.data.mongodb.core.query.Update().set("status", "ACTIVE"), Club.class);
+        configs.invalidate(SUSPENDED);
+        job.configure(DAILY, 1, 0, false);
+        var leaseSeen = new AtomicReference<Instant>();
+        var secondTick = new AtomicReference<Boolean>();
+        job.duringNextApply(() -> {
+            clock.setInstant(at("2026-10-05T04:00:40Z"));
+            // In the next club's item, after the renewal at the start of that club, another instance tries the next minute's tick.
+            // Both reads run outside this item's Mongo transaction (a DuplicateKey would abort it).
+            job.duringNextApply(() -> CompletableFuture.runAsync(() -> {
+                leaseSeen.set(mongo.findById("tick", Document.class, "job_locks").getDate("expiresAt").toInstant());
+                secondTick.set(locks.acquire("tick", "other-instance", at("2026-10-05T04:01:00Z"), Duration.ofSeconds(55)));
+            }).join());
+        });
+        assertThat(tick.run(at("2026-10-05T04:00:00Z"))).isTrue();
+        // Renewed at second 40 for 55 s more: without the renewal the lease would have ended at 04:00:55.
+        assertThat(leaseSeen.get()).isEqualTo(at("2026-10-05T04:01:35Z"));
+        assertThat(secondTick.get()).isFalse();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").in(CLUB, SUSPENDED).and("job").is("TEST_NOOP").and("status").is("SUCCEEDED")),
+                "job_runs")).isEqualTo(2);
+        // A tick that ended at second 40 settles its lease to the minute's 55 s.
+        assertThat(mongo.findById("tick", Document.class, "job_locks").getDate("expiresAt").toInstant()).isEqualTo(at("2026-10-05T04:00:55Z"));
     }
 
     /** E5-T09 (E5-T01 review #4): `jobs.tick.overrun` counts the minute ticks a slow tick made the scheduler skip. */

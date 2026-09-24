@@ -40,7 +40,8 @@ public class JobTriggerService {
         Loader(JobRunRepository runs) { this.runs = runs; }
         @Override public String entityType() { return "JobRun"; }
         @Override public Object load(String entityId) {
-            return runs.findById(entityId).map(JobViews::view)
+            // The audit trail belongs to the club: no platform pass counters in it (AGENTS rule 4, JobViews.forClub).
+            return runs.findById(entityId).map(JobViews::forClub)
                     .map(run -> new TriggerSnapshot(run.job(), run.dryRun(), run.status(), run.effects().counters())).orElse(null);
         }
     }

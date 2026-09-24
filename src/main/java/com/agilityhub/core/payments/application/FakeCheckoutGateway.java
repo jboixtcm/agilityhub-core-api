@@ -15,6 +15,6 @@ public class FakeCheckoutGateway implements PaymentProvider {
     public FakeCheckoutGateway(ObjectProvider<CheckoutService> checkout) { this.checkout=checkout; }
     public Request request(String id) { var result=requests.get(id);if(result==null) throw new ApiException(ErrorCode.NOT_FOUND);return result; }
     @Override public String createCheckoutSession(Request request) { requests.put(request.sessionId(),request);return "https://checkout.test/"+request.sessionId(); }
-    @Override public void complete(String id) { try(var tenant=TenantContext.open(request(id).clubId())) { checkout.getObject().complete(id,Map.of("stripeCustomerId","fake_customer_"+id,"stripePaymentMethodId","fake_method_"+id,"last4","4242","brand","visa")); } }
+    @Override public void complete(String id) { try(var tenant=TenantContext.open(request(id).clubId())) { checkout.getObject().complete(id,"fake_payment_"+id,Map.of("stripeCustomerId","fake_customer_"+id,"stripePaymentMethodId","fake_method_"+id,"last4","4242","brand","visa")); } }
     @Override public void expire(String id) { try(var tenant=TenantContext.open(request(id).clubId())) { checkout.getObject().expire(id); } }
 }

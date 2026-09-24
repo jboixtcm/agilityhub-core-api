@@ -29,7 +29,7 @@ public class PlatformJobsController {
 
     @PostMapping("/api/v1/platform/clubs/{clubId}/jobs/{name}/trigger")
     @PreAuthorize(PLATFORM)
-    @ContractErrors({VALIDATION_ERROR, NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING})
+    @ContractErrors(value = {VALIDATION_ERROR, NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED, JOB_ALREADY_RUNNING}, omit = 422)
     @Operation(summary = "platformTriggerJob", description = "Roles: AGILITYHUB_ADMIN. Same execution as POST /jobs/{name}/trigger inside the club scope; audited JOB_TRIGGERED.",
             responses = @ApiResponse(responseCode = "200", description = "JobRun", useReturnTypeSchema = true))
     public JobRunView platformTriggerJob(@PathVariable String clubId, @PathVariable @Parameter(description = "R-15-01 route id") String name,

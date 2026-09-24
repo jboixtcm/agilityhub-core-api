@@ -11,4 +11,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ContractErrors {
     ErrorCode[] value();
+    /**
+     * Generic statuses the operation never answers, left out of the published responses: for example `422` when no catalog
+     * code of that status can come from it (E5-T13, review E5-T09 #8). A status that a code in {@link #value()} maps to is
+     * always kept.
+     */
+    int[] omit() default {};
 }

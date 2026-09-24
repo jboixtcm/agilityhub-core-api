@@ -5,9 +5,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
-/** One execution for one club: occurrence, club-local date, dry-run flag and the club configuration. */
+/** One execution for one club: occurrence, club-local date, dry-run flag, the club configuration and the id of its JobRun. */
 public record JobContext(String clubId, ZoneId zone, Instant scheduledFor, LocalDate localDate, boolean dryRun,
-        ClubConfig config, JobRunRecorder recorder) {
+        ClubConfig config, JobRunRecorder recorder, String runId) {
     /** Reads a club parameter and records it in `parametersSnapshot`, so the run stays explainable afterwards. */
     public <T> T parameter(String key, Class<T> type) {
         T value = config.get(key, type);

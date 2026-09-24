@@ -25,6 +25,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class BookingConfirmationService {
     /** `checkout` is the PAY_TO_BOOK checkout still to open after the commit; `checkoutUrl` is set once it is open. */
     public record Confirmed(Booking booking, String checkoutUrl, SingleClassChargePort.Pending checkout) { }
+    private static final Set<BookingState> CANCELLED = EnumSet.of(BookingState.CANCELLED, BookingState.CANCELLED_LATE, BookingState.CANCELLED_BY_CLUB);
     private final BookingContext context; private final BookingTransactions transactions; private final BookingChecks checks;
     private final SeatLockRepository locks; private final SeatHoldRepository holds; private final BookingRepository bookings;
     private final BookingCancellationService cancellations; private final PackBalancePort packs; private final WaitlistConsolidationPort waitlist;
@@ -154,9 +155,19 @@ public class BookingConfirmationService {
                 b.reminderSentAt(), b.version() + 1, b.createdAt(), b.createdByAccountId(), b.updatedAt(), b.updatedByAccountId());
     }
 
-    /** S12 `UpfrontPaymentSucceeded{bookingId}` → ACTIVE + `BookingCreated` (N-04); a repeat is a no-op. */
+    /**
+     * S12 `UpfrontPaymentSucceeded{bookingId}` → ACTIVE + `BookingCreated` (N-04); a repeat is a no-op. A success for a
+     * booking already cancelled (E34, S15 R-15-17: the club cancelled the class while it was PAYMENT_PENDING) settles
+     * nothing: its checkout keeps a reconciliation mark for the S12 refund.
+     */
     public void paymentSucceeded(String bookingId) {
         var initial = bookings.findById(bookingId).orElse(null);
+        // `paidAt` is set only when a success settled the booking, so a redelivered success for a paid-then-cancelled booking stays a no-op.
+        if (initial != null && CANCELLED.contains(initial.state()) && initial.charge() != null && initial.charge().checkoutSessionId() != null
+                && initial.charge().paidAt() == null) {
+            charges.lateCompletion(initial.charge().checkoutSessionId());
+            return;
+        }
         if (initial == null || initial.state() != BookingState.PAYMENT_PENDING) { return; }
         transactions.write(List.of(initial.classSessionId()), () -> {
             locks.lock(initial.classSessionId()); var b = bookings.require(bookingId);

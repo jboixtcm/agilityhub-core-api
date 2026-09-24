@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.common.application.CleanupJob;
 import com.agilityhub.core.clubs.followup.application.AttachmentStorage;
 import com.agilityhub.core.platform.application.jobs.*;
 import com.agilityhub.core.platform.persistence.jobs.JobRun;
+import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.ApiException;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
@@ -108,6 +109,33 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(counters(next)).containsEntry("platformPass", 1L).containsEntry("platformDomainEventsDeleted", 0L);
         assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", OTHER);
     }
+    /** E5-T13 (review E5-T10 #4): a run that claimed the platform cycle and ended FAILED gives it back for another run of the day. */
+    @Test void T_15_27_aFailedRunThatClaimedThePlatformCycleReleasesItForAnotherRunOfTheSameDay() {
+        mongo.remove(Query.query(Criteria.where("_id").is("platform:CLEANUP")), "job_locks");
+        // CLUB's P9 claimed the cycle in its plan, then its process died: a RUNNING row whose lease is gone.
+        mongo.insert(new JobRun("s08-dead-cleanup", CLUB, JobName.CLEANUP, RUN, "2026-10-06T06:00", "Europe/Madrid", JobTrigger.SCHEDULE, false,
+                JobStatus.RUNNING, null, RUN, null, null, List.of(), List.of(), List.of(), null, List.of(), true, "dead-holder", false));
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(cleanup.claimPlatformCycle(CLUB, RUN, "s08-dead-cleanup")).isTrue(); }
+        // While the claim stands, the other club's P9 of the day does its own pass only.
+        var other = runner.scheduled(OTHER, true, job, RUN).orElseThrow();
+        assertThat(counters(other)).containsEntry("platformPass", 0L);
+        // A FAILED run that did not claim the cycle releases nothing (the framework calls the hook inside the run's club scope).
+        try (var tenant = TenantContext.open(OTHER)) { job.failed(OTHER, other.id()); }
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("runId", "s08-dead-cleanup");
+        // CLUB's next tick reaps the dead run (FAILED, lease expired): its claim is released, and the retake of the same day takes the pass.
+        clock.setInstant(RUN.plus(Duration.ofMinutes(6)));
+        var retake = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(mongo.findById("s08-dead-cleanup", JobRun.class)).satisfies(dead -> {
+            assertThat(dead.status()).isEqualTo(JobStatus.FAILED); assertThat(dead.leaseExpired()).isTrue();
+        });
+        assertThat(retake.trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(counters(retake)).containsEntry("platformPass", 1L);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", CLUB).containsEntry("runId", retake.id());
+        // The released run cannot remove the new claim.
+        try (var tenant = TenantContext.open(CLUB)) { job.failed(CLUB, "s08-dead-cleanup"); }
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("runId", retake.id());
+    }
+
     /** Unique per test run: the local attachment store keeps its files between runs. */
     private final String batch = UUID.randomUUID().toString();
     String key(String name) { return "signup/" + CLUB + "/202610/" + batch + "-" + name + "/card.pdf"; }

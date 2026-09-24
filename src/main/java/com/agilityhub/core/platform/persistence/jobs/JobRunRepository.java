@@ -48,6 +48,15 @@ public class JobRunRepository extends TenantRepository<JobRun> {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("job").is(job).and("status").is(JobStatus.SKIPPED)
                 .and("skipReason").is(reason).and("startedAt").gt(since)), JobRun.class);
     }
+    /** R-15-05 (E33): the club has at least one JobRun of the process, of any kind. */
+    public boolean any(JobName job) {
+        return mongo.exists(tenantQuery().addCriteria(Criteria.where("job").is(job)), JobRun.class);
+    }
+    /** R-15-05 (E33): the first JobRun of the process in the club, which is its baseline when it is SKIPPED{MISSED_WINDOW}. */
+    public Optional<JobRun> first(JobName job) {
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("job").is(job))
+                .with(Sort.by(Sort.Direction.ASC, "startedAt", "_id")).limit(1), JobRun.class));
+    }
     public List<JobRun> running(JobName job) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("job").is(job).and("status").is(JobStatus.RUNNING)), JobRun.class);
     }

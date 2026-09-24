@@ -115,6 +115,13 @@ public class OpenApiConfiguration {
                         .forEach((status, codes) -> operation.getResponses().addApiResponse(status, new ApiResponse().description(codes)));
             }
             var result = withErrors(operation);
+            if (errors != null) {
+                for (int status : errors.omit()) {
+                    if (java.util.Arrays.stream(errors.value()).noneMatch(code -> code.httpStatus() == status)) {
+                        result.getResponses().remove(Integer.toString(status));
+                    }
+                }
+            }
             if (result.getResponses().containsKey("429")) {
                 result.getResponses().get("429").addHeaderObject("Retry-After",
                         new io.swagger.v3.oas.models.headers.Header().description("Seconds before retrying")

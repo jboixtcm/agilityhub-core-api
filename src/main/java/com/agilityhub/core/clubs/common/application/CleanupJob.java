@@ -22,13 +22,15 @@ import org.springframework.stereotype.Component;
  * <p>
  * Platform pass (E5-T10, organizer ruling of 24-09): the `domain_events` and `job_runs` without a `clubId` follow the
  * same rules (catalog retention, the last five real executions per process kept), once per P9 cycle: the first real
- * run of the UTC day claims it ({@link CleanupRepository#claimPlatformCycle}), whatever the club. Counters
- * `platformPass`, `platformDomainEventsDeleted`, `platformJobRunsDeleted`.
+ * run of the UTC day claims it ({@link CleanupRepository#claimPlatformCycle}), whatever the club; if that run ends
+ * FAILED the claim is released ({@link #failed}, E5-T13). Counters `platformPass`, `platformDomainEventsDeleted`,
+ * `platformJobRunsDeleted`: stored in the JobRun, never shown in the club's run views (AGENTS rule 4, {@code JobViews}).
  */
 @Component
 public class CleanupJob implements Job {
     static final String DELETE = "DELETE";
     static final int KEEP_RUNS = 5;
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(CleanupJob.class);
     /** The `idempotency_records` TTL (`IdempotencyRepository`, 24 h): older records are only waiting for Mongo's TTL monitor. */
     static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
     private final CleanupRepository cleanup; private final ListExportRepository exports; private final ExportStorage exportFiles;
@@ -83,7 +85,7 @@ public class CleanupJob implements Job {
         }
         totals.put("jobRuns", runs);
         // A dry run only looks (a real run of this occurrence would still get the pass); a real run claims the cycle.
-        boolean platformPass = context.dryRun() ? cleanup.platformCycleOpen(now) : cleanup.claimPlatformCycle(club, now);
+        boolean platformPass = context.dryRun() ? cleanup.platformCycleOpen(now) : cleanup.claimPlatformCycle(club, now, context.runId());
         recorder.count("platformPass", platformPass ? 1 : 0);
         if (platformPass) { totals.putAll(platformItems(context, items)); }
         if (context.dryRun()) { totals.forEach((key, value) -> recorder.count("WOULD_DELETE_" + key, value)); }
@@ -92,6 +94,12 @@ public class CleanupJob implements Job {
                     "platformDomainEventsDeleted", "platformJobRunsDeleted")) { recorder.count(key, 0); }
         }
         return items;
+    }
+    /** E5-T13: a FAILED run gives the platform cycle back (if it had claimed it), so another run of the day can do the pass. */
+    @Override public void failed(String clubId, String runId) {
+        if (cleanup.releasePlatformCycle(clubId, runId)) {
+            LOG.warn("Cleanup platform cycle released by a failed run jobRunId={} clubId={}", runId, clubId);
+        }
     }
     private Map<String, Long> platformItems(JobContext context, List<JobItem> items) {
         var cut = platformCutoffs(context); var totals = new LinkedHashMap<String, Long>();

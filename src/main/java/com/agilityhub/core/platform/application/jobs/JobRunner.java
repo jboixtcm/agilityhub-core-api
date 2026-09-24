@@ -124,16 +124,18 @@ public class JobRunner {
         if (request.definition().cadence() == Cadence.CONTINUOUS && runs.skippedSince(name, reason, now.minus(CONTINUOUS_SKIP_INTERVAL))) {
             return Optional.empty();
         }
+        // R-15-05 (E33): the first occurrence of a process in a club with no JobRun of it is a baseline, not a lost run.
+        boolean baseline = reason == SkipReason.MISSED_WINDOW && !runs.any(name);
         var run = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request), request.zone().getId(),
                 request.trigger(), request.dryRun(), JobStatus.SKIPPED, reason, now, now, 0L, List.of(), List.of(), List.of(),
                 request.actorAccountId(), entries(baseSnapshot(request)), false, null, false);
-        if (reason == SkipReason.MISSED_WINDOW) {
+        if (reason == SkipReason.MISSED_WINDOW && !baseline) {
             // R-15-10: a missed occurrence alerts like a failure (JobFailed → N-42).
             write(() -> { runs.insert(run); events.publish(failed(run)); return run; });
         } else {
             runs.insert(run);
         }
-        LOG.info("Job skipped jobRunId={} job={} clubId={} reason={}", run.id(), name, request.clubId(), reason);
+        LOG.info("Job skipped jobRunId={} job={} clubId={} reason={} baseline={}", run.id(), name, request.clubId(), reason, baseline);
         return Optional.of(run);
     }
 
@@ -169,7 +171,7 @@ public class JobRunner {
     private JobRun run(Request request, JobRun running, String lock, String holder) {
         var recorder = new Recorder(baseSnapshot(request));
         var context = new JobContext(request.clubId(), request.zone(), request.scheduledFor(),
-                request.scheduledFor().atZone(request.zone()).toLocalDate(), request.dryRun(), request.config(), recorder);
+                request.scheduledFor().atZone(request.zone()).toLocalDate(), request.dryRun(), request.config(), recorder, running.id());
         var items = new ArrayList<JobRun.Item>();
         var errors = new ArrayList<JobRun.RunError>();
         JobStatus status;
@@ -224,7 +226,16 @@ public class JobRunner {
             return runs.findById(running.id()).orElse(finished);
         }
         metrics.finished(request.clubId(), running.job(), status, Duration.ofMillis(finished.durationMs()), recorder.counters);
+        if (status == JobStatus.FAILED && !request.dryRun()) { failed(request.job(), request.clubId(), running.id()); }
         return finished;
+    }
+
+    /** {@link Job#failed}: only after the call that closed the row, so a slow holder whose run was reaped never repeats it. */
+    private static void failed(Job job, String clubId, String runId) {
+        try { job.failed(clubId, runId); }
+        catch (RuntimeException failure) {
+            LOG.error("Job failure hook failed jobRunId={} job={} clubId={}", runId, job.name(), clubId, failure);
+        }
     }
 
     /** §5 «RUNNING → FAILED: lease caducat»: a run whose holder lost the lease is closed so the next tick can take it as CATCH_UP. */
@@ -245,6 +256,7 @@ public class JobRunner {
         // R-15-10: the reaper's FAILED is the outcome of record, so it is the one counted in jobs.run.duration (E5-T10).
         metrics.finished(clubId, run.job(), JobStatus.FAILED, Duration.ofMillis(closed.durationMs()), Map.of());
         LOG.error("Job lease expired jobRunId={} job={} clubId={}", run.id(), run.job(), clubId);
+        if (!run.dryRun()) { registered(run.job()).ifPresent(job -> failed(job, clubId, run.id())); }
         return true;
     }
 

@@ -26,6 +26,7 @@ class WeekOpeningJobIT extends BookingFixtures {
     static final Instant OPENS = Instant.parse("2026-10-04T18:00:00Z");
     @Autowired JobRunner runner;
     @Autowired WeekOpeningJob job;
+    @Autowired JobAdminService admin;
     @Autowired com.agilityhub.core.clubs.training.application.TrainingGridCache grids;
 
     @BeforeEach void weeks() {
@@ -49,6 +50,11 @@ class WeekOpeningJobIT extends BookingFixtures {
         for (String session : sessions) {
             mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-" + session)), new Update().set("weekId", id).set("state", sessionState), "class_sessions");
         }
+    }
+    /** The S17 health of this club's week-opening cell. */
+    private JobViews.JobHealth health() {
+        return admin.overview(CLUB, null).clubs().getFirst().jobs().stream().filter(cell -> cell.name().equals("week-opening"))
+                .findFirst().orElseThrow().health();
     }
     private List<Document> n33(String channel) {
         return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-33").and("channel").is(channel)), Document.class, "notifications");
@@ -145,10 +151,17 @@ class WeekOpeningJobIT extends BookingFixtures {
 
     @Test void T_15_04_T_15_06_theOpeningCatchesUpForADayThePlanMatchesAndNothingIsLostWhenMissed() {
         week("s08-week-42", "2026-10-12", "VALIDATED", "ACTIVE", "mon", "mon2");
-        // 26 h late (Monday 20:00Z): MISSED_WINDOW, no business effect lost (W0/W1 are functions of time), N-42 alert.
+        // 26 h late (Monday 20:00Z): MISSED_WINDOW, no business effect lost (W0/W1 are functions of time). The club has no
+        // week-opening history, so this is the E33 baseline: no JobFailed, and D11/S17 read the process as never executed.
         var missed = runner.scheduled(CLUB, true, job, Instant.parse("2026-10-05T20:00:00Z")).orElseThrow();
         assertThat(missed.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
-        assertThat(eventsOf("JobFailed")).hasSize(1);
+        assertThat(eventsOf("JobFailed")).isEmpty();
+        assertThat(health()).isEqualTo(JobViews.JobHealth.OK);
+        // The next Sunday's opening is missed too: now it is a lost run, with JobFailed (→ N-42) and a red S17 cell.
+        var again = runner.scheduled(CLUB, true, job, Instant.parse("2026-10-12T20:00:00Z")).orElseThrow();
+        assertThat(again.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
+        assertThat(eventsOf("JobFailed")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("runId", again.id()));
+        assertThat(health()).isEqualTo(JobViews.JobHealth.ALERT);
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
         // 3 h late: CATCH_UP; the dry run plans exactly what the real run then does.
         clock.setInstant(Instant.parse("2026-10-04T21:00:00Z"));

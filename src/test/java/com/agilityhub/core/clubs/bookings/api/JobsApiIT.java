@@ -126,6 +126,55 @@ class JobsApiIT extends BookingFixtures {
         call(GET, "/jobs", null, impersonating("admin", "s08-m-laura"), 403);
     }
 
+    /** No platform pass counter or item in a club-scoped view of a run (AGENTS rule 4). */
+    private static void assertClubOnly(JsonNode counters, JsonNode items) {
+        assertThat(counters.isObject()).isTrue();
+        assertThat(counters.fieldNames()).toIterable().noneMatch(key -> key.toLowerCase(Locale.ROOT).contains("platform"));
+        if (items != null) { assertThat(items).noneMatch(item -> item.path("entityType").asText().startsWith("Platform")); }
+    }
+
+    /** E5-T13 (review E5-T10 #5, AGENTS rule 4): the P9 platform pass stays out of the club's views, not out of the stored run. */
+    @Test void T_15_27_thePlatformPassStaysOutOfTheRunViewsOfTheClubThatClaimedIt() throws Exception {
+        var old = Date.from(clock.instant().minus(Duration.ofDays(91)));
+        mongo.save(new Document("_id", "s08-platform-event-old").append("type", "AccountCreated").append("status", "PUBLISHED")
+                .append("occurredAt", old).append("publishedAt", old), "domain_events");
+        // Dry runs: the club's shows no platform counter or item, and its plan counter counts only the items it shows; the console's shows them.
+        var dry = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", true), as("admin"), 200);
+        assertClubOnly(dry.at("/effects/counters"), dry.at("/effects/items"));
+        assertThat(dry.at("/effects/counters/WOULD_DELETE").asLong(0)).isEqualTo(dry.at("/effects/items").size());
+        var console = platform(post("/api/v1/platform/clubs/" + CLUB + "/jobs/cleanup/trigger").contentType("application/json").content("{\"dryRun\":true}"), 200);
+        assertThat(console.at("/effects/counters/platformPass").asLong()).isEqualTo(1);
+        assertThat(console.at("/effects/counters/WOULD_DELETE_platformDomainEvents").asLong()).isPositive();
+        assertThat(console.at("/effects/items")).anyMatch(item -> item.path("entityType").asText().equals("PlatformDomainEvents"));
+        // A minute later the club's ADMIN runs P9 for real: this run claims the platform pass.
+        clock.setInstant(clock.instant().plus(Duration.ofMinutes(1)));
+        var real = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", false), as("admin"), 200);
+        assertClubOnly(real.at("/effects/counters"), real.at("/effects/items"));
+        String runId = real.path("runId").asText();
+        var stored = mongo.findById(runId, JobRun.class);
+        assertThat(stored.counters()).filteredOn(entry -> entry.key().equals("platformPass"))
+                .singleElement().satisfies(entry -> assertThat(((Number) entry.value()).longValue()).isEqualTo(1L));
+        assertThat(stored.items()).extracting(JobRun.Item::entityType).contains("PlatformDomainEvents");
+        assertThat(mongo.findById("s08-platform-event-old", Document.class, "domain_events")).isNull();
+        // D11: the run sheet, the history and the process row.
+        var sheet = call(GET, "/jobs/cleanup/runs/" + runId, null, as("admin"), 200);
+        assertClubOnly(sheet.at("/effects/counters"), sheet.at("/effects/items"));
+        assertThat(sheet.at("/effects/counters/domainEventsDeleted").isNumber()).isTrue();
+        var history = call(GET, "/jobs/cleanup/runs", null, as("admin"), 200).path("items");
+        assertThat(history).hasSize(3).allSatisfy(row -> assertClubOnly(row.path("counters"), null));
+        var cleanupRow = call(GET, "/jobs", null, as("admin"), 200).path("items").get(3);
+        assertThat(cleanupRow.path("name").asText()).isEqualTo("cleanup");
+        assertThat(cleanupRow.at("/lastRun/runId").asText()).isEqualTo(runId);
+        assertClubOnly(cleanupRow.at("/lastRun/counters"), null);
+        // The club's audit trail of the trigger has no platform counter either.
+        var audit = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("JOB_TRIGGERED").and("entityId").is(runId)), Document.class, "audit_entries");
+        assertThat(audit.get("changes").toString()).contains("domainEventsDeleted").doesNotContain("platform");
+        // The platform console keeps them.
+        var overview = platform(get("/api/v1/platform/jobs/overview").param("clubId", CLUB), 200);
+        assertThat(overview.at("/clubs/0/jobs")).filteredOn(cell -> cell.path("name").asText().equals("cleanup"))
+                .singleElement().satisfies(cell -> assertThat(cell.at("/lastRun/counters/platformPass").asLong()).isEqualTo(1));
+    }
+
     @Test void T_15_10_theOverviewMarksHealthPerClubAndProcess() throws Exception {
         Instant now = clock.instant();
         run("s08-rr-ok", CLUB, JobName.RISK_REVIEW, JobStatus.SUCCEEDED, now.minus(Duration.ofHours(2)));

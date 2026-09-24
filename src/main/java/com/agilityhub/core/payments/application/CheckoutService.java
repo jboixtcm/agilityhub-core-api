@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CheckoutService {
+    private static final org.slf4j.Logger LOG=org.slf4j.LoggerFactory.getLogger(CheckoutService.class);
     public record Result(String checkoutUrl,String checkoutSessionId) { }
     private final SignupPaymentAccess members;private final UpfrontPayments payments;private final CensusClubSettings clubs;
     private final ClubConfigService configs;private final SignupCheckoutRepository sessions;private final ObjectProvider<PaymentProvider> gateways;
@@ -63,17 +64,34 @@ public class CheckoutService {
         return new BookingCheckout(id,paymentId);
     }
     public record BookingCheckout(String sessionId,String paymentId) { }
-    public void complete(String sessionId,Map<String,Object> card) { finish(sessionId,true,card); }
-    public void expire(String sessionId) { finish(sessionId,false,Map.of()); }
-    private void finish(String id,boolean complete,Map<String,Object> card) {
+    /** The provider completed the session; `providerPaymentId` is its payment (kept on the session for S12 reconciliation). */
+    public void complete(String sessionId,String providerPaymentId,Map<String,Object> card) { finish(sessionId,true,providerPaymentId,card); }
+    public void expire(String sessionId) { finish(sessionId,false,null,Map.of()); }
+    private void finish(String id,boolean complete,String providerPaymentId,Map<String,Object> card) {
         transactions.run(() -> {
             members.lock();var session=sessions.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+            // E34: P7 (or a failed provider call) expired the booking checkout on our side, but the provider still took the money.
+            if(complete&&session.bookingId()!=null&&"EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return null; }
             if(!"PENDING".equals(session.status())) return null;
             if(complete&&!session.expiresAt().isAfter(clock.instant())) throw new ApiException(ErrorCode.INVALID_STATE);
-            if(!sessions.finish(id,complete?"COMPLETE":"EXPIRED")) return null;
+            if(!sessions.finish(id,complete?"COMPLETE":"EXPIRED",complete?providerPaymentId:null)) return null;
             payments.checkout(session.memberId(),id,complete);
             if(complete&&session.bookingId()==null) members.card(session.memberId(),card); // a booking payment never changes the payment method
             return null;
         });
+    }
+    /**
+     * E34 (S15 R-15-17): the provider completed a PAY_TO_BOOK checkout after its booking was cancelled on our side, so the
+     * money was taken but no booking stands. The session keeps a reconciliation mark (`lateCompletionAt`, `providerPaymentId`)
+     * for the S12 refund (E8-T04 step 12); nothing is settled and no event is emitted here.
+     */
+    public void bookingCancelledBeforeCompletion(String sessionId) {
+        sessions.findById(sessionId).ifPresent(session -> lateCompletion(session,session.providerPaymentId(),"the booking was cancelled"));
+    }
+    private void lateCompletion(SignupCheckoutSession session,String providerPaymentId,String cause) {
+        if(sessions.markLateCompletion(session.id(),providerPaymentId,clock.instant())) {
+            LOG.warn("Late provider completion to refund: {} checkoutSessionId={} bookingId={} providerPaymentId={} clubId={}",
+                    cause,session.id(),session.bookingId(),providerPaymentId,session.clubId());
+        }
     }
 }
