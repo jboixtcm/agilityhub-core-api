@@ -309,6 +309,19 @@ class E6ContractIT extends AbstractIntegrationTest {
             assertThat(key.isPresent()).as(route.path() + " Idempotency-Key").isEqualTo(route.idempotency());
             if (route.idempotency()) { assertThat(key.orElseThrow().path("required").asBoolean()).as(route.path()).isTrue(); }
         }
+        // Round 2: every S10 §6 route marked «I = sí», including POST /attachments of E3-T03 (optional there: CONVENCIONS_API §7 «accepten»).
+        var keyed = new TreeSet<String>();
+        for (Route route : routes().toList()) { if (route.idempotency()) { keyed.add(route.method() + " " + route.path()); } }
+        var register = Stream.of(mapper.convertValue(api.at("/paths/~1api~1v1~1attachments/post/parameters"), JsonNode[].class))
+                .filter(p -> p.path("name").asText().equals("Idempotency-Key")).findFirst().orElseThrow();
+        assertThat(register.path("in").asText()).isEqualTo("header");
+        assertThat(register.path("required").asBoolean()).isFalse();
+        assertThat(register.at("/schema/format").asText()).isEqualTo("uuid");
+        keyed.add("POST /api/v1/attachments");
+        assertThat(keyed).containsExactlyInAnyOrder("PUT /api/v1/class-sessions/{id}/attendance", "PUT /api/v1/dogs/{id}/observations", "POST /api/v1/tasks",
+                "DELETE /api/v1/tasks/{id}", "POST /api/v1/attachments", "DELETE /api/v1/attachments/{id}", "POST /api/v1/followup/{id}/read",
+                "POST /api/v1/followup/read-all");
+        assertThat(api.at("/paths/~1api~1v1~1attachments~1upload-url/post/parameters").findValuesAsText("name")).doesNotContain("Idempotency-Key");
         assertThat(strings(api.at("/paths/~1api~1v1~1attendances/get/x-filterable"))).containsExactly("dogId", "memberId", "classSessionId", "classDate", "state");
         assertThat(strings(api.at("/paths/~1api~1v1~1attendances/get/x-sortable"))).containsExactly("classStartsAt", "classDate");
         assertThat(strings(api.at("/paths/~1api~1v1~1followup/get/x-filterable"))).containsExactly("kind", "memberId", "dogId", "authorAccountId", "unread");

@@ -126,14 +126,14 @@ No apareixen a les dades vives: «Abonat 3 gossos», «Abonat Plus» ni «Quota 
 
 ## 7. Preguntes obertes
 
-Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDENTS.md`). **B29–B33 tancades el 24-09**: el Josep accepta les propostes (B31 = `ABONAT_FAMILIAR`; el llistat del cas 5 s'ha lliurat fora del Dropbox). Queda oberta la del preu de «Competició 1 gos».
+Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDENTS.md`). **B29–B33 tancades el 24-09**: el Josep accepta les propostes (B31 = `ABONAT_FAMILIAR`; el llistat del cas 5 s'ha lliurat fora del Dropbox). Queda oberta la **B34** (modalitats «Instructors» i «Competició 1 gos»).
 
 - **B29 · Foto**: les 145 fotos són del gos o de la persona? (proposta: del gos, que és on el producte les mostra).
 - **B30 · «Quota reduïda»** (4 abonats): quina modalitat i quin preu? (proposta: `ABONAT` amb una tarifa pròpia «Quota reduïda»).
 - **B31 · «Familiar Abonat/curs»** (3): és `FAMILIAR` o una modalitat diferent?
 - **B32 · Nivell «Pendent»** (6 gossos): creem un nivell `PENDENT` al catàleg (no reservable fins que se'ls avaluï) o els deixem sense nivell?
 - **B33 · Emails compartits** (~20): són famílies? Es poden agrupar com a grup familiar amb un sol compte?
-- **Preu de «Competició 1 gos»** i confirmació que segueix viva (3 abonats).
+- **B34 · «Instructors» i «Competició 1 gos»** (24-09): cal crear les dues modalitats al catàleg? Quant val «Competició 1 gos», i segueix viva (3 abonats)? Mentrestant es migren sense modalitat (`PLAN_UNMAPPED`).
 
 ## Canvis
 

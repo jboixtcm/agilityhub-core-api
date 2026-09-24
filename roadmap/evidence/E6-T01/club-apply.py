@@ -2,10 +2,12 @@
 database) run `bin/core club:apply seeds/club-canic.yaml` twice. The second run must make 0 changes and leave the Mongo
 documents unchanged; the S10 collections must carry their indexes after both runs, identical (index creation is
 idempotent). Runtime files live under target/; generated credentials stay private; every log is written sanitized."""
-import base64, os, re, secrets, shlex, subprocess, time
+import base64, os, re, secrets, shlex, subprocess, sys, time
 from pathlib import Path
 
 root = Path.cwd(); output = root / 'roadmap/evidence/E6-T01'
+# Optional first log number (round 1: 7 → 07/08; round 2: 15 → 15/16), so a rerun never overwrites earlier evidence.
+first_log = int(sys.argv[1]) if len(sys.argv) > 1 else 7
 runtime = root / 'target' / ('e6-t01-cli-' + secrets.token_hex(4)); runtime.mkdir(parents=True)
 container = 'e6-t01-cli-' + secrets.token_hex(4)
 seed_password = secrets.token_urlsafe(28); master = base64.b64encode(secrets.token_bytes(32)).decode()
@@ -67,9 +69,9 @@ try:
             break
         time.sleep(.5)
     print('Disposable Mongo 7 replica set on a random localhost port, database e6_contract (empty), local profile; generated credentials private.', flush=True)
-    step(7, 'club-apply-first', ['bin/core', 'club:apply', 'seeds/club-canic.yaml'])
+    step(first_log, 'club-apply-first', ['bin/core', 'club:apply', 'seeds/club-canic.yaml'])
     first = indexes(); before = snapshot()
-    second = step(8, 'club-apply-second', ['bin/core', 'club:apply', 'seeds/club-canic.yaml'])
+    second = step(first_log + 1, 'club-apply-second', ['bin/core', 'club:apply', 'seeds/club-canic.yaml'])
     assert re.search(r'^0 changes', second, re.M), 'the second club:apply changed something'
     assert snapshot() == before, 'Mongo snapshot changed on the second club:apply'
     print('PASS second club:apply: 0 changes and complete Mongo document snapshot unchanged', flush=True)

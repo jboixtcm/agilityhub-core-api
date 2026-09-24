@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 NEW = ["E6ContractIT", "E6PersistenceIT", "E6ResponseContractTest", "JobCatalogContractTest", "AttendanceWindowTest", "AttendanceStatusCalculatorTest",
        "AttendanceContractAccessTest", "FollowupContractAccessTest", "AttachmentServiceTest", "CalendarIT", "ErrorCatalogContractTest",
        "EventCatalogContractTest", "AuditContractTest", "ArchitectureTest", "OpenApiRequiredContractTest", "MessageParityTest", "OpenApiSnapshotTest",
-       "E5ContractIT", "E4ContractIT"]
+       "E5ContractIT", "E4ContractIT", "CensusIT"]
 for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TEST-*.xml"), ("integration (failsafe)", "target/failsafe-reports/TEST-*.xml")]:
     totals = [0, 0, 0, 0]
     for path in sorted(glob.glob(pattern)):

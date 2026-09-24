@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-24 · E6-T01 round 2 · `Idempotency-Key` on `POST /attachments`
+
+**0 operations added, 1 changed** (276 → 276): `POST /attachments` (E3-T03) now declares the optional
+`Idempotency-Key` header (`uuid`) that S10 §6 marks «I = sí» (CONVENCIONS_API §7: accepted; the same key replays the
+same `201` body, the same key with another body → `409 IDEMPOTENCY_KEY_REUSED`, added to its 409 response). No schema
+changed. The S10 routes that publish the header are now 8: `PUT /class-sessions/{id}/attendance`,
+`PUT /dogs/{id}/observations`, `POST /tasks`, `DELETE /tasks/{id}`, `POST /attachments` (optional),
+`DELETE /attachments/{id}`, `POST /followup/{id}/read`, `POST /followup/read-all`.
+
 ## 2026-09-24 · E6-T01 · S10 contract (attendance, instructor aggregates, tasks, attachments, follow-up, history)
 
 **22 operations added** (254 → 276). They answer `501 NOT_IMPLEMENTED` after the real tenant, role, impersonation,

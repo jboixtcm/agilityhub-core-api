@@ -771,3 +771,42 @@ Please decide (details in the report's Questions; nothing applied):
 - (4) The task asked for an `en` name «Pending», but the Cànic's locales are ca/es, so `CatalogService` rejects it. S05 §12 has only ca/es too, and the seed follows S05.
 
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E5-T06, E5-T07, E5-T12, E6-T01, E5-T15 (new), E6-T02, E8-T06
+@executor
+- **Verified (round 2):**
+  - **E5-T06:** caches, k6 with 300 distinct members, aggregates. T-15-30 «while P1 fans out» stays open for the release performance pass.
+  - **E5-T07:** the `signing_keys` wipe fix, confirmed by CI since `dfcd02e`; `ring_slot_locks`.
+- **Changes requested:**
+  - **E6-T01** (Codex review), two points:
+    - the attendance total counts `NOTIFIED {afterClassEnd}` twice → `AttendanceSummary.notifiedAfterEnd`;
+    - `Idempotency-Key` on `POST /attachments`.
+    
+    Rulings: `WeekCell` stays flat like `DayGridCell`; the test summary as delivered is accepted.
+  - **E5-T12** (Codex review), one point: the unsupported re-execution transitions (ACTIVE → LEFT of a record with an account; `persones.csv` after a first load) become planning errors `REEXECUTION_UNSUPPORTED`. Photos (B29) move to **E8-T06** step 4 (`migration:photos`).
+- **New task E5-T15:** the minor findings of the E5-T06 and E5-T07 round-2 reviews, plus two more items. It runs after E5-T14.
+  - the D1 rows get their own ring label «Sense pista»; the day-grid column keeps «Sense»;
+  - the staff projection of `GET /class-sessions/{id}` gets `instructorNames[]` and `ring` (web E4-W03, question 3).
+- **E6-T02** changes:
+  - step 4 keeps `notifiedAfterEnd` up to date;
+  - the conventions say `ATTENDANCE_OVERRIDDEN` must be added to `AuditAction`.
+- **Docs updated** (answers to your questions):
+  - `MODEL_DADES_PLATAFORMA.md`: `ring_slot_locks`, the `Attendance` fields (`noShowNotice`, `markedBy`, `notice`) and `Dog.sourceIds.playoffPhoto`;
+  - S10: rule-0 statuses, `handlerName`, the `DogOwnerAccess` dependency;
+  - S15: the P3 mark is `noShowNotice.queuedAt`;
+  - S18: `cadells: CAD`, photos, B34, R-18-14 re-execution, R-18-15 `PROPOSED`;
+  - `CATALEG_ESDEVENIMENTS.md`: `AttendanceMarked.dogId`, `memberId` on the task events, `NoShowNoticeDue.attendanceIds[]`, the Annex A payloads.
+- **AGENTS.md rule 4:** the test summary is the totals (tests, failures, errors, skipped) plus one line per test class the task adds or changes.
+- **Incidents registered, not tasks** (`docs/INCIDENCIES_OBERTES.md`):
+  - INC-07: intermittent `refresh_token` 400 in the web's real-core e2e; probably a rotation lost when a navigation aborts the request;
+  - INC-08: `null` sent for optional fields that are not `nullable`;
+  - INC-09: `RING_HAS_BOOKINGS.details.bookings[]` has two shapes.
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E6-T01 (round 2)
+@organizer **Both points fixed** (awaiting_verification). `./mvnw -q clean verify` exits 0 (510 unit + 816 IT). Two snapshot runs are byte-identical, and `club:apply` twice leaves 0 changes.
+- (1) `AttendanceSummary.notifiedAfterEnd` (0 by default). `total = booked + notified − notifiedAfterEnd`. Tested by the calculator unit test and a `CalendarIT` regression on the calendar and the day grid. The field is a boxed `Integer`, because Spring Data cannot read a missing primitive.
+- (2) `POST /attachments` has the optional `Idempotency-Key`, and the same key replays the stored 201 (`CensusIT`). Snapshot: 1 operation changed, 0 added.
+- **Question:** the ruling says «9 routes, not 8», but S10 §6 has 8 «I = sí» routes including `POST /attachments`. Round 1 had 7; my report's «8» was a miscount. `E6ContractIT` asserts those 8 by name. If a ninth is meant, please name it.
+- **Web:** nothing to regenerate except the optional header on `POST /attachments`.
+Blocking: no.

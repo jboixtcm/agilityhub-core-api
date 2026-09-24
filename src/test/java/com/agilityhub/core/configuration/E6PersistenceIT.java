@@ -113,6 +113,12 @@ class E6PersistenceIT extends AbstractIntegrationTest {
                 new Document("version", 4).append("marked", 3).append("present", 1).append("notified", 1).append("noShow", 1)
                         .append("savedAt", Date.from(now)).append("savedByName", "Estel"))));
         var stored = mongo.findById("e6p-class-a", ClassSession.class);
+        // A summary written before `notifiedAfterEnd` existed reads it as 0 (round 2 compatibility constructor).
         assertThat(stored.attendanceSummary()).isEqualTo(new ClassSession.AttendanceSummary(4, 3, 1, 1, 1, now, "Estel"));
+        assertThat(stored.attendanceSummary().notifiedAfterEnd()).isZero();
+        mongo.getCollection("class_sessions").updateOne(new Document("_id", "e6p-class-a"),
+                new Document("$set", new Document("attendanceSummary.notifiedAfterEnd", 1)));
+        assertThat(mongo.findById("e6p-class-a", ClassSession.class).attendanceSummary())
+                .isEqualTo(new ClassSession.AttendanceSummary(4, 3, 1, 1, 1, 1, now, "Estel"));
     }
 }

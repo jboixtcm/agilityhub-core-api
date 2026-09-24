@@ -180,6 +180,28 @@ class CalendarIT extends AbstractIntegrationTest {
         clock.setInstant(Instant.parse("2026-08-26T22:00:00Z"));
         assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("CLOSED");
     }
+    /** E6-T01 round 2: a NOTIFIED row after the class end keeps its booking ACTIVE (R-10-05) and is counted once (R-10-02). */
+    @Test void T_10_09_notifiedAfterTheClassEndIsCountedOnceInCalendarAndDayGrid() throws Exception {
+        String id=session("2026-08-25","18:00","plan-ring");validate(id);String week=session(id).path("weekId").asText();
+        clock.setInstant(Instant.parse("2026-08-25T19:00:00Z"));
+        // 2 live bookings: one PRESENT, one NOTIFIED after the end (still ACTIVE); every row of the sheet is marked.
+        counts(id,2,0);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().set("attendanceSummary",new Document("version",1).append("marked",2).append("present",1)
+                .append("notified",1).append("noShow",0).append("notifiedAfterEnd",1)),"class_sessions");
+        assertThat(mongo.findById(id,ClassSession.class).attendanceSummary().notifiedAfterEnd()).isEqualTo(1);
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("DONE");
+        assertThat(memberGrid("2026-08-25",true).at("/rows/0/cells/0/attendanceStatus").asText()).isEqualTo("DONE");
+        // Plus one NOTIFIED in time: its seat was released, so it is a third row outside `booked`, still unmarked.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().set("attendanceSummary.notified",2),"class_sessions");
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("PENDING");
+        assertThat(memberGrid("2026-08-25",true).at("/rows/0/cells/0/attendanceStatus").asText()).isEqualTo("PENDING");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().set("attendanceSummary.marked",3),"class_sessions");
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("DONE");
+        assertThat(memberGrid("2026-08-25",true).at("/rows/0/cells/0/attendanceStatus").asText()).isEqualTo("DONE");
+        // A summary written before the counter existed reads notifiedAfterEnd = 0.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().unset("attendanceSummary.notifiedAfterEnd"),"class_sessions");
+        assertThat(mongo.findById(id,ClassSession.class).attendanceSummary().notifiedAfterEnd()).isZero();
+    }
     JsonNode calendarClass(String week,String id) throws Exception {
         for(var item:ok("GET","/weeks/"+week+"/calendar?filter=ACTIVE",null).path("classes")) if(item.path("id").asText().equals(id)) return item;
         throw new AssertionError("class "+id+" not in the calendar");

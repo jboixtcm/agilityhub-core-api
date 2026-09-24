@@ -8,6 +8,9 @@ import java.time.LocalDate;
  */
 public interface AttendanceStatusPort {
     enum AttendanceStatus { NONE, PENDING, DONE, CLOSED }
-    /** `classState` is the S06 `ClassState` name; `total` the rows of the sheet (live bookings + seat-releasing NOTIFIED). */
-    AttendanceStatus status(LocalDate classDate, String classState, int marked, int total);
+    /**
+     * `classState` is the S06 `ClassState` name; `booked` is `counters.booked`, `notified` and `notifiedAfterEnd` come
+     * from the summary. The sheet rows (R-10-02) are the live bookings plus the NOTIFIED rows that released their seat.
+     */
+    AttendanceStatus status(LocalDate classDate, String classState, int marked, int booked, int notified, int notifiedAfterEnd);
 }

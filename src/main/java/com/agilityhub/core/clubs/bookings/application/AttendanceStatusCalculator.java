@@ -16,7 +16,13 @@ public class AttendanceStatusCalculator implements AttendanceStatusPort {
 
     public AttendanceWindow window(LocalDate classDate) { return AttendanceWindow.of(classDate, context.zone(), context.integer("attendance.editDays")); }
 
-    @Override public AttendanceStatus status(LocalDate classDate, String classState, int marked, int total) {
-        return AttendanceStatus.valueOf(window(classDate).status(context.now(), classState, marked, total).name());
+    @Override public AttendanceStatus status(LocalDate classDate, String classState, int marked, int booked, int notified, int notifiedAfterEnd) {
+        return AttendanceStatus.valueOf(window(classDate).status(context.now(), classState, marked, total(booked, notified, notifiedAfterEnd)).name());
     }
+
+    /**
+     * R-10-02 union, each row once: a NOTIFIED row after the class end keeps its booking ACTIVE (R-10-05), so it is
+     * already in `booked`; only the NOTIFIED rows that released their seat are added.
+     */
+    public static int total(int booked, int notified, int notifiedAfterEnd) { return booked + notified - notifiedAfterEnd; }
 }

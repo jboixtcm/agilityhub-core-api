@@ -110,9 +110,17 @@ class E6ResponseContractTest {
             assertThatThrownBy(() -> event.payload().put("extra", true)).isInstanceOf(UnsupportedOperationException.class);
             assertThat(mapper.readValue(mapper.writeValueAsString(event), event.getClass())).isEqualTo(event);
         }
-        // Annex A lists the S10 extensions: AttendanceMarked{classSessionId, memberId, previousState, late, afterClassEnd}, TaskReopened, AttachmentRemoved.
+        // Annex A lists the S10 extensions with the payloads the organizer accepted on 24-09 (round 2).
         String annex = catalog.lines().filter(line -> line.startsWith("| `AttendanceMarked{")).findFirst().orElseThrow();
-        assertThat(annex).contains("classSessionId", "memberId", "previousState", "late", "afterClassEnd", "`TaskReopened`", "`AttachmentRemoved`");
+        assertThat(annex).contains("classSessionId", "memberId", "previousState", "late", "afterClassEnd", "`TaskReopened{taskId, dogId, by}`",
+                "`AttachmentRemoved{attachmentId, entityType, entityId}`");
+        // Main rows: dogId on AttendanceMarked, attendanceIds[] on NoShowNoticeDue, memberId on TaskCreated/TaskCompleted.
+        assertThat(row(catalog, "| `AttendanceMarked` |")).contains("bookingId", "dogId", "state", "by");
+        assertThat(row(catalog, "| `NoShowNoticeDue` |")).contains("attendanceIds[]", "bookingIds[]");
+        assertThat(row(catalog, "| `TaskCreated` /")).contains("taskId", "dogId", "by", "memberId a `TaskCreated` i `TaskCompleted`");
+    }
+    private static String row(String catalog, String prefix) {
+        return catalog.lines().filter(line -> line.startsWith(prefix)).findFirst().orElseThrow(() -> new AssertionError(prefix));
     }
     private static DomainEvent event(String name, Map<String, Object> payload) {
         Instant at = Instant.parse("2026-08-03T06:41:10Z");

@@ -492,6 +492,25 @@ class CensusIT extends AbstractIntegrationTest {
         clock.advance(Duration.ofMinutes(6)); error(own(get(url)), ErrorCode.FORBIDDEN);
     }
 
+    /** E6-T01 round 2: POST /attachments accepts the optional Idempotency-Key of S10 §6; the same key replays the stored 201. */
+    @Test void T_10_21_attachmentRegistrationReplaysTheSame201ForTheSameIdempotencyKey() throws Exception {
+        byte[] data = "Example note bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        own(body(put("/api/v1/me/dogs/dog-one/instructor-note"), Map.of("text", "Example note"))).andExpect(status().isOk());
+        var file = uploadUrl("INSTRUCTOR_NOTE", "application/pdf", data, false);
+        var note = Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "dog-one", "fileKey", file.path("fileKey").asText(), "name", "Example.pdf");
+        String key = java.util.UUID.randomUUID().toString();
+        String first = own(body(post("/api/v1/attachments"), note).header("Idempotency-Key", key)).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        // A minute later the signed URL of a recomputed response would differ: the replay is the stored response, byte for byte.
+        clock.advance(Duration.ofMinutes(1));
+        own(body(post("/api/v1/attachments"), note).header("Idempotency-Key", key)).andExpect(status().isCreated()).andExpect(content().string(first));
+        assertThat(json(own(body(post("/api/v1/attachments"), note)), 201).path("url").asText()).isNotEqualTo(mapper.readTree(first).path("url").asText());
+        assertThat(events("AttachmentAdded")).hasSize(1);
+        error(own(body(post("/api/v1/attachments"), Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "dog-one", "fileKey", file.path("fileKey").asText(),
+                "name", "Other.pdf")).header("Idempotency-Key", key)), ErrorCode.IDEMPOTENCY_KEY_REUSED);
+        error(own(body(post("/api/v1/attachments"), note).header("Idempotency-Key", "not-a-uuid")), ErrorCode.VALIDATION_ERROR);
+    }
+
     @Test void T_03_17_impersonatedProfileEditsRecordTheRealActor() throws Exception {
         String token;
         try (var tenant = TenantContext.open(CLUB)) { token = impersonation.create("admin-account", "one", "Example support").token().getTokenValue(); }

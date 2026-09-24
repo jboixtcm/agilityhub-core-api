@@ -22,10 +22,10 @@ public class SessionProjection {
             AttendanceStatusPort attendance) {
         this.context=context; this.catalogs=catalogs; this.messages=messages; this.activities=activities; this.identities=identities; this.clock=clock; this.attendance=attendance;
     }
-    /** S10 §7: the S10-owned summary read through the port; the sheet rows are the live bookings plus the seat-releasing NOTIFIED. */
+    /** S10 §7: the S10-owned summary read through the port, which counts each sheet row once (R-10-02). */
     public AttendanceStatusPort.AttendanceStatus attendanceStatus(ClassSession c) {
         var summary=c.attendanceSummary();
-        return attendance.status(c.date(),c.state().name(),summary.marked(),c.counters().booked()+summary.notified());
+        return attendance.status(c.date(),c.state().name(),summary.marked(),c.counters().booked(),summary.notified(),summary.notifiedAfterEnd());
     }
     public boolean enabled(Module module) { return context.config().modules().contains(module); }
     public String noRing() { return messages.format("scheduling.noRing",Map.of(),LocaleContext.current()); }

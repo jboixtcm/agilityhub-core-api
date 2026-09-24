@@ -41,6 +41,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - E6-T01: `TASK_ALREADY_DONE` is 422 (was 409), as `CATALEG_ERRORS.md` §3 rule 0 says. The OpenAPI schema
   `AttachmentResponse` is now `Attachment`. `ATTACHMENT_LIMIT_REACHED` carries `details.max`.
+- E6-T01 round 2 (organizer review):
+  - `ClassSession.attendanceSummary.notifiedAfterEnd` (default 0 for summaries stored before it) counts the NOTIFIED
+    rows whose booking stayed ACTIVE (R-10-05). The attendance total is `booked + notified − notifiedAfterEnd`, so each
+    row counts once (R-10-02). A class with every row marked is now `DONE` in the calendar and the instructor day grid,
+    not `PENDING`.
+  - `POST /attachments` declares the optional `Idempotency-Key` (S10 §6). The same key replays the stored `201` body.
 
 ### Fixed
 

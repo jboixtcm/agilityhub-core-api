@@ -53,9 +53,9 @@
 | `TrainingCounterReset` | weekStart | S15 | comptadors |
 | `ActivityRegistrationChanged` | registrationId, activityId, memberId, state | S08 | N-32b |
 | **Assistència i seguiment** | | | |
-| `AttendanceMarked` | bookingId, state (PRESENT · NOTIFIED · NO_SHOW · PENDING), by | S10 | «ha avisat» → `BookingCancelled`+`SeatReleased`; NO_SHOW → cua N-19 (lot 8:00); % assistència |
-| `NoShowNoticeDue` | bookingIds[] | S15 | N-19 |
-| `TaskCreated` / `TaskUpdated` / `TaskDeleted` / `TaskCompleted` | taskId, dogId, by | S10 | N-20/N-21, D14 |
+| `AttendanceMarked` | bookingId, dogId (E6-T01, 24-09), state (PRESENT · NOTIFIED · NO_SHOW · PENDING), by | S10 | «ha avisat» → `BookingCancelled`+`SeatReleased`; NO_SHOW → cua N-19 (lot 8:00); % assistència |
+| `NoShowNoticeDue` | attendanceIds[] (E6-T01, 24-09), bookingIds[] | S15 | N-19 |
+| `TaskCreated` / `TaskUpdated` / `TaskDeleted` / `TaskCompleted` | taskId, dogId, by (+ memberId a `TaskCreated` i `TaskCompleted`, E6-T01, 24-09) | S10 | N-20/N-21, D14 |
 | `AttachmentAdded` | attachmentId, entity | S10 | — |
 | **Facturació i pagaments** | | | |
 | `InvoiceIssued` | invoiceId, memberId, period, total, paymentMethodType | S12 | comptadors D6 |
@@ -107,7 +107,7 @@
 | `ActivityPublished{levelIds, notifyEmail}` · `ActivityUpdated{diff, registrantCount}` · `ActivityCancelled{adminText, affected[]}` · `ActivityRegistrationChanged{origin, cancelReason, promoted}` | activitats | S07 |
 | `WaitlistNotified{mode}` · `BookingCancelled{reason: PAYMENT_TIMEOUT · INSTRUCTOR_NOTICE · INACTIVITY · LEAVE · CLASS_CANCELLED}` | reserves | S08/S13 |
 | `TrainingCancelled{by, cancelReason, late}` | entrenaments | S09 |
-| `AttendanceMarked{classSessionId, memberId, previousState, late, afterClassEnd}` · `TaskReopened` · `AttachmentRemoved` | assistència | S10 |
+| `AttendanceMarked{classSessionId, memberId, previousState, late, afterClassEnd}` · `TaskReopened{taskId, dogId, by}` · `AttachmentRemoved{attachmentId, entityType, entityId}` | assistència | S10 |
 | `EmailBounced{memberId, email}` · `SmsCapReached{month}` · `NotificationPreferencesChanged` · `EmailUnsubscribed` | comunicacions | S11 |
 | `BillingRunCreated` · `BillingRunCompleted` · `PackAdjusted{delta, reason}` · `MemberCardInvalidated` | pagaments | S12 |
 | `InactivityChanged` · `InactivityCancelled` · `LeaveCancelled` · `LeaveResolved{source, decision, cancelledBookings[]}` · `InactivityResolved{fee, cancelledBookings[]}` | inactivitat/baixa | S13 |

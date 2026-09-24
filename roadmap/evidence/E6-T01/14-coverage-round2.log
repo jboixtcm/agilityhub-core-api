@@ -1,0 +1,12 @@
+clubs.bookings.domain                lines 100.0%  branches  94.3%
+clubs.bookings.application           lines  99.3%  branches  84.5%
+clubs.bookings.application.ports     lines  87.5%  branches 100.0%
+clubs.bookings.api                   lines  98.1%  branches  86.8%
+clubs.followup.domain                lines 100.0%  branches 100.0%
+clubs.followup.application           lines 100.0%  branches  86.6%
+clubs.followup.api                   lines 100.0%  branches 100.0%
+clubs.scheduling.application         lines  98.9%  branches  85.5%
+clubs.scheduling.persistence         lines  98.9%  branches  61.1%
+clubs.scheduling.api                 lines  97.8%  branches  92.6%
+clubs.census.application             lines  98.7%  branches  82.2%
+platform.application.jobs            lines  96.2%  branches  85.4%
