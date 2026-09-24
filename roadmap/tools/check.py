@@ -243,10 +243,11 @@ def main(argv):
     if "--render" in argv:
         open(STATUS_MD, "w", encoding="utf-8").write(render(tasks, errors, warnings))
         print(f"STATUS.md rendered ({len(tasks)} tasks)")
+    # warnings (and, with --next, errors) go to stderr so `$(check.py --next)` captures only the task id (24-09)
     for w in warnings:
-        print("WARN:", w)
+        print("WARN:", w, file=sys.stderr)
     for e in errors:
-        print("ERROR:", e)
+        print("ERROR:", e, file=sys.stderr if "--next" in argv else sys.stdout)
     if errors:
         sys.exit(1)
     if "--render" not in argv and "--next" not in argv:

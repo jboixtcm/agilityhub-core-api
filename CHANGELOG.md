@@ -72,6 +72,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E5-T01 Round 2: the final write of a job run is conditional (R-15-04/R-15-06). `JobRunRepository.finish` replaces the
+  row only while it is still `RUNNING` under the same lease holder. `SchedulerRun`/`JobFailed` are published only when
+  that write closed the row, so a reaper with a stale read and a slow holder whose lease was reaped change nothing. A
+  reaped run gives up its claim (`exclusive = false`), so a dead `CATCH_UP` is retaken as `CATCH_UP` on the next tick.
+  The R-15-22 ArchUnit rule also forbids `Clock.systemUTC()`, `Clock.systemDefaultZone()`, `Clock.system(zone)` and
+  `new Date()` outside `ClockConfiguration`.
 - E5-T04: `MongoUsageCounter` counts `training_bookings.state = ACTIVE` (was the provisional `status`); the export of
   `/training-bookings` is ADMIN only (S14 R-14-12, the shared `ExportPolicy`); the APP notification variables keep
   `time` and `has_admin_text`; the idempotency filter runs `/training-bookings` and its cancellation in their own

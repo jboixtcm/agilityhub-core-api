@@ -25,6 +25,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import org.bson.Document;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,11 +126,79 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThatThrownBy(() -> mongo.insert(new JobRun("duplicate", CLUB, JobName.TEST_NOOP, claimed.scheduledFor(), claimed.scheduledForLocal(),
                 claimed.timeZone(), JobTrigger.SCHEDULE, false, JobStatus.RUNNING, null, clock.instant(), null, null, List.of(), List.of(), List.of(),
                 null, List.of(), true, "other", false))).isInstanceOf(DuplicateKeyException.class);
-        // A retake that loses the race on the unique index writes nothing and releases its lease.
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(first.id())), new org.springframework.data.mongodb.core.query.Update().set("leaseExpired", true), JobRun.class);
+        // A claim whose holder died (RUNNING, no live lease) is reaped and gives its slot back: the retake of the same
+        // occurrence and trigger runs instead of losing silently on the unique index, and releases its lease.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(first.id())), new org.springframework.data.mongodb.core.query.Update()
+                .set("status", JobStatus.RUNNING).set("holder", "dead-holder").unset("finishedAt"), JobRun.class);
         mongo.remove(Query.query(Criteria.where("scheduledFor").is(at("2026-10-06T04:00:00Z"))), JobRun.class);
         clock.setInstant(at("2026-10-05T04:01:00Z"));
-        assertThat(runner.scheduled(CLUB, true, job, clock.instant())).isEmpty();
+        var retake = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(retake.trigger()).isEqualTo(JobTrigger.SCHEDULE);
+        assertThat(retake.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(retake.exclusive()).isTrue();
+        var reaped = mongo.findById(first.id(), JobRun.class);
+        assertThat(reaped.status()).isEqualTo(JobStatus.FAILED);
+        assertThat(reaped.leaseExpired()).isTrue();
+        assertThat(reaped.exclusive()).isFalse();
+        assertThat(mongo.findById(CLUB + ":TEST_NOOP", Document.class, "job_locks")).isNull();
+    }
+
+    @Test void T_15_31_aRunThatFinishesBetweenTheReapersReadAndWriteStaysSucceeded() {
+        job.configure(DAILY, 1, 0, false);
+        var stale = new AtomicReference<JobRun>();
+        // The reaper's read: the row as it was while the run was still RUNNING.
+        job.duringNextApply(() -> stale.set(mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("job").is("TEST_NOOP")
+                .and("status").is("RUNNING")), JobRun.class)));
+        var finished = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(finished.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(stale.get()).isNotNull().extracting(JobRun::id).isEqualTo(finished.id());
+        // The holder has finished and released its lease; the reaper now writes from its stale read and changes nothing.
+        clock.setInstant(at("2026-10-05T04:10:00Z"));
+        try (var scope = TenantContext.open(CLUB)) { assertThat(runner.reap(CLUB, stale.get())).isFalse(); }
+        var stored = mongo.findById(finished.id(), JobRun.class);
+        assertThat(stored.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(stored.leaseExpired()).isFalse();
+        assertThat(stored.exclusive()).isTrue();
+        assertThat(events("JobFailed")).isEmpty();
+        assertThat(events("SchedulerRun")).singleElement()
+                .satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("status", "SUCCEEDED"));
+    }
+
+    @Test void T_15_31_aSlowCatchUpHolderReapedMidRunDoesNotOverwriteAndIsRetakenAsCatchUp() throws Exception {
+        job.configure(DAILY, 1, 0, false);
+        // Three minutes late the 06:00 occurrence runs as CATCH_UP; its lease ends at 04:08.
+        clock.setInstant(at("2026-10-05T04:03:00Z"));
+        var retake = new AtomicReference<JobRun>();
+        job.duringNextApply(() -> {
+            // While the slow holder is still inside apply, another instance ticks after the lease expired.
+            var other = Executors.newSingleThreadExecutor();
+            try {
+                clock.setInstant(at("2026-10-05T04:09:00Z"));
+                retake.set(other.submit(() -> runner.scheduled(CLUB, true, job, at("2026-10-05T04:09:00Z")).orElseThrow()).get());
+            } catch (Exception failure) {
+                throw new IllegalStateException(failure);
+            } finally { other.shutdownNow(); }
+        });
+        var slow = runner.scheduled(CLUB, true, job, at("2026-10-05T04:03:00Z")).orElseThrow();
+        // The reaper's FAILED row stands: the slow holder's completion does not overwrite it.
+        assertThat(slow.trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(slow.status()).isEqualTo(JobStatus.FAILED);
+        assertThat(slow.leaseExpired()).isTrue();
+        assertThat(slow.exclusive()).isFalse();
+        assertThat(mongo.findById(slow.id(), JobRun.class)).isEqualTo(slow);
+        // The dead CATCH_UP claim freed its slot, so the retake of the same occurrence is a CATCH_UP too.
+        assertThat(retake.get().trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(retake.get().status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(retake.get().scheduledFor()).isEqualTo(at("2026-10-05T04:00:00Z"));
+        assertThat(retake.get().exclusive()).isTrue();
+        assertThat(job.applied()).isEqualTo(2);
+        // Events only from the writes that closed a RUNNING row: the reaper (FAILED) and the retake (SUCCEEDED).
+        assertThat(events("JobFailed")).singleElement()
+                .satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("runId", slow.id()));
+        assertThat(events("SchedulerRun")).extracting(event -> ((Document) event.get("payload")).getString("runId"))
+                .containsExactlyInAnyOrder(slow.id(), retake.get().id());
+        // The next tick finds the occurrence taken by the retake.
+        assertThat(runner.scheduled(CLUB, true, job, at("2026-10-05T04:10:00Z"))).isEmpty();
         assertThat(mongo.findById(CLUB + ":TEST_NOOP", Document.class, "job_locks")).isNull();
     }
 
@@ -196,9 +266,6 @@ class JobFrameworkIT extends AbstractIntegrationTest {
             assertThat(event.getString("actorAccountId")).isEqualTo(ADMIN);
             assertThat(((Document) event.get("payload")).getString("trigger")).isEqualTo("MANUAL");
         });
-        // Evidence of E5-T01: the stored documents of one dry and one real run of the test job.
-        System.out.println("E5-T01 JobRun dry  " + mongo.findById(dry.id(), Document.class, "job_runs").toJson());
-        System.out.println("E5-T01 JobRun real " + mongo.findById(real.id(), Document.class, "job_runs").toJson());
     }
 
     @Test void T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay() throws Exception {
@@ -274,6 +341,7 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         var reaped = mongo.findById("dead-run", JobRun.class);
         assertThat(reaped.status()).isEqualTo(JobStatus.FAILED);
         assertThat(reaped.leaseExpired()).isTrue();
+        assertThat(reaped.exclusive()).isFalse();
         assertThat(events("JobFailed")).hasSize(1);
     }
 

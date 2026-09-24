@@ -27,7 +27,10 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule E0_T01_sharedDependsOnNoOtherContext = ArchitectureRules.SHARED_INDEPENDENCE;
 
-    /** T-15-07: no Instant.now()/LocalDate.now()/…/System.currentTimeMillis() outside the Clock beans. */
+    /**
+     * T-15-07: no Instant.now()/LocalDate.now()/…/System.currentTimeMillis() outside the Clock beans, and no
+     * Clock.systemUTC()/systemDefaultZone()/system(zone)/new Date() outside the clock configuration.
+     */
     @ArchTest
     static final ArchRule E5_T01_timeComesFromTheClock = ArchitectureRules.TIME_FROM_CLOCK;
 }

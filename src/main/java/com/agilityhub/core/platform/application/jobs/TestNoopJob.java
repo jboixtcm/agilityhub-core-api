@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ public class TestNoopJob implements Job {
     private volatile int failAt;
     private volatile boolean failPlan;
     private final AtomicInteger applied = new AtomicInteger();
+    private final AtomicReference<Runnable> duringApply = new AtomicReference<>();
 
     @Override public JobName name() { return JobName.TEST_NOOP; }
     @Override public JobDefinition definition() { return definition; }
@@ -36,14 +38,18 @@ public class TestNoopJob implements Job {
         return plan;
     }
     @Override public JobEffect apply(JobContext context, JobItem item) {
+        var hook = duringApply.getAndSet(null);
+        if (hook != null) { hook.run(); }
         if (item.entityId().equals("item-" + failAt)) { throw new ApiException(ErrorCode.INVALID_STATE); }
         applied.incrementAndGet();
         return JobEffect.of("NOOP", "applied");
     }
 
     public void configure(JobDefinition definition, int items, int failAt, boolean failPlan) {
-        this.definition = definition; this.items = items; this.failAt = failAt; this.failPlan = failPlan; applied.set(0);
+        this.definition = definition; this.items = items; this.failAt = failAt; this.failPlan = failPlan; applied.set(0); duringApply.set(null);
     }
+    /** Runs `hook` once, inside the next `apply` (while the run is RUNNING): lets a test interleave a reaper or another instance. */
+    public void duringNextApply(Runnable hook) { duringApply.set(hook); }
     public void reset() { configure(DEFAULT, 0, 0, false); }
     public int applied() { return applied.get(); }
 }

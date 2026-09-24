@@ -35,6 +35,15 @@ public class JobRunRepository extends TenantRepository<JobRun> {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("job").is(job).and("scheduledFor").gte(scheduledFor).and("dryRun").is(false)
                 .and("trigger").in(JobTrigger.SCHEDULE, JobTrigger.CATCH_UP).and("skipReason").ne(SkipReason.LOCKED).and("leaseExpired").ne(true)), JobRun.class);
     }
+    /**
+     * R-15-04/R-15-06: the final write of a run (completion or reaping) replaces the row only while it is still RUNNING under
+     * the same lease holder. False = someone else closed it first (the holder finished, or the reaper failed it).
+     */
+    public boolean finish(JobRun finished) {
+        var query = tenantQuery(finished.clubId()).addCriteria(Criteria.where("_id").is(finished.id())
+                .and("status").is(JobStatus.RUNNING).and("holder").is(finished.holder()));
+        return mongo.findAndReplace(query, finished) != null;
+    }
     public boolean skippedSince(JobName job, SkipReason reason, Instant since) {
         return mongo.exists(tenantQuery().addCriteria(Criteria.where("job").is(job).and("status").is(JobStatus.SKIPPED)
                 .and("skipReason").is(reason).and("startedAt").gt(since)), JobRun.class);

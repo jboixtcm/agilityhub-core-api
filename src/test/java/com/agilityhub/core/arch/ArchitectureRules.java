@@ -4,6 +4,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.library.dependencies.SliceAssignment;
@@ -73,12 +74,8 @@ final class ArchitectureRules {
     /** S15 R-15-22: only the Clock/ClubClock beans read the system time; everything else receives the injected Clock. */
     static final List<String> CLOCK_BEANS = List.of(BASE_PACKAGE + "configuration.ClockConfiguration",
             BASE_PACKAGE + "shared.application.DefaultClubClock", BASE_PACKAGE + "shared.application.OffsetClock");
-    static final ArchRule TIME_FROM_CLOCK = noClasses()
-            .that(new DescribedPredicate<>("are not the Clock/ClubClock beans") {
-                @Override public boolean test(JavaClass type) {
-                    return CLOCK_BEANS.stream().noneMatch(bean -> type.getName().equals(bean) || type.getName().startsWith(bean + "$"));
-                }
-            })
+    static final ArchRule NOW_CALLS = noClasses()
+            .that(outside(CLOCK_BEANS, "are not the Clock/ClubClock beans"))
             .should().callMethod(java.time.Instant.class, "now")
             .orShould().callMethod(java.time.LocalDate.class, "now")
             .orShould().callMethod(java.time.LocalDateTime.class, "now")
@@ -87,6 +84,23 @@ final class ArchitectureRules {
             .orShould().callMethod(java.time.LocalTime.class, "now")
             .orShould().callMethod(System.class, "currentTimeMillis")
             .because("S15 R-15-22: time comes from the injected Clock (MutableClock in tests)");
+    /** Only the clock configuration builds a system clock; `new Date()` reads the system time too. */
+    static final ArchRule SYSTEM_CLOCKS = noClasses()
+            .that(outside(List.of(BASE_PACKAGE + "configuration.ClockConfiguration"), "are not the clock configuration"))
+            .should().callMethod(java.time.Clock.class, "systemUTC")
+            .orShould().callMethod(java.time.Clock.class, "systemDefaultZone")
+            .orShould().callMethod(java.time.Clock.class, "system", java.time.ZoneId.class)
+            .orShould().callConstructor(java.util.Date.class)
+            .because("S15 R-15-22: the Clock bean is the only system clock");
+    static final ArchRule TIME_FROM_CLOCK = CompositeArchRule.of(NOW_CALLS).and(SYSTEM_CLOCKS);
+
+    private static DescribedPredicate<JavaClass> outside(List<String> allowed, String description) {
+        return new DescribedPredicate<>(description) {
+            @Override public boolean test(JavaClass type) {
+                return allowed.stream().noneMatch(bean -> type.getName().equals(bean) || type.getName().startsWith(bean + "$"));
+            }
+        };
+    }
 
     private static boolean sharedContract(JavaClass type) {
         return inPackage(type, BASE_PACKAGE + "shared.domain")

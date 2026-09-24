@@ -199,30 +199,44 @@ public class JobRunner {
                     errors.getFirst().traceId(), failure);
         }
         var finished = running.finished(status, clock.instant(), entries(recorder.counters), items, errors, entries(recorder.snapshot), false);
-        complete(finished);
+        if (!complete(finished)) {
+            // A slow holder whose lease was reaped: the reaper's FAILED row stands and the retake owns the occurrence.
+            LOG.warn("Job finished after its lease was reaped jobRunId={} job={} clubId={} status={}", running.id(), running.job(),
+                    request.clubId(), status);
+            return runs.findById(running.id()).orElse(finished);
+        }
         metrics.finished(request.clubId(), running.job(), status, Duration.ofMillis(finished.durationMs()), recorder.counters);
         return finished;
     }
 
     /** §5 «RUNNING → FAILED: lease caducat»: a run whose holder lost the lease is closed so the next tick can take it as CATCH_UP. */
     private void reap(String clubId, JobName name) {
-        Instant now = clock.instant();
-        for (JobRun run : runs.running(name)) {
-            if (locks.held(clubId + ":" + name, run.holder(), now)) { continue; }
-            var error = new JobRun.RunError(null, ErrorCode.INTERNAL_ERROR.name(), "Lease expired before the run finished", UUID.randomUUID().toString());
-            complete(run.finished(JobStatus.FAILED, now, run.counters(), run.items(), List.of(error), run.parametersSnapshot(), true));
-            LOG.error("Job lease expired jobRunId={} job={} clubId={}", run.id(), name, clubId);
-        }
+        for (JobRun run : runs.running(name)) { reap(clubId, run); }
     }
 
-    /** Trace, SchedulerRun and JobFailed commit together; a dry run writes only its JobRun (R-15-08). */
-    private void complete(JobRun finished) {
-        if (finished.dryRun()) { runs.replace(finished); return; }
-        write(() -> {
-            runs.replace(finished);
+    /** Package-private so a test can replay a stale read (a run that finished between the reaper's read and its write). */
+    boolean reap(String clubId, JobRun run) {
+        Instant now = clock.instant();
+        if (locks.held(clubId + ":" + run.job(), run.holder(), now)) { return false; }
+        var error = new JobRun.RunError(null, ErrorCode.INTERNAL_ERROR.name(), "Lease expired before the run finished", UUID.randomUUID().toString());
+        if (!complete(run.finished(JobStatus.FAILED, now, run.counters(), run.items(), List.of(error), run.parametersSnapshot(), true))) {
+            return false;
+        }
+        LOG.error("Job lease expired jobRunId={} job={} clubId={}", run.id(), run.job(), clubId);
+        return true;
+    }
+
+    /**
+     * Trace, SchedulerRun and JobFailed commit together, and only if this call closed the RUNNING row of its holder
+     * (R-15-04/R-15-06): a run already closed by the reaper or by its holder publishes nothing. A dry run writes only its JobRun (R-15-08).
+     */
+    private boolean complete(JobRun finished) {
+        if (finished.dryRun()) { return runs.finish(finished); }
+        return write(() -> {
+            if (!runs.finish(finished)) { return false; }
             events.publish(event(SchedulerEvent.Kind.SchedulerRun, finished, schedulerRunPayload(finished)));
             if (finished.status() == JobStatus.FAILED) { events.publish(failed(finished)); }
-            return finished;
+            return true;
         });
     }
 

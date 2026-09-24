@@ -23,9 +23,11 @@ public record JobRun(@Id String id, String clubId, JobName job, Instant schedule
     public record Item(String entityType, String entityId, String action, List<Entry> detail) { }
     public record RunError(String entityId, String code, String message, String traceId) { }
 
+    /** `expired` = reaped after its lease expired: the row gives up its claim so the retake (also CATCH_UP) can take the slot. */
     public JobRun finished(JobStatus next, Instant at, List<Entry> nextCounters, List<Item> nextItems, List<RunError> nextErrors,
             List<Entry> snapshot, boolean expired) {
         return new JobRun(id, clubId, job, scheduledFor, scheduledForLocal, timeZone, trigger, dryRun, next, skipReason, startedAt, at,
-                at.toEpochMilli() - startedAt.toEpochMilli(), nextCounters, nextItems, nextErrors, actorAccountId, snapshot, exclusive, holder, expired);
+                at.toEpochMilli() - startedAt.toEpochMilli(), nextCounters, nextItems, nextErrors, actorAccountId, snapshot,
+                exclusive && !expired, holder, expired);
     }
 }
