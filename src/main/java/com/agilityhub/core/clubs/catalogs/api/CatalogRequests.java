@@ -23,6 +23,7 @@ public final class CatalogRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(99) Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED) Boolean grantsFreeTraining,
+            @Schema(requiredMode = NOT_REQUIRED, description = "S05 §3 (E29): part of the progression of levels; default true") Boolean progression,
             @Schema(requiredMode = NOT_REQUIRED) Boolean active) { }
     public record LevelPatch(
             @Schema(requiredMode = NOT_REQUIRED) @Size(min = 1, max = 8) @Pattern(regexp = "[A-Za-z0-9_]+") String code,
@@ -31,6 +32,7 @@ public final class CatalogRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
             @Schema(requiredMode = NOT_REQUIRED) @Min(1) @Max(99) Integer capacity,
             @Schema(requiredMode = NOT_REQUIRED) Boolean grantsFreeTraining,
+            @Schema(requiredMode = NOT_REQUIRED, description = "S05 §3 (E29): part of the progression of levels") Boolean progression,
             @Schema(requiredMode = NOT_REQUIRED) Boolean active,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record RingCreate(

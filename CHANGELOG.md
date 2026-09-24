@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T11: follow-ups of the E5-T08 review, and ruling E29.
+  - R-08-13, N-46 gate: the N-15 consumer records the delivered offer on the waitlist entry (`offerNotifiedAt`) with
+    a conditional update on `{state: NOTIFIED, notifiedAt}`, in the transaction of the N-15 rows. N-46 compares
+    `offerNotifiedAt` with `notifiedAt` and no longer queries `notifications` (`appSentSince`/`appRowSince` removed).
+    A seat taken before the N-15 consumer runs now gets neither a late N-15 nor an N-46. The three row-only
+    notification writers (`appOnce`, `smsIntentOnce`, `pushIntentOnce`) join the caller's transaction.
+  - `notifications.N-46.held` ignores a `SeatHoldReleased` without a live booking of its dog (a released hold): no
+    demotion and no N-46.
+  - `CensusRepository.save` fails fast (`IllegalStateException`) when a `@ForeignOwned` field differs from the value
+    it was read with; `ForeignOwnedSnapshots` records those values when an entity is read.
+  - S07 promotion: payload and envelope origin `SYSTEM` (`DomainEvent.Origin.SYSTEM`, no actor), whoever's request
+    freed the seat.
+  - Keyed public routes (plans, club pages, activities): the key is checked before the club; an unknown slug is 403
+    `INVALID_API_KEY`, never 404 `CLUB_NOT_FOUND`.
+
 - E5-T07 round 2: the organizer's six points.
   - Integration tests: the `BookingFixtures.impersonating:126 NoSuchElement` CI flake. `DemoScenarioSeedIT` and
     `DemoPlanningSeedIT` emptied every collection, `signing_keys` included, so a Spring context cached before them
@@ -102,6 +117,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T11 / E29: `Level.progression` (S05 §3; default `true`, levels stored before read `true`; the Cànic seed sets
+  Teràpia to `false`). The automatic «{first} i sup.» of S06 R-06-03 counts only the active progression levels.
 - E5-T07: concurrency guarantees proven on Mongo, and deterministic outbox dispatch in the integration tests.
   - `shared.application.LocalLanes` replaces the three copies of 256 hashed `ReentrantLock` lanes in
     `ActivityTransactions`, `BookingTransactions` and `TrainingTransactions`. It keeps one fair lock per aggregate

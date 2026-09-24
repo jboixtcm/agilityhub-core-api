@@ -151,8 +151,9 @@ class E2ContractIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
         mvc.perform(get("/api/v1/public/e2-club-a/plans")).andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+        // E5-T11: the key is checked before the club, so an unknown slug does not reveal itself (403, not 404).
         mvc.perform(get("/api/v1/public/missing-club/plans").header("X-Api-Key", "fictional"))
-                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("CLUB_NOT_FOUND"));
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
     }
 
     @Test void T_03_22_T_05_01_T_14_13_allRoutesAndListCapabilitiesArePublished() throws Exception {
@@ -224,6 +225,27 @@ class E2ContractIT extends AbstractIntegrationTest {
         assertThat(api.path("paths").path("/api/v1/public/{clubSlug}/plans").at("/get/security/0/clubApiKey").isArray()).isTrue();
         assertThat(api.path("paths").path("/api/v1/exports/{id}").at("/get/responses/422/description").asText()).contains("EXPORT_EXPIRED");
         assertThat(api.path("paths").path("/api/v1/public/{clubSlug}/plans").at("/get/responses/403/description").asText()).contains("INVALID_API_KEY");
+    }
+
+    @Test void T_05_18_T_07_17_everyKeyedPublicRouteChecksTheKeyBeforeTheClub() throws Exception {
+        JsonNode api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var keyed = Map.of("/api/v1/public/{clubSlug}/plans", "/api/v1/public/missing-club/plans",
+                "/api/v1/public/{clubSlug}/pages/{key}", "/api/v1/public/missing-club/pages/RULES",
+                "/api/v1/public/{clubSlug}/activities", "/api/v1/public/missing-club/activities",
+                "/api/v1/public/{clubSlug}/activities/{slug}", "/api/v1/public/missing-club/activities/missing");
+        keyed.forEach((route, path) -> {
+            var responses = api.path("paths").path(route).path("get").path("responses");
+            assertThat(responses.at("/403/description").asText()).as(route).contains("INVALID_API_KEY", "CLUB_SUSPENDED");
+            assertThat(responses.toString()).as(route + " never answers CLUB_NOT_FOUND").doesNotContain("CLUB_NOT_FOUND");
+            try {
+                for (String key : new String[] {null, "", "fictional"}) {
+                    var request = get(path); if (key != null) { request.header("X-Api-Key", key); }
+                    mvc.perform(request).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("INVALID_API_KEY"));
+                }
+            } catch (Exception failure) { throw new AssertionError(route, failure); }
+        });
+        // The keyless published-file redirect resolves the club by slug and still says so.
+        assertThat(api.path("paths").path("/api/v1/public/{clubSlug}/activities/{slug}/files/{fileId}").at("/get/responses/404/description").asText()).contains("CLUB_NOT_FOUND");
     }
 
     @Test void T_02_03_allE2CatalogErrorsAlreadyExistWithCanonicalStatuses() throws Exception {

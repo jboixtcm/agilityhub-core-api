@@ -12,6 +12,8 @@ public abstract class CensusEntity implements TenantEntity {
     @Version public Long version;
     public Instant createdAt;
     public Instant updatedAt;
+    /** The {@link ForeignOwned} values as read from Mongo ({@link ForeignOwnedSnapshots}); never stored, never serialised. */
+    @org.springframework.data.annotation.Transient transient java.util.Map<String, Object> loadedForeign;
     @Override public String id() { return id; }
     @Override public String clubId() { return clubId; }
     public long version() { return version == null ? 0 : version; }

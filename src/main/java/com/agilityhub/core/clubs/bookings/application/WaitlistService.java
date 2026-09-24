@@ -63,7 +63,7 @@ public class WaitlistService {
                 throw new ApiException(ErrorCode.WAITLIST_LIMIT, Map.of("scope", rejection.get() == WaitlistRules.Rejection.CLASS ? "CLASS" : "DOG_WEEK"));
             }
             var entry = waitlist.insert(new WaitlistEntry(UUID.randomUUID().toString(), TenantContext.require(), s.id(), subject.dog().id(),
-                    subject.owner().id(), actor.accountId(), now, WaitlistState.ACTIVE, waitlist.maxPosition(s.id()) + 1, null, null, null, null, null,
+                    subject.owner().id(), actor.accountId(), now, WaitlistState.ACTIVE, waitlist.maxPosition(s.id()) + 1, null, null, null, null, null, null,
                     s.startsAt(), subject.week().key(), null, now, actor.accountId(), now, actor.accountId()));
             census.lastDogForClass(subject.booker().id(), subject.dog().id()); // R-08-23: on WaitlistJoined too
             events.publish(BookingEvent.Kind.WaitlistJoined, entry.id(), WaitlistTransitions.payload(entry), actor);

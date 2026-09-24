@@ -19,7 +19,7 @@ public class PlanningContext {
     public ClubConfig config() { return configs.get(TenantContext.require()); }
     public SchedulingCatalog catalog() {
         var source = catalogs.snapshot();
-        return new SchedulingCatalog(source.levels().stream().map(l -> new SchedulingCatalog.Level(l.id(), l.name(), l.order(), l.capacity(), l.active())).toList(),
+        return new SchedulingCatalog(source.levels().stream().map(l -> new SchedulingCatalog.Level(l.id(), l.name(), l.order(), l.capacity(), l.active(), l.progression())).toList(),
                 source.rings().stream().map(r -> new SchedulingCatalog.Resource(r.id(), r.name(), r.active())).toList(),
                 source.instructors().stream().map(i -> new SchedulingCatalog.Resource(i.id(), i.name(), i.active())).toList());
     }

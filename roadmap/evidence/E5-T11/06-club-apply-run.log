@@ -1,0 +1,32 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_levels (empty), local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 03-club-apply-first.log)
++ catalogs: 31 catalog changes
++ pages: 3 page changes
+15 changes (applied)
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 04-club-apply-second.log)
+= catalogs: 0 catalog changes
+= pages: 0 page changes
+0 changes (applied)
+PASS second club:apply: 0 changes and complete Mongo document snapshot unchanged
+Stored levels (mongosh):
+  CAD progression=true
+  A progression=true
+  B progression=true
+  C progression=true
+  D progression=true
+  E progression=true
+  F progression=true
+  G progression=true
+  TER progression=false
+curl GET /api/v1/levels (Host app.agilitycanic.cat, seeded ADMIN) -> 200
+  CAD  progression=true
+  A    progression=true
+  B    progression=true
+  C    progression=true
+  D    progression=true
+  E    progression=true
+  F    progression=true
+  G    progression=true
+  TER  progression=false
+PASS GET /levels: TER progression=false, the other 8 levels true (full body 05-get-levels.json)
+HELPER_EXIT_0

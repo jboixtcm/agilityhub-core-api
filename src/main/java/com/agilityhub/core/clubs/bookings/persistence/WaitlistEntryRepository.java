@@ -73,6 +73,17 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
         if (saved == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
         return saved;
     }
+    /**
+     * R-08-13 (E5-T11): records that the N-15 of the offer made at {@code notifiedAt} was delivered, only while the entry
+     * is still NOTIFIED with that offer. Bumps `version`, so a writer holding an older read fails its compare-and-set
+     * instead of dropping the field; inside a transaction a concurrent demotion is a write conflict. False when the
+     * offer is gone (taken, left, demoted or superseded).
+     */
+    public boolean markOfferNotified(String entryId, java.time.Instant notifiedAt) {
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(entryId).and("state").is(WaitlistState.NOTIFIED).and("notifiedAt").is(notifiedAt));
+        var update = new org.springframework.data.mongodb.core.query.Update().set("offerNotifiedAt", notifiedAt).inc("version", 1);
+        return mongo.updateFirst(query, update, mongo.getCollectionName(WaitlistEntry.class)).getMatchedCount() == 1;
+    }
     public List<WaitlistEntry> byIds(Collection<String> ids) {
         if (ids.isEmpty()) { return List.of(); }
         return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(ids)), WaitlistEntry.class);

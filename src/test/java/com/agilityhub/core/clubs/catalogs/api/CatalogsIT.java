@@ -151,6 +151,30 @@ class CatalogsIT extends AbstractIntegrationTest {
         assertThat(node.path("capacity").asInt()).isEqualTo(4); assertThat(node.path("grantsFreeTraining").asBoolean()).isTrue();
     }
 
+    @Test void T_06_02_E29_levelProgressionDefaultsToTrueIsPatchableAndLevelChangedCarriesTheDiff() throws Exception {
+        var created = create("levels", "1"); String id = created.path("id").asText();
+        assertThat(created.path("progression").asBoolean()).as("default on create").isTrue();
+        assertThat(mongo.findById(id, Document.class, "levels")).containsEntry("progression", true);
+        var special = json(admin(body(post("/api/v1/levels"), Map.of("code", "TER", "name", Map.of("ca", "Teràpia"), "progression", false))), 201);
+        assertThat(special.path("progression").asBoolean()).isFalse();
+        mongo.remove(new Query(), DomainEventRecord.class);
+        var patched = update("levels", id, Map.of("progression", false, "version", 0));
+        assertThat(patched.path("progression").asBoolean()).isFalse(); assertThat(patched.path("version").asLong()).isEqualTo(1);
+        var changed = mongo.findAll(DomainEventRecord.class);
+        assertThat(changed).singleElement().satisfies(event -> {
+            assertThat(event.type()).isEqualTo("LevelChanged"); assertThat(event.payload()).containsEntry("action", "UPDATED");
+            assertThat(mapper.convertValue(event.payload().get("diff"), Map.class)).isEqualTo(Map.of("progression", Map.of("before", true, "after", false)));
+        });
+        // Another field's patch keeps it; a level stored before the field existed reads as true.
+        assertThat(update("levels", id, Map.of("capacity", 3, "version", 1)).path("progression").asBoolean()).isFalse();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(special.path("id").asText())), new Update().unset("progression"), "levels");
+        assertThat(json(admin(get("/api/v1/levels/" + special.path("id").asText())), 200).path("progression").asBoolean()).isTrue();
+        for (String role : List.of("MEMBER", "INSTRUCTOR")) {
+            assertThat(json(call(get("/api/v1/levels"), CLUB, role), 200).path("items")).allSatisfy(item -> assertThat(item.has("progression")).isTrue());
+        }
+        admin(body(patch("/api/v1/levels/" + id), Map.of("progression", "no", "version", 2))).andExpect(status().isBadRequest());
+    }
+
     @Test void T_05_08_localizedValidationFallbackAndReaderProjection() throws Exception {
         String id = create("levels", "1").path("id").asText();
         admin(get("/api/v1/levels/" + id).header("Accept-Language", "es")).andExpect(jsonPath("$.name").value("Nivel 1"));

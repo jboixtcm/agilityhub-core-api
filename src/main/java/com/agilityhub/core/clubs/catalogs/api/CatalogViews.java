@@ -53,7 +53,7 @@ public class CatalogViews {
     private CatalogResponses.Level level(Level item, boolean warnings) {
         var usage = admin() ? mapper.convertValue(catalogs.usage(CatalogKind.LEVEL, item.id()), CatalogResponses.LevelUsage.class) : null;
         return new CatalogResponses.Level(item.id(), item.code(), text(item.name()), admin() ? item.name().values() : null,
-                item.order(), item.color(), item.capacity(), item.grantsFreeTraining(), item.active(), usage,
+                item.order(), item.color(), item.capacity(), item.grantsFreeTraining(), item.progression(), item.active(), usage,
                 warnings && !item.active() ? usage : null, lastChange(CatalogKind.LEVEL, item.id()), item.version());
     }
     CatalogItems<CatalogResponses.Level> levels(boolean includeInactive) {

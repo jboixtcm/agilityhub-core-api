@@ -32,7 +32,7 @@ public class CatalogsController {
     @GetMapping("/api/v1/levels")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ListContract(filterable = {}, sortable = {"order"},
-            columns = {"code*", "name*", "color*", "capacity*", "grantsFreeTraining@FREE_TRAINING", "active*"}, paged = false, exportable = false)
+            columns = {"code*", "name*", "color*", "capacity*", "grantsFreeTraining@FREE_TRAINING", "progression*", "active*"}, paged = false, exportable = false)
     @Operation(summary = "List levels",
             description = "S05 §6. Unpaginated catalog; includeInactive is ADMIN-only. MEMBER/INSTRUCTOR receive LevelReaderView without usage or translation maps.",
             responses = @ApiResponse(responseCode = "200", description = "CatalogItems<Level>"))

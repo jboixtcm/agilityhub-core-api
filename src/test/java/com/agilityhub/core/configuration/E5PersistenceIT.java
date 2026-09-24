@@ -112,7 +112,7 @@ class E5PersistenceIT extends AbstractIntegrationTest {
             assertThatThrownBy(() -> holds.insert(new SeatHold("e5p-h2", CLUB, "e5p-class-a", "dog-a", "member-a", "account-a", null, now, now.plusSeconds(30))))
                     .isInstanceOf(DuplicateKeyException.class);
             waitlist.insert(new WaitlistEntry("e5p-w1", CLUB, "e5p-class-a", "dog-b", "member-a", "account-a", now, WaitlistState.NOTIFIED, 1, now,
-                    now.plusSeconds(1800), null, null, null, starts, "2026-10-04", 1L, now, "account-a", now, "account-a"));
+                    now.plusSeconds(1800), null, null, null, null, starts, "2026-10-04", 1L, now, "account-a", now, "account-a"));
             assertThat(waitlist.findById("e5p-w1").orElseThrow().confirmBy()).isEqualTo(now.plusSeconds(1800));
             seatLocks.insert(new SeatLock("e5p-class-a", CLUB, 0));
             assertThat(seatLocks.findById("e5p-class-a").orElseThrow().version()).isZero();

@@ -145,7 +145,7 @@ class BookingsIT extends BookingFixtures {
     @Test void T_08_17_swapCancelsTheOldBookingAndCreatesTheNewOneAtomically() throws Exception {
         var mon = book(as("laura"), "mon", "s08-d-duna");
         mongo.insert(new com.agilityhub.core.clubs.bookings.persistence.WaitlistEntry("s08-entry", CLUB, "s08-mon", "s08-d-nit", "s08-m-pere", "s08-pere", NOW,
-                WaitlistState.ACTIVE, 1, null, null, null, null, null, local("2026-10-12T18:50"), "2026-10-11", null, NOW, "s08-pere", NOW, "s08-pere"));
+                WaitlistState.ACTIVE, 1, null, null, null, null, null, null, local("2026-10-12T18:50"), "2026-10-11", null, NOW, "s08-pere", NOW, "s08-pere"));
         var wed = book(as("laura"), "wed", "s08-d-duna");
         var held = hold(as("laura"), "mon2", "s08-d-duna", 201);
         // Another week's booking, or nothing chosen while the limit is reached → SWAP_NOT_ALLOWED, nothing changes.
@@ -348,7 +348,7 @@ class BookingsIT extends BookingFixtures {
         var a = book(as("laura"), "sat", "s08-d-duna"); book(as("pere"), "sat", "s08-d-nit");
         hold(as("joan"), "sat", "s08-d-toby", 201);
         mongo.insert(new com.agilityhub.core.clubs.bookings.persistence.WaitlistEntry("s08-entry", CLUB, "s08-sat", "s08-d-c1", "s08-m-c1", "s08-c1", NOW,
-                WaitlistState.ACTIVE, 1, null, null, null, null, null, local("2026-10-10T09:00"), "2026-10-04", null, NOW, "s08-c1", NOW, "s08-c1"));
+                WaitlistState.ACTIVE, 1, null, null, null, null, null, null, local("2026-10-10T09:00"), "2026-10-04", null, NOW, "s08-c1", NOW, "s08-c1"));
         // A failure after the port call rolls every booking back (the port joins the S06 transaction).
         try (var t = TenantContext.open(CLUB)) {
             assertThatThrownBy(() -> tx.executeWithoutResult(status -> { cancellations.cancelByClub("s08-sat", "CLUB_MANUAL", "x", "s08-admin"); throw new IllegalStateException("abort"); }))
@@ -472,7 +472,7 @@ class BookingsIT extends BookingFixtures {
     @Test void R_08_15_theHoldOfAClaimNeedsTheDogsNotifiedEntryStillOnOffer() throws Exception {
         book(as("pere"), "last", "s08-d-nit");
         var entry = new com.agilityhub.core.clubs.bookings.persistence.WaitlistEntry("s08-claim", CLUB, "s08-last", "s08-d-duna", "s08-m-laura", "s08-laura", NOW,
-                WaitlistState.ACTIVE, 1, null, null, null, null, null, local("2026-10-08T20:00"), "2026-10-04", null, NOW, "s08-laura", NOW, "s08-laura");
+                WaitlistState.ACTIVE, 1, null, null, null, null, null, null, local("2026-10-08T20:00"), "2026-10-04", null, NOW, "s08-laura", NOW, "s08-laura");
         mongo.insert(entry);
         var body = Map.of("classSessionId", "s08-last", "dogId", "s08-d-duna", "waitlistEntryId", "s08-claim");
         assertThat(code(call(POST, "/seat-holds", body, as("laura"), 422))).isEqualTo("WAITLIST_NOT_NOTIFIED");

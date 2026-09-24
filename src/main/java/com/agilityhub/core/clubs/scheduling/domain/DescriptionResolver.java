@@ -11,9 +11,11 @@ public final class DescriptionResolver {
         if (manual != null && !manual.isBlank()) { return manual; }
         var selected = catalog.orderedLevels().stream().filter(level -> levelIds.contains(level.id())).toList();
         if (selected.isEmpty()) { return ""; }
-        var active = catalog.activeLevels();
-        int first = active.indexOf(selected.getFirst());
-        boolean tail = selected.size() >= 2 && first >= 0 && active.subList(first, active.size()).equals(selected);
+        // R-06-03 (E29): «{first} i sup.» only for ≥ 2 active progression levels that are contiguous and reach the last
+        // one; a set with a level outside the progression (Teràpia) or an inactive one is joined with «+».
+        var progression = catalog.activeProgression();
+        int first = progression.indexOf(selected.getFirst());
+        boolean tail = selected.size() >= 2 && first >= 0 && progression.subList(first, progression.size()).equals(selected);
         if (tail) { return messages.format("scheduling.description.andAbove", Map.of("level", selected.getFirst().name().resolve(locale).value()), locale); }
         String join = messages.format("scheduling.description.join", Map.of(), locale);
         return String.join(join, selected.stream().map(level -> level.name().resolve(locale).value()).toList());

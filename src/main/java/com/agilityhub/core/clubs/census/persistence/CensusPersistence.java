@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration
 public class CensusPersistence {
+    @Bean public ForeignOwnedSnapshots foreignOwnedSnapshots() { return new ForeignOwnedSnapshots(); }
     @Bean public CensusRepository<Member> members(MongoTemplate mongo, Clock clock) {
         var repo = new CensusRepository<>(mongo, Member.class, clock);
         repo.ensureIndexes("memberNumber", "number", "member_number"); repo.ensureIndexes("idDocument.number", "string", "member_id_document");

@@ -19,13 +19,16 @@ import org.springframework.transaction.annotation.*;
  * <ul>
  * <li>`notifications.N-15` on `WaitlistNotified` → «S'ha alliberat una plaça!» to the owner of each notified entry: APP
  * + SMS intent (QUEUED, ≤ 160 GSM-7, or SKIPPED_MODULE_OFF without SMS) + PUSH intent (QUEUED, or SKIPPED_MODULE_OFF
- * without PUSH), action CLAIM_SEAT; ids `eventId:entryId:channel`, so one N-15 per entry and offer.</li>
+ * without PUSH), action CLAIM_SEAT; ids `eventId:entryId:channel`, so one N-15 per entry and offer. Each entry is one
+ * transaction: `offerNotifiedAt` is set on the entry only while it is still NOTIFIED with that `notifiedAt`, together
+ * with the N-15 rows; an entry demoted (or taken) first gets neither (E5-T11).</li>
  * <li>`notifications.N-46` on `WaitlistConsolidated`, `notifications.N-46.booked` on `BookingCreated` and
- * `notifications.N-46.held` on `SeatHoldReleased` (the PAY_TO_BOOK seat taken as PAYMENT_PENDING) (ALL_AT_ONCE):
+ * `notifications.N-46.held` on `SeatHoldReleased` of a confirmation (the PAY_TO_BOOK seat taken as PAYMENT_PENDING; a
+ * hold released without a booking of its dog is ignored, and an expired hold emits no event) (ALL_AT_ONCE):
  * a read-only check first (nothing offered → nothing to do), the idempotent demotion of R-08-13 in its own transaction
  * only while an entry is still NOTIFIED (the booking transaction normally did it already), then «La plaça ja s'ha
  * ocupat» → APP to every ACTIVE entry whose offer was taken (ACTIVE with `notifiedAt`) and whose N-15 of that offer
- * was delivered; ids
+ * was delivered (`offerNotifiedAt` = `notifiedAt`); ids
  * `N-46:entryId:notifiedAt:app`, so each lost offer is told exactly once, whichever event gets there first.</li>
  * </ul>
  * Rendered in the recipient's locale with the club time zone.
@@ -35,12 +38,13 @@ public class WaitlistNotifications {
     private final WaitlistEntryRepository waitlist; private final BookingMemberAccess census; private final ClassSessionBookingAccess classes;
     private final NotificationAccounts accounts; private final SystemNotificationService notifications; private final BookingContext context;
     private final IcuMessageSource messages; private final WaitlistTransitions transitions; private final BookingTransactions transactions;
-    private final SeatLockRepository locks;
+    private final SeatLockRepository locks; private final BookingRepository bookings;
     public WaitlistNotifications(WaitlistEntryRepository waitlist, BookingMemberAccess census, ClassSessionBookingAccess classes, NotificationAccounts accounts,
             SystemNotificationService notifications, BookingContext context, IcuMessageSource messages, WaitlistTransitions transitions,
-            BookingTransactions transactions, SeatLockRepository locks) {
+            BookingTransactions transactions, SeatLockRepository locks, BookingRepository bookings) {
         this.waitlist = waitlist; this.census = census; this.classes = classes; this.accounts = accounts; this.notifications = notifications;
         this.context = context; this.messages = messages; this.transitions = transitions; this.transactions = transactions; this.locks = locks;
+        this.bookings = bookings;
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -49,7 +53,12 @@ public class WaitlistNotifications {
             var ids = event.payload().get("entryIds") instanceof Collection<?> list ? list.stream().map(Object::toString).toList() : List.<String>of();
             for (var entry : waitlist.byIds(ids)) {
                 if (entry.state() != WaitlistState.NOTIFIED) { continue; } // taken, left or demoted before the delivery
-                send(eventId + ":" + entry.id(), "N-15", entry);
+                // R-08-13 (E5-T11): the delivery is recorded on the entry in the transaction of the N-15 rows. A demotion
+                // committed first makes the conditional update miss (no N-15, no N-46); one running meanwhile conflicts.
+                transactions.write(List.of(entry.classSessionId()), () -> {
+                    if (waitlist.markOfferNotified(entry.id(), entry.notifiedAt())) { send(eventId + ":" + entry.id(), "N-15", entry); }
+                    return null;
+                });
             }
         }
     }
@@ -61,6 +70,9 @@ public class WaitlistNotifications {
                     ? waitlist.findById(event.aggregateId()).map(WaitlistEntry::classSessionId).orElse(null)
                     : Objects.toString(event.payload().get("classId"), null);
             if (classId == null) { return; }
+            // E5-T11: a hold released without a booking (DELETE /seat-holds) takes no seat; only a confirmation's does.
+            if (event.kind() == BookingEvent.Kind.SeatHoldReleased
+                    && bookings.live(classId, Objects.toString(event.payload().get("dogId"), "")).isEmpty()) { return; }
             // Read-only first (E5-T08): an ordinary booking (no open offer, no taken one) stops here, without a write
             // transaction or the class's seat lock. The lock is taken only while a NOTIFIED entry may still need demoting.
             var live = waitlist.live(classId);
@@ -70,21 +82,11 @@ public class WaitlistNotifications {
                 live = waitlist.live(classId);
             }
             for (var entry : live) {
-                if (entry.state() != WaitlistState.ACTIVE || entry.notifiedAt() == null || !offerDelivered(entry)) { continue; }
+                if (entry.state() != WaitlistState.ACTIVE || entry.notifiedAt() == null || !entry.notifiedAt().equals(entry.offerNotifiedAt())) { continue; }
                 send("N-46:" + entry.id() + ":" + entry.notifiedAt().toEpochMilli(), "N-46", entry);
             }
         }
     }
-    /**
-     * R-08-13: «La plaça ja s'ha ocupat» only to whom heard of the offer. When the outbox delivers `WaitlistNotified`
-     * after the seat was taken, N-15 skips the demoted entries, so there is no N-15 row of that offer (created at or
-     * after its `notifiedAt`) and no N-46 either.
-     */
-    private boolean offerDelivered(WaitlistEntry entry) {
-        var member = census.member(entry.memberId()).orElse(null);
-        return member != null && member.accountId() != null && notifications.appSentSince("N-15", member.accountId(), entry.id(), entry.notifiedAt());
-    }
-
     private void send(String key, String code, WaitlistEntry entry) {
         var session = classes.find(entry.classSessionId()).orElse(null); if (session == null) { return; }
         var member = census.member(entry.memberId()).orElse(null); if (member == null) { return; }

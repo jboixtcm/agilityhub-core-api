@@ -151,7 +151,9 @@ class ClubPagesIT extends AbstractIntegrationTest {
         error(mvc.perform(get(path)), 403, "INVALID_API_KEY");
         error(mvc.perform(get(path).header("X-Api-Key", "invalid")), 403, "INVALID_API_KEY");
         error(mvc.perform(get("/api/v1/public/" + OTHER + "/pages/RULES").header("X-Api-Key", publicKey)), 403, "INVALID_API_KEY");
-        error(mvc.perform(get("/api/v1/public/absent/pages/RULES").header("X-Api-Key", publicKey)), 404, "CLUB_NOT_FOUND");
+        // E5-T11: key first — an unknown slug answers like a wrong key, with or without a key.
+        error(mvc.perform(get("/api/v1/public/absent/pages/RULES").header("X-Api-Key", publicKey)), 403, "INVALID_API_KEY");
+        error(mvc.perform(get("/api/v1/public/absent/pages/RULES")), 403, "INVALID_API_KEY");
         for (String language : List.of("es", "es-ES,ca;q=0.5", "fr;q=1,es;q=0.8")) {
             mvc.perform(get(path).header("Host", OTHER + ".example.test").header("X-Api-Key", publicKey).header("Accept-Language", language))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.body").value("# Reglas")).andExpect(header().string("Content-Language", "es"));

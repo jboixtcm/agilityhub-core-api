@@ -5700,6 +5700,10 @@
             "format" : "int32",
             "type" : "integer"
           },
+          "progression" : {
+            "description" : "S05 §3 (E29): only progression levels count for the automatic «{first} i sup.» (S06 R-06-03)",
+            "type" : "boolean"
+          },
           "usage" : {
             "$ref" : "#/components/schemas/LevelUsage"
           },
@@ -5711,7 +5715,7 @@
             "$ref" : "#/components/schemas/LevelUsage"
           }
         },
-        "required" : [ "active", "capacity", "code", "color", "grantsFreeTraining", "id", "name", "order", "version" ],
+        "required" : [ "active", "capacity", "code", "color", "grantsFreeTraining", "id", "name", "order", "progression", "version" ],
         "type" : "object"
       },
       "LevelChangeResult" : {
@@ -5761,6 +5765,10 @@
             "format" : "int32",
             "minimum" : 0,
             "type" : "integer"
+          },
+          "progression" : {
+            "description" : "S05 §3 (E29): part of the progression of levels; default true",
+            "type" : "boolean"
           }
         },
         "required" : [ "code", "name" ],
@@ -5835,6 +5843,10 @@
             "minimum" : 0,
             "type" : "integer"
           },
+          "progression" : {
+            "description" : "S05 §3 (E29): part of the progression of levels",
+            "type" : "boolean"
+          },
           "version" : {
             "format" : "int64",
             "type" : "integer"
@@ -5872,12 +5884,16 @@
             "format" : "int32",
             "type" : "integer"
           },
+          "progression" : {
+            "description" : "S05 §3 (E29): only progression levels count for the automatic «{first} i sup.» (S06 R-06-03)",
+            "type" : "boolean"
+          },
           "version" : {
             "format" : "int64",
             "type" : "integer"
           }
         },
-        "required" : [ "active", "capacity", "code", "color", "grantsFreeTraining", "id", "name", "order", "version" ],
+        "required" : [ "active", "capacity", "code", "color", "grantsFreeTraining", "id", "name", "order", "progression", "version" ],
         "type" : "object"
       },
       "LevelSummary" : {
@@ -31396,6 +31412,9 @@
           "module" : "FREE_TRAINING"
         }, {
           "defaultVisible" : true,
+          "key" : "progression"
+        }, {
+          "defaultVisible" : true,
           "key" : "active"
         } ],
         "x-exportable" : false,
@@ -44193,7 +44212,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED, INVALID_API_KEY"
+            "description" : "IMPERSONATION_DENIED, INVALID_API_KEY, CLUB_SUSPENDED"
           },
           "404" : {
             "content" : {
@@ -44203,7 +44222,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED, CLUB_NOT_FOUND"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -44379,7 +44398,7 @@
                 }
               }
             },
-            "description" : "IMPERSONATION_DENIED, INVALID_API_KEY"
+            "description" : "IMPERSONATION_DENIED, INVALID_API_KEY, CLUB_SUSPENDED"
           },
           "404" : {
             "content" : {
@@ -44389,7 +44408,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED, CLUB_NOT_FOUND"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -44665,7 +44684,7 @@
     },
     "/api/v1/public/{clubSlug}/pages/{key}" : {
       "get" : {
-        "description" : "S05 §6. X-Api-Key authenticates the slug-selected club independently of Host. Accept-Language selects an enabled locale, falling back to the club default. Drafts return NOT_FOUND.",
+        "description" : "S05 §6. X-Api-Key authenticates the slug-selected club independently of Host and is checked before the club (403 INVALID_API_KEY first, also for an unknown slug). Accept-Language selects an enabled locale, falling back to the club default. Drafts return NOT_FOUND.",
         "operationId" : "get_1",
         "parameters" : [ {
           "in" : "path",
@@ -44745,7 +44764,7 @@
                 }
               }
             },
-            "description" : "CLUB_NOT_FOUND, NOT_FOUND"
+            "description" : "NOT_FOUND"
           },
           "409" : {
             "content" : {
@@ -44836,7 +44855,7 @@
     },
     "/api/v1/public/{clubSlug}/plans" : {
       "get" : {
-        "description" : "S05 §6, R-05-21. Anonymous bearer access; X-Api-Key is required. Resolve club from slug and validate its key. Prices appear only with BILLING; never require a club host.",
+        "description" : "S05 §6, R-05-21. Anonymous bearer access; X-Api-Key is required and checked before the club (403 INVALID_API_KEY first, also for an unknown slug). Prices appear only with BILLING; never require a club host.",
         "operationId" : "publicPlans",
         "parameters" : [ {
           "in" : "path",
@@ -44899,7 +44918,7 @@
                 }
               }
             },
-            "description" : "INVALID_API_KEY"
+            "description" : "INVALID_API_KEY, CLUB_SUSPENDED"
           },
           "404" : {
             "content" : {
@@ -44909,7 +44928,7 @@
                 }
               }
             },
-            "description" : "CLUB_NOT_FOUND"
+            "description" : "Not Found"
           },
           "409" : {
             "content" : {

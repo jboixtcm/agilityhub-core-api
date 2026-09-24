@@ -126,7 +126,7 @@ class RateLimitIT extends IdentityIntegrationSupport {
         for (int index = 0; index < 60; index++) {
             String route = index % 2 == 0 ? "/api/v1/public/absent/pages/RULES" : "/api/v1/public/absent/plans";
             mvc.perform(get(route).with(request -> { request.setRemoteAddr("203.0.113.31"); return request; }))
-                    .andExpect(jsonPath("$.code").value("CLUB_NOT_FOUND"));
+                    .andExpect(jsonPath("$.code").value("INVALID_API_KEY")); // key first (E5-T11)
         }
         mvc.perform(get("/api/v1/public/absent/pages/RULES").with(request -> {
             request.setRemoteAddr("203.0.113.31"); return request;

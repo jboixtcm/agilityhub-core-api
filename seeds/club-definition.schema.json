@@ -653,6 +653,10 @@
         },
         "grantsFreeTraining": {
           "type": "boolean"
+        },
+        "progression": {
+          "type": "boolean",
+          "description": "S05 §3 (E29): part of the progression of levels; default true"
         }
       },
       "required": [

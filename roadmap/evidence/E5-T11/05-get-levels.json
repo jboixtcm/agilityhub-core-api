@@ -1,0 +1,239 @@
+{
+  "items": [
+    {
+      "id": "f96613a4-b828-4137-a998-e412dd8bb27f",
+      "code": "CAD",
+      "name": "Cadells",
+      "nameI18n": {
+        "ca": "Cadells",
+        "es": "Cachorros"
+      },
+      "order": 0,
+      "color": "#F5D67A",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.229Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "97adc8d2-b7a4-4464-bb65-3ff85b8e7688",
+      "code": "A",
+      "name": "A",
+      "nameI18n": {
+        "ca": "A",
+        "es": "A"
+      },
+      "order": 10,
+      "color": "#C9E4F5",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.249Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "2847fd33-574b-4186-8d15-11dccc1e3152",
+      "code": "B",
+      "name": "B",
+      "nameI18n": {
+        "ca": "B",
+        "es": "B"
+      },
+      "order": 20,
+      "color": "#A9D3F0",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.265Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "999f2753-4448-4abe-b5fb-357b1c15f87d",
+      "code": "C",
+      "name": "C",
+      "nameI18n": {
+        "ca": "C",
+        "es": "C"
+      },
+      "order": 30,
+      "color": "#85B8E8",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.283Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "7f3fbe26-9eb4-4c3b-80ed-0a9902942b03",
+      "code": "D",
+      "name": "D",
+      "nameI18n": {
+        "ca": "D",
+        "es": "D"
+      },
+      "order": 40,
+      "color": "#8FCE8F",
+      "capacity": 5,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.297Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "baf7e669-86e5-4e2f-aa62-84be15a6ec69",
+      "code": "E",
+      "name": "E",
+      "nameI18n": {
+        "ca": "E",
+        "es": "E"
+      },
+      "order": 50,
+      "color": "#F2B58C",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.312Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "92ff931d-52a3-43c0-902a-45031bdf1358",
+      "code": "F",
+      "name": "F",
+      "nameI18n": {
+        "ca": "F",
+        "es": "F"
+      },
+      "order": 60,
+      "color": "#E8A070",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.326Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "d85c6e40-2221-42e3-9060-a2035fda3b24",
+      "code": "G",
+      "name": "G",
+      "nameI18n": {
+        "ca": "G",
+        "es": "G"
+      },
+      "order": 70,
+      "color": "#E26A2A",
+      "capacity": 4,
+      "grantsFreeTraining": true,
+      "progression": true,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.343Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    },
+    {
+      "id": "ad9f8e95-d14d-42b9-8cab-bff957cfadc8",
+      "code": "TER",
+      "name": "Teràpia",
+      "nameI18n": {
+        "ca": "Teràpia",
+        "es": "Terapia"
+      },
+      "order": 80,
+      "color": "#C9CDD3",
+      "capacity": 1,
+      "grantsFreeTraining": false,
+      "progression": false,
+      "active": true,
+      "usage": {
+        "activeDogs": 0,
+        "futureClassSessions": 0,
+        "templateClasses": 0
+      },
+      "lastChange": {
+        "at": "2026-09-24T10:53:09.359Z",
+        "actorName": null,
+        "action": "CATALOG_CHANGED"
+      },
+      "version": 0
+    }
+  ],
+  "totalItems": 9
+}

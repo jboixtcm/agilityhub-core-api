@@ -14,9 +14,15 @@ public class PublicClubAccess {
     private final ClubRepository clubs;
     private final ClubConfigService configs;
     public PublicClubAccess(ClubRepository clubs, ClubConfigService configs) { this.clubs = clubs; this.configs = configs; }
+    /**
+     * The keyed public routes (S05 R-05-21 plans, S05 §6 club pages, S07 R-07-12 activities): the key is checked first,
+     * so without a valid key the caller cannot tell whether the slug exists — an unknown slug is 403 INVALID_API_KEY
+     * too, never 404 CLUB_NOT_FOUND (E5-T11). A suspended club answers CLUB_SUSPENDED only to its own key.
+     */
     public ClubConfig resolve(String slug, String key) {
-        var club = clubs.findBySlug(slug).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
-        if (key == null || key.isBlank() || club.publicApiKeyHash() == null || !MessageDigest.isEqual(
+        if (key == null || key.isBlank()) { throw new ApiException(ErrorCode.INVALID_API_KEY); }
+        var club = clubs.findBySlug(slug).orElseThrow(() -> new ApiException(ErrorCode.INVALID_API_KEY));
+        if (club.publicApiKeyHash() == null || !MessageDigest.isEqual(
                 digest(key).getBytes(StandardCharsets.US_ASCII), club.publicApiKeyHash().getBytes(StandardCharsets.US_ASCII))) {
             throw new ApiException(ErrorCode.INVALID_API_KEY);
         }

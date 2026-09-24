@@ -17,8 +17,8 @@ public class PublicClubPagesController {
     public PublicClubPagesController(PublicClubAccess clubs, ClubPageService pages) { this.clubs = clubs; this.pages = pages; }
     @GetMapping("/api/v1/public/{clubSlug}/pages/{key}")
     @SecurityRequirement(name = "clubApiKey")
-    @ContractErrors({INVALID_API_KEY, CLUB_NOT_FOUND, CLUB_SUSPENDED, NOT_FOUND, RATE_LIMITED})
-    @Operation(summary = "Read a published club page", description = "S05 §6. X-Api-Key authenticates the slug-selected club independently of Host. Accept-Language selects an enabled locale, falling back to the club default. Drafts return NOT_FOUND.")
+    @ContractErrors({INVALID_API_KEY, CLUB_SUSPENDED, NOT_FOUND, RATE_LIMITED})
+    @Operation(summary = "Read a published club page", description = "S05 §6. X-Api-Key authenticates the slug-selected club independently of Host and is checked before the club (403 INVALID_API_KEY first, also for an unknown slug). Accept-Language selects an enabled locale, falling back to the club default. Drafts return NOT_FOUND.")
     public ClubPageContracts.PublicPage get(@PathVariable String clubSlug, @PathVariable String key,
             @RequestHeader(value = "X-Api-Key", required = false) String apiKey,
             @RequestHeader(value = "Accept-Language", required = false) String language, HttpServletResponse response) {

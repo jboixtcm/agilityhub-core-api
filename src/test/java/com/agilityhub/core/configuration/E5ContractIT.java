@@ -105,7 +105,7 @@ class E5ContractIT extends AbstractIntegrationTest {
                 new Booking.Actor("e5-MEMBER", null, "Example"), starts, ends, "2026-10-04", null, null, null, null, null, null,
                 null, null, null, null, null, null, null, 1L, now, "e5-MEMBER", now, "e5-MEMBER"));
         mongo.insert(new WaitlistEntry("e5-entry-a", CLUB, "e5-class-a", "dog-b", "e5-member-a", "e5-MEMBER", now, WaitlistState.ACTIVE, 1, null, null,
-                null, null, null, starts, "2026-10-04", 1L, now, "e5-MEMBER", now, "e5-MEMBER"));
+                null, null, null, null, starts, "2026-10-04", 1L, now, "e5-MEMBER", now, "e5-MEMBER"));
         mongo.insert(new TrainingBooking("e5-training-a", CLUB, "e5-member-a", "dog-a", "ring-a", Instant.parse("2026-10-06T06:30:00Z"),
                 Instant.parse("2026-10-06T07:00:00Z"), "ring-a_2026-10-06T06:30:00Z", 0, Instant.parse("2026-10-04T18:00:00Z"),
                 TrainingBookingState.ACTIVE, TrainingOrigin.APP, "e5-MEMBER", null, null, null, null, null, null, null, 1L, now, now, "e5-MEMBER"));

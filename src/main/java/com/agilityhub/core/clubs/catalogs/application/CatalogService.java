@@ -76,6 +76,7 @@ public class CatalogService {
             if (kind == CatalogKind.LEVEL) {
                 values.putIfAbsent("capacity", config().get("classes.defaultCapacity", Integer.class));
                 values.putIfAbsent("grantsFreeTraining", false);
+                values.putIfAbsent("progression", true); // S05 §3, E29
             }
             if (kind == CatalogKind.RING) { values.putIfAbsent("allowsFreeTraining", false); }
             var next = build(kind, UUID.randomUUID().toString(), values, null);
@@ -173,7 +174,7 @@ public class CatalogService {
         return switch (kind) {
             case LEVEL -> new Level(id, clubId, ((String) values.get("code")).toUpperCase(Locale.ROOT),
                     localized(values.get("name"), "name", 40), order, (String) values.get("color"), ((Number) values.get("capacity")).intValue(),
-                    (Boolean) values.get("grantsFreeTraining"), active, version, createdAt, now, createdBy, actor);
+                    (Boolean) values.get("grantsFreeTraining"), (Boolean) values.get("progression"), active, version, createdAt, now, createdBy, actor);
             case RING -> new Ring(id, clubId, requiredText(values.get("name"), "name", 40), ((String) values.get("shortName")).toUpperCase(Locale.ROOT),
                     (String) values.get("color"), (Boolean) values.get("allowsFreeTraining"), (Integer) values.get("trainingCapacity"),
                     order, active, version, createdAt, now, createdBy, actor);

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 /** S06 read and reference-write boundary: no catalog persistence types escape. */
 @Service
 public class PlanningCatalogAccess {
-    public record LevelView(String id, LocalizedText name, int order, int capacity, boolean active) { }
+    public record LevelView(String id, LocalizedText name, int order, int capacity, boolean active, boolean progression) { }
     public record ResourceView(String id, String name, boolean active) { }
     public record Snapshot(List<LevelView> levels, List<ResourceView> rings, List<ResourceView> instructors) { }
     private final CatalogRepository<Level> levels;
@@ -20,7 +20,7 @@ public class PlanningCatalogAccess {
     }
     public void lockReferences() { levels.lock(); rings.lock(); instructors.lock(); }
     public Snapshot snapshot() {
-        return new Snapshot(levels.findAll().stream().map(l -> new LevelView(l.id(), l.name(), l.order(), l.capacity(), l.active())).toList(),
+        return new Snapshot(levels.findAll().stream().map(l -> new LevelView(l.id(), l.name(), l.order(), l.capacity(), l.active(), l.progression())).toList(),
                 rings.findAll().stream().map(r -> new ResourceView(r.id(), r.name(), r.active())).toList(),
                 instructors.findAll().stream().map(i -> new ResourceView(i.id(), i.shortName(), i.active())).toList());
     }

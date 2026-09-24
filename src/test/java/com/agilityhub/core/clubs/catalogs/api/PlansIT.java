@@ -204,7 +204,9 @@ class PlansIT extends AbstractIntegrationTest {
                 "texts", Map.of("description", Map.of("ca", "Descripció", "es", "Descripción")), "version", 0));
         for (String key : List.of("", "wrong-key")) { error(mvc.perform(get("/api/v1/public/canic/plans").header("X-Api-Key", key)), 403, "INVALID_API_KEY"); }
         error(mvc.perform(get("/api/v1/public/canic/plans")), 403, "INVALID_API_KEY");
-        error(mvc.perform(get("/api/v1/public/unknown/plans").header("X-Api-Key", publicKey)), 404, "CLUB_NOT_FOUND");
+        // E5-T11: key first — an unknown slug answers like a wrong key (T-05-18's «404» is superseded by the S07 rule).
+        error(mvc.perform(get("/api/v1/public/unknown/plans").header("X-Api-Key", publicKey)), 403, "INVALID_API_KEY");
+        error(mvc.perform(get("/api/v1/public/unknown/plans")), 403, "INVALID_API_KEY");
         error(mvc.perform(get("/api/v1/public/offer-b/plans").header("X-Api-Key", publicKey)), 403, "INVALID_API_KEY");
         var response = mvc.perform(get("/api/v1/public/canic/plans").header("Host", "unrelated.example.test").header("X-Api-Key", publicKey).header("Accept-Language", "es-ES,ca;q=0.5"))
                 .andExpect(header().string("Cache-Control", "public, max-age=300")).andExpect(header().string("Content-Language", "es"));

@@ -78,7 +78,7 @@ public class WaitlistTransitions implements WaitlistConsolidationPort {
             WaitlistCancelReason reason, Instant now, String actorAccountId) {
         long version = e.version() == null ? 0L : e.version();
         return waitlist.update(new WaitlistEntry(e.id(), e.clubId(), e.classSessionId(), e.dogId(), e.memberId(), e.accountId(), e.joinedAt(), state,
-                e.position(), notifiedAt, confirmBy, bookingId, cancelledAt, reason, e.classStartsAt(), e.bookingWeekKey(), version + 1,
+                e.position(), notifiedAt, confirmBy, e.offerNotifiedAt(), bookingId, cancelledAt, reason, e.classStartsAt(), e.bookingWeekKey(), version + 1,
                 e.createdAt(), e.createdByAccountId(), now, actorAccountId), version);
     }
     static Map<String, Object> payload(WaitlistEntry e) {

@@ -29,7 +29,14 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
         item.version = 0L; item.createdAt = clock.instant(); item.updatedAt = item.createdAt;
         try { return super.insert(item); } catch (DuplicateKeyException duplicate) { throw duplicate(duplicate); }
     }
+    /**
+     * Compare-and-set save of the census-owned fields. {@link ForeignOwned} fields are never written here; a save whose
+     * foreign field differs from the value it was read with (or, for an entity not read from Mongo, from the stored
+     * value) fails fast, so a writer that forgot {@link #setField} cannot lose its write silently (E5-T11). A foreign
+     * field changed in Mongo by {@link #setField} after the read is not a difference: the save just keeps the new value.
+     */
     public T save(T item) {
+        requireForeignUnchanged(item);
         long expected = item.version();
         var query = tenantQuery(item.clubId).addCriteria(Criteria.where("_id").is(item.id));
         query.addCriteria(new Criteria().orOperator(Criteria.where("version").is(expected),
@@ -38,7 +45,7 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
         Document data = new Document(); mongo.getConverter().write(item, data);
         Update update = new Update();
         var foreign = new HashSet<String>();
-        for (var field : type.getDeclaredFields()) { if (field.isAnnotationPresent(ForeignOwned.class)) { foreign.add(field.getName()); } }
+        for (var field : foreignFields(type)) { foreign.add(field.getName()); }
         data.forEach((key, value) -> { if (!Set.of("_id", "_class", "clubId").contains(key) && !foreign.contains(key)) { update.set(key, value); } });
         for (var field : type.getDeclaredFields()) {
             if (!data.containsKey(field.getName()) && !foreign.contains(field.getName())) { update.unset(field.getName()); }
@@ -47,6 +54,33 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
             if (mongo.updateFirst(query, update, mongo.getCollectionName(type)).getMatchedCount() != 1) { throw new ApiException(ErrorCode.STALE_VERSION); }
         } catch (DuplicateKeyException duplicate) { throw duplicate(duplicate); }
         return item;
+    }
+    private void requireForeignUnchanged(T item) {
+        var fields = foreignFields(type);
+        if (fields.isEmpty()) { return; }
+        var baseline = item.loadedForeign;
+        if (baseline == null) {
+            var stored = mongo.findOne(tenantQuery(item.clubId).addCriteria(Criteria.where("_id").is(item.id)), type);
+            baseline = stored == null ? foreignValues(item) : foreignValues(stored);
+        }
+        for (var field : fields) {
+            if (!Objects.equals(read(field, item), baseline.get(field.getName()))) {
+                throw new IllegalStateException(type.getSimpleName() + "." + field.getName() + " is @ForeignOwned: a census save never writes it; use CensusRepository.setField");
+            }
+        }
+    }
+    static List<java.lang.reflect.Field> foreignFields(Class<?> type) {
+        var fields = new ArrayList<java.lang.reflect.Field>();
+        for (var field : type.getDeclaredFields()) { if (field.isAnnotationPresent(ForeignOwned.class)) { fields.add(field); } }
+        return fields;
+    }
+    static Map<String, Object> foreignValues(CensusEntity entity) {
+        var values = new HashMap<String, Object>();
+        for (var field : foreignFields(entity.getClass())) { values.put(field.getName(), read(field, entity)); }
+        return values;
+    }
+    private static Object read(java.lang.reflect.Field field, Object entity) {
+        try { return field.get(entity); } catch (IllegalAccessException inaccessible) { throw new IllegalStateException(inaccessible); }
     }
     private RuntimeException duplicate(DuplicateKeyException failure) {
         String message = failure.getMessage();

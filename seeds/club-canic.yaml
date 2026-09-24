@@ -163,6 +163,7 @@ catalogs: {
       "color": "#F5D67A",
       "capacity": 5,
       "grantsFreeTraining": false,
+      "progression": true,
       "active": true
     },
     {
@@ -175,6 +176,7 @@ catalogs: {
       "color": "#C9E4F5",
       "capacity": 5,
       "grantsFreeTraining": false,
+      "progression": true,
       "active": true
     },
     {
@@ -187,6 +189,7 @@ catalogs: {
       "color": "#A9D3F0",
       "capacity": 5,
       "grantsFreeTraining": false,
+      "progression": true,
       "active": true
     },
     {
@@ -199,6 +202,7 @@ catalogs: {
       "color": "#85B8E8",
       "capacity": 5,
       "grantsFreeTraining": false,
+      "progression": true,
       "active": true
     },
     {
@@ -211,6 +215,7 @@ catalogs: {
       "color": "#8FCE8F",
       "capacity": 5,
       "grantsFreeTraining": true,
+      "progression": true,
       "active": true
     },
     {
@@ -223,6 +228,7 @@ catalogs: {
       "color": "#F2B58C",
       "capacity": 4,
       "grantsFreeTraining": true,
+      "progression": true,
       "active": true
     },
     {
@@ -235,6 +241,7 @@ catalogs: {
       "color": "#E8A070",
       "capacity": 4,
       "grantsFreeTraining": true,
+      "progression": true,
       "active": true
     },
     {
@@ -247,6 +254,7 @@ catalogs: {
       "color": "#E26A2A",
       "capacity": 4,
       "grantsFreeTraining": true,
+      "progression": true,
       "active": true
     },
     {
@@ -259,6 +267,7 @@ catalogs: {
       "color": "#C9CDD3",
       "capacity": 1,
       "grantsFreeTraining": false,
+      "progression": false,
       "active": true
     }
   ],

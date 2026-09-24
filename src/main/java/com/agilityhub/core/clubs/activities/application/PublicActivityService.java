@@ -26,8 +26,7 @@ public class PublicActivityService {
     private ClubConfig club(String slug,String key,boolean needsKey) {
         ClubConfig config;
         if(!needsKey) config=clubs.resolveClub(slug);
-        else try { config=clubs.resolve(slug,key); }
-        catch(ApiException e) { if(e.code()==ErrorCode.CLUB_NOT_FOUND) throw new ApiException(ErrorCode.INVALID_API_KEY); throw e; }
+        else config=clubs.resolve(slug,key); // key first (PublicClubAccess#resolve)
         if(!config.modules().contains(Module.ACTIVITIES)) throw new ApiException(ErrorCode.MODULE_DISABLED);
         return config;
     }

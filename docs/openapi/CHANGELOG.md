@@ -2,6 +2,24 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-24 · E5-T11 · `Level.progression` (E29); one key-first rule for the keyed public routes
+
+- `Level` and `LevelReaderView` (`GET/POST /levels`, `GET/PATCH /levels/{id}`, `PUT /levels/order`): new required
+  boolean `progression` (S05 §3, ruling E29). `LevelCreate.progression` and `LevelPatch.progression` are optional;
+  on create it defaults to `true`, and a level stored before the field existed reads `true`. The `/levels` list
+  contract gets the column `progression*`. Only progression levels count for the automatic «{first} i sup.»
+  (S06 R-06-03): `displayDescription` / `description` of classes and templates change accordingly (e.g. {D,E,F,G}
+  now reads «D i sup.» when Teràpia is last and outside the progression).
+- Keyed public routes `GET /public/{clubSlug}/plans`, `GET /public/{clubSlug}/pages/{key}`,
+  `GET /public/{clubSlug}/activities` and `GET /public/{clubSlug}/activities/{slug}`: the key is checked before the
+  club, so an unknown slug answers **403 `INVALID_API_KEY`** (it was 404 `CLUB_NOT_FOUND` on plans and pages).
+  `CLUB_NOT_FOUND` is removed from their documented errors; `CLUB_SUSPENDED` (403, own key only) is now documented on
+  plans and activities. The keyless file redirect `…/activities/{slug}/files/{fileId}` keeps `CLUB_NOT_FOUND`.
+
+Web adopters: regenerate the types (`Level.progression`, `LevelCreate/LevelPatch.progression`); the D11 «Nivells»
+card gets the «Progressió» column and toggle (E4-W06). A public website that told «club not found» from «bad key»
+must treat both as 403 `INVALID_API_KEY`.
+
 
 ## 2026-09-24 · E5-T06 round 2 · `activities` absent without ACTIVITIES; `dogName` only with «Tots»
 

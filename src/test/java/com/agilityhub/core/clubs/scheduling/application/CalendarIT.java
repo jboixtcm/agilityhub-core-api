@@ -63,7 +63,7 @@ class CalendarIT extends AbstractIntegrationTest {
         hosts.invalidate(); int order = 0;
         for (String name : List.of("Cadells", "A", "B", "C", "D", "E", "F", "G")) {
             try (var tenant = TenantContext.open(CLUB)) { levels.insert(new Level("plan-level-" + name, CLUB, name.toUpperCase(), new LocalizedText(Map.of("ca", name, "es", name, "en", name), "ca"),
-                    order++, "#112233", name.equals("C") ? 4 : 5, false, true, 0, clock.instant(), clock.instant(), "admin", "admin")); }
+                    order++, "#112233", name.equals("C") ? 4 : 5, false, true, true, 0, clock.instant(), clock.instant(), "admin", "admin")); }
         }
         mongo.insert(new Ring("plan-ring", CLUB, "Example", "EX", "#112233", false, null, 0, true, 0, clock.instant(), clock.instant(), "admin", "admin"));
         for (String id : List.of("plan-instructor", "plan-instructor-2")) {

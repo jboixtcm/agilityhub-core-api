@@ -36,10 +36,17 @@ class PlanningRulesTest {
         error(() -> WeekTemplateRules.time("25:00"), ErrorCode.INVALID_TIME_RANGE); error(() -> WeekTemplateRules.time(null), ErrorCode.INVALID_TIME_RANGE);
         assertThat(WeekTemplateRules.time("08:30")).isEqualTo(LocalTime.of(8, 30));
     }
+    /** The T-06-02 catalog: Cadells…G plus Teràpia last, outside the progression (S05 §12 seed, E29). */
+    static SchedulingCatalog catalogWithTherapy() {
+        var base = catalog(); var levels = new ArrayList<>(base.levels());
+        levels.add(new SchedulingCatalog.Level("Teràpia", new LocalizedText(Map.of("ca", "Teràpia", "es", "Terapia", "en", "Therapy"), "ca"), 8, 1, true, false));
+        return new SchedulingCatalog(levels, base.rings(), base.instructors());
+    }
     @Test void T_06_02_T_06_34_descriptionsUseContiguousActiveTailAndReaderLocale() throws Exception {
-        var resolver = new DescriptionResolver(new IcuMessageSource()::format); var catalog = catalog(); var ca = Locale.forLanguageTag("ca");
+        var resolver = new DescriptionResolver(new IcuMessageSource()::format); var catalog = catalogWithTherapy(); var ca = Locale.forLanguageTag("ca");
         for (var entry : Map.of(List.of("B", "C"), "B+C", List.of("C", "D", "E"), "C+D+E", List.of("G", "E", "F", "D"), "D i sup.",
-                List.of("A", "C"), "A+C", List.of("Cadells"), "Cadells", List.of("G"), "G", List.of("unknown"), "").entrySet()) {
+                List.of("A", "C"), "A+C", List.of("Cadells"), "Cadells", List.of("G"), "G", List.of("unknown"), "",
+                List.of("G", "Teràpia"), "G+Teràpia", List.of("Teràpia"), "Teràpia", List.of("D", "E", "F", "G", "Teràpia"), "D+E+F+G+Teràpia").entrySet()) {
             assertThat(resolver.resolve(null, entry.getKey(), catalog, ca)).isEqualTo(entry.getValue());
         }
         for (var entry : Map.of("ca", "D i sup.", "es", "D y sup.", "en", "D and up").entrySet()) {
@@ -47,7 +54,14 @@ class PlanningRulesTest {
             assertThat(resolver.resolve(" ", List.of("D", "E", "F", "G"), catalog, locale)).isEqualTo(entry.getValue());
             assertThat(resolver.resolve("Obed. urbana", List.of("D"), catalog, locale)).isEqualTo("Obed. urbana");
         }
-        var inactive = new ArrayList<>(catalog.levels()); var g = inactive.removeLast(); inactive.add(new SchedulingCatalog.Level(g.id(), g.name(), g.order(), g.capacity(), false));
+        assertThat(resolver.resolve(null, List.of("G", "Teràpia"), catalog, Locale.forLanguageTag("es"))).isEqualTo("G+Terapia");
+        assertThat(resolver.resolve(null, List.of("G", "Teràpia"), catalog, Locale.forLanguageTag("en"))).isEqualTo("G+Therapy");
+        // Before E29 Teràpia counted as the last level, so {D…G} never read «D i sup.»: with it in the progression it still does not.
+        var inProgression = new ArrayList<>(catalog.levels()); var therapy = inProgression.removeLast();
+        inProgression.add(new SchedulingCatalog.Level(therapy.id(), therapy.name(), therapy.order(), therapy.capacity(), true, true));
+        assertThat(resolver.resolve(null, List.of("D", "E", "F", "G"), new SchedulingCatalog(inProgression, catalog.rings(), catalog.instructors()), ca)).isEqualTo("D+E+F+G");
+        var inactive = new ArrayList<>(catalog.levels()); var g = inactive.stream().filter(l -> l.id().equals("G")).findFirst().orElseThrow();
+        inactive.set(inactive.indexOf(g), new SchedulingCatalog.Level(g.id(), g.name(), g.order(), g.capacity(), false));
         assertThat(resolver.resolve(null, List.of("F", "G"), new SchedulingCatalog(inactive, catalog.rings(), catalog.instructors()), ca)).isEqualTo("F+G");
     }
     @Test void T_06_03_capacityReusesS05MinimumAndClubDefault() {

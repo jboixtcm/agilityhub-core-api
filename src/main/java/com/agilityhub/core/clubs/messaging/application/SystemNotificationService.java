@@ -43,10 +43,6 @@ public class SystemNotificationService {
     public String send(String code, String accountId, Map<String, ?> variables) {
         return deliver(UUID.randomUUID().toString(), code, accountId, variables);
     }
-    /** The account already has an in-app {@code code} about {@code entityId} created at or after {@code since} (S08: N-46 follows only a delivered N-15). */
-    public boolean appSentSince(String code, String accountId, String entityId, java.time.Instant since) {
-        return notifications.appRowSince(code, accountId, entityId, since);
-    }
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }
@@ -69,7 +65,11 @@ public class SystemNotificationService {
         if(completed(id)) return id;
         return deliverTo(id,code,new NotificationAccounts.Recipient(null,email,locale,null),variables);
     }
-    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * The APP row and the SMS/PUSH intents only write rows (no network call), so they join the caller's transaction when
+     * there is one: the S08 N-15 rows commit together with the entry's `offerNotifiedAt` (E5-T11).
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
     public void appOnce(String id,String code,String accountId,Map<String,Object> variables) {
         transactions.executeWithoutResult(tx -> {
             if(notifications.findScoped(id).isPresent()) return;
@@ -79,7 +79,7 @@ public class SystemNotificationService {
             events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
         });
     }
-    @Transactional(propagation = Propagation.NEVER)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void smsIntentOnce(String id,String code,String accountId,String locale,java.util.List<String> phones,
             String body,boolean enabled,Map<String,Object> variables) {
         transactions.executeWithoutResult(tx -> {
@@ -91,7 +91,7 @@ public class SystemNotificationService {
         });
     }
     /** A PUSH intent row (QUEUED, or SKIPPED_MODULE_OFF without PUSH); no push sender exists before E7. */
-    @Transactional(propagation = Propagation.NEVER)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void pushIntentOnce(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
         transactions.executeWithoutResult(tx -> {
             if(notifications.findScoped(id).isPresent()) return;

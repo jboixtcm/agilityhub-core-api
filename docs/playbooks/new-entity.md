@@ -56,6 +56,14 @@ repository, disallow update upserts, and test stale writes with `STALE_VERSION`.
 `ClubDefinitionWriter` currently serializes its parameter changes through the
 versioned `ClubRepository.save` in the same transaction.
 
+A census field owned by another vertical (S08 `Member.lastDogForClass`, S09
+`Member.lastDogForTraining`) is annotated `@ForeignOwned` and written only with
+`CensusRepository.setField` (no version bump). `CensusRepository.save` never
+writes it and throws `IllegalStateException` when the in-memory value differs
+from the value read from Mongo (E5-T11), so set such a field with `setField`,
+never with `entity.field = …; save(entity)`. A technical counter owned by
+another vertical is not declared on the entity and uses `increment`.
+
 ## DTOs and audit
 
 Return an explicit application view mapped to an API DTO; never serialize a Mongo

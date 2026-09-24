@@ -70,6 +70,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) boolean grantsFreeTraining,
+            @Schema(requiredMode = REQUIRED, description = "S05 §3 (E29): only progression levels count for the automatic «{first} i sup.» (S06 R-06-03)") boolean progression,
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = NOT_REQUIRED) LevelUsage usage,
             @Schema(requiredMode = NOT_REQUIRED) LevelUsage warnings,
@@ -83,6 +84,7 @@ public final class CatalogResponses {
             @Schema(requiredMode = REQUIRED) String color,
             @Schema(requiredMode = REQUIRED) int capacity,
             @Schema(requiredMode = REQUIRED) boolean grantsFreeTraining,
+            @Schema(requiredMode = REQUIRED, description = "S05 §3 (E29): only progression levels count for the automatic «{first} i sup.» (S06 R-06-03)") boolean progression,
             @Schema(requiredMode = REQUIRED) boolean active,
             @Schema(requiredMode = REQUIRED) long version) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)

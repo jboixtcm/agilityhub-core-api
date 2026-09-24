@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /** S08 WP-08-C over real Mongo: join, limits, leave, both offer modes, claim, demotion, N-15/N-46, silent cancellations, roles. */
 class WaitlistIT extends BookingFixtures {
     @Autowired WaitlistService waitlist; @Autowired WaitlistNotifications waitlistNotifications;
+    @Autowired com.agilityhub.core.clubs.bookings.persistence.WaitlistEntryRepository waitlistEntries;
 
     static String id(JsonNode node) { return node.path("id").asText(); }
     long notifications(String code, String channel) { return count("notifications", Criteria.where("code").is(code).and("channel").is(channel)); }
@@ -381,6 +382,61 @@ class WaitlistIT extends BookingFixtures {
         dispatch(); dispatch();
         assertThat(notifications("N-15", "APP")).as("the demoted entries are skipped").isZero();
         assertThat(notifications("N-46", "APP")).as("nobody heard of the offer, nobody is told it is gone").isZero();
+    }
+
+    @Test void R_08_13_theDeliveredOfferIsRecordedOnTheEntryAndTheSeatTakenAfterwardsSendsN46() throws Exception {
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
+        cancel(as("pere"), id(pere), 200); dispatch();
+        for (String entry : List.of(duna, c0)) {
+            assertThat(entry(entry)).containsEntry("state", "NOTIFIED");
+            assertThat(instant(entry(entry), "offerNotifiedAt")).as("N-15 delivered with this offer").isEqualTo(instant(entry(entry), "notifiedAt"));
+        }
+        assertThat(notifications("N-15", "APP")).isEqualTo(2);
+        book(as("joan"), "last", "s08-d-toby"); // the seat is taken after the delivery
+        for (String entry : List.of(duna, c0)) {
+            assertThat(entry(entry)).containsEntry("state", "ACTIVE"); assertThat(instant(entry(entry), "offerNotifiedAt")).as("kept by the demotion").isEqualTo(NOW);
+        }
+        dispatch();
+        assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).containsExactlyInAnyOrder("s08-laura", "s08-c0");
+    }
+
+    @Test void R_08_13_aSeatTakenBeforeTheN15ConsumerRunsGetsNeitherALateN15NorN46() throws Exception {
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
+        cancel(as("pere"), id(pere), 200);
+        try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-last", 1)).isEqualTo(2); } // WaitlistNotified still in the outbox
+        book(as("joan"), "last", "s08-d-toby"); // the seat is taken first: both entries are demoted
+        var notified = eventsOf("WaitlistNotified").getFirst();
+        // The N-15 consumer runs late (directly, then again through the outbox): the conditional update misses.
+        waitlistNotifications.offered(notified.getString("_id"), new BookingEvent(BookingEvent.Kind.WaitlistNotified, CLUB, "s08-last", NOW,
+                Map.of("entryIds", List.of(duna, c0), "classId", "s08-last", "mode", "ALL_AT_ONCE"), null, null, DomainEvent.Origin.SYSTEM));
+        dispatch(); dispatch();
+        for (String entry : List.of(duna, c0)) {
+            assertThat(entry(entry)).containsEntry("state", "ACTIVE"); assertThat(entry(entry).get("offerNotifiedAt")).isNull();
+        }
+        assertThat(count("notifications", Criteria.where("code").is("N-15"))).as("no late N-15 on any channel").isZero();
+        assertThat(notifications("N-46", "APP")).isZero();
+        try (var t = TenantContext.open(CLUB)) {
+            assertThat(waitlistEntries.markOfferNotified(duna, NOW)).as("a demoted entry is never marked").isFalse();
+        }
+    }
+
+    @Test void R_08_13_aHoldReleasedWithoutABookingSendsNoN46AndChangesNothing() throws Exception {
+        var pere = book(as("pere"), "last", "s08-d-nit");
+        String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), toby = id(join(as("joan"), "last", "s08-d-toby", 201));
+        cancel(as("pere"), id(pere), 200); dispatch();
+        var held = holdFor(as("joan"), "last", "s08-d-toby", toby, 201);
+        // The class is made full behind the consumer's back, so a demotion would happen if the release were handled.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-last")), new Update().set("capacity", 0), "class_sessions");
+        call(DELETE, "/seat-holds/" + id(held), null, as("joan"), 204);
+        assertThat(eventsOf("SeatHoldReleased")).filteredOn(e -> id(held).equals(e.getString("aggregateId"))).as("the release, not a confirmation").hasSize(1);
+        var entriesBefore = List.of(entry(duna), entry(toby)); var locksBefore = mongo.findAll(Document.class, "seat_locks");
+        dispatch();
+        assertThat(List.of(entry(duna), entry(toby))).as("no demotion, no write").isEqualTo(entriesBefore);
+        assertThat(mongo.findAll(Document.class, "seat_locks")).as("no class lock taken").isEqualTo(locksBefore);
+        assertThat(notifications("N-46", "APP")).isZero(); assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
+        // A hold that expires emits no event at all (TTL index, R-08-07): nothing to consume.
     }
 
     @Test void R_08_13_R_08_18_aPayToBookBookingTakingTheLastSeatSendsN46WhenTheSeatIsTaken() throws Exception {

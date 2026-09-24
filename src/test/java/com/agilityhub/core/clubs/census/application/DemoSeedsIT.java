@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.census.domain.DemoDataset;
 import com.agilityhub.core.clubs.census.support.DemoFixtures;
 import com.agilityhub.core.clubs.catalogs.application.*;
 import com.agilityhub.core.clubs.catalogs.domain.CatalogKind;
+import com.agilityhub.core.clubs.catalogs.persistence.Level;
 import com.agilityhub.core.platform.application.*;
 import com.agilityhub.core.platform.application.audit.*;
 import com.agilityhub.core.platform.application.definition.*;
@@ -62,6 +63,8 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open(club)) {
             assertThat(catalogs.list(CatalogKind.LEVEL, true)).hasSize(9); assertThat(catalogs.list(CatalogKind.RING, true)).hasSize(5);
             assertThat(catalogs.list(CatalogKind.FAQ, true)).hasSize(7); assertThat(plans.list(true)).hasSize(5);
+            // S05 §12 seed, E29: Teràpia is the only level outside the progression.
+            assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER");
             var therapy = plans.list(true).stream().filter(p -> p.code().equals("TERAPIA")).findFirst().orElseThrow();
             assertThat(therapy.billingMode().name()).isEqualTo("MAINTENANCE");
             assertThat(prices.list(therapy.id(), null).getFirst().amount().amountMinor()).isEqualTo(1000);
@@ -86,6 +89,21 @@ class DemoSeedsIT extends AbstractIntegrationTest {
             String body = Files.readString(Path.of("seeds/pages/" + name + ".ca.md"));
             assertThat(body).startsWith("${PROVISIONAL_TEXT}\n\n# ").doesNotContain("ClubPage", "D11", "S05", "S17", "05-09-2026", "plantilla per a clubs", "Esborrany");
         }
+    }
+    @Test void T_05_21_E29_aStackSeededBeforeLevelProgressionTakesTerapiaOutOfItOnTheNextApply() throws Exception {
+        var input = seed(); String club = definitions.apply(input, false).id();
+        mongo.updateMulti(new Query(), new org.springframework.data.mongodb.core.query.Update().unset("progression"), "levels"); // levels stored before E29
+        var next = definitions.apply(input, true);
+        assertThat(next.changes()).as("only Teràpia differs").isEqualTo(1);
+        definitions.apply(input, false);
+        assertThat(definitions.apply(input, false).changes()).isZero();
+        try (var tenant = TenantContext.open(club)) {
+            assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER");
+        }
+        var levelChanged = mongo.find(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("type").is("LevelChanged").and("payload.action").is("UPDATED")),
+                org.bson.Document.class, "domain_events");
+        assertThat(levelChanged).singleElement().satisfies(e -> assertThat(e.get("payload", org.bson.Document.class).get("diff", org.bson.Document.class))
+                .containsOnlyKeys("progression"));
     }
     @Test void T_05_21_duplicateKeysAndInvalidCatalogShapesRollBack() {
         var input = seed(); var levels = (com.fasterxml.jackson.databind.node.ArrayNode) input.at("/catalogs/levels"); levels.add(levels.get(0).deepCopy());

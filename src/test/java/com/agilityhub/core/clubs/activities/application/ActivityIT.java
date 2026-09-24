@@ -137,6 +137,29 @@ class ActivityIT extends ActivityFixtures {
             assertThat(activities.require(second).counters()).isEqualTo(new Activity.Counters(0,1));
         }
     }
+    @Test void T_07_15_anImpersonatedWaitlistedRegistrationIsPromotedBySystemWithN32bInAppOnly() throws Exception {
+        String id=published(1,false).path("id").asText(); var first=register(id,"m0",false,201);
+        com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
+        try(var tenant=TenantContext.open(CLUB)) { issued=impersonations.create("s07-admin","m1","Example request"); }
+        var waiting=mapper.readTree(mvc.perform(post("/api/v1/activity-registrations").header("Host",HOST).header("Idempotency-Key",UUID.randomUUID().toString())
+                .contentType("application/json").content(mapper.writeValueAsBytes(Map.of("activityId",id,"joinWaitlist",true)))
+                .with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        assertThat(waiting.path("state").asText()).isEqualTo("WAITLISTED"); assertThat(waiting.path("origin").asText()).isEqualTo("BACKOFFICE");
+        dispatch();
+        assertThat(notices("m1","N-32b")).as("the club's own change: every channel").extracting(n -> n.getString("channel")).contains("APP","EMAIL");
+        call("POST","/activity-registrations/"+first.path("id").asText()+"/cancellation",Map.of(),"m0","MEMBER",200); dispatch();
+        try(var tenant=TenantContext.open(CLUB)) {
+            var promoted=registrations.forMember("m1").getFirst();
+            assertThat(promoted.state()).isEqualTo(RegistrationState.ACTIVE); assertThat(promoted.origin()).as("stored origin kept").isEqualTo(RegistrationOrigin.BACKOFFICE);
+        }
+        assertThat(changes("m1")).filteredOn(p -> Boolean.TRUE.equals(p.get("promoted"))).singleElement().satisfies(p -> assertThat(p).containsEntry("origin","SYSTEM"));
+        var envelope=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("ActivityRegistrationChanged").and("payload.memberId").is("m1")
+                .and("payload.promoted").is(true)),Document.class,"domain_events");
+        assertThat(envelope).containsEntry("origin","SYSTEM"); assertThat(envelope.get("actorAccountId")).isNull(); assertThat(envelope.get("impersonatedMemberId")).isNull();
+        String promotion=envelope.getString("_id"); // notification ids are eventId:memberId:channel
+        assertThat(notices("m1","N-32b")).filteredOn(n -> n.getString("_id").contains(promotion))
+                .as("the promotion is the system's: APP only").extracting(n -> n.getString("channel")).containsExactly("APP");
+    }
     @Test void T_07_16_memberViewsFilterSelectedDogAndShowOwnRegistrationAndHistory() throws Exception {
         String id=published(4,false).path("id").asText();
         assertThat(call("GET","/me/activities?dogId=dog-m0",null,"m0","MEMBER",200).path("bookable")).hasSize(1);

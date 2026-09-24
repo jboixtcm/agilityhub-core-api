@@ -1,0 +1,244 @@
+Source: target/surefire-reports/TEST-*.xml and target/failsafe-reports/TEST-*.xml after `./mvnw -q clean verify` (exit 0: last line of 01-clean-verify.log)
+
+unit/contract (surefire): tests 483, failures 0, errors 0, skipped 0
+  per class: tests / failures / errors / skipped
+  ArchitectureRulesTest: 20 / 0 / 0 / 0
+  ArchitectureTest: 10 / 0 / 0 / 0
+  ClockRuleTest: 4 / 0 / 0 / 0
+  SeedAndWriterRulesTest: 4 / 0 / 0 / 0
+  CoreCliTest: 2 / 0 / 0 / 0
+  ActivityInfrastructureTest: 2 / 0 / 0 / 0
+  ActivityRulesTest: 9 / 0 / 0 / 0
+  BookingPortsTest: 10 / 0 / 0 / 0
+  BookingQueryServiceTest: 1 / 0 / 0 / 0
+  BookingRulesTest: 15 / 0 / 0 / 0
+  WaitlistRulesTest: 3 / 0 / 0 / 0
+  OfferTransactionsTest: 2 / 0 / 0 / 0
+  CapacityCalculatorTest: 6 / 0 / 0 / 0
+  OfferCalculatorsTest: 5 / 0 / 0 / 0
+  CensusValidationTest: 4 / 0 / 0 / 0
+  CensusRulesTest: 5 / 0 / 0 / 0
+  DemoDatasetTest: 3 / 0 / 0 / 0
+  ExportLifecycleTest: 3 / 0 / 0 / 0
+  ExportStorageTest: 3 / 0 / 0 / 0
+  ListExportTest: 2 / 0 / 0 / 0
+  ExportNamesTest: 1 / 0 / 0 / 0
+  ForeignEventTest: 1 / 0 / 0 / 0
+  PageContentTest: 27 / 0 / 0 / 0
+  DashboardPortDefaultsTest: 2 / 0 / 0 / 0
+  DashboardBuildersTest: 6 / 0 / 0 / 0
+  AttachmentServiceTest: 6 / 0 / 0 / 0
+  AttachmentStorageTest: 2 / 0 / 0 / 0
+  SendGridEmailSenderTest: 8 / 0 / 0 / 0
+  SendGridSignatureVerifierTest: 1 / 0 / 0 / 0
+  CoverageQueryTest: 1 / 0 / 0 / 0
+  RiskNotificationTextsTest: 1 / 0 / 0 / 0
+  RiskReviewQueryTest: 1 / 0 / 0 / 0
+  SchedulingTransactionsTest: 2 / 0 / 0 / 0
+  TemplateQueryTest: 2 / 0 / 0 / 0
+  SchedulingPortDefaultsTest: 1 / 0 / 0 / 0
+  CalendarRulesTest: 4 / 0 / 0 / 0
+  PlanningRulesTest: 7 / 0 / 0 / 0
+  SignupCatalogAdapterTest: 2 / 0 / 0 / 0
+  SignupContactsTest: 11 / 0 / 0 / 0
+  SignupPaymentsTest: 16 / 0 / 0 / 0
+  SignupPolicyTest: 6 / 0 / 0 / 0
+  TrainingApplicationTest: 4 / 0 / 0 / 0
+  TrainingSlotLocksTest: 4 / 0 / 0 / 0
+  TrainingRulesTest: 14 / 0 / 0 / 0
+  AuditConfigurationTest: 2 / 0 / 0 / 0
+  E2ResponseContractTest: 2 / 0 / 0 / 0
+  E3ResponseContractTest: 4 / 0 / 0 / 0
+  E4ResponseContractTest: 4 / 0 / 0 / 0
+  E5ResponseContractTest: 4 / 0 / 0 / 0
+  EmailConfigurationTest: 7 / 0 / 0 / 0
+  JwtConfigurationTest: 2 / 0 / 0 / 0
+  OidcClientConfigurationTest: 1 / 0 / 0 / 0
+  OpenApiConfigurationTest: 1 / 0 / 0 / 0
+  OpenApiRequiredContractTest: 3 / 0 / 0 / 0
+  ProfileConfigurationTest: 4 / 0 / 0 / 0
+  SecurityRetentionConfigurationTest: 1 / 0 / 0 / 0
+  SeedProfileTest: 8 / 0 / 0 / 0
+  PasswordGrantConverterTest: 2 / 0 / 0 / 0
+  RefreshCookiesTest: 2 / 0 / 0 / 0
+  CompromisedPasswordsTest: 3 / 0 / 0 / 0
+  ImportLearnCommandTest: 2 / 0 / 0 / 0
+  LearnCsvTest: 2 / 0 / 0 / 0
+  PasswordHasherTest: 4 / 0 / 0 / 0
+  EmailNormalisationTest: 1 / 0 / 0 / 0
+  LoginLockoutTest: 2 / 0 / 0 / 0
+  PlayoffAdapterTest: 5 / 0 / 0 / 0
+  ClubCorsConfigurationSourceTest: 1 / 0 / 0 / 0
+  RequiresModuleInterceptorTest: 1 / 0 / 0 / 0
+  ClubConfigServiceTest: 4 / 0 / 0 / 0
+  ClubEmailSettingsTest: 1 / 0 / 0 / 0
+  ClubFormatsTest: 7 / 0 / 0 / 0
+  ClubLocaleSettingsProviderTest: 1 / 0 / 0 / 0
+  CountryCsvTest: 1 / 0 / 0 / 0
+  ModuleCatalogContractTest: 1 / 0 / 0 / 0
+  ModuleDependencyValidatorTest: 20 / 0 / 0 / 0
+  ParameterCatalogContractTest: 1 / 0 / 0 / 0
+  AuditContractTest: 1 / 0 / 0 / 0
+  AuditedAspectTest: 3 / 0 / 0 / 0
+  ClubDefinitionCodecTest: 5 / 0 / 0 / 0
+  JobOccurrencesTest: 6 / 0 / 0 / 0
+  CountryProfileTest: 2 / 0 / 0 / 0
+  HostNamesTest: 1 / 0 / 0 / 0
+  ParameterValidatorTest: 8 / 0 / 0 / 0
+  AuditDiffTest: 7 / 0 / 0 / 0
+  AuditReadMaskerTest: 2 / 0 / 0 / 0
+  ApiExceptionHandlerTest: 8 / 0 / 0 / 0
+  HealthControllerTest: 12 / 0 / 0 / 0
+  RequestLocaleResolverTest: 12 / 0 / 0 / 0
+  TenantFilterTest: 3 / 0 / 0 / 0
+  CacheLoadsTest: 7 / 0 / 0 / 0
+  ClubClockTest: 1 / 0 / 0 / 0
+  IcuFormatTest: 4 / 0 / 0 / 0
+  LocalLanesTest: 3 / 0 / 0 / 0
+  LocaleContextTest: 1 / 0 / 0 / 0
+  MessageParityTest: 1 / 0 / 0 / 0
+  OffsetClockTest: 1 / 0 / 0 / 0
+  RateLimitsTest: 2 / 0 / 0 / 0
+  TenantContextTest: 1 / 0 / 0 / 0
+  ListQueryTest: 32 / 0 / 0 / 0
+  ErrorCatalogContractTest: 3 / 0 / 0 / 0
+  EventCatalogContractTest: 2 / 0 / 0 / 0
+  LocalizedTextTest: 2 / 0 / 0 / 0
+  MoneyTest: 3 / 0 / 0 / 0
+  FixturesTest: 2 / 0 / 0 / 0
+  MockClockTest: 1 / 0 / 0 / 0
+
+integration (failsafe): tests 777, failures 0, errors 0, skipped 0
+  per class: tests / failures / errors / skipped
+  ActivityConcurrencyIT: 3 / 0 / 0 / 0
+  ActivityIT: 26 / 0 / 0 / 0
+  BookingConcurrencyIT: 5 / 0 / 0 / 0
+  BookingJobsIT: 3 / 0 / 0 / 0
+  BookingLanesOffIT: 4 / 0 / 0 / 0
+  BookingsIT: 18 / 0 / 0 / 0
+  CleanupJobIT: 3 / 0 / 0 / 0
+  JobsApiIT: 3 / 0 / 0 / 0
+  MemberAggregatesIT: 6 / 0 / 0 / 0
+  RiskReviewJobIT: 7 / 0 / 0 / 0
+  SingleClassCheckoutIT: 7 / 0 / 0 / 0
+  WaitlistIT: 16 / 0 / 0 / 0
+  WeekOpeningJobIT: 4 / 0 / 0 / 0
+  CatalogsIT: 20 / 0 / 0 / 0
+  PlansIT: 15 / 0 / 0 / 0
+  TeamIT: 13 / 0 / 0 / 0
+  CensusIT: 37 / 0 / 0 / 0
+  SignupIT: 31 / 0 / 0 / 0
+  DemoPlanningSeedIT: 6 / 0 / 0 / 0
+  DemoScenarioSeedIT: 5 / 0 / 0 / 0
+  DemoSeedsIT: 9 / 0 / 0 / 0
+  CensusForeignOwnedIT: 3 / 0 / 0 / 0
+  ExportEngineIT: 9 / 0 / 0 / 0
+  UniversalListsIT: 23 / 0 / 0 / 0
+  ClubPagesIT: 8 / 0 / 0 / 0
+  DashboardIT: 9 / 0 / 0 / 0
+  SendGridWebhookIT: 10 / 0 / 0 / 0
+  SystemNotificationServiceIT: 15 / 0 / 0 / 0
+  CalendarIT: 12 / 0 / 0 / 0
+  PlanningIT: 10 / 0 / 0 / 0
+  TrainingConcurrencyIT: 3 / 0 / 0 / 0
+  TrainingIT: 22 / 0 / 0 / 0
+  TrainingLanesOffIT: 13 / 0 / 0 / 0
+  E2ContractIT: 15 / 0 / 0 / 0
+  E3ContractIT: 17 / 0 / 0 / 0
+  E4ContractIT: 63 / 0 / 0 / 0
+  E4PersistenceIT: 3 / 0 / 0 / 0
+  E5ContractIT: 38 / 0 / 0 / 0
+  E5PersistenceIT: 4 / 0 / 0 / 0
+  ManagementIT: 1 / 0 / 0 / 0
+  MongoTransactionSmokeIT: 2 / 0 / 0 / 0
+  OpenApiSnapshotTest: 9 / 0 / 0 / 0
+  CookieRefreshIT: 4 / 0 / 0 / 0
+  CorsIT: 3 / 0 / 0 / 0
+  IdentityContractIT: 11 / 0 / 0 / 0
+  IdentityCoreIT: 26 / 0 / 0 / 0
+  IdentityCurlIT: 2 / 0 / 0 / 0
+  ImpersonationHandoffIT: 8 / 0 / 0 / 0
+  LearnImportIT: 8 / 0 / 0 / 0
+  MeIT: 10 / 0 / 0 / 0
+  OidcIT: 8 / 0 / 0 / 0
+  OnboardingIT: 24 / 0 / 0 / 0
+  PasswordGrantIT: 8 / 0 / 0 / 0
+  PlatformRolesIT: 5 / 0 / 0 / 0
+  RateLimitIT: 7 / 0 / 0 / 0
+  SecurityEventIT: 4 / 0 / 0 / 0
+  SecurityHeadersIT: 2 / 0 / 0 / 0
+  SeedTestAccountsIT: 4 / 0 / 0 / 0
+  TokenScopeIT: 4 / 0 / 0 / 0
+  PlayoffMigrationIT: 9 / 0 / 0 / 0
+  AuditQueriesIT: 7 / 0 / 0 / 0
+  RequiresModuleIT: 9 / 0 / 0 / 0
+  SettingsIT: 14 / 0 / 0 / 0
+  CacheInvalidationRaceIT: 4 / 0 / 0 / 0
+  AuditedAspectIT: 14 / 0 / 0 / 0
+  ClubDefinitionsIT: 6 / 0 / 0 / 0
+  JobFrameworkIT: 13 / 0 / 0 / 0
+  JobFrameworkTwoInstancesIT: 1 / 0 / 0 / 0
+  PlatformIT: 9 / 0 / 0 / 0
+  HealthIndependenceIT: 1 / 0 / 0 / 0
+  ResponseLocaleIT: 2 / 0 / 0 / 0
+  IdempotencyIT: 9 / 0 / 0 / 0
+  OutboxIT: 9 / 0 / 0 / 0
+  IntegrationTestSupportIT: 2 / 0 / 0 / 0
+
+Tests this task added or changed:
+  PASS WaitlistIT.R_08_13_theDeliveredOfferIsRecordedOnTheEntryAndTheSeatTakenAfterwardsSendsN46
+  PASS WaitlistIT.R_08_13_aSeatTakenBeforeTheN15ConsumerRunsGetsNeitherALateN15NorN46
+  PASS WaitlistIT.R_08_13_aHoldReleasedWithoutABookingSendsNoN46AndChangesNothing
+  PASS WaitlistIT.R_08_13_noN46ForAnOfferWhoseN15WasNeverDelivered
+  PASS WaitlistIT.T_08_20_allAtOnceNotifiesEveryWaitingMemberOnceTheFirstClaimWinsAndTheRestReturnToActiveWithN46
+  PASS WaitlistIT.R_08_13_R_08_18_aPayToBookBookingTakingTheLastSeatSendsN46WhenTheSeatIsTaken
+  PASS CensusForeignOwnedIT.R_08_23_aForeignFieldWrittenBySetFieldAfterTheReadIsKeptByTheSave
+  PASS CensusForeignOwnedIT.R_08_23_aSaveThatChangedAForeignOwnedFieldFailsFastAndWritesNothing
+  PASS CensusForeignOwnedIT.R_08_23_anEntityNotReadFromMongoIsComparedWithTheStoredValue
+  PASS ActivityIT.T_07_15_anImpersonatedWaitlistedRegistrationIsPromotedBySystemWithN32bInAppOnly
+  PASS ActivityIT.T_07_15_cancellationAndCapacityGrowthPromoteFifoOnlyWithinDeadline
+  PASS ActivityIT.T_07_17_apiKeyIsCheckedBeforeTheClubAndTheModule
+  PASS E2ContractIT.T_05_18_T_07_17_everyKeyedPublicRouteChecksTheKeyBeforeTheClub
+  PASS E2ContractIT.T_02_06_postalLookupRequiresHostContextAndPublicPlansUseTheirApiKeyHeader
+  PASS PlansIT.T_05_18_publicKeyLocaleProjectionVisibilityAndCurlFixture
+  PASS ClubPagesIT.T_05_CP_03_publicKeyLocaleFallbackDraftsAndHostIndependence
+  PASS RateLimitIT.T_05_CP_03_publicPagesAndPlansShareThePublicIpQuota
+  PASS CatalogsIT.T_06_02_E29_levelProgressionDefaultsToTrueIsPatchableAndLevelChangedCarriesTheDiff
+  PASS DemoSeedsIT.T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites
+  PASS DemoSeedsIT.T_05_21_E29_aStackSeededBeforeLevelProgressionTakesTerapiaOutOfItOnTheNextApply
+  PASS PlanningRulesTest.T_06_02_T_06_34_descriptionsUseContiguousActiveTailAndReaderLocale
+  PASS BookingsIT.E5_T09_theCounterWriterRefusesABookedCountAboveTheCapacity
+  PASS BookingsIT.R_08_15_theHoldOfAClaimNeedsTheDogsNotifiedEntryStillOnOffer
+  PASS BookingsIT.R_08_23_bookingsNeverMakeTheMembersCensusFormStale
+  PASS BookingsIT.R_15_12b_aSameClassSwapKeepsTheCountAndNeverAlertsBelowMinimum
+  PASS BookingsIT.S15_P5c_S13_systemCancellationsOfAMemberAreNeverLateAndRefundThePack
+  PASS BookingsIT.T_08_14_holdCreatesRefreshesAndRejectsWithTheRightDetails
+  PASS BookingsIT.T_08_15_T_08_11_confirmationBooksConsumesThePackAndPublishesCalendarLinks
+  PASS BookingsIT.T_08_16_theSameIdempotencyKeyReplaysTheResponseAlsoAStored409
+  PASS BookingsIT.T_08_17_swapCancelsTheOldBookingAndCreatesTheNewOneAtomically
+  PASS BookingsIT.T_08_18_cancellationInTimeLateAndRejectedWithSeatReleaseAndMinimumAlert
+  PASS BookingsIT.T_08_23_bookingBlockAndInactivityRejectNewBookingsButKeepExistingOnes
+  PASS BookingsIT.T_08_24_singleClassPayToBookChargeOnAttendanceAndModuleOff
+  PASS BookingsIT.T_08_25_cancelByClubCancelsBookingsEntriesAndHoldsAllOrNothing
+  PASS BookingsIT.T_08_26_rolesTenantAndOwnershipPerEndpoint
+  PASS BookingsIT.T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36
+  PASS BookingsIT.T_08_28_theInstructorNoticeCancelsWithOriginInstructorAndN05WithoutSms
+  PASS BookingsIT.T_08_46_levelChangesKeepBookingsAndClassTimeChangesRefreshTheDenormalisedCopies
+  PASS BookingsIT.T_08_47_theUniversalListFiltersByDeclaredFieldsOnlyForStaff
+
+JaCoCo (target/site/jacoco/jacoco.csv) of the packages this task touched; the check (domain/application >= 85 % lines,
+80 % branches; api >= 70 % lines) passed, since verify exited 0:
+  package: lines / branches
+  clubs.bookings.application: 99.3 % / 84.2 %
+  clubs.bookings.persistence: 98.9 % / 78.1 %
+  clubs.census.persistence: 98.5 % / 73.6 %
+  clubs.activities.application: 99.1 % / 84.1 %
+  clubs.activities.api: 100.0 % / 73.1 %
+  clubs.catalogs.application: 98.6 % / 90.9 %
+  clubs.catalogs.api: 100.0 % / 95.2 %
+  clubs.catalogs.persistence: 94.7 % / 78.0 %
+  clubs.scheduling.domain: 100.0 % / 96.1 %
+  clubs.scheduling.application: 98.9 % / 85.5 %
+  clubs.content.api: 100.0 % / 100.0 %
+  clubs.messaging.application: 99.2 % / 86.8 %
+  platform.application: 99.3 % / 93.9 %

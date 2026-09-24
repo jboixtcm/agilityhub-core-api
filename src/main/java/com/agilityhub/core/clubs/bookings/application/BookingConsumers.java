@@ -89,7 +89,7 @@ public class BookingConsumers {
                 var e = waitlist.findById(initial.id()).orElse(null); if (e == null || !WaitlistEntryRepository.LIVE.contains(e.state())) { continue; }
                 long version = e.version() == null ? 0L : e.version();
                 waitlist.update(new WaitlistEntry(e.id(), e.clubId(), e.classSessionId(), e.dogId(), e.memberId(), e.accountId(), e.joinedAt(), e.state(),
-                        e.position(), e.notifiedAt(), e.confirmBy(), e.bookingId(), e.cancelledAt(), e.cancelReason(), session.startsAt(), key,
+                        e.position(), e.notifiedAt(), e.confirmBy(), e.offerNotifiedAt(), e.bookingId(), e.cancelledAt(), e.cancelReason(), session.startsAt(), key,
                         version + 1, e.createdAt(), e.createdByAccountId(), now, e.updatedByAccountId()), version);
             }
             return null;

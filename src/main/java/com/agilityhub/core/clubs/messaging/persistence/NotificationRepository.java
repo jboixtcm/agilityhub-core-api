@@ -33,11 +33,6 @@ public class NotificationRepository extends TenantRepository<Notification> {
     public long unreadApp(String accountId) {
         return mongo.count(tenantQuery().addCriteria(Criteria.where("accountId").is(accountId).and("channel").is("APP").and("readAt").exists(false)),Notification.class);
     }
-    /** An APP row of {@code code} for the account about {@code entityId}, created at or after {@code since}. */
-    public boolean appRowSince(String code,String accountId,String entityId,Instant since) {
-        return mongo.exists(tenantQuery().addCriteria(Criteria.where("code").is(code).and("accountId").is(accountId).and("channel").is("APP")
-                .and("variables.entityId").is(entityId).and("createdAt").gte(since)),Notification.class);
-    }
     /** Ids of the given ones already queued in the tenant (a batch never writes a row twice). */
     public java.util.Set<String> existingIds(java.util.Collection<String> ids) {
         if(ids.isEmpty()) return java.util.Set.of();

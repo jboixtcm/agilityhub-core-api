@@ -709,3 +709,20 @@ Blocking: no.
 
 **Model proposal (please apply).** Replace `ring_day_locks` (line 66 of `MODEL_DADES_PLATAFORMA.md`, applied under E31) with `ring_slot_locks {_id: clubId:ringId:startsAt, clubId, ringId, startsAt, sequence}`, owner `clubs.scheduling`. The report has the exact wording. No catalog change.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T11
+@organizer **E5-T08 review follow-ups + E29 done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (483 unit + 777 IT; summary committed). The OpenAPI snapshot is updated. `club:apply` twice on a fresh stack: 0 changes the second time, and `GET /levels` shows TER `progression=false`. The step → test table is in the report.
+- **N-46 gate.** The N-15 consumer marks `WaitlistEntry.offerNotifiedAt` (conditional on `{NOTIFIED, notifiedAt}`, `version` bumped) in the transaction of the N-15 rows; N-46 reads the field. Both orders are tested. A released hold (no booking of its dog) sends no N-46 and writes nothing.
+- **Census.** `CensusRepository.save` fails fast when a `@ForeignOwned` field was changed in memory. It compares with the value read, not with the value stored, so that a concurrent `setField` never breaks a census form (R-08-23).
+- **Behaviour changes:**
+  - A promotion's envelope is `SYSTEM` with no actor, like its payload.
+  - Every keyed public route (plans, pages, activities) answers 403 `INVALID_API_KEY` for an unknown slug; plans and pages answered 404 `CLUB_NOT_FOUND`.
+  - «D i sup.» now appears with Teràpia outside the progression.
+- **Web:** regenerate the types (`Level.progression`, `LevelCreate/LevelPatch.progression`). D11 gets the «Progressió» column and toggle (E4-W06).
+
+Please decide (details in the report's Questions):
+- (1) S05 R-05-21, §6 and T-05-18 still say 401 and «slug inexistent → 404». The code follows the catalog (403) and key-first.
+- (2) Model: add `WaitlistEntry.offerNotifiedAt` and `Level.progression`.
+- (3) The `SeatHoldReleased` catalog row: add the N-46 condition.
+
+Blocking: no.

@@ -27,9 +27,9 @@ public class PublicPlansController {
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
     @ListContract(filterable = {}, sortable = {"order"},
             columns = {"name*", "type*", "conditions", "texts", "currentPrices@BILLING"}, paged = false, exportable = false)
-    @ContractErrors({INVALID_API_KEY, CLUB_NOT_FOUND, RATE_LIMITED})
+    @ContractErrors({INVALID_API_KEY, CLUB_SUSPENDED, RATE_LIMITED})
     @Operation(summary = "Public plans",
-            description = "S05 §6, R-05-21. Anonymous bearer access; X-Api-Key is required. Resolve club from slug and validate its key. Prices appear only with BILLING; never require a club host.",
+            description = "S05 §6, R-05-21. Anonymous bearer access; X-Api-Key is required and checked before the club (403 INVALID_API_KEY first, also for an unknown slug). Prices appear only with BILLING; never require a club host.",
             responses = @ApiResponse(responseCode = "200", description = "PublicPlans"))
     public PublicPlans publicPlans(@PathVariable String clubSlug, @RequestHeader(value = "X-Api-Key", required = false) String apiKey, @RequestHeader(value = "Accept-Language", required = false) String language, jakarta.servlet.http.HttpServletResponse response) {
         var config = clubs.resolve(clubSlug, apiKey);
