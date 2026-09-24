@@ -35,4 +35,23 @@ class RateLimitsTest {
                 java.time.Clock.systemUTC());
         for (int index = 0; index < 31; index++) { assertThat(limits.retryAfter(RateLimits.Route.TOKEN, "203.0.113.5")).isZero(); }
     }
+
+    @Test void R_04_20_signupRateLimitParameterSetsTheClubsCapacityAndKeepsThePeriod() {
+        var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var limits = new RateLimits(true, Map.of(), clock);
+        var parameter = Map.of("identityChecksPerHour", 2, "signupPerDay", 7, "townsPerHour", 0, "uploadUrlsPerHour", "30");
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_IDENTITY, parameter)).isEqualTo(new RateLimits.Limit(2, Duration.ofHours(1)));
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_DAILY, parameter)).isEqualTo(new RateLimits.Limit(7, Duration.ofDays(1)));
+        // Missing, non-positive or non-numeric keys keep the catalog default.
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_TOWNS, parameter)).isEqualTo(new RateLimits.Limit(60, Duration.ofHours(1)));
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_UPLOAD, parameter)).isEqualTo(new RateLimits.Limit(30, Duration.ofHours(1)));
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_FAMILY, null)).isEqualTo(new RateLimits.Limit(20, Duration.ofHours(1)));
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_RECIPIENT, parameter)).isEqualTo(new RateLimits.Limit(3, Duration.ofHours(1)));
+        var two = limits.limit(RateLimits.Route.SIGNUP_IDENTITY, parameter);
+        assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", two)).isZero();
+        assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", two)).isZero();
+        assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", two)).isEqualTo(3600);
+        // A changed parameter opens a bucket with the new capacity.
+        assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", new RateLimits.Limit(3, Duration.ofHours(1)))).isZero();
+    }
 }

@@ -39,31 +39,36 @@ public class MemberService {
         if(pending) { editable.remove("consents");editable.addAll(Set.of("paymentMethod","signup")); }
         allow(request, own ? Set.of("contactEmails", "phones", "address", "version") : editable);
         version(member.version(), request.get("version"));
-        var before = snapshot(member);
-        var paymentBefore=member.paymentMethod;
+        // R-04-06 (E38): during a pending readmission, a D2 edit of the person fields edits the submitted values; the LEFT
+        // record keeps its own until validation applies them.
+        boolean readmission = pending && signups.getObject().readmissionPending(member);
+        var target = readmission ? signups.getObject().submittedView(member) : member;
+        var before = snapshot(member, target);
+        var paymentBefore=target.paymentMethod;
         if (request.containsKey("idDocument")) { member.idDocument = validation.idDocument(request.get("idDocument")); }
-        if (request.containsKey("firstName")) { member.firstName = text(request.get("firstName"), "firstName", 60, true); }
-        if (request.containsKey("lastName1")) { member.lastName1 = text(request.get("lastName1"), "lastName1", 60, true); }
-        if (request.containsKey("lastName2")) { member.lastName2 = text(request.get("lastName2"), "lastName2", 60, false); }
+        if (request.containsKey("firstName")) { target.firstName = text(request.get("firstName"), "firstName", 60, true); }
+        if (request.containsKey("lastName1")) { target.lastName1 = text(request.get("lastName1"), "lastName1", 60, true); }
+        if (request.containsKey("lastName2")) { target.lastName2 = text(request.get("lastName2"), "lastName2", 60, false); }
         if (request.containsKey("gender")) {
             if (!Set.of("MALE", "FEMALE", "OTHER").contains(String.valueOf(request.get("gender")))) { throw invalid("gender", "INVALID_VALUE"); }
-            member.gender = string(request.get("gender"));
+            target.gender = string(request.get("gender"));
         }
         if (request.containsKey("birthDate")) {
-            try { member.birthDate = LocalDate.parse(string(request.get("birthDate"))); }
+            try { target.birthDate = LocalDate.parse(string(request.get("birthDate"))); }
             catch (RuntimeException badDate) { throw invalid("birthDate", "INVALID_VALUE"); }
             // S04 §3 (M21): in the past and not before 1900-01-01.
-            if (!member.birthDate.isBefore(clock.instant().atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate())
-                    || member.birthDate.isBefore(LocalDate.of(1900, 1, 1))) { throw invalid("birthDate", "INVALID_VALUE"); }
+            if (!target.birthDate.isBefore(clock.instant().atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate())
+                    || target.birthDate.isBefore(LocalDate.of(1900, 1, 1))) { throw invalid("birthDate", "INVALID_VALUE"); }
         }
-        if (request.containsKey("contactEmails")) { member.contactEmails = validation.emails(request.get("contactEmails"), member.contactEmails); }
-        if (request.containsKey("phones")) { member.phones = validation.phones(request.get("phones")); }
-        if (request.containsKey("address")) { member.address = validation.address(request.get("address")); }
+        if (request.containsKey("contactEmails")) { target.contactEmails = validation.emails(request.get("contactEmails"), target.contactEmails); }
+        if (request.containsKey("phones")) { target.phones = validation.phones(request.get("phones")); }
+        if (request.containsKey("address")) { target.address = validation.address(request.get("address")); }
         if (pending && request.containsKey("paymentMethod")) {
             var payment=new LinkedHashMap<>(map(request.get("paymentMethod")));
             if(payment.containsKey("sepa")) { payment.putAll(map(payment.remove("sepa"))); }
-            member.paymentMethod=signups.getObject().payment(payment,member,member.firstName+" "+member.lastName1);
+            target.paymentMethod=signups.getObject().payment(payment,member,target.firstName+" "+target.lastName1);
         }
+        if (readmission) { signups.getObject().storeSubmitted(member, target); }
         if (pending && request.containsKey("signup")) {
             var signup=map(request.get("signup"));allow(signup,Set.of("planIdRequested"));
             signups.getObject().requirePlan(string(signup.get("planIdRequested")));
@@ -78,22 +83,25 @@ public class MemberService {
             member.consents = ConsentLedgers.image(member.consents,(Boolean)image.get("granted"),
                     configs.privacyPolicy(TenantContext.require()).version(),clock.instant(),CurrentUser.current().accountId());
         }
-        var diff = events.diff(before, snapshot(member));
-        if (diff.isEmpty() && Objects.equals(paymentBefore,member.paymentMethod)) { return; }
+        // R-14-09 (E3-T09): the payload diff is masked like the audit (identity document, IBAN, holder tax id).
+        var diff = events.maskedDiff(before, snapshot(member, target));
+        if (diff.isEmpty() && Objects.equals(paymentBefore,target.paymentMethod)) { return; }
         access.members.save(member);
         events.emit("PENDING".equals(member.status) ? "SignupEdited" : "MemberUpdated", "Member", id, object("memberId", id, "diff", diff));
         // R-14-01 (M11): a pending row of D1 changed (name, method, plan); D1 is refreshed right after the commit.
         if (pending) { signups.getObject().refreshDashboard(); }
     }
-    private Map<String,Object> snapshot(Member member) {
-        return object("idDocument", member.idDocument, "firstName", member.firstName, "lastName1", member.lastName1, "lastName2", member.lastName2,
-                "gender", member.gender, "birthDate", member.birthDate, "contactEmails", member.contactEmails, "phones", member.phones,
-                "address", member.address, "paymentMethod",maskedPayment(member), "signup", member.signup, "remarks", member.remarks, "internalNotes", member.internalNotes, "consents", member.consents);
-    }
-    private Object maskedPayment(Member member) {
-        if(member.paymentMethod==null) return null;
-        var value=new LinkedHashMap<>(member.paymentMethod);value.remove("iban");value.remove("holderTaxId");
-        value.put("ibanMasked",com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(string(member.paymentMethod.get("iban"))));return value;
+    /**
+     * The edited fields; the person ones come from {@code person} (the member, or the submitted values of a pending
+     * readmission). The identity document and the bank data use the audit's annotated records, so {@link CensusEvents#maskedDiff}
+     * masks them like the audit.
+     */
+    private Map<String,Object> snapshot(Member member, Member person) {
+        return object("idDocument", new CensusAudit.IdentityDocument(string(map(member.idDocument).get("type")), string(map(member.idDocument).get("number"))),
+                "firstName", person.firstName, "lastName1", person.lastName1, "lastName2", person.lastName2,
+                "gender", person.gender, "birthDate", person.birthDate, "contactEmails", person.contactEmails, "phones", person.phones,
+                "address", person.address, "paymentMethod", person.paymentMethod == null ? null : CensusAudit.bank(person.paymentMethod), "signup", member.signup,
+                "remarks", member.remarks, "internalNotes", member.internalNotes, "consents", member.consents);
     }
     @Transactional
     @Audited(action = AuditAction.MEMBER_PAYMENT_METHOD_CHANGED, entityType = "'Member'", entity = "#id", member = "#id")

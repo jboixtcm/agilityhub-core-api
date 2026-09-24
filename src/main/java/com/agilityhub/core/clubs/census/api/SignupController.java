@@ -27,11 +27,23 @@ public class SignupController {
     private final com.agilityhub.core.clubs.followup.application.AttachmentService attachments;
     private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    private final com.agilityhub.core.clubs.census.application.SignupTransactions submissions;
     public SignupController(com.agilityhub.core.clubs.census.application.SignupService service,
             com.agilityhub.core.clubs.census.application.CensusAccess access, com.agilityhub.core.clubs.census.application.DogService dogs,
             com.agilityhub.core.clubs.signup.application.SignupPolicy policy, com.agilityhub.core.clubs.followup.application.AttachmentService attachments,
-            com.agilityhub.core.identity.application.IdentityTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper) {
-        this.service=service;this.access=access;this.dogs=dogs;this.policy=policy;this.attachments=attachments;this.transactions=transactions;this.mapper=mapper;
+            com.agilityhub.core.identity.application.IdentityTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper,
+            com.agilityhub.core.clubs.census.application.SignupTransactions submissions) {
+        this.service=service;this.access=access;this.dogs=dogs;this.policy=policy;this.attachments=attachments;this.transactions=transactions;this.mapper=mapper;this.submissions=submissions;
+    }
+    /** R-04-27 (E3-T09): a submission runs in one retried transaction that also stores the Idempotency-Key response. */
+    private <T> T submission(java.util.function.Supplier<?> work,Class<T> type) {
+        return submissions.write(() -> {
+            com.agilityhub.core.shared.application.IdempotentOperation.lock();
+            T result=output(work.get(),type);
+            try { com.agilityhub.core.shared.application.IdempotentOperation.complete(201,mapper.writeValueAsBytes(result)); }
+            catch(com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
+            return result;
+        });
     }
     private java.util.Map<String,Object> input(Object value) {
         java.util.Map<String,Object> result=mapper.convertValue(value,new com.fasterxml.jackson.core.type.TypeReference<>() {});
@@ -127,8 +139,9 @@ public class SignupController {
     @PostMapping("/api/v1/signup/identity-checks")
     @PreAuthorize("isAnonymous()")
     @SecurityRequirements
-    @ContractErrors({INVALID_ID_DOCUMENT, ID_DOCUMENT_AMBIGUOUS, RATE_LIMITED})
-    @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour. Reveals only result and maskedEmail; recognition queues a verification link through the outbox." + PUBLIC)
+    @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, ID_DOCUMENT_AMBIGUOUS, SIGNUP_CLOSED, RATE_LIMITED})
+    @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most 3 per recipient and hour. "
+            + "idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED." + PUBLIC)
     public IdentityCheckResult identityCheck(@Valid @RequestBody IdentityCheckRequest request) { return output(transactions.run(() -> service.identityCheck(input(request))),IdentityCheckResult.class); }
 
     @GetMapping("/api/v1/signup/towns")
@@ -141,16 +154,19 @@ public class SignupController {
     @PostMapping("/api/v1/signup/upload-urls")
     @PreAuthorize("isAnonymous() or hasRole('MEMBER')")
     @SecurityRequirements
-    @ContractErrors({FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE, RATE_LIMITED})
-    @Operation(summary = "Create signup upload URL", description = "R-04-08. ANON or MEMBER; 30/hour. Signed upload constrained by files.allowedTypes/files.maxSizeMb; at most 10 files per signup." + PUBLIC)
-    public UploadUrl uploadUrl(@Valid @RequestBody UploadUrlRequest request) { var upload=attachments.signupUpload(request.fileName(),request.contentType(),request.sizeBytes()); return new UploadUrl(upload.uploadUrl(),upload.fileKey(),upload.expiresAt()); }
+    @ContractErrors({VALIDATION_ERROR, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE, SIGNUP_CLOSED, RATE_LIMITED})
+    @Operation(summary = "Create signup upload URL", description = "R-04-08. ANON or MEMBER; 30/hour (signup.rateLimit). Signed upload constrained by files.allowedTypes/files.maxSizeMb; at most 10 files per signup. "
+            + "The PUT to uploadUrl must send every header of `headers` unchanged (Content-Type and If-None-Match: *, both signed): without them S3 answers 403, and a second PUT to the same key 412. "
+            + "Anonymous: signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED." + PUBLIC)
+    public UploadUrl uploadUrl(@Valid @RequestBody UploadUrlRequest request) { var upload=attachments.signupUpload(request.fileName(),request.contentType(),request.sizeBytes()); return new UploadUrl(upload.uploadUrl(),upload.fileKey(),upload.expiresAt(),upload.headers()); }
 
     @PostMapping("/api/v1/signup/family-group-lookups")
     @PreAuthorize("isAnonymous()")
     @RequiresModule(Module.FAMILY_GROUP)
     @SecurityRequirements
-    @ContractErrors({MODULE_DISABLED, RATE_LIMITED})
-    @Operation(summary = "Find family-group holder", description = "R-04-12. ANON; FAMILY_GROUP required; 20/hour. Only holderDisplayName may be disclosed." + PUBLIC)
+    @ContractErrors({VALIDATION_ERROR, MODULE_DISABLED, SIGNUP_CLOSED, RATE_LIMITED})
+    @Operation(summary = "Find family-group holder", description = "R-04-12. ANON; FAMILY_GROUP required; 20/hour (signup.rateLimit). Only holderDisplayName may be disclosed. "
+            + "holderName ≤ 120 and dogName ≤ 40 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED." + PUBLIC)
     public FamilyGroupLookupResult familyGroup(@Valid @RequestBody FamilyGroupLookupRequest request) { return output(service.familyLookup(request.holderName(),request.dogName()),FamilyGroupLookupResult.class); }
 
     @PostMapping("/api/v1/signup")
@@ -168,7 +184,7 @@ public class SignupController {
             @Valid @RequestBody SignupRequest request) {
         var values=input(request);
         if(request.payment()!=null && request.payment().iban()!=null) com.agilityhub.core.clubs.census.application.CensusValues.map(values.get("payment")).put("iban",request.payment().iban());
-        return output(transactions.run(() -> service.submit(values,ip())),SignupResult.class);
+        return submission(() -> service.submit(values,ip()),SignupResult.class);
     }
 
     @PostMapping("/api/v1/me/dogs/signup")
@@ -180,14 +196,15 @@ public class SignupController {
             responses = @ApiResponse(responseCode = "201", description = "Dog submitted", useReturnTypeSchema = true))
     public AddDogSignupResult addDog(@io.swagger.v3.oas.annotations.Parameter(schema = @Schema(format = "uuid")) @RequestHeader("Idempotency-Key") String key,
             @Valid @RequestBody AddDogSignupRequest request) {
-        return output(transactions.run(() -> service.addDog(access.me().id,input(request),ip())),AddDogSignupResult.class);
+        return submission(() -> service.addDog(access.me().id,input(request),ip()),AddDogSignupResult.class);
     }
 
     @GetMapping("/api/v1/members/{id}/signup")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({INVALID_STATE})
     @Operation(summary = "Review member signup", description = "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. "
-            + "A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING.")
+            + "A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING. "
+            + "A pending readmission (R-04-06, E38) adds `readmission`: the LEFT record's values and the submitted ones, with changedFields; validation applies the submitted ones.")
     public MemberSignupView review(@PathVariable String id) { return output(service.review(id),MemberSignupView.class); }
 
     @PostMapping("/api/v1/members/{id}/validation")
@@ -212,6 +229,7 @@ public class SignupController {
     @PostMapping("/api/v1/members/{id}/rejection")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({MEMBER_ERASED, INVALID_STATE, STALE_VERSION})
-    @Operation(summary = "Reject member signup", description = "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE.")
+    @Operation(summary = "Reject member signup", description = "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE. "
+            + "A rejected readmission (E38) returns to LEFT exactly as it was: original leftAt, leftReason and data.")
     public RejectionResult reject(@PathVariable String id, @Valid @RequestBody RejectionRequest request) { return output(transactions.run(() -> service.reject(id,request.version(),request.reason())),RejectionResult.class); }
 }

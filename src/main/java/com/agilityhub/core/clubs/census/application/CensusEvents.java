@@ -17,6 +17,21 @@ public class CensusEvents {
         publisher.publish(new CensusEvent(type, TenantContext.require(), entity, id, clock.instant(), payload,
                 actor.accountId(), actor.impersonatedMemberId(), user == null ? DomainEvent.Origin.SYSTEM : user.origin()));
     }
+    /**
+     * R-14-09 (E3-T09): the diff of an event payload masked exactly like the audit: the same changes and the same masking of
+     * the fields annotated `@Sensitive` in the snapshots (identity document, IBAN, holder tax id). A change at path
+     * `a.b` is nested as `diff.a.b = {before, after}` (Mongo keys cannot hold dots).
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> maskedDiff(Map<String,Object> before, Map<String,Object> after) {
+        var result = new LinkedHashMap<String,Object>();
+        for (var change : com.agilityhub.core.platform.application.audit.AuditMasking.changes(before, after)) {
+            Map<String,Object> node = result; var keys = change.path().split("\\.");
+            for (int i = 0; i < keys.length - 1; i++) { node = (Map<String,Object>) node.computeIfAbsent(keys[i], key -> new LinkedHashMap<String,Object>()); }
+            var values = new LinkedHashMap<String,Object>(); values.put("before", change.before()); values.put("after", change.after()); node.put(keys[keys.length - 1], values);
+        }
+        return result;
+    }
     public Map<String,Object> diff(Map<String,Object> before, Map<String,Object> after) {
         var result = new LinkedHashMap<String,Object>(); var keys = new LinkedHashSet<>(before.keySet()); keys.addAll(after.keySet());
         for (String key : keys) {

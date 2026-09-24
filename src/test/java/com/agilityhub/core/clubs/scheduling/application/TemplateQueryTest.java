@@ -48,8 +48,11 @@ class TemplateQueryTest {
         assertThat(handlers).extracting(DomainEventHandler::eventType).containsExactly("WeekTemplateChanged", "LevelChanged", "RingChanged", "InstructorChanged", "ParameterChanged");
         for (var handler : handlers) {
             assertThat(handler.eventClass()).isEqualTo(PlanningEvents.Event.class);
+            // E3-T09 step 5: a handler runs after the writer's commit (outbox delivery, or on this instance right after
+            // the commit), so it evicts at once; a synchronization registered inside `afterCommit` would never fire.
+            assertThat(handler.evictsAfterCommit()).isTrue();
             handler.handle("event", new PlanningEvents.Event(handler.eventType(), "club", "WeekTemplate", "template", Instant.EPOCH, Map.of(), "account", null, DomainEvent.Origin.BACKOFFICE));
         }
-        verify(query, times(5)).invalidateAfterCommit("club");
+        verify(query, times(5)).invalidate("club");
     }
 }

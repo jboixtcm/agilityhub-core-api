@@ -15,9 +15,21 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 public class SignupNotifications {
     private final CensusAccess access;private final SignupIdentityService identities;private final SignupLinks links;private final SystemNotificationService notifications;
     private final com.agilityhub.core.platform.application.CensusClubSettings settings;
+    private final RateLimits limits;private final SignupCapabilities capabilities;
+    private static final org.slf4j.Logger LOG=org.slf4j.LoggerFactory.getLogger(SignupNotifications.class);
     public SignupNotifications(CensusAccess access,SignupIdentityService identities,SignupLinks links,SystemNotificationService notifications,
-            com.agilityhub.core.platform.application.CensusClubSettings settings) {
-        this.access=access;this.identities=identities;this.links=links;this.notifications=notifications;this.settings=settings;
+            com.agilityhub.core.platform.application.CensusClubSettings settings,RateLimits limits,SignupCapabilities capabilities) {
+        this.access=access;this.identities=identities;this.links=links;this.notifications=notifications;this.settings=settings;this.limits=limits;this.capabilities=capabilities;
+    }
+    /**
+     * R-04-20 (E3-T09): the anonymous routes cannot flood one address. At most `SIGNUP_RECIPIENT` (3 an hour) N-39 per
+     * account and applicant's N-01 per address, per club; the rest are skipped and logged with a hash, never the address.
+     */
+    private boolean capped(String clubId,String code,String recipient) {
+        String hash=capabilities.fingerprint(recipient.toLowerCase(Locale.ROOT));
+        if(limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash)==0) return false;
+        LOG.info("Signup notification capped per recipient code={} clubId={} recipientHash={}",code,clubId,hash);
+        return true;
     }
     @Transactional(propagation=Propagation.NOT_SUPPORTED)
     public void deliver(String eventId,CensusEvent event) {
@@ -28,7 +40,7 @@ public class SignupNotifications {
             variables.put("locale",locale);
             String email=rows(member.contactEmails).isEmpty()?null:string(rows(member.contactEmails).getFirst().get("email"));
             switch(event.type()) {
-                case "SignupRecognitionRequested" -> links.send(eventId,member.accountId,false,variables);
+                case "SignupRecognitionRequested" -> { if(!capped(event.clubId(),"N-39",member.accountId)) links.send(eventId,member.accountId,false,variables); }
                 case "MemberValidated" -> { links.send(eventId,member.accountId,true,variables);notifications.appOnce(eventId+":app","N-02",member.accountId,variables); }
                 case "SignupSubmitted" -> {
                     // The ids are a collection: `in(Object...)` would search for the list itself and find no dog (`{dogs}` was empty).
@@ -44,7 +56,7 @@ public class SignupNotifications {
                         String instructions=Boolean.TRUE.equals(event.payload().get("checkoutRequired"))?null:settings.manualInstructions(locale);
                         applicant.put("payment_instructions",instructions==null?"":instructions);applicant.put("pay_link","");
                     }
-                    notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
+                    if(email!=null&&!capped(event.clubId(),"N-01",email)) notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
                     // The member's APP row (add-dog) is the applicant copy too: same variant, total and instructions (E3-T08 round 2).
                     if(member.accountId!=null&&"APP_ADD_DOG".equals(event.payload().get("source"))) notifications.appOnceVariant(eventId+":member-app","N-01",variant,member.accountId,applicant);
                     // M9: the admins get their own copy (who applied, which dogs, which plan) with the D2 action, on both channels.

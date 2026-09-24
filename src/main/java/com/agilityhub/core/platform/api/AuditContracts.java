@@ -22,6 +22,7 @@ public final class AuditContracts {
         MEMBER_VALIDATED,
         SIGNUP_REJECTED,
         SIGNUP_EDITED,
+        SIGNUP_SUBMITTED,
         MEMBER_UPDATED,
         MEMBER_PAYMENT_METHOD_CHANGED,
         MEMBER_STATUS_CHANGED,
@@ -88,7 +89,8 @@ public final class AuditContracts {
         ONBOARDING_COMPLETED
     }
     public enum AuditActorRole { ADMIN, INSTRUCTOR, MEMBER, SYSTEM, PLATFORM, WEBHOOK }
-    public enum AuditOrigin { APP, BACKOFFICE, SYSTEM, WEBHOOK }
+    /** PUBLIC (E3-T09): an anonymous mutation of the public signup, the readmission submission of R-04-06. */
+    public enum AuditOrigin { APP, BACKOFFICE, SYSTEM, WEBHOOK, PUBLIC }
     @Schema(description = "Values are masked by the audit writer.")
     public record AuditChange(
             @Schema(requiredMode = REQUIRED) String path,

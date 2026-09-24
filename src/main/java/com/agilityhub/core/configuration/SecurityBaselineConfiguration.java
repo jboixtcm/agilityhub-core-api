@@ -44,9 +44,15 @@ public class SecurityBaselineConfiguration {
     }
 
     @Bean FilterRegistrationBean<RateLimitFilter> rateLimitFilter(RateLimits limits, SecurityEvents events,
-                                                                 ApiExceptionHandler errors, ObjectMapper mapper, HostTenantResolver hosts, Environment env) {
+                                                                 ApiExceptionHandler errors, ObjectMapper mapper, HostTenantResolver hosts, Environment env,
+                                                                 com.agilityhub.core.platform.application.ClubConfigService configs) {
         var filter=new RateLimitFilter(limits,events,errors,mapper);
         filter.signupHosts(hosts,env.acceptsProfiles(Profiles.of("local")));
+        // R-04-20 (E3-T09): the per-club `signup.rateLimit` (cached club configuration, evicted after each parameter write).
+        // A club that cannot be loaded keeps the defaults: the tenant filter that follows answers for it.
+        filter.signupParameter(clubId -> {
+            try { return configs.get(clubId).get("signup.rateLimit", Map.class); } catch (RuntimeException unknown) { return null; }
+        });
         var registration = new FilterRegistrationBean<>(filter);
         // Install only in the security chains, after bearer authentication and before tenant lookup.
         registration.setEnabled(false);

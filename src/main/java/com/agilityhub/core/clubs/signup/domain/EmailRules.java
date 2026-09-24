@@ -13,6 +13,18 @@ public final class EmailRules {
             + "@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
             + "(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+");
     public record ContactEmail(String email, boolean primary, boolean bounced) { }
+    /**
+     * R-04-05 «m•••a@e•••.cat»: the first and last characters of the local part, the first of the domain and its last
+     * label. A one-character local part keeps only that character; a domain without a dot keeps only its first one.
+     */
+    public static String masked(String email) {
+        int at = email.lastIndexOf('@');
+        String local = email.substring(0, Math.max(at, 0)), domain = email.substring(at + 1);
+        if (local.isEmpty() || domain.isEmpty()) { return "•••"; }
+        String head = local.length() == 1 ? local + "•••" : local.charAt(0) + "•••" + local.charAt(local.length() - 1);
+        int dot = domain.lastIndexOf('.');
+        return head + "@" + domain.charAt(0) + "•••" + (dot > 0 ? domain.substring(dot) : "");
+    }
     public static List<ContactEmail> normalize(List<String> emails) {
         if (emails == null || emails.isEmpty() || emails.size() > 2) { throw SignupValidation.field("emails"); }
         var result = new ArrayList<ContactEmail>(); var distinct = new HashSet<String>();

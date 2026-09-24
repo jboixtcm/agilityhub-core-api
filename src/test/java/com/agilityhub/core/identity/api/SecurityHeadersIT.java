@@ -14,6 +14,8 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
     @DynamicPropertySource static void productionProperties(DynamicPropertyRegistry registry) throws Exception {
         String signupKey=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
         registry.add("signup.capability-key", () -> signupKey);
+        // E3-T09 (M17): `prod` refuses to start without the trusted proxy pattern (TrustedProxyConfiguration).
+        registry.add("server.tomcat.remoteip.internal-proxies", () -> "127\\.0\\.0\\.1");
         String calendarKey=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
         registry.add("bookings.calendar-key", () -> calendarKey);
         registry.add("OIDC_LEARN_CLIENT_SECRET", () -> java.util.UUID.randomUUID().toString());

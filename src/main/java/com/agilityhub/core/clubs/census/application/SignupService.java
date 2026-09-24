@@ -28,6 +28,7 @@ public class SignupService implements SignupPaymentAccess {
     private final SignupCapabilities capabilities; private final CountryContacts countries; private final Clock clock;
     private final CensusQuery queries; private final ObjectMapper mapper; private final IcuMessageSource messages;
     private final com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard;
+    private final com.agilityhub.core.identity.application.CensusIdentityService accounts; private final AuditWriter audits;
     private static final LocalDate EARLIEST_BIRTH_DATE=LocalDate.of(1900,1,1); // S04 §3 `Member.birthDate`
     private record CachedConfig(Instant expires,Map<String,Object> value) { }
     private final java.util.concurrent.ConcurrentHashMap<String,CachedConfig> cache=new java.util.concurrent.ConcurrentHashMap<>();
@@ -35,10 +36,10 @@ public class SignupService implements SignupPaymentAccess {
     public SignupService(CensusAccess access,SignupPolicy policy,CensusEvents events,CensusRepository<DogDocument> documents,
             AttachmentService attachments,UpfrontPayments payments,CensusClubSettings settings,SignupIdentityService identities,
             SignupCapabilities capabilities,CountryContacts countries,Clock clock,CensusQuery queries,ObjectMapper mapper,IcuMessageSource messages,
-            com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard) {
+            com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard,com.agilityhub.core.identity.application.CensusIdentityService accounts,AuditWriter audits) {
         this.access=access;this.policy=policy;this.events=events;this.documents=documents;this.attachments=attachments;this.payments=payments;
         this.settings=settings;this.identities=identities;this.capabilities=capabilities;this.countries=countries;this.clock=clock;this.queries=queries;this.mapper=mapper;this.messages=messages;
-        this.dashboard=dashboard;
+        this.dashboard=dashboard;this.accounts=accounts;this.audits=audits;
     }
     /** R-14-01 (M11): the commands that change D1's pending list or KPIs refresh it right after their commit, not only via the outbox. */
     void refreshDashboard() { dashboard.invalidateAfterCommit(TenantContext.require()); }
@@ -64,7 +65,7 @@ public class SignupService implements SignupPaymentAccess {
     private String fullName(Member m) { return String.join(" ",m.firstName,m.lastName1,m.lastName2==null?"":m.lastName2).strip(); }
     private String email(Member m) { return string(rows(m.contactEmails).getFirst().get("email")); }
     public Map<String,Object> member(String memberId) {
-        var m=access.mutableMember(memberId);return object("id",m.id,"email",email(m),"locale",map(m.signup).getOrDefault("locale",access.config().club().defaultLocale()),"paymentMethod",m.paymentMethod,"status",m.status);
+        var m=access.mutableMember(memberId);return object("id",m.id,"email",email(m),"locale",map(m.signup).getOrDefault("locale",access.config().club().defaultLocale()),"paymentMethod",effectivePayment(m),"status",m.status);
     }
     public void authorize(String id,String token) {
         if(CurrentUser.current()==null) { capabilities.require(id,token); }
@@ -73,40 +74,69 @@ public class SignupService implements SignupPaymentAccess {
     }
     public void card(String id,Map<String,Object> card) {
         var member=access.mutableMember(id);
+        if(readmissionPending(member)) {
+            // E38: the card of a readmission belongs to the submitted method until validation applies it.
+            if("CARD".equals(map(submitted(member).get("paymentMethod")).get("type"))) { putSubmitted(member,"paymentMethod",object("type","CARD","card",card));access.members.save(member); }
+            return;
+        }
         if("CARD".equals(map(member.paymentMethod).get("type"))) { member.paymentMethod=object("type","CARD","card",card);access.members.save(member); }
     }
-    private void enabled() {
-        if(!"ACTIVE".equals(access.config().club().status()) || !Boolean.TRUE.equals(access.config().get("signup.enabled",Boolean.class))) { throw new ApiException(ErrorCode.SIGNUP_CLOSED); }
+    /**
+     * R-04-27 (E3-T09): `POST /signup` and the anonymous routes decide `SIGNUP_CLOSED` on the committed club and parameters,
+     * never on a cached configuration.
+     */
+    public void requireOpen() {
+        var config=access.currentConfig();
+        if(!"ACTIVE".equals(config.club().status()) || !Boolean.TRUE.equals(config.get("signup.enabled",Boolean.class))) { throw new ApiException(ErrorCode.SIGNUP_CLOSED); }
     }
     private List<Dog> dogs(String memberId) { return access.dogs.matching(Criteria.where("memberId").is(memberId)); }
     private List<Dog> pending(String memberId) { return dogs(memberId).stream().filter(d -> "PENDING".equals(d.status)).toList(); }
     private List<String> dogIds(List<Dog> dogs) { return dogs.stream().map(d -> d.id).toList(); }
+    /**
+     * R-04-05/R-04-06 matching through the `member_id_document` and `contactEmails.email` indexes (E3-T09: the anonymous
+     * lookups never scan the club's members). The `$type` clause lets Mongo use the partial `member_id_document` index.
+     */
     private Member match(String document,List<Map<String,Object>> emails,boolean left) {
-        var candidates=access.members.matching(Criteria.where("status").in(left?List.of("LEFT"):List.of("PENDING","ACTIVE")));
-        var exact=candidates.stream().filter(m -> document.equals(map(m.idDocument).get("number"))).findFirst().orElse(null);
+        var statuses=left?List.of("LEFT"):List.of("PENDING","ACTIVE");
+        var exact=access.members.matching(new Criteria().andOperator(Criteria.where("idDocument.number").is(document),Criteria.where("idDocument.number").type(org.springframework.data.mongodb.core.schema.JsonSchemaObject.Type.STRING),
+                Criteria.where("status").in(statuses))).stream().findFirst().orElse(null);
         if(exact!=null || left) return exact;
         var addresses=emails.stream().map(e -> e.get("email")).toList();
-        return candidates.stream().filter(m -> !rows(m.contactEmails).isEmpty() && addresses.contains(rows(m.contactEmails).getFirst().get("email"))).findFirst().orElse(null);
+        return access.members.matching(Criteria.where("contactEmails.email").in(addresses).and("status").in(statuses)).stream()
+                .filter(m -> !rows(m.contactEmails).isEmpty() && addresses.contains(rows(m.contactEmails).getFirst().get("email"))).findFirst().orElse(null);
     }
     @Transactional
     public Map<String,Object> identityCheck(Map<String,Object> request) {
+        requireOpen();
         var id=map(request.get("idDocument"));String number=policy.document(string(id.get("type")),string(id.get("value")));
         var emails=policy.emails(strings(request.get("emails")));var m=match(number,emails,false);
         if(m==null) return object("result","NEW");
         if("PENDING".equals(m.status)) return object("result","SIGNUP_ALREADY_PENDING");
         if(m.accountId==null) return object("result","CONTACT_CLUB");
+        // R-04-05 (E3-T09): the link of N-39 goes to the account's access address, so that is the one masked.
+        String address;
+        try { address=accounts.accessEmail(m.accountId); } catch(ApiException inactive) { return object("result","CONTACT_CLUB"); }
         events.emit("SignupRecognitionRequested","Member",m.id,object("memberId",m.id,"accountId",m.accountId,"redirect","/gossos/nou"));
-        String address=email(m);int at=address.indexOf('@');
-        String masked=address.substring(0,1)+"•••@"+address.substring(at+1,at+2)+"•••";
-        return object("result","VERIFICATION_SENT","maskedEmail",masked);
+        return object("result","VERIFICATION_SENT","maskedEmail",policy.maskedEmail(address));
     }
     @SuppressWarnings("unchecked") private List<String> strings(Object raw) { return (List<String>)raw; }
+    /**
+     * R-04-12: the candidates are the owners of an active or pending dog with that name (the case- and accent-insensitive
+     * `name_ci` index), then {@link SignupPolicy#family} decides exactly as before. E3-T09: no scan of the club's members.
+     */
     private Optional<SignupPolicy.Match> holder(String holder,String dog) {
-        var candidates=access.members.matching(Criteria.where("status").in("PENDING","ACTIVE")).stream().map(m -> new SignupPolicy.Candidate(m.clubId,m.id,m.status,m.firstName,m.lastName1,m.lastName2,
-                dogs(m.id).stream().map(d -> new SignupPolicy.NamedDog(d.name,d.status)).toList())).toList();
+        String name=dog==null?"":dog.strip().replaceAll("(?U)\\s+"," ");
+        var owned=new LinkedHashMap<String,List<Dog>>();
+        for(var d:access.dogs.matchingIgnoringCase(Criteria.where("name").is(name).and("status").in("PENDING","ACTIVE"))) owned.computeIfAbsent(d.memberId,k -> new ArrayList<>()).add(d);
+        if(owned.isEmpty()) return Optional.empty();
+        var candidates=access.members.matching(Criteria.where("_id").in(owned.keySet()).and("status").in("PENDING","ACTIVE")).stream().map(m -> new SignupPolicy.Candidate(m.clubId,m.id,m.status,m.firstName,m.lastName1,m.lastName2,
+                owned.get(m.id).stream().map(d -> new SignupPolicy.NamedDog(d.name,d.status)).toList())).toList();
         return policy.family(holder,dog,candidates);
     }
-    public Map<String,Object> familyLookup(String name,String dog) { access.require(Module.FAMILY_GROUP);return holder(name,dog).map(m -> object("result","FOUND","holderDisplayName",m.holderDisplayName())).orElse(object("result","NOT_FOUND")); }
+    public Map<String,Object> familyLookup(String name,String dog) {
+        requireOpen();access.require(Module.FAMILY_GROUP);
+        return holder(name,dog).map(m -> object("result","FOUND","holderDisplayName",m.holderDisplayName())).orElse(object("result","NOT_FOUND"));
+    }
     private Map<String,Object> claim(Map<String,Object> raw) {
         if(raw.isEmpty()) return object("status","NONE");
         if(!access.enabled(Module.FAMILY_GROUP)) throw invalid("familyGroupClaim","MODULE_DISABLED");
@@ -122,15 +152,71 @@ public class SignupService implements SignupPaymentAccess {
     public List<SignupPolicy.Consent> history(Member member) {
         return ConsentLedgers.entries(member.consents).stream().map(r -> new SignupPolicy.Consent(string(r.get("type")),Boolean.TRUE.equals(r.get("granted")),string(r.get("version")),instant(r.get("acceptedAt")),string(r.get("locale")),string(r.get("ipHash")),string(r.get("source")))).toList();
     }
-    private void consents(Member member,Map<String,Object> raw,boolean addDog,String locale,String ip) {
+    /**
+     * R-04-17: the ledger entries of this acceptance. Each records who accepted it (E3-T09): the applicant (`origin =
+     * PUBLIC`, no account), the member (`APP`, their account) or, under impersonation, the actor (`BACKOFFICE`,
+     * `actorAccountId` = the admin), never the member's own acceptance.
+     */
+    private List<Map<String,Object>> consentRows(Member member,Map<String,Object> raw,boolean addDog,String locale,String ip) {
         var privacy=map(raw.get("privacyPolicy"));var image=map(raw.get("imageUse"));
         String version=legalVersion();
         if(!raw.isEmpty() && !version.equals(image.get("version"))) throw new ApiException(ErrorCode.CONSENT_VERSION_OUTDATED);
         var entries=policy.consent((Boolean)privacy.get("accepted"),string(privacy.get("version")),(Boolean)image.get("granted"),version,addDog,history(member),locale,capabilities.fingerprint(ip));
-        if(entries.isEmpty()) return;
-        var ledger=new ArrayList<>(ConsentLedgers.entries(member.consents));
-        for(var entry:entries) ledger.add(object("type",entry.type(),"granted",entry.granted(),"version",entry.version(),"acceptedAt",entry.acceptedAt(),"locale",entry.locale(),"ipHash",entry.ipHash(),"source",entry.source()));
+        var user=CurrentUser.current();
+        String origin=user==null?"PUBLIC":user.origin().name();
+        String actor=user==null?null:user.impersonation()!=null?user.impersonation().actorAccountId():user.accountId();
+        return entries.stream().map(entry -> object("type",entry.type(),"granted",entry.granted(),"version",entry.version(),"acceptedAt",entry.acceptedAt(),"locale",entry.locale(),"ipHash",entry.ipHash(),"source",entry.source(),
+                "origin",origin,"actorAccountId",actor)).toList();
+    }
+    private void appendConsents(Member member,List<Map<String,Object>> rows) {
+        if(rows.isEmpty()) return;
+        var ledger=new ArrayList<>(ConsentLedgers.entries(member.consents));ledger.addAll(rows);
         member.consents=new ConsentLedgerConverter().read(ledger,null);
+    }
+    // ---- R-04-06 (E38): a readmission waits in `readmissionRequest` and never overwrites the LEFT record before validation ----
+    public boolean readmissionPending(Member member) { return member.readmissionRequest!=null&&"PENDING".equals(member.status); }
+    private Map<String,Object> submitted(Member member) { return map(map(member.readmissionRequest).get("submitted")); }
+    private void putSubmitted(Member member,String key,Object value) {
+        var request=new LinkedHashMap<>(member.readmissionRequest);var values=new LinkedHashMap<>(submitted(member));
+        if(value==null) values.remove(key);else values.put(key,value);
+        request.put("submitted",values);member.readmissionRequest=request;
+    }
+    /** The payment method the signup runs with: the submitted one while a readmission waits, the record's otherwise. */
+    private Map<String,Object> effectivePayment(Member member) { return readmissionPending(member)?map(submitted(member).get("paymentMethod")):member.paymentMethod; }
+    static final List<String> READMISSION_FIELDS=List.of("firstName","lastName1","lastName2","gender","birthDate","contactEmails","phones","address","paymentMethod");
+    /** A copy of the member holding the submitted values, for a D2 edit of a pending readmission ({@link MemberService}). */
+    public Member submittedView(Member member) {
+        var values=submitted(member);var view=new Member();view.id=member.id;view.clubId=member.clubId;
+        view.firstName=string(values.get("firstName"));view.lastName1=string(values.get("lastName1"));view.lastName2=string(values.get("lastName2"));view.gender=string(values.get("gender"));
+        view.birthDate=values.get("birthDate")==null?null:LocalDate.parse(string(values.get("birthDate")));
+        view.contactEmails=rows(values.get("contactEmails"));view.phones=rows(values.get("phones"));view.address=map(values.get("address"));
+        view.paymentMethod=values.get("paymentMethod")==null?null:map(values.get("paymentMethod"));
+        return view;
+    }
+    /** Stores the (edited) submitted values of {@link #submittedView} back into the request; the record is untouched. */
+    public void storeSubmitted(Member member,Member view) {
+        putSubmitted(member,"firstName",view.firstName);putSubmitted(member,"lastName1",view.lastName1);putSubmitted(member,"lastName2",view.lastName2);putSubmitted(member,"gender",view.gender);
+        putSubmitted(member,"birthDate",view.birthDate==null?null:view.birthDate.toString());putSubmitted(member,"contactEmails",view.contactEmails);putSubmitted(member,"phones",view.phones);
+        putSubmitted(member,"address",view.address);putSubmitted(member,"paymentMethod",view.paymentMethod);
+    }
+    /** Validation applies the submitted values; the MEMBER_VALIDATED audit records them as a masked diff (R-14-09). */
+    private void applyReadmission(Member member) {
+        var view=submittedView(member);
+        member.firstName=view.firstName;member.lastName1=view.lastName1;member.lastName2=view.lastName2;member.gender=view.gender;
+        if(view.birthDate!=null) member.birthDate=view.birthDate;
+        member.contactEmails=view.contactEmails;member.phones=view.phones;member.address=view.address;
+        if(view.paymentMethod!=null) member.paymentMethod=view.paymentMethod;
+        appendConsents(member,rows(submitted(member).get("consents")));
+        member.readmissionRequest=null;
+    }
+    /** R-04-23 (E38): a rejected readmission leaves the LEFT record exactly as it was before the submission. */
+    private void restoreLeft(Member member) {
+        var previous=map(map(member.readmissionRequest).get("previous"));
+        member.status=string(previous.getOrDefault("status","LEFT"));member.leftAt=instant(previous.get("leftAt"));member.leftReason=string(previous.get("leftReason"));
+        member.leaveDate=previous.get("leaveDate")==null?null:LocalDate.parse(string(previous.get("leaveDate")));
+        member.familyGroupClaim=previous.get("familyGroupClaim")==null?null:new LinkedHashMap<>(map(previous.get("familyGroupClaim")));
+        member.signup=previous.get("signup")==null?null:new LinkedHashMap<>(map(previous.get("signup")));
+        member.readmissionRequest=null;
     }
     public Map<String,Object> payment(Map<String,Object> raw,Member member,String defaultHolder) {
         if(!billing()) { if(raw.get("iban")!=null) throw invalid("payment.iban","MODULE_DISABLED");return null; }
@@ -149,23 +235,34 @@ public class SignupService implements SignupPaymentAccess {
     }
     @Transactional
     public Map<String,Object> submit(Map<String,Object> request,String ip) {
-        enabled();lock();var person=map(request.get("person"));var id=map(person.get("idDocument"));
+        requireOpen();lock();var person=map(request.get("person"));var id=map(person.get("idDocument"));
         String number=policy.document(string(id.get("type")),string(id.get("value")));var emails=policy.emails(strings(person.get("emails")));
         var existing=match(number,emails,false);
         if(existing!=null) throw new ApiException("PENDING".equals(existing.status)?ErrorCode.SIGNUP_ALREADY_PENDING:ErrorCode.MEMBER_ALREADY_EXISTS);
         var member=match(number,emails,true);boolean readmission=member!=null;
         if(member==null) { member=new Member();member.id=UUID.randomUUID().toString();member.clubId=TenantContext.require(); }
         if(member.erasedAt!=null) throw new ApiException(ErrorCode.MEMBER_ERASED);
+        var before=readmission?CensusAudit.view(member,mapper):null;
         String locale=string(request.get("locale"));if(!access.config().club().locales().contains(locale)) throw invalid("locale","INVALID_VALUE");
-        member.idDocument=object("type",id.get("type"),"number",number);member.firstName=text(person.get("firstName"),"firstName",60,true);member.lastName1=text(person.get("lastName1"),"lastName1",60,true);member.lastName2=text(person.get("lastName2"),"lastName2",60,false);
-        member.gender=string(person.get("gender"));member.birthDate=date(person.get("birthDate"));
-        if(!member.birthDate.isBefore(policy.today())||member.birthDate.isBefore(EARLIEST_BIRTH_DATE)) throw invalid("birthDate","INVALID_VALUE");
-        member.contactEmails=emails;member.phones=policy.phones(rows(person.get("phones")));
-        var address=map(person.get("address"));member.address=object("street",address.get("street"),"postalCode",address.get("postalCode"),"city",policy.town(string(address.get("postalCode")),string(address.get("town"))),"country",countries.countryCode());
+        // R-04-06 (E38): a readmission validates the submitted person the same way, but keeps it apart from the LEFT record.
+        var target=readmission?new Member():member;
+        if(!readmission) member.idDocument=object("type",id.get("type"),"number",number);
+        target.firstName=text(person.get("firstName"),"firstName",60,true);target.lastName1=text(person.get("lastName1"),"lastName1",60,true);target.lastName2=text(person.get("lastName2"),"lastName2",60,false);
+        target.gender=string(person.get("gender"));target.birthDate=date(person.get("birthDate"));
+        if(!target.birthDate.isBefore(policy.today())||target.birthDate.isBefore(EARLIEST_BIRTH_DATE)) throw invalid("birthDate","INVALID_VALUE");
+        target.contactEmails=emails;target.phones=policy.phones(rows(person.get("phones")));
+        var address=map(person.get("address"));target.address=object("street",address.get("street"),"postalCode",address.get("postalCode"),"city",policy.town(string(address.get("postalCode")),string(address.get("town"))),"country",countries.countryCode());
+        var previousClaim=member.familyGroupClaim;
         member.familyGroupClaim=claim(map(request.get("familyGroupClaim")));
         String holderId=string(member.familyGroupClaim.get("holderMemberId"));
-        member.paymentMethod=payment(map(request.get("payment")),member,holderId==null?fullName(member):fullName(access.members.require(holderId)));
-        consents(member,map(request.get("consents")),false,locale,ip);
+        target.paymentMethod=payment(map(request.get("payment")),member,holderId==null?fullName(target):fullName(access.members.require(holderId)));
+        var consents=consentRows(member,map(request.get("consents")),false,locale,ip);
+        if(readmission) {
+            member.readmissionRequest=object("submitted",object("firstName",target.firstName,"lastName1",target.lastName1,"lastName2",target.lastName2,"gender",target.gender,
+                            "birthDate",target.birthDate.toString(),"contactEmails",target.contactEmails,"phones",target.phones,"address",target.address,"paymentMethod",target.paymentMethod,"consents",consents),
+                    "previous",object("status",member.status,"leftAt",member.leftAt,"leftReason",member.leftReason,"leaveDate",member.leaveDate==null?null:member.leaveDate.toString(),
+                            "familyGroupClaim",previousClaim,"signup",member.signup));
+        } else appendConsents(member,consents);
         String planId=string(request.get("planId"));policy.require(planId);
         String option=string(map(request.get("payment")).getOrDefault("firstMonthOption","TODAY"));String submission=UUID.randomUUID().toString();
         member.status="PENDING";member.signup=object("submittedAt",clock.instant(),"locale",locale,"source","PUBLIC","readmission",readmission,"planIdRequested",planId,"firstMonthOption",option,"submissionId",submission);
@@ -174,11 +271,13 @@ public class SignupService implements SignupPaymentAccess {
         if(readmission) access.members.save(member);else access.members.insert(member);
         var dog=storeDog(prepared,member,rows(map(request.get("dog")).get("documents")));createPayments(member.id,submission,quote);
         boolean checkout=checkoutRequired(member,quote.totalDue());
-        events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(member.paymentMethod).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout));
+        events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(effectivePayment(member)).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout));
+        // R-04-06 (E38): the readmission submission is audited with the masked diff; anonymous, so its origin is PUBLIC.
+        if(readmission) audits.write(new AuditCommand(AuditAction.SIGNUP_SUBMITTED,"Member",member.id,member.id,before,CensusAudit.view(member,mapper),null),CurrentUser.current()==null?"PUBLIC":null);
         refreshDashboard();
         return object("memberId",member.id,"signupToken",capabilities.issue(member.id),"upfront",billing()?upfront(member,List.of(dog),quote):null,"checkout",object("required",checkout));
     }
-    private boolean checkoutRequired(Member m,Money due) { return billing()&&settings.providerEnabled("STRIPE")&&(due.amountMinor()>0 || "CARD".equals(map(m.paymentMethod).get("type"))); }
+    private boolean checkoutRequired(Member m,Money due) { return billing()&&settings.providerEnabled("STRIPE")&&(due.amountMinor()>0 || "CARD".equals(map(effectivePayment(m)).get("type"))); }
     private static List<UpfrontPayments.Charge> charges(SignupPolicy.Quote quote) { return quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList(); }
     private void createPayments(String member,String submission,SignupPolicy.Quote quote) { payments.create(member,submission,charges(quote)); }
     private static Map<String,Object> money(Money value) { return object("amountMinor",value.amountMinor(),"currency",value.currency()); }
@@ -242,7 +341,7 @@ public class SignupService implements SignupPaymentAccess {
         String requested=string(request.get("planIdRequested"));String planId=requested==null?member.planId:requested;
         // M8: the member's own plan is assignable even when it is hidden from the public offer (the family fare); another plan must be offered.
         if(Objects.equals(planId,member.planId)) policy.requireAssignable(planId);else policy.require(planId);
-        consents(member,map(request.get("consents")),true,locale(),ip);
+        appendConsents(member,consentRows(member,map(request.get("consents")),true,locale(),ip));
         String option=string(request.getOrDefault("additionalDogOption","TODAY"));String submission=UUID.randomUUID().toString();
         member.signup=object("submittedAt",clock.instant(),"locale",locale(),"source","APP_ADD_DOG","readmission",false,"planIdRequested",planId,"additionalDogOption",option,"submissionId",submission);
         var prepared=prepareDog(member,map(request.get("dog")),false);
@@ -323,8 +422,11 @@ public class SignupService implements SignupPaymentAccess {
     }
     public List<String> warnings(Member member,List<Dog> dogs) {
         var warnings=new ArrayList<String>();
-        if(!Boolean.TRUE.equals(map(map(member.consents).get("imageRights")).get("granted"))) warnings.add("NO_IMAGE_CONSENT");
-        if(billing()&&"SEPA_DD".equals(map(member.paymentMethod).get("type"))&&map(member.paymentMethod).get("iban")==null) warnings.add("ACCOUNT_NOT_PROVIDED");
+        // E38: a pending readmission is judged on what it submitted (the consent entries and the payment method it brings).
+        var image=readmissionPending(member)?rows(submitted(member).get("consents")).stream().filter(r -> "IMAGE_USE".equals(r.get("type"))).reduce((a,b)->b).orElse(null):null;
+        if(!Boolean.TRUE.equals(image!=null?image.get("granted"):map(map(member.consents).get("imageRights")).get("granted"))) warnings.add("NO_IMAGE_CONSENT");
+        var payment=map(effectivePayment(member));
+        if(billing()&&"SEPA_DD".equals(payment.get("type"))&&payment.get("iban")==null) warnings.add("ACCOUNT_NOT_PROVIDED");
         if(dogs.stream().anyMatch(d -> documents.matching(Criteria.where("dogId").is(d.id).and("state").is("PENDING")).size()>0)) warnings.add("DOCUMENT_PENDING");
         if(access.enabled(Module.FAMILY_GROUP)&&"NOT_FOUND_PENDING".equals(map(member.familyGroupClaim).get("status"))) warnings.add("FAMILY_HOLDER_NOT_FOUND");
         if(billing()&&payments.due(member.id,scope(member,dogs),currency()).amountMinor()>0) warnings.add("UPFRONT_UNPAID");
@@ -372,7 +474,35 @@ public class SignupService implements SignupPaymentAccess {
                 "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,
                 "nextInvoiceDate",quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),
                 // M8: the D2 plan selector; M11: D2 shows the age warning without calling /dashboard.
-                "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version());
+                "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version(),
+                "readmission",readmissionPending(member)?readmissionView(member):null);
+    }
+    /** R-04-06 (E38): D2 shows the record and the request side by side, masked like the member view; never a full IBAN. */
+    private Map<String,Object> readmissionView(Member member) {
+        var view=submittedView(member);var current=readmissionValues(member);var requested=readmissionValues(view);
+        var changed=READMISSION_FIELDS.stream().filter(field -> !Objects.equals(comparable(member,field),comparable(view,field))).toList();
+        var previous=map(map(member.readmissionRequest).get("previous"));
+        return object("current",current,"submitted",requested,"changedFields",changed,
+                "consents",rows(submitted(member).get("consents")).stream().map(r -> object("type",r.get("type"),"granted",r.get("granted"),"version",r.get("version"))).toList(),
+                "previousLeftAt",instant(previous.get("leftAt")),"previousLeftReason",previous.get("leftReason"));
+    }
+    /** The raw value compared for `changedFields` (the payment method without its signature date, which always differs). */
+    private static Object comparable(Member member,String field) {
+        return switch(field) {
+            case "firstName" -> member.firstName; case "lastName1" -> member.lastName1; case "lastName2" -> member.lastName2; case "gender" -> member.gender;
+            case "birthDate" -> member.birthDate;
+            case "contactEmails" -> rows(member.contactEmails).stream().map(row -> row.get("email")).toList();
+            case "phones" -> rows(member.phones).stream().map(row -> select(row,"prefix","number","label")).toList();
+            case "address" -> select(map(member.address),"street","postalCode","city","province","country");
+            default -> select(map(member.paymentMethod),"type","iban","holderName","holderTaxId","channel");
+        };
+    }
+    private Map<String,Object> readmissionValues(Member member) {
+        return object("firstName",member.firstName,"lastName1",member.lastName1,"lastName2",member.lastName2,"gender",member.gender,"birthDate",member.birthDate,
+                "contactEmails",rows(member.contactEmails).stream().map(row -> object("email",row.get("email"),"bounced",Boolean.TRUE.equals(row.get("bounced")))).toList(),
+                "phones",rows(member.phones).stream().map(row -> select(row,"prefix","number","label")).toList(),
+                "address",member.address==null?null:select(map(member.address),"street","postalCode","city","province","country"),
+                "paymentMethod",billing()?queries.payment(member):null);
     }
     /** A D2 plan option offers the price validation accepts and `member.priceId` stores: the plan's billed price. */
     private Map<String,Object> planOption(SignupPolicy.Plan plan) {
@@ -446,6 +576,7 @@ public class SignupService implements SignupPaymentAccess {
             if(!billing()) throw invalid("upfrontAmountPaid","MODULE_DISABLED");
             payments.allocate(id,scope,mapper.convertValue(request.get("upfrontAmountPaid"),Money.class));
         }
+        if(!addDog&&readmissionPending(member)) applyReadmission(member);
         if(access.enabled(Module.FAMILY_GROUP)) joinFamily(member,request);
         member.planId=selectedId;member.priceId=plan==null||plan.billedPrice()==null?null:plan.billedPrice().id();
         if(request.get("nextInvoiceDate")!=null&&billing()) member.nextInvoiceDate=date(request.get("nextInvoiceDate"));
@@ -485,7 +616,8 @@ public class SignupService implements SignupPaymentAccess {
         if(!Set.of("PENDING","ACTIVE").contains(member.status)||dogs.isEmpty()) throw notPending();
         version(member.version(),expected);reason=text(reason,"reason",500,true);if(reason.length()<3) throw invalid("reason","INVALID_VALUE");
         boolean active="ACTIVE".equals(member.status);var scope=scope(member,dogs);
-        if(!active) { member.status="LEFT";member.leftAt=clock.instant();member.leftReason="SIGNUP_REJECTED";member.familyGroupClaim=object("status","NONE"); }
+        if(!active&&readmissionPending(member)) restoreLeft(member);
+        else if(!active) { member.status="LEFT";member.leftAt=clock.instant();member.leftReason="SIGNUP_REJECTED";member.familyGroupClaim=object("status","NONE"); }
         access.members.save(member);
         for(var dog:dogs) { dog.status="INACTIVE";dog.deactivationReason="SIGNUP_REJECTED";dog.deactivatedAt=clock.instant();access.dogs.save(dog); }
         boolean paid=payments.reject(id,scope);

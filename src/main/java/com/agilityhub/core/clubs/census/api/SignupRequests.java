@@ -15,7 +15,8 @@ public final class SignupRequests {
 
     public enum SignupIdDocumentType { DNI, NIE, PASSPORT, OTHER }
     public enum FirstMonthOption { TODAY, ALTERNATIVE }
-    public record SignupIdDocument(@NotNull SignupIdDocumentType type, @NotBlank String value) { }
+    /** R-04-20 (E3-T09): the anonymous inputs are bounded, so a lookup never works on an unbounded value. */
+    public record SignupIdDocument(@NotNull SignupIdDocumentType type, @NotBlank @Size(min = 1, max = 30) String value) { }
     public record SignupAddress(@NotBlank String street, @NotBlank String postalCode, @NotBlank String town) { }
     public record SignupPhone(String prefix, @NotBlank String number,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 30) String label) { }
@@ -23,7 +24,7 @@ public final class SignupRequests {
             @NotBlank @Size(max = 60) String firstName, @NotBlank @Size(max = 60) String lastName1,
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 60) String lastName2,
             @NotNull LocalDate birthDate, @NotNull Gender gender,
-            @NotNull @Size(min = 1, max = 2) List<@NotBlank @Email String> emails,
+            @NotNull @Size(min = 1, max = 2) List<@NotBlank @Email @Size(min = 1, max = 254) String> emails,
             @NotNull @Size(min = 1, max = 2) List<@Valid SignupPhone> phones,
             @NotNull @Valid SignupAddress address) { }
     public record SignupFile(@NotBlank String fileKey, @NotBlank @Size(max = 80) String name) { }
@@ -36,7 +37,7 @@ public final class SignupRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Size(max = 1000) String notesToInstructors,
             @Schema(requiredMode = NOT_REQUIRED, description = "Public signup documents; add-dog uses its top-level documents array")
             @Size(max = 10) List<@Valid SignupDocument> documents) { }
-    public record SignupFamilyGroupClaim(@NotBlank String holderName, @NotBlank String dogName, @NotNull Boolean leavePending) { }
+    public record SignupFamilyGroupClaim(@NotBlank @Size(min = 1, max = 120) String holderName, @NotBlank @Size(min = 1, max = 40) String dogName, @NotNull Boolean leavePending) { }
     public record SignupPayment(@NotNull PaymentMethodType type,
             @Schema(requiredMode = NOT_REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY, example = "ES0000000000000000000000") @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY) String iban,
             @Schema(requiredMode = NOT_REQUIRED) String holderName,
@@ -53,9 +54,9 @@ public final class SignupRequests {
             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") @Valid SignupPayment payment,
             @NotNull @Valid SignupConsents consents) { }
     public record IdentityCheckRequest(@NotNull @Valid SignupIdDocument idDocument,
-            @NotNull @Size(min = 1, max = 2) List<@NotBlank @Email String> emails) { }
+            @NotNull @Size(min = 1, max = 2) List<@NotBlank @Email @Size(min = 1, max = 254) String> emails) { }
     public record UploadUrlRequest(@NotBlank String fileName, @NotBlank String contentType, @NotNull @Positive Long sizeBytes) { }
-    public record FamilyGroupLookupRequest(@NotBlank String holderName, @NotBlank String dogName) { }
+    public record FamilyGroupLookupRequest(@NotBlank @Size(min = 1, max = 120) String holderName, @NotBlank @Size(min = 1, max = 40) String dogName) { }
     public record AddDogSignupRequest(@NotNull @Valid SignupDog dog,
             @NotNull @Size(max = 10) List<@Valid SignupDocument> documents,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String planIdRequested,

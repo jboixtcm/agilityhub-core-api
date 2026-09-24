@@ -1531,7 +1531,7 @@
         "type" : "object"
       },
       "AuditAction" : {
-        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED" ],
+        "enum" : [ "MEMBER_VALIDATED", "SIGNUP_REJECTED", "SIGNUP_EDITED", "SIGNUP_SUBMITTED", "MEMBER_UPDATED", "MEMBER_PAYMENT_METHOD_CHANGED", "MEMBER_STATUS_CHANGED", "MEMBER_ROLES_CHANGED", "MEMBER_CONSENT_CHANGED", "BOOKING_BLOCK_SET", "BOOKING_BLOCK_CLEARED", "ACCESS_RESENT", "DOG_UPDATED", "DOG_LEVEL_CHANGED", "DOG_FREE_TRAINING_CHANGED", "DOG_TRANSFERRED", "DOG_DEACTIVATED", "DOG_REACTIVATED", "DOG_DOCUMENT_FILE_REMOVED", "FAMILY_GROUP_CHANGED", "MEMBER_PLAN_CHANGED", "INVOICE_MARKED_PAID", "INVOICE_MARKED_FAILED", "INVOICE_CANCELLED", "REMITTANCE_GENERATED", "REMITTANCE_ROLLED_BACK", "UPFRONT_PAYMENT_RECORDED", "PAYMENT_REFUNDED", "IMPERSONATION_STARTED", "ACCOUNT_EMAIL_STATUS_CHANGED", "PLATFORM_ROLES_CHANGED", "BOOKING_CREATED_BY_CLUB", "BOOKING_CANCELLED_BY_CLUB", "BOOKING_CANCELLED_LATE", "TRAINING_BOOKED_BY_CLUB", "TRAINING_CANCELLED_BY_CLUB", "ATTENDANCE_OVERRIDDEN", "JOB_TRIGGERED", "WEEK_VALIDATED", "CLASS_CANCELLED", "CLASS_UPDATED_WITH_BOOKINGS", "CLASS_RISK_EXEMPTION_CHANGED", "RING_BLOCK_CREATED", "RING_BLOCK_CANCELLED", "TEMPLATE_CLASS_DELETED", "TEMPLATE_BAND_DELETED", "ACTIVITY_PUBLISHED", "ACTIVITY_CANCELLED", "ACTIVITY_UPDATED", "ACTIVITY_REGISTERED_BY_CLUB", "ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB", "INACTIVITY_RESOLVED", "LEAVE_RESOLVED", "LEAVE_CANCELLED", "PARAMETER_CHANGED", "CLUB_UPDATED", "CLUB_MODULES_CHANGED", "CLUB_STATUS_CHANGED", "CATALOG_CHANGED", "MIGRATION_APPLIED", "ANNOUNCEMENT_SENT", "DATA_EXPORTED", "MEMBER_DATA_EXPORTED", "ERASURE_REQUESTED", "ERASURE_CANCELLED", "MEMBER_ERASED", "ACCOUNT_ERASED", "ONBOARDING_COMPLETED" ],
         "type" : "string"
       },
       "AuditChange" : {
@@ -1615,7 +1615,7 @@
             "type" : "string"
           },
           "origin" : {
-            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK" ],
+            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC" ],
             "type" : "string"
           },
           "reason" : {
@@ -1692,7 +1692,7 @@
             "type" : "string"
           },
           "origin" : {
-            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK" ],
+            "enum" : [ "APP", "BACKOFFICE", "SYSTEM", "WEBHOOK", "PUBLIC" ],
             "type" : "string"
           },
           "reason" : {
@@ -4826,10 +4826,12 @@
       "FamilyGroupLookupRequest" : {
         "properties" : {
           "dogName" : {
+            "maxLength" : 40,
             "minLength" : 1,
             "type" : "string"
           },
           "holderName" : {
+            "maxLength" : 120,
             "minLength" : 1,
             "type" : "string"
           }
@@ -5696,6 +5698,7 @@
           "emails" : {
             "items" : {
               "format" : "email",
+              "maxLength" : 254,
               "minLength" : 1,
               "type" : "string"
             },
@@ -8523,6 +8526,10 @@
           "proposals" : {
             "$ref" : "#/components/schemas/SignupProposals"
           },
+          "readmission" : {
+            "$ref" : "#/components/schemas/SignupReadmission",
+            "description" : "R-04-06 (E38): only for a pending readmission. The LEFT record keeps its values until validation, which applies the submitted ones"
+          },
           "signup" : {
             "$ref" : "#/components/schemas/SignupSubmission"
           },
@@ -10530,6 +10537,63 @@
         "required" : [ ],
         "type" : "object"
       },
+      "ReadmissionConsent" : {
+        "properties" : {
+          "granted" : {
+            "type" : "boolean"
+          },
+          "type" : {
+            "enum" : [ "PRIVACY_POLICY", "IMAGE_USE" ],
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "granted", "type", "version" ],
+        "type" : "object"
+      },
+      "ReadmissionValues" : {
+        "properties" : {
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "birthDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "contactEmails" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ContactEmail"
+            },
+            "type" : "array"
+          },
+          "firstName" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "type" : "string"
+          },
+          "lastName1" : {
+            "type" : "string"
+          },
+          "lastName2" : {
+            "type" : "string"
+          },
+          "paymentMethod" : {
+            "$ref" : "#/components/schemas/PaymentMethodView"
+          },
+          "phones" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Phone"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "contactEmails", "firstName", "lastName1", "phones" ],
+        "type" : "object"
+      },
       "ReasonRequest" : {
         "properties" : {
           "reason" : {
@@ -12103,10 +12167,12 @@
       "SignupFamilyGroupClaim" : {
         "properties" : {
           "dogName" : {
+            "maxLength" : 40,
             "minLength" : 1,
             "type" : "string"
           },
           "holderName" : {
+            "maxLength" : 120,
             "minLength" : 1,
             "type" : "string"
           },
@@ -12175,6 +12241,7 @@
             "type" : "string"
           },
           "value" : {
+            "maxLength" : 30,
             "minLength" : 1,
             "type" : "string"
           }
@@ -12298,6 +12365,7 @@
           "emails" : {
             "items" : {
               "format" : "email",
+              "maxLength" : 254,
               "minLength" : 1,
               "type" : "string"
             },
@@ -12575,6 +12643,40 @@
           }
         },
         "required" : [ "amountDue", "option", "portion", "startDate", "totalDue" ],
+        "type" : "object"
+      },
+      "SignupReadmission" : {
+        "description" : "R-04-06 (E38): the values of the LEFT record and the values the readmission submitted, side by side; payment methods are masked",
+        "properties" : {
+          "changedFields" : {
+            "description" : "The fields whose submitted value differs from the record (firstName, lastName1, lastName2, gender, birthDate, contactEmails, phones, address, paymentMethod)",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "consents" : {
+            "description" : "The consent entries the validation appends to the ledger",
+            "items" : {
+              "$ref" : "#/components/schemas/ReadmissionConsent"
+            },
+            "type" : "array"
+          },
+          "current" : {
+            "$ref" : "#/components/schemas/ReadmissionValues"
+          },
+          "previousLeftAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "previousLeftReason" : {
+            "type" : "string"
+          },
+          "submitted" : {
+            "$ref" : "#/components/schemas/ReadmissionValues"
+          }
+        },
+        "required" : [ "changedFields", "current", "submitted" ],
         "type" : "object"
       },
       "SignupRequest" : {
@@ -14039,12 +14141,19 @@
           "fileKey" : {
             "type" : "string"
           },
+          "headers" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Headers the storage signed (Content-Type, If-None-Match: *); the PUT must send them unchanged, or S3 answers 403 (R-04-08)",
+            "type" : "object"
+          },
           "uploadUrl" : {
             "format" : "uri",
             "type" : "string"
           }
         },
-        "required" : [ "expiresAt", "fileKey", "uploadUrl" ],
+        "required" : [ "expiresAt", "fileKey", "headers", "uploadUrl" ],
         "type" : "object"
       },
       "UploadUrlRequest" : {
@@ -43410,7 +43519,7 @@
     },
     "/api/v1/members/{id}/rejection" : {
       "post" : {
-        "description" : "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE.",
+        "description" : "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE. A rejected readmission (E38) returns to LEFT exactly as it was: original leftAt, leftReason and data.",
         "operationId" : "reject",
         "parameters" : [ {
           "in" : "path",
@@ -43724,7 +43833,7 @@
     },
     "/api/v1/members/{id}/signup" : {
       "get" : {
-        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING.",
+        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING. A pending readmission (R-04-06, E38) adds `readmission`: the LEFT record's values and the submitted ones, with changedFields; validation applies the submitted ones.",
         "operationId" : "review",
         "parameters" : [ {
           "in" : "path",
@@ -52423,7 +52532,7 @@
     },
     "/api/v1/signup/family-group-lookups" : {
       "post" : {
-        "description" : "R-04-12. ANON; FAMILY_GROUP required; 20/hour. Only holderDisplayName may be disclosed. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
+        "description" : "R-04-12. ANON; FAMILY_GROUP required; 20/hour (signup.rateLimit). Only holderDisplayName may be disclosed. holderName ≤ 120 and dogName ≤ 40 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "familyGroup",
         "requestBody" : {
           "content" : {
@@ -52454,7 +52563,7 @@
                 }
               }
             },
-            "description" : "Bad Request"
+            "description" : "VALIDATION_ERROR"
           },
           "401" : {
             "content" : {
@@ -52504,7 +52613,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "SIGNUP_CLOSED"
           },
           "429" : {
             "content" : {
@@ -52573,7 +52682,7 @@
     },
     "/api/v1/signup/identity-checks" : {
       "post" : {
-        "description" : "R-04-05. ANON; 10/hour. Reveals only result and maskedEmail; recognition queues a verification link through the outbox. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
+        "description" : "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most 3 per recipient and hour. idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "identityCheck",
         "requestBody" : {
           "content" : {
@@ -52604,7 +52713,7 @@
                 }
               }
             },
-            "description" : "INVALID_ID_DOCUMENT"
+            "description" : "VALIDATION_ERROR, INVALID_ID_DOCUMENT"
           },
           "401" : {
             "content" : {
@@ -52654,7 +52763,7 @@
                 }
               }
             },
-            "description" : "ID_DOCUMENT_AMBIGUOUS"
+            "description" : "ID_DOCUMENT_AMBIGUOUS, SIGNUP_CLOSED"
           },
           "429" : {
             "content" : {
@@ -52874,7 +52983,7 @@
     },
     "/api/v1/signup/upload-urls" : {
       "post" : {
-        "description" : "R-04-08. ANON or MEMBER; 30/hour. Signed upload constrained by files.allowedTypes/files.maxSizeMb; at most 10 files per signup. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
+        "description" : "R-04-08. ANON or MEMBER; 30/hour (signup.rateLimit). Signed upload constrained by files.allowedTypes/files.maxSizeMb; at most 10 files per signup. The PUT to uploadUrl must send every header of `headers` unchanged (Content-Type and If-None-Match: *, both signed): without them S3 answers 403, and a second PUT to the same key 412. Anonymous: signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED. Tenant by host. No cookies or CSRF. R-04-20 limits are per club and client IP from proxy-injected X-Forwarded-For; enforced by E3-T03.",
         "operationId" : "uploadUrl",
         "requestBody" : {
           "content" : {
@@ -52905,7 +53014,7 @@
                 }
               }
             },
-            "description" : "FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE"
+            "description" : "VALIDATION_ERROR, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE"
           },
           "401" : {
             "content" : {
@@ -52955,7 +53064,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "SIGNUP_CLOSED"
           },
           "429" : {
             "content" : {

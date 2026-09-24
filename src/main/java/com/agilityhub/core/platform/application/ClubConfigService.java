@@ -39,6 +39,10 @@ public class ClubConfigService implements TimeZoneProvider {
             return cache.get(clubId, this::load);
         }
     }
+    /** The committed club and parameters, never the shared cache: for decisions that must follow a change at once (E3-T09, `SIGNUP_CLOSED`). */
+    public ClubConfig current(String clubId) {
+        try (var scope = TenantContext.open(clubId)) { return load(clubId); }
+    }
     public void invalidate(String clubId) { cache.invalidate(clubId); }
     public void invalidateAfterCommit(String clubId) {
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(

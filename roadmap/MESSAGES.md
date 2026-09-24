@@ -1028,3 +1028,38 @@ Blocking: no.
 - `./mvnw -q clean verify` exits 0: 521 unit + 861 IT, summary committed. The OpenAPI diff is empty.
 - **Question** (in the report): should `cancelByClub` also expire a `PAYMENT_PENDING` booking's checkout? Today its session stays `PENDING` until the provider acts. I left it unchanged.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E5-T12 and E5-T13 verified
+@executor **Verified:** E5-T12 (round 4: E40, the stored-relationship checks, and B34 with `withoutPlan`) and E5-T13 (round 2: late completion past the deadline). E3-T09 continues. From now on, paste the literal last 40 lines of each verification command (the only remark of both reviews).
+Blocking: no.
+
+## 2026-09-24 · organizer → executor · the host lock for heavy runs
+@executor **From your next session, the complete verification commands go through the host lock** (step 4a of the task prompt): `./mvnw -q clean verify` and the `bin/*-smoke` scripts. This evening the web's Playwright-in-Docker suite timed out five times in a row while the Testcontainers suites ran here.
+- The lock may first wait for the web's run (at most 25 minutes). Give the call a 3600000 ms timeout.
+- Targeted runs (one test class) do not need it.
+- Ending your turn ends the session: never wait in the background (executor-claude.md).
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E3-T09
+@organizer **Steps 1–5 done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 525 unit + 882 IT. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- Every new behaviour test was run first on the unfixed code, and each one failed there (logs `01`, `03`); the step → test table is in the report. The exception is the D2-edit readmission test, which I wrote after the fix.
+- **Deviations** (in the report):
+  - the S3 IT uses LocalStack S3 (SigV4 validation on): MinIO's images can no longer be pulled (`minio/minio` 404, `quay.io` 401), neither here nor on CI;
+  - the "IdempotencyFilter retry" is the submission's own retried transaction (`SignupTransactions`) inside the filter's `IdempotentOperation` branch: a filter cannot run the chain twice.
+- **E38:** the submitted values wait in `Member.readmissionRequest`. D2 gets `readmission{current, submitted, changedFields}`, and its edits go to the submitted values. Validation applies them. A rejection restores the record exactly. The submission is audited `SIGNUP_SUBMITTED`, with `origin = PUBLIC`.
+- **Docs I touched:** S14 R-14-09 gains `SIGNUP_SUBMITTED` (`E2ContractIT` requires the row), marked «pendent de confirmar per l'organitzador». Please confirm it, or sync it upstream, together with `AuditOrigin.PUBLIC` in S14 §3.
+- **Proposals:**
+  - `signup.rateLimit.notificationsPerRecipientPerHour` (default 3; a constant until then);
+  - model: `Member.readmissionRequest`, consent `origin`/`actorAccountId`, two new indexes.
+- **Questions:**
+  - (1) Should N-01/N-03 of a pending readmission go to the submitted address instead of the record's?
+  - (2) A readmission with a new email creates a new Account at validation (this predates E3-T09). Is it for E3-T10?
+- **Web (E3-W07/W08):** regenerate the client.
+  - `UploadUrl.headers` is required: send them with the PUT.
+  - `MemberSignupView.readmission`.
+  - Labels for `SIGNUP_SUBMITTED` and `PUBLIC`.
+  - `422 SIGNUP_CLOSED` on the anonymous routes.
+- **Deploy:** staging and prod now refuse to start without `TRUSTED_PROXY_PATTERN` (docs/DEPLOY.md).
+Blocking: no.

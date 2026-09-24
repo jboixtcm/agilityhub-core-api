@@ -36,7 +36,17 @@ public class AttachmentService {
         int max = config().get(purpose.equals("DOG_PHOTO") ? "files.dogPhotoMaxMb" : "files.maxSizeMb", Integer.class);
         if (size <= 0 || size > max * 1024L * 1024) { throw new ApiException(ErrorCode.FILE_TOO_LARGE, Map.of("maxSizeMb", max)); }
     }
+    /**
+     * R-04-27 (E3-T09): the anonymous signup upload routes close with the form, decided on the committed club and
+     * parameters (never a cached configuration). A MEMBER adding a dog keeps them.
+     */
+    private void requireSignupOpen() {
+        if (CurrentUser.current() != null) { return; }
+        var config = configs.current(TenantContext.require());
+        if (!"ACTIVE".equals(config.club().status()) || !Boolean.TRUE.equals(config.get("signup.enabled", Boolean.class))) { throw new ApiException(ErrorCode.SIGNUP_CLOSED); }
+    }
     public Upload signupUpload(String name, String type, long size) {
+        requireSignupOpen();
         validate("SIGNUP_DOCUMENT",type,size);
         if (!(type.startsWith("image/") || type.equals("application/pdf"))) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
         if (name == null || name.isBlank() || name.length() > 80 || name.contains("\r") || name.contains("\n")) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
@@ -62,6 +72,7 @@ public class AttachmentService {
     }
     public void putSignupLocal(String key,long expires,String signature,String type,InputStream input) throws IOException {
         if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        requireSignupOpen();
         var grant=grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND));
         if (!"SIGNUP_DOCUMENT".equals(grant.purpose()) || grant.boundEntity()!=null || !grant.expiresAt().isAfter(clock.instant())) { throw new ApiException(ErrorCode.FILE_NOT_FOUND); }
         local.authorize(key,expires,signature,"PUT");

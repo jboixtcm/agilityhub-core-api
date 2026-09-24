@@ -22,6 +22,8 @@ public class CensusAccess implements DogOwnerAccess {
         this.members = members; this.dogs = dogs; this.groups = groups; this.references = references; this.configs = configs;
     }
     public ClubConfig config() { return configs.get(TenantContext.require()); }
+    /** The committed configuration, bypassing the shared cache (E3-T09: `SIGNUP_CLOSED` follows a change at once). */
+    public ClubConfig currentConfig() { return configs.current(TenantContext.require()); }
     public boolean enabled(Module module) { return config().modules().contains(module); }
     public void require(Module module) { if (!enabled(module)) { throw new ApiException(ErrorCode.MODULE_DISABLED); } }
     public boolean levels() { return Boolean.TRUE.equals(config().get("levels.enabled", Boolean.class)); }

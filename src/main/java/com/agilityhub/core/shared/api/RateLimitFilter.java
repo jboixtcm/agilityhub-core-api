@@ -23,7 +23,15 @@ public final class RateLimitFilter extends OncePerRequestFilter {
     private com.agilityhub.core.shared.application.TenantHostResolver hosts;
     private boolean local;
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.SignupCapabilities signupCapabilities;
+    private java.util.function.Function<String, java.util.Map<?, ?>> signupParameter = clubId -> null;
+    /**
+     * The routes are matched on the path Spring routes: decoded, without `;` parameters and with `//` collapsed, so that
+     * `identity-%63hecks` or `/signup//identity-checks` share the plain route's bucket (M17, R-04-20).
+     */
+    private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
     public void signupHosts(com.agilityhub.core.shared.application.TenantHostResolver hosts, boolean local) { this.hosts=hosts;this.local=local; }
+    /** R-04-20: the club's `signup.rateLimit` (null: the catalog defaults). */
+    public void signupParameter(java.util.function.Function<String, java.util.Map<?, ?>> parameter) { this.signupParameter=parameter; }
 
     public RateLimitFilter(RateLimits limits, SecurityEvents events, ApiExceptionHandler errors, ObjectMapper mapper) {
         this.limits = limits; this.events = events; this.errors = errors; this.mapper = mapper;
@@ -31,7 +39,7 @@ public final class RateLimitFilter extends OncePerRequestFilter {
 
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String path = PATHS.getPathWithinApplication(request);
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var jwt = authentication instanceof JwtAuthenticationToken token && token.isAuthenticated() ? token : null;
         Route route = route(request.getMethod(), path, jwt != null);
@@ -42,8 +50,12 @@ public final class RateLimitFilter extends OncePerRequestFilter {
                 if (clubId == null && hosts != null) clubId=hosts.resolve(local && request.getHeader("X-Club-Host")!=null?request.getHeader("X-Club-Host"):request.getHeader("Host")).orElse(null);
                 subject=java.util.Objects.toString(clubId,"unknown")+":"+request.getRemoteAddr();
             }
-            long retryAfter = limits.retryAfter(route, subject);
-            if (route == Route.SIGNUP_SUBMIT) retryAfter=Math.max(retryAfter,limits.retryAfter(Route.SIGNUP_DAILY,subject));
+            long retryAfter;
+            if (route.name().startsWith("SIGNUP_")) {
+                var parameter = clubId == null ? null : signupParameter.apply(clubId);
+                retryAfter = limits.retryAfter(route, subject, limits.limit(route, parameter));
+                if (route == Route.SIGNUP_SUBMIT) retryAfter=Math.max(retryAfter,limits.retryAfter(Route.SIGNUP_DAILY,subject,limits.limit(Route.SIGNUP_DAILY,parameter)));
+            } else { retryAfter = limits.retryAfter(route, subject); }
             if (retryAfter > 0) {
                 events.record(SecurityEvents.Type.RATE_LIMITED, jwt == null ? null : jwt.getName(),
                         clubId);

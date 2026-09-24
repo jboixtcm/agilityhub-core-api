@@ -28,6 +28,12 @@ public class Member extends CensusEntity {
     @org.springframework.data.convert.ValueConverter(ConsentLedgerConverter.class)
     public Map<String,Object> consents;
     public Map<String,Object> signup;
+    /**
+     * R-04-06 (E38): a pending readmission. `submitted` holds what the applicant sent (person, contacts, address, payment
+     * method, new consent entries) until validation applies it; `previous` holds what a rejection restores (status,
+     * `leftAt`, `leftReason`, `leaveDate`, claim and signup block of the LEFT record). Absent otherwise.
+     */
+    public Map<String,Object> readmissionRequest;
     public Map<String,Object> familyGroupClaim;
     public String remarks;
     public String internalNotes;

@@ -22,13 +22,22 @@ public class AuditWriter {
         this.clock = clock;
     }
 
-    public void write(AuditCommand command) {
+    public void write(AuditCommand command) { write(command, null); }
+
+    /**
+     * {@link #write(AuditCommand)} with an explicit `origin`, for a mutation without an authenticated user: an anonymous
+     * readmission submission is `PUBLIC` (E3-T09, R-04-06). Null keeps the current user's origin.
+     */
+    public void write(AuditCommand command, String origin) {
         write(command.action(), command.entityType(), command.entityId(), command.memberId(), command.reason(),
-                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())));
+                AuditDiff.between(AuditDiff.snapshot(command.before()), AuditDiff.snapshot(command.after())), origin);
     }
 
     void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
-               List<AuditChange> changes) {
+               List<AuditChange> changes) { write(action, entityType, entityId, memberId, reason, changes, null); }
+
+    private void write(AuditAction action, String entityType, String entityId, String memberId, String reason,
+               List<AuditChange> changes, String origin) {
         Objects.requireNonNull(action, "Audit action is required");
         requireText(entityType, "Audit entity type is required");
         requireText(entityId, "Audit entity id is required");
@@ -38,7 +47,7 @@ public class AuditWriter {
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),
-                com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name());
+                origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name());
         // MongoTemplate participates in the caller's transaction, or inserts immediately without one.
         repository.append(entry);
     }

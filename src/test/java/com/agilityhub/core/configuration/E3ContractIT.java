@@ -194,7 +194,13 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema,"SignupUpfront","lines,totalDue,additionalDog");
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("additionalDogOptions")).isTrue();
         properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,texts,legal,countryProfile,upfront,member,allowFamilyGroupPending,requireDogDocumentAtSignup");
-        properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,planOptions,warnDays,version");
+        properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,planOptions,warnDays,version,readmission");
+        // E3-T09: the readmission blocks (E38) are optional; the signup upload returns the signed headers (M16).
+        assertThat(schema.at("/MemberSignupView/required").toString()).doesNotContain("readmission");
+        properties(schema, "SignupReadmission", "current,submitted,changedFields,consents,previousLeftAt,previousLeftReason");
+        properties(schema, "ReadmissionValues", "firstName,lastName1,lastName2,gender,birthDate,contactEmails,phones,address,paymentMethod");
+        properties(schema, "UploadUrl", "uploadUrl,fileKey,expiresAt,headers");
+        assertThat(schema.at("/UploadUrl/required").toString()).contains("headers");
         properties(schema, "ValidationRequest", "version,dogs,planId,priceId,nextInvoiceDate,familyGroupId,upfrontAmountPaid");
         properties(schema, "UpfrontLine", "id,concept,amount,status,paidAmount,provider");
         assertThat(strings(schema.at("/UpfrontLine/properties/concept/enum"))).containsExactly("ENTRY_FEE","FIRST_MONTH","PACK","ADDITIONAL_DOG_FEE");

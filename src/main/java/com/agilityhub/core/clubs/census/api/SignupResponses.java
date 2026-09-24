@@ -88,7 +88,8 @@ public final class SignupResponses {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Town(String name, String region) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record UploadUrl(@Schema(format = "uri") String uploadUrl, String fileKey, Instant expiresAt) { }
+    public record UploadUrl(@Schema(format = "uri") String uploadUrl, String fileKey, Instant expiresAt,
+            @Schema(description = "Headers the storage signed (Content-Type, If-None-Match: *); the PUT must send them unchanged, or S3 answers 403 (R-04-08)") java.util.Map<String, String> headers) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record FamilyGroupLookupResult(FamilyGroupLookupOutcome result, @Schema(requiredMode = NOT_REQUIRED) String holderDisplayName) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
@@ -140,7 +141,21 @@ public final class SignupResponses {
             SignupProposals proposals, List<SignupWarning> warnings,
             @Schema(description = "The assignable plans (active, module enabled, showOnSignup or not) for the D2 plan selector") List<SignupPlanOption> planOptions,
             @Schema(description = "dashboard.pendingSignupAgeWarnDays: the age warning shows when signup.pendingDays > warnDays") int warnDays,
-            long version) { }
+            long version,
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-06 (E38): only for a pending readmission. The LEFT record keeps its values until validation, which applies the submitted ones") SignupReadmission readmission) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    @Schema(description = "R-04-06 (E38): the values of the LEFT record and the values the readmission submitted, side by side; payment methods are masked")
+    public record SignupReadmission(ReadmissionValues current, ReadmissionValues submitted,
+            @Schema(description = "The fields whose submitted value differs from the record (firstName, lastName1, lastName2, gender, birthDate, contactEmails, phones, address, paymentMethod)") List<String> changedFields,
+            @Schema(requiredMode = NOT_REQUIRED, description = "The consent entries the validation appends to the ledger") List<ReadmissionConsent> consents,
+            @Schema(requiredMode = NOT_REQUIRED) Instant previousLeftAt, @Schema(requiredMode = NOT_REQUIRED) String previousLeftReason) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record ReadmissionValues(String firstName, String lastName1, @Schema(requiredMode = NOT_REQUIRED) String lastName2,
+            @Schema(requiredMode = NOT_REQUIRED) Gender gender, @Schema(requiredMode = NOT_REQUIRED) LocalDate birthDate,
+            List<ContactEmail> contactEmails, List<Phone> phones, @Schema(requiredMode = NOT_REQUIRED) Address address,
+            @Schema(requiredMode = NOT_REQUIRED) PaymentMethodView paymentMethod) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record ReadmissionConsent(@Schema(allowableValues = {"PRIVACY_POLICY", "IMAGE_USE"}) String type, boolean granted, String version) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupPlanOptionPrice(@Schema(format = "uuid") String priceId, Money amount,
             @Schema(allowableValues = {"MONTHLY", "ONE_OFF"}) String periodicity,

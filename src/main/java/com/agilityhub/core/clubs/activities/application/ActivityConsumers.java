@@ -17,7 +17,12 @@ public class ActivityConsumers {
         });
     }
     @Bean("activities.parameter-cache") DomainEventHandler<ActivityExternalEvent> parameterCache(PublicActivityService service) {
-        return external("ParameterChanged",event -> service.invalidate(event.clubId()));
+        var handler=external("ParameterChanged",event -> service.invalidate(event.clubId()));
+        return new DomainEventHandler<>() {
+            public String eventType() { return handler.eventType(); } public Class<ActivityExternalEvent> eventClass() { return handler.eventClass(); }
+            public void handle(String id,ActivityExternalEvent event) throws Exception { handler.handle(id,event); }
+            @Override public boolean evictsAfterCommit() { return true; }
+        };
     }
     @Bean("activities.published-cache") DomainEventHandler<ActivityEvent> published(PublicActivityService service) { return own("ActivityPublished",service); }
     @Bean("activities.updated-cache") DomainEventHandler<ActivityEvent> updated(PublicActivityService service) { return own("ActivityUpdated",service); }
@@ -28,6 +33,8 @@ public class ActivityConsumers {
         return new DomainEventHandler<>() {
             public String eventType() { return type; } public Class<ActivityEvent> eventClass() { return ActivityEvent.class; }
             public void handle(String id,ActivityEvent event) { service.invalidate(event.clubId()); }
+            // E3-T09 step 5: the public page of an activity just published, changed or cancelled is fresh right after the commit.
+            @Override public boolean evictsAfterCommit() { return true; }
         };
     }
     private DomainEventHandler<ActivityExternalEvent> external(String type,java.util.function.Consumer<ActivityExternalEvent> work) {

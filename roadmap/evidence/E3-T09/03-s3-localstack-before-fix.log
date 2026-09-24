@@ -1,0 +1,135 @@
+20:07:00.105 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupS3UploadIT
+20:07:00.166 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+20:07:00.167 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+20:07:00.171 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+20:07:00.259 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+20:07:00.395 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+20:07:00.395 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+20:07:00.406 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+20:07:00.537 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+20:07:00.645 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+20:07:00.704 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 66cc8d367411983fb2a973344757118344e06dc87e54ba84fed804db2ca7ff75
+20:07:00.866 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.3296S
+20:07:00.872 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+20:07:00.872 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+20:07:00.872 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+20:07:00.872 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+20:07:00.924 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 5ce02f8aec984cbbdd7d034cda2f9571baaa97b3e5165217453b2019002f6779
+20:07:01.418 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.546253S
+Integration JVM availableProcessors=18
+20:07:02.130 [main] INFO tc.localstack/localstack:3.8.1 -- Pulling docker image: localstack/localstack:3.8.1. Please be patient; this may take some time but only needs to be done once.
+20:07:03.758 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Starting to pull image
+20:07:03.777 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  0 pending,  0 downloaded,  0 extracted, (0 bytes/0 bytes)
+20:07:04.342 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 24 pending,  1 downloaded,  0 extracted, (0 bytes/? MB)
+20:07:04.743 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 23 pending,  2 downloaded,  0 extracted, (17 MB/? MB)
+20:07:04.843 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 22 pending,  3 downloaded,  0 extracted, (21 MB/? MB)
+20:07:04.844 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 21 pending,  4 downloaded,  0 extracted, (28 MB/? MB)
+20:07:04.942 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 20 pending,  5 downloaded,  0 extracted, (28 MB/? MB)
+20:07:05.242 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 19 pending,  6 downloaded,  0 extracted, (54 MB/? MB)
+20:07:05.643 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 18 pending,  7 downloaded,  0 extracted, (76 MB/? MB)
+20:07:05.643 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 17 pending,  8 downloaded,  0 extracted, (76 MB/? MB)
+20:07:05.942 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 16 pending,  9 downloaded,  0 extracted, (99 MB/? MB)
+20:07:06.042 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 15 pending, 10 downloaded,  0 extracted, (113 MB/? MB)
+20:07:06.104 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 15 pending, 10 downloaded,  1 extracted, (113 MB/? MB)
+20:07:06.142 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 14 pending, 11 downloaded,  1 extracted, (118 MB/? MB)
+20:07:06.242 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 13 pending, 12 downloaded,  1 extracted, (127 MB/? MB)
+20:07:06.259 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 13 pending, 12 downloaded,  2 extracted, (127 MB/? MB)
+20:07:06.343 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 12 pending, 13 downloaded,  2 extracted, (127 MB/? MB)
+20:07:06.484 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 11 pending, 14 downloaded,  2 extracted, (134 MB/? MB)
+20:07:06.496 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 11 pending, 14 downloaded,  3 extracted, (142 MB/? MB)
+20:07:06.500 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 11 pending, 14 downloaded,  4 extracted, (142 MB/? MB)
+20:07:06.541 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers: 10 pending, 15 downloaded,  4 extracted, (142 MB/? MB)
+20:07:06.745 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  9 pending, 16 downloaded,  4 extracted, (161 MB/? MB)
+20:07:06.942 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  8 pending, 17 downloaded,  4 extracted, (165 MB/? MB)
+20:07:07.346 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  7 pending, 18 downloaded,  4 extracted, (183 MB/? MB)
+20:07:07.842 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  6 pending, 19 downloaded,  4 extracted, (196 MB/? MB)
+20:07:10.787 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  5 pending, 20 downloaded,  4 extracted, (353 MB/? MB)
+20:07:10.942 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  4 pending, 21 downloaded,  4 extracted, (358 MB/? MB)
+20:07:11.042 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  3 pending, 22 downloaded,  4 extracted, (363 MB/? MB)
+20:07:13.842 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  2 pending, 23 downloaded,  4 extracted, (554 MB/? MB)
+20:07:14.149 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded,  4 extracted, (584 MB/? MB)
+20:07:14.719 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded,  5 extracted, (584 MB/? MB)
+20:07:15.465 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded,  6 extracted, (584 MB/? MB)
+20:07:15.471 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded,  7 extracted, (584 MB/? MB)
+20:07:15.484 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded,  8 extracted, (584 MB/? MB)
+20:07:15.500 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded,  9 extracted, (584 MB/? MB)
+20:07:15.549 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 10 extracted, (584 MB/? MB)
+20:07:15.646 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 11 extracted, (584 MB/? MB)
+20:07:15.674 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 12 extracted, (584 MB/? MB)
+20:07:15.701 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 13 extracted, (584 MB/? MB)
+20:07:16.447 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 14 extracted, (584 MB/? MB)
+20:07:19.846 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 15 extracted, (584 MB/? MB)
+20:07:19.874 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 16 extracted, (584 MB/? MB)
+20:07:19.879 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 17 extracted, (584 MB/? MB)
+20:07:20.048 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 18 extracted, (584 MB/? MB)
+20:07:20.055 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 19 extracted, (584 MB/? MB)
+20:07:20.249 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 20 extracted, (584 MB/? MB)
+20:07:21.325 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 21 extracted, (584 MB/? MB)
+20:07:21.334 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 22 extracted, (584 MB/? MB)
+20:07:21.344 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 23 extracted, (584 MB/? MB)
+20:07:21.349 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 24 extracted, (584 MB/? MB)
+20:07:21.358 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pulling image layers:  1 pending, 24 downloaded, 25 extracted, (584 MB/? MB)
+20:07:21.361 [docker-java-stream--811209232] INFO tc.localstack/localstack:3.8.1 -- Pull complete. 25 layers, pulled in 17s (downloaded 584 MB at 34 MB/s)
+20:07:21.361 [main] INFO tc.localstack/localstack:3.8.1 -- Image localstack/localstack:3.8.1 pull took PT19.230636S
+20:07:21.451 [main] INFO tc.localstack/localstack:3.8.1 -- Creating container for image: localstack/localstack:3.8.1
+20:07:22.068 [main] INFO tc.localstack/localstack:3.8.1 -- Container localstack/localstack:3.8.1 is starting: d17b28da76dcd5e8be35b9b65708206f3ab874f1d546380f4185507a189c6d37
+20:07:22.222 [main] INFO org.testcontainers.containers.wait.strategy.HttpWaitStrategy -- /brave_joliot: Waiting for 300 seconds for URL: http://localhost:55081/_localstack/health (where port 55081 maps to container port 4566)
+20:07:27.257 [main] INFO tc.localstack/localstack:3.8.1 -- Container localstack/localstack:3.8.1 started in PT5.805675S
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-24T20:07:27.507+02:00  INFO 98761 --- [agilityhub-core-api] [           main] c.a.c.clubs.census.api.SignupS3UploadIT  : Starting SignupS3UploadIT using Java 21.0.12.1 with PID 98761 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-24T20:07:27.508+02:00  INFO 98761 --- [agilityhub-core-api] [           main] c.a.c.clubs.census.api.SignupS3UploadIT  : The following 1 profile is active: "test"
+2026-09-24T20:07:28.460+02:00  INFO 98761 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-24T20:07:28.500+02:00  INFO 98761 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 35 ms. Found 0 MongoDB repository interfaces.
+2026-09-24T20:07:28.861+02:00  INFO 98761 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3d763ae5], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2dfab167, com.mongodb.Jep395RecordCodecProvider@30eee098, com.mongodb.KotlinCodecProvider@3123ba75]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:55057], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3d8e1fa6], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-24T20:07:28.870+02:00  INFO 98761 --- [agilityhub-core-api] [localhost:55057] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:55057, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11780208, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=5ce02f8aec98:27017, hosts=[5ce02f8aec98:27017], passives=[], arbiters=[], primary='5ce02f8aec98:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab566c57cc88a98c8ef86b6, counter=6}, lastWriteDate=Thu Sep 24 20:07:21 CEST 2026, lastUpdateTimeNanos=135787167215166}
+2026-09-24T20:07:31.999+02:00  INFO 98761 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-24T20:07:31.999+02:00  INFO 98761 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-24T20:07:32.000+02:00  INFO 98761 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-24T20:07:32.041+02:00  INFO 98761 --- [agilityhub-core-api] [           main] c.a.c.clubs.census.api.SignupS3UploadIT  : Started SignupS3UploadIT in 4.669 seconds (process running for 32.387)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 33.03 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupS3UploadIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupS3UploadIT.R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce -- Time elapsed: 0.587 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual not to be null
+	at com.agilityhub.core.clubs.census.api.SignupS3UploadIT.R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce(SignupS3UploadIT.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SignupS3UploadIT.R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce:103 
+Expecting actual not to be null
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1

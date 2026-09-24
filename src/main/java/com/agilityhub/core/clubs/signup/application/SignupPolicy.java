@@ -184,6 +184,8 @@ public class SignupPolicy {
         return ConsentPolicy.entries(request,new ConsentPolicy.Legal(legalVersion),addDog,history(history),clock,locale,ipHash).stream()
                 .map(e -> new Consent(e.type().name(),e.granted(),e.version(),e.acceptedAt(),e.locale(),e.ipHash(),e.source())).toList();
     }
+    /** R-04-05: the `maskedEmail` of an identity check («m•••a@e•••.cat»). */
+    public String maskedEmail(String email) { return EmailRules.masked(email); }
     public Optional<Match> family(String holder, String dog, List<Candidate> candidates) {
         return FamilyHolderMatcher.match(TenantContext.require(),holder,dog,candidates.stream().map(c -> new FamilyHolderMatcher.Candidate(c.clubId(),c.memberId(),
                 FamilyHolderMatcher.MemberStatus.valueOf(c.status()),c.firstName(),c.lastName1(),c.lastName2(),c.dogs().stream()

@@ -53,6 +53,8 @@ public class PlatformConfiguration {
             @Override public String eventType() { return type; }
             @Override public Class<ClubConfigChanged> eventClass() { return ClubConfigChanged.class; }
             @Override public void handle(String eventId, ClubConfigChanged event) { configs.invalidate(event.clubId()); hosts.invalidate(); }
+            // E3-T09 step 5: a host added or a status changed resolves right after the commit (the host cache lasts 5 min).
+            @Override public boolean evictsAfterCommit() { return true; }
         };
     }
 }

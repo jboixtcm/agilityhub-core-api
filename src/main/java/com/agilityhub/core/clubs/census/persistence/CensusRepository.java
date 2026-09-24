@@ -20,6 +20,13 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     }
     public T require(String id) { return findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public List<T> matching(Criteria criteria) { return mongo.find(tenantQuery().addCriteria(criteria), type); }
+    /** Case- and accent-insensitive comparison (primary strength), the collation of {@link #ensureNameIndex}. */
+    public static final Collation NAME_COLLATION = Collation.of("en").strength(Collation.ComparisonLevel.primary());
+    /** {@link #matching} compared with {@link #NAME_COLLATION}, so the `{clubId, name}` index of that collation serves it. */
+    public List<T> matchingIgnoringCase(Criteria criteria) { return mongo.find(tenantQuery().addCriteria(criteria).collation(NAME_COLLATION), type); }
+    public void ensureNameIndex() {
+        mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("name", Sort.Direction.ASC).collation(NAME_COLLATION).named("name_ci"));
+    }
     public void ensureIndexes(String field, String bsonType, String name) {
         mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)
                 .unique().partial(PartialIndexFilter.of(new Document(field, new Document("$type", bsonType)))).named(name));

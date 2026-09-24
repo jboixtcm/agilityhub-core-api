@@ -137,13 +137,16 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // S09 bookings and cancellations retry DuplicateKey/WriteConflict inside their own transaction (R-09-06) and replay likewise.
         boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim")
                 || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation");
-        if (bookings || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
+        // so two concurrent submissions give one 201 and one 422, never a 500.
+        boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup");
+        if (bookings || signup || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;
             var operation = com.agilityhub.core.shared.application.IdempotentOperation.open(
                     () -> records.lock(record), (status, bytes) -> {
-                        records.complete(record, status, bytes, Map.of("Content-Type", List.of("application/json"),
+                        records.complete(record, status, anonymous ? capabilities.seal(bytes, record.id()) : bytes, Map.of("Content-Type", List.of("application/json"),
                                 "Content-Language", List.of(com.agilityhub.core.shared.application.LocaleContext.current().toLanguageTag())));
                         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
                                 new org.springframework.transaction.support.TransactionSynchronization() {

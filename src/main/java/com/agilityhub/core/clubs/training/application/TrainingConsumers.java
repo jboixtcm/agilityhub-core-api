@@ -82,6 +82,8 @@ public class TrainingConsumers {
             return new DomainEventHandler<>() {
                 public String eventType() { return type; } public Class<TrainingForeignEvent> eventClass() { return TrainingForeignEvent.class; }
                 public void handle(String id, TrainingForeignEvent event) { consumers.handle(type, event); }
+                // E3-T09 step 5: a class cancelled or a ring blocked shows in the grid right after the commit.
+                @Override public boolean evictsAfterCommit() { return true; }
             };
         }
     }

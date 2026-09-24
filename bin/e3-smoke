@@ -295,6 +295,8 @@ class Smoke:
         pdf = fictional_pdf()
         upload = self.call("POST", "/api/v1/signup/upload-urls", body=dict(fileName="fictional.pdf", contentType="application/pdf", sizeBytes=len(pdf)))
         require(upload["uploadUrl"].startswith("/api/v1/signup/uploads?"), "Expected a local signed upload")
+        # E3-T09 (M16): the route returns the headers the storage signed; S3 refuses a PUT without them.
+        require(upload.get("headers") == {"Content-Type": "application/pdf", "If-None-Match": "*"}, "Expected the signed upload headers")
         self.call("PUT", upload["uploadUrl"], 204, raw=pdf, mime="application/pdf")
         request["dog"]["documents"] = [dict(type="VACCINATION_CARD", files=[dict(fileKey=upload["fileKey"], name="fictional.pdf")])]
         key = str(uuid.uuid4())

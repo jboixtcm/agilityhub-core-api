@@ -169,12 +169,37 @@ app.example.test {
 monolith both routes can use `core:8080`; `id` is the identity upstream name when
 separately routed. Preserve the original `Host`, `Origin`, `Referer`, `Cookie` and
 all `Set-Cookie` response headers, including the two logout headers. Do not rewrite
-cookie paths or domains. Caddy preserves Host for these HTTP upstreams. On an API
-reachable only through the trusted proxy, enable Spring's
-`server.forward-headers-strategy=framework` to recognize HTTPS forwarded by Caddy.
-The proxy must overwrite client-supplied forwarding headers. Keep the management
-port and direct upstream ports private. Register and verify each club host and its
-OIDC callback before directing traffic to it.
+cookie paths or domains. Caddy preserves Host for these HTTP upstreams. The proxy
+must overwrite client-supplied forwarding headers. Keep the management port and
+direct upstream ports private. Register and verify each club host and its OIDC
+callback before directing traffic to it.
+
+### Client address behind Caddy (`TRUSTED_PROXY_PATTERN`, E3-T09)
+
+The API runs with `server.forward-headers-strategy: native` (`application.yml`):
+Tomcat's RemoteIpValve replaces the peer address with the client address of
+`X-Forwarded-For`, and takes the scheme from `X-Forwarded-Proto`, **only** when the
+peer matches `server.tomcat.remoteip.internal-proxies`, fed by the environment
+variable `TRUSTED_PROXY_PATTERN` (a Java regex over the Caddy peers' IP addresses).
+That client address is the key of the signup rate limits (R-04-20, per club and IP)
+and the source of the consent `ipHash` (R-04-17).
+
+- `staging` and `prod` refuse to start with an empty pattern
+  (`TrustedProxyConfiguration`: «TRUSTED_PROXY_PATTERN is empty…»). Without it, every
+  applicant would share Caddy's address: one limiter bucket per club (five bot
+  submissions an hour would close the form for everyone) and one `ipHash`.
+- Match only the proxy: the address Caddy connects from on the Compose network,
+  e.g. `TRUSTED_PROXY_PATTERN=172\.18\.\d{1,3}\.\d{1,3}` for a `172.18.0.0/16`
+  bridge (check it with `docker network inspect`), or `127\.0\.0\.1` when Caddy runs
+  on the host. Never a pattern that matches arbitrary clients: a trusted peer can
+  set any `X-Forwarded-For`.
+- Caddy's `reverse_proxy` sets `X-Forwarded-For` and `X-Forwarded-Proto` itself; a
+  client-sent value is only kept when Caddy's own `trusted_proxies` allows it, so
+  leave `trusted_proxies` unset unless another proxy sits in front of Caddy.
+- `local` and `test` keep the empty default (no proxy is trusted; the peer is the client).
+
+The limiter matches the decoded, normalised path that Spring routes, so
+percent-encoded or `//` variants of a signup route share its bucket.
 
 A browser refresh posts form data `grant_type=refresh_token&client_id=clubs-app`
 to `/oauth2/token`, with `credentials: 'same-origin'`. The browser sends the cookie;
@@ -256,21 +281,39 @@ prefixes, or separate private buckets. Set `EXPORT_S3_BUCKET`, `EXPORT_S3_REGION
 accept an optional `*_S3_ENDPOINT` for a compatible provider. Keep credentials in
 the deployment environment. Limit the export principal to Get/Put/DeleteObject
 under `exports/`; limit the attachment principal to Get/PutObject (including HEAD)
-under `attachments/` and `signup/`. A shared principal needs the union of those
-permissions, restricted to those three prefixes. Public access must remain disabled.
+under `attachments/` and `signup/`, plus `s3:DeleteObject` under `signup/`: the S15
+cleanup job (`CleanupJob`, `jobs.retention.orphanUploadsHours`) deletes the signup
+uploads that no submission claimed (R-04-08). A shared principal needs the union of
+those permissions, restricted to those three prefixes. Public access must remain disabled.
+
+Example attachment policy (replace the fictional bucket name):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject"],
+     "Resource": ["arn:aws:s3:::example-attachments/attachments/*", "arn:aws:s3:::example-attachments/signup/*"]},
+    {"Effect": "Allow", "Action": ["s3:DeleteObject"],
+     "Resource": ["arn:aws:s3:::example-attachments/signup/*"]}
+  ]
+}
+```
 
 Configure the bucket's CORS allowlist for the actual HTTPS app/admin origins.
 Attachment uploads use presigned `PUT` requests binding `Content-Type`,
 `Content-Length` and `If-None-Match: *`; allow those headers and the `PUT` method
-(the browser sets Content-Length). Allow `GET`/`HEAD` if the frontend fetches
+(the browser sets Content-Length). Every upload route, the signup ones included
+(`POST /signup/upload-urls`, E3-T09), returns the signed `headers`; the client must
+send them unchanged, or S3 answers 403 (and 412 to a second PUT on the same key). Allow `GET`/`HEAD` if the frontend fetches
 signed downloads directly. Attachment links last five minutes. Export links expire
 with the file seven days after READY; the existing worker deletes expired export
 objects. Use lifecycle expiration on `exports/` as a crash-cleanup backstop with
 slack beyond that seven-day READY window. Abort incomplete multipart uploads as
 an additional backstop. Do not apply blanket expiry to `attachments/`: completed
-attachments remain live. The current adapter has no orphan-object tagging or
-cleanup worker; reconcile unreferenced uploads against attachment metadata before
-deleting them. Bucket age alone does not distinguish abandoned and live uploads.
+attachments remain live. Orphan `signup/` uploads are deleted by the S15 cleanup
+job (above); `attachments/` has no orphan-object tagging or cleanup worker yet:
+reconcile unreferenced uploads against attachment metadata before deleting them. Bucket age alone does not distinguish abandoned and live uploads.
 
 `staging`/`prod` require both sets of bucket, region and credentials; missing
 values fail startup with a missing-configuration error, even when `local` is also

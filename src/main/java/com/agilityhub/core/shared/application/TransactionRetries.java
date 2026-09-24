@@ -35,6 +35,14 @@ public class TransactionRetries {
         return registry.find(EXHAUSTED).tag("context", context).counters().stream().mapToDouble(Counter::count).sum();
     }
 
+    /** A Mongo `TransientTransactionError` or `WriteConflict` anywhere in the cause chain: the whole unit of work may run again. */
+    public static boolean transientFailure(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof com.mongodb.MongoException mongo && (mongo.hasErrorLabel("TransientTransactionError") || mongo.getCode() == 112)) { return true; }
+        }
+        return false;
+    }
+
     static String cause(Throwable failure) {
         for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
             if (cause instanceof org.springframework.dao.DuplicateKeyException) { return "duplicate_key"; }

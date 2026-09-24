@@ -22,7 +22,10 @@ public class PlanningEvents {
         return new DomainEventHandler<>() {
             public String eventType() { return type; }
             public Class<Event> eventClass() { return Event.class; }
-            public void handle(String eventId, Event event) { query.invalidateAfterCommit(event.clubId()); }
+            // The writer has committed when a handler runs (outbox delivery or after-commit eviction): evict at once.
+            public void handle(String eventId, Event event) { query.invalidate(event.clubId()); }
+            // E3-T09 step 5: a level, ring, instructor or parameter changed shows in the template right after the commit.
+            @Override public boolean evictsAfterCommit() { return true; }
         };
     }
 }

@@ -1,0 +1,18 @@
+Command: ./mvnw -q clean verify  (exit 0, roadmap/evidence/E3-T09/11-verify-final.log)
+surefire (unit): classes=116 tests=525 failures=0 errors=0 skipped=0
+failsafe (integration): classes=81 tests=882 failures=0 errors=0 skipped=0
+Classes this task adds or changes:
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=16 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupS3UploadIT: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.api.TrustedProxyClientIpIT: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.api.UntrustedPeerClientIpIT: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.TrustedProxyConfigurationTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.RateLimitsTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.signup.domain.SignupContactsTest: tests=12 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.scheduling.application.TemplateQueryTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.SecurityHeadersIT: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=31 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E2ContractIT: tests=15 failures=0 errors=0 skipped=0

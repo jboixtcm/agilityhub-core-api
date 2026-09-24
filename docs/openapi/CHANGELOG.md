@@ -2,6 +2,32 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-24 · E3-T09 · gate E3 fixes (api 2/3): signed upload headers, readmission blocks (E38), anonymous-route statuses
+
+**0 operations added, 6 changed** (paths unchanged). Additive except where marked:
+
+- `POST /signup/upload-urls` (`UploadUrl`): `headers` (map, **required**): the headers the storage signed
+  (`Content-Type`, `If-None-Match: *`). The client must send them unchanged with the PUT; on S3 a PUT without them
+  answers 403, and a second PUT on the same key 412 (M16, R-04-08). The add-dog flow uses the same route.
+- `GET /members/{id}/signup` (`MemberSignupView`): optional `readmission` (`SignupReadmission{current, submitted:
+  ReadmissionValues, changedFields[], consents[ReadmissionConsent], previousLeftAt?, previousLeftReason?}`), only for a
+  pending readmission (R-04-06, E38): the LEFT record keeps its values until validation, which applies the submitted
+  ones. `ReadmissionValues{firstName, lastName1, lastName2?, gender?, birthDate?, contactEmails[], phones[], address?,
+  paymentMethod? (masked PaymentMethodView)}`.
+- Anonymous-route statuses (R-04-27, R-04-20):
+  - `POST /signup/identity-checks`, `POST /signup/family-group-lookups` and `POST /signup/upload-urls` (anonymous)
+    answer `422 SIGNUP_CLOSED` when `signup.enabled = false` or the club is not `ACTIVE`, like `POST /signup` (the
+    local `PUT /signup/uploads` too; hidden route);
+  - `400 VALIDATION_ERROR` on the new bounds: `idDocument.value` ≤ 30, each email ≤ 254, `holderName` ≤ 120 and
+    `dogName` ≤ 40 characters (also in `SignupRequest.person` and `familyGroupClaim`); the `maxLength`s are in the schemas;
+  - `maskedEmail` has the R-04-05 shape («m•••a@e•••.cat») and masks the account's access address, where N-39 goes
+    (value change).
+- `POST /members/{id}/rejection`: a rejected readmission returns to `LEFT` with its original `leftAt`, `leftReason` and
+  data (description; E38).
+- Audit (`GET /audit-entries`, `/audit-entries/{id}`, `/audit-entries/filter-values`): `AuditAction` gains `SIGNUP_SUBMITTED` (a readmission
+  submission) and `AuditOrigin` gains `PUBLIC` (its origin). **Enum additions**: a client with an exhaustive switch
+  must add both.
+
 ## 2026-09-24 · E3-T08 round 2 · `PAID_EXCEEDS_QUOTE` (E39b) and the billed price of a plan option
 
 **0 operations added, 2 changed** (paths unchanged), additive:

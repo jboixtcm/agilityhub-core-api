@@ -107,6 +107,14 @@ class SignupContactsTest {
             error(() -> EmailRules.normalize(Arrays.asList(bad)), ErrorCode.VALIDATION_ERROR);
         }
     }
+    @Test void R_04_05_maskedEmailKeepsTheFirstAndLastCharactersAndTheTopLevelDomain() {
+        assertThat(EmailRules.masked("marta@exemple.cat")).isEqualTo("m•••a@e•••.cat");
+        assertThat(EmailRules.masked("marta.access@exemple.test")).isEqualTo("m•••s@e•••.test");
+        assertThat(EmailRules.masked("a@example.co.uk")).isEqualTo("a•••@e•••.uk");
+        assertThat(EmailRules.masked("pau@localhost")).isEqualTo("p•••u@l•••");
+        assertThat(EmailRules.masked("broken")).isEqualTo("•••");
+        assertThat(EmailRules.masked("@example.test")).isEqualTo("•••");
+    }
     static void error(org.assertj.core.api.ThrowableAssert.ThrowingCallable call, ErrorCode code) {
         assertThatThrownBy(call).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(code));
     }

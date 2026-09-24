@@ -1,0 +1,305 @@
+19:58:36.757 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupS3UploadIT
+19:58:36.811 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+19:58:36.812 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+19:58:36.816 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+19:58:36.902 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+19:58:37.040 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+19:58:37.041 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+19:58:37.051 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+19:58:37.183 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+19:58:37.277 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+19:58:37.335 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 2b4b462d6ec54be76845d1b73989b6f6ac298c7dfe5f1f0cacc712d7fd8bf103
+19:58:37.510 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.327844S
+19:58:37.514 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+19:58:37.514 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+19:58:37.514 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+19:58:37.515 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+19:58:37.573 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 506a34dbac7c2fb2d94f03dee2cf021bb42a798874a434cdeaa1060254b3b588
+19:58:38.053 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.538252S
+Integration JVM availableProcessors=18
+19:58:38.716 [main] INFO tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Pulling docker image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z. Please be patient; this may take some time but only needs to be done once.
+19:58:38.765 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for quay.io
+19:58:39.714 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:39.715 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (119s remaining)
+19:58:40.752 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:40.752 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (117s remaining)
+19:58:41.900 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:41.900 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (116s remaining)
+19:58:43.231 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:43.232 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (115s remaining)
+19:58:44.951 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:44.951 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (113s remaining)
+19:58:47.519 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:47.520 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (111s remaining)
+19:58:51.750 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:51.750 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (106s remaining)
+19:58:59.180 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:58:59.180 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (99s remaining)
+19:59:13.035 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:59:13.036 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (85s remaining)
+19:59:39.569 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+19:59:39.570 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (59s remaining)
+20:00:32.658 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:00:32.658 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (6s remaining)
+20:02:15.084 [main] INFO tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Pulling docker image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z. Please be patient; this may take some time but only needs to be done once.
+20:02:16.585 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:16.586 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (118s remaining)
+20:02:17.811 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:17.811 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (117s remaining)
+20:02:19.022 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:19.022 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (116s remaining)
+20:02:20.465 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:20.466 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (114s remaining)
+20:02:23.158 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:23.158 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (111s remaining)
+20:02:25.771 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:25.772 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (109s remaining)
+20:02:29.899 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:29.900 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (105s remaining)
+20:02:37.375 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:37.375 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (97s remaining)
+20:02:51.400 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:02:51.400 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (83s remaining)
+20:03:18.792 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:03:18.793 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (56s remaining)
+20:04:11.022 [docker-java-stream-1327747136] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-04-22T22-12-26Z: 401 Unauthorized"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+20:04:11.023 [main] WARN tc.quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z (4s remaining)
+[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 436.9 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupS3UploadIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupS3UploadIT.R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce -- Time elapsed: 0.007 s <<< ERROR!
+java.lang.ExceptionInInitializerError
+	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized0(Native Method)
+	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized(Unsafe.java:1160)
+	at java.base/java.lang.reflect.Constructor.acquireConstructorAccessor(Constructor.java:549)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.testcontainers.containers.ContainerFetchException: Can't get Docker image: RemoteDockerImage(imageName=quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z, imagePullPolicy=DefaultPullPolicy(), imageNameSubstitutor=org.testcontainers.utility.ImageNameSubstitutor$LogWrappedImageNameSubstitutor@862f408)
+	at org.testcontainers.containers.GenericContainer.getDockerImageName(GenericContainer.java:1364)
+	at org.testcontainers.containers.GenericContainer.doStart(GenericContainer.java:351)
+	at org.testcontainers.containers.GenericContainer.start(GenericContainer.java:322)
+	at com.agilityhub.core.clubs.census.api.SignupS3UploadIT.<clinit>(SignupS3UploadIT.java:52)
+	... 8 more
+Caused by: org.testcontainers.shaded.org.awaitility.core.ConditionTimeoutException: Condition org.testcontainers.images.RemoteDockerImage$$Lambda/0x000000780132f978 was not fulfilled within 2 minutes.
+	at org.testcontainers.shaded.org.awaitility.core.ConditionAwaiter.await(ConditionAwaiter.java:167)
+	at org.testcontainers.shaded.org.awaitility.core.CallableCondition.await(CallableCondition.java:78)
+	at org.testcontainers.shaded.org.awaitility.core.CallableCondition.await(CallableCondition.java:26)
+	at org.testcontainers.shaded.org.awaitility.core.ConditionFactory.until(ConditionFactory.java:985)
+	at org.testcontainers.shaded.org.awaitility.core.ConditionFactory.until(ConditionFactory.java:954)
+	at org.testcontainers.images.RemoteDockerImage.resolve(RemoteDockerImage.java:109)
+	at org.testcontainers.images.RemoteDockerImage.resolve(RemoteDockerImage.java:35)
+	at org.testcontainers.utility.LazyFuture.getResolvedValue(LazyFuture.java:20)
+	at org.testcontainers.utility.LazyFuture.get(LazyFuture.java:41)
+	at org.testcontainers.containers.GenericContainer.getDockerImageName(GenericContainer.java:1362)
+	... 11 more
+
+20:05:53.456 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.shared.api.TrustedProxyClientIpIT]: TrustedProxyClientIpIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:05:53.513 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.api.TrustedProxyClientIpIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-24T20:05:53.658+02:00  INFO 95266 --- [agilityhub-core-api] [           main] c.a.c.shared.api.TrustedProxyClientIpIT  : Starting TrustedProxyClientIpIT using Java 21.0.12.1 with PID 95266 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-24T20:05:53.659+02:00  INFO 95266 --- [agilityhub-core-api] [           main] c.a.c.shared.api.TrustedProxyClientIpIT  : The following 1 profile is active: "test"
+2026-09-24T20:05:54.511+02:00  INFO 95266 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-24T20:05:54.541+02:00  INFO 95266 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 27 ms. Found 0 MongoDB repository interfaces.
+2026-09-24T20:05:54.880+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-24T20:05:54.887+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-24T20:05:54.887+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-24T20:05:54.912+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-24T20:05:54.912+02:00  INFO 95266 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1249 ms
+2026-09-24T20:05:55.013+02:00  INFO 95266 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@45f70f68], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16e3d6d0, com.mongodb.Jep395RecordCodecProvider@406d922, com.mongodb.KotlinCodecProvider@56017274]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54592], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2bf0bb93], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-24T20:05:55.020+02:00  INFO 95266 --- [agilityhub-core-api] [localhost:54592] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54592, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8683792, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=506a34dbac7c:27017, hosts=[506a34dbac7c:27017], passives=[], arbiters=[], primary='506a34dbac7c:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab564cd32006dc88cbf39f0, counter=6}, lastWriteDate=Thu Sep 24 20:05:48 CEST 2026, lastUpdateTimeNanos=135693319407083}
+2026-09-24T20:05:55.479+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-24T20:05:57.734+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 54984 (http) with context path '/'
+2026-09-24T20:05:57.765+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-24T20:05:57.765+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-24T20:05:57.765+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-24T20:05:57.777+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-24T20:05:57.777+02:00  INFO 95266 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 42 ms
+2026-09-24T20:05:57.784+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-24T20:05:57.806+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 54985 (http) with context path '/'
+2026-09-24T20:05:57.814+02:00  INFO 95266 --- [agilityhub-core-api] [           main] c.a.c.shared.api.TrustedProxyClientIpIT  : Started TrustedProxyClientIpIT in 4.287 seconds (process running for 441.516)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-24T20:05:58.616+02:00  INFO 95266 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-24T20:05:58.616+02:00  INFO 95266 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-24T20:05:58.617+02:00  INFO 95266 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-09-24T20:05:59.153+02:00  INFO 95266 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.shared.api.UntrustedPeerClientIpIT]: UntrustedPeerClientIpIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-24T20:05:59.154+02:00  INFO 95266 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.shared.api.UntrustedPeerClientIpIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-24T20:05:59.165+02:00  INFO 95266 --- [agilityhub-core-api] [           main] c.a.c.s.api.UntrustedPeerClientIpIT      : Starting UntrustedPeerClientIpIT using Java 21.0.12.1 with PID 95266 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-24T20:05:59.165+02:00  INFO 95266 --- [agilityhub-core-api] [           main] c.a.c.s.api.UntrustedPeerClientIpIT      : The following 1 profile is active: "test"
+2026-09-24T20:05:59.386+02:00  INFO 95266 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-24T20:05:59.410+02:00  INFO 95266 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 0 MongoDB repository interfaces.
+2026-09-24T20:05:59.450+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-24T20:05:59.451+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-24T20:05:59.451+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-24T20:05:59.460+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-24T20:05:59.460+02:00  INFO 95266 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 294 ms
+2026-09-24T20:05:59.476+02:00  INFO 95266 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@145ac215], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16e3d6d0, com.mongodb.Jep395RecordCodecProvider@406d922, com.mongodb.KotlinCodecProvider@56017274]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:54592], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@e64ef0a], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-24T20:05:59.478+02:00  INFO 95266 --- [agilityhub-core-api] [localhost:54592] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:54592, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2109750, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=506a34dbac7c:27017, hosts=[506a34dbac7c:27017], passives=[], arbiters=[], primary='506a34dbac7c:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab564cd32006dc88cbf39f0, counter=6}, lastWriteDate=Thu Sep 24 20:05:59 CEST 2026, lastUpdateTimeNanos=135697778267875}
+2026-09-24T20:05:59.613+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-24T20:06:00.080+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 55003 (http) with context path '/'
+2026-09-24T20:06:00.100+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-24T20:06:00.101+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-24T20:06:00.101+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-24T20:06:00.117+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-3].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-24T20:06:00.117+02:00  INFO 95266 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 35 ms
+2026-09-24T20:06:00.125+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-24T20:06:00.145+02:00  INFO 95266 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 55004 (http) with context path '/'
+2026-09-24T20:06:00.148+02:00  INFO 95266 --- [agilityhub-core-api] [           main] c.a.c.s.api.UntrustedPeerClientIpIT      : Started UntrustedPeerClientIpIT in 0.993 seconds (process running for 443.85)
+2026-09-24T20:06:00.207+02:00  INFO 95266 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-24T20:06:00.207+02:00  INFO 95266 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-24T20:06:00.208+02:00  INFO 95266 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[ERROR] Errors: 
+[ERROR]   SignupS3UploadIT.R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce » ExceptionInInitializer
+[ERROR] Tests run: 5, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+exit=1

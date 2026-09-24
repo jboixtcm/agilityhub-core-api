@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T09: gate E3 audit fixes (api, 2/3), security and privacy (`roadmap/reviews/gate-E3/consolidated.md` M16–M18).
+  - M16: `POST /signup/upload-urls` returns the signed `headers` (`Content-Type`, `If-None-Match: *`); an IT against an
+    S3-compatible store (LocalStack S3, signature validation on) proves 403 without them and 412 on a second PUT.
+  - M17: `staging`/`prod` refuse to start without `TRUSTED_PROXY_PATTERN` (`TrustedProxyConfiguration`); the limiter
+    matches the decoded, normalised path (`identity-%63hecks`, `//` variants); `docs/DEPLOY.md` documents the variable
+    next to the Caddy block (`native`, not `framework`), and `s3:DeleteObject` on `signup/` for the orphan cleanup.
+  - M18 (E38): a readmission no longer overwrites the LEFT record: the submitted person, contacts, address, payment
+    method and consent entries wait in `Member.readmissionRequest`; D2 gets `readmission{current, submitted,
+    changedFields}`; validation applies them (masked MEMBER_VALIDATED diff); a rejection restores the record exactly
+    (original `leftAt`, `leftReason`, data); the submission is audited (`SIGNUP_SUBMITTED`, `origin = PUBLIC`).
+  - Security minors: `signup.rateLimit` read per club; at most 3 N-39 per account and 3 applicant N-01 per address per
+    club and hour; consents under impersonation record `actorAccountId` and `origin = BACKOFFICE` (public: `PUBLIC`,
+    member: `APP`); anonymous `identity-checks`, `family-group-lookups`, `upload-urls` and `uploads` answer `422
+    SIGNUP_CLOSED`, decided on the committed configuration; bounded lookup inputs and indexed lookups
+    (`contactEmails.email`, case/accent-insensitive `name_ci` on dogs); `SignupEdited`/`MemberUpdated` diffs masked like
+    the audit; signup submissions retry a write conflict in their own transaction (`SignupTransactions`: one 201 and one
+    `422 SIGNUP_ALREADY_PENDING`, never a 500); `maskedEmail` «m•••a@e•••.cat» of the account address N-39 goes to.
+  - Step 5: marked cache evictions (`DomainEventHandler.evictsAfterCommit`) also run right after the publishing commit
+    on this instance: `GET /signup` configuration, the template, the training grid, the public activities and the
+    club configuration/host caches. `GET /signup` right after `PUT /parameters/signup.enabled` answers the new value.
 - E3-T08: gate E3 audit fixes (api, 1/3), `roadmap/reviews/gate-E3/consolidated.md`.
   - `bin/e3-smoke`: the D1 class occupancy follows S14 R-14-03 for the seeded week (computed from `class_sessions`);
     the chart columns are the progression levels; `GET /signup` texts have no placeholder; the family fare is proposed.
