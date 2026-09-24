@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.scheduling.domain.*;
 import com.agilityhub.core.clubs.scheduling.persistence.*;
 import com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess;
 import com.agilityhub.core.clubs.scheduling.application.ports.ActivityTitlePort;
+import com.agilityhub.core.clubs.scheduling.application.ports.AttendanceStatusPort;
 import com.agilityhub.core.identity.application.CensusIdentityService;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.*;
@@ -16,8 +17,15 @@ import org.springframework.stereotype.Service;
 public class SessionProjection {
     private final PlanningContext context; private final PlanningCatalogAccess catalogs; private final IcuMessageSource messages;
     private final ActivityTitlePort activities; private final CensusIdentityService identities; private final Clock clock;
-    public SessionProjection(PlanningContext context,PlanningCatalogAccess catalogs,IcuMessageSource messages,ActivityTitlePort activities,CensusIdentityService identities,Clock clock) {
-        this.context=context; this.catalogs=catalogs; this.messages=messages; this.activities=activities; this.identities=identities; this.clock=clock;
+    private final AttendanceStatusPort attendance;
+    public SessionProjection(PlanningContext context,PlanningCatalogAccess catalogs,IcuMessageSource messages,ActivityTitlePort activities,CensusIdentityService identities,Clock clock,
+            AttendanceStatusPort attendance) {
+        this.context=context; this.catalogs=catalogs; this.messages=messages; this.activities=activities; this.identities=identities; this.clock=clock; this.attendance=attendance;
+    }
+    /** S10 §7: the S10-owned summary read through the port; the sheet rows are the live bookings plus the seat-releasing NOTIFIED. */
+    public AttendanceStatusPort.AttendanceStatus attendanceStatus(ClassSession c) {
+        var summary=c.attendanceSummary();
+        return attendance.status(c.date(),c.state().name(),summary.marked(),c.counters().booked()+summary.notified());
     }
     public boolean enabled(Module module) { return context.config().modules().contains(module); }
     public String noRing() { return messages.format("scheduling.noRing",Map.of(),LocaleContext.current()); }

@@ -42,6 +42,16 @@ public class BookingsAutoConfiguration {
     }
     @Bean @ConditionalOnMissingBean(AttendanceStatePort.class)
     AttendanceStatePort noAttendance() { return bookingId -> Optional.empty(); }
+    /** S10 follow-up (E6-T03) starts empty: no tasks, notes or observations. */
+    @Bean @ConditionalOnMissingBean(DogFollowupPort.class)
+    DogFollowupPort noFollowup() {
+        return new DogFollowupPort() {
+            public java.util.Map<String, Integer> pendingTasks(java.util.Collection<String> dogIds) { return java.util.Map.of(); }
+            public Optional<Note> instructorNote(String dogId) { return Optional.empty(); }
+            public Tasks tasks(String dogId) { return new Tasks(0, 0, null); }
+            public Optional<Observations> observations(String dogId) { return Optional.empty(); }
+        };
+    }
     @Bean @ConditionalOnMissingBean(SingleClassChargePort.class)
     SingleClassChargePort singleClassCharges(BookingMemberAccess census, CheckoutService checkouts, ObjectProvider<PaymentProvider> gateways,
             BookingContext context, CensusClubSettings clubs) {

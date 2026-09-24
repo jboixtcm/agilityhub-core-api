@@ -22,5 +22,10 @@ public class AttachmentRepository extends TenantRepository<Attachment> {
     public void ensureIndexes() {
         mongo.indexOps(Attachment.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
                 .on("clubId", org.springframework.data.domain.Sort.Direction.ASC).on("fileKey", org.springframework.data.domain.Sort.Direction.ASC).unique());
+        // S10 §3 (E6-T01): the live attachments of one entity.
+        mongo.indexOps(Attachment.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
+                .on("clubId", org.springframework.data.domain.Sort.Direction.ASC).on("entityType", org.springframework.data.domain.Sort.Direction.ASC)
+                .on("entityId", org.springframework.data.domain.Sort.Direction.ASC).on("removedAt", org.springframework.data.domain.Sort.Direction.ASC)
+                .named("attachment_club_entity_removed"));
     }
 }

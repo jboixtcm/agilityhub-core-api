@@ -1,0 +1,26 @@
+{
+  "Task": {"id": "t3", "dogId": "d1", "text": "Treballar l'«espera» a la línia de sortida", "state": "DONE", "createdAt": "2026-07-28T16:00:00Z",
+    "createdBy": {"role": "INSTRUCTOR", "displayName": "Estel"}, "doneAt": "2026-08-02T18:30:00Z", "doneBy": {"role": "MEMBER", "displayName": "Laura", "gender": "FEMALE"},
+    "attachments": [{"id": "a2", "name": "vídeo_balancí.mp4", "mimeType": "video/mp4", "sizeBytes": 8123456, "url": "https://files.example.test/a2?sig=example", "uploadedAt": "2026-07-28T16:00:00Z"}], "version": 2},
+  "Task#deleted": {"id": "t4", "dogId": "d1", "text": "Pujar la rampa", "state": "PENDING", "createdAt": "2026-07-20T16:00:00Z",
+    "createdBy": {"accountId": "acc-estel", "role": "INSTRUCTOR", "displayName": "Estel"}, "deletedAt": "2026-07-21T09:00:00Z", "attachments": [], "version": 3},
+  "TaskList": {"items": [{"id": "t1", "dogId": "d1", "text": "Practiqueu el balancí amb calma: sessions curtes", "state": "PENDING", "createdAt": "2026-08-12T16:00:00Z",
+    "createdBy": {"role": "INSTRUCTOR", "displayName": "Estel"}, "attachments": [], "version": 1}]},
+  "TaskCreateRequest": {"dogId": "d1", "text": "Practiqueu el balancí amb calma: sessions curtes", "attachmentIds": ["a3"]},
+  "TaskPatchRequest": {"text": "Practiqueu el balancí dos cops per setmana", "version": 1},
+  "Attachment": {"id": "a2", "name": "vídeo_balancí.mp4", "mimeType": "video/mp4", "sizeBytes": 8123456, "url": "https://files.example.test/a2?sig=example", "uploadedAt": "2026-07-28T16:00:00Z"},
+  "AttachmentList": {"items": [{"id": "a1", "name": "foto_balancí.jpg", "mimeType": "image/jpeg", "sizeBytes": 204800, "url": "https://files.example.test/a1?sig=example", "uploadedAt": "2026-08-19T17:02:00Z"}]},
+  "FileTooLargeDetails": {"maxSizeMb": 25},
+  "AttachmentLimitReachedDetails": {"max": 10},
+  "ObservationsRequest": {"text": "Va molt bé amb reforç de pilota…", "version": 4},
+  "Observations": {"text": "Va molt bé amb reforç de pilota…", "updatedAt": "2026-08-01T10:00:00Z", "updatedByName": "Marc", "version": 5},
+  "FollowupPage": {"items": [
+      {"id": "f1", "kind": "TASK", "taskId": "t1", "dogId": "d1", "dogName": "Duna", "levelCode": "C", "memberId": "m1", "memberName": "Laura Serra", "authorName": "Estel", "authorRole": "INSTRUCTOR",
+       "textExcerpt": "Practiqueu el balancí amb calma: sessions curtes", "createdAt": "2026-08-12T16:00:00Z", "activityAt": "2026-08-12T16:00:00Z", "unread": true},
+      {"id": "f2", "kind": "MEMBER_NOTE", "dogId": "d1", "dogName": "Duna", "levelCode": "C", "memberId": "m1", "memberName": "Laura Serra", "authorName": "Laura", "authorRole": "MEMBER",
+       "textExcerpt": "A veure si treballem una mica el doble a classe…", "createdAt": "2026-08-19T17:02:00Z", "activityAt": "2026-08-19T17:02:00Z", "unread": false},
+      {"id": "f3", "kind": "TASK", "taskId": "t3", "dogId": "d1", "dogName": "Duna", "memberId": "m1", "memberName": "Laura Serra", "authorName": "Estel", "authorRole": "INSTRUCTOR",
+       "textExcerpt": "Treballar l'«espera» a la línia de sortida", "createdAt": "2026-07-28T16:00:00Z", "completedAt": "2026-08-02T18:30:00Z", "activityAt": "2026-07-28T16:00:00Z", "unread": false}],
+    "page": 0, "size": 50, "totalItems": 3, "totalPages": 1, "appliedFilters": [{"field": "dogId", "op": "eq", "value": "d1"}]},
+  "FollowupUnreadCount": {"count": 5}
+}

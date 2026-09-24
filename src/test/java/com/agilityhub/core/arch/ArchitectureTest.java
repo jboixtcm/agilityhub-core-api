@@ -45,4 +45,10 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E5_T06_onlyTheDemoSeedMovesTheBookingTime = ArchitectureRules.BOOKING_TIME_OVERRIDE;
+
+    @ArchTest
+    static final ArchRule E6_T01_bookingsNeverImportsFollowup = ArchitectureRules.BOOKINGS_WITHOUT_FOLLOWUP;
+
+    @ArchTest
+    static final ArchRule E6_T01_platformImportsNoClubsPackage = ArchitectureRules.PLATFORM_WITHOUT_CLUBS;
 }

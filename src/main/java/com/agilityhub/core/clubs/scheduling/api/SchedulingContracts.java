@@ -66,7 +66,9 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClassOrigin origin,
             @Schema(requiredMode = NOT_REQUIRED, description = "Only with COURSES") String placementId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") String notes,
-            long version, List<String> inconsistencyIds) { }
+            long version, List<String> inconsistencyIds,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only in GET /weeks/{id}/calendar: S10 attendance status from attendanceSummary (NONE before T0, PENDING inside the window with marked < total, DONE, CLOSED after T1)")
+            com.agilityhub.core.clubs.scheduling.application.ports.AttendanceStatusPort.AttendanceStatus attendanceStatus) { }
     public record ClassCounters(int booked, int waiting) { }
     public record ClassCancellation(ClassCancellationReason reason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String adminText, String byAccountId, Instant at,
@@ -109,7 +111,9 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED) List<String> trainingBookingIds, @Schema(requiredMode = NOT_REQUIRED) String blockId,
             @Schema(requiredMode = NOT_REQUIRED) CellReason reason, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String note,
             @Schema(requiredMode = NOT_REQUIRED) String createdByName, @Schema(requiredMode = NOT_REQUIRED) String activityId,
-            @Schema(requiredMode = NOT_REQUIRED) String title) { }
+            @Schema(requiredMode = NOT_REQUIRED) String title,
+            @Schema(requiredMode = NOT_REQUIRED, description = "CLASS cells of the INSTRUCTOR view only (S10 §7)")
+            com.agilityhub.core.clubs.scheduling.application.ports.AttendanceStatusPort.AttendanceStatus attendanceStatus) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record GridOccupancy(int booked, int capacity, @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting) { }
     public record Coverage(CoverageScope scope, CoverageThresholds thresholds, int activeDogWeeks, List<CoverageLevel> levels) { }

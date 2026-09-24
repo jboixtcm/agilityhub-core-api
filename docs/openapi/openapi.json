@@ -1029,6 +1029,27 @@
         "required" : [ "bookingId", "dogName", "from", "memberName", "ringId", "to" ],
         "type" : "object"
       },
+      "Actor" : {
+        "properties" : {
+          "accountId" : {
+            "type" : [ "string", "null" ]
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "description" : "Personal article of the member (personArticle)",
+            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "type" : [ "string", "null" ]
+          },
+          "role" : {
+            "enum" : [ "MEMBER", "INSTRUCTOR", "ADMIN" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayName", "role" ],
+        "type" : "object"
+      },
       "AddDogCheckout" : {
         "properties" : {
           "memberId" : {
@@ -1201,31 +1222,8 @@
         "required" : [ "code", "message", "traceId" ],
         "type" : "object"
       },
-      "AttachmentRequest" : {
-        "properties" : {
-          "entityId" : {
-            "minLength" : 1,
-            "type" : "string"
-          },
-          "entityType" : {
-            "enum" : [ "INSTRUCTOR_NOTE" ],
-            "minLength" : 1,
-            "type" : "string"
-          },
-          "fileKey" : {
-            "minLength" : 1,
-            "type" : "string"
-          },
-          "name" : {
-            "maxLength" : 80,
-            "minLength" : 0,
-            "type" : "string"
-          }
-        },
-        "required" : [ "entityId", "entityType", "fileKey", "name" ],
-        "type" : "object"
-      },
-      "AttachmentResponse" : {
+      "Attachment" : {
+        "description" : "S10 §6 attachment with a short-lived signed download URL",
         "properties" : {
           "id" : {
             "type" : "string"
@@ -1249,6 +1247,287 @@
           }
         },
         "required" : [ "id", "mimeType", "name", "sizeBytes", "uploadedAt", "url" ],
+        "type" : "object"
+      },
+      "AttachmentLimitReachedDetails" : {
+        "properties" : {
+          "max" : {
+            "description" : "files.maxAttachmentsPerEntity",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "max" ],
+        "type" : "object"
+      },
+      "AttachmentList" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Attachment"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "items" ],
+        "type" : "object"
+      },
+      "AttachmentRequest" : {
+        "properties" : {
+          "entityId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "entityType" : {
+            "enum" : [ "INSTRUCTOR_NOTE", "TASK", "DOG_OBSERVATIONS" ],
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "fileKey" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "name" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "entityId", "entityType", "fileKey", "name" ],
+        "type" : "object"
+      },
+      "AttendanceBookingNotActiveDetails" : {
+        "properties" : {
+          "bookingId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bookingId" ],
+        "type" : "object"
+      },
+      "AttendanceListItem" : {
+        "properties" : {
+          "bookingId" : {
+            "type" : "string"
+          },
+          "classDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "classSessionId" : {
+            "type" : "string"
+          },
+          "classStartsAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "dogId" : {
+            "type" : "string"
+          },
+          "dogName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "markedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "markedByName" : {
+            "type" : [ "string", "null" ]
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "PENDING", "PRESENT", "NOTIFIED", "NO_SHOW" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "bookingId", "classDate", "classSessionId", "classStartsAt", "dogId", "dogName", "id", "memberId", "memberName", "state" ],
+        "type" : "object"
+      },
+      "AttendanceNotice" : {
+        "properties" : {
+          "afterClassEnd" : {
+            "type" : "boolean"
+          },
+          "at" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "atLocal" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "bookingState" : {
+            "description" : "CANCELLED, CANCELLED_LATE, or ACTIVE when afterClassEnd",
+            "enum" : [ "PAYMENT_PENDING", "ACTIVE", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB" ],
+            "type" : "string"
+          },
+          "late" : {
+            "type" : "boolean"
+          },
+          "minutesBefore" : {
+            "description" : "Null when afterClassEnd",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "seatReleased" : {
+            "type" : "boolean"
+          },
+          "waitlistNotified" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "afterClassEnd", "at", "atLocal", "bookingState", "late", "seatReleased", "waitlistNotified" ],
+        "type" : "object"
+      },
+      "AttendanceRow" : {
+        "properties" : {
+          "bookingId" : {
+            "type" : "string"
+          },
+          "dogId" : {
+            "type" : "string"
+          },
+          "dogName" : {
+            "type" : "string"
+          },
+          "dogPhotoUrl" : {
+            "description" : "Short-lived signed URL",
+            "type" : [ "string", "null" ]
+          },
+          "final" : {
+            "description" : "A saved NOTIFIED row is fixed (R-10-03)",
+            "type" : "boolean"
+          },
+          "handlerName" : {
+            "description" : "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)",
+            "type" : [ "string", "null" ]
+          },
+          "levelCode" : {
+            "description" : "Null with levels.enabled = false",
+            "type" : [ "string", "null" ]
+          },
+          "markedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "markedByName" : {
+            "type" : [ "string", "null" ]
+          },
+          "memberFirstName" : {
+            "type" : "string"
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "noShowNotice" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/NoShowNotice"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Only NO_SHOW (R-10-06)"
+          },
+          "notice" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/AttendanceNotice"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Only NOTIFIED (R-10-05)"
+          },
+          "pendingTasksCount" : {
+            "description" : "Only with TASKS",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "state" : {
+            "enum" : [ "PENDING", "PRESENT", "NOTIFIED", "NO_SHOW" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "bookingId", "dogId", "dogName", "final", "memberFirstName", "memberId", "state" ],
+        "type" : "object"
+      },
+      "AttendanceSaveItem" : {
+        "properties" : {
+          "bookingId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "PENDING", "PRESENT", "NOTIFIED", "NO_SHOW" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "bookingId", "state" ],
+        "type" : "object"
+      },
+      "AttendanceSaveRequest" : {
+        "properties" : {
+          "items" : {
+            "description" : "Items equal to the current state are no-ops",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceSaveItem"
+            },
+            "minItems" : 1,
+            "type" : "array"
+          },
+          "version" : {
+            "description" : "sheet.version read by the caller",
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "items", "version" ],
+        "type" : "object"
+      },
+      "AttendanceSheet" : {
+        "properties" : {
+          "applied" : {
+            "description" : "PUT response only: the bookingIds whose state changed (same key → same response)",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "classSession" : {
+            "$ref" : "#/components/schemas/SheetClassSession"
+          },
+          "rows" : {
+            "description" : "Live bookings (ACTIVE, PAYMENT_PENDING) plus the NOTIFIED ones, by bookedAt (R-10-02)",
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceRow"
+            },
+            "type" : "array"
+          },
+          "sheet" : {
+            "$ref" : "#/components/schemas/Sheet"
+          },
+          "waitlist" : {
+            "$ref" : "#/components/schemas/SheetWaitlist",
+            "description" : "Only with WAITLIST"
+          }
+        },
+        "required" : [ "classSession", "rows", "sheet" ],
+        "type" : "object"
+      },
+      "AttendanceWindowClosedDetails" : {
+        "properties" : {
+          "editableUntil" : {
+            "description" : "T1",
+            "format" : "date-time",
+            "type" : "string"
+          }
+        },
+        "required" : [ "editableUntil" ],
         "type" : "object"
       },
       "AuditAction" : {
@@ -2100,6 +2379,58 @@
         "required" : [ "bookings", "waitlistCount" ],
         "type" : "object"
       },
+      "CardAttachment" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "mimeType" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "url" : {
+            "description" : "Short-lived signed URL",
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "mimeType", "name", "url" ],
+        "type" : "object"
+      },
+      "CardDog" : {
+        "properties" : {
+          "ageYears" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "breed" : {
+            "type" : [ "string", "null" ]
+          },
+          "handlerName" : {
+            "description" : "R-10-00: «{guia} + {gos}», plus «(abonat: …)» when it differs",
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "photoUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "sex" : {
+            "enum" : [ "MALE", "FEMALE" ],
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "name", "sex", "status" ],
+        "type" : "object"
+      },
       "CardInput" : {
         "properties" : {
           "stripeSetupIntentId" : {
@@ -2109,6 +2440,106 @@
           }
         },
         "required" : [ "stripeSetupIntentId" ],
+        "type" : "object"
+      },
+      "CardLevel" : {
+        "properties" : {
+          "assignedAt" : {
+            "description" : "Dog.levelAssignedAt («fa n mesos»)",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "name" : {
+            "description" : "Level.name in the request locale",
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "name" ],
+        "type" : "object"
+      },
+      "CardMember" : {
+        "properties" : {
+          "displayStatus" : {
+            "$ref" : "#/components/schemas/CardMemberStatus"
+          },
+          "firstName" : {
+            "type" : "string"
+          },
+          "fullName" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "displayStatus", "firstName", "fullName", "id" ],
+        "type" : "object"
+      },
+      "CardMemberStatus" : {
+        "properties" : {
+          "date" : {
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "kind" : {
+            "description" : "S03 derived status (ACTIVE, LEAVING, …)",
+            "type" : "string"
+          }
+        },
+        "required" : [ "kind" ],
+        "type" : "object"
+      },
+      "CardMetrics" : {
+        "properties" : {
+          "attendancePct" : {
+            "description" : "round(100 · present / classesCounted); null when 0 (R-10-08)",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "cancelledLate" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "classesCounted" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "noShow" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "notified" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "present" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "trainingsCount" : {
+            "description" : "Only with FREE_TRAINING",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "trainingsPerWeek" : {
+            "description" : "Only with FREE_TRAINING; one decimal",
+            "format" : "double",
+            "type" : "number"
+          },
+          "windowDays" : {
+            "description" : "Product constant 30",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "cancelledLate", "classesCounted", "noShow", "notified", "present", "windowDays" ],
         "type" : "object"
       },
       "CatalogItemsAdministrator" : {
@@ -2474,6 +2905,11 @@
         "properties" : {
           "atRisk" : {
             "type" : "boolean"
+          },
+          "attendanceStatus" : {
+            "description" : "Only in GET /weeks/{id}/calendar: S10 attendance status from attendanceSummary (NONE before T0, PENDING inside the window with marked < total, DONE, CLOSED after T1)",
+            "enum" : [ "NONE", "PENDING", "DONE", "CLOSED" ],
+            "type" : "string"
           },
           "cancellation" : {
             "anyOf" : [ {
@@ -3475,6 +3911,37 @@
         "required" : [ "deliverToMember" ],
         "type" : "object"
       },
+      "DayAttendance" : {
+        "properties" : {
+          "marked" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "status" : {
+            "enum" : [ "NONE", "PENDING", "DONE", "CLOSED" ],
+            "type" : "string"
+          },
+          "total" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "marked", "status", "total" ],
+        "type" : "object"
+      },
+      "DayChip" : {
+        "properties" : {
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "hasClasses" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "date", "hasClasses" ],
+        "type" : "object"
+      },
       "DayGrid" : {
         "properties" : {
           "columns" : {
@@ -3516,6 +3983,11 @@
           },
           "atRisk" : {
             "type" : "boolean"
+          },
+          "attendanceStatus" : {
+            "description" : "CLASS cells of the INSTRUCTOR view only (S10 §7)",
+            "enum" : [ "NONE", "PENDING", "DONE", "CLOSED" ],
+            "type" : "string"
           },
           "blockId" : {
             "type" : "string"
@@ -3613,6 +4085,40 @@
           }
         },
         "required" : [ "cells", "time" ],
+        "type" : "object"
+      },
+      "DayRingBlock" : {
+        "properties" : {
+          "createdByName" : {
+            "type" : "string"
+          },
+          "fromLocal" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "enum" : [ "BLOCK", "RESERVATION" ],
+            "type" : "string"
+          },
+          "note" : {
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "enum" : [ "MAINTENANCE", "PRIVATE_CLASS", "THERAPY", "PREPARATION", "ACTIVITY", "OTHER" ],
+            "type" : "string"
+          },
+          "ringName" : {
+            "type" : "string"
+          },
+          "toLocal" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          }
+        },
+        "required" : [ "createdByName", "fromLocal", "id", "kind", "reason", "ringName", "toLocal" ],
         "type" : "object"
       },
       "DisplayStatus" : {
@@ -4574,6 +5080,17 @@
         "required" : [ "fileKey" ],
         "type" : "object"
       },
+      "FileTooLargeDetails" : {
+        "properties" : {
+          "maxSizeMb" : {
+            "description" : "files.maxSizeMb (DOG_PHOTO: files.dogPhotoMaxMb)",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "maxSizeMb" ],
+        "type" : "object"
+      },
       "Filter" : {
         "properties" : {
           "field" : {
@@ -4617,6 +5134,116 @@
           }
         },
         "required" : [ "field", "values" ],
+        "type" : "object"
+      },
+      "FollowupItem" : {
+        "properties" : {
+          "activityAt" : {
+            "description" : "Task creation or last note change; completing does not move it",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "authorName" : {
+            "type" : "string"
+          },
+          "authorRole" : {
+            "enum" : [ "MEMBER", "INSTRUCTOR", "ADMIN" ],
+            "type" : "string"
+          },
+          "completedAt" : {
+            "description" : "«—» while pending",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "dogId" : {
+            "type" : "string"
+          },
+          "dogName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "enum" : [ "TASK", "MEMBER_NOTE" ],
+            "type" : "string"
+          },
+          "levelCode" : {
+            "description" : "Null with levels.enabled = false",
+            "type" : [ "string", "null" ]
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "taskId" : {
+            "description" : "Only TASK",
+            "type" : [ "string", "null" ]
+          },
+          "textExcerpt" : {
+            "description" : "At most 120 characters",
+            "type" : "string"
+          },
+          "unread" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "activityAt", "authorName", "authorRole", "createdAt", "dogId", "dogName", "id", "kind", "memberId", "memberName", "textExcerpt", "unread" ],
+        "type" : "object"
+      },
+      "FollowupPage" : {
+        "description" : "Universal list page (CONVENCIONS_API §4) of D14: unread first (activityAt desc), then the rest (activityAt desc)",
+        "properties" : {
+          "appliedFilters" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Filter"
+            },
+            "type" : "array"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/FollowupItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
+        "type" : "object"
+      },
+      "FollowupUnreadCount" : {
+        "properties" : {
+          "count" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "count" ],
         "type" : "object"
       },
       "FreeTraining" : {
@@ -4776,6 +5403,96 @@
           }
         },
         "required" : [ "builtAt", "status", "version" ],
+        "type" : "object"
+      },
+      "HistoryDetail" : {
+        "properties" : {
+          "at" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "atLocal" : {
+            "description" : "Club-local time HH:mm",
+            "type" : [ "string", "null" ]
+          },
+          "kind" : {
+            "enum" : [ "BY_MEMBER", "BY_MEMBER_IN_TIME", "INSTRUCTOR_NOTICE", "INSTRUCTOR_NOTICE_IN_TIME", "BY_CLUB_ON_BEHALF", "SYSTEM", "BY_CLUB", "NO_SHOW" ],
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "BY_CLUB: the club's adminText",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "kind" ],
+        "type" : "object"
+      },
+      "HistoryDog" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "levelCode" : {
+            "type" : [ "string", "null" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "own" : {
+            "type" : "boolean"
+          },
+          "ownerFirstName" : {
+            "description" : "Owner of a family-group dog",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "id", "name", "own" ],
+        "type" : "object"
+      },
+      "HistoryItem" : {
+        "properties" : {
+          "counts" : {
+            "description" : "Classes only: counts as done",
+            "type" : [ "boolean", "null" ]
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "detail" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/HistoryDetail"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "The front picks the sentence (R-10-14)"
+          },
+          "dogId" : {
+            "type" : [ "string", "null" ]
+          },
+          "dogName" : {
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "startsAtLocal" : {
+            "description" : "Club-local YYYY-MM-DDTHH:mm",
+            "type" : [ "string", "null" ]
+          },
+          "state" : {
+            "enum" : [ "DONE", "NO_SHOW", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB" ],
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "enum" : [ "CLASS", "TRAINING", "ACTIVITY" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "date", "id", "state", "title", "type" ],
         "type" : "object"
       },
       "HoldClassSession" : {
@@ -5178,6 +5895,48 @@
         "required" : [ "active", "color", "id", "shortName", "version" ],
         "type" : "object"
       },
+      "InstructorCard" : {
+        "properties" : {
+          "dog" : {
+            "$ref" : "#/components/schemas/CardDog"
+          },
+          "instructorNote" : {
+            "$ref" : "#/components/schemas/InstructorNoteBlock",
+            "description" : "Only with TASKS"
+          },
+          "lastClasses" : {
+            "description" : "At most 5, newest first (R-10-09)",
+            "items" : {
+              "$ref" : "#/components/schemas/LastClass"
+            },
+            "type" : "array"
+          },
+          "level" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/CardLevel"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Absent with levels.enabled = false or no level"
+          },
+          "member" : {
+            "$ref" : "#/components/schemas/CardMember"
+          },
+          "metrics" : {
+            "$ref" : "#/components/schemas/CardMetrics"
+          },
+          "observations" : {
+            "$ref" : "#/components/schemas/ObservationsBlock",
+            "description" : "Only with TASKS; never on /me/*"
+          },
+          "tasks" : {
+            "$ref" : "#/components/schemas/TasksBlock",
+            "description" : "Only with TASKS"
+          }
+        },
+        "required" : [ "dog", "lastClasses", "member", "metrics" ],
+        "type" : "object"
+      },
       "InstructorCreate" : {
         "properties" : {
           "color" : {
@@ -5198,6 +5957,104 @@
         "required" : [ "color", "memberId", "shortName" ],
         "type" : "object"
       },
+      "InstructorDay" : {
+        "properties" : {
+          "classes" : {
+            "description" : "Classes of the selected instructor on `date`",
+            "items" : {
+              "$ref" : "#/components/schemas/InstructorDayClass"
+            },
+            "type" : "array"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "days" : {
+            "description" : "Seven day chips from today (assumption)",
+            "items" : {
+              "$ref" : "#/components/schemas/DayChip"
+            },
+            "type" : "array"
+          },
+          "instructors" : {
+            "description" : "Active instructors for the chip (no «Tot el club»)",
+            "items" : {
+              "$ref" : "#/components/schemas/InstructorRef"
+            },
+            "type" : "array"
+          },
+          "ringBlocks" : {
+            "description" : "Every ring block of the day, whoever created it (R-10-01)",
+            "items" : {
+              "$ref" : "#/components/schemas/DayRingBlock"
+            },
+            "type" : "array"
+          },
+          "selectedInstructorId" : {
+            "description" : "The caller's Instructor; an ADMIN without a profile gets the first by shortName (R-10-01); null when the club has none",
+            "type" : [ "string", "null" ]
+          },
+          "timeZone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "classes", "date", "days", "instructors", "ringBlocks", "timeZone" ],
+        "type" : "object"
+      },
+      "InstructorDayClass" : {
+        "properties" : {
+          "attendance" : {
+            "$ref" : "#/components/schemas/DayAttendance"
+          },
+          "booked" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "capacity" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "displayDescription" : {
+            "type" : "string"
+          },
+          "endTime" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "individual" : {
+            "description" : "capacity = 1",
+            "type" : "boolean"
+          },
+          "ring" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RingRef"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Null for a class without ring"
+          },
+          "startTime" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "state" : {
+            "description" : "ACTIVE · FINISHED · CANCELLED (DRAFT never shown)",
+            "enum" : [ "ACTIVE", "FINISHED", "CANCELLED" ],
+            "type" : "string"
+          },
+          "waiting" : {
+            "description" : "Only with WAITLIST («⏳ n»)",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "attendance", "booked", "capacity", "displayDescription", "endTime", "id", "individual", "startTime", "state" ],
+        "type" : "object"
+      },
       "InstructorNote" : {
         "properties" : {
           "attachments" : {
@@ -5215,6 +6072,25 @@
           }
         },
         "required" : [ "text", "updatedAt" ],
+        "type" : "object"
+      },
+      "InstructorNoteBlock" : {
+        "properties" : {
+          "attachments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CardAttachment"
+            },
+            "type" : "array"
+          },
+          "text" : {
+            "type" : [ "string", "null" ]
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "attachments" ],
         "type" : "object"
       },
       "InstructorNoteRequest" : {
@@ -5274,6 +6150,18 @@
         "required" : [ "active", "color", "id", "shortName", "version" ],
         "type" : "object"
       },
+      "InstructorRef" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "shortName" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "shortName" ],
+        "type" : "object"
+      },
       "InstructorUsage" : {
         "properties" : {
           "futureClassSessions" : {
@@ -5286,6 +6174,31 @@
           }
         },
         "required" : [ "futureClassSessions", "templateClasses" ],
+        "type" : "object"
+      },
+      "InstructorWeek" : {
+        "properties" : {
+          "cells" : {
+            "items" : {
+              "$ref" : "#/components/schemas/WeekCell"
+            },
+            "type" : "array"
+          },
+          "filters" : {
+            "$ref" : "#/components/schemas/WeekFilters"
+          },
+          "rows" : {
+            "description" : "Distinct start times (HH:mm) of the week's cells",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "week" : {
+            "$ref" : "#/components/schemas/WeekRange"
+          }
+        },
+        "required" : [ "cells", "filters", "rows", "week" ],
         "type" : "object"
       },
       "InvoiceSummary" : {
@@ -5651,6 +6564,32 @@
         },
         "required" : [ "action", "at" ],
         "type" : [ "object", "null" ]
+      },
+      "LastClass" : {
+        "properties" : {
+          "bookingId" : {
+            "type" : "string"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "displayDescription" : {
+            "type" : "string"
+          },
+          "displayState" : {
+            "enum" : [ "PRESENT", "NOTIFIED", "NO_SHOW", "CANCELLED_LATE", "PENDING" ],
+            "type" : "string"
+          },
+          "instructorName" : {
+            "type" : [ "string", "null" ]
+          },
+          "ringName" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "bookingId", "date", "displayDescription", "displayState" ],
+        "type" : "object"
       },
       "Legal" : {
         "properties" : {
@@ -6082,6 +7021,44 @@
           "items" : {
             "items" : {
               "$ref" : "#/components/schemas/ActivityRegistrationListItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
+        "type" : "object"
+      },
+      "ListPageAttendanceListItem" : {
+        "properties" : {
+          "appliedFilters" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Filter"
+            },
+            "type" : "array"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AttendanceListItem"
             },
             "type" : "array"
           },
@@ -7173,6 +8150,46 @@
         "required" : [ "imageRights", "privacyPolicy" ],
         "type" : "object"
       },
+      "MemberHistory" : {
+        "properties" : {
+          "dogs" : {
+            "items" : {
+              "$ref" : "#/components/schemas/HistoryDog"
+            },
+            "type" : "array"
+          },
+          "from" : {
+            "description" : "Start of the local day − history.monthsVisible months",
+            "format" : "date",
+            "type" : "string"
+          },
+          "items" : {
+            "description" : "startsAt desc; no paging (at most 500)",
+            "items" : {
+              "$ref" : "#/components/schemas/HistoryItem"
+            },
+            "type" : "array"
+          },
+          "monthsVisible" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "showDog" : {
+            "description" : "More than one accessible dog",
+            "type" : "boolean"
+          },
+          "types" : {
+            "description" : "CLASS always; TRAINING with FREE_TRAINING; ACTIVITY with ACTIVITIES",
+            "items" : {
+              "enum" : [ "CLASS", "TRAINING", "ACTIVITY" ],
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "dogs", "from", "items", "monthsVisible", "showDog", "types" ],
+        "type" : "object"
+      },
       "MemberInstructorView" : {
         "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.",
         "properties" : {
@@ -7638,6 +8655,26 @@
         "required" : [ "amount", "date" ],
         "type" : "object"
       },
+      "NoShowNotice" : {
+        "properties" : {
+          "queuedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "scheduledFor" : {
+            "description" : "Next messaging.noShowNoticeTime after the class date",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "sentAt" : {
+            "description" : "«avís ja enviat»",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "scheduledFor" ],
+        "type" : "object"
+      },
       "NotSelectable" : {
         "properties" : {
           "bookingId" : {
@@ -7693,6 +8730,70 @@
           }
         },
         "required" : [ "id", "mimeType", "name", "sizeBytes", "uploadedAt", "url" ],
+        "type" : "object"
+      },
+      "Observations" : {
+        "properties" : {
+          "text" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "updatedByName" : {
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "text", "updatedAt", "updatedByName", "version" ],
+        "type" : "object"
+      },
+      "ObservationsBlock" : {
+        "properties" : {
+          "attachments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CardAttachment"
+            },
+            "type" : "array"
+          },
+          "text" : {
+            "type" : [ "string", "null" ]
+          },
+          "updatedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "updatedByName" : {
+            "type" : [ "string", "null" ]
+          },
+          "version" : {
+            "description" : "Dog version for PUT /dogs/{id}/observations",
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "attachments", "version" ],
+        "type" : "object"
+      },
+      "ObservationsRequest" : {
+        "properties" : {
+          "text" : {
+            "description" : "Dog.remarks; empty clears it",
+            "maxLength" : 2000,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "version" : {
+            "description" : "ObservationsBlock.version read by the caller",
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "text", "version" ],
         "type" : "object"
       },
       "OidcSessionRequest" : {
@@ -9967,6 +11068,21 @@
         "required" : [ "active", "allowsFreeTraining", "color", "effectiveTrainingCapacity", "id", "name", "order", "shortName", "version" ],
         "type" : "object"
       },
+      "RingRef" : {
+        "properties" : {
+          "color" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "color", "id", "name" ],
+        "type" : "object"
+      },
       "RingSetupSummary" : {
         "properties" : {
           "builtAt" : {
@@ -10534,6 +11650,141 @@
           }
         },
         "required" : [ "clientId", "createdAt", "deviceLabel", "expiresAt", "id" ],
+        "type" : "object"
+      },
+      "Sheet" : {
+        "properties" : {
+          "canMarkNotice" : {
+            "description" : "NOTIFIED allowed now (bookings.instructorLastMinuteNotice, now ≤ T1)",
+            "type" : "boolean"
+          },
+          "canMarkPresence" : {
+            "description" : "PRESENT/NO_SHOW/PENDING allowed now (R-10-03)",
+            "type" : "boolean"
+          },
+          "editableUntil" : {
+            "description" : "T1: 23:59:59 local of classDate + attendance.editDays",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "noShowNoticeTime" : {
+            "description" : "messaging.noShowNoticeTime (HH:mm)",
+            "type" : "string"
+          },
+          "savedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "savedByName" : {
+            "type" : [ "string", "null" ]
+          },
+          "version" : {
+            "description" : "attendanceSummary.version: the optimistic lock of the PUT (R-10-04)",
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "canMarkNotice", "canMarkPresence", "editableUntil", "noShowNoticeTime", "version" ],
+        "type" : "object"
+      },
+      "SheetClassSession" : {
+        "properties" : {
+          "booked" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "capacity" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "displayDescription" : {
+            "type" : "string"
+          },
+          "endTime" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "instructorName" : {
+            "description" : "«Marc, Neus» with classes.maxInstructorsPerClass > 1",
+            "type" : [ "string", "null" ]
+          },
+          "ring" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RingRef"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "startTime" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "state" : {
+            "description" : "ACTIVE · FINISHED · CANCELLED (DRAFT never shown)",
+            "enum" : [ "ACTIVE", "FINISHED", "CANCELLED" ],
+            "type" : "string"
+          },
+          "waiting" : {
+            "description" : "Only with WAITLIST",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "booked", "capacity", "date", "displayDescription", "endTime", "id", "startTime", "state" ],
+        "type" : "object"
+      },
+      "SheetWaitlist" : {
+        "properties" : {
+          "entries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SheetWaitlistEntry"
+            },
+            "type" : "array"
+          },
+          "fifoConfirmMinutes" : {
+            "description" : "waitlist.fifoConfirmMinutes; only in FIFO",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "mode" : {
+            "enum" : [ "ALL_AT_ONCE", "FIFO" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "entries", "mode" ],
+        "type" : "object"
+      },
+      "SheetWaitlistEntry" : {
+        "properties" : {
+          "dogName" : {
+            "type" : "string"
+          },
+          "entryId" : {
+            "type" : "string"
+          },
+          "joinedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "levelCode" : {
+            "type" : [ "string", "null" ]
+          },
+          "memberFirstName" : {
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "ACTIVE", "NOTIFIED", "CONSOLIDATED", "EXPIRED", "CANCELLED" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "dogName", "entryId", "joinedAt", "memberFirstName", "state" ],
         "type" : "object"
       },
       "Signup" : {
@@ -11536,6 +12787,15 @@
         "required" : [ "freeRings", "reason", "ringId", "startsAt" ],
         "type" : "object"
       },
+      "StaleAttendanceDetails" : {
+        "properties" : {
+          "current" : {
+            "$ref" : "#/components/schemas/AttendanceSheet"
+          }
+        },
+        "required" : [ "current" ],
+        "type" : "object"
+      },
       "SwapOption" : {
         "properties" : {
           "bookingId" : {
@@ -11553,6 +12813,84 @@
           }
         },
         "required" : [ "bookingId", "description", "startsAtLocal" ],
+        "type" : "object"
+      },
+      "Task" : {
+        "properties" : {
+          "attachments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Attachment"
+            },
+            "type" : "array"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "createdBy" : {
+            "$ref" : "#/components/schemas/Actor"
+          },
+          "deletedAt" : {
+            "description" : "Only with includeDeleted (ADMIN)",
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "dogId" : {
+            "type" : "string"
+          },
+          "doneAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "doneBy" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Actor"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "«feta per {article}{name} el {date}»"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "PENDING", "DONE" ],
+            "type" : "string"
+          },
+          "text" : {
+            "description" : "1–2000 characters",
+            "type" : "string"
+          },
+          "version" : {
+            "description" : "PATCH optimistic lock",
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "attachments", "createdAt", "createdBy", "dogId", "id", "state", "text", "version" ],
+        "type" : "object"
+      },
+      "TaskCreateRequest" : {
+        "properties" : {
+          "attachmentIds" : {
+            "description" : "fileKeys of TASK uploads, registered in the same transaction",
+            "items" : {
+              "minLength" : 1,
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "dogId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "text" : {
+            "maxLength" : 2000,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "dogId", "text" ],
         "type" : "object"
       },
       "TaskItem" : {
@@ -11581,6 +12919,74 @@
           }
         },
         "required" : [ "attachmentsCount", "createdAt", "id", "instructorName", "text" ],
+        "type" : "object"
+      },
+      "TaskList" : {
+        "properties" : {
+          "items" : {
+            "description" : "createdAt desc",
+            "items" : {
+              "$ref" : "#/components/schemas/Task"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "items" ],
+        "type" : "object"
+      },
+      "TaskPatchRequest" : {
+        "properties" : {
+          "text" : {
+            "maxLength" : 2000,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "text", "version" ],
+        "type" : "object"
+      },
+      "TaskSummary" : {
+        "properties" : {
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "createdByName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "createdAt", "createdByName", "id", "text" ],
+        "type" : "object"
+      },
+      "TasksBlock" : {
+        "properties" : {
+          "doneCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "latest" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TaskSummary"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "pendingCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "doneCount", "pendingCount" ],
         "type" : "object"
       },
       "TasksSummary" : {
@@ -12455,7 +13861,7 @@
             "type" : "string"
           },
           "purpose" : {
-            "enum" : [ "DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT" ],
+            "enum" : [ "DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT", "TASK", "DOG_OBSERVATIONS" ],
             "minLength" : 1,
             "type" : "string"
           },
@@ -12822,6 +14228,85 @@
         "required" : [ "canValidate", "classes", "draftCount", "inconsistencies", "ringBlocks", "rows", "week" ],
         "type" : "object"
       },
+      "WeekCell" : {
+        "description" : "CLASS: classId, displayDescription, ringColor, instructorName, booked, capacity, waiting (WAITLIST), state, attendanceStatus. TRAINING (FREE_TRAINING only, half height of training.slotMinutes): who, trainingBookingId. BLOCK: blockId, reason, note, createdByName.",
+        "properties" : {
+          "attendanceStatus" : {
+            "enum" : [ "NONE", "PENDING", "DONE", "CLOSED" ],
+            "type" : "string"
+          },
+          "blockId" : {
+            "type" : "string"
+          },
+          "booked" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "capacity" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "classId" : {
+            "type" : "string"
+          },
+          "createdByName" : {
+            "type" : "string"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "displayDescription" : {
+            "type" : "string"
+          },
+          "endTime" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "instructorName" : {
+            "type" : [ "string", "null" ]
+          },
+          "kind" : {
+            "enum" : [ "CLASS", "TRAINING", "BLOCK" ],
+            "type" : "string"
+          },
+          "note" : {
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "enum" : [ "MAINTENANCE", "PRIVATE_CLASS", "THERAPY", "PREPARATION", "ACTIVITY", "OTHER" ],
+            "type" : "string"
+          },
+          "ringColor" : {
+            "type" : [ "string", "null" ]
+          },
+          "ringName" : {
+            "type" : [ "string", "null" ]
+          },
+          "state" : {
+            "enum" : [ "ACTIVE", "FINISHED", "CANCELLED" ],
+            "type" : "string"
+          },
+          "time" : {
+            "description" : "Club-local time HH:mm",
+            "type" : "string"
+          },
+          "trainingBookingId" : {
+            "type" : "string"
+          },
+          "waiting" : {
+            "description" : "CLASS with WAITLIST",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "who" : {
+            "description" : "«{guia} + {gos}»",
+            "type" : "string"
+          }
+        },
+        "required" : [ "date", "endTime", "kind", "time" ],
+        "type" : "object"
+      },
       "WeekCount" : {
         "properties" : {
           "count" : {
@@ -12849,6 +14334,32 @@
           }
         },
         "required" : [ "startDate" ],
+        "type" : "object"
+      },
+      "WeekFilters" : {
+        "properties" : {
+          "instructorId" : {
+            "description" : "Null = «Tots»",
+            "type" : [ "string", "null" ]
+          },
+          "instructors" : {
+            "items" : {
+              "$ref" : "#/components/schemas/InstructorRef"
+            },
+            "type" : "array"
+          },
+          "ringId" : {
+            "description" : "Null = «Totes les pistes»",
+            "type" : [ "string", "null" ]
+          },
+          "rings" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RingRef"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "instructors", "rings" ],
         "type" : "object"
       },
       "WeekListItem" : {
@@ -12909,6 +14420,24 @@
           }
         },
         "required" : [ "dayOfWeek", "time" ],
+        "type" : "object"
+      },
+      "WeekRange" : {
+        "properties" : {
+          "endDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "relative" : {
+            "enum" : [ "CURRENT", "PAST", "FUTURE" ],
+            "type" : "string"
+          },
+          "startDate" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        },
+        "required" : [ "endDate", "relative", "startDate" ],
         "type" : "object"
       },
       "WeekTemplate" : {
@@ -17756,8 +19285,161 @@
       }
     },
     "/api/v1/attachments" : {
+      "get" : {
+        "description" : "Roles: TASK and INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token), INSTRUCTOR, ADMIN; DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (the member gets 404, R-10-11). Live attachments of the entity with a short-lived signed url; another club's or member's entity → 404. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "listAttachments",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "entityType",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "TASK", "INSTRUCTOR_NOTE", "DOG_OBSERVATIONS" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "entityId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttachmentList"
+                }
+              }
+            },
+            "description" : "AttachmentList"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "attachments",
+        "tags" : [ "clubs.followup" ]
+      },
       "post" : {
-        "description" : "Minimal S10 INSTRUCTOR_NOTE attachment. Task and observation attachments remain owned by S10.",
+        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token; staff → 403); TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: at most files.maxAttachmentsPerEntity per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey of another purpose → ATTACHMENT_ENTITY_MISMATCH. TASK and DOG_OBSERVATIONS: contract only, 501 NOT_IMPLEMENTED after the tenant, role, module and entity guards until E6-T03.",
         "operationId" : "add",
         "requestBody" : {
           "content" : {
@@ -17774,7 +19456,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/AttachmentResponse"
+                  "$ref" : "#/components/schemas/Attachment"
                 }
               }
             },
@@ -17808,7 +19490,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "IMPERSONATION_DENIED"
           },
           "404" : {
             "content" : {
@@ -17818,7 +19500,7 @@
                 }
               }
             },
-            "description" : "Not Found"
+            "description" : "NOT_FOUND, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -17900,13 +19582,13 @@
             "description" : "Server error"
           }
         },
-        "summary" : "Attach a file to the owner's instructor note",
+        "summary" : "Register an uploaded attachment",
         "tags" : [ "clubs.followup" ]
       }
     },
     "/api/v1/attachments/upload-url" : {
       "post" : {
-        "description" : "S03/S07/S10 upload contract. ACTIVITY_IMAGE and ACTIVITY_DOCUMENT require ACTIVITIES; images must use image/* and documents files.allowedTypes, both limited by files.maxSizeMb. Upload using the returned headers; URLs last five minutes. Ownership is checked when attaching the uploaded file.",
+        "description" : "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); the other purposes → ADMIN, MEMBER (also the impersonation token). S03/S07/S10 upload contract (R-10-11). INSTRUCTOR_NOTE, TASK and DOG_OBSERVATIONS require TASKS; ACTIVITY_IMAGE and ACTIVITY_DOCUMENT require ACTIVITIES; mimeType ∈ files.allowedTypes (images: image/*), sizeBytes ≤ files.maxSizeMb (DOG_PHOTO: files.dogPhotoMaxMb) → FILE_TOO_LARGE{maxSizeMb}. Upload using the returned headers; URLs last five minutes. Ownership and files.maxAttachmentsPerEntity are checked when attaching the uploaded file.",
         "operationId" : "upload",
         "requestBody" : {
           "content" : {
@@ -17957,7 +19639,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "IMPERSONATION_DENIED"
           },
           "404" : {
             "content" : {
@@ -18051,6 +19733,378 @@
         },
         "summary" : "Create an attachment upload URL",
         "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/attachments/{id}" : {
+      "delete" : {
+        "description" : "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token; staff → 403). R-10-11: removal = removedAt (AttachmentRemoved); the file stays until the GDPR erasure. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "removeAttachment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "removeAttachment",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/attendances" : {
+      "get" : {
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) of the S10 attendances (D10, exports, phase 2); an undeclared filter or sort is 400 INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "attendances",
+        "parameters" : [ {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated response column keys.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ListPageAttendanceListItem"
+                }
+              }
+            },
+            "description" : "ListPage<AttendanceListItem>"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "attendances",
+        "tags" : [ "clubs.bookings" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "classStartsAt"
+        }, {
+          "defaultVisible" : false,
+          "key" : "classDate"
+        }, {
+          "defaultVisible" : true,
+          "key" : "dogName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "memberName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "state"
+        }, {
+          "defaultVisible" : false,
+          "key" : "markedAt"
+        }, {
+          "defaultVisible" : false,
+          "key" : "markedByName"
+        } ],
+        "x-exportable" : false,
+        "x-filter-operators" : { },
+        "x-filterable" : [ "dogId", "memberId", "classSessionId", "classDate", "state" ],
+        "x-sortable" : [ "classStartsAt", "classDate" ]
       }
     },
     "/api/v1/audit-entries" : {
@@ -21225,6 +23279,316 @@
         },
         "summary" : "patchClass",
         "tags" : [ "clubs.scheduling" ]
+      }
+    },
+    "/api/v1/class-sessions/{id}/attendance" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN, any class (global vision; MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screens 21/D12 (R-10-02, R-10-03): rows = live bookings plus NOTIFIED by bookedAt; sheet.canMarkPresence/canMarkNotice/editableUntil paint the circles. TASKS off: no pendingTasksCount; WAITLIST off: no waiting/waitlist. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "attendanceSheet",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceSheet"
+                }
+              }
+            },
+            "description" : "AttendanceSheet"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "attendanceSheet",
+        "tags" : [ "clubs.bookings" ]
+      },
+      "put" : {
+        "description" : "Roles: INSTRUCTOR inside the window, ADMIN always (audited ATTENDANCE_OVERRIDDEN); MEMBER → 403; impersonation → IMPERSONATION_DENIED. R-10-04: one Mongo transaction serialised by seat_locks with the S08 cancellation of NOTIFIED (R-10-05); version ≠ attendanceSummary.version → 409 STALE_VERSION{current: AttendanceSheet}; any error changes nothing; same Idempotency-Key → same response. details: ATTENDANCE_BOOKING_NOT_ACTIVE{bookingId}, ATTENDANCE_WINDOW_CLOSED{editableUntil}. An unknown state is 400. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "saveAttendance",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AttendanceSaveRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AttendanceSheet"
+                }
+              }
+            },
+            "description" : "AttendanceSheet with applied[]"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION, INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ATTENDANCE_NOT_OPEN, ATTENDANCE_WINDOW_CLOSED, ATTENDANCE_NOTIFIED_FINAL, ATTENDANCE_BOOKING_NOT_ACTIVE, INSTRUCTOR_NOTICE_DISABLED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "saveAttendance",
+        "tags" : [ "clubs.bookings" ]
       }
     },
     "/api/v1/class-sessions/{id}/bookings" : {
@@ -26772,6 +29136,153 @@
         "tags" : [ "clubs.census" ]
       }
     },
+    "/api/v1/dogs/{id}/instructor-card" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN, any dog of the club (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screens 22/D13 (R-10-08, R-10-09): 30-day metrics, last 5 classes, level age. TASKS off: no instructorNote/tasks/observations; FREE_TRAINING off: no trainingsCount/trainingsPerWeek; levels.enabled = false: no level. Another club's dog → 404. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "instructorCard",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstructorCard"
+                }
+              }
+            },
+            "description" : "InstructorCard"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "instructorCard",
+        "tags" : [ "clubs.bookings" ]
+      }
+    },
     "/api/v1/dogs/{id}/level" : {
       "patch" : {
         "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
@@ -26927,6 +29438,171 @@
         },
         "summary" : "Update dog level",
         "tags" : [ "clubs.census" ]
+      }
+    },
+    "/api/v1/dogs/{id}/observations" : {
+      "put" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). R-10-12: Dog.remarks (≤ 2000) + remarksMeta with version (STALE_VERSION); DogUpdated{diff: remarks} and an audit entry (DOG_UPDATED); no notification and no D14 row; never returned by /me/*. The dog of an erased member is MEMBER_ERASED (S14). Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "saveObservations",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ObservationsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Observations"
+                }
+              }
+            },
+            "description" : "Observations"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "saveObservations",
+        "tags" : [ "clubs.followup" ]
       }
     },
     "/api/v1/dogs/{id}/photo" : {
@@ -29408,6 +32084,661 @@
         "tags" : [ "clubs.catalogs" ]
       }
     },
+    "/api/v1/followup" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): visible FollowupItem rows, unread first; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. An undeclared filter or sort is 400 INVALID_FILTER. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "followup",
+        "parameters" : [ {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated response column keys.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FollowupPage"
+                }
+              }
+            },
+            "description" : "FollowupPage"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "followup",
+        "tags" : [ "clubs.followup" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "memberName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "dogName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "levelCode"
+        }, {
+          "defaultVisible" : true,
+          "key" : "activityAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "authorName"
+        }, {
+          "defaultVisible" : true,
+          "key" : "textExcerpt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "createdAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "completedAt"
+        } ],
+        "x-exportable" : false,
+        "x-filter-operators" : { },
+        "x-filterable" : [ "kind", "memberId", "dogId", "authorAccountId", "unread" ],
+        "x-sortable" : [ "activityAt" ]
+      }
+    },
+    "/api/v1/followup/read-all" : {
+      "post" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «Marcar-ho tot com a llegit»: readAllAt = now, readItemIds = [] in one Mongo transaction. No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "readAllFollowup",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "readAllFollowup",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/followup/unread-count" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Menu counter «Seguiment alumnes» of the caller (refetched on focus and every 60 s). Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "followupUnreadCount",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FollowupUnreadCount"
+                }
+              }
+            },
+            "description" : "FollowupUnreadCount"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "followupUnreadCount",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/followup/{id}/read" : {
+      "post" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Adds the item to the caller's readItemIds. No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "readFollowupItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "readFollowupItem",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
     "/api/v1/health" : {
       "get" : {
         "operationId" : "health",
@@ -29544,6 +32875,494 @@
         },
         "security" : [ ],
         "tags" : [ "shared" ]
+      }
+    },
+    "/api/v1/instructor/day" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screen 20 (R-10-01): global vision; date absent = today (club-local); instructorId absent = the caller's profile (an ADMIN without one gets the first by shortName); an instructor of another club → 404. Every ring block of the day is listed. WAITLIST off: no waiting. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "instructorDay",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "date",
+          "required" : false,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "instructorId",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstructorDay"
+                }
+              }
+            },
+            "description" : "InstructorDay"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "instructorDay",
+        "tags" : [ "clubs.bookings" ]
+      }
+    },
+    "/api/v1/instructor/week" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 (R-10-15): ISO week of date in the club's zone, Monday–Saturday (Sunday only with items); instructorId filters classes only (`me` = the caller; also the shared classes with classes.maxInstructorsPerClass > 1), ringId filters everything; trainings and blocks are always shown. FREE_TRAINING off: no TRAINING cells; WAITLIST off: no waiting. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "instructorWeek",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "date",
+          "required" : false,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "instructorId",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ringId",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstructorWeek"
+                }
+              }
+            },
+            "description" : "InstructorWeek"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "instructorWeek",
+        "tags" : [ "clubs.bookings" ]
+      }
+    },
+    "/api/v1/instructor/week/export" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 [PDF]: the same query as GET /instructor/week rendered landscape with the club logo, synchronous. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "exportInstructorWeek",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "format",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "pdf" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "date",
+          "required" : false,
+          "schema" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "instructorId",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ringId",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/pdf" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Week agenda PDF"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "exportInstructorWeek",
+        "tags" : [ "clubs.bookings" ]
       }
     },
     "/api/v1/instructors" : {
@@ -34273,6 +38092,161 @@
         },
         "summary" : "My family group",
         "tags" : [ "clubs.census" ]
+      }
+    },
+    "/api/v1/me/history" : {
+      "get" : {
+        "description" : "Roles: MEMBER (also the impersonation token). Screen 25 (R-10-14): own and family-group dogs, history.monthsVisible months, startsAt desc, no live bookings (they are on 03). dogId absent = «Tots»; a dog that is not accessible → 404 DOG_NOT_ACCESSIBLE. type TRAINING needs FREE_TRAINING, ACTIVITY needs ACTIVITIES. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "memberHistory",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "dogId",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "type",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "CLASS", "TRAINING", "ACTIVITY" ],
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberHistory"
+                }
+              }
+            },
+            "description" : "MemberHistory"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "DOG_NOT_ACCESSIBLE"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "memberHistory",
+        "tags" : [ "clubs.bookings" ]
       }
     },
     "/api/v1/me/home" : {
@@ -48931,6 +52905,1093 @@
         } ],
         "summary" : "Create signup upload URL",
         "tags" : [ "clubs.census" ]
+      }
+    },
+    "/api/v1/tasks" : {
+      "get" : {
+        "description" : "Roles: MEMBER for their own dogs (also the impersonation token; not the family group's → 404 DOG_NOT_ACCESSIBLE), INSTRUCTOR, ADMIN. Task history of a dog (26, 13): PENDING by default, includeDone=true adds DONE; includeDeleted only for ADMIN (otherwise 403). Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "tasks",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "dogId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "state",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "PENDING", "DONE" ],
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeDone",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeDeleted",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 50,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TaskList"
+                }
+              }
+            },
+            "description" : "TaskList"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "FORBIDDEN"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED, DOG_NOT_ACCESSIBLE"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "tasks",
+        "tags" : [ "clubs.followup" ]
+      },
+      "post" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachments of purpose TASK registered in the same Mongo transaction; TaskCreated → N-20 to the owner and a D14 row. Same Idempotency-Key → same response. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "createTask",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            },
+            "description" : "Task"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "DOG_NOT_ACTIVE, ATTACHMENT_ENTITY_MISMATCH, ATTACHMENT_LIMIT_REACHED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "createTask",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/tasks/{id}" : {
+      "delete" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Logical deletion (deletedAt, also DONE tasks); TaskDeleted hides the D14 row. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "deleteTask",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "deleteTask",
+        "tags" : [ "clubs.followup" ]
+      },
+      "get" : {
+        "description" : "Roles: MEMBER (own dog), INSTRUCTOR, ADMIN; impersonation → IMPERSONATION_DENIED. Another member's or club's task → 404. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "task",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            },
+            "description" : "Task"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "task",
+        "tags" : [ "clubs.followup" ]
+      },
+      "patch" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Edits the text (R-10-10) with version (STALE_VERSION); TaskUpdated, no notification; refreshes the D14 excerpt. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "updateTask",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TaskPatchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            },
+            "description" : "Task"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updateTask",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/tasks/{id}/completion" : {
+      "post" : {
+        "description" : "Roles: MEMBER owner of the dog (also the impersonation token, audited; a family-group dog → 404), INSTRUCTOR, ADMIN. PENDING → DONE with doneBy; TaskCompleted → N-21 to every active instructor; already DONE → TASK_ALREADY_DONE (422); deleted → 404. No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "completeTask",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            },
+            "description" : "Task"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TASK_ALREADY_DONE"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "completeTask",
+        "tags" : [ "clubs.followup" ]
+      }
+    },
+    "/api/v1/tasks/{id}/reopening" : {
+      "post" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). DONE → PENDING (S10 §13-12), clears doneAt/doneBy and the D14 completedAt; TaskReopened; not DONE → TASK_NOT_DONE (422). No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "operationId" : "reopenTask",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Task"
+                }
+              }
+            },
+            "description" : "Task"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TASK_NOT_DONE"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "reopenTask",
+        "tags" : [ "clubs.followup" ]
       }
     },
     "/api/v1/training-bookings" : {

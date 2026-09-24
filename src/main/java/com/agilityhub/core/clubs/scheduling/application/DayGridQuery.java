@@ -26,7 +26,10 @@ public class DayGridQuery {
             var cell=new LinkedHashMap<String,Object>(); cell.put("ringId",c.ringId()); cell.put("kind","CLASS"); cell.put("endTime",c.endTime()); cell.put("classId",c.id());
             cell.put("description",projection.description(c,LocaleContext.current())); cell.put("instructorName",projection.instructorName(c,staff)); cell.put("state",c.state());
             var risk=projection.risk(c); cell.put("atRisk",risk.atRisk()); cell.put("riskText",risk.text());
-            if(staff) { var counts=new LinkedHashMap<String,Object>(); counts.put("booked",c.counters().booked()); counts.put("capacity",c.capacity()); if(projection.enabled(Module.WAITLIST)) counts.put("waiting",c.counters().waiting()); cell.put("occupancy",counts); }
+            if(staff) {
+                var counts=new LinkedHashMap<String,Object>(); counts.put("booked",c.counters().booked()); counts.put("capacity",c.capacity()); if(projection.enabled(Module.WAITLIST)) counts.put("waiting",c.counters().waiting());
+                cell.put("occupancy",counts); cell.put("attendanceStatus",projection.attendanceStatus(c));
+            }
             rows.computeIfAbsent(c.startTime(),k -> new ArrayList<>()).add(cell);
         }
         // The port's block intervals repeat these blocks; the MEMBER view carries no block id (R-09-12), so match by ring and time too.

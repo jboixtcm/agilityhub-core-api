@@ -153,6 +153,36 @@ class CalendarIT extends AbstractIntegrationTest {
         ok("POST","/class-sessions/"+id+"/risk-exemption",Map.of("exempt",true));ok("POST","/class-sessions/"+id+"/risk-exemption",Map.of("exempt",true));
         patch(id,Map.of("riskExempt",false));assertThat(events("ClassRiskExemptionChanged")).isEqualTo(2);audit(AuditAction.CLASS_UPDATED_WITH_BOOKINGS);audit(AuditAction.CLASS_RISK_EXEMPTION_CHANGED);
         String draft=session("2026-09-01","18:00",null);error("POST","/class-sessions/"+draft+"/risk-exemption",Map.of("exempt",true),ErrorCode.INVALID_STATE);
+        // S10 §7 (E6-T01): attendanceSummary belongs to S10; a planning PATCH copies it untouched and cannot clear it, not even by sending it.
+        var summary=new ClassSession.AttendanceSummary(3,2,1,0,1,Instant.parse("2026-08-24T03:00:00Z"),"Estel");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().set("attendanceSummary",new Document("version",3).append("marked",2).append("present",1)
+                .append("notified",0).append("noShow",1).append("savedAt",Date.from(summary.savedAt())).append("savedByName","Estel")),"class_sessions");
+        patch(id,Map.of("notes","after the attendance"));
+        assertThat(mongo.findById(id,ClassSession.class).attendanceSummary()).isEqualTo(summary);
+        var clearing=new LinkedHashMap<String,Object>();clearing.put("notes","again");clearing.put("attendanceSummary",null);clearing.put("version",session(id).path("version").asLong());
+        mvc.perform(call("PATCH","/class-sessions/"+id,clearing)).andReturn();
+        assertThat(mongo.findById(id,ClassSession.class).attendanceSummary()).isEqualTo(summary);
+        assertThat(session(id).has("attendanceSummary")).isFalse();
+    }
+    @Test void T_10_09_calendarAndInstructorGridExposeTheS10AttendanceStatus() throws Exception {
+        String id=session("2026-08-25","18:00","plan-ring");validate(id);String week=session(id).path("weekId").asText();counts(id,2,0);
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("NONE");
+        clock.setInstant(Instant.parse("2026-08-25T10:00:00Z"));
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("PENDING");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().set("attendanceSummary",new Document("version",1).append("marked",2).append("present",2)
+                .append("notified",0).append("noShow",0)),"class_sessions");
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("DONE");
+        var cell=memberGrid("2026-08-25",true).at("/rows/0/cells/0");
+        assertThat(cell.path("classId").asText()).isEqualTo(id);assertThat(cell.path("attendanceStatus").asText()).isEqualTo("DONE");
+        assertThat(memberGrid("2026-08-25",false).toString()).doesNotContain("attendanceStatus");
+        clock.setInstant(Instant.parse("2026-08-26T21:59:59Z"));
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("DONE");
+        clock.setInstant(Instant.parse("2026-08-26T22:00:00Z"));
+        assertThat(calendarClass(week,id).path("attendanceStatus").asText()).isEqualTo("CLOSED");
+    }
+    JsonNode calendarClass(String week,String id) throws Exception {
+        for(var item:ok("GET","/weeks/"+week+"/calendar?filter=ACTIVE",null).path("classes")) if(item.path("id").asText().equals(id)) return item;
+        throw new AssertionError("class "+id+" not in the calendar");
     }
     void person(String member,String account,String name,Role role,String locale) {
         if(account!=null) {

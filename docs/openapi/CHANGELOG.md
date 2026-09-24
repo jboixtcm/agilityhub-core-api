@@ -2,6 +2,48 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-24 · E6-T01 · S10 contract (attendance, instructor aggregates, tasks, attachments, follow-up, history)
+
+**22 operations added** (254 → 276). They answer `501 NOT_IMPLEMENTED` after the real tenant, role, impersonation,
+module and resource guards until E6-T02 (attendance, instructor aggregates, history) and E6-T03 (tasks, attachments,
+observations, D14):
+
+- `GET /instructor/day` (20), `GET /instructor/week` (D12), `GET /instructor/week/export?format=pdf` (`application/pdf`),
+  `GET /class-sessions/{id}/attendance` (21/D12), `PUT /class-sessions/{id}/attendance` (`Idempotency-Key`),
+  `GET /attendances` (universal list: `x-filterable` `dogId, memberId, classSessionId, classDate, state`; `x-sortable`
+  `classStartsAt, classDate`), `GET /dogs/{id}/instructor-card` (22/D13): INSTRUCTOR, ADMIN; impersonation →
+  `403 IMPERSONATION_DENIED`, MEMBER → `403 FORBIDDEN`.
+- `GET /me/history` (25): MEMBER, also the impersonation token; a dog that is not accessible → `404 DOG_NOT_ACCESSIBLE`.
+- Under `TASKS` (`404 MODULE_DISABLED` when off): `PUT /dogs/{id}/observations` (`Idempotency-Key`), `GET /tasks`
+  (MEMBER own dogs, also impersonated; `includeDeleted` ADMIN only), `POST /tasks` (201, `Idempotency-Key`),
+  `GET|PATCH|DELETE /tasks/{id}` (`DELETE` 204 with `Idempotency-Key`), `POST /tasks/{id}/completion` (MEMBER owner also
+  impersonated, INSTRUCTOR, ADMIN), `POST /tasks/{id}/reopening`, `GET /attachments?entityType&entityId`,
+  `DELETE /attachments/{id}` (204, `Idempotency-Key`), `GET /followup` (universal list: `x-filterable`
+  `kind, memberId, dogId, authorAccountId, unread`; `x-sortable` `activityAt`), `GET /followup/unread-count`,
+  `POST /followup/{id}/read` and `POST /followup/read-all` (204, `Idempotency-Key`).
+
+Schemas added (56): the five S10 §6 forms `InstructorDay`, `AttendanceSheet` (+ `applied[]` on the PUT),
+`InstructorWeek`, `InstructorCard`, `MemberHistory`, with their parts, plus `AttendanceSaveRequest`,
+`AttendanceListItem`, `Task`, `Actor`, `TaskList`, `TaskCreateRequest`, `TaskPatchRequest`, `AttachmentList`,
+`FollowupPage`, `FollowupItem`, `FollowupUnreadCount`, `Observations`, `ObservationsRequest` and the error details
+`StaleAttendanceDetails{current}`, `AttendanceBookingNotActiveDetails{bookingId}`, `AttendanceWindowClosedDetails{editableUntil}`,
+`FileTooLargeDetails{maxSizeMb}`, `AttachmentLimitReachedDetails{max}`. Module-off fields are optional
+(`pendingTasksCount`, `waiting`/`waitlist`, `instructorNote`/`tasks`/`observations`, `trainingsCount`/`trainingsPerWeek`).
+
+Existing operations and schemas changed:
+
+- `POST /attachments/upload-url`: `purpose` gains `TASK` and `DOG_OBSERVATIONS` (INSTRUCTOR, ADMIN; `TASKS`; same type
+  and size rules); INSTRUCTOR is now an accepted role for those two purposes only; `IMPERSONATION_DENIED` documented.
+- `POST /attachments`: `entityType` gains `TASK` and `DOG_OBSERVATIONS` (INSTRUCTOR, ADMIN; 501 until E6-T03);
+  `NOT_FOUND`, `MODULE_DISABLED`, `IMPERSONATION_DENIED` documented; `ATTACHMENT_LIMIT_REACHED` now carries `details.max`.
+- Schema `AttachmentResponse` is renamed **`Attachment`** (same six fields), the S10 name.
+- `ClassSession` (staff view, only in `GET /weeks/{id}/calendar`) and `DayGridCell` (INSTRUCTOR view, CLASS cells) gain
+  the optional `attendanceStatus` (`NONE · PENDING · DONE · CLOSED`), derived from the S10-owned `attendanceSummary`.
+- `TASK_ALREADY_DONE` is 422 (was 409; `CATALEG_ERRORS.md` §3 rule 0).
+
+Web adopters: regenerate the types (`AttachmentResponse` → `Attachment`); screens 20, 21, 22, 25, 26, D12, D13 and D14
+can build against the examples of S10 §6 (fixtures `e6-*-responses.json`).
+
 ## 2026-09-24 · E5-T11 · `Level.progression` (E29); one key-first rule for the keyed public routes
 
 - `Level` and `LevelReaderView` (`GET/POST /levels`, `GET/PATCH /levels/{id}`, `PUT /levels/order`): new required

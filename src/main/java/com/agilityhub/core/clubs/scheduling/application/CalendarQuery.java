@@ -46,7 +46,9 @@ public class CalendarQuery {
         header.put("state",week.state()); header.put("generatedAt",week.generatedAt()); header.put("validatedAt",week.validatedAt());
         header.put("relative",week.startDate().equals(current)?"CURRENT":week.startDate().equals(current.plusWeeks(1))?"NEXT":"OTHER");
         int draftCount=(int)all.stream().filter(c -> c.state()==ClassState.DRAFT).count();
-        return Map.of("week",header,"rows",rows,"classes",selected.stream().map(c -> projection.session(c,false,inconsistencies.stream().filter(i -> i.itemIds().contains(c.id())).map(InconsistencyDetector.Inconsistency::id).toList())).toList(),
+        return Map.of("week",header,"rows",rows,"classes",selected.stream().map(c -> {
+                    var session=projection.session(c,false,inconsistencies.stream().filter(i -> i.itemIds().contains(c.id())).map(InconsistencyDetector.Inconsistency::id).toList());
+                    session.put("attendanceStatus",projection.attendanceStatus(c)); return session; }).toList(),
                 "ringBlocks",ringBlocks.stream().map(b -> projection.block(b,false)).toList(),"inconsistencies",inconsistencies,"draftCount",draftCount,"canValidate",draftCount>0 && inconsistencies.isEmpty());
     }
 }

@@ -47,6 +47,7 @@ public class CensusAccess implements DogOwnerAccess {
         if (ownerOnly) { ownDog(dogId, mutation); }
         else if (mutation) { mutableDog(dogId); } else { dogs.require(dogId); }
     }
+    @Override public Optional<String> ownerOf(String dogId) { return dogs.findById(dogId).map(dog -> dog.memberId); }
     public String billedViaMemberId(String memberId) {
         var member = members.require(memberId);
         if (enabled(Module.FAMILY_GROUP) && member.familyGroupId != null) {

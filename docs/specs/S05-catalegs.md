@@ -35,7 +35,7 @@ Tots els documents porten `clubId` (injectat per `TenantRepository`), `id` UUID,
 | `color` | string | sí | hex | xips de nivell; per defecte següent color de la paleta |
 | `capacity` | int | sí | 1–99 | «aforament»; per defecte `classes.defaultCapacity` |
 | `grantsFreeTraining` | bool | sí | — | «dona dret a entrenament lliure»; llegit per S03/S09 (`Dog.freeTrainingOverride ?? level.grantsFreeTraining`); ignorat si `FREE_TRAINING` off |
-| `progression` | bool | sí | — | per defecte `true`; «forma part de la progressió de nivells»: només aquests nivells compten per a la descripció automàtica «{primer} i sup.» (S06 R-06-03). Un nivell especial com «Teràpia» = `false` (organitzador 24-09, E29) |
+| `progression` | bool | sí | — | per defecte `true`; «forma part de la progressió de nivells»: només aquests nivells compten per a la descripció automàtica «{primer} i sup.» (S06 R-06-03) i surten a la taula de cobertura (R-06-06). Un nivell especial com «Teràpia» = `false` (organitzador 24-09, E29) |
 | `active` | bool | sí | — | inactiu = no seleccionable en gossos nous ni classes de plantilla |
 | `usage` (lectura) | `{activeDogs, futureClassSessions, templateClasses}` | — | calculat | per als diàlegs de D11 |
 
@@ -330,6 +330,7 @@ Nivells (colors: proposta, els mockups no en fixen; **sense** escala AgilityHub 
 | F | F | F | 60 | #E8A070 | 4 | true | true |
 | G | G | G | 70 | #E26A2A | 4 | true | true |
 | TER | Teràpia | Terapia | 80 | #C9CDD3 | 1 | false | false |
+| PENDENT | Pendent | Pendiente | 90 | #9AA0A6 | 5 | false | false |
 
 Pistes (`trainingCapacity = null` → `training.capacityPerRingSlot = 1`; sense geometria):
 
@@ -411,3 +412,4 @@ Instructors i administradors van al **`demo-seed`** (necessiten abonats ficticis
 - 05-09-2026 · nova entitat de contingut **`ClubPage`** (`club_pages`: `key RULES · PRIVACY · IMAGE_CONSENT · WELCOME_GUIDE · lliure`, `title/body: LocalizedText` en Markdown limitat, `version`, `publishedAt`, `active`) mantinguda a **D11 → targeta «Pàgines del club»** (al costat de la FAQ; editor per idioma + vista prèvia); endpoints `GET/POST/PATCH /club-pages`, `GET /public/{clubSlug}/pages/{key}`; seed del Cànic amb `RULES` (`05-desenvolupament/legal/NORMES_CLUB_PLANTILLA.md`) i `IMAGE_CONSENT`. Els consentiments guarden la `version` de la pàgina acceptada (S04).
 - 08-09-2026 · respostes del Josep (B10, B12, B22): `Plan.billingMode` (Teràpia = `MAINTENANCE` automàtica, substitueix `Member.billingMode`) · R-05-18b descompte del 40 % d'entrada en passar d'un pack de 10 a abonat · R-05-21b FAQ, normes i textos de modalitats amb contingut provisional que el club omplirà des de l'eina.
 - 24-09-2026 · E29: camp `Level.progression` (per defecte sí; Teràpia = no) per a la descripció automàtica «… i sup.» d'S06 R-06-03; columna «Progressió» a la targeta Nivells de D11 i al seed.
+- 24-09-2026 · B32 (Josep): nivell `PENDENT` «Pendent» al seed (fora de la progressió, sense classes; els 6 gossos de Playoff sense avaluar); `progression` també decideix la cobertura de D3.

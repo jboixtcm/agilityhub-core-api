@@ -69,6 +69,18 @@ class OpenApiRequiredContractTest {
                 .doesNotContain("skipReason", "finishedAt", "durationMs", "actorAccountId");
         assertThat(required(schemas, "PublicActivity")).contains("slug", "state", "title", "date", "registration", "places");
         assertThat(required(schemas, "Manifest")).containsExactlyInAnyOrderElementsOf(names(schemas.at("/Manifest/properties")));
+        // E6-T01: S10 forms; optional = nullable or module-dependent (S10 §9).
+        assertThat(required(schemas, "AttendanceSaveRequest")).containsExactly("items", "version");
+        assertThat(required(schemas, "AttendanceSaveItem")).containsExactly("bookingId", "state");
+        assertThat(required(schemas, "TaskCreateRequest")).containsExactly("dogId", "text");
+        assertThat(required(schemas, "TaskPatchRequest")).containsExactly("text", "version");
+        assertThat(required(schemas, "ObservationsRequest")).containsExactly("text", "version");
+        assertThat(required(schemas, "AttachmentRequest")).containsExactly("entityId", "entityType", "fileKey", "name");
+        assertThat(required(schemas, "Task")).containsExactlyInAnyOrder("id", "dogId", "text", "state", "createdAt", "createdBy", "attachments", "version");
+        assertThat(required(schemas, "Sheet")).containsExactlyInAnyOrder("version", "canMarkPresence", "canMarkNotice", "editableUntil", "noShowNoticeTime");
+        assertThat(required(schemas, "InstructorDay")).containsExactlyInAnyOrder("date", "timeZone", "instructors", "days", "classes", "ringBlocks");
+        assertThat(required(schemas, "MemberHistory")).containsExactlyInAnyOrder("monthsVisible", "from", "showDog", "dogs", "types", "items");
+        assertThat(required(schemas, "FollowupItem")).doesNotContain("taskId", "levelCode", "completedAt").contains("unread", "activityAt");
     }
 
     @Test void E1_T11_javaDefaultsPreserveOptOutsRenamedPropertiesAndSharedReferences() {

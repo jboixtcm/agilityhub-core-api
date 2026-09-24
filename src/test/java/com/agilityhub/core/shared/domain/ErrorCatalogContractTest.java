@@ -65,6 +65,35 @@ class ErrorCatalogContractTest {
             expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
         }
     }
+    @Test void T_10_21_attendanceAndFollowupErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
+        var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
+        String row = catalog.lines().filter(line -> line.startsWith("| S10 |")).findFirst().orElseThrow();
+        var expected = new java.util.LinkedHashMap<String, Integer>();
+        for (String names : java.util.List.of(
+                // Rule 0 (literal, beats S10 §6 which writes 409 for seven of them): no ALREADY_ prefix at the start, no 409 suffix → 422.
+                "422:ATTENDANCE_NOT_OPEN,ATTENDANCE_WINDOW_CLOSED,ATTENDANCE_NOTIFIED_FINAL,ATTENDANCE_BOOKING_NOT_ACTIVE,INSTRUCTOR_NOTICE_DISABLED,TASK_ALREADY_DONE,TASK_NOT_DONE,ATTACHMENT_LIMIT_REACHED,ATTACHMENT_ENTITY_MISMATCH,DOG_NOT_ACTIVE,BOOKING_NOT_CANCELLABLE",
+                // Explicit in §1.
+                "409:STALE_VERSION,INVALID_STATE,IDEMPOTENCY_KEY_REUSED", "404:DOG_NOT_ACCESSIBLE,MODULE_DISABLED,NOT_FOUND",
+                "400:FILE_TOO_LARGE,FILE_TYPE_NOT_ALLOWED,VALIDATION_ERROR,INVALID_FILTER", "403:FORBIDDEN,IMPERSONATION_DENIED")) {
+            String[] pair = names.split(":");
+            for (String name : pair[1].split(",")) { expected.put(name, Integer.parseInt(pair[0])); }
+        }
+        assertThat(expected).hasSize(23);
+        expected.forEach((name, status) -> {
+            assertThat(catalog).contains("`" + name + "`");
+            assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);
+        });
+        // The S10 row of §2 lists exactly the eleven codes of the vertical.
+        var own = new java.util.ArrayList<String>();
+        var matcher = Pattern.compile("`([A-Z][A-Z_]+)`").matcher(row);
+        while (matcher.find()) { own.add(matcher.group(1)); }
+        assertThat(own).containsExactlyElementsOf(java.util.List.of(expected.keySet().toArray(new String[0])).subList(0, 11));
+        for (String locale : java.util.List.of("ca", "es", "en")) {
+            var messages = new java.util.Properties();
+            try (var input = Files.newBufferedReader(Path.of("src/main/resources/messages/messages_" + locale + ".properties"))) { messages.load(input); }
+            expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
+        }
+    }
     @Test void T_06_20_T_07_17_schedulingAndActivityErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
         var expected = new java.util.LinkedHashMap<String, Integer>();

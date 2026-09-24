@@ -1,0 +1,11 @@
+{
+  "AttendanceMarked": {"bookingId": "booking-a", "classSessionId": "class-a", "dogId": "dog-a", "memberId": "member-a", "state": "NOTIFIED", "previousState": "PENDING",
+    "by": {"accountId": "account-a", "role": "INSTRUCTOR"}, "late": false, "afterClassEnd": false},
+  "NoShowNoticeDue": {"attendanceIds": ["attendance-a", "attendance-b"], "bookingIds": ["booking-a", "booking-b"]},
+  "TaskCreated": {"taskId": "task-a", "dogId": "dog-a", "memberId": "member-a", "by": {"accountId": "account-a", "role": "INSTRUCTOR"}},
+  "TaskUpdated": {"taskId": "task-a", "dogId": "dog-a", "by": {"accountId": "account-a", "role": "INSTRUCTOR"}},
+  "TaskDeleted": {"taskId": "task-a", "dogId": "dog-a", "by": {"accountId": "account-a", "role": "ADMIN"}},
+  "TaskCompleted": {"taskId": "task-a", "dogId": "dog-a", "memberId": "member-a", "by": {"accountId": "account-b", "role": "MEMBER"}},
+  "TaskReopened": {"taskId": "task-a", "dogId": "dog-a", "by": {"accountId": "account-a", "role": "INSTRUCTOR"}},
+  "AttachmentRemoved": {"attachmentId": "attachment-a", "entityType": "TASK", "entityId": "task-a"}
+}

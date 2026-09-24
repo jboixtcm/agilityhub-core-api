@@ -25,8 +25,9 @@ public class AttachmentService {
     private ClubConfig config() { return configs.get(TenantContext.require()); }
     private String account() { var user = CurrentUser.current(); if (user == null) { throw new ApiException(ErrorCode.UNAUTHENTICATED); } return user.accountId(); }
     private void validate(String purpose, String type, long size) {
-        if (!Set.of("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "SIGNUP_DOCUMENT", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT").contains(purpose)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
-        if ("INSTRUCTOR_NOTE".equals(purpose) && !config().modules().contains(Module.TASKS)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
+        if (!Set.of("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE", "SIGNUP_DOCUMENT", "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT", "TASK", "DOG_OBSERVATIONS").contains(purpose)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
+        // S10 §9: the three S10 owners (the member's note, tasks, observations) live under TASKS.
+        if (Set.of("INSTRUCTOR_NOTE", "TASK", "DOG_OBSERVATIONS").contains(purpose) && !config().modules().contains(Module.TASKS)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
         if (purpose.startsWith("ACTIVITY_") && !config().modules().contains(Module.ACTIVITIES)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
         boolean allowed = type != null && config().get("files.allowedTypes", List.class).stream().anyMatch(raw -> {
             String item = raw.toString(); return item.endsWith("/*") ? type.startsWith(item.substring(0, item.length() - 1)) : type.equals(item);
@@ -118,7 +119,8 @@ public class AttachmentService {
             if (!dogId.equals(existing.entityId()) || !account().equals(existing.uploadedByAccountId())) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
             return view(existing);
         }
-        if (attachments.forEntity(entityType, dogId).size() >= config().get("files.maxAttachmentsPerEntity", Integer.class)) { throw new ApiException(ErrorCode.ATTACHMENT_LIMIT_REACHED); }
+        int limit = config().get("files.maxAttachmentsPerEntity", Integer.class);
+        if (attachments.forEntity(entityType, dogId).size() >= limit) { throw new ApiException(ErrorCode.ATTACHMENT_LIMIT_REACHED, Map.of("max", limit)); }
         var file = claim(key, entityType, dogId);
         var saved = attachments.insert(new Attachment(key, TenantContext.require(), entityType, dogId, key,
                 name, file.mimeType(), file.sizeBytes(), account(), clock.instant(), clock.instant(), null, null, 0));

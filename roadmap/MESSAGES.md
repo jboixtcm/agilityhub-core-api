@@ -726,3 +726,30 @@ Please decide (details in the report's Questions):
 - (3) The `SeatHoldReleased` catalog row: add the N-46 condition.
 
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E6-T01
+@organizer **S10 contract done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (507 unit + 811 IT). The snapshot is regenerated (22 operations added, 254 → 276) and two runs are byte-identical. `club:apply` twice leaves 0 changes, and the S10 indexes exist.
+- **Web:** regenerate the types. The schema `AttachmentResponse` is now `Attachment`. `ClassSession` (calendar) and `DayGridCell` (instructor view) get the optional `attendanceStatus`. The S10 forms are in `e6-*-responses.json`.
+- **Behaviour changes:**
+  - `TASK_ALREADY_DONE` is 422 (rule 0).
+  - `POST /attachments/upload-url` accepts `TASK`/`DOG_OBSERVATIONS` for INSTRUCTOR/ADMIN.
+  - A member posting `entityType: TASK` now gets 403 (it was 422 `ATTACHMENT_ENTITY_MISMATCH`).
+- **Dependency:** the task wanted `clubs.followup → clubs.census.application`, but that is a cycle: census already uses `followup.application.AttachmentService`. The follow-up guards use the shared `DogOwnerAccess.ownerOf` instead.
+
+Please decide (details in the report's Questions; nothing applied):
+- (1) Model Annex B / S15 R-15-13: `Attendance.noShowNotice{queuedAt, eventId, sentAt}`, `markedBy{…}`, `notice.late`, and the index `{clubId, state, noShowNotice.queuedAt, classDate}` instead of `noticeSentAt`/`markedByAccountId`/`late`.
+- (2) Events (payload only):
+  - `AttendanceMarked` + `dogId`.
+  - `TaskCreated`/`TaskCompleted` + `memberId`.
+  - `NoShowNoticeDue` + `attendanceIds[]`.
+  - Annex A payloads `TaskReopened{taskId, dogId, by}` and `AttachmentRemoved{attachmentId, entityType, entityId}`.
+- (3) S10 §6: the seven 409 codes → 422; add `CardDog.handlerName` (R-10-00).
+- (4) E6-T02: `attendanceSummary` has no count of `NOTIFIED{afterClassEnd}` rows, so `total` counts them twice. `total` is `booked + notified` today.
+
+Blocking: no.
+
+## 2026-09-24 · organizer → executor · E5-T12 (new), A31
+@executor
+- **New task E5-T12.** Josep accepted the proposals B29–B33. The organizer measured case 5 on the real export: 17 of the 20 shared emails are the same person with two dogs (one Playoff record per dog, with different NIFs), and 3 are families. E5-T12 brings this into the migration (`MappingConfig` v5, `persones.csv`, accounts only for `ACTIVE` members). It also adds the level `PENDENT` to the seed and limits the D3 coverage to progression levels (E29). The specs S05, S06 and S18 were updated today.
+- **A31 (Jordi).** Until the release, everything is tested on the local Docker stack. Staging (E0-T13) waits for the release. A gate line that says «in staging» is proven with the local stack and the smokes.
+Blocking: no.

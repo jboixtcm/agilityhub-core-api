@@ -483,7 +483,9 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(events("AttachmentAdded")).hasSize(1); assertThat(audit(AuditAction.DOG_UPDATED)).hasSize(auditCount);
         assertThat(json(own(get("/api/v1/me/dogs")), 200).path("dogs").get(0).path("instructorNote").path("attachments")).hasSize(1);
         error(admin(body(post("/api/v1/attachments"), note)), ErrorCode.FORBIDDEN);
-        error(own(body(post("/api/v1/attachments"), Map.of("entityType", "TASK", "entityId", "dog-one", "fileKey", "unused", "name", "Example"))), ErrorCode.ATTACHMENT_ENTITY_MISMATCH);
+        // E6-T01: TASK is an S10 entity written by staff only (R-10-11, T-10-16); an unknown type is still a mismatch.
+        error(own(body(post("/api/v1/attachments"), Map.of("entityType", "TASK", "entityId", "dog-one", "fileKey", "unused", "name", "Example"))), ErrorCode.FORBIDDEN);
+        error(own(body(post("/api/v1/attachments"), Map.of("entityType", "OTHER", "entityId", "dog-one", "fileKey", "unused", "name", "Example"))), ErrorCode.ATTACHMENT_ENTITY_MISMATCH);
         parameter("files.maxAttachmentsPerEntity", 1);
         var second = uploadUrl("INSTRUCTOR_NOTE", "application/pdf", data, false);
         error(own(body(post("/api/v1/attachments"), Map.of("entityType", "INSTRUCTOR_NOTE", "entityId", "dog-one", "fileKey", second.path("fileKey").asText(), "name", "Example"))), ErrorCode.ATTACHMENT_LIMIT_REACHED);

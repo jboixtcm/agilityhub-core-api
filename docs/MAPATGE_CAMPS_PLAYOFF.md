@@ -117,7 +117,7 @@ No apareixen a les dades vives: «Abonat 3 gossos», «Abonat Plus» ni «Quota 
 | Fitxa sense gos | 9 | `DOG_INFERRED`: gos «Gos de {nom}» per revisar |
 | Gos sense xip | 16 | `CHIP_MISSING` (el model el vol obligatori: es carrega buit i es reclama) |
 | Sense email | 7 | es migra sense `Account`; convidat quan el club tingui l'adreça |
-| **Email compartit amb un altre abonat** | ~20 | un `Account` per adreça: el primer es queda l'adreça i la resta es migren **sense compte** amb proposta de grup familiar (`EMAIL_SHARED`) — **dubte B33** |
+| **Email compartit amb un altre abonat** | 20 adreces (40 fitxes) | mesurat el 24-09: **17 són la mateixa persona amb dos gossos** (una fitxa per gos; la segona amb un altre NIF, en 11 casos començat per 0) → s'uneixen en una persona si el club ho confirma (`persones.csv`, `PERSON_MERGED`); **3 són famílies** → compte per a la fitxa d'alta més antiga, l'altra sense compte i amb proposta de grup familiar (`EMAIL_SHARED`). B33 tancada (E32) |
 | Sense telèfon | 9 | s'accepta (el model en vol 1: es carrega buit amb avís) |
 | Sense codi postal / domicili | 8 / 10 | s'accepta amb avís |
 | Edat per sota del mínim de l'alta (16 anys) | 2 (edats 0 i 11) | la validació d'edat **no s'aplica als migrats**: avís `AGE_SUSPECT` per revisar (probablement és la data del gos) |
@@ -126,7 +126,7 @@ No apareixen a les dades vives: «Abonat 3 gossos», «Abonat Plus» ni «Quota 
 
 ## 7. Preguntes obertes
 
-Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDENTS.md`):
+Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDENTS.md`). **B29–B33 tancades el 24-09**: el Josep accepta les propostes (B31 = `ABONAT_FAMILIAR`; el llistat del cas 5 s'ha lliurat fora del Dropbox). Queda oberta la del preu de «Competició 1 gos».
 
 - **B29 · Foto**: les 145 fotos són del gos o de la persona? (proposta: del gos, que és on el producte les mostra).
 - **B30 · «Quota reduïda»** (4 abonats): quina modalitat i quin preu? (proposta: `ABONAT` amb una tarifa pròpia «Quota reduïda»).
@@ -138,3 +138,4 @@ Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDE
 ## Canvis
 
 - 09-09-2026 · v1.0 · primera versió a partir dels tres exports del 07-09-2026.
+- 24-09-2026 · respostes del Josep a B29–B33; cas 5 mesurat amb l'export (17 mateixa persona + 3 famílies).

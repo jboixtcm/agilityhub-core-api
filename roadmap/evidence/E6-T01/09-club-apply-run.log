@@ -1,0 +1,32 @@
+Disposable Mongo 7 replica set on a random localhost port, database e6_contract (empty), local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 07-club-apply-first.log)
++ catalogs: 31 catalog changes
++ pages: 3 page changes
+15 changes (applied)
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 08-club-apply-second.log)
+= catalogs: 0 catalog changes
+= pages: 0 page changes
+0 changes (applied)
+PASS second club:apply: 0 changes and complete Mongo document snapshot unchanged
+Indexes of attendances after the second run:
+  _id_ {"_id":1}
+  attendance_club_booking {"clubId":1,"bookingId":1} unique
+  attendance_club_class {"clubId":1,"classSessionId":1}
+  attendance_club_dog_starts {"clubId":1,"dogId":1,"classStartsAt":1}
+  attendance_club_state_notice_date {"clubId":1,"state":1,"noShowNotice.queuedAt":1,"classDate":1}
+Indexes of tasks after the second run:
+  _id_ {"_id":1}
+  task_club_dog_deleted_state_created {"clubId":1,"dogId":1,"deletedAt":1,"state":1,"createdAt":1}
+Indexes of followup_items after the second run:
+  _id_ {"_id":1}
+  followup_club_activity {"clubId":1,"activityAt":1}
+  followup_club_kind_activity {"clubId":1,"kind":1,"activityAt":1}
+Indexes of followup_read_marks after the second run:
+  _id_ {"_id":1}
+  followup_read_club_account {"clubId":1,"accountId":1} unique
+Indexes of attachments after the second run:
+  _id_ {"_id":1}
+  clubId_1_fileKey_1 {"clubId":1,"fileKey":1} unique
+  attachment_club_entity_removed {"clubId":1,"entityType":1,"entityId":1,"removedAt":1}
+PASS the S10 indexes exist after both runs and are identical (idempotent creation)
+HELPER_EXIT_0

@@ -49,9 +49,22 @@ class AttachmentServiceTest {
         for (long size : List.of(0L, -1L, 26L * 1024 * 1024)) {
             assertThatThrownBy(() -> service.upload("DOG_DOCUMENT", "Example", "text/plain", size)).hasMessage("FILE_TOO_LARGE");
         }
-        assertThatThrownBy(() -> service.upload("TASK", "Example", "text/plain", 4)).hasMessage("ATTACHMENT_ENTITY_MISMATCH");
-        config(Set.of()); assertThatThrownBy(() -> service.upload("INSTRUCTOR_NOTE", "Example", "text/plain", 4)).hasMessage("MODULE_DISABLED");
+        assertThatThrownBy(() -> service.upload("OTHER", "Example", "text/plain", 4)).hasMessage("ATTACHMENT_ENTITY_MISMATCH");
+        config(Set.of());
+        for (String purpose : List.of("INSTRUCTOR_NOTE", "TASK", "DOG_OBSERVATIONS")) {
+            assertThatThrownBy(() -> service.upload(purpose, "Example", "text/plain", 4)).hasMessage("MODULE_DISABLED");
+        }
         verifyNoInteractions(grants, events);
+    }
+    @Test void T_10_16_taskAndObservationPurposesFollowTheS10FilePolicy() {
+        when(storage.uploadUrl(anyString(), anyString(), anyLong(), any())).thenReturn("https://files.example.test/upload");
+        for (String purpose : List.of("TASK", "DOG_OBSERVATIONS")) {
+            assertThat(service.upload(purpose, "vídeo_balancí.mov", "text/plain", 20L * 1024 * 1024).uploadUrl()).isEqualTo("https://files.example.test/upload");
+            assertThatThrownBy(() -> service.upload(purpose, "vídeo_balancí.mp4", "text/plain", 30L * 1024 * 1024)).hasMessage("FILE_TOO_LARGE")
+                    .extracting(error -> ((ApiException) error).details()).isEqualTo(Map.of("maxSizeMb", 25));
+            assertThatThrownBy(() -> service.upload(purpose, "Example.exe", "application/x-msdownload", 4)).hasMessage("FILE_TYPE_NOT_ALLOWED");
+        }
+        verify(grants, times(2)).insert(any(UploadGrant.class));
     }
     @Test void T_07_18_activityPurposesUseTheModuleAllowedMimeTypesAndGeneralSizeLimit() {
         for (String purpose : List.of("ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT")) {

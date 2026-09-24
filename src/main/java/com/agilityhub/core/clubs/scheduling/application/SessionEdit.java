@@ -21,6 +21,7 @@ final class SessionEdit {
     ClassSession snapshot(Instant now, String actor) {
         return new ClassSession(before.id(), before.clubId(), before.weekId(), before.date(), startTime, endTime, startsAt, endsAt,
                 ringId, levels, instructors, capacity, capacityMode, description, state, counters, risk, cancellation, before.origin(),
-                before.placementId(), notes, before.version() + 1, before.createdAt(), before.createdByAccountId(), now, actor, before.finishedAt());
+                before.placementId(), notes, before.version() + 1, before.createdAt(), before.createdByAccountId(), now, actor, before.finishedAt(),
+                before.attendanceSummary());
     }
 }

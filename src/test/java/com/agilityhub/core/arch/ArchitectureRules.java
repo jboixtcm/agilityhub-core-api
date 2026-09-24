@@ -133,6 +133,21 @@ final class ArchitectureRules {
             .should().beAssignableTo(BASE_PACKAGE + "shared.domain.DomainEvent")
             .because("E5-T09: EventPublisher.publish takes a DomainEvent; a consumer envelope is not one");
 
+    /**
+     * E6-T01: S10 splits into `clubs.bookings` (attendance) and `clubs.followup` (tasks, D14). Follow-up depends on
+     * bookings; what the sheet and the card need from it goes through `clubs.bookings.application.ports.DogFollowupPort`.
+     */
+    static final ArchRule BOOKINGS_WITHOUT_FOLLOWUP = noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + "clubs.bookings..")
+            .should().dependOnClassesThat().resideInAPackage(BASE_PACKAGE + "clubs.followup..")
+            .because("E6-T01: clubs.followup → clubs.bookings.application, never the other way round");
+
+    /** E6-T01 (ADR-001): the platform (jobs framework, configuration of clubs) knows no club context. */
+    static final ArchRule PLATFORM_WITHOUT_CLUBS = noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + "platform..")
+            .should().dependOnClassesThat().resideInAPackage(BASE_PACKAGE + "clubs..")
+            .because("E6-T01: owning contexts register their Job beans; the platform never imports them");
+
     private static JavaClass topLevel(JavaClass type) {
         var current = type;
         while (current.getEnclosingClass().isPresent()) { current = current.getEnclosingClass().get(); }

@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- E6-T01: S10 contract (WP-10-A).
+  - 22 S10 routes (`/instructor/day|week|week/export`, `/class-sessions/{id}/attendance` GET/PUT, `/attendances`,
+    `/dogs/{id}/instructor-card`, `/me/history`, `/dogs/{id}/observations`, `/tasks*`, `GET /attachments`,
+    `DELETE /attachments/{id}`, `/followup*`) with typed S10 §6 forms; they answer 501 behind the real guards
+    (`InstructorController`, `TasksController`, `FollowupController`, `E6ContractConfiguration`).
+  - Mongo documents and indexes: `attendances` (`clubs.bookings`), `tasks`, `followup_items`, `followup_read_marks`
+    (`clubs.followup`), and the `{clubId, entityType, entityId, removedAt}` index of `attachments`.
+  - `ClassSession.attendanceSummary` (S10-owned; a planning PATCH keeps it); `AttendanceStatusCalculator` feeds
+    `attendanceStatus` to the S06 calendar and instructor day grid through `AttendanceStatusPort`.
+  - `DogFollowupPort` (null default) for what the sheet and the card read from the follow-up side.
+  - `DogOwnerAccess.ownerOf`: the follow-up guards read a dog's owner without importing census.
+  - Upload purposes `TASK` and `DOG_OBSERVATIONS` (INSTRUCTOR/ADMIN, `TASKS`).
+  - Events `AttendanceEvent` (`AttendanceMarked`, `NoShowNoticeDue`) and `FollowupEvent` (`TaskCreated`, `TaskUpdated`,
+    `TaskDeleted`, `TaskCompleted`, `TaskReopened`, `AttachmentRemoved`), not published yet.
+  - Tests: `E6ContractIT`, `E6PersistenceIT`, `E6ResponseContractTest`, `JobCatalogContractTest`, unit tests of the
+    window and the guards, ArchUnit `clubs.bookings` ⊬ `clubs.followup` and `platform` ⊬ `clubs`.
+
+### Changed
+
+- E6-T01: `TASK_ALREADY_DONE` is 422 (was 409), as `CATALEG_ERRORS.md` §3 rule 0 says. The OpenAPI schema
+  `AttachmentResponse` is now `Attachment`. `ATTACHMENT_LIMIT_REACHED` carries `details.max`.
+
 ### Fixed
 
 - E5-T11: follow-ups of the E5-T08 review, and ruling E29.

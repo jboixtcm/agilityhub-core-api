@@ -1,0 +1,8 @@
+{
+  "N-05": {"event": "BookingCancelled", "variables": ["dog_name", "class_date", "class_time", "late"], "action": null},
+  "N-15": {"event": "SeatReleased", "variables": ["dog_name", "class_date", "class_time", "confirm_by", "mode", "entityId"], "action": "CLAIM_SEAT"},
+  "N-19": {"event": "NoShowNoticeDue", "variables": ["dog_name", "class_date"], "action": null},
+  "N-20": {"event": "TaskCreated", "variables": ["dog_name", "instructor_name", "task_excerpt"], "action": "OPEN_TASKS"},
+  "N-21": {"event": "TaskCompleted", "variables": ["member_name", "dog_name", "task_excerpt"], "action": "OPEN_DOG"},
+  "N-22": {"event": "MemberNoteChanged", "variables": ["member_name", "dog_name"], "action": "OPEN_DOG"}
+}
