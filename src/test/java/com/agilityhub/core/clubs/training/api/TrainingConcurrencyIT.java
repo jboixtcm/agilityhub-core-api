@@ -66,20 +66,22 @@ class TrainingConcurrencyIT extends TrainingFixtures {
     }
 
     @Test void T_09_34_threeParallelAnyRingBookingsTakeThreeRingsInCatalogOrder() throws Exception {
-        // Only three reservable rings for this scenario.
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(CAD)), new Update().set("allowsFreeTraining", false), "rings");
+        // E5-T09 (E5-T04 review #9): four reservable rings in catalog order MUN, CEN, CAR, CAD. Three parallel «Qualsevol» bookings
+        // must take exactly the first three and leave the last one free — any three of four would not be catalog order.
         for (int round = 0; round < 3; round++) {
             String start = "2026-10-0" + (6 + round) + "T10:00"; final int base = round * 3;
             var replies = parallel(3, i -> () -> send(body("s09-d-c" + (base + i), start, null), as("c" + (base + i))));
-            var rings = replies.stream().filter(r -> r.status() == 201).map(r -> r.body().path("ringId").asText()).sorted().toList();
-            System.out.println("T-09-34 round " + round + " («Qualsevol» ×3): " + tally(replies) + " rings " + rings);
             assertThat(tally(replies)).containsExactly(Map.entry("201", 3L));
-            assertThat(rings).containsExactlyInAnyOrder(MUN, CEN, CAR);
-            var byTime = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("startsAt").is(java.util.Date.from(local(start)))), org.bson.Document.class, "training_bookings")
-                    .stream().sorted(Comparator.comparing(d -> d.getDate("createdAt"))).map(d -> d.getString("ringId")).toList();
-            assertThat(byTime).hasSize(3).doesNotHaveDuplicates();
+            var rings = replies.stream().map(r -> r.body().path("ringId").asText()).toList();
+            assertThat(rings).containsExactlyInAnyOrder(MUN, CEN, CAR).doesNotContain(CAD);
+            var stored = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("startsAt").is(java.util.Date.from(local(start)))
+                    .and("state").is("ACTIVE")), org.bson.Document.class, "training_bookings").stream().map(d -> d.getString("ringId")).toList();
+            assertThat(stored).containsExactlyInAnyOrder(MUN, CEN, CAR);
         }
-        var fourth = send(body("s09-d-c19", "2026-10-06T10:00", null), as("c19"));
-        assertThat(fourth.status()).isEqualTo(409); assertThat(fourth.code()).isEqualTo("SLOT_TAKEN");
+        // The next «Qualsevol» takes the last ring in catalog order; after it the slot is full.
+        var fourth = send(body("s09-d-c18", "2026-10-06T10:00", null), as("c18"));
+        assertThat(fourth.status()).isEqualTo(201); assertThat(fourth.body().path("ringId").asText()).isEqualTo(CAD);
+        var fifth = send(body("s09-d-c19", "2026-10-06T10:00", null), as("c19"));
+        assertThat(fifth.status()).isEqualTo(409); assertThat(fifth.code()).isEqualTo("SLOT_TAKEN");
     }
 }

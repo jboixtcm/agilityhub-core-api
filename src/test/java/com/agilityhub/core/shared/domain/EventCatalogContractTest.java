@@ -82,18 +82,7 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent.class,
                 () -> new com.agilityhub.core.clubs.activities.domain.ActivityExternalEvent("ParameterChanged","club-a","Parameter","signup.enabled",
                         Instant.parse("2030-01-01T00:00:00Z"),Map.of("key","signup.enabled","before",false,"after",true),"account-a",null,DomainEvent.Origin.BACKOFFICE));
-        // E5-T02: the read-only envelope of the events S08 consumes (it never publishes); every type it reads is a catalog name.
-        samples.put(com.agilityhub.core.clubs.bookings.domain.ForeignEvent.class,
-                () -> new com.agilityhub.core.clubs.bookings.domain.ForeignEvent("ClassSessionUpdated", null, "club-a", "ClassSession", "class-a",
-                        Instant.parse("2030-01-01T00:00:00Z"), Map.of("classId", "class-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
-        // E5-T05: the read-only envelope clubs.common reads (S06 WeekValidated for the deferred N-33); it never publishes.
-        samples.put(com.agilityhub.core.clubs.common.domain.ForeignEvent.class,
-                () -> new com.agilityhub.core.clubs.common.domain.ForeignEvent("WeekValidated", null, "club-a", "Week", "week-a",
-                        Instant.parse("2030-01-01T00:00:00Z"), Map.of("weekId", "week-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
-        // E5-T04: the read-only envelope of the events S09 consumes (it never publishes); every type it reads is a catalog name.
-        samples.put(com.agilityhub.core.clubs.training.domain.TrainingForeignEvent.class,
-                () -> new com.agilityhub.core.clubs.training.domain.TrainingForeignEvent(null, "ClassSessionCreated", "club-a", "ClassSession", "class-a",
-                        Instant.parse("2030-01-01T00:00:00Z"), Map.of("classId", "class-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        // E5-T09: the consumer envelopes (`*ForeignEvent` of S08, S09 and clubs.common) are no longer DomainEvents: they cannot be published.
         samples.put(com.agilityhub.core.clubs.bookings.domain.BookingEvent.class,
                 () -> new com.agilityhub.core.clubs.bookings.domain.BookingEvent(com.agilityhub.core.clubs.bookings.domain.BookingEvent.Kind.BookingCreated,
                         "club-a", "booking-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("bookingId", "booking-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
@@ -193,10 +182,6 @@ class EventCatalogContractTest {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());
                 assertThat(event.payload()).containsKey("diff");
-            } else if (event instanceof com.agilityhub.core.clubs.common.domain.ForeignEvent) {
-                assertThat(event.aggregateType()).isEqualTo("Week"); assertThat(event.payload()).containsKey("weekId");
-            } else if (event instanceof com.agilityhub.core.clubs.bookings.domain.ForeignEvent || event instanceof com.agilityhub.core.clubs.training.domain.TrainingForeignEvent) {
-                assertThat(event.aggregateType()).isEqualTo("ClassSession"); assertThat(event.payload()).containsKey("classId");
             } else {
                 assertThat(event.aggregateType()).isEqualTo("Parameter");
                 assertThat(event.aggregateId()).isEqualTo("signup.enabled");

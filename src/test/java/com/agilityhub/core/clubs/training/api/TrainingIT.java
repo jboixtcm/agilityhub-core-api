@@ -127,7 +127,7 @@ class TrainingIT extends TrainingFixtures {
         clock.setInstant(local("2026-10-06T00:00"));
         book(as("maria"), "s09-d-rock", "2026-10-09T07:00", MUN, 201);
         clock.setInstant(NOW);
-        assertThat(code(book(as("pau"), "s09-d-blat", "2026-10-05T08:20", MUN, 422))).isEqualTo("SLOT_NOT_ON_GRID");
+        assertThat(code(book(as("pau"), "s09-d-blat", "2026-10-05T08:20", MUN, 400))).isEqualTo("SLOT_NOT_ON_GRID");
         assertThat(code(book(as("pau"), "s09-d-blat", "2026-10-05T06:30", MUN, 422))).isEqualTo("CLUB_CLOSED");
         assertThat(code(book(as("pau"), "s09-d-blat", "2026-10-12T09:00", MUN, 422))).isEqualTo("CLUB_CLOSED");
         clock.setInstant(local("2026-10-05T08:31"));
@@ -165,7 +165,7 @@ class TrainingIT extends TrainingFixtures {
         clock.setInstant(local("2026-10-11T20:00"));
         var after = call(GET, "/me/training-summary?dogId=s09-d-rock", null, as("maria"), 200);
         assertThat(after.at("/week/start").asText()).isEqualTo("2026-10-11T18:00:00Z"); assertThat(after.at("/counter/used").asInt()).isEqualTo(1);
-        publish(new TrainingForeignEvent("TrainingCounterReset", null, CLUB, "Club", CLUB, clock.instant(), Map.of("weekStart", "2026-10-11T18:00:00Z"), null, null,
+        publish(new com.agilityhub.core.support.TestEvent("TrainingCounterReset", null, CLUB, "Club", CLUB, clock.instant(), Map.of("weekStart", "2026-10-11T18:00:00Z"), null, null,
                 com.agilityhub.core.shared.domain.DomainEvent.Origin.SYSTEM));
         dispatch();
         assertThat(call(GET, "/me/training-summary?dogId=s09-d-rock", null, as("maria"), 200).at("/counter/used").asInt()).as("nothing to reset").isEqualTo(1);
@@ -315,7 +315,9 @@ class TrainingIT extends TrainingFixtures {
         var shortBlock = new LinkedHashMap<>(valid); shortBlock.put("to", local("2026-10-08T18:20").toString());
         assertThat(code(call(POST, "/ring-blocks", shortBlock, as("estel"), 400, UUID.randomUUID().toString()))).isEqualTo("INVALID_TIME_RANGE");
         var misaligned = new LinkedHashMap<>(valid); misaligned.put("from", local("2026-10-08T18:05").toString());
-        assertThat(code(call(POST, "/ring-blocks", misaligned, as("estel"), 400, UUID.randomUUID().toString()))).isIn("INVALID_SLOT_GRANULARITY", "INVALID_TIME_RANGE");
+        // E5-T09 (E5-T04 review #9): exactly INVALID_SLOT_GRANULARITY — S06 R-06-11/§6 own the endpoint (`classes.slotMinutes`); T-09-13's
+        // INVALID_TIME_RANGE is the too-short case above.
+        assertThat(code(call(POST, "/ring-blocks", misaligned, as("estel"), 400, UUID.randomUUID().toString()))).isEqualTo("INVALID_SLOT_GRANULARITY");
         var wrongReason = new LinkedHashMap<>(valid); wrongReason.put("kind", "BLOCK"); wrongReason.put("reason", "THERAPY");
         assertThat(code(call(POST, "/ring-blocks", wrongReason, as("estel"), 400, UUID.randomUUID().toString()))).isEqualTo("VALIDATION_ERROR");
         var horizon = new LinkedHashMap<>(valid); horizon.put("from", local("2026-12-08T18:00").toString()); horizon.put("to", local("2026-12-08T19:00").toString());
@@ -335,7 +337,9 @@ class TrainingIT extends TrainingFixtures {
             assertThat(staff.get(1).note()).isEqualTo("Particular amb l'alumna de la tarda");
             var member = occupancy.occupancy(from, to, null, "MEMBER");
             assertThat(member).allSatisfy(i -> { assertThat(i.memberName()).isNull(); assertThat(i.dogName()).isNull(); assertThat(i.note()).isNull(); });
-            assertThat(member.get(0).id()).isNull();
+            assertThat(member).extracting(i -> i.type() + ":" + i.reason()).containsExactly("TRAINING:TRAINING", "RING_BLOCK:PRIVATE_CLASS");
+            assertThat(member).allSatisfy(i -> assertThat(i.id()).as("no booking or block id for a MEMBER (E5-T09)").isNull());
+            assertThat(staff).allSatisfy(i -> assertThat(i.id()).isNotBlank());
             assertThat(occupancy.occupancy(from, to, List.of(MUN), "INSTRUCTOR")).hasSize(1);
         }
         // T-09-26 (E4-T03 rules, re-checked with S09 data): stale version, a started block, an activity block.
@@ -383,7 +387,7 @@ class TrainingIT extends TrainingFixtures {
         assertThat(audit).containsEntry("actorAccountId", "s09-admin").containsEntry("impersonatedMemberId", "s09-m-maria").containsEntry("entityId", booked.path("id").asText());
         // The normal token may not override the limit.
         var body = Map.of("dogId", "s09-d-rock", "startsAt", local("2026-10-06T10:00").toString(), "override", Map.of("limit", true, "reason", "Preparació de prova"));
-        assertThat(code(call(POST, "/training-bookings", body, as("maria"), 422, UUID.randomUUID().toString()))).isEqualTo("OVERRIDE_NOT_ALLOWED");
+        assertThat(code(call(POST, "/training-bookings", body, as("maria"), 403, UUID.randomUUID().toString()))).isEqualTo("OVERRIDE_NOT_ALLOWED");
         book(as("maria"), "s09-d-rock", "2026-10-06T10:00", MUN, 201); book(as("maria"), "s09-d-rock", "2026-10-07T10:00", MUN, 201);
         assertThat(code(book(as("maria"), "s09-d-rock", "2026-10-08T10:00", MUN, 409))).isEqualTo("TRAINING_LIMIT_REACHED");
         var over = call(POST, "/training-bookings", Map.of("dogId", "s09-d-rock", "startsAt", local("2026-10-08T10:00").toString(),
@@ -411,8 +415,15 @@ class TrainingIT extends TrainingFixtures {
         assertThat(sms.getString("status")).isEqualTo("QUEUED");
         // SMS off: the intent is recorded as SKIPPED_MODULE_OFF.
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.SMS).toArray(Module[]::new));
-        book(impersonating("admin", "s09-m-maria"), "s09-d-kira", "2026-10-06T12:00", MUN, 201); dispatch();
+        var kira = book(impersonating("admin", "s09-m-maria"), "s09-d-kira", "2026-10-06T12:00", MUN, 201); dispatch();
         assertThat(count("notifications", Criteria.where("code").is("N-47").and("channel").is("SMS").and("status").is("SKIPPED_MODULE_OFF"))).isEqualTo(1);
+        // E5-T09 (E5-T04 review #6): R-09-10 and R-09-16 set no end to the admin's late cancellation: at `now ≥ endsAt` it still works.
+        clock.setInstant(local("2026-10-06T12:30"));
+        assertThat(code(cancel(as("maria"), kira.path("id").asText(), null, 422))).isEqualTo("TRAINING_CANCEL_TOO_LATE");
+        var ended = cancel(impersonating("admin", "s09-m-maria"), kira.path("id").asText(), "Registre erroni", 200);
+        assertThat(ended.path("state").asText()).isEqualTo("CANCELLED"); assertThat(ended.path("cancelReason").asText()).isEqualTo("ADMIN_LATE");
+        clock.setInstant(local("2026-10-06T18:00"));
+        assertThat(code(cancel(impersonating("admin", "s09-m-maria"), kira.path("id").asText(), "Altra vegada", 409))).isEqualTo("INVALID_STATE");
     }
 
     @Test void T_09_24_T_09_30_theUsageRegisterIsAUniversalListForStaffOnly() throws Exception {
@@ -451,25 +462,43 @@ class TrainingIT extends TrainingFixtures {
                 .jwt(j -> j.subject("s09-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN");
     }
 
-    @Test void T_09_28_conflictsSeeLiveBookingsAndTheClubCancelsThemWithTheRightReason() throws Exception {
+    @Test void T_09_28_T_05_28_conflictsSeeLiveBookingsAndARingThatStopsBeingReservableCancelsThemOnlyOnRequest() throws Exception {
         var cadells = book(as("pau"), "s09-d-blat", "2026-10-06T10:00", CAD, 201);
         var classBody = new LinkedHashMap<String, Object>(Map.of("date", "2026-10-06", "startTime", "09:40", "endTime", "10:40", "ringId", CAD,
                 "levelIds", List.of("s09-lv-D"), "instructorIds", List.of("s09-instructor"), "description", "Classe"));
         var refused = call(POST, "/class-sessions", classBody, as("admin"), 422);
         assertThat(code(refused)).isEqualTo("RING_HAS_BOOKINGS");
-        // S05: removing «reservable» with a live booking stays RING_IN_USE (S05 R-05-08, T-05-28); the count is the live bookings.
-        var ring = call(GET, "/rings/" + CAD, null, as("admin"), 200);
-        var inUse = call(PATCH, "/rings/" + CAD, Map.of("allowsFreeTraining", false, "version", ring.path("version").asLong()), as("admin"), 409);
-        assertThat(code(inUse)).isEqualTo("RING_IN_USE"); assertThat(inUse.at("/details/futureTrainingBookings").asInt()).isEqualTo(1);
         try (var tenant = TenantContext.open(CLUB)) {
             assertThat(conflicts.findActiveBookings(CAD, local("2026-10-06T00:00"), local("2026-10-07T00:00"))).extracting(TrainingConflictPort.Booking::id)
                     .containsExactly(cadells.path("id").asText());
             assertThatThrownBy(() -> conflicts.cancelByClub(List.of(cadells.path("id").asText()), "RING_NOT_RESERVABLE"))
                     .isInstanceOf(org.springframework.transaction.IllegalTransactionStateException.class);
-            tx.executeWithoutResult(status -> conflicts.cancelByClub(List.of(cadells.path("id").asText()), "RING_NOT_RESERVABLE"));
         }
-        assertThat(training(cadells.path("id").asText())).containsEntry("state", "CANCELLED_BY_CLUB").containsEntry("cancelReason", "RING_NOT_RESERVABLE");
-        call(PATCH, "/rings/" + CAD, Map.of("allowsFreeTraining", false, "version", ring.path("version").asLong()), as("admin"), 200);
+        // S05 R-05-08 (amended 2026-09-24, S09 R-09-13 wins): removing «reservable» with a live booking is RING_HAS_BOOKINGS{bookings[]}
+        // (422, CATALEG_ERRORS rule 0); nothing changes until the ADMIN sends cancelBookings: true.
+        var ring = call(GET, "/rings/" + CAD, null, as("admin"), 200);
+        var withBookings = call(PATCH, "/rings/" + CAD, Map.of("allowsFreeTraining", false, "version", ring.path("version").asLong()), as("admin"), 422);
+        assertThat(code(withBookings)).isEqualTo("RING_HAS_BOOKINGS");
+        assertThat(withBookings.at("/details/bookings/0/id").asText()).isEqualTo(cadells.path("id").asText());
+        assertThat(withBookings.at("/details/bookings/0/memberName").asText()).isEqualTo("Pau"); assertThat(withBookings.at("/details/bookings/0/dogName").asText()).isEqualTo("Blat");
+        assertThat(training(cadells.path("id").asText())).containsEntry("state", "ACTIVE");
+        assertThat(call(GET, "/rings/" + CAD, null, as("admin"), 200).path("allowsFreeTraining").asBoolean()).isTrue();
+        var changed = call(PATCH, "/rings/" + CAD, Map.of("allowsFreeTraining", false, "version", ring.path("version").asLong(), "cancelBookings", true), as("admin"), 200);
+        assertThat(changed.path("allowsFreeTraining").asBoolean()).isFalse();
+        assertThat(training(cadells.path("id").asText())).containsEntry("state", "CANCELLED_BY_CLUB").containsEntry("cancelReason", "RING_NOT_RESERVABLE")
+                .containsEntry("cancelledBy", "ADMIN");
+        assertThat(eventsOf("TrainingCancelled")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class))
+                .containsEntry("by", "ADMIN").containsEntry("origin", "BACKOFFICE").containsEntry("cancelReason", "RING_NOT_RESERVABLE"));
+        assertThat(eventsOf("RingChanged")).isNotEmpty();
+        // Without bookings the free slots of the ring are gone: /training-slots no longer lists it.
+        var grid = slots(as("maria"), "2026-10-06", "2026-10-06", null);
+        assertThat(cell(grid, "2026-10-06T11:00", MUN).isMissingNode()).isFalse(); assertThat(cell(grid, "2026-10-06T11:00", CAD).isMissingNode()).isTrue();
+        // Deactivating a ring with a live training booking follows the same rule (R-05-07's RING_IN_USE stays for future classes).
+        var carretera = book(as("julia"), "s09-d-lluna", "2026-10-07T11:00", CAR, 201);
+        var car = call(GET, "/rings/" + CAR, null, as("admin"), 200);
+        assertThat(code(call(PATCH, "/rings/" + CAR, Map.of("active", false, "version", car.path("version").asLong()), as("admin"), 422))).isEqualTo("RING_HAS_BOOKINGS");
+        call(PATCH, "/rings/" + CAR, Map.of("active", false, "version", car.path("version").asLong(), "cancelBookings", true), as("admin"), 200);
+        assertThat(training(carretera.path("id").asText())).containsEntry("state", "CANCELLED_BY_CLUB").containsEntry("cancelReason", "RING_NOT_RESERVABLE");
         // S06 with cancelBookings: the class is created and the booking goes as CLASS_CONFLICT.
         var other = book(as("julia"), "s09-d-lluna", "2026-10-06T10:00", CEN, 201);
         classBody.put("ringId", CEN); classBody.put("cancelBookings", true);
@@ -483,22 +512,22 @@ class TrainingIT extends TrainingFixtures {
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", MUN).path("state").asText()).as("still cached").isEqualTo("FREE");
         // The booking path never reads the cache: the class already blocks a booking.
         assertThat(book(as("maria"), "s09-d-rock", "2026-10-05T18:00", MUN, 409).at("/details/reason").asText()).isEqualTo("CLASS");
-        publish(new TrainingForeignEvent(null, "ClassSessionCreated", CLUB, "ClassSession", "s09-late-class", clock.instant(), Map.of("classId", "s09-late-class"),
+        publish(new com.agilityhub.core.support.TestEvent(null, "ClassSessionCreated", CLUB, "ClassSession", "s09-late-class", clock.instant(), Map.of("classId", "s09-late-class"),
                 "s09-admin", null, com.agilityhub.core.shared.domain.DomainEvent.Origin.BACKOFFICE));
         dispatch();
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", MUN).path("reason").asText()).isEqualTo("CLASS");
         // A parameter outside S09 keeps the cache; `training.slotMinutes` drops it for the whole club.
         classSession("s09-other-class", CEN, "2026-10-05T18:00", "2026-10-05T19:00", "ACTIVE");
-        publish(new TrainingForeignEvent(null, "ParameterChanged", CLUB, "Parameter", "x", clock.instant(), Map.of("key", "classes.minDogs"), null, null,
+        publish(new com.agilityhub.core.support.TestEvent(null, "ParameterChanged", CLUB, "Parameter", "x", clock.instant(), Map.of("key", "classes.minDogs"), null, null,
                 com.agilityhub.core.shared.domain.DomainEvent.Origin.BACKOFFICE));
         dispatch();
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", CEN).path("state").asText()).isEqualTo("FREE");
-        publish(new TrainingForeignEvent(null, "ParameterChanged", CLUB, "Parameter", "x", clock.instant(), Map.of("key", "training.slotMinutes"), null, null,
+        publish(new com.agilityhub.core.support.TestEvent(null, "ParameterChanged", CLUB, "Parameter", "x", clock.instant(), Map.of("key", "training.slotMinutes"), null, null,
                 com.agilityhub.core.shared.domain.DomainEvent.Origin.BACKOFFICE));
         dispatch();
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", CEN).path("reason").asText()).isEqualTo("CLASS");
         // A block's days, and the 60 s TTL for anything the events miss.
-        publish(new TrainingForeignEvent(null, "RingBlockCreated", CLUB, "RingBlock", "b", clock.instant(),
+        publish(new com.agilityhub.core.support.TestEvent(null, "RingBlockCreated", CLUB, "RingBlock", "b", clock.instant(),
                 Map.of("from", local("2026-10-05T19:00").toString(), "to", local("2026-10-05T20:00").toString()), null, null, com.agilityhub.core.shared.domain.DomainEvent.Origin.APP));
         dispatch();
         classSession("s09-ttl-class", CAR, "2026-10-05T18:00", "2026-10-05T19:00", "ACTIVE");
@@ -507,6 +536,22 @@ class TrainingIT extends TrainingFixtures {
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", CAD).path("state").asText()).isEqualTo("FREE");
         clock.advance(Duration.ofSeconds(61));
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", CAD).path("reason").asText()).isEqualTo("CLASS");
+    }
+
+    /** E5-T09 (E5-T04 review #7): the outbox JSON of a real ring block carries ISO instants, so only the block's days are dropped. */
+    @Test void T_09_29_aRealRingBlockEventInvalidatesOnlyTheDaysOfTheBlock() throws Exception {
+        slots(as("maria"), "2026-10-06", "2026-10-07", null); // warm both days
+        classSession("s09-uncached-06", MUN, "2026-10-06T18:00", "2026-10-06T19:00", "ACTIVE");
+        classSession("s09-uncached-07", MUN, "2026-10-07T18:00", "2026-10-07T19:00", "ACTIVE");
+        call(POST, "/ring-blocks", Map.of("ringId", CAR, "from", local("2026-10-06T18:00").toString(), "to", local("2026-10-06T19:00").toString(),
+                "kind", "BLOCK", "reason", "MAINTENANCE"), as("admin"), 201, UUID.randomUUID().toString());
+        var created = eventsOf("RingBlockCreated").getFirst();
+        assertThat(created.getString("eventJson")).contains("\"from\":\"" + local("2026-10-06T18:00") + "\"", "\"to\":\"" + local("2026-10-06T19:00") + "\"");
+        dispatch();
+        var grid = slots(as("maria"), "2026-10-06", "2026-10-07", null);
+        assertThat(cell(grid, "2026-10-06T18:00", CAR).path("reason").asText()).isEqualTo("RING_BLOCK");
+        assertThat(cell(grid, "2026-10-06T18:00", MUN).path("reason").asText()).as("the block's day is reloaded").isEqualTo("CLASS");
+        assertThat(cell(grid, "2026-10-07T18:00", MUN).path("state").asText()).as("another day stays cached").isEqualTo("FREE");
     }
 
     @Autowired Map<String, com.agilityhub.core.shared.application.DomainEventHandler<?>> handlers;
@@ -564,6 +609,9 @@ class TrainingIT extends TrainingFixtures {
         assertThat(staff.toString()).contains("Pau + Blat", "Particular", "\"kind\":\"TRAINING\"");
         // The booking id never leaks to a member through the grid; the staff view links it.
         assertThat(member.toString()).doesNotContain(bookingId); assertThat(staff.toString()).contains(bookingId);
+        // E5-T09: nor the block id (R-09-12 `{type, reason}`), and the block is still one cell, not a copy per source.
+        assertThat(member.toString()).doesNotContain("s09-private"); assertThat(staff.toString()).contains("s09-private");
+        assertThat(member.toString().split("PRIVATE_CLASS", -1)).hasSize(2); assertThat(staff.toString().split("PRIVATE_CLASS", -1)).hasSize(2);
     }
 
     @Test void systemCancellationsFollowR_09_14WithoutNotifyingMembersWhoLeft() throws Exception {

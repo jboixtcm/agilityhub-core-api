@@ -33,4 +33,13 @@ class ArchitectureTest {
      */
     @ArchTest
     static final ArchRule E5_T01_timeComesFromTheClock = ArchitectureRules.TIME_FROM_CLOCK;
+
+    @ArchTest
+    static final ArchRule E5_T09_onlyDemoSeedClassesRunAsTheSeedActor = ArchitectureRules.DEMO_SEED_ACTOR;
+
+    @ArchTest
+    static final ArchRule E5_T09_onlyTheBookingWritersSetTheClassCounters = ArchitectureRules.COUNTER_WRITERS;
+
+    @ArchTest
+    static final ArchRule E5_T09_consumerEnvelopesAreNotPublishable = ArchitectureRules.CONSUMER_ENVELOPES;
 }

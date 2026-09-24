@@ -26,11 +26,14 @@ public class TestNoopJob implements Job {
     private volatile boolean failPlan;
     private final AtomicInteger applied = new AtomicInteger();
     private final AtomicReference<Runnable> duringApply = new AtomicReference<>();
+    private final AtomicReference<Runnable> duringPlan = new AtomicReference<>();
 
     @Override public JobName name() { return JobName.TEST_NOOP; }
     @Override public JobDefinition definition() { return definition; }
 
     @Override public List<JobItem> plan(JobContext context) {
+        var hook = duringPlan.getAndSet(null);
+        if (hook != null) { hook.run(); }
         if (failPlan) { throw new IllegalStateException("Planned failure"); }
         context.parameter("jobs.dailyTime", String.class);
         var plan = new ArrayList<JobItem>();
@@ -47,9 +50,12 @@ public class TestNoopJob implements Job {
 
     public void configure(JobDefinition definition, int items, int failAt, boolean failPlan) {
         this.definition = definition; this.items = items; this.failAt = failAt; this.failPlan = failPlan; applied.set(0); duringApply.set(null);
+        duringPlan.set(null);
     }
     /** Runs `hook` once, inside the next `apply` (while the run is RUNNING): lets a test interleave a reaper or another instance. */
     public void duringNextApply(Runnable hook) { duringApply.set(hook); }
+    /** Runs `hook` once, inside the next `plan` (also a dry run's): lets a test observe the framework's writes while it plans. */
+    public void duringNextPlan(Runnable hook) { duringPlan.set(hook); }
     public void reset() { configure(DEFAULT, 0, 0, false); }
     public int applied() { return applied.get(); }
 }

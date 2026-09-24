@@ -9875,6 +9875,10 @@
           "allowsFreeTraining" : {
             "type" : "boolean"
           },
+          "cancelBookings" : {
+            "description" : "R-05-08 / S09 R-09-13: with live training bookings, turning allowsFreeTraining off or deactivating the ring answers 422 RING_HAS_BOOKINGS{bookings[]} unless true, which cancels them (CANCELLED_BY_CLUB / RING_NOT_RESERVABLE) in the same transaction",
+            "type" : "boolean"
+          },
           "color" : {
             "pattern" : "#[0-9A-Fa-f]{6}",
             "type" : "string"
@@ -12040,7 +12044,7 @@
           },
           "override" : {
             "$ref" : "#/components/schemas/TrainingOverride",
-            "description" : "Impersonation only (R-09-16); otherwise 422 OVERRIDE_NOT_ALLOWED",
+            "description" : "Impersonation only (R-09-16); otherwise 403 OVERRIDE_NOT_ALLOWED",
             "type" : "null"
           },
           "ringId" : {
@@ -30641,7 +30645,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -30661,7 +30665,7 @@
                 }
               }
             },
-            "description" : "JOB_UNKNOWN"
+            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -30825,7 +30829,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED"
+            "description" : "NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -30845,7 +30849,7 @@
                 }
               }
             },
-            "description" : "JOB_UNKNOWN"
+            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -30983,7 +30987,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -31003,7 +31007,7 @@
                 }
               }
             },
-            "description" : "JOB_UNKNOWN"
+            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -31141,7 +31145,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED"
+            "description" : "JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -31161,7 +31165,7 @@
                 }
               }
             },
-            "description" : "JOB_UNKNOWN"
+            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -42628,7 +42632,7 @@
                 }
               }
             },
-            "description" : "NOT_FOUND, MODULE_DISABLED"
+            "description" : "NOT_FOUND, JOB_UNKNOWN, MODULE_DISABLED"
           },
           "409" : {
             "content" : {
@@ -42648,7 +42652,7 @@
                 }
               }
             },
-            "description" : "JOB_UNKNOWN"
+            "description" : "Unprocessable Entity"
           },
           "429" : {
             "content" : {
@@ -46586,7 +46590,7 @@
         "tags" : [ "clubs.catalogs" ]
       },
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation. Deactivating a ring with future live classes → 409 RING_IN_USE (R-05-07). Turning allowsFreeTraining off or deactivating it with live training bookings → 422 RING_HAS_BOOKINGS{bookings[]} unless cancelBookings: true (R-05-08 / S09 R-09-13: each booking → CANCELLED_BY_CLUB / RING_NOT_RESERVABLE in the same transaction).",
         "operationId" : "updateRing",
         "parameters" : [ {
           "in" : "path",
@@ -46675,7 +46679,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "RING_HAS_BOOKINGS"
           },
           "429" : {
             "content" : {
@@ -49176,7 +49180,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, SLOT_NOT_ON_GRID"
           },
           "401" : {
             "content" : {
@@ -49196,7 +49200,7 @@
                 }
               }
             },
-            "description" : "Forbidden"
+            "description" : "OVERRIDE_NOT_ALLOWED"
           },
           "404" : {
             "content" : {
@@ -49226,7 +49230,7 @@
                 }
               }
             },
-            "description" : "DOG_ALREADY_BOOKED, SLOT_NOT_ON_GRID, DOG_NOT_ALLOWED, RING_NOT_RESERVABLE, SLOT_OUT_OF_WINDOW, CLUB_CLOSED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE, OVERRIDE_NOT_ALLOWED"
+            "description" : "DOG_ALREADY_BOOKED, DOG_NOT_ALLOWED, RING_NOT_RESERVABLE, SLOT_OUT_OF_WINDOW, CLUB_CLOSED, BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE"
           },
           "429" : {
             "content" : {

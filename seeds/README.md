@@ -105,6 +105,12 @@ Every demo member also gets one fictional mobile number: the club country's pref
 cancellation SMS intents can be exercised. Numbers are fixture values; SMS stay
 `QUEUED` locally (no provider is configured).
 
+**These are real-format numbers.** `+34 600 000 001`… is a valid Spanish mobile range that a real person may own, so
+**an SMS must never be sent from a non-production stack** (local, test, staging, the smoke and demo stacks): never
+configure an SMS provider there. The seed and `bin/e4-smoke`/`bin/e5-smoke` queue SMS intents (N-08a, N-47…) on
+purpose; only the missing provider keeps them `QUEUED`. E7-T02 adds the `SMS_ALLOWED_NUMBERS` allow-list, which is the
+only way a non-production stack may ever dispatch an SMS, and only to the listed numbers.
+
 ### E4 planning and activities (`planning`, `bookings`, `activities` sections)
 
 `seed:demo` continues after the census with the dated E4 demo, created only through
@@ -179,6 +185,27 @@ state, never by date or first name:
   Seminari/Lliga blocks (validation reports `RING_BLOCKED`).
 
 `bin/e4-smoke` (see `docs/DEPLOY.md`) exercises this seed on a disposable stack.
+
+#### Refreshing the planning on a long-lived stack (`--reanchor`, E5-T09)
+
+The dated demo ages: on a stack that lives for weeks (staging demos), W+1 «Esborrany» becomes the current or a past week
+and the W+2 D4/D4c classes pass, after which their cancellation fails the past-date guards. Front test runs should still
+use a fresh disposable project; for a long-lived demo stack, re-anchor the planning to the run date:
+
+```sh
+bin/core seed:demo --club=canic --seed=42 --reanchor
+```
+
+- It needs the first `seed:demo` run of the club (same seed and seed file, else `CLUB_NOT_EMPTY`; without one,
+  `NOT_FOUND`). The anchor is the club-local Monday of the run date (`--week-start` overrides it, for tests).
+- It applies the `planning.weeks` rows to the new anchor, reusing the D3 templates of the first run by name. A week that
+  already exists (generated or validated) is **kept as it is**: a week is never generated twice, so after a re-anchor of
+  one week the old W+2 (validated) is the new W+1, not a draft. Only the weeks the run generated get the dated
+  `looseClasses`, `ringBlocks` and `riskCancellations`, and the `bookings` rows of an ACTIVE class of those weeks
+  without registrants get their registrants (real S08 bookings, as in the first run).
+- The activities (D7) and the E5 `scenario` are **not** re-anchored: they keep the dates of the first run.
+- It is recorded per anchor (`demo_seed_runs`, id `<clubId>:planning:<weekStart>`), so running it again on the same
+  week reports `0 changes`; a re-anchor on the first run's own week start changes nothing either.
 
 ### E5 bookings, waiting lists, free training and processes (`scenario` section, E5-T06)
 

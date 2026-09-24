@@ -36,6 +36,11 @@ public class JobLockRepository extends GlobalRepository<JobLock> {
         return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("holder").is(holder)),
                 new Update().set("expiresAt", now.plus(lease)), JobLock.class).getModifiedCount() == 1;
     }
+    /** Sets the end of the holder's lease (the tick settles it when it finishes: never before its minute's lease, never after the tick). */
+    public boolean expireAt(String id, String holder, Instant expiresAt) {
+        return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("holder").is(holder)),
+                new Update().set("expiresAt", expiresAt), JobLock.class).getModifiedCount() == 1;
+    }
     public boolean held(String id, String holder, Instant now) {
         return mongo.exists(Query.query(Criteria.where("_id").is(id).and("holder").is(holder).and("expiresAt").gt(now)), JobLock.class);
     }

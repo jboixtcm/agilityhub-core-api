@@ -214,19 +214,19 @@ class E5ContractIT extends AbstractIntegrationTest {
         var hold = routes().filter(r -> r.path().equals("/api/v1/seat-holds")).findFirst().orElseThrow();
         error(call(hold, CLUB, "MEMBER").content("{\"classSessionId\":\"e5-class-a\",\"dogId\":\"dog-a\",\"waitlistEntryId\":\"e5-entry-a\"}"), 404, "MODULE_DISABLED");
         error(call(hold, CLUB, "MEMBER"), 404, "NOT_FOUND"); // served since E5-T02: the fixture's class-a does not exist
-        // S15: a process whose module is off is 404; an unknown route id is JOB_UNKNOWN (422 by catalog rule 0).
+        // S15: a process whose module is off is 404; an unknown route id is JOB_UNKNOWN (404, CATALEG_ERRORS §1 since E5-T09).
         var admin = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN");
         error(get("/api/v1/jobs/payment-timeouts/runs").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
         error(post("/api/v1/jobs/waitlist-fifo/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
         // A catalog process without an implementation yet (P10 is E8) still has its (empty) history once its module is on.
         mvc.perform(get("/api/v1/jobs/billing-reminder/runs").header("Host", HOST).with(admin)).andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
-        error(post("/api/v1/jobs/billing-reminder/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 422, "JOB_UNKNOWN");
-        error(get("/api/v1/jobs/foo/runs").header("Host", HOST).with(admin), 422, "JOB_UNKNOWN");
+        error(post("/api/v1/jobs/billing-reminder/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 404, "JOB_UNKNOWN");
+        error(get("/api/v1/jobs/foo/runs").header("Host", HOST).with(admin), 404, "JOB_UNKNOWN");
         error(get("/api/v1/jobs/risk-review/runs/missing").header("Host", HOST).with(admin), 404, "NOT_FOUND");
         error(get("/api/v1/jobs/cleanup/runs/e5-run-a").header("Host", HOST).with(admin), 404, "NOT_FOUND");
         var platform = jwt().authorities(() -> "ROLE_AGILITYHUB_ADMIN");
         error(post("/api/v1/platform/clubs/missing-club/jobs/risk-review/trigger").contentType("application/json").content("{\"dryRun\":false}").with(platform), 404, "NOT_FOUND");
-        error(post("/api/v1/platform/clubs/" + CLUB + "/jobs/foo/trigger").contentType("application/json").content("{\"dryRun\":false}").with(platform), 422, "JOB_UNKNOWN");
+        error(post("/api/v1/platform/clubs/" + CLUB + "/jobs/foo/trigger").contentType("application/json").content("{\"dryRun\":false}").with(platform), 404, "JOB_UNKNOWN");
         error(post("/api/v1/platform/clubs/" + CLUB + "/jobs/payment-timeouts/trigger").contentType("application/json").content("{\"dryRun\":false}").with(platform), 404, "MODULE_DISABLED");
         error(post("/api/v1/platform/clubs/" + CLUB + "/jobs/risk-review/trigger").contentType("application/json").content("{}").with(platform), 400, "VALIDATION_ERROR");
         error(get("/api/v1/bookings/e5-booking-a/calendar.ics").header("Host", HOST), 400, "VALIDATION_ERROR");

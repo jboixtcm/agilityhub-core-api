@@ -18,7 +18,7 @@ Totes a `apps/clubs-admin`, rol `ADMIN` (guard de ruta + `403` al back). Patró 
 | D17 `D17-configuracio-instructors-i-administradors.html` | clubs-admin | `/equip` | ADMIN | Títol «Instructors i administradors». Bloc «Instructors» amb «Nou instructor»: columnes «Abonat» (nom + «(gos)»: primer gos actiu), «Nom curt», «Color», «Actiu». Bloc «Administradors» amb «Nou administrador»: «Abonat», «Nom curt», «Des de» (any de `since`), «Actiu». El camp «Abonat» és un cercador sobre `GET /members?q=…&filter=status:eq:ACTIVE` (S03), només abonats en alta amb compte. Desactivar/eliminar l'últim administrador actiu → `409 LAST_ADMIN` → toast «Hi ha d'haver almenys un administrador actiu». Desactivar un instructor amb classes futures → `409 INSTRUCTOR_IN_USE` → diàleg amb els recomptes «Té {n} classes futures assignades: reassigna-les al calendari abans de desactivar-lo». Si l'admin es desactiva a si mateix (i no és l'últim), confirmació «Perdràs l'accés al backoffice ara mateix». |
 | D8 `D8-modalitats-i-tarifes.html` | clubs-admin | `/modalitats` | ADMIN | Títol «Modalitats i tarifes»; a la barra, «entrada per gos (matrícula): {import}» llegit de `billing.entryFeePerDog` amb enllaç a `/parametres` (el «(PAR-29)» del mockup és anotació, no es mostra). Botó «Nova modalitat». Columnes «Modalitat», «Tipus» («quota mensual» · «pack · {n} sessions» · «classe individual»), «Preu» (R-05-19), «Condicions», «Activa». Modal de modalitat: nom, tipus, gossos inclosos, entrada (Estàndard / Import / % de l'estàndard / Sense), pack (sessions, mesos de vigència), classe individual (mode de càrrec, política d'anul·lació), condicions, «Mostra a l'alta», «Mostra al web», activa, i la secció **Tarifes** (files `Price` amb xip «vigent» · «programada» · «caducada», «Nou preu» amb data d'inici per defecte = dia 1 del mes vinent). Targeta «Textos de presentació — {modalitat} (surten a l'alta)»: text de presentació + «Etiqueta d'oferta» + botó «DESA» (edita la modalitat seleccionada a la taula; per defecte la primera). Targeta «Vista prèvia (com ho veu qui es dona d'alta)»: render idèntic a la targeta de la pantalla 17 amb les dades vives del formulari (nom, línia de preu R-05-19, condicions + entrada, etiqueta d'oferta). Peu: «Les tarifes tenen vigència: canviar un preu no altera els rebuts ja emesos. Els packs caduquen per mesos de vigència i generen la baixa prevista automàtica.» (sense el codi «BR-14»). `BILLING` off: columna «Preu», entrada, tarifes i vista prèvia de preu **ocultes** (queden nom, tipus, condicions, textos). `PACKS`/`SINGLE_CLASS` off: el tipus corresponent no apareix al selector. |
 | D11 (targeta FAQ) `D11-parametres-del-club.html` | clubs-admin | `/parametres#faq` | ADMIN | Targeta «Preguntes freqüents — pàgina «Info» de l'app» (només si `FAQ` on) amb «Nova pregunta»; columnes «Categoria», «Pregunta», icones edició/«x»; peu «Clica una pregunta per editar-ne la resposta.» (clic a la fila = mateix modal que editar). Modal: categoria (text amb suggeriments de `GET /faq-entries/filter-values?field=category`), pregunta, resposta (àrea de text, salts de línia), ordre, activa — tots tres textos per idioma. Files agrupades per categoria i ordenades per `order`, arrossegables dins la targeta (→ `PUT /faq-entries/order`). |
-| D11 (targeta Nivells) — **assumpció, sense mockup** | clubs-admin | `/parametres#nivells` | ADMIN | El bloc «Classes» de D11 mostra «Aforament: per nivell (classe = mínim dels seus nivells) · Cadells 5 · A–D 5 · E–G 4 · Teràpia 1» com a text: aquesta fila passa a ser un **enllaç** a una targeta «Nivells» (mateix patró de taula que D16) amb «Nou nivell» i columnes «Nom», «Codi», «Color», «Aforament», «Entrenament lliure» (badge; oculta si `FREE_TRAINING` off), «Actiu», arrossegables per ordre. El text de la fila del bloc «Classes» es genera de la llista (nom + aforament, agrupant nivells consecutius amb el mateix aforament). La fila «Nivell mínim (marca automàtica per gos)» del bloc «Entrenaments» passa a mostrar els nivells amb `grantsFreeTraining` (Cànic: «D · E · F · G»). Amb `levels.enabled = false` la targeta i les dues files s'amaguen. Validar amb Jordi (§13). |
+| D11 (targeta Nivells) — **assumpció, sense mockup** | clubs-admin | `/parametres#nivells` | ADMIN | El bloc «Classes» de D11 mostra «Aforament: per nivell (classe = mínim dels seus nivells) · Cadells 5 · A–D 5 · E–G 4 · Teràpia 1» com a text: aquesta fila passa a ser un **enllaç** a una targeta «Nivells» (mateix patró de taula que D16) amb «Nou nivell» i columnes «Nom», «Codi», «Color», «Aforament», «Entrenament lliure» (badge; oculta si `FREE_TRAINING` off), «Progressió» (interruptor; ajuda «Els nivells fora de la progressió, com Teràpia, no compten per a «D i sup.»»; E29), «Actiu», arrossegables per ordre. El text de la fila del bloc «Classes» es genera de la llista (nom + aforament, agrupant nivells consecutius amb el mateix aforament). La fila «Nivell mínim (marca automàtica per gos)» del bloc «Entrenaments» passa a mostrar els nivells amb `grantsFreeTraining` (Cànic: «D · E · F · G»). Amb `levels.enabled = false` la targeta i les dues files s'amaguen. Validar amb Jordi (§13). |
 
 Les pantalles que **llegeixen** aquests catàlegs (D3/D4 pistes, nivells i instructors; 04/08 nivells i pistes; 17 modalitats; 30 FAQ) les descriuen les seves specs; aquí només es fixa el contracte.
 
@@ -35,6 +35,7 @@ Tots els documents porten `clubId` (injectat per `TenantRepository`), `id` UUID,
 | `color` | string | sí | hex | xips de nivell; per defecte següent color de la paleta |
 | `capacity` | int | sí | 1–99 | «aforament»; per defecte `classes.defaultCapacity` |
 | `grantsFreeTraining` | bool | sí | — | «dona dret a entrenament lliure»; llegit per S03/S09 (`Dog.freeTrainingOverride ?? level.grantsFreeTraining`); ignorat si `FREE_TRAINING` off |
+| `progression` | bool | sí | — | per defecte `true`; «forma part de la progressió de nivells»: només aquests nivells compten per a la descripció automàtica «{primer} i sup.» (S06 R-06-03). Un nivell especial com «Teràpia» = `false` (organitzador 24-09, E29) |
 | `active` | bool | sí | — | inactiu = no seleccionable en gossos nous ni classes de plantilla |
 | `usage` (lectura) | `{activeDogs, futureClassSessions, templateClasses}` | — | calculat | per als diàlegs de D11 |
 
@@ -318,17 +319,17 @@ Fils recomanats: **fil 1** WP-05-0 → A → D · **fil 2** C → E · **fil 3**
 
 Nivells (colors: proposta, els mockups no en fixen; **sense** escala AgilityHub — Jordi 06-09, A5: els nivells són catàleg 100 % local del club):
 
-| code | name.ca | name.es | order | color | capacity | grantsFreeTraining |
-|---|---|---|---|---|---|---|
-| CAD | Cadells | Cachorros | 0 | #F5D67A | 5 | false |
-| A | A | A | 10 | #C9E4F5 | 5 | false |
-| B | B | B | 20 | #A9D3F0 | 5 | false |
-| C | C | C | 30 | #85B8E8 | 5 | false |
-| D | D | D | 40 | #8FCE8F | 5 | true |
-| E | E | E | 50 | #F2B58C | 4 | true |
-| F | F | F | 60 | #E8A070 | 4 | true |
-| G | G | G | 70 | #E26A2A | 4 | true |
-| TER | Teràpia | Terapia | 80 | #C9CDD3 | 1 | false |
+| code | name.ca | name.es | order | color | capacity | grantsFreeTraining | progression |
+|---|---|---|---|---|---|---|---|
+| CAD | Cadells | Cachorros | 0 | #F5D67A | 5 | false | true |
+| A | A | A | 10 | #C9E4F5 | 5 | false | true |
+| B | B | B | 20 | #A9D3F0 | 5 | false | true |
+| C | C | C | 30 | #85B8E8 | 5 | false | true |
+| D | D | D | 40 | #8FCE8F | 5 | true | true |
+| E | E | E | 50 | #F2B58C | 4 | true | true |
+| F | F | F | 60 | #E8A070 | 4 | true | true |
+| G | G | G | 70 | #E26A2A | 4 | true | true |
+| TER | Teràpia | Terapia | 80 | #C9CDD3 | 1 | false | false |
 
 Pistes (`trainingCapacity = null` → `training.capacityPerRingSlot = 1`; sense geometria):
 
@@ -409,3 +410,4 @@ Instructors i administradors van al **`demo-seed`** (necessiten abonats ficticis
 - 09-09-2026 · aplicada A5: camp `agilityhubLevel` retirat de `Level` (§3, seed §12, i18n `enums`), columna «Escala AgilityHub» retirada de la targeta Nivells de D11.
 - 05-09-2026 · nova entitat de contingut **`ClubPage`** (`club_pages`: `key RULES · PRIVACY · IMAGE_CONSENT · WELCOME_GUIDE · lliure`, `title/body: LocalizedText` en Markdown limitat, `version`, `publishedAt`, `active`) mantinguda a **D11 → targeta «Pàgines del club»** (al costat de la FAQ; editor per idioma + vista prèvia); endpoints `GET/POST/PATCH /club-pages`, `GET /public/{clubSlug}/pages/{key}`; seed del Cànic amb `RULES` (`05-desenvolupament/legal/NORMES_CLUB_PLANTILLA.md`) i `IMAGE_CONSENT`. Els consentiments guarden la `version` de la pàgina acceptada (S04).
 - 08-09-2026 · respostes del Josep (B10, B12, B22): `Plan.billingMode` (Teràpia = `MAINTENANCE` automàtica, substitueix `Member.billingMode`) · R-05-18b descompte del 40 % d'entrada en passar d'un pack de 10 a abonat · R-05-21b FAQ, normes i textos de modalitats amb contingut provisional que el club omplirà des de l'eina.
+- 24-09-2026 · E29: camp `Level.progression` (per defecte sí; Teràpia = no) per a la descripció automàtica «… i sup.» d'S06 R-06-03; columna «Progressió» a la targeta Nivells de D11 i al seed.

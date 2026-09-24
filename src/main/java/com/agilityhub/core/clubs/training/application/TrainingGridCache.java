@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.training.application;
 
+import com.agilityhub.core.clubs.common.application.ClubGridCaches;
 import com.agilityhub.core.clubs.scheduling.application.RingScheduleAccess;
 import com.agilityhub.core.clubs.training.domain.TrainingGrid;
 import java.time.*;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
  * never cached, and nothing that decides a booking reads this cache: the unique index is the source of truth.
  */
 @Component
-public class TrainingGridCache {
+public class TrainingGridCache implements ClubGridCaches {
     static final Duration TTL = Duration.ofSeconds(60);
     public record Day(LocalDate date, boolean closed, List<TrainingGrid.Slot> slots, List<RingScheduleAccess.ClassInterval> classes,
             List<RingScheduleAccess.BlockInterval> blocks) { }
@@ -29,6 +30,7 @@ public class TrainingGridCache {
         var fresh = loader.get(); days.put(key, new Entry(fresh, now.plus(TTL))); return fresh;
     }
     public void invalidate(String clubId, Collection<LocalDate> dates) { dates.forEach(date -> days.remove(clubId + "|" + date)); }
-    public void invalidateClub(String clubId) { days.keySet().removeIf(key -> key.startsWith(clubId + "|")); }
+    /** Also S15 P1 (R-15-11 step 1), through {@link ClubGridCaches}, with or without FREE_TRAINING. */
+    @Override public void invalidateClub(String clubId) { days.keySet().removeIf(key -> key.startsWith(clubId + "|")); }
     int size() { return days.size(); }
 }

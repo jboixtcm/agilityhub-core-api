@@ -63,6 +63,7 @@ Convenció: els noms de taula en català són els del model (per parlar-ne amb e
 | CHALLENGE · INTENT (R2) | `Challenge` · `challenges` / `ChallengeAttempt` · `challenge_attempts` | courses | no / sí |
 | execució de facturació · simulació · càrrec pendent (nous) | `BillingRun` · `billing_runs` / `BillingSimulation` · `billing_simulations` / `PendingCharge` · `pending_charges` (+ `billing_locks`) | payments | sí |
 | bloqueig de plaça tècnic · idempotència (nous) | `seat_locks` · `idempotency_records` (TTL) | clubs/bookings · shared | sí |
+| bloqueig tècnic pista-dia (nou, 24-09) | `ring_day_locks` `{_id: clubId:ringId:date, ringId, date, sequence}`: el toquen (`$inc`) les reserves d'entrenament i les escriptures de S06 que comproven les reserves de la pista (S09 R-09-13) | clubs/scheduling | sí |
 | seguiment D14 (projecció) | `FollowupItem` · `followup_items` / `followup_read_marks` | clubs/followup | sí |
 | exportació · supressió RGPD · esdeveniment de seguretat (nous) | `ExportJob` · `export_jobs` / `ErasureRequest` · `erasure_requests` / `SecurityEvent` · `security_events` | platform | sí / sí / segons cas |
 | execució de procés · lock (nous) | `JobRun` · `job_runs` / `job_locks` (TTL) | platform | sí |

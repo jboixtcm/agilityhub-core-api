@@ -49,7 +49,10 @@ public final class CatalogRequests {
             @Schema(requiredMode = NOT_REQUIRED, implementation = Integer.class, types = {"integer", "null"}, minimum = "1", maximum = "20") com.fasterxml.jackson.databind.JsonNode trainingCapacity,
             @Schema(requiredMode = NOT_REQUIRED) @Min(0) Integer order,
             @Schema(requiredMode = NOT_REQUIRED) Boolean active,
-            @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
+            @Schema(requiredMode = REQUIRED) @NotNull Long version,
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-05-08 / S09 R-09-13: with live training bookings, turning allowsFreeTraining off or deactivating the ring "
+                    + "answers 422 RING_HAS_BOOKINGS{bookings[]} unless true, which cancels them (CANCELLED_BY_CLUB / RING_NOT_RESERVABLE) in the same transaction")
+            Boolean cancelBookings) { }
     public record PlanCreate(
             @Schema(requiredMode = REQUIRED) @NotNull @Size(min = 1, max = 16) @Pattern(regexp = "[A-Z0-9_]+") String code,
             @Schema(requiredMode = REQUIRED) @NotNull Map<String, String> name,

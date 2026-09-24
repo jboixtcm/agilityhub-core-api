@@ -28,7 +28,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-13 | Recordatori de classe/entrenament | `ReminderDue` (scheduler) | OPERATIONAL | MEMBER → APP+PUSH (EMAIL segons preferència) | dog_name, date, time, ring_name | OPEN_BOOKING | S11 |
 | N-14 | Sol·licitud de baixa rebuda | `LeaveRequested` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, requested_date, reason | OPEN_MEMBER | S13 |
 | N-15 | **S'ha alliberat una plaça!** | `SeatReleased` (si > llindar) | OPERATIONAL (SMS activat a la plantilla) | MEMBER en espera (tots o el primer FIFO) → APP+**SMS**+PUSH | dog_name, class_date, class_time, confirm_by (FIFO), mode, entityId | CLAIM_SEAT | S08 |
-| N-16 | Possible anul·lació de classe | `ClassAtRisk` | CLUB_CHANGES | MEMBER inscrit → APP+EMAIL · ADMINS → APP | dog_name, class_date, class_time, review_time, review_day | CHANGE_CLASS | S15 |
+| N-16 | Possible anul·lació de classe | `ClassAtRisk` | CLUB_CHANGES | MEMBER inscrit → APP+EMAIL · ADMINS → APP | dog_name (còpia MEMBER), class_date, class_time, review_time, review_day, audience | CHANGE_CLASS | S15 |
 | N-17 | Classe anul·lada per manca d'alumnes | `ClassAutoCancelled` | CLUB_CHANGES | MEMBER inscrit → **N-08a** amb text automàtic · ADMINS+INSTRUCTORS → APP+EMAIL | class_date, class_time, dogs_count, class_description, ring_name | CHANGE_CLASS | S15 |
 | N-18a | Sol·licitud d'inactivitat rebuda | `InactivityRequested` | OPERATIONAL | ADMINS → APP+EMAIL | member_name, from_month, to_month | OPEN_MEMBER | S13 |
 | N-18b | Inactivitat aprovada/denegada | `InactivityResolved` | PERSONAL | MEMBER → APP+EMAIL | from_month, to_month, decision, fee | — | S13 |
@@ -62,7 +62,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 
 ## Regles
 
-- **Variables afegides el 24-09 (organitzador, a proposta de l'executora E5)**: N-15 `mode` (select FIFO · ALL_AT_ONCE: amb o sense `confirm_by`) i `entityId` (enllaç de l'acció) · N-17 `class_description`, `ring_name` (S15 §8) · N-36 `change` (select CREATED · CANCELLED) · N-47 `admin_text`, `change`; l'audiència de N-47 és «by = ADMIN» (SYSTEM segueix R-09-14).
+- **Variables afegides el 24-09 (organitzador, a proposta de l'executora E5)**: N-15 `mode` (select FIFO · ALL_AT_ONCE: amb o sense `confirm_by`) i `entityId` (enllaç de l'acció) · N-17 `class_description`, `ring_name` (S15 §8) · N-36 `change` (select CREATED · CANCELLED) · N-47 `admin_text`, `change`; l'audiència de N-47 és «by = ADMIN» (SYSTEM segueix R-09-14). · **24-09, tarda**: N-16 `audience` (select MEMBER · STAFF: la còpia dels admins no parla de cap gos; `dog_name` només a la còpia MEMBER) · N-46 amb les dues condicions de la seva fila.
 
 1. **Idioma**: el del destinatari (`Account.locale`); si la plantilla no té aquest idioma, fallback al `defaultLocale` del club.
 2. **Preferències** (12/D10): només apliquen al públic MEMBER i només poden **treure** canals que la plantilla permet (mai afegir-ne). L'`APP` és sempre actiu. El recordatori (N-13) només existeix si l'abonat ha triat antelació.
@@ -86,7 +86,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 | N-43 | Domini del club trencat | `ClubDomainBroken` | SYSTEM | admins de plataforma → EMAIL | club_name, host | — | S17 |
 | N-44 | Nou challenge disponible (R2) | `ChallengePublished` | CLUB_NEWS | MEMBER amb nivell mapejat → APP | challenge_title, level | OPEN_CHALLENGE | S19 |
 | N-45 | Intent de challenge validat (R2) | `ChallengeAttemptValidated` | PERSONAL | MEMBER → APP+EMAIL | challenge_title, score | OPEN_CHALLENGE | S19 |
-| N-46 | La plaça ja s'ha ocupat | `WaitlistNotified` revertit (`NOTIFIED → ACTIVE`, `ALL_AT_ONCE`) | OPERATIONAL | MEMBER → APP | dog_name, class_date, class_time | — | S08 |
+| N-46 | La plaça ja s'ha ocupat | `WaitlistNotified` revertit (`NOTIFIED → ACTIVE`, `ALL_AT_ONCE`), només a les entrades que van rebre l'N-15 d'aquella oferta; també quan una reserva `PAYMENT_PENDING` (S08 R-08-18) ocupa la plaça: el porta el `SeatHoldReleased` de la confirmació, que per si sol no notifica | OPERATIONAL | MEMBER → APP | dog_name, class_date, class_time | — | S08 |
 | N-47 | Entrenament reservat / anul·lat pel club en nom teu | `TrainingBooked/Cancelled{origin: BACKOFFICE ∨ by = ADMIN}` | CLUB_CHANGES | MEMBER → APP+EMAIL+SMS | dog_name, date, time, ring_name, admin_text, change | OPEN_BOOKING | S09 |
 | N-48 | Ara ets instructor / administrador del club (opcional, fora de R1) | `MembershipChanged{roles +}` | PERSONAL | compte → APP+EMAIL | club_name, role | — | S05 |
 | N-49 | Límit mensual d'SMS assolit | `SmsCapReached` (un cop per mes) | OPERATIONAL | ADMINS → APP+EMAIL | month, cap | — | S11 |

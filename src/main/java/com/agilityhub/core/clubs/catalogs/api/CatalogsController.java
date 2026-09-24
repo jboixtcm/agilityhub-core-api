@@ -106,9 +106,11 @@ public class CatalogsController {
 
     @PatchMapping("/api/v1/rings/{id}")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({STALE_VERSION, RING_IN_USE, DUPLICATE_NAME})
+    @ContractErrors({STALE_VERSION, RING_IN_USE, RING_HAS_BOOKINGS, DUPLICATE_NAME})
     @Operation(summary = "Update ring",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation. Deactivating a ring with future live classes → 409 RING_IN_USE (R-05-07). "
+                    + "Turning allowsFreeTraining off or deactivating it with live training bookings → 422 RING_HAS_BOOKINGS{bookings[]} unless cancelBookings: true "
+                    + "(R-05-08 / S09 R-09-13: each booking → CANCELLED_BY_CLUB / RING_NOT_RESERVABLE in the same transaction).",
             responses = @ApiResponse(responseCode = "200", description = "Ring"))
     public Ring updateRing(@PathVariable String id, @Valid @RequestBody RingPatch request) { views.update(RING, id, request); return views.ring(id); }
 

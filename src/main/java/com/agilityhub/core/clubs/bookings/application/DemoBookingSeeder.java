@@ -37,6 +37,7 @@ public class DemoBookingSeeder implements DemoSeedStep {
         this.packs = packs;
     }
     @Override public int order() { return 20; }
+    @Override public boolean reanchors() { return true; }
     @Override public Map<String, Integer> apply(Input input) {
         List<Row> rows = mapper.convertValue(input.specification().getOrDefault("bookings", List.of()), new TypeReference<>() { });
         var counts = new LinkedHashMap<String, Integer>(); counts.put("classBookings", 0); counts.put("classWaitlist", 0);
@@ -44,8 +45,12 @@ public class DemoBookingSeeder implements DemoSeedStep {
         var rings = catalogs.ringIdsByShortName(); var pool = members.pool(input.loginMemberIds()); var used = new HashSet<String>();
         for (int index = 0; index < rows.size(); index++) {
             var row = rows.get(index);
-            var slot = sessions.slot(DemoPlanningSeeder.date(input.weekStart(), row.week(), row.day()), row.start(), DemoPlanningSeeder.require(rings, row.ring()))
-                    .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, Map.of("slot", row.toString())));
+            var found = sessions.slot(DemoPlanningSeeder.date(input.weekStart(), row.week(), row.day()), row.start(), DemoPlanningSeeder.require(rings, row.ring()));
+            // E5-T09 `--reanchor`: only the ACTIVE classes of the weeks the run generated, still without registrants, get them.
+            if (input.reanchor() && found.map(s -> classes.require(s.id())).filter(s -> s.active() && s.booked() == 0 && s.waiting() == 0).isEmpty()) {
+                counts.merge("keptClasses", 1, Integer::sum); continue;
+            }
+            var slot = found.orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, Map.of("slot", row.toString())));
             var eligible = new ArrayList<>(pool.stream().filter(c -> slot.levelIds().contains(c.levelId())).toList());
             Collections.shuffle(eligible, new Random(input.seed() * 31 + index));
             eligible.sort(Comparator.comparing(c -> used.contains(c.memberId())));

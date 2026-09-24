@@ -141,6 +141,14 @@ public class JobRunner {
         var name = request.definition().name();
         String lock = request.clubId() + ":" + name;
         String holder = instance + ":" + UUID.randomUUID();
+        if (request.dryRun()) {
+            // R-15-08: a dry run writes only its JobRun, so it takes no lease (E5-T09): it never blocks, nor is blocked by, a real run.
+            var running = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request),
+                    request.zone().getId(), request.trigger(), true, JobStatus.RUNNING, null, clock.instant(), null, null,
+                    List.of(), List.of(), List.of(), request.actorAccountId(), entries(baseSnapshot(request)), false, holder, false);
+            runs.insert(running);
+            return Optional.of(run(request, running, lock, holder));
+        }
         if (!locks.acquire(lock, holder, now, LEASE)) {
             if (request.trigger() == JobTrigger.MANUAL) { throw new ApiException(ErrorCode.JOB_ALREADY_RUNNING); }
             return skip(request, SkipReason.LOCKED, now);
@@ -217,7 +225,8 @@ public class JobRunner {
     /** Package-private so a test can replay a stale read (a run that finished between the reaper's read and its write). */
     boolean reap(String clubId, JobRun run) {
         Instant now = clock.instant();
-        if (locks.held(clubId + ":" + run.job(), run.holder(), now)) { return false; }
+        // A dry run holds no lease: it is dead only once it has been RUNNING for longer than a lease would last.
+        if (run.dryRun() ? run.startedAt().plus(LEASE).isAfter(now) : locks.held(clubId + ":" + run.job(), run.holder(), now)) { return false; }
         var error = new JobRun.RunError(null, ErrorCode.INTERNAL_ERROR.name(), "Lease expired before the run finished", UUID.randomUUID().toString());
         if (!complete(run.finished(JobStatus.FAILED, now, run.counters(), run.items(), List.of(error), run.parametersSnapshot(), true))) {
             return false;

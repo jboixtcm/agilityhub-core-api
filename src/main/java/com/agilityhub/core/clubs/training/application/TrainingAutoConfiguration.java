@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.training.application;
 
+import com.agilityhub.core.clubs.catalogs.application.RingTrainingBookings;
 import com.agilityhub.core.clubs.census.application.TrainingMemberAccess;
 import com.agilityhub.core.clubs.dashboard.application.ports.DashboardPortDefaults;
 import com.agilityhub.core.clubs.dashboard.application.ports.TrainingBookingsQuery;
@@ -31,6 +32,11 @@ public class TrainingAutoConfiguration {
     @Bean @ConditionalOnMissingBean(TrainingConflictPort.class)
     TrainingConflictPort trainingConflicts(TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census) {
         return new TrainingConflictService(bookings, service, census);
+    }
+    /** S05 R-05-08 → R-09-13: a ring that stops being reservable (E5-T09). */
+    @Bean @ConditionalOnMissingBean(RingTrainingBookings.class)
+    RingTrainingBookings ringTrainingBookings(TrainingContext context, TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census) {
+        return new RingReservability(context, bookings, service, census);
     }
     /** E3-T04 dashboard KPI: training bookings by session start, any state (the KPI keeps the ACTIVE ones). */
     @Bean @ConditionalOnMissingBean(TrainingBookingsQuery.class)

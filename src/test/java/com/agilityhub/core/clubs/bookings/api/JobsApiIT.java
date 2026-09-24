@@ -67,7 +67,7 @@ class JobsApiIT extends BookingFixtures {
         call(POST, "/jobs/risk-review/trigger", Map.of("dryRun", false), impersonating("admin", "s08-m-laura"), 403);
         call(POST, "/jobs/risk-review/trigger", Map.of("dryRun", false), as("inst"), 403);
         call(POST, "/jobs/risk-review/trigger", Map.of("dryRun", false), as("laura"), 403);
-        assertThat(code(call(POST, "/jobs/foo/trigger", Map.of("dryRun", false), as("admin"), 422))).isEqualTo("JOB_UNKNOWN");
+        assertThat(code(call(POST, "/jobs/foo/trigger", Map.of("dryRun", false), as("admin"), 404))).isEqualTo("JOB_UNKNOWN");
         assertThat(code(call(POST, "/jobs/risk-review/trigger", Map.of(), as("admin"), 400))).isEqualTo("VALIDATION_ERROR");
         modules(Module.WAITLIST, Module.PACKS, Module.FREE_TRAINING);
         assertThat(code(call(POST, "/jobs/payment-timeouts/trigger", Map.of("dryRun", false), as("admin"), 404))).isEqualTo("MODULE_DISABLED");

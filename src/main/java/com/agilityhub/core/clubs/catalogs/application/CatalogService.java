@@ -14,6 +14,7 @@ import com.mongodb.MongoException;
 import java.time.Clock;
 import java.util.*;
 import java.util.function.Supplier;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -28,11 +29,14 @@ public class CatalogService {
     private final EventPublisher events;
     private final ObjectMapper mapper;
     private final Clock clock;
+    private final ObjectProvider<RingTrainingBookings> trainings;
 
     public CatalogService(CatalogRepository<Level> levels, CatalogRepository<Ring> rings, CatalogRepository<FaqEntry> faqs,
-            ClubConfigService configs, UsageCounter usage, AuditActorProvider actors, EventPublisher events, ObjectMapper mapper, Clock clock) {
+            ClubConfigService configs, UsageCounter usage, AuditActorProvider actors, EventPublisher events, ObjectMapper mapper, Clock clock,
+            ObjectProvider<RingTrainingBookings> trainings) {
         repositories = Map.of(CatalogKind.LEVEL, levels, CatalogKind.RING, rings, CatalogKind.FAQ, faqs);
         this.configs = configs; this.usage = usage; this.actors = actors; this.events = events; this.mapper = mapper; this.clock = clock;
+        this.trainings = trainings;
     }
     public ClubConfig config() { return configs.get(TenantContext.require()); }
     @SuppressWarnings("unchecked")
@@ -92,17 +96,10 @@ public class CatalogService {
                 throw new ApiException(ErrorCode.STALE_VERSION);
             }
             var values = new LinkedHashMap<>(fields(before)); values.putAll(patch);
+            boolean cancelBookings = Boolean.TRUE.equals(values.remove("cancelBookings"));
             var next = build(kind, id, values, before);
             unique(kind, next, list(kind, true));
-            if (before instanceof Ring oldRing && next instanceof Ring ring) {
-                var references = usage(kind, id);
-                boolean deactivating = oldRing.active() && !ring.active();
-                boolean disabling = oldRing.allowsFreeTraining() && !ring.allowsFreeTraining();
-                if ((deactivating && references.get("futureClassSessions") > 0)
-                        || ((deactivating || disabling) && references.get("futureTrainingBookings") > 0)) {
-                    throw new ApiException(ErrorCode.RING_IN_USE, new LinkedHashMap<>(references));
-                }
-            }
+            if (before instanceof Ring oldRing && next instanceof Ring ring) { stopsBeingReservable(oldRing, ring, cancelBookings); }
             repository(kind).update(next, before.version());
             String action = before.active() == next.active() ? "UPDATED" : next.active() ? "REACTIVATED" : "DEACTIVATED";
             publish(kind, before, next, action);
@@ -144,6 +141,24 @@ public class CatalogService {
             }
             return orderSnapshot(kind);
         });
+    }
+
+    /**
+     * R-05-07: deactivating a ring with future live classes stays `409 RING_IN_USE`. R-05-08 (organizer 2026-09-24, S09
+     * R-09-13 wins): turning `allowsFreeTraining` off or deactivating a ring with live training bookings answers
+     * `RING_HAS_BOOKINGS{bookings[]}` unless the ADMIN sends `cancelBookings: true`, which cancels them in this transaction.
+     */
+    private void stopsBeingReservable(Ring before, Ring after, boolean cancelBookings) {
+        boolean deactivating = before.active() && !after.active();
+        boolean disabling = before.allowsFreeTraining() && !after.allowsFreeTraining();
+        if (!deactivating && !disabling) { return; }
+        var references = usage(CatalogKind.RING, before.id());
+        if (deactivating && references.get("futureClassSessions") > 0) { throw new ApiException(ErrorCode.RING_IN_USE, new LinkedHashMap<>(references)); }
+        var port = trainings.getIfAvailable(() -> RingTrainingBookings.NONE);
+        var live = port.futureActive(before.id());
+        if (live.isEmpty()) { return; }
+        if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", live)); }
+        port.cancelNotReservable(live.stream().map(RingTrainingBookings.Booking::id).toList());
     }
 
     private CatalogEntity build(CatalogKind kind, String id, Map<String, Object> values, CatalogEntity before) {

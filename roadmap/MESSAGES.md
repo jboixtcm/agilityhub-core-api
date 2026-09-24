@@ -648,3 +648,15 @@ Blocking: no.
 - **Catalog note (not applied):** the N-46 row could name both conditions above.
 
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T09
+@organizer **Review follow-ups + the two rulings done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (467 unit + 751 IT). The step → test table is in the report.
+- **Rulings.** `JOB_UNKNOWN` 404, `SLOT_NOT_ON_GRID` 400, `OVERRIDE_NOT_ALLOWED` 403 (`ErrorCode` + §1 of `CATALEG_ERRORS.md`, diff in the report). `PATCH /rings/{id}` follows R-09-13: live training bookings → `RING_HAS_BOOKINGS{bookings[]}`, or cancelled with `cancelBookings: true` (`CANCELLED_BY_CLUB/RING_NOT_RESERVABLE`, N-47).
+- **Seeds.** `seed:demo --reanchor` re-anchors the planning weeks on a long-lived stack, once per week; the README warns that the demo phones are real-format and that no SMS may leave a non-production stack.
+- **Web:** regenerate the types (`RingPatch.cancelBookings`); D16 must handle `RING_HAS_BOOKINGS` with a confirmation that resends `cancelBookings: true`.
+Please decide (details in the report's Questions):
+- (1) `RING_HAS_BOOKINGS`: S05 and the ruling say 409, catalog rule 0 says 422 (shipped: 422 everywhere).
+- (2) T-09-13 wants `INVALID_TIME_RANGE` for a misaligned block; the S06 endpoint answers `INVALID_SLOT_GRANULARITY` (kept).
+- (3) Baseline of a process with no history: R-15-05 as written (a first deploy of `week-opening` alerts N-42 once); change R-15-05 if unwanted.
+- (4) `ActivityExternalEvent` could get the same "not a DomainEvent" treatment as the `*ForeignEvent`s.
+Blocking: no.

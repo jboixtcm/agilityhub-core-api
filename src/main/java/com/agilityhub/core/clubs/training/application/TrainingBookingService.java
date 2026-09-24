@@ -154,7 +154,9 @@ public class TrainingBookingService {
 
     /**
      * R-09-10: a member (or the impersonation token) cancels while `now ≤ startsAt − training.cancelThresholdMinutes`;
-     * later only the impersonating admin, with a reason (ADMIN_LATE, audited). A booking block never prevents it.
+     * later only the impersonating admin, with a reason (ADMIN_LATE, audited). R-09-10 and R-09-16 set no end to that
+     * late cancellation, so it stays possible while the booking is ACTIVE, also once the slot has ended (E5-T09).
+     * A booking block never prevents it.
      */
     public TrainingBooking cancel(String id, TrainingActor actor, String reason) {
         var initial = bookings.require(id);
@@ -164,7 +166,7 @@ public class TrainingBookingService {
             boolean late = !TrainingRules.inTime(b.startsAt(), now, threshold);
             var cancelReason = TrainingCancelReason.MEMBER_REQUEST; var by = TrainingCancelledBy.MEMBER;
             if (late) {
-                if (!actor.impersonated() || !now.isBefore(b.endsAt())) {
+                if (!actor.impersonated()) {
                     throw new ApiException(ErrorCode.TRAINING_CANCEL_TOO_LATE, Map.of("thresholdMinutes", threshold, "minutesBefore", TrainingRules.minutesBefore(b.startsAt(), now)));
                 }
                 if (reason == null || reason.isBlank()) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "reason")); }

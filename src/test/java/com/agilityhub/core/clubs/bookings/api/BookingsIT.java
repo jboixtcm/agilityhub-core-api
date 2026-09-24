@@ -515,23 +515,41 @@ class BookingsIT extends BookingFixtures {
     @Test void T_08_46_levelChangesKeepBookingsAndClassTimeChangesRefreshTheDenormalisedCopies() throws Exception {
         var booking = book(as("laura"), "wed", "s08-d-duna"); String id = booking.path("id").asText();
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-d-duna")), new Update().set("levelId", "s08-lv-D"), "dogs");
-        publish(new ForeignEvent("DogLevelChanged", null, CLUB, "Dog", "s08-d-duna", NOW, Map.of("dogId", "s08-d-duna"), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("DogLevelChanged", null, CLUB, "Dog", "s08-d-duna", NOW, Map.of("dogId", "s08-d-duna"), null, null, DomainEvent.Origin.BACKOFFICE));
         dispatch();
         assertThat(booking(id)).containsEntry("state", "ACTIVE");
         var moved = local("2026-10-11T21:00"); // Sunday after the opening: the booking week moves to W1
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-wed")), new Update().set("startsAt", Date.from(moved)).set("endsAt", Date.from(moved.plusSeconds(3600))), "class_sessions");
-        publish(new ForeignEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-wed", NOW, Map.of("classId", "s08-wed", "diff", Map.of("startTime", Map.of())), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-wed", NOW, Map.of("classId", "s08-wed", "diff", Map.of("startTime", Map.of())), null, null, DomainEvent.Origin.BACKOFFICE));
         dispatch(); dispatch();
         assertThat(booking(id).getDate("classStartsAt").toInstant()).isEqualTo(moved); assertThat(booking(id).getString("bookingWeekKey")).isEqualTo("2026-10-11");
         assertThat(booking(id)).containsEntry("state", "ACTIVE");
         // A redelivered update changes nothing; an unknown class and an inconsistent club cancellation are only logged.
         var version = booking(id).get("version");
-        publish(new ForeignEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-wed", NOW, Map.of("classId", "s08-wed"), null, null, DomainEvent.Origin.BACKOFFICE));
-        publish(new ForeignEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-gone", NOW, Map.of(), null, null, DomainEvent.Origin.BACKOFFICE));
-        publish(new ForeignEvent("ClassCancelledByClub", null, CLUB, "ClassSession", "s08-wed", NOW, Map.of("classId", "s08-wed"), null, null, DomainEvent.Origin.BACKOFFICE));
-        publish(new ForeignEvent("BookingBlockChanged", null, CLUB, "Member", "s08-m-laura", NOW, Map.of("memberId", "s08-m-laura", "active", true), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-wed", NOW, Map.of("classId", "s08-wed"), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-gone", NOW, Map.of(), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("ClassCancelledByClub", null, CLUB, "ClassSession", "s08-wed", NOW, Map.of("classId", "s08-wed"), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("BookingBlockChanged", null, CLUB, "Member", "s08-m-laura", NOW, Map.of("memberId", "s08-m-laura", "active", true), null, null, DomainEvent.Origin.BACKOFFICE));
         dispatch();
         assertThat(booking(id).get("version")).isEqualTo(version); assertThat(booking(id)).containsEntry("state", "ACTIVE");
         assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
+    }
+
+    @Autowired com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classAccess;
+    /** E5-T09 (E4-T05 review #8): the S08 counter writer never raises `booked` above the capacity, and always lets it go down. */
+    @Test void E5_T09_theCounterWriterRefusesABookedCountAboveTheCapacity() {
+        session("tiny", "2026-10-08T19:00", 2, List.of("s08-lv-C"));
+        var keep = com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess.LowAlert.KEEP;
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(tx.execute(status -> classAccess.counters("s08-tiny", 2, 1, keep)).booked()).isEqualTo(2);
+            assertThatThrownBy(() -> tx.execute(status -> classAccess.counters("s08-tiny", 3, 1, keep)))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.CLASS_FULL));
+            assertThat(mongo.findById("s08-tiny", Document.class, "class_sessions").get("counters", Document.class)).containsEntry("booked", 2);
+            // A class already over its capacity (older data, a capacity lowered by hand) can still release seats.
+            mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-tiny")), new Update().set("counters.booked", 4), "class_sessions");
+            assertThat(tx.execute(status -> classAccess.counters("s08-tiny", 3, 0, keep)).booked()).isEqualTo(3);
+            assertThatThrownBy(() -> tx.execute(status -> classAccess.counters("s08-tiny", 4, 0, keep)))
+                    .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.CLASS_FULL));
+        }
     }
 }

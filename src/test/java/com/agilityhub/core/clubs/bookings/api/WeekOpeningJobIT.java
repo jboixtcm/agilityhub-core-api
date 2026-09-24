@@ -26,6 +26,7 @@ class WeekOpeningJobIT extends BookingFixtures {
     static final Instant OPENS = Instant.parse("2026-10-04T18:00:00Z");
     @Autowired JobRunner runner;
     @Autowired WeekOpeningJob job;
+    @Autowired com.agilityhub.core.clubs.training.application.TrainingGridCache grids;
 
     @BeforeEach void weeks() {
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs");
@@ -91,10 +92,22 @@ class WeekOpeningJobIT extends BookingFixtures {
         week("s08-week-42", "2026-10-12", "VALIDATED", "ACTIVE", "mon", "mon2");
         parameter("messaging.notifyWeekOpening", false);
         modules(Module.WAITLIST, Module.PACKS, Module.SMS, Module.PUSH);
+        // E5-T09 (E5-T05 review #6): R-15-11 step (1) drops the grid caches in P1's own transaction, also with FREE_TRAINING off.
+        var loads = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.function.Supplier<com.agilityhub.core.clubs.training.application.TrainingGridCache.Day> loader = () -> {
+            loads.incrementAndGet(); return new com.agilityhub.core.clubs.training.application.TrainingGridCache.Day(java.time.LocalDate.parse("2026-10-05"), false, List.of(), List.of(), List.of());
+        };
+        grids.day(CLUB, java.time.LocalDate.parse("2026-10-05"), loader); grids.day(OTHER, java.time.LocalDate.parse("2026-10-05"), loader);
+        grids.day(CLUB, java.time.LocalDate.parse("2026-10-05"), loader);
+        assertThat(loads.get()).as("warm").isEqualTo(2);
         var run = runner.scheduled(CLUB, true, job, OPENS).orElseThrow();
         assertThat(run.counters()).contains(new JobRun.Entry("notified", 0L));
         assertThat(eventsOf("WeekOpened")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("notified", false));
         assertThat(eventsOf("TrainingCounterReset")).isEmpty();
+        grids.day(CLUB, java.time.LocalDate.parse("2026-10-05"), loader);
+        assertThat(loads.get()).as("the club's grid was dropped before any consumer ran").isEqualTo(3);
+        grids.day(OTHER, java.time.LocalDate.parse("2026-10-05"), loader);
+        assertThat(loads.get()).as("another club's grid is kept").isEqualTo(3);
         dispatch();
         assertThat(n33("APP")).isEmpty();
         assertThat(mongo.findById("s08-week-42", Document.class, "weeks").get("openingNotifiedAt")).isNull();

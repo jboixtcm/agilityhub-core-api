@@ -157,6 +157,38 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
             assertThatThrownBy(() -> restricted.apply(spec, Map.of(), 42, MONDAY)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.FORBIDDEN));
         }
     }
+    /** E5-T09 (E4-T05 review #6): `--reanchor` refreshes the planning weeks of a long-lived stack, once per run week. */
+    @Test void T_06_28_reanchorRefreshesThePlanningWeeksToTheRunDateOncePerWeek() throws Exception {
+        assertThatThrownBy(() -> seed("--reanchor")).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.NOT_FOUND));
+        assertThat(mongo.count(new Query(), "weeks")).isZero();
+        clear(); seed();
+        assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--club=canic", "--reanchor=yes"))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("--reanchor");
+        // Two weeks later the E4 arrangement has aged: the old W+2 is the current week.
+        clock.setInstant(Instant.parse("2026-09-23T10:00:00Z"));
+        var anchor = MONDAY.plusWeeks(2); var before = mongo.count(new Query(), "bookings");
+        seed("--reanchor");
+        var kept = one("weeks", Criteria.where("startDate").is(anchor.toString()));
+        assertThat(kept.getString("state")).as("an existing week is kept as it is").isEqualTo("VALIDATED");
+        assertThat(one("weeks", Criteria.where("startDate").is(anchor.plusWeeks(1).toString())).getString("state")).isEqualTo("GENERATED");
+        var draft = one("weeks", Criteria.where("startDate").is(anchor.plusWeeks(1).toString()));
+        assertThat(mongo.count(Query.query(Criteria.where("weekId").is(draft.getString("_id")).and("state").is("DRAFT")), "class_sessions")).isEqualTo(38);
+        assertThat(one("weeks", Criteria.where("startDate").is(anchor.plusWeeks(2).toString())).getString("state")).isEqualTo("VALIDATED");
+        var wednesday = anchor.plusWeeks(2).plusDays(2);
+        assertThat(session(wednesday, "18:50", ring("CEN")).get("counters", Document.class)).containsEntry("booked", 4).containsEntry("waiting", 2);
+        assertThat(session(wednesday, "09:30", ring("CAD")).getString("state")).isEqualTo("CANCELLED");
+        assertThat(mongo.count(Query.query(Criteria.where("reason").is("MAINTENANCE")), "ring_blocks")).isEqualTo(2);
+        assertThat(mongo.count(Query.query(Criteria.where("origin").ne("APP")), "bookings")).isZero();
+        assertThat(mongo.count(new Query(), "bookings")).isGreaterThan(before);
+        assertThat(mongo.count(new Query(), "week_templates")).as("D3 templates are reused").isEqualTo(3);
+        assertThat(mongo.count(new Query(), "activities")).as("activities keep their first dates").isEqualTo(4);
+        assertThat(one("demo_seed_runs", Criteria.where("_id").is(club + ":planning:" + anchor))).isNotNull();
+        // Idempotent per run week: the same week again, or the first run's own week, changes nothing.
+        var saved = snapshot();
+        seed("--reanchor"); seed("--reanchor", "--week-start=" + MONDAY);
+        assertThat(snapshot()).isEqualTo(saved);
+    }
+
     @Test void T_06_28_planningNeedsTheCensusDemoFirst() throws Exception {
         var spec = DemoFixtures.spec(mapper, false);
         try (var tenant = TenantContext.open(club)) {

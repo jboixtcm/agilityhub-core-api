@@ -10,9 +10,10 @@ import java.util.*;
 public interface DemoSeedStep {
     /** The seed file, the seed, the club-local Monday every dated item is relative to, the acting admin, the census
      * members linked to the seed login accounts (kept free of the E4 demo registrations so front tests can act with them),
-     * every census member id in ordinal order (E5-T06 scenario references) and the club-local date of the run. */
+     * every census member id in ordinal order (E5-T06 scenario references), the club-local date of the run and whether
+     * this is a `--reanchor` run (E5-T09: only the steps that {@link #reanchors()} run, over weeks that do not exist yet). */
     record Input(Map<String, Object> specification, long seed, LocalDate weekStart, String adminAccountId, Set<String> loginMemberIds,
-            List<String> memberIds, LocalDate today) {
+            List<String> memberIds, LocalDate today, boolean reanchor) {
         public Input {
             specification = Collections.unmodifiableMap(new LinkedHashMap<>(specification)); loginMemberIds = Set.copyOf(loginMemberIds);
             memberIds = List.copyOf(memberIds);
@@ -33,6 +34,8 @@ public interface DemoSeedStep {
         }
     }
     int order();
+    /** Whether the step takes part in a `seed:demo --reanchor` run (the planning weeks and their registrants). */
+    default boolean reanchors() { return false; }
     /** Returns the created-item counts of this step. */
     Map<String, Integer> apply(Input input);
 }

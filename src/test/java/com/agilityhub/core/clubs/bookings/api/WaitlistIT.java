@@ -303,7 +303,7 @@ class WaitlistIT extends BookingFixtures {
         // R-08-21: S06 moves the class → the live entry's denormalised start and week follow.
         var moved = local("2026-10-11T21:00");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-last")), new Update().set("startsAt", Date.from(moved)).set("endsAt", Date.from(moved.plusSeconds(3600))), "class_sessions");
-        publish(new ForeignEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-last", NOW, Map.of("classId", "s08-last"), null, null, DomainEvent.Origin.BACKOFFICE));
+        publish(new com.agilityhub.core.support.TestEvent("ClassSessionUpdated", null, CLUB, "ClassSession", "s08-last", NOW, Map.of("classId", "s08-last"), null, null, DomainEvent.Origin.BACKOFFICE));
         dispatch();
         assertThat(instant(entry(c0), "classStartsAt")).isEqualTo(moved); assertThat(entry(c0)).containsEntry("bookingWeekKey", "2026-10-11");
         // S06 cancels the class: the remaining entry is CANCELLED{CLASS_CANCELLED} inside its transaction and listed in waitlistIds.

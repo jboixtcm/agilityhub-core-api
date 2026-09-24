@@ -61,8 +61,7 @@ public class OutboxDispatcher {
         }
     }
 
-    private <T extends com.agilityhub.core.shared.domain.DomainEvent> void deliver(
-            DomainEventHandler<T> handler, DomainEventRecord record) {
+    private <T> void deliver(DomainEventHandler<T> handler, DomainEventRecord record) {
         try {
             handler.handle(record.id(), mapper.readValue(record.eventJson(), handler.eventClass()));
         } catch (Exception failure) { throw new IllegalStateException("Outbox handler failed", failure); }

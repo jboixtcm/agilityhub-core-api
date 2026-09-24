@@ -18,7 +18,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Component
 public class DemoSeedCommand implements CoreCommand {
-    private static final String USAGE = "Usage: seed:demo --club=<slug> [--seed=<number>] [--week-start=<YYYY-MM-DD Monday>]";
+    private static final String USAGE = "Usage: seed:demo --club=<slug> [--seed=<number>] [--week-start=<YYYY-MM-DD Monday>] [--reanchor]";
     private final DemoSeedService service; private final DemoPlanningService planning; private final ClubConfigService configs;
     private final ClubClock clubClock; private final ObjectMapper mapper;
     public DemoSeedCommand(DemoSeedService service, DemoPlanningService planning, ClubConfigService configs, ClubClock clubClock, ObjectMapper mapper) {
@@ -26,7 +26,8 @@ public class DemoSeedCommand implements CoreCommand {
     }
     @Override public String name() { return "seed:demo"; }
     @Override public void run(ApplicationArguments args) {
-        if (!Set.of("core.command", "club", "seed", "week-start").containsAll(args.getOptionNames()) || !args.getNonOptionArgs().isEmpty()
+        if (!Set.of("core.command", "club", "seed", "week-start", "reanchor").containsAll(args.getOptionNames()) || !args.getNonOptionArgs().isEmpty()
+                || args.containsOption("reanchor") && !args.getOptionValues("reanchor").isEmpty()
                 || !args.containsOption("club") || args.getOptionValues("club").size() != 1
                 || !args.getOptionValues("club").getFirst().matches("[a-z0-9-]{3,40}")
                 || args.containsOption("seed") && (args.getOptionValues("seed").size() != 1 || !args.getOptionValues("seed").getFirst().matches("-?[0-9]{1,18}"))
@@ -46,7 +47,7 @@ public class DemoSeedCommand implements CoreCommand {
             if (!sections.isEmpty()) {
                 var weekStart = args.containsOption("week-start") ? LocalDate.parse(args.getOptionValues("week-start").getFirst())
                         : clubClock.today(id).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                System.out.println(planning.apply(spec, sections, seed, weekStart).render());
+                System.out.println(planning.apply(spec, sections, seed, weekStart, args.containsOption("reanchor")).render());
             }
         } catch (IOException failure) { throw new IllegalArgumentException("Unreadable demo seed specification", failure); }
     }

@@ -17,12 +17,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
  * S15 R-15-11 P1 `week-opening` (weekly at `bookings.weekOpensAt`, catch-up 24 h). No business write: W0/W1 are
  * functions of time (S08 R-08-01) and the training counter is per session week (S09 R-09-05). One transaction (the
- * single item): invalidate the club's configuration cache, warm the bookable-classes base cache (S08
+ * single item): invalidate the club's configuration and grid caches ({@link ClubGridCaches}), warm the bookable-classes base cache (S08
  * {@link BookableClassesCache}), `targetWeek.openedAt = opensAt`, `WeekOpened` and, with FREE_TRAINING,
  * `TrainingCounterReset` (S09 invalidates its grid cache). N-33 goes out now when `messaging.notifyWeekOpening` and the
  * target week has an ACTIVE class; otherwise it is deferred to the `WeekValidated` consumer ({@link WeekOpeningNotifications}).
@@ -31,10 +32,11 @@ import org.springframework.stereotype.Component;
 public class WeekOpeningJob implements Job {
     private final WeekOpenings weeks; private final BookingContext bookings; private final BookableClassesCache bookable;
     private final SchedulingRecipients recipients; private final ClubConfigService configs; private final EventPublisher publisher; private final Clock clock;
+    private final ObjectProvider<ClubGridCaches> grids;
     public WeekOpeningJob(WeekOpenings weeks, BookingContext bookings, BookableClassesCache bookable, SchedulingRecipients recipients,
-            ClubConfigService configs, EventPublisher publisher, Clock clock) {
+            ClubConfigService configs, EventPublisher publisher, Clock clock, ObjectProvider<ClubGridCaches> grids) {
         this.weeks = weeks; this.bookings = bookings; this.bookable = bookable; this.recipients = recipients; this.configs = configs;
-        this.publisher = publisher; this.clock = clock;
+        this.publisher = publisher; this.clock = clock; this.grids = grids;
     }
     @Override public JobName name() { return JobName.WEEK_OPENING; }
 
@@ -66,7 +68,10 @@ public class WeekOpeningJob implements Job {
 
     @Override public JobEffect apply(JobContext context, JobItem item) {
         var opening = opening(context); var clubId = TenantContext.require();
+        // R-15-11 step (1): configuration and grid caches, here and whatever FREE_TRAINING says (E5-T09); S09's
+        // `TrainingCounterReset` consumer below is only a second, asynchronous invalidation.
         configs.invalidate(clubId);
+        grids.orderedStream().forEach(grid -> grid.invalidateClub(clubId));
         bookable.warm();
         boolean notifyParameter = Boolean.TRUE.equals(context.parameter("messaging.notifyWeekOpening", Boolean.class));
         int active = weeks.find(opening.isoWeekStart()).map(WeekOpenings.Target::activeClasses).orElse(0);

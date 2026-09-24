@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T09: review follow-ups for S09/S15/S06 and the seeds (E4-T05, E5-T01, E5-T04, E5-T05 reviews) and two organizer
+  rulings of 2026-09-24.
+  - Errors: `JOB_UNKNOWN` is 404, `SLOT_NOT_ON_GRID` 400 and `OVERRIDE_NOT_ALLOWED` 403 (`ErrorCode` and §1 of
+    `CATALEG_ERRORS.md`; they were 422 by rule 0).
+  - S05 rings follow S09 R-09-13 (R-05-08 amended): turning `allowsFreeTraining` off, or deactivating a ring, with
+    live training bookings answers `422 RING_HAS_BOOKINGS{bookings[]}`; `PATCH /rings/{id}` with `cancelBookings: true`
+    cancels them (`CANCELLED_BY_CLUB` / `RING_NOT_RESERVABLE`, N-47) in the same transaction. `409 RING_IN_USE` stays
+    for future live classes.
+  - S15: `jobs.tick.overrun` counts the minute ticks a tick lasting past the next one made the scheduler skip (not
+    same-minute contention); a long tick renews and then settles its lease. A dry run takes no lease (R-15-08) and a
+    dead dry run is reaped after the lease time. P1 `week-opening` drops the grid caches itself, with or without
+    `FREE_TRAINING`.
+  - S09: the MEMBER occupancy carries no block id (the day grid de-duplicates blocks by ring and time); the
+    impersonating admin's late cancellation has no end (R-09-10/R-09-16), also at `now ≥ endsAt`.
+  - S08: `ClassSessionBookingAccess.counters` refuses to raise `booked` above the capacity (`CLASS_FULL`).
+  - ArchUnit: only `Demo*` seed classes call `DemoSeedActor`; only `clubs.bookings`/`clubs.scheduling` write the class
+    counters; the consumer envelopes (`*ForeignEvent`) are no longer `DomainEvent`s, so they cannot be published.
+  - Seeds: `seed:demo --reanchor` re-anchors the planning weeks (and their registrants) to the run date on a
+    long-lived stack, once per week; `seeds/README.md` says that the demo phone numbers are real-format and that SMS
+    must never be sent from a non-production stack.
 - E5-T08: review follow-ups for S07/S08 (E4-T04, E5-T02, E5-T03 reviews).
   - S07: a FIFO promotion publishes `ActivityRegistrationChanged{origin: SYSTEM, promoted: true}` (N-32b APP only),
     whatever the promoted registration's origin. The public activities API checks `X-Api-Key` before the club and the

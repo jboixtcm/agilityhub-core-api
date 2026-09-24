@@ -44,12 +44,18 @@ public class ClassSessionBookingAccess {
         var instructors = String.join(", ", catalog.instructors().stream().filter(i -> c.instructorIds().contains(i.id())).map(i -> i.name()).toList());
         return new Labels(projection.description(c, locale), ring.map(r -> r.name()).orElse(null), ring.map(r -> r.color()).orElse(null), levels, instructors);
     }
-    /** Writes the booked/waiting counters inside the caller's transaction; the class must be ACTIVE. */
+    /**
+     * Writes the booked/waiting counters inside the caller's transaction; the class must be ACTIVE. Only the S08 booking
+     * writers call it (ArchUnit `COUNTER_WRITERS`, E5-T09). A raise of `booked` above the capacity is refused with
+     * `CLASS_FULL`; a lower count is always written, so a class left over capacity by older data can still release seats.
+     */
     @Transactional(propagation = Propagation.MANDATORY)
     public Session counters(String id, int booked, int waiting, LowAlert lowAlert) {
         var before = classes.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         if (before.state() != ClassState.ACTIVE) { throw new ApiException(ErrorCode.INVALID_STATE); }
         if (booked < 0 || waiting < 0) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        int current = before.counters() == null ? 0 : before.counters().booked();
+        if (booked > before.capacity() && booked > current) { throw new ApiException(ErrorCode.CLASS_FULL); }
         var edit = new SessionEdit(before); var now = clock.instant(); edit.counters = new ClassSession.Counters(booked, waiting);
         var risk = before.risk() == null ? new ClassSession.Risk(false, List.of(), null, null) : before.risk();
         if (lowAlert != LowAlert.KEEP) {

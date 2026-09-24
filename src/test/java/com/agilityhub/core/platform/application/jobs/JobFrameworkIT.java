@@ -244,11 +244,32 @@ class JobFrameworkIT extends AbstractIntegrationTest {
     @Test void T_15_06_dryRunRecordsOnlyThePlanAndThePlanMatchesTheRealEffects() {
         job.configure(DAILY, 3, 0, false);
         var before = counts();
+        var lockWrites = new AtomicReference<Document>();
+        // E5-T09 (E5-T01 review #7): a dry run takes no lease, so not even `job_locks` is written while it plans.
+        job.duringNextPlan(() -> lockWrites.set(mongo.findById(CLUB + ":TEST_NOOP", Document.class, "job_locks")));
         var dry = runner.manual(CLUB, JobName.TEST_NOOP, true, ADMIN);
+        assertThat(lockWrites.get()).isNull();
         var after = counts();
         assertThat(after.get("job_runs")).isEqualTo(before.getOrDefault("job_runs", 0L) + 1);
-        after.remove("job_runs"); before.remove("job_runs"); before.remove("job_locks"); after.remove("job_locks");
+        after.remove("job_runs"); before.remove("job_runs");
         assertThat(after).isEqualTo(before);
+        // A real run holding the lease neither blocks a dry run nor is blocked by it.
+        assertThat(locks.acquire(CLUB + ":TEST_NOOP", "other-instance", clock.instant(), Duration.ofSeconds(300))).isTrue();
+        assertThat(runner.manual(CLUB, JobName.TEST_NOOP, true, ADMIN).status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(mongo.findById(CLUB + ":TEST_NOOP", Document.class, "job_locks").getString("holder")).isEqualTo("other-instance");
+        locks.release(CLUB + ":TEST_NOOP", "other-instance");
+        // A dry run left RUNNING by a dead process is reaped only once a lease would have expired.
+        var stale = new JobRun("dead-dry-run", CLUB, JobName.TEST_NOOP, clock.instant(), "2026-10-05T06:00", "Europe/Madrid", JobTrigger.MANUAL, true,
+                JobStatus.RUNNING, null, clock.instant(), null, null, List.of(), List.of(), List.of(), ADMIN, List.of(), false, "dead-holder", false);
+        mongo.insert(stale);
+        try (var scope = TenantContext.open(CLUB)) {
+            assertThat(runner.reap(CLUB, stale)).isFalse();
+            clock.setInstant(clock.instant().plus(JobRunner.LEASE).plusSeconds(1));
+            assertThat(runner.reap(CLUB, stale)).isTrue();
+        }
+        assertThat(mongo.findById("dead-dry-run", JobRun.class).status()).isEqualTo(JobStatus.FAILED);
+        assertThat(events("JobFailed")).isEmpty();
+        clock.setInstant(at("2026-10-05T04:00:00Z"));
         assertThat(dry.dryRun()).isTrue();
         assertThat(dry.trigger()).isEqualTo(JobTrigger.MANUAL);
         assertThat(dry.actorAccountId()).isEqualTo(ADMIN);
@@ -325,6 +346,35 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(caughtUp.status()).isEqualTo(JobStatus.SUCCEEDED);
     }
 
+    /**
+     * E5-T09 (E5-T01 review #5): the baseline of a club or process with no run history is its latest occurrence ≤ now,
+     * judged by R-15-05 like any other tick: older occurrences are never enumerated, so a first tick produces at most one row.
+     */
+    @Test void T_15_05_aClubWithNoRunHistoryStartsFromItsLatestOccurrenceOnly() {
+        assertThat(runs()).isEmpty();
+        // Unlimited window, three days after the club's first occurrence: one CATCH_UP for today's 06:00, nothing for the days before.
+        job.configure(DAILY, 1, 0, false);
+        var first = runner.scheduled(CLUB, true, job, at("2026-10-08T10:00:00Z")).orElseThrow();
+        assertThat(first.trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(first.scheduledFor()).isEqualTo(at("2026-10-08T04:00:00Z"));
+        assertThat(first.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(runs()).hasSize(1);
+        assertThat(runner.scheduled(CLUB, true, job, at("2026-10-08T10:01:00Z"))).isEmpty();
+        // On time: SCHEDULE; before today's occurrence: yesterday's (the latest ≤ now) is the baseline.
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
+        assertThat(runner.scheduled(CLUB, true, job, at("2026-10-09T04:01:00Z")).orElseThrow().trigger()).isEqualTo(JobTrigger.SCHEDULE);
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
+        assertThat(runner.scheduled(CLUB, true, job, at("2026-10-10T03:00:00Z")).orElseThrow().scheduledFor()).isEqualTo(at("2026-10-09T04:00:00Z"));
+        // A continuous process starts at the current minute.
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
+        job.configure(CONTINUOUS, 0, 0, false);
+        var continuous = runner.scheduled(CLUB, true, job, at("2026-10-10T03:00:30Z")).orElseThrow();
+        assertThat(continuous.scheduledFor()).isEqualTo(at("2026-10-10T03:00:00Z"));
+        assertThat(continuous.trigger()).isEqualTo(JobTrigger.SCHEDULE);
+        assertThat(runs()).hasSize(1);
+        // Outside the window the baseline is SKIPPED{MISSED_WINDOW} + JobFailed (R-15-05/R-15-10 as written): see T_15_05_missedWindowSkipsAndAlerts.
+    }
+
     @Test void T_15_31_aRunWhoseLeaseExpiredIsFailedAndTakenAgainAsCatchUp() {
         job.configure(DAILY, 1, 0, false);
         var dead = new JobRun("dead-run", CLUB, JobName.TEST_NOOP, at("2026-10-05T04:00:00Z"), "2026-10-05T06:00", "Europe/Madrid", JobTrigger.SCHEDULE,
@@ -372,8 +422,9 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         job.configure(DAILY, 1, 0, false);
         double overruns = metrics.counter("jobs.tick.overrun").count();
         assertThat(tick.run(at("2026-10-05T04:00:20Z"))).isTrue();
+        // Another tick of the same minute (a second instance) skips: normal contention, not an overrun (E5-T09).
         assertThat(tick.run(at("2026-10-05T04:00:40Z"))).isFalse();
-        assertThat(metrics.counter("jobs.tick.overrun").count()).isEqualTo(overruns + 1);
+        assertThat(metrics.counter("jobs.tick.overrun").count()).isEqualTo(overruns);
         assertThat(runs()).singleElement().satisfies(run -> assertThat(run.getString("status")).isEqualTo("SUCCEEDED"));
         var suspended = mongo.find(Query.query(Criteria.where("clubId").is(SUSPENDED)), Document.class, "job_runs");
         assertThat(suspended).isNotEmpty().allSatisfy(run -> assertThat(run.getString("skipReason")).isEqualTo("CLUB_INACTIVE"));
@@ -386,5 +437,30 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         clock.setInstant(at("2026-10-06T04:00:00Z"));
         assertThat(tick.run(clock.instant())).isTrue();
         assertThat(runs()).last().satisfies(run -> assertThat(run.getString("status")).isEqualTo("FAILED"));
+    }
+
+    /** E5-T09 (E5-T01 review #4): `jobs.tick.overrun` counts the minute ticks a slow tick made the scheduler skip. */
+    @Test void T_15_01_aTickThatLastsPastTheNextMinuteIsAnOverrunAndSettlesItsLease() {
+        double overruns = metrics.counter("jobs.tick.overrun").count();
+        // A 40 s tick is no overrun; its lease still ends at second 55, so a tick of the same minute is refused and the next one runs.
+        job.configure(DAILY, 1, 0, false);
+        job.duringNextApply(() -> clock.setInstant(at("2026-10-05T04:00:40Z")));
+        assertThat(tick.run(at("2026-10-05T04:00:00Z"))).isTrue();
+        assertThat(metrics.counter("jobs.tick.overrun").count()).isEqualTo(overruns);
+        assertThat(mongo.findById("tick", Document.class, "job_locks").getDate("expiresAt").toInstant()).isEqualTo(at("2026-10-05T04:00:55Z"));
+        assertThat(tick.run(at("2026-10-05T04:00:50Z"))).isFalse();
+        // A tick that lasts 2 min 10 s made the scheduler skip two minute ticks, and gives the lease back when it ends.
+        clock.setInstant(at("2026-10-06T04:00:00Z"));
+        job.duringNextApply(() -> clock.setInstant(at("2026-10-06T04:02:10Z")));
+        assertThat(tick.run(at("2026-10-06T04:00:00Z"))).isTrue();
+        assertThat(metrics.counter("jobs.tick.overrun").count()).isEqualTo(overruns + 2);
+        var lease = mongo.findById("tick", Document.class, "job_locks");
+        assertThat(lease.getDate("expiresAt").toInstant()).isEqualTo(at("2026-10-06T04:02:10Z"));
+        assertThat(tick.run(at("2026-10-06T04:03:00Z"))).isTrue();
+        // A renewed lease keeps a second tick out while the first is still running past second 30.
+        assertThat(locks.acquire("tick", "slow-instance", at("2026-10-07T04:00:00Z"), Duration.ofSeconds(55))).isTrue();
+        assertThat(locks.renew("tick", "slow-instance", at("2026-10-07T04:00:45Z"), Duration.ofSeconds(55))).isTrue();
+        assertThat(tick.run(at("2026-10-07T04:01:00Z"))).isFalse();
+        assertThat(metrics.counter("jobs.tick.overrun").count()).isEqualTo(overruns + 2);
     }
 }

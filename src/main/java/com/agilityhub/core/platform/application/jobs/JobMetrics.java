@@ -20,9 +20,10 @@ public class JobMetrics {
     private final Counter overrun;
     public JobMetrics(MeterRegistry registry, Clock clock) {
         this.registry = registry; this.clock = clock;
-        this.overrun = Counter.builder("jobs.tick.overrun").description("Ticks skipped because another tick holds the lease").register(registry);
+        this.overrun = Counter.builder("jobs.tick.overrun").description("Minute ticks skipped because the previous tick was still running").register(registry);
     }
-    public void tickOverrun() { overrun.increment(); }
+    /** R-15-01: a tick that lasted past the next minute's tick counts every minute tick it made the scheduler skip. */
+    public void tickOverrun(long skippedTicks) { overrun.increment(skippedTicks); }
     public void finished(String clubId, JobName job, JobStatus status, Duration duration, Map<String, Long> counters) {
         Timer.builder("jobs.run.duration").tag("job", job.name()).tag("status", status.name()).register(registry).record(duration);
         counters.forEach((key, value) -> Counter.builder("jobs.effects").tag("job", job.name()).tag("key", key).register(registry).increment(value));

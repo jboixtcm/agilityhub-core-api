@@ -63,7 +63,7 @@
 | `RemittanceSimulated` | remittanceDraftId, incidents[], totals | S12 | D6 |
 | `RemittanceGenerated` | remittanceId, invoiceIds[], xmlFileKey | S12 | avança proper rebut, auditoria |
 | `RemittanceRolledBack` | remittanceId, invoiceIds[] | S12 | retrocés de numeració i dates, auditoria |
-| `UpfrontPaymentRecorded` / `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` | paymentId, concept, provider | S04/S12 | N-30, pack obert |
+| `UpfrontPaymentRecorded` / `UpfrontPaymentSucceeded` / `UpfrontPaymentFailed` | paymentId, memberId, concept, provider, amountPaid (Succeeded), bookingId? (només les línies d'una reserva `SINGLE_CLASS`, S08 R-08-18; organitzador 24-09) | S04/S12 | N-30, pack obert; S08 liquida la reserva `PAYMENT_PENDING` |
 | `PackOpened` / `PackConsumed` / `PackRefunded` / `PackLowBalance` / `PackExpiring` / `PackExpired` | packBalanceId, dogId, remaining | S08/S12/S15 | N-11, baixa prevista automàtica |
 | `StripeWebhookReceived` | eventId, type | S12 | processament idempotent |
 | **Inactivitat i baixa** | | | |

@@ -11,8 +11,8 @@ import java.util.*;
 /**
  * S09 R-09-12, the real {@link TrainingOccupancyPort} behind the S06 day grids (10, 23, D12, D4): ACTIVE training
  * bookings (`training.slotMinutes` long) and ACTIVE ring blocks overlapping the range. A MEMBER viewer gets
- * `{type, reason}` only — no booking id, member, dog or note (a block keeps its id: S06 already lists it);
- * INSTRUCTOR/ADMIN get the booker's first name, the dog and the block note. With FREE_TRAINING off only blocks.
+ * `{type, reason}` only — no booking or block id, member, dog or note (E5-T09);
+ * INSTRUCTOR/ADMIN get the ids, the booker's first name, the dog and the block note. With FREE_TRAINING off only blocks.
  */
 public class TrainingOccupancyService implements TrainingOccupancyPort {
     private final TrainingContext context; private final TrainingBookingRepository bookings; private final RingScheduleAccess schedule;
@@ -35,7 +35,7 @@ public class TrainingOccupancyService implements TrainingOccupancyPort {
         }
         for (var block : schedule.blocks(from, to, !member)) {
             if (ringIds != null && !ringIds.contains(block.ringId())) { continue; }
-            result.add(new Interval(block.ringId(), block.from(), block.to(), Type.RING_BLOCK, block.reason(), null, null, member ? null : block.note(), block.id()));
+            result.add(new Interval(block.ringId(), block.from(), block.to(), Type.RING_BLOCK, block.reason(), null, null, member ? null : block.note(), member ? null : block.id()));
         }
         result.sort(Comparator.comparing(Interval::from).thenComparing(Interval::ringId).thenComparing(i -> Objects.toString(i.id(), "")));
         return result;

@@ -1,0 +1,38 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_cli, local profile; run date 2026-09-24, run Monday 2026-09-21, re-anchor week start 2026-10-05; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 05-club-apply.log)
++ catalogs: 31 catalog changes
++ pages: 3 page changes
+15 changes (applied)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0 (log 06-seed-demo-first.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=93, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+224 changes (demo planning, week start 2026-09-21)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0 (log 07-seed-demo-second.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=93, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+0 changes (demo planning, week start 2026-09-21)
+PASS second seed:demo run: 0 changes and complete Mongo document snapshot unchanged
+Weeks after the first run:
+2026-09-21 VALIDATED 17 classes, 0 bookings
+2026-09-28 GENERATED 38 classes, 0 bookings
+2026-10-05 VALIDATED 39 classes, 23 bookings
+$ bin/core seed:demo --club=canic --seed=42 --reanchor --week-start=2026-10-05 -> exit 0 (log 08-seed-demo-reanchor.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=1, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+109 changes (demo planning, week start 2026-10-05)
+Weeks after the re-anchor:
+2026-09-21 VALIDATED 17 classes, 0 bookings
+2026-09-28 GENERATED 38 classes, 0 bookings
+2026-10-05 VALIDATED 39 classes, 23 bookings
+2026-10-12 GENERATED 38 classes, 0 bookings
+2026-10-19 VALIDATED 39 classes, 23 bookings
+$ bin/core seed:demo --club=canic --seed=42 --reanchor --week-start=2026-10-05 -> exit 0 (log 09-seed-demo-reanchor-again.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=1, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+0 changes (demo planning, week start 2026-10-05)
+PASS re-anchor: new weeks generated once; the second re-anchor on the same week reports 0 changes and the snapshot is unchanged
+Removed the disposable Mongo container and runtime directory

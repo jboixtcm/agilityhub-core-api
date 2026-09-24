@@ -82,6 +82,10 @@ class CatalogsIT extends AbstractIntegrationTest {
         } else {
             row.append(field, id).append(Set.of("class_sessions", "ring_blocks", "training_bookings").contains(collection) ? "state" : "status", status)
                     .append("startsAt", Date.from(clock.instant().plus(Duration.ofHours(futureHours))));
+            if (collection.equals("training_bookings")) {
+                row.append("memberId", "member-x").append("dogId", "dog-x").append("seatIndex", 0).append("version", 0L)
+                        .append("endsAt", Date.from(clock.instant().plus(Duration.ofHours(futureHours)).plus(Duration.ofMinutes(30))));
+            }
         }
         mongo.insert(row, collection);
     }
@@ -213,8 +217,11 @@ class CatalogsIT extends AbstractIntegrationTest {
         try (var scope = TenantContext.open(CLUB)) { assertThat(usage.usage(CatalogKind.RING, id)).containsEntry("futureTrainingBookings", 0L); }
         mongo.remove(new Query(), "training_bookings");
         reference("training_bookings", CLUB, "ringId", id, "ACTIVE", 24);
-        admin(body(patch("/api/v1/rings/" + id), Map.of("allowsFreeTraining", false, "version", 0))).andExpect(status().isConflict()).andExpect(jsonPath("$.details.futureTrainingBookings").value(1));
-        admin(body(patch("/api/v1/rings/" + id), Map.of("active", false, "version", 0))).andExpect(status().isConflict());
+        // R-05-08 (organizer 2026-09-24, S09 R-09-13 wins): a live training booking is RING_HAS_BOOKINGS, not RING_IN_USE.
+        admin(body(patch("/api/v1/rings/" + id), Map.of("allowsFreeTraining", false, "version", 0))).andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RING_HAS_BOOKINGS")).andExpect(jsonPath("$.details.bookings.length()").value(1));
+        admin(body(patch("/api/v1/rings/" + id), Map.of("active", false, "version", 0))).andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("RING_HAS_BOOKINGS"));
         mongo.remove(new Query(), "training_bookings");
         reference("class_sessions", CLUB, "ringId", id, "CANCELLED", 24);
         reference("class_sessions", CLUB, "ringId", id, "SCHEDULED", -24);

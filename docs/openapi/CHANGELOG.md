@@ -3,6 +3,20 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T09 · explicit error statuses and S05 rings follow S09 R-09-13
+
+- Error statuses (organizer ruling, `CATALEG_ERRORS.md` §1): `JOB_UNKNOWN` 422 → **404** on the five `/jobs/{name}*`
+  and `/platform/clubs/{clubId}/jobs/{name}/trigger` operations; `SLOT_NOT_ON_GRID` 422 → **400** and
+  `OVERRIDE_NOT_ALLOWED` 422 → **403** on `POST /training-bookings` (the `override` description says 403).
+- `PATCH /rings/{id}`: new optional body field `cancelBookings` (boolean) and a documented `422 RING_HAS_BOOKINGS
+  {bookings[]}` when `allowsFreeTraining` goes off, or the ring is deactivated, with live training bookings
+  (R-05-08 amended; S09 R-09-13). With `cancelBookings: true` they are cancelled as `CANCELLED_BY_CLUB /
+  RING_NOT_RESERVABLE` in the same transaction. `409 RING_IN_USE` stays for future live classes (R-05-07).
+
+Web adopters: regenerate the types (`RingPatch.cancelBookings`); map the three codes by code as before (their HTTP
+status changed); D16 «Reservable per entrenaments» / «Desactiva» must handle `RING_HAS_BOOKINGS` with a confirmation
+that resends `cancelBookings: true`, like D4 does for ring blocks.
+
 ## 2026-09-24 · E5-T06 · S08 WP-08-D aggregates served (the last 2 E5 operations no longer 501)
 
 No path, parameter, request body or response shape change. Two things change:

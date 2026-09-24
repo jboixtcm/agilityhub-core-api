@@ -1,0 +1,5 @@
+$ bin/core seed:demo --club=canic --seed=42 --reanchor --week-start=2026-10-05        (exit 0)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{keptWeeks=1, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3}
+109 changes (demo planning, week start 2026-10-05)
