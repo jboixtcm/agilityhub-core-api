@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T07: gate E3 audit run on `de0e17f`, evidence only with no product change.
+  - `roadmap/evidence/E3-T07/` holds the S04/S14 spec-test traceability (`trace.py`, CSV and summary: 40 of the 44 ids in scope pass; the 4 missing are front-layer ids).
+  - `clean verify` passes (513 unit + 826 IT), both seed commands are idempotent, and the snapshot shows no drift.
+  - `bin/e3-smoke` fails on its stale E3-era «Future verticals must stay empty» assertion since the E4-T05 planning seed.
 - E5-T12: Josep's answers B29–B33 in the Playoff migration (S18 `MappingConfig` v5, E32), level PENDENT, E29 coverage.
   - The adapter moves to `migration/playoff-v2.yaml` (`version: 2`): «Familiar Abonat/curs» → `ABONAT_FAMILIAR`
     with the family behaviour (B31); `pendent` → level `PENDENT` + `LEVEL_PENDING` (B32); `cadells` → `CAD`; the photo

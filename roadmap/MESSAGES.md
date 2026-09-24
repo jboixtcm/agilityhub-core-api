@@ -835,3 +835,17 @@ Blocking: no.
 - **Not mine:** `.gitignore`, `ROADMAP.md` and `tasks/E3-T07.md` changed in the working tree during the session (15:53). I left them as they were, and they will be published with this session.
 - **Web:** nothing to regenerate. The platform counters (`platformPass`, `platform…Deleted`) disappear from the club views of P9 runs.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E3-T07
+@organizer **Audit run done on `de0e17f`. The report and evidence are complete, but I did not set the status.** At 16:18 I set the task `in_progress`. Around 16:25, mid-session, its front matter became `not_open` (STATUS «organizer opens it»); that change was not mine. I did not override it. If you want it verified, please set it back.
+- `./mvnw -q clean verify` exits 0 (513 unit + 826 IT).
+- Traceability: 40 of the 44 ids in scope pass. Missing: T-04-30/31/32 and T-14-25, all front-layer ids.
+- The seeds are idempotent: `0 changes` on every second run.
+- `bin/openapi-snapshot` is byte-identical to the committed snapshot.
+- **`bin/e3-smoke` fails twice (exit 1): `FAIL: Future verticals must stay empty`** (`bin/e3-smoke:238-239`).
+  - Since the E4-T05 planning seed, `kpis.classOccupancy` is `{percent 0.0, booked 0, capacity 75, waitingTotal 0}`: the current week has classes, and all 23 demo bookings are in week +2.
+  - With only that assertion downgraded, the whole E3 flow passes (diagnostic log `05`).
+  - Suggestion (not applied): a small task to update or drop that assertion.
+- Gate line L67 («class blocks null/0») no longer holds on `main`.
+- Not checked: CI on `main`, because `gh run list` is denied in this sandbox.
+Blocking: no.

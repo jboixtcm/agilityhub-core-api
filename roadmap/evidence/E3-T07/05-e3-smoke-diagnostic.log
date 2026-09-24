@@ -1,0 +1,59 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+DIAG kpis.classOccupancy = {"percent": 0.0, "booked": 0, "capacity": 75, "waitingTotal": 0}
+DIAG kpis.trainingBookings = {"value": 0, "distinctMembers": 0}
+DIAG dogsByLevel.totalActiveDogs = 242
+DIAG generatedAt/week keys = ["dogsByLevel", "generatedAt", "kpis", "pendingSignups", "riskReview", "today", "week"]
+DIAG seeded documents = {"classSessions": 94, "bookings": 23, "trainingBookings": 0}
+WARN (downgraded by diagnostic): Future verticals must stay empty
+curl GET /api/v1/members/6bb02fb0-a7e4-3357-a8d8-91a684613088/signup -> 200
+curl GET /api/v1/members/341cf36e-539b-318f-89f1-0e6593775b5f/signup -> 200
+curl GET /api/v1/members/12e4883a-deed-314e-8a8c-6f5e581e6281/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/b43156f6-ac11-4480-b236-5aacaf4cfa5e/signup -> 200
+PASS mailbox N-01 correlated by notificationId; locale=ca
+curl POST /api/v1/members/b43156f6-ac11-4480-b236-5aacaf4cfa5e/validation -> 200
+curl POST /api/v1/members/b43156f6-ac11-4480-b236-5aacaf4cfa5e/validation -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS mailbox N-02 correlated by notificationId; locale=ca; token=[truncated]
+curl POST /oauth2/token -> 200
+curl GET /api/v1/me -> 200
+PASS public family signup -> dry run -> validation/number increment -> N-02 -> welcome session
+curl POST /api/v1/me/dogs/signup -> 201
+PASS N-01 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/b43156f6-ac11-4480-b236-5aacaf4cfa5e/signup -> 200
+curl POST /api/v1/members/b43156f6-ac11-4480-b236-5aacaf4cfa5e/validation -> 200
+PASS N-37 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/0e4b56c5-a859-48ca-ba2c-ac859f6caf83/signup -> 200
+curl POST /api/v1/members/0e4b56c5-a859-48ca-ba2c-ac859f6caf83/rejection -> 200
+PASS mailbox N-03 correlated by notificationId; locale=ca
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS signup without family -> rejection -> N-03; D1 counters restored
+curl GET /api/v1/parameters/signup.enabled -> 200
+curl PUT /api/v1/parameters/signup.enabled -> 200
+curl POST /api/v1/signup -> 422 SIGNUP_CLOSED
+PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED
+PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+DIAG exit code 0
