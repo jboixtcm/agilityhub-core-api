@@ -60,10 +60,20 @@ public class SystemNotificationService {
     private String deliver(String id, String code, String accountId, Map<String, ?> variables) {
         return deliverTo(id,code,accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)),variables);
     }
+    /** {@link #sendOnce} with another copy (`variant`) of the same catalog code, e.g. the admins' N-01 (E3-T08). */
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendOnceVariant(String id,String code,String variant,String accountId,Map<String,?> variables) {
+        if(completed(id)) return id;
+        return deliverTo(id,code,variant,accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)),variables);
+    }
     @Transactional(propagation = Propagation.NEVER)
     public String sendApplicantOnce(String id,String code,String email,String locale,Map<String,?> variables) {
+        return sendApplicantOnce(id,code,null,email,locale,variables);
+    }
+    @Transactional(propagation = Propagation.NEVER)
+    public String sendApplicantOnce(String id,String code,String variant,String email,String locale,Map<String,?> variables) {
         if(completed(id)) return id;
-        return deliverTo(id,code,new NotificationAccounts.Recipient(null,email,locale,null),variables);
+        return deliverTo(id,code,variant,new NotificationAccounts.Recipient(null,email,locale,null),variables);
     }
     /**
      * The APP row and the SMS/PUSH intents only write rows (no network call), each in its own transaction: like the email
@@ -121,6 +131,9 @@ public class SystemNotificationService {
         events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
     }
     private String deliverTo(String id,String code,NotificationAccounts.Recipient account,Map<String,?> variables) {
+        return deliverTo(id,code,null,account,variables);
+    }
+    private String deliverTo(String id,String code,String variant,NotificationAccounts.Recipient account,Map<String,?> variables) {
         String clubId = TenantContext.current();
         var settings = clubId == null ? new ClubEmailSettings.Settings("AgilityHub", null, "#2563eb", "#ffffff",
                 platformFrom, "AgilityHub", null, "ca", parameters.defaultInteger("auth.magicLinkMinutes"))
@@ -130,7 +143,7 @@ public class SystemNotificationService {
         var tags = new java.util.HashMap<String, String>();
         tags.put("notificationId", id);
         if (clubId != null) { tags.put("clubId", clubId); }
-        var email = renderer.render(code, account.email(), locale, variables, settings, tags);
+        var email = renderer.render(code, variant, account.email(), locale, variables, settings, tags);
         var notification = new Notification(id, clubId, account.id(), code, "EMAIL", Notification.Status.QUEUED,
                 null, null, null, account.email(), locale.toLanguageTag(), clock.instant());
         transactions.executeWithoutResult(tx -> {

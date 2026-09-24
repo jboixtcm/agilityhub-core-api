@@ -115,7 +115,10 @@ class DashboardIT extends AbstractIntegrationTest {
         assertThat(first.at("/kpis/classOccupancy/percent").isNull()).isTrue();
         assertThat(first.at("/kpis/classOccupancy/capacity").asInt()).isZero();
         assertThat(first.at("/dogsByLevel/totalActiveDogs").asInt()).isEqualTo(242);
-        assertThat(first.at("/dogsByLevel/levels")).hasSize(10); // S05 §12: nine levels + PENDENT (B32)
+        // S14 R-14-07 (E35): the eight progression levels of S05 §12; TER and PENDENT count in «altres».
+        assertThat(first.at("/dogsByLevel/levels")).extracting(row -> row.path("code").asText()).containsExactly("CAD", "A", "B", "C", "D", "E", "F", "G");
+        int columns = 0; for (var row : first.at("/dogsByLevel/levels")) { columns += row.path("total").asInt(); }
+        assertThat(first.at("/dogsByLevel/others").asInt()).isEqualTo(242 - columns);
         assertThat(first.at("/dogsByLevel/levels")).allSatisfy(row -> assertThat(row.path("withRecentBooking").asInt()).isZero());
         assertThat(first.at("/riskReview/items")).isEmpty();
         assertThat(first.at("/pendingSignups/items")).hasSize(3);
@@ -126,31 +129,41 @@ class DashboardIT extends AbstractIntegrationTest {
         assertThat(spanish.at("/dogsByLevel/levels/0/name")).isNotEqualTo(first.at("/dogsByLevel/levels/0/name"));
         clock.setInstant(clock.instant().plusSeconds(30)); assertThat(dashboard().path("generatedAt")).isNotEqualTo(first.path("generatedAt"));
     }
-    @Test void T_14_11_validationInvalidatesDashboardAndCountersThroughActualOutbox() throws Exception {
+    JsonNode submitSignup(String document, String chip) throws Exception {
+        var body = Map.of("locale", "en", "person", Map.of("idDocument", Map.of("type", "DNI", "value", document),
+                "firstName", "Example", "lastName1", "Applicant", "birthDate", "2000-01-01", "gender", "FEMALE",
+                "emails", List.of(document + "." + club + "@example.test"), "phones", List.of(Map.of("prefix", "+34", "number", "600000001")),
+                "address", Map.of("street", "Example street", "postalCode", "99999", "town", "Example town")),
+                "dog", Map.of("name", "Example Dog", "sex", "FEMALE", "breed", "Whippet", "birthMonth", "2024-04", "chip", chip),
+                "payment", Map.of("type", "MANUAL", "firstMonthOption", "TODAY"),
+                "consents", Map.of("privacyPolicy", Map.of("accepted", true, "version", "v1"), "imageUse", Map.of("granted", false, "version", "v1")));
+        return result(post("/api/v1/signup").header("Host", host).header("Idempotency-Key", UUID.randomUUID())
+                .contentType("application/json").content(mapper.writeValueAsBytes(body)), 201);
+    }
+    /**
+     * R-14-01 (E3-T08, M11): the submission, the validation and the rejection refresh D1 and its counters right after their
+     * commit, without any outbox dispatch or wait; the outbox consumers stay for the other sources.
+     */
+    @Test void T_14_11_R_14_01_submissionValidationAndRejectionRefreshD1WithoutTheOutbox() throws Exception {
         // Use the public no-plan path; levels still require an assigned level on validation.
         insert("levels", new Document("_id", "validation-" + club).append("code", "A").append("name", Map.of("en", "A"))
                 .append("color", "#000000").append("order", 1).append("active", true));
-        var body = Map.of("locale", "en", "person", Map.of("idDocument", Map.of("type", "DNI", "value", "12000001G"),
-                "firstName", "Example", "lastName1", "Applicant", "birthDate", "2000-01-01", "gender", "FEMALE",
-                "emails", List.of(club + "@example.test"), "phones", List.of(Map.of("prefix", "+34", "number", "600000001")),
-                "address", Map.of("street", "Example street", "postalCode", "99999", "town", "Example town")),
-                "dog", Map.of("name", "Example Dog", "sex", "FEMALE", "breed", "Whippet", "birthMonth", "2024-04", "chip", "941000001234567"),
-                "payment", Map.of("type", "MANUAL", "firstMonthOption", "TODAY"),
-                "consents", Map.of("privacyPolicy", Map.of("accepted", true, "version", "v1"), "imageUse", Map.of("granted", false, "version", "v1")));
-        var created = result(post("/api/v1/signup").header("Host", host).header("Idempotency-Key", UUID.randomUUID())
-                .contentType("application/json").content(mapper.writeValueAsBytes(body)), 201);
-        dispatcher.dispatch();
-        var before = dashboard(); assertThat(counters().path("pendingSignups").asInt()).isEqualTo(1);
+        var empty = dashboard(); assertThat(counters().path("pendingSignups").asInt()).isZero();
+        var created = submitSignup("12000001G", "941000001234567");
+        assertThat(dashboard().at("/pendingSignups/count").asInt()).isEqualTo(1); assertThat(counters().path("pendingSignups").asInt()).isEqualTo(1);
         String id = created.path("memberId").asText();
         var dog = mongo.getCollection("dogs").find(new Document("clubId", club).append("memberId", id)).first();
-        clock.setInstant(clock.instant().plusSeconds(1));
         result(admin(post("/api/v1/members/" + id + "/validation")).contentType("application/json").content(mapper.writeValueAsBytes(
                 Map.of("version", 0, "dogs", List.of(Map.of("dogId", dog.getString("_id"), "levelId", "validation-" + club))))), 200);
-        assertThat(dashboard().path("generatedAt")).isEqualTo(before.path("generatedAt"));
-        dispatcher.dispatch();
-        var after = dashboard(); assertThat(after.path("generatedAt")).isNotEqualTo(before.path("generatedAt"));
-        assertThat(after.at("/kpis/activeMembers/value").asInt()).isEqualTo(1);
+        var after = dashboard(); assertThat(empty.at("/kpis/activeMembers/value").asInt()).isZero();
+        assertThat(after.at("/kpis/activeMembers/value").asInt()).isEqualTo(1); assertThat(after.at("/pendingSignups/items")).isEmpty();
         assertThat(after.at("/kpis/pendingSignups/value").asInt()).isZero(); assertThat(counters().path("pendingSignups").asInt()).isZero();
+        String rejected = submitSignup("12000002M", "941000001234568").path("memberId").asText();
+        assertThat(dashboard().at("/pendingSignups/items/0/memberId").asText()).isEqualTo(rejected); assertThat(counters().path("pendingSignups").asInt()).isEqualTo(1);
+        result(admin(post("/api/v1/members/" + rejected + "/rejection")).contentType("application/json").content(mapper.writeValueAsBytes(
+                Map.of("version", 0, "reason", "Fictional rejection"))), 200);
+        assertThat(dashboard().at("/pendingSignups/count").asInt()).isZero(); assertThat(counters().path("pendingSignups").asInt()).isZero();
+        assertThat(mongo.getCollection("domain_events").countDocuments(new Document("clubId", club).append("status", "PUBLISHED"))).as("no outbox dispatch happened").isZero();
     }
     @Test void T_14_22_crossTenantJoinsRolesAndRealImpersonationAreDenied() throws Exception {
         insert("members", member("owner-" + club, "ACTIVE"));

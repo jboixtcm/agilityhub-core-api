@@ -170,7 +170,17 @@ class E3ContractIT extends AbstractIntegrationTest {
                 "UploadUrlRequest", "UploadUrl", "FamilyGroupLookupRequest", "FamilyGroupLookupResult", "SignupRequest", "SignupResult", "UpfrontLine",
                 "CheckoutSessionRequest", "CheckoutSession", "AddDogSignupRequest", "AddDogSignupResult", "MemberSignupView", "ValidationRequest",
                 "ValidationDryRun", "ValidationResult", "RejectionRequest", "RejectionResult")) { assertThat(schema.path(name).path("properties").isEmpty()).as(name).isFalse(); }
-        assertThat(strings(schema.at("/SignupWarning/enum"))).containsExactly("NO_IMAGE_CONSENT","ACCOUNT_NOT_PROVIDED","DOCUMENT_PENDING","FAMILY_HOLDER_NOT_FOUND","UPFRONT_UNPAID","READMISSION");
+        // CHECKOUT_PENDING: the D2 dryRun warning of S04 §5 / E39 (E3-T08).
+        assertThat(strings(schema.at("/SignupWarning/enum"))).containsExactly("NO_IMAGE_CONSENT","ACCOUNT_NOT_PROVIDED","DOCUMENT_PENDING","FAMILY_HOLDER_NOT_FOUND","UPFRONT_UNPAID","READMISSION","CHECKOUT_PENDING");
+        // E3-T08: the per-plan quote (M5), the D2 plan selector and age warning (M8, M11), the dog version (M12) and the signup flags.
+        assertThat(schema.at("/SignupUpfrontConfig/properties").has("planQuotes")).isTrue();
+        properties(schema, "SignupPlanQuote", "planId,lines,totalDue,options");
+        properties(schema, "SignupQuoteOption", "option,portion,startDate,amountDue,totalDue");
+        properties(schema, "SignupPlanOption", "planId,name,type,prices");
+        assertThat(schema.at("/MemberSignupView/required").toString()).contains("planOptions", "warnDays");
+        assertThat(schema.at("/SignupDogView/required").toString()).contains("\"version\"");
+        assertThat(schema.at("/SignupConfig/properties").has("allowFamilyGroupPending") && schema.at("/SignupConfig/properties").has("requireDogDocumentAtSignup")).isTrue();
+        assertThat(schema.at("/MeDog/required").toString()).contains("\"status\"").doesNotContain("documents", "licenses");
         properties(schema, "SignupRequest", "locale,website,person,dog,planId,familyGroupClaim,payment,consents");
         properties(schema, "SignupPerson", "idDocument,firstName,lastName1,lastName2,birthDate,gender,emails,phones,address");
         properties(schema, "SignupIdDocument", "type,value"); properties(schema, "SignupAddress", "street,postalCode,town");
@@ -181,8 +191,8 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema,"AddDogCheckout","required,memberId");
         properties(schema,"SignupUpfront","lines,totalDue,additionalDog");
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("additionalDogOptions")).isTrue();
-        properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,texts,legal,countryProfile,upfront,member");
-        properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,version");
+        properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,texts,legal,countryProfile,upfront,member,allowFamilyGroupPending,requireDogDocumentAtSignup");
+        properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,planOptions,warnDays,version");
         properties(schema, "ValidationRequest", "version,dogs,planId,priceId,nextInvoiceDate,familyGroupId,upfrontAmountPaid");
         properties(schema, "UpfrontLine", "id,concept,amount,status,paidAmount,provider");
         assertThat(strings(schema.at("/UpfrontLine/properties/concept/enum"))).containsExactly("ENTRY_FEE","FIRST_MONTH","PACK","ADDITIONAL_DOG_FEE");

@@ -7669,7 +7669,7 @@
         "type" : "object"
       },
       "MeDog" : {
-        "description" : "Owner/family projection, with no chip, private remarks or internal ownership fields.",
+        "description" : "Owner/family projection, with no chip, private remarks or internal ownership fields. A PENDING dog (own add-dog awaiting validation, S04 R-04-25, E36) carries only id, name, breed, sex, ageYears and status.",
         "properties" : {
           "ageYears" : {
             "format" : "double",
@@ -7679,6 +7679,7 @@
             "type" : "string"
           },
           "documents" : {
+            "description" : "ACTIVE dogs only",
             "items" : {
               "$ref" : "#/components/schemas/DogDocument"
             },
@@ -7698,6 +7699,7 @@
             "$ref" : "#/components/schemas/LevelSummary"
           },
           "licenses" : {
+            "description" : "ACTIVE dogs only",
             "items" : {
               "$ref" : "#/components/schemas/License"
             },
@@ -7716,11 +7718,15 @@
             "enum" : [ "MALE", "FEMALE" ],
             "type" : "string"
           },
+          "status" : {
+            "enum" : [ "ACTIVE", "PENDING" ],
+            "type" : "string"
+          },
           "tasks" : {
             "$ref" : "#/components/schemas/DogTasks"
           }
         },
-        "required" : [ "ageYears", "breed", "documents", "id", "licenses", "name", "sex" ],
+        "required" : [ "ageYears", "breed", "id", "name", "sex", "status" ],
         "type" : "object"
       },
       "MeDogs" : {
@@ -8507,6 +8513,13 @@
           "member" : {
             "$ref" : "#/components/schemas/Member"
           },
+          "planOptions" : {
+            "description" : "The assignable plans (active, module enabled, showOnSignup or not) for the D2 plan selector",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupPlanOption"
+            },
+            "type" : "array"
+          },
           "proposals" : {
             "$ref" : "#/components/schemas/SignupProposals"
           },
@@ -8520,6 +8533,11 @@
             "format" : "int64",
             "type" : "integer"
           },
+          "warnDays" : {
+            "description" : "dashboard.pendingSignupAgeWarnDays: the age warning shows when signup.pendingDays > warnDays",
+            "format" : "int32",
+            "type" : "integer"
+          },
           "warnings" : {
             "items" : {
               "$ref" : "#/components/schemas/SignupWarning"
@@ -8527,7 +8545,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "dogs", "member", "proposals", "signup", "version", "warnings" ],
+        "required" : [ "dogs", "member", "planOptions", "proposals", "signup", "version", "warnDays", "warnings" ],
         "type" : "object"
       },
       "MemberTrainingBookings" : {
@@ -11825,6 +11843,10 @@
       },
       "SignupConfig" : {
         "properties" : {
+          "allowFamilyGroupPending" : {
+            "description" : "signup.allowFamilyGroupPending; present with FAMILY_GROUP. The server enforces it at submission too",
+            "type" : "boolean"
+          },
           "closedText" : {
             "type" : "string"
           },
@@ -11853,6 +11875,10 @@
               "$ref" : "#/components/schemas/SignupPlan"
             },
             "type" : "array"
+          },
+          "requireDogDocumentAtSignup" : {
+            "description" : "signup.requireDogDocumentAtSignup; present when signup is enabled. The server enforces it at submission too",
+            "type" : "boolean"
           },
           "steps" : {
             "description" : "Present when signup is enabled",
@@ -12064,9 +12090,14 @@
           "status" : {
             "enum" : [ "PENDING", "ACTIVE", "INACTIVE" ],
             "type" : "string"
+          },
+          "version" : {
+            "description" : "The dog's own optimistic version, compared by PATCH /dogs/{id}",
+            "format" : "int64",
+            "type" : "integer"
           }
         },
-        "required" : [ "birthMonth", "breed", "chip", "documents", "id", "name", "sex", "status" ],
+        "required" : [ "birthMonth", "breed", "chip", "documents", "id", "name", "sex", "status", "version" ],
         "type" : "object"
       },
       "SignupFamilyGroupClaim" : {
@@ -12368,6 +12399,51 @@
         "required" : [ "conditions", "description", "id", "name", "type" ],
         "type" : "object"
       },
+      "SignupPlanOption" : {
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "planId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "prices" : {
+            "description" : "Current prices; empty without BILLING",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupPlanOptionPrice"
+            },
+            "type" : "array"
+          },
+          "type" : {
+            "enum" : [ "MONTHLY", "PACK", "SINGLE_CLASS" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "planId", "prices", "type" ],
+        "type" : "object"
+      },
+      "SignupPlanOptionPrice" : {
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "concept" : {
+            "enum" : [ "MONTHLY_FEE", "MAINTENANCE_FEE", "PACK", "SINGLE_CLASS" ],
+            "type" : "string"
+          },
+          "periodicity" : {
+            "enum" : [ "MONTHLY", "ONE_OFF" ],
+            "type" : "string"
+          },
+          "priceId" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "amount", "concept", "periodicity", "priceId" ],
+        "type" : "object"
+      },
       "SignupPlanPatch" : {
         "properties" : {
           "planIdRequested" : {
@@ -12375,6 +12451,34 @@
           }
         },
         "required" : [ ],
+        "type" : "object"
+      },
+      "SignupPlanQuote" : {
+        "properties" : {
+          "lines" : {
+            "description" : "The option-independent lines (ENTRY_FEE only if > 0, PACK)",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupQuoteLine"
+            },
+            "type" : "array"
+          },
+          "options" : {
+            "description" : "Public signup: the two first-month options of a MONTHLY_FEE plan with a current price; add-dog: the additional-dog options; empty otherwise",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupQuoteOption"
+            },
+            "type" : "array"
+          },
+          "planId" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "totalDue" : {
+            "$ref" : "#/components/schemas/Money",
+            "description" : "Sum of lines; the payable total of a plan without options"
+          }
+        },
+        "required" : [ "lines", "options", "planId", "totalDue" ],
         "type" : "object"
       },
       "SignupPrice" : {
@@ -12433,6 +12537,44 @@
           }
         },
         "required" : [ "levels" ],
+        "type" : "object"
+      },
+      "SignupQuoteLine" : {
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "concept" : {
+            "enum" : [ "ENTRY_FEE", "FIRST_MONTH", "PACK", "ADDITIONAL_DOG_FEE" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "amount", "concept" ],
+        "type" : "object"
+      },
+      "SignupQuoteOption" : {
+        "properties" : {
+          "amountDue" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "option" : {
+            "enum" : [ "TODAY", "ALTERNATIVE" ],
+            "type" : "string"
+          },
+          "portion" : {
+            "enum" : [ "FULL", "HALF" ],
+            "type" : "string"
+          },
+          "startDate" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "totalDue" : {
+            "$ref" : "#/components/schemas/Money",
+            "description" : "The plan's lines + this option"
+          }
+        },
+        "required" : [ "amountDue", "option", "portion", "startDate", "totalDue" ],
         "type" : "object"
       },
       "SignupRequest" : {
@@ -12520,12 +12662,14 @@
         "type" : "object"
       },
       "SignupTexts" : {
+        "description" : "Club texts resolved in the response locale, placeholders already interpolated by the server ({deadlineDay}, {twoDogsMonthlyFee})",
         "properties" : {
           "cashConditions" : {
             "type" : "string"
           },
           "familyGroupIntro" : {
-            "type" : "string"
+            "description" : "null when the club has no family fare (R-04-13)",
+            "type" : [ "string", "null" ]
           },
           "freeTrainingConditions" : {
             "type" : "string"
@@ -12543,7 +12687,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "cashConditions", "familyGroupIntro", "freeTrainingConditions", "imageConsent", "monthlyPaymentIntro", "paymentDay", "therapyIntro" ],
+        "required" : [ "cashConditions", "freeTrainingConditions", "imageConsent", "monthlyPaymentIntro", "paymentDay", "therapyIntro" ],
         "type" : "object"
       },
       "SignupUpfront" : {
@@ -12567,12 +12711,14 @@
       "SignupUpfrontConfig" : {
         "properties" : {
           "additionalDogOptions" : {
+            "description" : "Add-dog mode: TODAY always, ALTERNATIVE only up to billing.upfrontCutoffDay",
             "items" : {
               "$ref" : "#/components/schemas/SignupConfigChoice"
             },
             "type" : "array"
           },
           "firstMonthOptions" : {
+            "description" : "Deprecated by planQuotes: the options of the first monthly plan only",
             "items" : {
               "$ref" : "#/components/schemas/SignupConfigChoice"
             },
@@ -12582,12 +12728,19 @@
             "format" : "int32",
             "type" : "integer"
           },
+          "planQuotes" : {
+            "description" : "R-04-14/15: one quote per offered plan (add-dog mode: also the member's own plan), computed like the submission",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupPlanQuote"
+            },
+            "type" : "array"
+          },
           "today" : {
             "format" : "date",
             "type" : "string"
           }
         },
-        "required" : [ "firstMonthOptions", "firstMonthSplitDay", "today" ],
+        "required" : [ "firstMonthOptions", "firstMonthSplitDay", "planQuotes", "today" ],
         "type" : "object"
       },
       "SignupUpfrontReview" : {
@@ -12609,7 +12762,7 @@
         "type" : "object"
       },
       "SignupWarning" : {
-        "enum" : [ "NO_IMAGE_CONSENT", "ACCOUNT_NOT_PROVIDED", "DOCUMENT_PENDING", "FAMILY_HOLDER_NOT_FOUND", "UPFRONT_UNPAID", "READMISSION" ],
+        "enum" : [ "NO_IMAGE_CONSENT", "ACCOUNT_NOT_PROVIDED", "DOCUMENT_PENDING", "FAMILY_HOLDER_NOT_FOUND", "UPFRONT_UNPAID", "READMISSION", "CHECKOUT_PENDING" ],
         "type" : "string"
       },
       "SingleClassSettings" : {
@@ -43556,7 +43709,7 @@
     },
     "/api/v1/members/{id}/signup" : {
       "get" : {
-        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND.",
+        "description" : "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING.",
         "operationId" : "review",
         "parameters" : [ {
           "in" : "path",
@@ -43625,7 +43778,7 @@
                 }
               }
             },
-            "description" : "Conflict"
+            "description" : "INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -43703,7 +43856,7 @@
     },
     "/api/v1/members/{id}/validation" : {
       "post" : {
-        "description" : "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version.",
+        "description" : "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. 409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change while a checkout of the submission is in progress, S04 §5 E39; dryRun warns CHECKOUT_PENDING). nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate.",
         "operationId" : "validate",
         "parameters" : [ {
           "in" : "path",

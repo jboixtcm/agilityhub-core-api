@@ -120,9 +120,11 @@ public class CensusQuery {
     }
     public Map<String,Object> myDogs() {
         var member = access.me();
-        var dogs = ownerDogs(member.id).stream().filter(dog -> "ACTIVE".equals(dog.status)).map(dog -> {
-            var result = object("id", dog.id, "name", dog.name, "breed", dog.breed, "sex", dog.sex, "ageYears", CensusRules.age(dog.birthDate, today()),
-                    "photoUrl", attachments.url(dog.photoFileKey, dog.name), "level", level(dog.levelId), "documents", documents.list(dog.id), "licenses", licenses(dog), "pack", pack(dog.id));
+        // S04 R-04-25 (E36): the member's own PENDING dogs are listed too, with the public fields only and no actions.
+        var dogs = ownerDogs(member.id).stream().filter(dog -> Set.of("ACTIVE", "PENDING").contains(dog.status)).map(dog -> {
+            var result = object("id", dog.id, "name", dog.name, "breed", dog.breed, "sex", dog.sex, "ageYears", CensusRules.age(dog.birthDate, today()), "status", dog.status);
+            if ("PENDING".equals(dog.status)) { return result; }
+            result.putAll(object("photoUrl", attachments.url(dog.photoFileKey, dog.name), "level", level(dog.levelId), "documents", documents.list(dog.id), "licenses", licenses(dog), "pack", pack(dog.id)));
             if (access.enabled(Module.TASKS)) { result.putAll(object("instructorNote", note(dog), "tasks", tasks(dog.id))); }
             if (access.enabled(Module.FREE_TRAINING)) { result.put("freeTrainingAllowed", access.free(dog).allowed()); }
             return result;

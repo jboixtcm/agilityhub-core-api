@@ -23,6 +23,21 @@ public class CensusClubSettings {
                 "imageConsentText", legal.imageConsentText().getOrDefault(locale, legal.imageConsentText().getOrDefault(club.defaultLocale(), "")),
                 "legalName", club.legalName() == null ? club.name() : club.legalName());
     }
+    /**
+     * `CLUB.paymentProviders.MANUAL.instructions` (model §2, a LocalizedText) resolved in `locale`, falling back to the
+     * club's default locale; `null` when the club has written none (S04 §2 row 19, E3-T08 M7).
+     */
+    public String manualInstructions(String locale) {
+        var club = clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        if (!(club.paymentProviders().get("MANUAL") instanceof Map<?,?> manual)) { return null; }
+        Object raw = manual.get("instructions");
+        if (raw instanceof Map<?,?> text && text.get("values") instanceof Map<?,?> values) { raw = values; }
+        if (raw instanceof Map<?,?> values) {
+            Object value = values.get(locale) != null ? values.get(locale) : values.get(club.defaultLocale());
+            return value == null || value.toString().isBlank() ? null : value.toString();
+        }
+        return raw == null || raw.toString().isBlank() ? null : raw.toString();
+    }
     public java.util.List<String> providers() {
         return clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).paymentProviders().keySet()
                 .stream().filter(this::providerEnabled).toList();

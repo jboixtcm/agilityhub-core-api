@@ -13,12 +13,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class SignupPolicy {
     public record Price(String id, Money amount, String periodicity) { }
+    /** Every current price of a plan, for the D2 plan selector (`planOptions`, E3-T08). */
+    public record PlanPrice(String priceId, Money amount, String periodicity, String concept) { }
     public record Plan(String id, String type, String billingMode, int dogsIncluded, LocalizedText name,
             LocalizedText description, LocalizedText conditions, LocalizedText offerLabel, Map<String,Integer> pack,
-            Price price, Money entryFee, Money maintenanceFee) { }
+            Price price, Money entryFee, Money maintenanceFee, List<PlanPrice> prices) { }
     public record Line(String concept, String dogId, Money amountDue) { }
     public record Period(String option, LocalDate startDate, Money amountDue) { }
     public record Quote(List<Line> lines, Money totalDue, Period firstMonth, Period additionalDog) { }
+    /** One payable choice of a plan quote: `totalDue` = the plan's lines + this option (R-04-14/15). */
+    public record QuoteOption(String option, String portion, LocalDate startDate, Money amountDue, Money totalDue) { }
+    /** The `GET /signup` quote of one plan, computed with the submission's own {@link #quote} (E3-T08, M5). */
+    public record PlanQuote(String planId, List<Line> lines, Money totalDue, List<QuoteOption> options) { }
     public record Consent(String type, boolean granted, String version, Instant acceptedAt, String locale, String ipHash, String source) { }
     public record Candidate(String clubId, String memberId, String status, String firstName, String lastName1,
             String lastName2, List<NamedDog> dogs) { }
@@ -39,32 +45,88 @@ public class SignupPolicy {
     private List<SignupPlanCatalog.Offer> offers(LocalDate date) {
         return SignupPlanCatalog.list(TenantContext.require(), catalogs.at(date), config().modules(), parameters().entryFeePerDog());
     }
+    private List<SignupPlanCatalog.Offer> assignable(LocalDate date) {
+        return SignupPlanCatalog.assignable(TenantContext.require(), catalogs.at(date), config().modules(), parameters().entryFeePerDog());
+    }
+    /** The public offer: `GET /signup` plans and the applicant's `planIdRequested` (`showOnSignup`). */
     public List<Plan> plans() { return offers(today()).stream().map(this::plan).toList(); }
+    /** Everything the club may assign, hidden plans included (M8): D2, the family fare and the member's own plan. */
+    public List<Plan> assignablePlans() { return assignable(today()).stream().map(this::plan).toList(); }
     public Plan require(String id) {
         var offers = offers(today());
         if (id == null && offers.isEmpty()) { return null; }
         return plan(SignupPlanCatalog.require(offers, id));
     }
+    public Plan requireAssignable(String id) {
+        var plans = assignable(today());
+        if (id == null && offers(today()).isEmpty()) { return null; }
+        return plan(SignupPlanCatalog.require(plans, id));
+    }
     private Plan plan(SignupPlanCatalog.Offer offer) {
         var price = offer.price();
         return new Plan(offer.id(), offer.type().name(), offer.billingMode(), offer.dogsIncluded(), offer.name(), offer.description(),
                 offer.conditions(), offer.offerLabel(), offer.pack() == null ? null : Map.of("sessions", offer.pack().sessions(), "validityMonths", offer.pack().validityMonths()),
-                price == null ? null : new Price(price.id(), price.amount(), offer.type().name().equals("MONTHLY") ? "MONTHLY" : "ONE_OFF"), offer.entryFee(), offer.maintenanceFee());
+                price == null ? null : new Price(price.id(), price.amount(), offer.type().name().equals("MONTHLY") ? "MONTHLY" : "ONE_OFF"), offer.entryFee(), offer.maintenanceFee(),
+                offer.prices().stream().map(p -> new PlanPrice(p.id(), p.amount(), periodicity(offer, p.concept().name()), p.concept().name())).toList());
+    }
+    private static String periodicity(SignupPlanCatalog.Offer offer, String concept) {
+        return concept.equals("MAINTENANCE_FEE") || concept.equals("MONTHLY_FEE") && offer.type().name().equals("MONTHLY") ? "MONTHLY" : "ONE_OFF";
+    }
+    /**
+     * R-04-13: the family fare for a group of `dogs` dogs = the assignable `MONTHLY_FEE` plan with a current price and the
+     * fewest `dogsIncluded` ≥ max(2, dogs). The same rule proposes the plan at D2, prices the add-dog fee and fills
+     * `{twoDogsMonthlyFee}` in `signup.text.familyGroupIntro`.
+     */
+    public Optional<Plan> familyFare(int dogs) {
+        return assignablePlans().stream().filter(p -> "MONTHLY_FEE".equals(p.billingMode()) && p.price() != null && p.dogsIncluded() >= Math.max(2, dogs))
+                .min(Comparator.comparingInt(Plan::dogsIncluded));
+    }
+    /**
+     * The D2 proposal (R-04-13): a group with ≥ 2 dogs gets the family fare «if it exists». When no plan includes that
+     * many dogs (a third dog at the Cànic), the proposal is the largest family fare; the add-dog fee keeps {@link #familyFare}.
+     */
+    public Optional<Plan> proposedFamilyFare(int dogs) {
+        return familyFare(dogs).or(() -> assignablePlans().stream().filter(p -> "MONTHLY_FEE".equals(p.billingMode()) && p.price() != null && p.dogsIncluded() >= 2)
+                .max(Comparator.comparingInt(Plan::dogsIncluded)));
     }
     public Money additionalFee(String currentPlanId, String requestedPlanId) {
-        var plans = plans();
-        var current = plans.stream().filter(p -> p.id().equals(currentPlanId)).findFirst().orElse(null);
-        var standard = require(requestedPlanId);
+        var current = assignablePlans().stream().filter(p -> p.id().equals(currentPlanId)).findFirst().orElse(null);
+        var standard = requireAssignable(requestedPlanId);
         Money zero = new Money(0, config().club().currency());
         if (standard == null || standard.price() == null || !"MONTHLY_FEE".equals(standard.billingMode())) { return zero; }
-        var resulting = plans.stream().filter(p -> p.dogsIncluded() >= (current == null ? 2 : current.dogsIncluded() + 1))
-                .filter(p -> "MONTHLY_FEE".equals(p.billingMode()) && p.price() != null).min(Comparator.comparingInt(Plan::dogsIncluded)).orElse(null);
+        var resulting = familyFare(current == null ? 2 : current.dogsIncluded() + 1).orElse(null);
         return UpfrontLines.additionalMonthlyFee(current == null || current.price() == null ? null : current.price().amount(),
                 resulting == null ? null : resulting.price().amount(), standard.price().amount(), parameters().familyDiscountPercentFromSecondDog());
     }
+    /**
+     * `GET /signup` quotes (R-04-14/15), one per plan, each computed by {@link #quote} exactly as the submission will:
+     * the option-independent lines, then one option per first-month choice (public signup, `MONTHLY_FEE` plans with a
+     * current price) or per additional-dog choice (add-dog mode, `currentPlanId` = the member's plan).
+     */
+    public PlanQuote planQuote(Plan plan, boolean addDog, String currentPlanId) {
+        LocalDate today = today();
+        var base = quote(plan.id(), null, addDog, currentPlanId, "TODAY", today);
+        var lines = base.lines().stream().filter(l -> !Set.of("FIRST_MONTH", "ADDITIONAL_DOG_FEE").contains(l.concept())).toList();
+        Money total = new Money(0, config().club().currency());
+        for (var line : lines) { total = total.plus(line.amountDue()); }
+        var options = new ArrayList<QuoteOption>();
+        if (addDog && base.additionalDog() != null) {
+            for (var choice : additionalOptions(currentPlanId, plan.id())) {
+                var quote = quote(plan.id(), null, true, currentPlanId, choice.option(), today);
+                options.add(new QuoteOption(choice.option(), "FULL", choice.startDate(), quote.additionalDog().amountDue(), quote.totalDue()));
+            }
+        } else if (!addDog && base.firstMonth() != null) {
+            for (var choice : FirstMonthCalculator.options(today, parameters().firstMonthSplitDay(), parameters().nextInvoiceDayOfMonth(), plan.price().amount())) {
+                var quote = quote(plan.id(), null, false, null, choice.option().name(), today);
+                options.add(new QuoteOption(choice.option().name(), choice.portion() == FirstMonthCalculator.Portion.FULL_MONTH ? "FULL" : "HALF",
+                        quote.firstMonth().startDate(), quote.firstMonth().amountDue(), quote.totalDue()));
+            }
+        }
+        return new PlanQuote(plan.id(), lines, total, List.copyOf(options));
+    }
     public Quote quote(String planId, String dogId, boolean addDog, String currentPlanId, String option, LocalDate date) {
-        var available = offers(date);
-        var plan = planId == null && available.isEmpty() ? null : SignupPlanCatalog.require(available, planId);
+        // `planId` was checked by the caller against the list that applies (public offer or assignable plans).
+        var plan = planId == null ? null : SignupPlanCatalog.require(assignable(date), planId);
         FirstMonthCalculator.Option selected;
         try { selected = FirstMonthCalculator.Option.valueOf(option == null ? "TODAY" : option); }
         catch (IllegalArgumentException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
@@ -91,6 +153,14 @@ public class SignupPolicy {
     }
     private CountryContactRules country() { return new CountryContactRules(config().countryProfile()); }
     public String document(String type, String value) { return IdDocumentValidator.validate(country(), type, value).value(); }
+    /** The normalised chip, or `400 VALIDATION_ERROR` on `field` when it does not fit the club's country profile (§3 `Dog`). */
+    public String chip(String raw, String field) {
+        String chip = DogChips.normalize(raw);
+        if (!DogChips.valid(country().code(), chip)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("fieldErrors", List.of(Map.of("field", field, "code", "INVALID_VALUE"))));
+        }
+        return chip;
+    }
     public List<Map<String,Object>> phones(List<Map<String,Object>> raw) {
         return PhoneNormalizer.normalize(country(), raw.stream().map(p -> new PhoneNormalizer.Input((String)p.get("prefix"), (String)p.get("number"), (String)p.get("label"))).toList())
                 .stream().map(p -> { var result = new LinkedHashMap<String,Object>(); result.put("prefix", p.prefix()); result.put("number", p.number()); if(p.label()!=null) result.put("label",p.label()); return (Map<String,Object>)result; }).toList();

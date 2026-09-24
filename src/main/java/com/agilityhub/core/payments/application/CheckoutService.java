@@ -32,10 +32,11 @@ public class CheckoutService {
             members.lock();var member=members.member(memberId);
             if(!Set.of("PENDING","ACTIVE").contains(member.get("status"))) throw new ApiException(ErrorCode.INVALID_STATE);
             String currency=configs.get(TenantContext.require()).club().currency();
-            var due=payments.due(memberId,null,currency);var method=member.get("paymentMethod") instanceof Map<?,?> map?map:Map.of();
+            var scope=members.submissions(memberId);
+            var due=payments.due(memberId,scope,currency);var method=member.get("paymentMethod") instanceof Map<?,?> map?map:Map.of();
             boolean card="CARD".equals(method.get("type"));
             if(due.amountMinor()==0&&!card) throw new ApiException(ErrorCode.INVALID_STATE);
-            var lines=payments.lines(memberId,null).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
+            var lines=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
             if(lines.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
             String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24));
             var ids=lines.stream().map(UpfrontPayments.Line::id).toList();String mode=due.amountMinor()==0?"setup":"payment";

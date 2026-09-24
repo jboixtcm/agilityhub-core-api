@@ -185,14 +185,18 @@ public class SignupController {
 
     @GetMapping("/api/v1/members/{id}/signup")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @Operation(summary = "Review member signup", description = "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND.")
+    @ContractErrors({INVALID_STATE})
+    @Operation(summary = "Review member signup", description = "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. "
+            + "A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING.")
     public MemberSignupView review(@PathVariable String id) { return output(service.review(id),MemberSignupView.class); }
 
     @PostMapping("/api/v1/members/{id}/validation")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ContractErrors({MEMBER_ERASED, INVALID_STATE, STALE_VERSION, LEVEL_REQUIRED, NEXT_INVOICE_DATE_REQUIRED, UPFRONT_AMOUNT_EXCEEDS_DUE,
             PLAN_NOT_AVAILABLE, MEMBERSHIP_EXISTS, FAMILY_HOLDER_NOT_FOUND})
-    @Operation(summary = "Validate member signup", description = "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version.",
+    @Operation(summary = "Validate member signup", description = "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. "
+            + "409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change while a checkout of the submission is in progress, S04 §5 E39; dryRun warns CHECKOUT_PENDING). "
+            + "nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate.",
             responses = @ApiResponse(responseCode = "200", description = "ValidationDryRun when dryRun=true; ValidationResult otherwise",
                     content = @Content(schema = @Schema(oneOf = {ValidationDryRun.class, ValidationResult.class}))))
     public Object validate(@PathVariable String id, @RequestParam(defaultValue = "false") boolean dryRun,

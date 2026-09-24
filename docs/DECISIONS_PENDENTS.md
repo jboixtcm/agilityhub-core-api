@@ -144,6 +144,13 @@
 - **Conseqüències**: **E0-T13** (staging al droplet) queda per al release i **deixa de ser un bloqueig** · les portes que diuen «a staging» es comproven a la pila local de Docker (`bin/e*-smoke`) · la prova de càrrega k6 (E28) es repeteix al servidor definitiu abans del release · SSH/DNS, SendGrid real, Twilio, Stripe i el banc també passen al release.
 - **Què NO canvia**: les specs i els scripts de desplegament (`docs/DEPLOY.md`) es mantenen; només canvia quan s'executen.
 
+### A32 · Contrast del botó principal del Cànic (taronja amb text blanc) — **oberta 24-09**
+- **El problema**: el taronja del tema del Cànic (`#E26A2A`) amb text blanc fa **3,32:1**. El nivell AA de les pautes d'accessibilitat (WCAG), que la guia del projecte demana, exigeix **4,5:1** per al text normal. Només arriba al mínim per al text gran (3:1). Ho va detectar l'auditoria del web (E3-W05); el mateix `BrandingProvider` ja n'avisa.
+- **Opcions**: (a) text **fosc** sobre el mateix taronja: 6,3:1, i el color de marca no canvia; (b) un taronja **més fosc** amb text blanc (cal arribar a 4,5:1); (c) deixar-ho com al mockup i acceptar-ne la desviació.
+- **Recomanació**: **(a)**. Manté el color del club, i només canvia el color del text dels botons principals (el `onPrimary` del tema). Si el Josep prefereix el blanc, (b).
+- **Mentrestant**: res no s'atura; les tasques segueixen amb el tema actual.
+- **Decisió Jordi:**
+
 ### A27 · Accions que només pots fer tu (no són decisions, són bloquejos)
 - ~~Muntar l'arrel de `agilityhub-course-builder` (A6)~~ **fet 24-09** · confirmar dades reals a Supabase · llista d'admins de plataforma (A3) · compte SendGrid i domini verificat (E1) · compte Twilio (E7) · compte Stripe de test (E8) · XSD pain.008 i banc (E8; SEPA **genèric**, sense dependre de CaixaBank — Jordi 05-09) · exports de Playoff + llista d'equip (E2/E12) · DNS del Cànic (E10; «el generarem al deploy» — Jordi 05-09) · reunió amb qui porta la comptabilitat (format d'export, E8).
 - **Playoff — resposta a la teva pregunta («què necessites? vols accés de nou?»)**: no cal accés a Playoff ara. Per a E2 només necessito, de cada export (abonats, gossos, tipologies/quotes, rebuts, mandats), **els noms de columna i 3–5 files anonimitzades** (o l'export sencer fora del Dropbox: el `migration:anonymize` en treu les fixtures i l'original no es guarda). Per a E11/E12 caldrà l'export complet en lectura, fet pel Josep el dia del tall, i mai copiat al projecte. La llista d'instructors i administradors (noms + correu) sí que la necessito abans d'E2 per als seeds i les invitacions.

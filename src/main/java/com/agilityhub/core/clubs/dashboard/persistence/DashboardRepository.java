@@ -85,8 +85,10 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
     }
     public List<LevelSource> levels() {
         return aggregate("levels", List.of(new Document("$project", new Document("code", 1).append("name", 1).append("color", 1)
-                .append("order", 1).append("active", 1)))).stream().map(row -> new LevelSource(row.getString("_id"), row.getString("code"),
-                        label(row.get("name")), row.getString("color"), number(row, "order"), flag(row, "active"))).toList();
+                .append("order", 1).append("active", 1).append("progression", 1)))).stream().map(row -> new LevelSource(row.getString("_id"), row.getString("code"),
+                        label(row.get("name")), row.getString("color"), number(row, "order"), flag(row, "active"),
+                        // S05 E29: a level without the flag is a progression level (the Level record's default).
+                        !Boolean.FALSE.equals(row.get("progression")))).toList();
     }
     public List<DogCount> dogCounts(Set<String> recentDogs) {
         return aggregate("dogs", List.of(new Document("$match", new Document("status", "ACTIVE")),

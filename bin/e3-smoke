@@ -194,8 +194,9 @@ class Smoke:
         return value
 
     def app_notification(self, code, account, entity):
-        criteria = dict(clubId=self.club_id, accountId=account, code=code, channel="APP", status="SENT",
-                        **{"variables.entityId": entity})
+        # entity=None: the applicant's own copy (N-01, E3-T08 M9), which never carries the admins' OPEN_SIGNUP action.
+        scope = {"variables.entityId": entity} if entity else {"variables.action": {"$exists": False}}
+        criteria = dict(clubId=self.club_id, accountId=account, code=code, channel="APP", status="SENT", **scope)
         wait(lambda: self.mongo("db.notifications.countDocuments(" + json.dumps(criteria) + ")") == 1,
              code + " APP inbox content missing or duplicated")
         print(f"PASS {code} in the member APP inbox, scoped to account and entity", flush=True)
@@ -230,13 +231,37 @@ class Smoke:
         config = self.call("GET", "/api/v1/signup")
         require(config["enabled"] and config["steps"] == ["PERSON", "DOG", "FAMILY_GROUP", "PAYMENT"], "Signup steps mismatch")
         require({m["type"] for m in config["paymentMethods"]} == {"SEPA_DD", "MANUAL"}, "Seed payment methods mismatch")
+        # E3-T08 (M6, M5): the server resolves every placeholder, and every offered plan has its own quote.
+        raw = [key for key, value in config["texts"].items() if value and ("{" in value or "}" in value)]
+        require(not raw, f"Raw placeholders in GET /signup texts: {raw}")
+        require({q["planId"] for q in config["upfront"]["planQuotes"]} == {p["id"] for p in config["plans"]}, "A plan has no quote")
+        print("PASS GET /signup: texts resolved, one quote per offered plan", flush=True)
         chosen = next(p for p in config["plans"] if p.get("billingMode") == "MONTHLY_FEE" and p.get("price"))
         admin = self.call("POST", "/oauth2/token", form=dict(grant_type="password", client_id="clubs-admin",
                           username="admin@example.test", password=self.env["SEED_PASSWORD"]))["access_token"]
         dashboard = self.dashboard(admin, 3, 184)
         require(dashboard["dogsByLevel"]["totalActiveDogs"] == 242, "Seed active dog total mismatch")
-        require(dashboard["kpis"]["classOccupancy"] == dict(percent=None, booked=0, capacity=0, waitingTotal=0)
-                and dashboard["kpis"]["trainingBookings"] == dict(value=0, distinctMembers=0), "Future verticals must stay empty")
+        # S14 R-14-07 (E35): one column per active progression level, in order; the other levels count in «altres».
+        progression = self.mongo("db.levels.find({clubId:" + json.dumps(self.club_id) + ",active:true,progression:{$ne:false}})"
+                                 ".sort({order:1,_id:1}).toArray().map(l=>l.code)")
+        columns = dashboard["dogsByLevel"]["levels"]
+        require([row["code"] for row in columns] == progression and "TER" not in progression and "PENDENT" not in progression,
+                f"D1 level columns are not the progression levels: {[row['code'] for row in columns]}")
+        require(dashboard["dogsByLevel"]["others"] == 242 - sum(row["total"] for row in columns), "D1 «altres» does not close the total")
+        print(f"PASS D1 dogs by level: {len(columns)} progression columns, others={dashboard['dogsByLevel']['others']}", flush=True)
+        # S14 R-14-03 over the seeded current week (E3-T08 step 1): the expectation comes from the week's class sessions.
+        week = self.mongo("(()=>{const s=db.class_sessions.find({clubId:" + json.dumps(self.club_id) + ",state:{$in:['ACTIVE','FINISHED']},"
+                          "date:{$gte:" + json.dumps(dashboard["week"]["start"]) + ",$lte:" + json.dumps(dashboard["week"]["end"]) + "}}).toArray();"
+                          "return {classes:s.length,capacity:s.reduce((n,c)=>n+Number(c.capacity),0),"
+                          "booked:s.reduce((n,c)=>n+Number(c.counters.booked),0)};})()")
+        occupancy = dashboard["kpis"]["classOccupancy"]
+        expected_percent = None if week["capacity"] == 0 else int((200 * week["booked"] + week["capacity"]) // (2 * week["capacity"]))
+        require(occupancy["capacity"] == week["capacity"] and occupancy["booked"] == week["booked"]
+                and occupancy["percent"] == expected_percent, f"Class occupancy does not follow R-14-03: {occupancy} vs {week}")
+        require(self.mongo("db.training_bookings.countDocuments({clubId:" + json.dumps(self.club_id) + "})") != 0
+                or dashboard["kpis"]["trainingBookings"] == dict(value=0, distinctMembers=0), "Training KPI must stay empty without training bookings")
+        print(f"PASS D1 class occupancy follows R-14-03 for the seeded week: {week['classes']} classes, "
+              f"booked={week['booked']}, capacity={week['capacity']}, percent={occupancy['percent']}", flush=True)
         require("ACCOUNT_NOT_PROVIDED" in dashboard["pendingSignups"]["items"][0]["warnings"], "Overdue demo warning missing")
         for row in dashboard["pendingSignups"]["items"]:
             review = self.call("GET", f"/api/v1/members/{row['memberId']}/signup", access=admin)
@@ -282,18 +307,24 @@ class Smoke:
         require("ACCOUNT_NOT_PROVIDED" in review["warnings"] and review["familyGroupClaim"]["status"] == "FOUND", "D2 warning/claim mismatch")
         require(any(doc["state"] == "RECEIVED" for doc in review["dogs"][0]["documents"]), "Uploaded PDF was not claimed")
         self.mailbox("N-01", request["person"]["emails"][0])
+        # R-04-13 (E3-T08 M8): a FOUND claim proposes the club's hidden family fare; the dry run prices it and the admin pays that.
+        family_plan = self.mongo("db.plans.findOne({clubId:" + json.dumps(self.club_id) + ",code:'ABONAT_FAMILIAR'},{_id:1})")["_id"]
+        require(review["proposals"]["planId"] == family_plan and family_plan in [o["planId"] for o in review["planOptions"]],
+                "The family fare was not proposed")
         validation = dict(version=review["version"], dogs=[dict(dogId=d["id"], levelId=review["proposals"]["levels"][0]["id"]) for d in review["dogs"]],
-                          nextInvoiceDate=review["proposals"]["nextInvoiceDate"], upfrontAmountPaid=review["upfront"]["totalDue"])
+                          nextInvoiceDate=review["proposals"]["nextInvoiceDate"])
         state_query = "(()=>{const id=" + json.dumps(member_id) + ";return {member:db.members.findOne({_id:id}),dogs:db.dogs.find({memberId:id}).sort({_id:1}).toArray(),payments:db.upfront_payments.find({memberId:id}).sort({_id:1}).toArray()};})()"
         before_dry_run = self.mongo(state_query)
         dry = self.call("POST", f"/api/v1/members/{member_id}/validation?dryRun=true", access=admin, body=validation)
         require(self.mongo(state_query) == before_dry_run and dry["nextInvoiceDate"] == validation["nextInvoiceDate"]
-                and dry["upfront"]["totalDue"] == review["upfront"]["totalDue"], "Dry run changed state or quote")
+                and dry["price"]["id"] == review["proposals"]["priceId"], "Dry run changed state or quote")
+        validation["upfrontAmountPaid"] = dry["upfront"]["totalDue"]
         highest = self.mongo('db.members.find({clubId:' + json.dumps(self.club_id) + ',memberNumber:{$ne:null}},{memberNumber:1}).sort({memberNumber:-1}).limit(1).toArray()[0].memberNumber')
         validated = self.call("POST", f"/api/v1/members/{member_id}/validation", access=admin, body=validation)
         require(validated["number"] == highest + 1, "Member number did not increment")
-        stored = self.mongo("db.members.findOne({_id:" + json.dumps(member_id) + "},{familyGroupId:1,nextInvoiceDate:1,status:1})")
-        require(stored["familyGroupId"] == holder["groupId"] and stored["status"] == "ACTIVE", "Family validation was not persisted")
+        stored = self.mongo("db.members.findOne({_id:" + json.dumps(member_id) + "},{familyGroupId:1,nextInvoiceDate:1,status:1,planId:1})")
+        require(stored["familyGroupId"] == holder["groupId"] and stored["status"] == "ACTIVE" and stored["planId"] == family_plan,
+                "Family validation was not persisted")
         require(stored["nextInvoiceDate"] == validation["nextInvoiceDate"], "Next invoice date was not persisted")
         self.dashboard(admin, 3, 185)
         require(self.mongo("db.dogs.countDocuments(" + json.dumps(dict(memberId=member_id, status="ACTIVE",
@@ -310,7 +341,7 @@ class Smoke:
         dog = dict(request["dog"], name="Additional Example Dog", chip="941000000000950")
         dog.pop("documents", None)
         added = self.call("POST", "/api/v1/me/dogs/signup", 201, access=access, key=str(uuid.uuid4()), body=dict(dog=dog, documents=[]))
-        self.app_notification("N-01", validated["accountId"], member_id)
+        self.app_notification("N-01", validated["accountId"], None)
         dashboard = self.dashboard(admin, 4, 185)
         row = next(row for row in dashboard["pendingSignups"]["items"] if row["memberId"] == member_id)
         require(row["dogs"][0]["isAddDog"], "D1 add-dog flag missing")

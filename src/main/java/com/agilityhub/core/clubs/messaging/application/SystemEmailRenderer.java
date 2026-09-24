@@ -24,6 +24,14 @@ public final class SystemEmailRenderer {
     }
     public EmailMessage render(String code, String to, Locale locale, Map<String, ?> variables,
                                ClubEmailSettings.Settings settings, Map<String, String> tags) {
+        return render(code, null, to, locale, variables, settings, tags);
+    }
+    /**
+     * `variant` selects another copy of the same catalog notification (`notif.{code}.{variant}.title|body`), e.g. the
+     * admins' N-01 (E3-T08, M9); the notification row keeps the catalog code.
+     */
+    public EmailMessage render(String code, String variant, String to, Locale locale, Map<String, ?> variables,
+                               ClubEmailSettings.Settings settings, Map<String, String> tags) {
         if (!Set.of("N-01", "N-02", "N-03", "N-08a", "N-08b", "N-32a", "N-32b", "N-32c", "N-32d", "N-25", "N-26", "N-27", "N-39", "N-42", "N-36", "N-40", "N-47", "N-16", "N-17", "N-54").contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
         String link = null;
         String expiry = null;
@@ -41,8 +49,9 @@ public final class SystemEmailRenderer {
             expiry = messages.format("email.layout.expiry", Map.of("duration",
                     formats.formatDuration(Duration.ofMinutes(Set.of("N-02","N-39").contains(code) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
         }
-        String title = messages.format("notif." + code + ".title", variables, locale);
-        String body = messages.format("notif." + code + ".body", variables, locale);
+        String key = "notif." + code + (variant == null ? "" : "." + variant);
+        String title = messages.format(key + ".title", variables, locale);
+        String body = messages.format(key + ".body", variables, locale);
         String action = messages.format("email.layout.signIn", Map.of(), locale);
         String footer = messages.format("email.layout.system", Map.of(), locale);
         var context = new Context(locale);

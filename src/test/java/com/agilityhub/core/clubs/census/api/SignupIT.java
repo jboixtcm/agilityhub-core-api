@@ -372,10 +372,15 @@ class SignupIT extends AbstractIntegrationTest {
         result(admin(postJson("/members/"+id+"/validation",request)),200);
         assertThat(collection("upfront_payments").stream().filter(p->"PAID".equals(p.getString("status"))).map(p->p.getString("concept"))).containsExactly("PACK");
         String second=submit(request()).path("memberId").asText();String secondDog=dog(second);
+        var scope=List.of(new com.agilityhub.core.payments.application.UpfrontPayments.Submission(secondDog,member(second).get("signup",Document.class).getString("submissionId")));
         try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
-            transactions.run(()->{payments.allocate(second,List.of(secondDog),new Money(5000,"EUR"));payments.replace(second,List.of(secondDog),List.of(new com.agilityhub.core.payments.application.UpfrontPayments.Charge("PACK",secondDog,new Money(13500,"EUR"))));return null;});
-            assertThat(payments.due(second,List.of(secondDog),"EUR").amountMinor()).isEqualTo(8500);
-            assertThat(payments.paid(second,List.of(secondDog),"EUR").amountMinor()).isEqualTo(5000);
+            transactions.run(()->{payments.allocate(second,scope,new Money(5000,"EUR"));return null;});
+            var partial=collection("upfront_payments").stream().filter(p->"PARTIAL".equals(p.getString("status"))).findFirst().orElseThrow();
+            transactions.run(()->{payments.replace(second,scope,List.of(new com.agilityhub.core.payments.application.UpfrontPayments.Charge("PACK",secondDog,new Money(13500,"EUR"))));return null;});
+            // S04 §5 / E39: the PARTIAL row is kept exactly as it was, and what it already charges is deducted from the new rows.
+            assertThat(collection("upfront_payments").stream().filter(p->p.getString("_id").equals(partial.getString("_id"))).findFirst().orElseThrow()).isEqualTo(partial);
+            assertThat(payments.due(second,scope,"EUR").amountMinor()).isEqualTo(8500);
+            assertThat(payments.paid(second,scope,"EUR").amountMinor()).isEqualTo(5000);
         }
     }
     @Autowired com.agilityhub.core.payments.application.UpfrontPayments payments;

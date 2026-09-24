@@ -1,0 +1,9 @@
+surefire: tests=521 failures=0 errors=0 skipped=0 (115 classes)
+  DashboardBuildersTest: tests=6 failures=0 errors=0 skipped=0
+  DogChipsTest: tests=3 failures=0 errors=0 skipped=0
+  E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+failsafe: tests=848 failures=0 errors=0 skipped=0 (77 classes)
+  SignupGateFixesIT: tests=18 failures=0 errors=0 skipped=0
+  SignupIT: tests=31 failures=0 errors=0 skipped=0
+  DashboardIT: tests=9 failures=0 errors=0 skipped=0
+  E3ContractIT: tests=17 failures=0 errors=0 skipped=0

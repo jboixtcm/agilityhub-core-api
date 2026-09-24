@@ -27,15 +27,27 @@ public class SignupService implements SignupPaymentAccess {
     private final UpfrontPayments payments; private final CensusClubSettings settings; private final SignupIdentityService identities;
     private final SignupCapabilities capabilities; private final CountryContacts countries; private final Clock clock;
     private final CensusQuery queries; private final ObjectMapper mapper; private final IcuMessageSource messages;
+    private final com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard;
+    private static final LocalDate EARLIEST_BIRTH_DATE=LocalDate.of(1900,1,1); // S04 §3 `Member.birthDate`
     private record CachedConfig(Instant expires,Map<String,Object> value) { }
     private final java.util.concurrent.ConcurrentHashMap<String,CachedConfig> cache=new java.util.concurrent.ConcurrentHashMap<>();
     public void invalidateConfiguration(String clubId) { cache.keySet().removeIf(key -> key.startsWith(clubId+":")); }
     public SignupService(CensusAccess access,SignupPolicy policy,CensusEvents events,CensusRepository<DogDocument> documents,
             AttachmentService attachments,UpfrontPayments payments,CensusClubSettings settings,SignupIdentityService identities,
-            SignupCapabilities capabilities,CountryContacts countries,Clock clock,CensusQuery queries,ObjectMapper mapper,IcuMessageSource messages) {
+            SignupCapabilities capabilities,CountryContacts countries,Clock clock,CensusQuery queries,ObjectMapper mapper,IcuMessageSource messages,
+            com.agilityhub.core.clubs.dashboard.application.DashboardQuery dashboard) {
         this.access=access;this.policy=policy;this.events=events;this.documents=documents;this.attachments=attachments;this.payments=payments;
         this.settings=settings;this.identities=identities;this.capabilities=capabilities;this.countries=countries;this.clock=clock;this.queries=queries;this.mapper=mapper;this.messages=messages;
+        this.dashboard=dashboard;
     }
+    /** R-14-01 (M11): the commands that change D1's pending list or KPIs refresh it right after their commit, not only via the outbox. */
+    void refreshDashboard() { dashboard.invalidateAfterCommit(TenantContext.require()); }
+    private static ApiException notPending() { return new ApiException(ErrorCode.INVALID_STATE,Map.of("reason","NOT_PENDING")); }
+    /** S04 §5: the rows of a signup are those of each pending dog's own submission (`submissionId`). */
+    private List<UpfrontPayments.Submission> scope(Member member,List<Dog> dogs) {
+        return dogs.stream().map(d -> new UpfrontPayments.Submission(d.id,string(map(d.signup==null?member.signup:d.signup).get("submissionId")))).toList();
+    }
+    @Override public List<UpfrontPayments.Submission> submissions(String memberId) { return scope(access.mutableMember(memberId),pending(memberId)); }
     public void lock() { access.members.lock();policy.lock(); }
     private boolean billing() { return access.enabled(Module.BILLING); }
     private String currency() { return access.config().club().currency(); }
@@ -97,7 +109,8 @@ public class SignupService implements SignupPaymentAccess {
         if(!Boolean.TRUE.equals(access.config().get("signup.allowFamilyGroupPending",Boolean.class))) throw invalid("familyGroupClaim.leavePending","NOT_ALLOWED");
         return object("status","NOT_FOUND_PENDING","holderName",name,"dogName",dog);
     }
-    public void requirePlan(String planId) { policy.require(planId); }
+    /** The D2 edit of `signup.planIdRequested` is an admin decision: any assignable plan (M8). */
+    public void requirePlan(String planId) { policy.requireAssignable(planId); }
     public List<SignupPolicy.Consent> history(Member member) {
         return ConsentLedgers.entries(member.consents).stream().map(r -> new SignupPolicy.Consent(string(r.get("type")),Boolean.TRUE.equals(r.get("granted")),string(r.get("version")),instant(r.get("acceptedAt")),string(r.get("locale")),string(r.get("ipHash")),string(r.get("source")))).toList();
     }
@@ -138,7 +151,7 @@ public class SignupService implements SignupPaymentAccess {
         String locale=string(request.get("locale"));if(!access.config().club().locales().contains(locale)) throw invalid("locale","INVALID_VALUE");
         member.idDocument=object("type",id.get("type"),"number",number);member.firstName=text(person.get("firstName"),"firstName",60,true);member.lastName1=text(person.get("lastName1"),"lastName1",60,true);member.lastName2=text(person.get("lastName2"),"lastName2",60,false);
         member.gender=string(person.get("gender"));member.birthDate=date(person.get("birthDate"));
-        if(member.birthDate.isAfter(policy.today())) throw invalid("birthDate","INVALID_VALUE");
+        if(!member.birthDate.isBefore(policy.today())||member.birthDate.isBefore(EARLIEST_BIRTH_DATE)) throw invalid("birthDate","INVALID_VALUE");
         member.contactEmails=emails;member.phones=policy.phones(rows(person.get("phones")));
         var address=map(person.get("address"));member.address=object("street",address.get("street"),"postalCode",address.get("postalCode"),"city",policy.town(string(address.get("postalCode")),string(address.get("town"))),"country",countries.countryCode());
         member.familyGroupClaim=claim(map(request.get("familyGroupClaim")));
@@ -146,32 +159,55 @@ public class SignupService implements SignupPaymentAccess {
         member.paymentMethod=payment(map(request.get("payment")),member,holderId==null?fullName(member):fullName(access.members.require(holderId)));
         consents(member,map(request.get("consents")),false,locale,ip);
         String planId=string(request.get("planId"));policy.require(planId);
-        String option=string(map(request.get("payment")).getOrDefault("firstMonthOption","TODAY"));
-        member.status="PENDING";member.signup=object("submittedAt",clock.instant(),"locale",locale,"source","PUBLIC","readmission",readmission,"planIdRequested",planId,"firstMonthOption",option);
+        String option=string(map(request.get("payment")).getOrDefault("firstMonthOption","TODAY"));String submission=UUID.randomUUID().toString();
+        member.status="PENDING";member.signup=object("submittedAt",clock.instant(),"locale",locale,"source","PUBLIC","readmission",readmission,"planIdRequested",planId,"firstMonthOption",option,"submissionId",submission);
+        var prepared=prepareDog(member,map(request.get("dog")),readmission);
+        var quote=policy.quote(planId,prepared.dog().id,false,null,option,policy.today());freeze(member,quote);
         if(readmission) access.members.save(member);else access.members.insert(member);
-        var dog=createDog(member,map(request.get("dog")),rows(map(request.get("dog")).get("documents")),readmission);
-        var quote=policy.quote(planId,dog.id,false,null,option,policy.today());createPayments(member.id,quote);
+        var dog=storeDog(prepared,member,rows(map(request.get("dog")).get("documents")));createPayments(member.id,submission,quote);
         boolean checkout=checkoutRequired(member,quote.totalDue());
         events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(member.paymentMethod).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout));
-        return object("memberId",member.id,"signupToken",capabilities.issue(member.id),"upfront",billing()?upfront(member.id,List.of(dog.id),quote):null,"checkout",object("required",checkout));
+        refreshDashboard();
+        return object("memberId",member.id,"signupToken",capabilities.issue(member.id),"upfront",billing()?upfront(member,List.of(dog),quote):null,"checkout",object("required",checkout));
     }
     private boolean checkoutRequired(Member m,Money due) { return billing()&&settings.providerEnabled("STRIPE")&&(due.amountMinor()>0 || "CARD".equals(map(m.paymentMethod).get("type"))); }
-    private void createPayments(String member,SignupPolicy.Quote quote) { payments.create(member,quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList()); }
-    private Map<String,Object> upfront(String id,List<String> dogs,SignupPolicy.Quote quote) {
-        return object("lines",paymentLines(id,dogs),"totalDue",payments.due(id,dogs,currency()),"additionalDog",quote==null?null:quote.additionalDog());
+    private static List<UpfrontPayments.Charge> charges(SignupPolicy.Quote quote) { return quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList(); }
+    private void createPayments(String member,String submission,SignupPolicy.Quote quote) { payments.create(member,submission,charges(quote)); }
+    private static Map<String,Object> money(Money value) { return object("amountMinor",value.amountMinor(),"currency",value.currency()); }
+    private static Map<String,Object> period(SignupPolicy.Period value) { return value==null?null:object("option",value.option(),"startDate",value.startDate().toString(),"amountDue",money(value.amountDue())); }
+    /** `Member.signup.upfront` (§3): the quote frozen at submission; N-01 reads its `totalDue`. Only with BILLING. */
+    private void freeze(Member member,SignupPolicy.Quote quote) {
+        if(!billing()) return;
+        member.signup.put("upfront",object("lines",quote.lines().stream().map(l -> object("concept",l.concept(),"dogId",l.dogId(),"amountDue",money(l.amountDue()))).toList(),
+                "firstMonth",period(quote.firstMonth()),"additionalDog",period(quote.additionalDog()),"totalDue",money(quote.totalDue())));
     }
-    public List<Map<String,Object>> paymentLines(String id,List<String> dogs) { return payments.lines(id,dogs).stream().map(l -> object("id",l.id(),"concept",l.concept(),"amount",l.amount(),"paidAmount",l.paidAmount(),"status",l.status(),"provider",l.provider())).toList(); }
-    private Dog createDog(Member member,Map<String,Object> raw,List<Map<String,Object>> files,boolean readmission) {
-        String chip=text(raw.get("chip"),"dog.chip",20,true);var matches=access.dogs.matching(Criteria.where("chip").is(chip));Dog dog=null;
+    private Map<String,Object> upfront(Member member,List<Dog> dogs,SignupPolicy.Quote quote) {
+        var scope=scope(member,dogs);
+        return object("lines",paymentLines(member.id,scope),"totalDue",payments.due(member.id,scope,currency()),"additionalDog",quote==null?null:quote.additionalDog());
+    }
+    public List<Map<String,Object>> paymentLines(String id,List<UpfrontPayments.Submission> scope) { return lineViews(payments.lines(id,scope)); }
+    private static List<Map<String,Object>> lineViews(List<UpfrontPayments.Line> lines) {
+        return lines.stream().map(l -> object("id",l.id(),"concept",l.concept(),"amount",l.amount(),"paidAmount",l.paidAmount(),"status",l.status(),"provider",l.provider())).toList();
+    }
+    private record PreparedDog(Dog dog,boolean fresh) { }
+    /** Validates and resolves the submitted dog without writing it, so the quote can be frozen before the member is stored. */
+    private PreparedDog prepareDog(Member member,Map<String,Object> raw,boolean readmission) {
+        // M21: the chip is normalised and checked per country profile before the uniqueness check and the readmission match.
+        String chip=policy.chip(text(raw.get("chip"),"dog.chip",40,true),"dog.chip");var matches=access.dogs.matching(Criteria.where("chip").is(chip));Dog dog=null;
         if(!matches.isEmpty()) { dog=matches.getFirst();if(!readmission || !member.id.equals(dog.memberId) || !"INACTIVE".equals(dog.status)) throw new ApiException(ErrorCode.DOG_CHIP_ALREADY_REGISTERED); }
         boolean fresh=dog==null;if(fresh) { dog=new Dog();dog.id=UUID.randomUUID().toString();dog.clubId=TenantContext.require();dog.memberId=member.id; }
         dog.name=text(raw.get("name"),"dog.name",40,true);dog.sex=string(raw.get("sex"));dog.breed=text(raw.get("breed"),"dog.breed",60,true);dog.birthDate=YearMonth.parse(string(raw.get("birthMonth"))).atDay(1);
         if(dog.birthDate.isAfter(policy.today())) throw invalid("dog.birthMonth","INVALID_VALUE");
-        dog.signup=new LinkedHashMap<>(member.signup);
         dog.chip=chip;dog.status="PENDING";dog.deactivatedAt=null;dog.deactivationReason=null;
         dog.instructorNote=object("text",text(raw.get("notesToInstructors"),"dog.notesToInstructors",1000,false),"updatedAt",clock.instant());
-        if(fresh) access.dogs.insert(dog);else access.dogs.save(dog);saveDocuments(dog,files);return dog;
+        return new PreparedDog(dog,fresh);
     }
+    private Dog storeDog(PreparedDog prepared,Member member,List<Map<String,Object>> files) {
+        var dog=prepared.dog();dog.signup=new LinkedHashMap<>(member.signup);
+        if(prepared.fresh()) access.dogs.insert(dog);else access.dogs.save(dog);saveDocuments(dog,files);return dog;
+    }
+    /** The normalised chip of a D2 dog PATCH (§3 `Dog.chip`, M21). */
+    public String chip(String raw,String field) { return policy.chip(raw,field); }
     public void saveDocuments(Dog dog,List<Map<String,Object>> submitted) {
         if(submitted.stream().mapToInt(d -> rows(d.get("files")).size()).sum()>10) throw invalid("documents","TOO_MANY_FILES");
         var types=new HashSet<String>();var all=new ArrayList<>(submitted);
@@ -195,15 +231,19 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> addDog(String memberId,Map<String,Object> request,String ip) {
         lock();var member=access.me();if(!"ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE);
         if(member.erasedAt!=null) throw new ApiException(ErrorCode.MEMBER_ERASED);
-        String planId=string(request.getOrDefault("planIdRequested",member.planId));policy.require(planId);
+        String requested=string(request.get("planIdRequested"));String planId=requested==null?member.planId:requested;
+        // M8: the member's own plan is assignable even when it is hidden from the public offer (the family fare); another plan must be offered.
+        if(Objects.equals(planId,member.planId)) policy.requireAssignable(planId);else policy.require(planId);
         consents(member,map(request.get("consents")),true,locale(),ip);
-        String option=string(request.getOrDefault("additionalDogOption","TODAY"));
-        member.signup=object("submittedAt",clock.instant(),"locale",locale(),"source","APP_ADD_DOG","readmission",false,"planIdRequested",planId,"additionalDogOption",option);
-        access.members.save(member);var dog=createDog(member,map(request.get("dog")),rows(request.get("documents")),false);
-        var quote=policy.quote(planId,dog.id,true,member.planId,option,policy.today());createPayments(member.id,quote);
+        String option=string(request.getOrDefault("additionalDogOption","TODAY"));String submission=UUID.randomUUID().toString();
+        member.signup=object("submittedAt",clock.instant(),"locale",locale(),"source","APP_ADD_DOG","readmission",false,"planIdRequested",planId,"additionalDogOption",option,"submissionId",submission);
+        var prepared=prepareDog(member,map(request.get("dog")),false);
+        var quote=policy.quote(planId,prepared.dog().id,true,member.planId,option,policy.today());freeze(member,quote);
+        access.members.save(member);var dog=storeDog(prepared,member,rows(request.get("documents")));createPayments(member.id,submission,quote);
         boolean checkout=checkoutRequired(member,quote.totalDue());
         events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(member.paymentMethod).get("type"),"source","APP_ADD_DOG","readmission",false,"checkoutRequired",checkout));
-        return object("dogId",dog.id,"memberId",member.id,"upfront",billing()?upfront(member.id,List.of(dog.id),quote):null,"checkout",object("required",checkout,"memberId",member.id));
+        refreshDashboard();
+        return object("dogId",dog.id,"memberId",member.id,"upfront",billing()?upfront(member,List.of(dog),quote):null,"checkout",object("required",checkout,"memberId",member.id));
     }
     public Map<String,Object> configuration() {
         if(CurrentUser.current()!=null) return configurationFor(access.me());
@@ -217,20 +257,43 @@ public class SignupService implements SignupPaymentAccess {
         var plans=policy.plans();
         var legal=new LinkedHashMap<>(settings.signupLegal(language));legal.remove("legalName");
         var result=object("enabled",true,"steps",access.enabled(Module.FAMILY_GROUP)&&me==null?List.of("PERSON","DOG","FAMILY_GROUP","PAYMENT"):List.of("PERSON","DOG","PAYMENT"),
-                "plans",plans.stream().map(this::planView).toList(),"texts",object("freeTrainingConditions",textParameter("signup.text.freeTrainingConditions"),"therapyIntro",textParameter("signup.text.therapyIntro"),
-                "familyGroupIntro",textParameter("signup.text.familyGroupIntro"),"monthlyPaymentIntro",textParameter("signup.text.monthlyPaymentIntro"),"paymentDay",textParameter("signup.text.paymentDay"),
-                "cashConditions",textParameter("signup.text.cashConditions"),"imageConsent",textParameter("signup.text.imageConsent")),"legal",legal,
-                "countryProfile",countries.signupProfile());
+                "plans",plans.stream().map(this::planView).toList(),"texts",texts(language),"legal",legal,"countryProfile",countries.signupProfile(),
+                // E3-T08 step 12: the web enforces what the server enforces at submission.
+                "requireDogDocumentAtSignup",Boolean.TRUE.equals(config.get("signup.requireDogDocumentAtSignup",Boolean.class)));
+        if(access.enabled(Module.FAMILY_GROUP)) result.put("allowFamilyGroupPending",Boolean.TRUE.equals(config.get("signup.allowFamilyGroupPending",Boolean.class)));
         if(billing()) {
+            // M7 (§2 row 19): the MANUAL method carries the club's own payment instructions; the cash conditions stay in `texts`.
             result.put("paymentMethods",settings.providers().stream().map(provider -> switch(provider) {case "SEPA_XML" -> "SEPA_DD";case "STRIPE" -> "CARD";case "MANUAL" -> "MANUAL";default -> null;}).filter(Objects::nonNull).map(type -> object("type",type,"label",paymentLabel(type,language),
-                    "instructions",type.equals("MANUAL")?textParameter("signup.text.cashConditions"):null,"mandateText",type.equals("SEPA_DD")?mandate(language):null)).toList());
+                    "instructions",type.equals("MANUAL")?settings.manualInstructions(language):null,"mandateText",type.equals("SEPA_DD")?mandate(language):null)).toList());
             var monthly=plans.stream().filter(plan -> "MONTHLY_FEE".equals(plan.billingMode())&&plan.price()!=null).findFirst().orElse(null);
             var upfront=object("firstMonthSplitDay",config.get("signup.firstMonthSplitDay",Integer.class),"today",policy.today(),"firstMonthOptions",monthly==null?List.of():policy.firstOptions(monthly.price().amount()).stream().map(this::configChoice).toList());
-            if(me!=null&&policy.today().getDayOfMonth()<=config.get("billing.upfrontCutoffDay",Integer.class)) upfront.put("additionalDogOptions",policy.additionalOptions(me.planId,me.planId).stream().map(this::configChoice).toList());
+            // R-04-14: the TODAY choice of an added dog always exists; ALTERNATIVE only up to billing.upfrontCutoffDay.
+            if(me!=null&&me.planId!=null) upfront.put("additionalDogOptions",policy.additionalOptions(me.planId,me.planId).stream().map(this::configChoice).toList());
+            // M5: one quote per plan, computed like the submission; the add-dog mode also quotes the member's own (maybe hidden) plan.
+            var quoted=new ArrayList<>(plans);
+            if(me!=null&&me.planId!=null&&plans.stream().noneMatch(p -> p.id().equals(me.planId))) policy.assignablePlans().stream().filter(p -> p.id().equals(me.planId)).findFirst().ifPresent(quoted::add);
+            upfront.put("planQuotes",quoted.stream().map(plan -> quoteView(policy.planQuote(plan,me!=null,me==null?null:me.planId))).toList());
             result.put("upfront",upfront);
         }
         if(me!=null) result.put("member",object("planId",me.planId,"paymentMethodMasked",billing()?queries.payment(me):null,"consentsUpToDate",policy.currentConsent(history(me),legalVersion())));
         return result;
+    }
+    /**
+     * `GET /signup.texts` with the placeholders resolved on the server (M6): `{deadlineDay}` is the day S13 returns as
+     * `deadlineDay` (`inactivity.requestDeadlineDay`) and `{twoDogsMonthlyFee}` the current monthly price of the R-04-13 family
+     * fare, formatted in the text's locale. Without a family fare the family intro is `null`.
+     */
+    private Map<String,Object> texts(String language) {
+        var fare=policy.familyFare(2);
+        String deadline=String.valueOf(access.config().get("inactivity.requestDeadlineDay",Integer.class));
+        return object("freeTrainingConditions",textParameter("signup.text.freeTrainingConditions"),"therapyIntro",textParameter("signup.text.therapyIntro"),
+                "familyGroupIntro",fare.map(plan -> textParameter("signup.text.familyGroupIntro").replace("{twoDogsMonthlyFee}",plan.price().amount().format(Locale.forLanguageTag(language)))).orElse(null),
+                "monthlyPaymentIntro",textParameter("signup.text.monthlyPaymentIntro"),"paymentDay",textParameter("signup.text.paymentDay").replace("{deadlineDay}",deadline),
+                "cashConditions",textParameter("signup.text.cashConditions"),"imageConsent",textParameter("signup.text.imageConsent"));
+    }
+    private Map<String,Object> quoteView(SignupPolicy.PlanQuote quote) {
+        return object("planId",quote.planId(),"lines",quote.lines().stream().map(l -> object("concept",l.concept(),"amount",l.amountDue())).toList(),"totalDue",quote.totalDue(),
+                "options",quote.options().stream().map(o -> object("option",o.option(),"portion",o.portion(),"startDate",o.startDate(),"amountDue",o.amountDue(),"totalDue",o.totalDue())).toList());
     }
     private Map<String,Object> configChoice(SignupPolicy.Period period) { return object("option",period.option(),"startDate",period.startDate(),"amount",period.amountDue()); }
     private String resolved(LocalizedText value) { return value==null?"":value.withDefaultLocale(access.config().club().defaultLocale()).resolve(locale()).value(); }
@@ -256,21 +319,20 @@ public class SignupService implements SignupPaymentAccess {
         if(billing()&&"SEPA_DD".equals(map(member.paymentMethod).get("type"))&&map(member.paymentMethod).get("iban")==null) warnings.add("ACCOUNT_NOT_PROVIDED");
         if(dogs.stream().anyMatch(d -> documents.matching(Criteria.where("dogId").is(d.id).and("state").is("PENDING")).size()>0)) warnings.add("DOCUMENT_PENDING");
         if(access.enabled(Module.FAMILY_GROUP)&&"NOT_FOUND_PENDING".equals(map(member.familyGroupClaim).get("status"))) warnings.add("FAMILY_HOLDER_NOT_FOUND");
-        if(billing()&&payments.due(member.id,dogIds(dogs),currency()).amountMinor()>0) warnings.add("UPFRONT_UNPAID");
+        if(billing()&&payments.due(member.id,scope(member,dogs),currency()).amountMinor()>0) warnings.add("UPFRONT_UNPAID");
         if(Boolean.TRUE.equals(map(member.signup).get("readmission"))) warnings.add("READMISSION");
         return warnings;
     }
     private SignupPolicy.Plan proposedPlan(Member member,Map<String,Object> request,List<Dog> dogs) {
         String id=string(request.getOrDefault("planId",map(member.signup).getOrDefault("planIdRequested",member.planId)));
-        var plan=policy.require(id);
+        // M8: the admin assigns any active plan of an enabled module, hidden from the public offer or not.
+        var plan=policy.requireAssignable(id);
         if(request.get("planId")==null&&access.enabled(Module.FAMILY_GROUP)) {
             String holderId=string(map(member.familyGroupClaim).get("holderMemberId"));
             int count=dogs.size();
             if(holderId!=null) count+=dogs(holderId).stream().filter(d -> !"INACTIVE".equals(d.status)).count();
             else if("ACTIVE".equals(member.status)) count=dogs(member.id).stream().filter(d -> !"INACTIVE".equals(d.status)).toList().size();
-            int eligible=count;
-            if(count>=2&&plan!=null&&"MONTHLY_FEE".equals(plan.billingMode())) plan=policy.plans().stream().filter(p -> "MONTHLY_FEE".equals(p.billingMode())&&p.dogsIncluded()>=eligible&&p.price()!=null)
-                    .min(Comparator.comparingInt(SignupPolicy.Plan::dogsIncluded)).orElse(plan);
+            if(count>=2&&plan!=null&&"MONTHLY_FEE".equals(plan.billingMode())) plan=policy.proposedFamilyFare(count).orElse(plan);
         }
         if(request.get("priceId")!=null&&(plan==null||plan.price()==null||!request.get("priceId").equals(plan.price().id()))) throw new ApiException(ErrorCode.PLAN_NOT_AVAILABLE);
         return plan;
@@ -286,9 +348,12 @@ public class SignupService implements SignupPaymentAccess {
         }
         return new SignupPolicy.Quote(lines,total,first,additional);
     }
-    private Map<String,Object> reviewUpfront(Member member,List<Dog> dogs) { return object("lines",paymentLines(member.id,dogIds(dogs)),"totalDue",payments.due(member.id,dogIds(dogs),currency()),"totalPaid",payments.paid(member.id,dogIds(dogs),currency())); }
+    private Map<String,Object> reviewUpfront(Member member,List<Dog> dogs) {
+        var scope=scope(member,dogs);
+        return object("lines",paymentLines(member.id,scope),"totalDue",payments.due(member.id,scope,currency()),"totalPaid",payments.paid(member.id,scope,currency()));
+    }
     public Map<String,Object> review(String id) {
-        var member=access.mutableMember(id);var dogs=pending(id);if(dogs.isEmpty()) throw new ApiException(ErrorCode.INVALID_STATE);
+        var member=access.mutableMember(id);var dogs=pending(id);if(dogs.isEmpty()) throw notPending();
         var plan=proposedPlan(member,Map.of(),dogs);var quote=validationQuote(member,plan,dogs);var signup=map(member.signup);
         var submission=new LinkedHashMap<>(signup);submission.put("pendingDays",Math.max(0,ChronoUnit.DAYS.between(instant(signup.get("submittedAt")).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate(),policy.today())));
         var claim=new LinkedHashMap<>(map(member.familyGroupClaim));String holderId=string(claim.remove("holderMemberId"));
@@ -296,21 +361,50 @@ public class SignupService implements SignupPaymentAccess {
         return object("member",queries.member(id,true),"dogs",dogs.stream().map(this::dogView).toList(),"signup",select(submission,"submittedAt","pendingDays","readmission","source","locale","planIdRequested"),
                 "familyGroupClaim",access.enabled(Module.FAMILY_GROUP)?claim:null,"upfront",billing()?reviewUpfront(member,dogs):null,
                 "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.price()==null?null:plan.price().id(),"familyGroupId",member.familyGroupId,
-                "nextInvoiceDate",quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),"version",member.version());
+                "nextInvoiceDate",quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),
+                // M8: the D2 plan selector; M11: D2 shows the age warning without calling /dashboard.
+                "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version());
+    }
+    private Map<String,Object> planOption(SignupPolicy.Plan plan) {
+        return object("planId",plan.id(),"name",resolved(plan.name()),"type",plan.type(),
+                "prices",plan.prices().stream().map(p -> object("priceId",p.priceId(),"amount",p.amount(),"periodicity",p.periodicity(),"concept",p.concept())).toList());
     }
     private Map<String,Object> dogView(Dog dog) {
+        // M12: the dog's own version is the one `PATCH /dogs/{id}` compares.
         return object("id",dog.id,"name",dog.name,"sex",dog.sex,"breed",dog.breed,"birthMonth",YearMonth.from(dog.birthDate).toString(),"chip",dog.chip,"notesToInstructors",map(dog.instructorNote).get("text"),"status",dog.status,"levelId",dog.levelId,
-                "documents",documents.matching(Criteria.where("dogId").is(dog.id)).stream().map(d -> object("type",d.type,"state",d.state,"files",rows(d.files).stream().map(f -> object("name",f.get("name"),"downloadUrl",attachments.url(string(f.get("fileKey")),string(f.get("name"))))).toList())).toList());
+                "documents",documents.matching(Criteria.where("dogId").is(dog.id)).stream().map(d -> object("type",d.type,"state",d.state,"files",rows(d.files).stream().map(f -> object("name",f.get("name"),"downloadUrl",attachments.url(string(f.get("fileKey")),string(f.get("name"))))).toList())).toList(),
+                "version",dog.version());
+    }
+    private static boolean planChanged(Member member,SignupPolicy.Plan plan,List<Dog> dogs) {
+        String selected=plan==null?null:plan.id();
+        return dogs.stream().anyMatch(d -> !Objects.equals(selected,map(d.signup==null?member.signup:d.signup).get("planIdRequested")));
+    }
+    /** §3 `Member.nextInvoiceDate` ≥ the first-month start of the quote in force (M21); only with BILLING and a first month. */
+    private void nextInvoiceDate(Map<String,Object> request,SignupPolicy.Quote quote) {
+        if(!billing()||request.get("nextInvoiceDate")==null||quote.firstMonth()==null) return;
+        LocalDate date;
+        try { date=date(request.get("nextInvoiceDate")); } catch(RuntimeException invalidDate) { throw invalid("nextInvoiceDate","INVALID_VALUE"); }
+        if(date.isBefore(quote.firstMonth().startDate())) throw invalid("nextInvoiceDate","INVALID_VALUE");
     }
     public Map<String,Object> dryRun(String id,Map<String,Object> request) {
         var member=access.mutableMember(id);var dogs=selection(member,request);var plan=proposedPlan(member,request,dogs);var quote=validationQuote(member,plan,dogs);
-        Money paid=payments.paid(id,dogIds(dogs),currency());Money due=new Money(Math.max(0,quote.totalDue().minus(paid).amountMinor()),currency());
-        return object("upfront",billing()?object("lines",quote.lines().stream().map(l -> object("id",UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),"concept",l.concept(),"amount",l.amountDue(),"status","DUE")).toList(),"totalDue",due,"totalPaid",paid):null,
-                "price",billing()&&plan!=null?plan.price():null,"nextInvoiceDate",request.get("nextInvoiceDate")!=null?request.get("nextInvoiceDate"):quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"warnings",warnings(member,dogs));
+        nextInvoiceDate(request,quote);
+        var warnings=new ArrayList<>(warnings(member,dogs));Map<String,Object> upfront=null;
+        if(billing()) {
+            // The preview is what the validation will write: the rows as they are, or (plan change, S04 §5 / E39) the kept rows plus the new ones.
+            var scope=scope(member,dogs);List<UpfrontPayments.Line> lines;Money due,paid;
+            if(planChanged(member,plan,dogs)) {
+                var replacement=payments.replacement(id,scope,charges(quote));lines=replacement.lines();due=replacement.due(currency());paid=replacement.paid(currency());
+                if(replacement.checkoutPending()) warnings.add("CHECKOUT_PENDING");
+            } else { lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency()); }
+            upfront=object("lines",lineViews(lines.stream().map(l -> l.id()!=null?l:new UpfrontPayments.Line(UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),
+                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider())).toList()),"totalDue",due,"totalPaid",paid);
+        }
+        return object("upfront",upfront,"price",billing()&&plan!=null?plan.price():null,"nextInvoiceDate",request.get("nextInvoiceDate")!=null?request.get("nextInvoiceDate"):quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"warnings",warnings);
     }
     private List<Dog> selection(Member member,Map<String,Object> request) {
-        if(!Set.of("PENDING","ACTIVE").contains(member.status)) throw new ApiException(ErrorCode.INVALID_STATE);
-        var pending=pending(member.id);if(pending.isEmpty()) throw new ApiException(ErrorCode.INVALID_STATE);
+        if(!Set.of("PENDING","ACTIVE").contains(member.status)) throw notPending();
+        var pending=pending(member.id);if(pending.isEmpty()) throw notPending();
         version(member.version(),request.get("version"));var ids=rows(request.get("dogs")).stream().map(d -> string(d.get("dogId"))).toList();
         if(ids.isEmpty()||new HashSet<>(ids).size()!=ids.size()||!new HashSet<>(dogIds(pending)).containsAll(ids)) throw new ApiException(ErrorCode.INVALID_STATE);
         if("PENDING".equals(member.status)&&ids.size()!=pending.size()) throw new ApiException(ErrorCode.INVALID_STATE);
@@ -325,19 +419,19 @@ public class SignupService implements SignupPaymentAccess {
     private Map<String,Object> validate(String id,Map<String,Object> request,boolean addDog) {
         lock();var member=access.mutableMember(id);var dogs=selection(member,request);
         if(addDog!= "ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.INVALID_STATE);
-        var plan=proposedPlan(member,request,dogs);var quote=validationQuote(member,plan,dogs);
+        var plan=proposedPlan(member,request,dogs);var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,quote);
         if(access.levels()) for(var raw:rows(request.get("dogs"))) {
             if(raw.get("levelId")==null) throw new ApiException(ErrorCode.LEVEL_REQUIRED);
             if(!Boolean.TRUE.equals(access.references.level(string(raw.get("levelId"))).get("active"))) throw new ApiException(ErrorCode.LEVEL_NOT_ACTIVE);
         }
         if(billing()&&plan!=null&&"MONTHLY".equals(plan.type())&&!addDog&&request.get("nextInvoiceDate")==null) throw new ApiException(ErrorCode.NEXT_INVOICE_DATE_REQUIRED);
-        String selectedId=plan==null?null:plan.id();
-        if(dogs.stream().anyMatch(d -> !Objects.equals(selectedId,map(d.signup==null?member.signup:d.signup).get("planIdRequested")))) payments.replace(id,dogIds(dogs),quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList());
-        Money due=payments.due(id,dogIds(dogs),currency());Money paid=payments.paid(id,dogIds(dogs),currency());
-        if(billing()&&due.amountMinor()>0&&payments.lines(id,dogIds(dogs)).stream().noneMatch(l -> "STRIPE".equals(l.provider())&&l.paidAmount().amountMinor()>0)&&request.get("upfrontAmountPaid")==null) throw invalid("upfrontAmountPaid","REQUIRED");
+        String selectedId=plan==null?null:plan.id();var scope=scope(member,dogs);
+        if(planChanged(member,plan,dogs)) payments.replace(id,scope,charges(quote));
+        Money due=payments.due(id,scope,currency());
+        if(billing()&&due.amountMinor()>0&&payments.lines(id,scope).stream().noneMatch(l -> "STRIPE".equals(l.provider())&&l.paidAmount().amountMinor()>0)&&request.get("upfrontAmountPaid")==null) throw invalid("upfrontAmountPaid","REQUIRED");
         if(request.get("upfrontAmountPaid")!=null) {
             if(!billing()) throw invalid("upfrontAmountPaid","MODULE_DISABLED");
-            payments.allocate(id,dogIds(dogs),mapper.convertValue(request.get("upfrontAmountPaid"),Money.class));
+            payments.allocate(id,scope,mapper.convertValue(request.get("upfrontAmountPaid"),Money.class));
         }
         if(access.enabled(Module.FAMILY_GROUP)) joinFamily(member,request);
         member.planId=selectedId;member.priceId=plan==null||plan.price()==null?null:plan.price().id();
@@ -352,8 +446,9 @@ public class SignupService implements SignupPaymentAccess {
         if("SEPA_DD".equals(map(member.paymentMethod).get("type"))&&member.paymentMethod.get("mandateRef")==null) { member.paymentMethod=new LinkedHashMap<>(member.paymentMethod);member.paymentMethod.put("mandateRef","AH-"+member.id); }
         access.members.save(member);
         for(var dog:dogs) { dog.status="ACTIVE";dog.registeredAt=clock.instant();if(!access.levels()) { dog.levelId=null;dog.levelAssignedAt=null; }access.dogs.save(dog); }
-        if(!addDog) events.emit("MemberValidated","Member",id,object("memberId",id,"memberNumber",member.memberNumber,"dogs",rows(request.get("dogs")),"nextInvoiceDate",member.nextInvoiceDate,"upfrontPaymentIds",payments.lines(id,dogIds(dogs)).stream().map(UpfrontPayments.Line::id).toList(),"familyGroupId",member.familyGroupId,"readmission",readmission));
+        if(!addDog) events.emit("MemberValidated","Member",id,object("memberId",id,"memberNumber",member.memberNumber,"dogs",rows(request.get("dogs")),"nextInvoiceDate",member.nextInvoiceDate,"upfrontPaymentIds",payments.lines(id,scope).stream().map(UpfrontPayments.Line::id).toList(),"familyGroupId",member.familyGroupId,"readmission",readmission));
         else for(var dog:dogs) events.emit("DogRegistered","Dog",dog.id,object("dogId",dog.id,"memberId",id,"levelId",!access.levels()?null:rows(request.get("dogs")).stream().filter(d -> dog.id.equals(d.get("dogId"))).findFirst().orElseThrow().get("levelId")));
+        refreshDashboard();
         return object("memberId",id,"number",member.memberNumber,"accountId",member.accountId,"dogIds",dogIds(dogs));
     }
     private void joinFamily(Member member,Map<String,Object> request) {
@@ -373,14 +468,15 @@ public class SignupService implements SignupPaymentAccess {
     @Audited(action=AuditAction.SIGNUP_REJECTED,entityType="'Member'",entity="#id",member="#id",reason="#reason")
     public Map<String,Object> reject(String id,long expected,String reason) {
         lock();var member=access.mutableMember(id);var dogs=pending(id);
-        if(!Set.of("PENDING","ACTIVE").contains(member.status)||dogs.isEmpty()) throw new ApiException(ErrorCode.INVALID_STATE);
+        if(!Set.of("PENDING","ACTIVE").contains(member.status)||dogs.isEmpty()) throw notPending();
         version(member.version(),expected);reason=text(reason,"reason",500,true);if(reason.length()<3) throw invalid("reason","INVALID_VALUE");
-        boolean active="ACTIVE".equals(member.status);
+        boolean active="ACTIVE".equals(member.status);var scope=scope(member,dogs);
         if(!active) { member.status="LEFT";member.leftAt=clock.instant();member.leftReason="SIGNUP_REJECTED";member.familyGroupClaim=object("status","NONE"); }
         access.members.save(member);
         for(var dog:dogs) { dog.status="INACTIVE";dog.deactivationReason="SIGNUP_REJECTED";dog.deactivatedAt=clock.instant();access.dogs.save(dog); }
-        boolean paid=payments.reject(id,dogIds(dogs));
+        boolean paid=payments.reject(id,scope);
         events.emit("SignupRejected","Member",id,object("memberId",id,"dogIds",dogIds(dogs),"reason",reason,"memberWasActive",active));
+        refreshDashboard();
         return object("memberId",id,"status",member.status,"dogIds",dogIds(dogs),"paidPaymentRequiresRefund",paid);
     }
 

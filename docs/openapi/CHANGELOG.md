@@ -2,6 +2,29 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-24 · E3-T08 · gate E3 fixes (api 1/3): per-plan quotes, `planOptions`, `warnDays`, dog `version`, `/me/dogs` status, signup flags, new 409 reasons
+
+**0 operations added, 3 changed** (paths unchanged). Additive except where marked:
+
+- `GET /signup` (`SignupConfig`):
+  - `upfront.planQuotes[]` (new, `SignupPlanQuote{planId, lines[{concept, amount}], totalDue, options[]}` with
+    `SignupQuoteOption{option: TODAY|ALTERNATIVE, portion: FULL|HALF, startDate, amountDue, totalDue}`): one quote per
+    offered plan, computed with the submission's code (R-04-14/15). Add-dog mode: also the member's own plan (maybe
+    hidden), and the options are the additional-dog ones. `firstMonthOptions` stays, documented as superseded.
+  - `upfront.additionalDogOptions` now always holds `TODAY`; `ALTERNATIVE` only up to `billing.upfrontCutoffDay`.
+  - `allowFamilyGroupPending` (present with `FAMILY_GROUP`) and `requireDogDocumentAtSignup` (new booleans).
+  - `texts.*` placeholders are resolved by the server; `texts.familyGroupIntro` is now **nullable** (always present,
+    `null` without a family fare), so it left the `required` list.
+  - `paymentMethods[MANUAL].instructions` = `CLUB.paymentProviders.MANUAL.instructions` (value change, not schema).
+- `GET /members/{id}/signup` (`MemberSignupView`): `planOptions[]` (`SignupPlanOption{planId, name, type,
+  prices[{priceId, amount, periodicity, concept}]}`, the assignable plans), `warnDays`, and `dogs[].version` (the dog's
+  own version for `PATCH /dogs/{id}`). New `409 INVALID_STATE` response with `details.reason = NOT_PENDING`.
+- `POST /members/{id}/validation`: `409 INVALID_STATE` gains `details.reason` = `NOT_PENDING` or `CHECKOUT_PENDING`
+  (a plan change during a checkout, S04 §5 E39); `SignupWarning` gains `CHECKOUT_PENDING` (the `dryRun` warning);
+  `nextInvoiceDate` before the first-month start → `400 VALIDATION_ERROR` on `nextInvoiceDate` (description only).
+- `GET /me/dogs` (`MeDog`): `status` (`ACTIVE`|`PENDING`, required). **Not additive:** `documents` and `licenses` are no
+  longer required, because a `PENDING` dog carries only `id, name, breed, sex, ageYears, status`.
+
 ## 2026-09-24 · E6-T01 round 2 · `Idempotency-Key` on `POST /attachments`
 
 **0 operations added, 1 changed** (276 → 276): `POST /attachments` (E3-T03) now declares the optional

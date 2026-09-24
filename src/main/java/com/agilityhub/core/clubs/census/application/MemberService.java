@@ -52,7 +52,9 @@ public class MemberService {
         if (request.containsKey("birthDate")) {
             try { member.birthDate = LocalDate.parse(string(request.get("birthDate"))); }
             catch (RuntimeException badDate) { throw invalid("birthDate", "INVALID_VALUE"); }
-            if (member.birthDate.isAfter(clock.instant().atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate())) { throw invalid("birthDate", "INVALID_VALUE"); }
+            // S04 §3 (M21): in the past and not before 1900-01-01.
+            if (!member.birthDate.isBefore(clock.instant().atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate())
+                    || member.birthDate.isBefore(LocalDate.of(1900, 1, 1))) { throw invalid("birthDate", "INVALID_VALUE"); }
         }
         if (request.containsKey("contactEmails")) { member.contactEmails = validation.emails(request.get("contactEmails"), member.contactEmails); }
         if (request.containsKey("phones")) { member.phones = validation.phones(request.get("phones")); }
@@ -80,6 +82,8 @@ public class MemberService {
         if (diff.isEmpty() && Objects.equals(paymentBefore,member.paymentMethod)) { return; }
         access.members.save(member);
         events.emit("PENDING".equals(member.status) ? "SignupEdited" : "MemberUpdated", "Member", id, object("memberId", id, "diff", diff));
+        // R-14-01 (M11): a pending row of D1 changed (name, method, plan); D1 is refreshed right after the commit.
+        if (pending) { signups.getObject().refreshDashboard(); }
     }
     private Map<String,Object> snapshot(Member member) {
         return object("idDocument", member.idDocument, "firstName", member.firstName, "lastName1", member.lastName1, "lastName2", member.lastName2,

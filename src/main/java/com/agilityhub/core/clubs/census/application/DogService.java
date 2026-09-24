@@ -43,7 +43,11 @@ public class DogService {
             catch (RuntimeException badDate) { throw invalid("birthDate", "INVALID_VALUE"); }
             if (dog.birthDate.isAfter(clubClock.today(TenantContext.require()))) { throw invalid("birthDate", "INVALID_VALUE"); }
         }
-        if (request.containsKey("chip")) { dog.chip = text(request.get("chip"), "chip", 20, false); if (dog.chip != null && dog.chip.isEmpty()) { dog.chip = null; } }
+        if (request.containsKey("chip") && "PENDING".equals(dog.status)) {
+            // D2 (S04 §3, M21): a pending dog's chip is required, normalised and checked per country profile; the `dog_chip`
+            // index keeps it unique (CHIP_ALREADY_EXISTS, as for any dog PATCH).
+            dog.chip = signups.getObject().chip(text(request.get("chip"), "chip", 40, true), "chip");
+        } else if (request.containsKey("chip")) { dog.chip = text(request.get("chip"), "chip", 20, false); if (dog.chip != null && dog.chip.isEmpty()) { dog.chip = null; } }
         if (request.containsKey("birthMonth")) {
             try { dog.birthDate=YearMonth.parse(string(request.get("birthMonth"))).atDay(1); }
             catch(RuntimeException invalidMonth) { throw invalid("birthMonth","INVALID_VALUE"); }
@@ -56,6 +60,7 @@ public class DogService {
         var diff = events.diff(before, fields(dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
         if (diff.isEmpty()) { return; }
         access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
+        if ("PENDING".equals(dog.status)) { signups.getObject().refreshDashboard(); } // R-14-01 (M11): the D1 row shows the dog
     }
     private Map<String,Object> fields(Dog dog) {
         return object("name", dog.name, "breed", dog.breed, "sex", dog.sex, "birthDate", dog.birthDate, "chip", dog.chip,

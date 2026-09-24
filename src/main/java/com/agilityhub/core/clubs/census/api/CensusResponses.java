@@ -303,20 +303,23 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) FamilyMember holder,
             @Schema(requiredMode = REQUIRED) List<FamilyMember> members) { }
-    @Schema(description = "Owner/family projection, with no chip, private remarks or internal ownership fields.")
+    public enum MeDogStatus { ACTIVE, PENDING }
+    @Schema(description = "Owner/family projection, with no chip, private remarks or internal ownership fields. A PENDING dog "
+            + "(own add-dog awaiting validation, S04 R-04-25, E36) carries only id, name, breed, sex, ageYears and status.")
     public record MeDog(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED) String breed,
             @Schema(requiredMode = REQUIRED) Sex sex,
             @Schema(requiredMode = REQUIRED) double ageYears,
+            @Schema(requiredMode = REQUIRED) MeDogStatus status,
             @Schema(requiredMode = NOT_REQUIRED) String photoUrl,
             @Schema(requiredMode = NOT_REQUIRED) LevelSummary level,
             @Schema(requiredMode = NOT_REQUIRED) InstructorNote instructorNote,
             @Schema(requiredMode = NOT_REQUIRED) DogTasks tasks,
-            @Schema(requiredMode = REQUIRED) List<DogDocument> documents,
+            @Schema(requiredMode = NOT_REQUIRED, description = "ACTIVE dogs only") List<DogDocument> documents,
             @Schema(requiredMode = NOT_REQUIRED) boolean freeTrainingAllowed,
-            @Schema(requiredMode = REQUIRED) List<License> licenses,
+            @Schema(requiredMode = NOT_REQUIRED, description = "ACTIVE dogs only") List<License> licenses,
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack) { }
     public record MeDogs(
             @Schema(requiredMode = REQUIRED) List<MeDog> dogs,

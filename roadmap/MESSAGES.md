@@ -886,3 +886,49 @@ Blocking: no.
 - **Web:** nothing to regenerate.
 - I did not start the new E3-T08…T10 (one task per session).
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E5-T12, E5-T13, E5-T14, E6-T01, E3-T09, E3-T10 and routings
+@executor
+- **Verified:** **E5-T14** and **E6-T01** (round 2).
+- **Changes requested.** By protocol these come before E3-T09/T10.
+  - **E5-T12, round 3:** the re-execution protection must hold per destination member, not per source row (three majors of the Codex review, traced in `PlayoffPlanner`). Also the report wording.
+  - **E5-T13, round 2:** a completion past `expiresAt` of a booking session is a late completion (the E34 mark), never `INVALID_STATE`. Today a booking the club cancelled loses the payment's mark.
+- **Routed to other tasks:**
+  - E6-T01 round-2 review → **E6-T03 step 11** (deleted tasks hidden from staff; `includeDone=true`);
+  - E5-T13 #2/#3 → **E5-T15 steps 12–13**;
+  - E5-T14 test names → **E5-T15 step 5**;
+  - `--reset` → **E8-T06 step 10**;
+  - E8-T04 step 12 refunds once per `providerPaymentId`.
+- **From the web audit run E3-W05:**
+  - **E3-T09 step 5:** the stale `GET /signup` after a parameter change;
+  - **E3-T10 steps 12–13:** `/branding` gains `legalName` and `taxId`; the seed text «Només un cop».
+- **Model:** `CHECKOUT_SESSION` (`providerPaymentId?`, `lateCompletionAt?`), `UpfrontPayment.submissionId`, and `offerNotifiedAt` cleared on a FIFO expiry.
+- **Evidence rule**, raised by three reviews today:
+  - paste the **literal last 40 lines and the exit code** of every verification command;
+  - keep **one log per failed attempt**.
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E3-T08
+@organizer **All 13 steps done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 521 unit + 848 IT. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The new `SignupGateFixesIT` (18 tests) and the changed D1 tests were run against the `HEAD` production code. All fail there except `T_04_09`, the «unchanged» 422 guard (log `02`).
+- **Behaviour changes:**
+  - D2 proposes the hidden family fare. For a group with more dogs than any plan includes, it proposes the largest family fare (the first smoke attempt found this).
+  - A plan change never rewrites an amount, and a `CHECKOUT_PENDING` row makes it `409 CHECKOUT_PENDING`.
+  - D1 is fresh right after submission, add-dog, validation, rejection and pending edits.
+  - `/me/dogs` lists the own `PENDING` dogs.
+  - `birthDate` must be before today and ≥ 1900; the chip is normalised per profile; `nextInvoiceDate` must be ≥ the first-month start.
+- **Fixed on the way:** N-01 `{dogs}` was always empty. `Criteria.in` received the id list as one value.
+- **Model:** `MODEL_DADES_PLATAFORMA.md` already has `UpfrontPayment.submissionId`. I propose the same field, plus `Member.signup.submissionId`, for `MODEL_DADES_CANIC.md`.
+- **Web (E3-W06…W08):** regenerate the client.
+  - Not additive: `MeDog.documents` and `MeDog.licenses` are optional, and `texts.familyGroupIntro` is nullable.
+  - New: `planQuotes`, `planOptions`, `warnDays`, `dogs[].version` and the flags.
+  - The member's own N-01 APP row has no `action` any more.
+
+Please decide (details in the report's Questions):
+- (1) A kept `PARTIAL` row larger than the whole new quote keeps the outstanding total above «quote − paid». Should it be replaced by a `PAID` row for the paid part?
+- (2) Should R-04-13 state the ≥ 3-dog case?
+
+Not mine: docs and other tasks' files changed in the working tree during the session. I left them as they were.
+Blocking: no.

@@ -155,7 +155,13 @@ Les mateixes proves passen a les altres execucions, i la ronda no va tocar cap c
 - dins del marge, el token pare ja rotat s'accepta un cop més i emet un fill nou, sense revocar la família (el *reuse interval* d'Auth0, el *grace period* d'Okta);
 - fora del marge, la reutilització continua revocant la família.
 
-Decisió (S01) quan tinguem el cos de l'error.
+**Ja tenim el cos de l'error** (E3-W04 i E3-W05, 24-09, amb el registre de crides de E3-W04):
+- T-01-22 (l'app `id` reprèn un flux d'autorització) envia un `refresh_token` **amb** la galeta i rep `400 {"code":"REFRESH_EXPIRED"}` 0,3–0,35 s després d'una rotació correcta. Es va repetir a les dues tasques (`E3-W04/oauth-token-calls.log`, i la línia 26 d'`E3-W05/oauth-token-calls.log`).
+- La prova no comprova aquesta crida, i el login següent funciona.
+- Els `400 REFRESH_EXPIRED` **sense** galeta són la sonda anònima esperada quan arrenca un context nou; no són l'error.
+- Lectura de l'organitzador: sembla un token pare ja rotat presentat per segona vegada, que el core anomena `REFRESH_EXPIRED` en lloc de `REFRESH_REUSED`. Cal confirmar al codi si revoca la família (llavors l'usuari perdria la sessió), i si el marge de reutilització de sota ho resoldria.
+
+Decisió (S01): a la passada de correccions, amb aquesta evidència.
 
 **On mirar**:
 - `identity/persistence/RefreshTokenRepository.java` (`rotate`, `revokeFamily`) i el `refresh_token` grant del core;

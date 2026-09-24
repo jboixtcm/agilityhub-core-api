@@ -28,7 +28,9 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") List<SignupPaymentMethod> paymentMethods,
             @Schema(requiredMode = NOT_REQUIRED) SignupTexts texts, @Schema(requiredMode = NOT_REQUIRED) SignupLegal legal, @Schema(requiredMode = NOT_REQUIRED) SignupCountryProfile countryProfile,
             @Schema(requiredMode = NOT_REQUIRED, description = "BILLING first-month choices from S04 §6") SignupUpfrontConfig upfront,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only present for an authenticated MEMBER adding a dog") SignupMember member) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only present for an authenticated MEMBER adding a dog") SignupMember member,
+            @Schema(requiredMode = NOT_REQUIRED, description = "signup.allowFamilyGroupPending; present with FAMILY_GROUP. The server enforces it at submission too") Boolean allowFamilyGroupPending,
+            @Schema(requiredMode = NOT_REQUIRED, description = "signup.requireDogDocumentAtSignup; present when signup is enabled. The server enforces it at submission too") Boolean requireDogDocumentAtSignup) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupPlan(@Schema(format = "uuid") String id,
             @Schema(allowableValues = {"MONTHLY", "PACK", "SINGLE_CLASS"}) String type,
@@ -48,7 +50,10 @@ public final class SignupResponses {
     public record SignupPaymentMethod(PaymentMethodType type, String label,
             @Schema(requiredMode = NOT_REQUIRED) String mandateText, @Schema(requiredMode = NOT_REQUIRED) String instructions) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record SignupTexts(String freeTrainingConditions, String therapyIntro, String familyGroupIntro,
+    @Schema(description = "Club texts resolved in the response locale, placeholders already interpolated by the server ({deadlineDay}, {twoDogsMonthlyFee})")
+    public record SignupTexts(String freeTrainingConditions, String therapyIntro,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true, description = "null when the club has no family fare (R-04-13)") String familyGroupIntro,
             String monthlyPaymentIntro, String paymentDay, String cashConditions, String imageConsent) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupLegal(@Schema(format = "uri") String privacyPolicyUrl, String legalTextsVersion, String imageConsentText) { }
@@ -56,8 +61,21 @@ public final class SignupResponses {
     public record SignupCountryProfile(String code, List<SignupRequests.SignupIdDocumentType> idDocumentTypes,
             boolean postalCodeLookup, String phonePrefix, String dateFormat, String timeFormat) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record SignupUpfrontConfig(int firstMonthSplitDay, LocalDate today, List<SignupConfigChoice> firstMonthOptions,
-            @Schema(requiredMode = NOT_REQUIRED) List<SignupConfigChoice> additionalDogOptions) { }
+    public record SignupUpfrontConfig(int firstMonthSplitDay, LocalDate today,
+            @Schema(description = "Deprecated by planQuotes: the options of the first monthly plan only") List<SignupConfigChoice> firstMonthOptions,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Add-dog mode: TODAY always, ALTERNATIVE only up to billing.upfrontCutoffDay") List<SignupConfigChoice> additionalDogOptions,
+            @Schema(description = "R-04-14/15: one quote per offered plan (add-dog mode: also the member's own plan), computed like the submission") List<SignupPlanQuote> planQuotes) { }
+    public enum QuotePortion { FULL, HALF }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record SignupQuoteLine(UpfrontConcept concept, Money amount) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record SignupQuoteOption(FirstMonthOption option, QuotePortion portion, LocalDate startDate, Money amountDue,
+            @Schema(description = "The plan's lines + this option") Money totalDue) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record SignupPlanQuote(@Schema(format = "uuid") String planId,
+            @Schema(description = "The option-independent lines (ENTRY_FEE only if > 0, PACK)") List<SignupQuoteLine> lines,
+            @Schema(description = "Sum of lines; the payable total of a plan without options") Money totalDue,
+            @Schema(description = "Public signup: the two first-month options of a MONTHLY_FEE plan with a current price; add-dog: the additional-dog options; empty otherwise") List<SignupQuoteOption> options) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupConfigChoice(FirstMonthOption option, LocalDate startDate, Money amount) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
@@ -98,7 +116,8 @@ public final class SignupResponses {
             @Schema(pattern = "\\d{4}-(0[1-9]|1[0-2])") String birthMonth, String chip,
             @Schema(requiredMode = NOT_REQUIRED) String notesToInstructors,
             DogStatus status, @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId,
-            List<SignupDocumentView> documents) { }
+            List<SignupDocumentView> documents,
+            @Schema(description = "The dog's own optimistic version, compared by PATCH /dogs/{id}") long version) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupSubmission(Instant submittedAt, int pendingDays, boolean readmission, SignupSource source,
             String locale, @Schema(requiredMode = NOT_REQUIRED,format = "uuid") String planIdRequested) { }
@@ -117,7 +136,18 @@ public final class SignupResponses {
     public record MemberSignupView(Member member, List<SignupDogView> dogs, SignupSubmission signup,
             @Schema(requiredMode = NOT_REQUIRED) SignupFamilyGroupView familyGroupClaim,
             @Schema(requiredMode = NOT_REQUIRED) SignupUpfrontReview upfront,
-            SignupProposals proposals, List<SignupWarning> warnings, long version) { }
+            SignupProposals proposals, List<SignupWarning> warnings,
+            @Schema(description = "The assignable plans (active, module enabled, showOnSignup or not) for the D2 plan selector") List<SignupPlanOption> planOptions,
+            @Schema(description = "dashboard.pendingSignupAgeWarnDays: the age warning shows when signup.pendingDays > warnDays") int warnDays,
+            long version) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record SignupPlanOptionPrice(@Schema(format = "uuid") String priceId, Money amount,
+            @Schema(allowableValues = {"MONTHLY", "ONE_OFF"}) String periodicity,
+            @Schema(allowableValues = {"MONTHLY_FEE", "MAINTENANCE_FEE", "PACK", "SINGLE_CLASS"}) String concept) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record SignupPlanOption(@Schema(format = "uuid") String planId, String name,
+            @Schema(allowableValues = {"MONTHLY", "PACK", "SINGLE_CLASS"}) String type,
+            @Schema(description = "Current prices; empty without BILLING") List<SignupPlanOptionPrice> prices) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record ValidationDryRun(@Schema(requiredMode = NOT_REQUIRED) SignupUpfrontReview upfront,
             @Schema(requiredMode = NOT_REQUIRED) SignupPrice price,

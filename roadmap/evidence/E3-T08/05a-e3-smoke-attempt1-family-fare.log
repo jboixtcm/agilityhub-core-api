@@ -1,0 +1,30 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+PASS GET /signup: texts resolved, one quote per offered plan
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+PASS D1 dogs by level: 8 progression columns, others=0
+PASS D1 class occupancy follows R-14-03 for the seeded week: 17 classes, booked=0, capacity=75, percent=0.0
+curl GET /api/v1/members/a895be32-49a2-3a15-ac37-eef41ab3c455/signup -> 200
+curl GET /api/v1/members/bed8e1b9-002c-38c8-a14a-bf3ab5466ce3/signup -> 200
+curl GET /api/v1/members/28e6a808-6f85-32cd-984c-4d26b4bf7ea1/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/1bab865f-e037-4490-873c-a3fd2201f132/signup -> 200
+PASS mailbox N-01 correlated by notificationId; locale=ca
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: The family fare was not proposed

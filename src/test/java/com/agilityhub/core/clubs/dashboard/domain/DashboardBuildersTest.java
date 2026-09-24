@@ -98,11 +98,13 @@ class DashboardBuildersTest {
         assertThat(english.items().getFirst().displayDescription()).isEqualTo("English review"); assertThat(english.items().getFirst().ringName()).isEqualTo("English Ring");
         assertThatThrownBy(() -> RiskCardBuilder.status("CANCELLED")).isInstanceOf(IllegalArgumentException.class);
     }
-    @Test void T_14_06_dogsOfInactiveLevelsAndMissingLevelsBelongToOthersIncludingTotal() {
-        var levels = List.of(new LevelSource("F", "F", label("F"), "#000000", 2, false),
-                new LevelSource("Z", "Z", label("Z"), "#000000", 5, true), new LevelSource("A", "A", label("A"), "#000000", 1, true));
-        var result = DogActivityBuilder.build(levels, List.of(new DogCount("A", 4, 3), new DogCount("F", 2, 2)), 2, "ca", "ca");
-        assertThat(result.totalActiveDogs()).isEqualTo(6); assertThat(result.others()).isEqualTo(2);
+    @Test void T_14_06_dogsOfInactiveNonProgressionAndMissingLevelsBelongToOthersIncludingTotal() {
+        var levels = List.of(new LevelSource("F", "F", label("F"), "#000000", 2, false, true),
+                new LevelSource("Z", "Z", label("Z"), "#000000", 5, true, true), new LevelSource("A", "A", label("A"), "#000000", 1, true, true),
+                new LevelSource("TER", "TER", label("TER"), "#000000", 80, true, false));
+        var result = DogActivityBuilder.build(levels, List.of(new DogCount("A", 4, 3), new DogCount("F", 2, 2), new DogCount("TER", 3, 1)), 2, "ca", "ca");
+        // E35: an active level outside the progression (Teràpia, Pendent) has no column; its dogs count in «altres» and in the total.
+        assertThat(result.totalActiveDogs()).isEqualTo(9); assertThat(result.others()).isEqualTo(5);
         assertThat(result.levels()).extracting(Level::code).containsExactly("A", "Z");
         assertThat(result.levels().getFirst().total()).isEqualTo(4); assertThat(result.levels().getFirst().withRecentBooking()).isEqualTo(3);
         assertThat(result.levels().getLast().total()).isZero();

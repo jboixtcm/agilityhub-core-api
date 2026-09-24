@@ -8,6 +8,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T08: gate E3 audit fixes (api, 1/3), `roadmap/reviews/gate-E3/consolidated.md`.
+  - `bin/e3-smoke`: the D1 class occupancy follows S14 R-14-03 for the seeded week (computed from `class_sessions`);
+    the chart columns are the progression levels; `GET /signup` texts have no placeholder; the family fare is proposed.
+  - M6: `GET /signup.texts` resolves `{deadlineDay}` (`inactivity.requestDeadlineDay`) and `{twoDogsMonthlyFee}` (the
+    R-04-13 family fare, money in the locale); no family fare → `familyGroupIntro: null`.
+  - M7/M9: `paymentMethods[MANUAL].instructions` = `CLUB.paymentProviders.MANUAL.instructions`. The applicant's N-01
+    carries `upfront_total` (frozen `Member.signup.upfront.totalDue`) and `payment_instructions` (copy
+    `notif.N-01.upfront.*`); the admins get their own copy (`notif.N-01.admin.*`: name, dogs, plan) with `OPEN_SIGNUP`,
+    which the applicant's copy never carries. `SystemEmailRenderer`/`SystemNotificationService` take a copy variant.
+    Fixed: `{dogs}` of N-01 was always empty (`Criteria.in` received the id list as one value).
+  - M5: `GET /signup.upfront.planQuotes[]`, one quote per offered plan (and the member's own plan in add-dog mode),
+    computed with the submission's code; the add-dog `TODAY` option exists after `billing.upfrontCutoffDay` too.
+  - M8: assignable plans (`active ∧ module`, whatever `showOnSignup`) for the family fare, the D2 plan and `dryRun`,
+    add-dog with the member's own plan, and D2 loading; `GET /members/{id}/signup.planOptions[]`. The public offer
+    (`GET /signup.plans`, the applicant's `planIdRequested`) keeps `showOnSignup`.
+  - M10 (E39): every `UpfrontPayment` carries `submissionId` (also in `Member.signup`/`Dog.signup`); D2, validation,
+    `dryRun`, rejection and checkout read only the rows of each pending dog's submission. A plan change cancels only
+    `DUE` rows and never rewrites an amount (`PAID`/`PARTIAL` kept and deducted); with a `CHECKOUT_PENDING` row it is
+    refused (`409 INVALID_STATE`, `details.reason = CHECKOUT_PENDING`; `dryRun` warns `CHECKOUT_PENDING`).
+  - M11: submission, add-dog, validation, rejection and the D2 edits of a pending row evict the D1 caches right after
+    their commit; `GET /members/{id}/signup` returns `warnDays`, and nothing pending → `409 INVALID_STATE NOT_PENDING`.
+  - M20 (E36): `GET /me/dogs` lists the member's own `PENDING` dogs (`id, name, breed, sex, ageYears, status`) and
+    every dog carries `status`.
+  - M21: `nextInvoiceDate` ≥ the first-month start (validation, `dryRun`); `birthDate` in the past and ≥ 1900-01-01
+    (signup and member PATCH); `chip` normalised and checked per country profile (`ES` 15 digits, `GENERIC` 8–15
+    alphanumerics) in `POST /signup`, `POST /me/dogs/signup` and the D2 PATCH of a pending dog.
+  - M12: `GET /members/{id}/signup.dogs[].version`. Flags `allowFamilyGroupPending`/`requireDogDocumentAtSignup` in
+    `GET /signup`. E35: the D1 «Gossos per nivell» columns are the active progression levels; the rest count in `others`.
 - E5-T14: follow-ups of the E5-T09 and E5-T11 reviews.
   - Demo `seed:demo --reanchor`: registrants go only into the weeks the run generated (`DemoSeedStep.Input.generatedWeeks`),
     never into a kept week. A kept, still-draft, non-past week whose `planning.weeks` row says `validate` is validated,

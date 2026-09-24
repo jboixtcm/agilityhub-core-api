@@ -12,10 +12,21 @@ public final class SignupPlanCatalog {
     private SignupPlanCatalog() { }
     public record Offer(String id, Type type, String billingMode, int dogsIncluded,
                         LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
-                        Pack pack, CurrentPrice price, Money entryFee, Money maintenanceFee) { }
+                        Pack pack, CurrentPrice price, Money entryFee, Money maintenanceFee, List<CurrentPrice> prices) { }
+    /** The public offer of `GET /signup` and of the applicant's `planIdRequested`: `active ∧ showOnSignup ∧ module`. */
     public static List<Offer> list(String clubId, List<SignupPlanData> plans, Set<Module> modules, Money standardEntryFee) {
+        return select(clubId, plans, modules, standardEntryFee, true);
+    }
+    /**
+     * The plans an admin (or the member's own add-dog) may assign, whatever `showOnSignup` says: `active ∧ module`
+     * (E3-T08, M8). The family fare, the D2 plan and the member's current plan come from here.
+     */
+    public static List<Offer> assignable(String clubId, List<SignupPlanData> plans, Set<Module> modules, Money standardEntryFee) {
+        return select(clubId, plans, modules, standardEntryFee, false);
+    }
+    private static List<Offer> select(String clubId, List<SignupPlanData> plans, Set<Module> modules, Money standardEntryFee, boolean offered) {
         boolean billing = modules.contains(Module.BILLING);
-        return plans.stream().filter(p -> p.clubId().equals(clubId) && p.active() && p.showOnSignup())
+        return plans.stream().filter(p -> p.clubId().equals(clubId) && p.active() && (!offered || p.showOnSignup()))
                 .filter(p -> switch (p.type()) {
                     case MONTHLY -> true;
                     case PACK -> modules.contains(Module.PACKS);
@@ -38,7 +49,8 @@ public final class SignupPlanCatalog {
             if (maintenance != null) { checkCurrency(maintenance.amount(), standard); }
         }
         return new Offer(plan.id(), plan.type(), plan.billingMode(), plan.dogsIncluded(), plan.name(), plan.description(),
-                plan.conditions(), plan.offerLabel(), plan.pack(), price, entry, maintenance == null ? null : maintenance.amount());
+                plan.conditions(), plan.offerLabel(), plan.pack(), price, entry, maintenance == null ? null : maintenance.amount(),
+                billing ? plan.currentPrices() : List.of());
     }
     private static void checkCurrency(Money amount, Money standard) { SignupValidation.nonnegative(amount).plus(new Money(0, standard.currency())); }
     public static Offer require(List<Offer> offers, String planId) {

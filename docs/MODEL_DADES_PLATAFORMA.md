@@ -165,7 +165,7 @@ erDiagram
 | **CLASSE** i **classe de plantilla** | **`instructorIds[]`** (mida ≤ `classes.maxInstructorsPerClass`; Cànic 1) · `levelIds[]` (buit = sense restricció si `levels.enabled=false`) · `description` (auto/manual, v1.6) · `placementId` (opcional: recorregut previst per a la classe) | ADR-012, ADR-013 |
 | **MODALITAT** (`Plan`) | `type`: `MONTHLY` · `PACK` · **`SINGLE_CLASS`** · `entryFee` {amount, percentOfStandard} · `maintenanceFee` (mensual mentre no fa classe en grup — la «teràpia» del Cànic és un `MONTHLY` amb `entryFee.percent=50` + `maintenanceFee`) · `pack` {sessions, validityMonths} · `singleClass` {pricePerClass, chargeMode: `CHARGE_ON_ATTENDANCE` / `PAY_TO_BOOK`, cancelPolicy} · `texts: LocalizedText` · `showOnSignup`, `offerLabel` | ADR-009, ADR-012 |
 | **TARIFA** (`Price`) | `amount: Money` (minor units + currency), `taxPercent`, `validFrom/To`, `periodicity` | ADR-011 |
-| **LLISTA_ESPERA** (`WaitlistEntry`) | `position` (mode FIFO), `notifiedAt`, `offerNotifiedAt` (el `notifiedAt` de l'última oferta que ha escrit les files de N-15; N-46 només si coincideix, S08 R-08-13), `confirmBy` (FIFO: `notifiedAt + waitlist.fifoConfirmMinutes`), `state` (ACTIVE · NOTIFIED · CONSOLIDATED · EXPIRED · CANCELLED) | ADR-012 |
+| **LLISTA_ESPERA** (`WaitlistEntry`) | `position` (mode FIFO), `notifiedAt`, `offerNotifiedAt` (el `notifiedAt` de l'última oferta que ha escrit les files de N-15; N-46 només si coincideix, S08 R-08-13) — es buida quan una oferta FIFO caduca (`EXPIRED`) (E5-T14, 24-09), `confirmBy` (FIFO: `notifiedAt + waitlist.fifoConfirmMinutes`), `state` (ACTIVE · NOTIFIED · CONSOLIDATED · EXPIRED · CANCELLED) | ADR-012 |
 | **INSCRIPCIO_CLASSE** (`Booking`) | `chargeInvoiceLineRef` (classe individual per consum) · `paymentIntentId` (PAY_TO_BOOK) | ADR-009 |
 | **PLANTILLA_COMUNICAT**, **FAQ**, **ACTIVITAT** | camps de text com a `LocalizedText`; NOTIFICACIO guarda `locale` amb què s'ha renderitzat | ADR-011 |
 | **PREFERENCIA_AVIS** | embeguda a `Member.notificationPreferences` {categoria → canals, reminderMinutesBefore (`null` = mai), pushClubNews} | simplificació |
@@ -203,7 +203,10 @@ erDiagram
 simulació → generació (XML pain.008, `collections[]`) → `SUBMITTED` → retrocés (`ROLLED_BACK`: anul·la rebuts i cobraments, retrocedeix numeració i dates de proper rebut, tot auditat).
 
 ### UPFRONT_PAYMENT (`UpfrontPayment`) — pagament a l'acte
-`concept` (`ENTRY_FEE` · `FIRST_MONTH` · `PACK` · `SINGLE_CLASS` · `ACTIVITY` · `OTHER`), `amountDue`, `amountPaid`, `provider` (`STRIPE` → `checkoutSessionId`, `paymentIntentId` · `MANUAL` → canal i data), `status`, `dogId`/`bookingId`/`activityRegistrationId` segons concepte.
+`concept` (`ENTRY_FEE` · `FIRST_MONTH` · `PACK` · `SINGLE_CLASS` · `ACTIVITY` · `OTHER`), `amountDue`, `amountPaid`, `provider` (`STRIPE` → `checkoutSessionId`, `paymentIntentId` · `MANUAL` → canal i data), `status`, `submissionId` (l'enviament d'alta o de gos afegit que crea la línia; les d'un enviament anterior no compten mai, S04 §5, 24-09), `dogId`/`bookingId`/`activityRegistrationId` segons concepte.
+
+### CHECKOUT_SESSION (`checkout_sessions`) — sessió de pagament del proveïdor (afegit 24-09, E5-T13)
+`clubId`, `memberId`, `status` (`PENDING` · `COMPLETE` · `EXPIRED`), `mode` (`payment` · `setup`), `upfrontPaymentIds[]`, `expiresAt`, `bookingId?`, `providerPaymentId?` (el pagament del proveïdor d'una sessió completada), `lateCompletionAt?` (marca de conciliació E34: el proveïdor ha cobrat després que la reserva o la sessió s'haguessin tancat al nostre costat; S12 en fa el reemborsament una sola vegada, per `providerPaymentId`).
 
 ### STRIPE_EVENT
 `eventId` (únic), `clubId`, `type`, `receivedAt`, `processedAt`, `payload` — garanteix idempotència del webhook.

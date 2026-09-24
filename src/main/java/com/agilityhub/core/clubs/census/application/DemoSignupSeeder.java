@@ -41,8 +41,9 @@ class DemoSignupSeeder {
         member.gender = "FEMALE";
         member.idDocument = object("type", "PASSPORT", "number", "DEMO" + (ordinal + 1));
         member.familyGroupClaim = object("status", "NONE");
+        String submission = DemoDataset.id(member.clubId, "pending-submission", ordinal);
         member.signup = object("submittedAt", at, "locale", locale, "source", "PUBLIC", "readmission", false,
-                "planIdRequested", planId, "firstMonthOption", "TODAY");
+                "planIdRequested", planId, "firstMonthOption", "TODAY", "submissionId", submission);
         member.paymentMethod = object("type", "SEPA_DD", "holderName", member.firstName + " " + member.lastName1,
                 "iban", row.accountProvided() ? DemoDataset.iban(ordinal + 1) : null, "mandateSignedAt", at);
         member.consents = new ConsentLedgerConverter().read(List.of(
@@ -60,6 +61,6 @@ class DemoSignupSeeder {
             document.state = "PENDING"; document.files = List.of(); documents.insert(document);
         }
         var quote = policy.quote(planId, dog.id, false, null, "TODAY", submitted);
-        payments.create(member.id, quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(), l.dogId(), l.amountDue())).toList());
+        payments.create(member.id, submission, quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(), l.dogId(), l.amountDue())).toList());
     }
 }
