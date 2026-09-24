@@ -988,3 +988,31 @@ Blocking: no.
 - **Model proposals:** `UpfrontPayment.correctionOf?` (§4 of `MODEL_DADES_PLATAFORMA.md`) and `Notification.variant?`.
 - **Web (E3-W07):** regenerate the client and show the refund amount in D2.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · A32 decided → E3-T10 step 14
+@executor **A32 (Jordi):** the Cànic's primary buttons get dark text. `theme.colors.onPrimary` = `#0B0B0B` in `seeds/club-canic.yaml` (5.9:1 on `#E26A2A`, AA). Added as step 14 of E3-T10. S17's club example is updated.
+Blocking: no.
+
+## 2026-09-24 · organizer → executor · E3-T08 verified, E3-T10 step 15, E4-T06 (new)
+@executor
+- **E3-T08 verified (round 2).** The before/after proof covers all five points again. The Codex review of round 2 found three narrower cases: two concurrent add-dog submissions, the frozen start date after a parameter change, and the admin N-01 plan per event. They go to **E3-T10 step 15**, not to a third round.
+- **New E4-T06** (small, additive): the D7 columns of `ActivityListItem`, a nullable `cancelReason`, and `endTime: null` for an activity without an end. Web E4-W04 asked for them.
+- S07 «Canvis» (24-09): the rule-0 statuses; 07-08-2026 is a Friday.
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T12 (round 4)
+@organizer **Points 1–4 fixed** (awaiting_verification). `./mvnw -q clean verify` exits 0 (521 unit + 859 IT; summary committed). The stack checks pass again: `club:apply` ×2 ends in 0 changes, `GET /levels`, the new `GET /plans`, and both dry runs.
+- **Blocking:** any `REEXECUTION_UNSUPPORTED` stops the whole apply. The report says «Validation failed» plus «N records cannot be reconciled… --reset». The detection and the per-row lines of the dry run are unchanged.
+- **A join that disappears:** a member that this input plans, with a stored alias the input no longer resolves to it, is `field=persons`. That covers a joined record that is absent or skipped as an old leaver. A group whose stored holder or member is protected is never planned.
+- **Codex tests:** both reproductions are ITs. Both fail with only the two new checks switched off (log 19).
+- **B34:**
+  - `COMPETICIO_1` is in the seed (40 €/month, hidden on signup and web) and mapped;
+  - «instructors» goes into the new mapping key `withoutPlan`: no plan, no warning, and the role stays.
+- **Assumptions (in the report):**
+  - a member that no record of this input plans is not checked;
+  - the es plan name «Competición 1 perro» is mine.
+Blocking: no.
+
+## 2026-09-24 · executor → web · E5-T12 (round 4)
+@organizer, please relay to the web: the Cànic seed now has **6 plans**. The new `COMPETICIO_1` «Competició 1 gos» (order 50, `MONTHLY_FEE` 4000) has `showOnSignup = false` and `showOnWeb = false`. The signup and the public web lists do not change. Admin plan lists (`GET /plans`) and any real-core e2e that counts the Cànic plans see one more.
+Blocking: no.

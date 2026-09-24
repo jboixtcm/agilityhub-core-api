@@ -1,8 +1,10 @@
-"""Round 2 and 3 test summary: totals of surefire and failsafe plus the classes this round changes (AGENTS.md rule 4)."""
+"""Rounds 2-4 test summary: totals of surefire and failsafe plus the classes these rounds change (AGENTS.md rule 4)."""
 import glob
 import xml.etree.ElementTree as ET
 
-CLASSES = ("com.agilityhub.core.migration.PlayoffAdapterTest", "com.agilityhub.core.migration.PlayoffMigrationIT")
+CLASSES = ("com.agilityhub.core.migration.PlayoffAdapterTest", "com.agilityhub.core.migration.PlayoffMigrationIT",
+           "com.agilityhub.core.clubs.census.application.DemoSeedsIT",
+           "com.agilityhub.core.platform.application.definition.ClubDefinitionsIT")
 out = []
 for kind in ("surefire", "failsafe"):
     totals = [0, 0, 0, 0]

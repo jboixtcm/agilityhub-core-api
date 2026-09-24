@@ -1,7 +1,7 @@
 """E5-T12 verification helper (adapted from E5-T11's club-apply.py). On a disposable Mongo 7 replica set (local profile):
 1. run `bin/core club:apply seeds/club-canic.yaml` twice (the second must make 0 changes and leave the Mongo documents
    unchanged), then start the API jar and read `GET /api/v1/levels` as the seeded admin: PENDENT must exist with
-   `progression = false` (TER too), every other level `true`;
+   `progression = false` (TER too), every other level `true`; `GET /api/v1/plans` must list COMPETICIO_1 (round 4, B34);
 2. run `bin/core migration:playoff src/test/resources/fixtures/playoff --dry-run --club=canic` on the fictional fixtures;
 3. anonymize those fixtures (`bin/core migration:anonymize`, one-use key) and dry-run the derivative: the counts must be
    the same, so the persones.csv joins survive the anonymizer.
@@ -122,6 +122,20 @@ try:
     assert all(progression is True for code, progression in rows if code not in ('TER', 'PENDENT')), 'every other level is in the progression'
     assert len(rows) == 10
     print('PASS GET /levels: PENDENT and TER progression=false, the other 8 levels true (full body 05-get-levels.json)', flush=True)
+    # Round 4, point 4 (B34): the seed plan COMPETICIO_1, assigned by the club (not on the signup nor on the web).
+    plans = curl('GET', '/api/v1/plans', 200, access=access, base=base)
+    (output / '05b-get-plans.json').write_text(sanitize(json.dumps(plans, indent=2, ensure_ascii=False)) + '\n')
+    print('curl GET /api/v1/plans (Host app.agilitycanic.cat, seeded ADMIN) -> 200', flush=True)
+    for item in plans['items']:
+        print(f"  {item['code']:16} type={item['type']} billingMode={item.get('billingMode')} dogsIncluded={item['dogsIncluded']} "
+              f"showOnSignup={str(item['showOnSignup']).lower()} showOnWeb={str(item['showOnWeb']).lower()} order={item['order']}", flush=True)
+    competition = next(item for item in plans['items'] if item['code'] == 'COMPETICIO_1')
+    assert len(plans['items']) == 6 and competition['type'] == 'MONTHLY' and competition['dogsIncluded'] == 1
+    assert competition['showOnSignup'] is False and competition['showOnWeb'] is False and competition['order'] == 50
+    price = mongo("const p=d.plans.findOne({code:'COMPETICIO_1'}); d.prices.find({planId:p._id}).forEach(x => print(x.concept + ' ' + x.amount.amountMinor + ' ' + x.amount.currency));")
+    print('Stored COMPETICIO_1 prices (mongosh): ' + price, flush=True)
+    assert price == 'MONTHLY_FEE 4000 EUR'
+    print('PASS GET /plans: 6 plans, COMPETICIO_1 MONTHLY 1 dog, hidden on signup and web, order 50, price MONTHLY_FEE 4000 EUR (full body 05b-get-plans.json)', flush=True)
     api.terminate(); api.wait(30); api = None
 
     before = snapshot()
@@ -134,6 +148,12 @@ try:
     assert codes.get('EMAIL_SHARED') == 19 and codes.get('PERSON_MERGED') == 1, 'unexpected EMAIL_SHARED/PERSON_MERGED counts'
     assert 'errors=0' in counts['members'] and 'proposed=18' in counts['familyGroups']
     print('PASS dry run on the fixtures: no Mongo write, EMAIL_SHARED=19, PERSON_MERGED=1, familyGroups proposed=18', flush=True)
+    # B34: the 4 «Instructors» records (rows 42-45) and the 3 «Competició 1 gos» records (rows 48, 52, 53) get no plan warning.
+    warned = {int(row) for row, code in re.findall(r'^members:(\d+) members WARNING (PLAN_UNMAPPED|LEGACY_PLAN|PRICE_NOT_FOUND)', report, re.M)}
+    assert not warned & {42, 43, 44, 45, 48, 52, 53}, 'a B34 record has a plan warning'
+    assert 32 in warned, '«Quota reduïda» (row 32) keeps PLAN_UNMAPPED'
+    print(f"PASS B34 in the dry run: no PLAN_UNMAPPED/LEGACY_PLAN/PRICE_NOT_FOUND on rows 42-45 (instructors) and 48, 52, 53 (competition); "
+          f"rows with a plan warning: {sorted(warned)}", flush=True)
 
     anonymized = runtime / 'anonymized'
     step(7, 'migration-anonymize', ['bin/core', 'migration:anonymize', 'src/test/resources/fixtures/playoff', str(anonymized)], show=('Anonymized',))

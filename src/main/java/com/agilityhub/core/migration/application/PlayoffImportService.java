@@ -36,8 +36,8 @@ public class PlayoffImportService {
         try (var tenant=TenantContext.open(clubId)) {
             var preview=planner.plan(input,mapping);
             var report=new MigrationReport(dryRun,preview.rows());
-            // An unsupported re-execution (R-18-14) only leaves its record out of the plan; any other error stops the apply.
-            if (dryRun || report.hasBlockingErrors()) { return report; }
+            // Any error, an unsupported re-execution (R-18-14) included, stops the whole apply.
+            if (dryRun || report.hasErrors()) { return report; }
             apply.validate(preview);
             // Rebuild after acquiring the same write locks used by census and catalogs.
             // This census-only stage is atomic; later billing stages own batch checkpoints.
@@ -46,7 +46,7 @@ public class PlayoffImportService {
                 runs.lock(production); census.lock(); catalogs.lock();
                 var plan=planner.plan(input,mapping);
                 var checked=new MigrationReport(false,plan.rows());
-                if (checked.hasBlockingErrors()) { status.setRollbackOnly(); return checked; }
+                if (checked.hasErrors()) { status.setRollbackOnly(); return checked; }
                 var run=new MigrationRun(UUID.randomUUID().toString(),clubId,"PLAYOFF","APPLY",
                         production ? "PRODUCTION" : "STAGING",mapping.version(),"RUNNING",clock.instant(),null,Map.of());
                 runs.insert(run);

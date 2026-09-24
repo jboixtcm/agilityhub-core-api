@@ -13,9 +13,12 @@ plans:
   "manteniment": TERAPIA
   "pack 10 classes": PACK10
   "pack 6 classes": PACK6
-# B30: «quota reduïda» has no plan until the club settles it. INSTRUCTOR_FREE and COMPETICIO_1 (S18 §3)
-# are not in the S05 seed yet, so their typologies stay unmapped with PLAN_UNMAPPED.
-unresolvedPlans: ["quota reduïda", "instructors", "competició 1 gos"]
+  # B34 (24-09): 40 €/month, a plan of the S05 seed.
+  "competició 1 gos": COMPETICIO_1
+# B30: «quota reduïda» has no plan until the club settles it (PLAN_UNMAPPED).
+unresolvedPlans: ["quota reduïda"]
+# B34 (24-09): typologies that are not migrated as a plan, on purpose: no plan and no warning (the role comes from instructorPlans).
+withoutPlan: [instructors]
 familyPlans: ["familiar abonat", "familiar abonat/curs"]
 instructorPlans: [instructors]
 levels: {a: A, b: B, c: C, d: D, e: E, f: F, g: G, cadells: CAD, pendent: PENDENT}

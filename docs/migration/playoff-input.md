@@ -140,9 +140,10 @@ reconciled (see Re-execution below).
 ## Re-execution (R-18-14)
 
 A reapply updates the mapped fields of what an earlier load created. Some transitions
-are rejected, not reconciled. The protection holds per **destination member**, not per
-source row: before planning, the planner resolves the member every record goes to
-(the same resolution as the plan) and builds the set of protected members.
+are rejected, not reconciled, and **any of them blocks the whole apply** (S18 R-18-14,
+amended 24-09). The detection holds per **destination member**, not per source row:
+before planning, the planner resolves the member every record goes to (the same
+resolution as the plan) and builds the set of protected members.
 
 - `field=status`: a record that an earlier load imported `ACTIVE` (its member's own
   record, or an alias whose dog is `ACTIVE`) on a member that is `ACTIVE` with an
@@ -150,30 +151,31 @@ source row: before planning, the planner resolves the member every record goes t
 - `field=persons`:
   - `persones.csv` joins a record that an earlier load imported as its own person,
     including when the confirmed NIF is that record's own. Every join of that
-    principal is dropped: the principal is planned as before (its own NIF and
-    aliases), and its joined records are left untouched;
+    principal is dropped, so the records resolve as the earlier load did;
   - two persons of this load resolve to one member, for example a join removed or
     changed after a load (without its join, the joined record resolves through its
-    alias to the principal's member). The plan never holds two member changes for
-    one member id;
-  - a record that an earlier load put on one member now resolves to another.
+    alias to the principal's member);
+  - a record that an earlier load put on one member now resolves to another;
+  - a join that disappears, checked against the stored relationships: a member that
+    this input plans has a stored alias (`Member.externalIds.playoff[]`) that this
+    input no longer resolves to it. That covers a record absent from the input, one
+    skipped as an old leaver and one present without its join. A member that no
+    record of this input plans is not written, so it is not checked.
 
 Every member of such a record is protected. No row, own or alias, plans a member,
 dog or identity change for it, and each such row gets its own line `members ERROR
 REEXECUTION_UNSUPPORTED`. The field is the row's own transition; a joined record
 whose principal is protected reports `persons`; any other row reports the reason its
-member is protected. A `family_groups.csv` group with a protected holder or member
-is left as it is: `familyGroups ERROR REEXECUTION_UNSUPPORTED field=familyGroup` on
-its first row. The other members keep their stored group.
+member is protected. A `family_groups.csv` group whose incoming **or stored** holder
+or member is protected is never planned: `familyGroups ERROR REEXECUTION_UNSUPPORTED
+field=familyGroup` on its first row.
 
-The dry run lists them. Unlike every other error, they do not stop the apply. The
-apply leaves those members (member, dogs, account, membership) and groups untouched
-and applies the rest. The summary line says «N records would be left untouched; the
-rest would be applied» in a dry run and «N records were left untouched; the rest was
-applied» after an apply. With any other error, the report says only «Validation
-failed; no changes applied». The command still exits non-zero. On staging the way
-out is `--reset` and a new load (S18 R-18-14; the reset switch is E8-T06 step 10);
-production allows a single `APPLY`.
+The dry run lists every such row. Like any other error, they stop the apply: nothing
+is written, the report says «Validation failed; no changes applied» followed by
+`REEXECUTION_UNSUPPORTED: N records cannot be reconciled with an earlier load
+(R-18-14). On staging, the way out is --reset and a new load.`, and the command exits
+non-zero. On staging the way out is `--reset` and a new load (the reset switch is
+E8-T06 step 10); production allows a single `APPLY`.
 
 ## Commands
 
@@ -204,9 +206,11 @@ Case, leading/trailing whitespace and repeated internal spaces are normalized fo
 plan and level matching. Every mapped plan and level code exists in
 `seeds/club-canic.yaml` (a unit test enforces it). `Familiar Abonat/curs` is
 `ABONAT_FAMILIAR` with the family behaviour of `Familiar abonat` (B31). `Quota
-reduïda` stays `PLAN_UNMAPPED` (B30); so do `Instructors` and `Competició 1 gos`,
-whose S18 targets `INSTRUCTOR_FREE`/`COMPETICIO_1` are not in the S05 seed yet
-(instructors still get the INSTRUCTOR role). Unknown old plans use `LEGACY_PLAN`.
+reduïda` stays `PLAN_UNMAPPED` (B30). `Competició 1 gos` is `COMPETICIO_1` (B34).
+`Instructors` is listed under `withoutPlan`: a typology that is not migrated as a
+plan, on purpose, so the member gets no plan and no warning; `instructorPlans` still
+gives it the INSTRUCTOR role (B34). A `withoutPlan` typology can be neither mapped nor
+unresolved. Unknown old plans use `LEGACY_PLAN`.
 `Cadells` is `CAD`; `Pendent` is the level `PENDENT` (outside the progression) with
 the `LEVEL_PENDING` warning (B32). `Llicencia` is a marker, never a level;
 `Terapies` produces a plan review warning. The photo is the dog's (B29): its source
@@ -261,7 +265,7 @@ invented where the known three exports provide none.
 ## Transactions, report and fixtures
 
 Dry-run performs reads only, including no run, audit, outbox, identity or sequence
-writes. Any input error prevents apply, except `REEXECUTION_UNSUPPORTED`
+writes. Any input error prevents apply, `REEXECUTION_UNSUPPORTED` included
 (Re-execution above). Census-only apply uses one transaction
 under the existing tenant census/catalog locks so a failed row cannot leave a
 partial person/dog/group graph. This stage does not implement S18's later billing

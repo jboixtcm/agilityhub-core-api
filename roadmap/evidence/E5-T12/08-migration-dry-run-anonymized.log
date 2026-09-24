@@ -1,10 +1,10 @@
-$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-i4i4eu3c/anonymized --dry-run --club=canic        (exit 0)
+$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-1uynz7j7/anonymized --dry-run --club=canic        (exit 0)
 Playoff DRY_RUN
 members: created=187 updated=0 skipped=4 errors=0
 dogs: created=189 updated=0 skipped=0 errors=0
 familyGroups: created=1 updated=0 skipped=0 errors=0 proposed=18
 accounts: created=156 updated=0 skipped=31 errors=0
-Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PERSON_MERGED=1, PLAN_UNMAPPED=13, VALIDATION_ERROR=10}
+Incidents: {AGE_SUSPECT=2, BIRTHDATE_SUSPECT=1, CARD_NOT_MIGRATED=1, CHIP_MISSING=16, DOG_INFERRED=9, DOG_NAME_FROM_SURNAME=1, EMAIL_SHARED=19, IBAN_INVALID=1, INVALID_PHONE=9, LEVEL_PENDING=8, MAPPING_INVALID=2, NO_BANK_ACCOUNT=26, NUMBER_CONFLICT=4, PERSON_MERGED=1, PLAN_UNMAPPED=8, VALIDATION_ERROR=10}
 members:191 members SKIPPED 
 members:192 members SKIPPED 
 members:2 members WARNING INVALID_PHONE
@@ -207,19 +207,15 @@ members:40 dogs CREATED
 members:41 accounts CREATED 
 members:41 members CREATED 
 members:41 dogs CREATED 
-members:42 members WARNING PLAN_UNMAPPED
 members:42 accounts CREATED 
 members:42 members CREATED 
 members:42 dogs CREATED 
-members:43 members WARNING PLAN_UNMAPPED
 members:43 accounts CREATED 
 members:43 members CREATED 
 members:43 dogs CREATED 
-members:44 members WARNING PLAN_UNMAPPED
 members:44 accounts CREATED 
 members:44 members CREATED 
 members:44 dogs CREATED 
-members:45 members WARNING PLAN_UNMAPPED
 members:45 accounts CREATED 
 members:45 members CREATED 
 members:45 dogs CREATED 
@@ -230,7 +226,6 @@ members:46 dogs CREATED
 members:47 accounts CREATED 
 members:47 members CREATED 
 members:47 dogs CREATED 
-members:48 members WARNING PLAN_UNMAPPED
 members:48 accounts CREATED 
 members:48 members CREATED 
 members:48 dogs CREATED 
@@ -675,17 +670,17 @@ members:189 accounts SKIPPED
 members:189 members CREATED 
 members:189 members WARNING LEVEL_PENDING
 members:189 dogs CREATED 
+members:190 members WARNING PLAN_UNMAPPED
+members:190 accounts SKIPPED 
+members:190 members CREATED 
+members:190 members WARNING LEVEL_PENDING
+members:190 dogs CREATED 
 members:188 members WARNING NUMBER_CONFLICT
 members:188 members WARNING PLAN_UNMAPPED
 members:188 accounts SKIPPED 
 members:188 members CREATED 
 members:188 members WARNING LEVEL_PENDING
 members:188 dogs CREATED 
-members:190 members WARNING PLAN_UNMAPPED
-members:190 accounts SKIPPED 
-members:190 members CREATED 
-members:190 members WARNING LEVEL_PENDING
-members:190 dogs CREATED 
 members:186 members WARNING NUMBER_CONFLICT
 members:186 members WARNING PLAN_UNMAPPED
 members:186 accounts SKIPPED 

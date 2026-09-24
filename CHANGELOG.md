@@ -126,6 +126,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Before, removing `persones.csv` after a load planned two changes for one member (the second overwrote the first).
     An ACTIVE same-NIF alias still changed a protected member, and a protected principal or family holder made the
     whole load fail.
+- E5-T12 round 4 (organizer review; S18 R-18-14 amended 24-09; B34):
+  - `REEXECUTION_UNSUPPORTED` now blocks the whole apply of `migration:playoff`, like any other error. The dry run
+    still lists every such row. The report says «Validation failed; no changes applied» plus «N records cannot be
+    reconciled with an earlier load (R-18-14). On staging, the way out is --reset and a new load.» The partial-apply
+    wording and `MigrationReport.hasBlockingErrors()` are gone.
+  - A join that disappears is detected against the stored relationships: a member that this input plans, with a stored
+    alias (`externalIds.playoff[]`) that the input no longer resolves to it, is `field=persons`. That covers a joined
+    record that is absent or skipped as an old leaver. A family group whose **stored** holder or member is protected is
+    never planned (`field=familyGroup`).
+  - Seed: new plan `COMPETICIO_1` «Competició 1 gos» (MONTHLY, 1 dog, entry STANDARD, `MONTHLY_FEE`, hidden on signup
+    and web, order 50) with its `MONTHLY_FEE` price 4000 EUR (S05 §12), also in `club-canic-consumer.yaml`.
+  - Mapping v2: «competició 1 gos» → `COMPETICIO_1`. The new required key `withoutPlan` lists typologies that are not
+    migrated as a plan on purpose. «instructors» is the only one: no plan, no `PLAN_UNMAPPED`, and the INSTRUCTOR role
+    stays.
 - E5-T13 (rulings E33 and E34, follow-ups of the E5-T09 and E5-T10 reviews):
   - R-15-05 (E33): the first run of a process in a club with no `JobRun` of it, outside its window, records
     `SKIPPED{MISSED_WINDOW}` as a baseline without `JobFailed`/N-42, and the S17 matrix reads it as «never executed»

@@ -9,7 +9,7 @@ import java.util.*;
 
 /** Versioned adapter: positions disambiguate Playoff's duplicate birth-date headings. */
 public record MappingConfig(int version, String defaultClub, int ageWarningYears, int suspectBirthYears, String inferredDogPrefix, Map<String,String> statuses, Map<String,String> plans,
-        Set<String> unresolvedPlans, Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels, Map<String,String> levelWarnings,
+        Set<String> unresolvedPlans, Set<String> withoutPlan, Set<String> familyPlans, Set<String> instructorPlans, Map<String,String> levels, Map<String,String> levelWarnings,
         Map<String,String> levelFlags, Set<String> unresolvedLevels, String photoOwner, Map<String,InputFile> files) {
     public static final int VERSION = 2;
     public static final String DEFAULT = "/migration/playoff-v" + VERSION + ".yaml";
@@ -25,7 +25,8 @@ public record MappingConfig(int version, String defaultClub, int ageWarningYears
     public void validate() {
         if (version != VERSION || defaultClub == null || defaultClub.isBlank() || ageWarningYears < 1 || suspectBirthYears < 1
                 || inferredDogPrefix == null || statuses == null || plans == null || levels == null || files == null
-                || unresolvedPlans == null || familyPlans == null || instructorPlans == null || levelFlags == null || unresolvedLevels == null
+                || unresolvedPlans == null || withoutPlan == null || !Collections.disjoint(withoutPlan, plans.keySet()) || !Collections.disjoint(withoutPlan, unresolvedPlans)
+                || familyPlans == null || instructorPlans == null || levelFlags == null || unresolvedLevels == null
                 || levelWarnings == null || !levels.keySet().containsAll(levelWarnings.keySet()) || !Set.of("LEVEL_PENDING").containsAll(levelWarnings.values())
                 || !"DOG".equals(photoOwner)
                 || !Set.of("ACTIVE","LEFT","SKIP").containsAll(statuses.values())

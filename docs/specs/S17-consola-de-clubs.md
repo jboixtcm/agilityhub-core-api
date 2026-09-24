@@ -32,7 +32,7 @@ apiVersion: agilityhub.club/v1
 club: { slug: canic, name: Club Agility Cànic, legalName: …, taxId: …, address: {…}, contactEmail: …, websiteUrl: … }
 localization: { locales: [ca, es], defaultLocale: ca, timeZone: Europe/Madrid, currency: EUR, countryProfile: ES }
 domains: [ { host: app.agilitycanic.cat, app: clubs }, { host: admin.agilitycanic.cat, app: clubs-admin } ]
-theme: { preset: null, colors: { primary: "#E26A2A", background: "#0B0B0B", … }, fontFamily: Montserrat, radius: 4, mode: dark, logo: { file: ./marca/logo.svg } }
+theme: { preset: null, colors: { primary: "#E26A2A", onPrimary: "#0B0B0B", background: "#0B0B0B", … }, fontFamily: Montserrat, radius: 4, mode: dark, logo: { file: ./marca/logo.svg } }
 modules: [FREE_TRAINING, BILLING, PACKS, ACTIVITIES, FAMILY_GROUP, WAITLIST, TASKS, FAQ, SMS, PUSH, INACTIVITY, COURSES, LEARN_LINK]
 paymentProviders:
   SEPA_XML: { creditorName: …, creditorId: …, iban: { env: CANIC_SEPA_IBAN }, suffix: "000", invoiceSeriesPattern: "{YYYY}" }
@@ -178,3 +178,4 @@ Ordre: A → B → C ∥ D. Fils: (1) A+B, (2) C, (3) D.
 
 - 03-09-2026 · v0.1 · esborrany inicial a partir de VISIO, PLATAFORMA §2, ADR-002/003/009/010/011/012 i les specs S02/S05/S11/S12/S14/S15.
 - 03-09-2026 · catàleg tancat: «Invitació com a administrador» = **N-53**; «Domini trencat» = N-43.
+- 24-09-2026 · A32 (Jordi): el text sobre el taronja del Cànic és fosc (`onPrimary` `#0B0B0B`, 5,9:1), perquè el tema passi el contrast AA que `THEME_CONTRAST` exigeix.

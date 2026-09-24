@@ -464,6 +464,27 @@ catalogs: {
           "es": "condiciones y coste según cada caso"
         }
       }
+    },
+    {
+      "code": "COMPETICIO_1",
+      "name": {
+        "ca": "Competició 1 gos",
+        "es": "Competición 1 perro"
+      },
+      "type": "MONTHLY",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "STANDARD"
+      },
+      "conditions": {
+        "ca": "competició · 1 gos",
+        "es": "competición · 1 perro"
+      },
+      "showOnSignup": false,
+      "showOnWeb": false,
+      "order": 50,
+      "active": true,
+      "billingMode": "MONTHLY_FEE"
     }
   ],
   "prices": [
@@ -516,6 +537,17 @@ catalogs: {
       "concept": "MAINTENANCE_FEE",
       "amount": {
         "amountMinor": 1000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    {
+      "planCode": "COMPETICIO_1",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 4000,
         "currency": "EUR"
       },
       "taxPercent": 0,

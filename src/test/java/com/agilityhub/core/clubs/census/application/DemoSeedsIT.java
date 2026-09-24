@@ -51,9 +51,9 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Test @AuditCovers(AuditAction.CATALOG_CHANGED)
     void T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites() throws Exception {
         var input = seed(); var before = snapshot();
-        assertThat(definitions.apply(input, true).render(true)).contains("32 catalog changes"); assertThat(snapshot()).isEqualTo(before);
+        assertThat(definitions.apply(input, true).render(true)).contains("34 catalog changes"); assertThat(snapshot()).isEqualTo(before);
         String club = definitions.apply(input, false).id(); var first = snapshot();
-        for (var route : Map.of("levels", 10, "rings", 5, "plans", 5).entrySet()) {
+        for (var route : Map.of("levels", 10, "rings", 5, "plans", 6).entrySet()) {
             mvc.perform(get("/api/v1/" + route.getKey()).header("Host", "app.agilitycanic.cat")
                     .with(jwt().jwt(j -> j.subject("seed-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN")))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(route.getValue()));
@@ -62,7 +62,14 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         assertThat(definitions.apply(input, false).changes()).isZero(); assertThat(snapshot()).isEqualTo(first);
         try (var tenant = TenantContext.open(club)) {
             assertThat(catalogs.list(CatalogKind.LEVEL, true)).hasSize(10); assertThat(catalogs.list(CatalogKind.RING, true)).hasSize(5);
-            assertThat(catalogs.list(CatalogKind.FAQ, true)).hasSize(7); assertThat(plans.list(true)).hasSize(5);
+            assertThat(catalogs.list(CatalogKind.FAQ, true)).hasSize(7); assertThat(plans.list(true)).hasSize(6);
+            // B34 (S05 §12): «Competició 1 gos», 40 €/month, assigned by the club (not on the signup nor on the web).
+            var competition = plans.list(true).stream().filter(p -> p.code().equals("COMPETICIO_1")).findFirst().orElseThrow();
+            assertThat(competition.billingMode().name()).isEqualTo("MONTHLY_FEE"); assertThat(competition.dogsIncluded()).isEqualTo(1);
+            assertThat(competition.showOnSignup()).isFalse(); assertThat(competition.showOnWeb()).isFalse(); assertThat(competition.order()).isEqualTo(50);
+            assertThat(prices.list(competition.id(), null)).singleElement().satisfies(price -> {
+                assertThat(price.concept().name()).isEqualTo("MONTHLY_FEE"); assertThat(price.amount().amountMinor()).isEqualTo(4000);
+            });
             // S05 §12 seed, E29 and B32: Teràpia and Pendent are the levels outside the progression.
             assertThat(catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> !l.progression()).map(Level::code)).containsExactly("TER", "PENDENT");
             var pending = catalogs.list(CatalogKind.LEVEL, true).stream().map(l -> (Level) l).filter(l -> l.code().equals("PENDENT")).findFirst().orElseThrow();

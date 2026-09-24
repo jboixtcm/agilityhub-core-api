@@ -46,9 +46,10 @@ public class PlayoffPlanner {
         // R-18-04 (f): joined record → principal record, and principal record → the NIF the club confirmed.
         final Map<String,String> joins=new HashMap<>(), confirmedDocuments=new HashMap<>(), personBySource=new HashMap<>();
         final Map<String,PlayoffInput.Row> emailOwners=new HashMap<>(); final List<Shared> shared=new ArrayList<>();
-        // R-18-14: records that are themselves a rejected re-execution transition → the report field; the members that no row
-        // may change (every member of such a record, and every member two persons of this load would share) → the field;
-        // and the member each record resolves to, computed before planning so that a member is protected once for all its rows.
+        // R-18-14: records that are themselves a rejected re-execution transition → the report field; the protected members
+        // (every member of such a record, every member two persons of this load would share, every member whose stored
+        // aliases this input no longer resolves to it) → the field; and the member each record resolves to, computed before
+        // planning. Every row of a protected member gets one REEXECUTION_UNSUPPORTED line, and any such line blocks the apply.
         final Map<String,String> unsupported=new HashMap<>(), protectedMembers=new HashMap<>(), destinations=new HashMap<>();
         int maximum;
         State(PlayoffInput input,MappingConfig mapping) { this.input=input; this.mapping=mapping; rows.addAll(input.incidents()); }
@@ -120,7 +121,7 @@ public class PlayoffPlanner {
                 joins.put(joined,principal); confirmedDocuments.put(principal,document);
             }
             // R-18-14: a join over a record that an earlier load imported as its own person is rejected. Every join of that
-            // principal is dropped: the principal is planned as before, without the confirmed NIF, and its joined records stay untouched.
+            // principal is dropped, so the dry run resolves the records as the earlier load did and reports each one once.
             var rejected=new HashSet<String>();
             joins.forEach((joined,principal) -> { if (memberBySource.containsKey(joined) && !memberBySource.get(joined).equals(memberBySource.get(principal))) { rejected.add(principal); } });
             for (var join:List.copyOf(joins.entrySet())) {
@@ -148,21 +149,30 @@ public class PlayoffPlanner {
          */
         void destinations(List<Candidate> candidates,List<PlayoffInput.Row> skipped) {
             for (var row:skipped) { String stored=memberBySource.get(row.get("id")); if (stored!=null) { destinations.put(row.get("id"),stored); } }
-            var byPerson=new HashMap<String,String>(); var personByMember=new HashMap<String,String>();
+            var planned=new HashMap<String,String>(); var byPerson=new HashMap<String,String>(); var personByMember=new HashMap<String,String>();
             for (var c:candidates) {
                 String source=c.row().get("id"), principal=joins.get(source), stored=memberBySource.get(source), destination;
-                if (principal!=null) { destination=destinations.get(principal); }
+                if (principal!=null) { destination=planned.containsKey(principal) ? planned.get(principal) : destinations.get(principal); }
                 else {
                     String person=person(c.row());
                     destination=byPerson.computeIfAbsent(person,k -> memberBySource.getOrDefault(source,id("member",source)));
                     if (!person.equals(personByMember.computeIfAbsent(destination,m -> person))) { protect(destination,"persons"); }
                 }
                 if (destination==null) { continue; }
-                destinations.put(source,destination);
+                planned.put(source,destination);
                 if (stored!=null && !stored.equals(destination)) { protect(stored,"persons"); protect(destination,"persons"); }
             }
+            // A join that disappears, checked against the stored relationships: every source id an earlier load put on a member
+            // this input plans must still resolve to it. That covers a record absent from the input, one skipped as an old
+            // leaver and one present without its join. A member that no record of this input plans is not written at all.
+            var plannedMembers=new HashSet<>(planned.values());
+            for (var member:storedMembers.entrySet()) {
+                if (!plannedMembers.contains(member.getKey()) || !(map(member.getValue().get("externalIds")).get("playoff") instanceof List<?> aliases)) { continue; }
+                if (aliases.stream().anyMatch(alias -> !member.getKey().equals(planned.get(alias.toString())))) { protect(member.getKey(),"persons"); }
+            }
+            destinations.putAll(planned);
         }
-        /** R-18-14: a record whose member is protected gets one line and no change; a joined record reports its join. */
+        /** R-18-14: a record whose member is protected gets one line instead of its changes; a joined record reports its join. */
         boolean rejected(PlayoffInput.Row row) {
             String source=row.get("id"), destination=destinations.get(source);
             if (!unsupported.containsKey(source) && (destination==null || !protectedMembers.containsKey(destination))) { return false; }
@@ -344,6 +354,8 @@ public class PlayoffPlanner {
             if (matches.size()!=1) { warn(row,"PLAN_UNMAPPED"); return; }
             String key=normalize(matches.getFirst().get("plan")); String code=mapping.plans().get(key);
             if (mapping.instructorPlans().contains(key)) { roles.add("INSTRUCTOR"); }
+            // B34: a typology that is not migrated as a plan, on purpose: no plan and no warning.
+            if (mapping.withoutPlan().contains(key)) { return; }
             if (mapping.familyPlans().contains(key) && input.files().get("groups").stream().noneMatch(g -> g.get("id").equals(row.get("id")))) { warn(row,"MAPPING_INVALID"); }
             if (code==null) { warn(row,mapping.unresolvedPlans().contains(key) ? "PLAN_UNMAPPED" : "LEGACY_PLAN"); return; }
             var plan=plans.get(code);
@@ -376,9 +388,12 @@ public class PlayoffPlanner {
             var grouped=input.files().get("groups").stream().collect(java.util.stream.Collectors.groupingBy(r -> r.get("groupId"),LinkedHashMap::new,java.util.stream.Collectors.toList()));
             for (var group:grouped.entrySet()) {
                 var source=group.getValue().getFirst(); String groupId=id("group",group.getKey());
-                // R-18-14: a group with a protected holder or member is left as it is; it never blocks the rest of the load.
+                // R-18-14: a group whose incoming or stored holder or member is protected is reported, never planned.
+                var stored=storedGroups.getOrDefault(groupId,Map.of()); var storedIds=new ArrayList<Object>(List.of(String.valueOf(stored.get("holderMemberId"))));
+                if (stored.get("memberIds") instanceof List<?> members) { storedIds.addAll(members); }
                 if (java.util.stream.Stream.concat(group.getValue().stream().map(r -> r.get("id")),java.util.stream.Stream.of(source.get("holderId")))
-                        .anyMatch(id -> unsupported.containsKey(id) || protectedMembers.containsKey(destinations.getOrDefault(id,"")))) {
+                        .anyMatch(id -> unsupported.containsKey(id) || protectedMembers.containsKey(destinations.getOrDefault(id,"")))
+                        || storedIds.stream().anyMatch(id -> protectedMembers.containsKey(String.valueOf(id)))) {
                     rows.add(new MigrationReport.Entry(source.file(),source.row(),"familyGroups","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,"familyGroup")); continue;
                 }
                 var ids=group.getValue().stream().map(r -> memberBySource.get(r.get("id"))).distinct().toList();

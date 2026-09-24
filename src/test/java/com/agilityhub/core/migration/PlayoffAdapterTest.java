@@ -86,17 +86,24 @@ class PlayoffAdapterTest {
         assertThat(missingSeedCodes(mapping)).isEqualTo(Map.of("plans",Set.of(),"levels",Set.of()));
         // The check catches a mismatch such as the v1 `cadells: CADELLS` (the seed code is CAD).
         var levels=new LinkedHashMap<>(mapping.levels()); levels.put("cadells","CADELLS");
-        var plans=new LinkedHashMap<>(mapping.plans()); plans.put("instructors","INSTRUCTOR_FREE");
+        var plans=new LinkedHashMap<>(mapping.plans()); plans.put("competició 1 gos","COMPETICIO");
         var broken=new MappingConfig(mapping.version(),mapping.defaultClub(),mapping.ageWarningYears(),mapping.suspectBirthYears(),mapping.inferredDogPrefix(),mapping.statuses(),plans,
-                mapping.unresolvedPlans(),mapping.familyPlans(),mapping.instructorPlans(),levels,mapping.levelWarnings(),mapping.levelFlags(),mapping.unresolvedLevels(),mapping.photoOwner(),mapping.files());
-        assertThat(missingSeedCodes(broken)).isEqualTo(Map.of("plans",Set.of("INSTRUCTOR_FREE"),"levels",Set.of("CADELLS")));
+                mapping.unresolvedPlans(),mapping.withoutPlan(),mapping.familyPlans(),mapping.instructorPlans(),levels,mapping.levelWarnings(),mapping.levelFlags(),mapping.unresolvedLevels(),mapping.photoOwner(),mapping.files());
+        assertThat(missingSeedCodes(broken)).isEqualTo(Map.of("plans",Set.of("COMPETICIO"),"levels",Set.of("CADELLS")));
         assertThat(mapping.version()).isEqualTo(2); assertThat(mapping.levelWarnings()).containsEntry("pendent","LEVEL_PENDING");
         assertThat(mapping.plans()).containsEntry("familiar abonat/curs","ABONAT_FAMILIAR"); assertThat(mapping.familyPlans()).contains("familiar abonat/curs");
-        assertThat(mapping.unresolvedPlans()).contains("quota reduïda"); assertThat(mapping.unresolvedLevels()).isEmpty();
-        for (var invalid:List.of(new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,Map.of("unknown","LEVEL_PENDING"),Map.of(),Set.of(),"DOG",mapping.files()),
-                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,Map.of("pendent","OTHER"),Map.of(),Set.of(),"DOG",mapping.files()),
-                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,Map.of(),Map.of(),Set.of(),"MEMBER",mapping.files()),
-                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),levels,null,Map.of(),Set.of(),"DOG",mapping.files()))) {
+        assertThat(mapping.unresolvedPlans()).containsExactly("quota reduïda"); assertThat(mapping.unresolvedLevels()).isEmpty();
+        // B34: «competició 1 gos» is COMPETICIO_1 (in the seed, checked above); «instructors» is no plan on purpose and keeps the role.
+        assertThat(mapping.plans()).containsEntry("competició 1 gos","COMPETICIO_1").doesNotContainKey("instructors");
+        assertThat(mapping.withoutPlan()).containsExactly("instructors"); assertThat(mapping.instructorPlans()).contains("instructors");
+        for (var invalid:List.of(new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),Set.of(),levels,Map.of("unknown","LEVEL_PENDING"),Map.of(),Set.of(),"DOG",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),Set.of(),levels,Map.of("pendent","OTHER"),Map.of(),Set.of(),"DOG",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),Set.of(),levels,Map.of(),Map.of(),Set.of(),"MEMBER",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of(),Set.of(),Set.of(),levels,null,Map.of(),Set.of(),"DOG",mapping.files()),
+                // A typology without plan is neither mapped nor unresolved, and the key is required.
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),Set.of("abonat"),Set.of(),Set.of(),levels,Map.of(),Map.of(),Set.of(),"DOG",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of("instructors"),Set.of("instructors"),Set.of(),Set.of(),levels,Map.of(),Map.of(),Set.of(),"DOG",mapping.files()),
+                new MappingConfig(2,"canic",16,10,"Gos de ",mapping.statuses(),plans,Set.of(),null,Set.of(),Set.of(),levels,Map.of(),Map.of(),Set.of(),"DOG",mapping.files()))) {
             assertThatThrownBy(invalid::validate).isInstanceOf(ApiException.class);
         }
     }
@@ -163,18 +170,18 @@ class PlayoffAdapterTest {
         }
         when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(new MigrationReport(true,List.of(new MigrationReport.Entry("members",2,"members","ERROR","MAPPING_INVALID"))));
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("input"))).isInstanceOf(ApiException.class);
-        // R-18-14: an unsupported re-execution does not stop the apply, but the command still exits non-zero.
+        // R-18-14 (amended 24-09): an unsupported re-execution blocks the whole apply like any other error, and the command exits non-zero.
         var unsupported=new MigrationReport(false,List.of(new MigrationReport.Entry("members",3,"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,"status")));
-        assertThat(unsupported.hasErrors()).isTrue(); assertThat(unsupported.hasBlockingErrors()).isFalse(); assertThat(unsupported.unsupported()).isEqualTo(1);
-        // The three wordings (R-18-15, Codex #4): the apply did it, the dry run would do it, a blocked run applies nothing.
-        assertThat(unsupported.render()).doesNotContain("Validation failed","would be").contains("REEXECUTION_UNSUPPORTED: 1 records were left untouched; the rest was applied (R-18-14)",
-                "--reset","members:3 members ERROR REEXECUTION_UNSUPPORTED field=status");
-        var dryRun=new MigrationReport(true,unsupported.rows());
-        assertThat(dryRun.render()).doesNotContain("Validation failed","were left").contains("REEXECUTION_UNSUPPORTED: 1 records would be left untouched; the rest would be applied (R-18-14)","--reset");
+        assertThat(unsupported.hasErrors()).isTrue(); assertThat(unsupported.unsupported()).isEqualTo(1);
+        // R-18-15: in the dry run and the apply, «Validation failed» plus the line that points to --reset on staging; never a partial apply.
         for (boolean dry:List.of(true,false)) {
+            var report=new MigrationReport(dry,unsupported.rows());
+            assertThat(report.render()).contains("Validation failed; no changes applied","REEXECUTION_UNSUPPORTED: 1 records cannot be reconciled with an earlier load (R-18-14)",
+                    "On staging, the way out is --reset and a new load.","members:3 members ERROR REEXECUTION_UNSUPPORTED field=status").doesNotContain("left untouched","the rest");
             var mixed=new MigrationReport(dry,List.of(unsupported.rows().getFirst(),new MigrationReport.Entry("members",2,"members","ERROR","MAPPING_INVALID")));
-            assertThat(mixed.hasBlockingErrors()).isTrue();
-            assertThat(mixed.render()).contains("Validation failed; no changes applied").doesNotContain("left untouched","the rest","--reset");
+            assertThat(mixed.render()).contains("Validation failed; no changes applied","REEXECUTION_UNSUPPORTED: 1 records");
+            var other=new MigrationReport(dry,List.of(mixed.rows().getLast()));
+            assertThat(other.render()).contains("Validation failed; no changes applied").doesNotContain("REEXECUTION_UNSUPPORTED","--reset");
         }
         when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(unsupported);
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("input"))).isInstanceOf(ApiException.class);

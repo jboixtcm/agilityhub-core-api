@@ -1,2 +1,2 @@
-$ bin/core migration:anonymize src/test/resources/fixtures/playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-i4i4eu3c/anonymized        (exit 0)
+$ bin/core migration:anonymize src/test/resources/fixtures/playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-1uynz7j7/anonymized        (exit 0)
 Anonymized Playoff files written; no input values or key logged.
