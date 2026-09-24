@@ -116,6 +116,17 @@ final class ArchitectureRules {
                     BASE_PACKAGE + "clubs.scheduling.application.ClassSessionBookingAccess$LowAlert")
             .because("E4-T05: ClassSession.counters follow the S08 bookings and waiting-list entries; nothing else sets them");
 
+    /**
+     * E5-T06 review #8: `BookingContext.asOf` moves the business time of S08 and S09 (`TrainingContext.now()` reads it) on the
+     * calling thread. Only the demo seed books «as of» a scenario instant; no request path may move the time it is judged at.
+     */
+    static final ArchRule BOOKING_TIME_OVERRIDE = noClasses()
+            .that(new DescribedPredicate<>("are not Demo* seed classes") {
+                @Override public boolean test(JavaClass type) { return !topLevel(type).getSimpleName().startsWith("Demo"); }
+            })
+            .should().callMethod(BASE_PACKAGE + "clubs.bookings.application.BookingContext", "asOf", "java.time.Instant", "java.util.function.Supplier")
+            .because("E5-T06: the «as of» business time is a demo-seed device; the API and the jobs always judge at the injected Clock");
+
     /** E5-T05 review #10: a consumer's read-only envelope of another context's event can never be published. */
     static final ArchRule CONSUMER_ENVELOPES = noClasses()
             .that().haveSimpleNameEndingWith("ForeignEvent")

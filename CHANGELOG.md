@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T06 round 2: the organizer's seven points.
+  - Caches: `shared.application.CacheLoads` is now a per-cache wrapper with a generation counter. A lock-free load
+    that overlaps an invalidation drops the value it stored, so a module toggle, a parameter change or a domain
+    change can no longer leave the old `ClubConfig` or host lookup (negative lookups included) cached for 5 min.
+    `CacheInvalidationRaceIT` reproduces the race (4 failures before the fix) and `CacheLoadsTest` covers the helper.
+  - k6 (ruling E28): new fictional load-test club `seeds/club-perf.yaml` + `demo-perf.yaml` (330 members, empty
+    5-seat classes). `bin/e5-perf` runs the gated peak with 300 distinct members within 5 s on 10 empty classes (all
+    50 seats booked), last seat 50 at once, and the burst (correctness only). RESULT lines give the distinct
+    members, the seats filled and the answer histogram. `perf/e5-seat-holds.js` asserts every error code, confirms
+    with `Idempotency-Key` = `seatHoldId` and runs exactly one iteration per member.
+  - Aggregates: with `ACTIVITIES` off, `/me/bookable-classes.activities` is `null` (nullable schema, S08 §9).
+    `/me/home` rows carry `dogName` only with «Tots». The labels of the CLASS and CLASS_WAITLIST rows come from one
+    batched class query (`ClassSessionBookingAccess.labels(ids, locale)`).
+  - `BookingContext.asOf` may be called only by `Demo*` seed classes (ArchUnit `BOOKING_TIME_OVERRIDE`).
+  - The seat-hold pre-check leaves a `CLASS_FULL{heldOnly}` to the locked path (holds may expire in the meantime).
+  - `seeds/README.md` gives the exact seed and `POST /test/clock` commands for the web T-08-40. `bin/e5-smoke`'s
+    `start()` takes its seed list.
+
 - E5-T10: round-2 review follow-ups (E5-T01, E5-T02, E5-T05), ruling E30 and the platform purge.
   - Jobs: the R-15-22 clock rule also forbids `now(ZoneId)` and `Calendar.getInstance()`. A holder whose lease renewal
     fails applies no further item and closes as a lost lease. The reaper's `FAILED` is counted in

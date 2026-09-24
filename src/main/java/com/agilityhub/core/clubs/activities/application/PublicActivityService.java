@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class PublicActivityService {
     public record Result(Map<String,Object> value,String language) { }
     private record Key(String clubId,String locale,String selector) { }
-    private final Cache<Key,Map<String,Object>> cache=Caffeine.newBuilder().maximumSize(2000).expireAfterWrite(Duration.ofSeconds(300)).build();
+    private final CacheLoads<Key,Map<String,Object>> cache=CacheLoads.of(Caffeine.newBuilder().maximumSize(2000).expireAfterWrite(Duration.ofSeconds(300)).build());
     private final PublicClubAccess clubs; private final ActivityRepository activities; private final ActivityContext context;
     private final ActivityProjection projection; private final AttachmentStorage storage;
     public PublicActivityService(PublicClubAccess clubs,ActivityRepository activities,ActivityContext context,ActivityProjection projection,AttachmentStorage storage) {
@@ -35,7 +35,7 @@ public class PublicActivityService {
         var club=club(clubSlug,key,true); var locale=PublicClubLocale.resolve(language,club);
         if(slug==null && !Set.of("upcoming","past").contains(scope)) throw new ApiException(ErrorCode.VALIDATION_ERROR);
         try(var tenant=TenantContext.open(club.club().id()); var ignored=LocaleContext.open(locale)) {
-            var value=com.agilityhub.core.shared.application.CacheLoads.get(cache,new Key(club.club().id(),locale.toLanguageTag(),slug==null?"list:"+scope:"slug:"+slug),k -> {
+            var value=cache.get(new Key(club.club().id(),locale.toLanguageTag(),slug==null?"list:"+scope:"slug:"+slug),k -> {
                 if(slug!=null) return projection.publicActivity(publicActivity(slug));
                 Instant now=context.clock.instant(); Instant earliest=now.atZone(context.zone()).minusMonths(12).toInstant();
                 return ActivityProjection.object("items",activities.findAll().stream().filter(a -> "upcoming".equals(scope)
@@ -63,5 +63,5 @@ public class PublicActivityService {
             return new PublicFile(club.club().id(),key,name,type,url);
         }
     }
-    public void invalidate(String clubId) { cache.asMap().keySet().removeIf(k -> k.clubId().equals(clubId)); }
+    public void invalidate(String clubId) { cache.invalidateIf(k -> k.clubId().equals(clubId)); }
 }

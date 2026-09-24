@@ -42,4 +42,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E5_T09_consumerEnvelopesAreNotPublishable = ArchitectureRules.CONSUMER_ENVELOPES;
+
+    @ArchTest
+    static final ArchRule E5_T06_onlyTheDemoSeedMovesTheBookingTime = ArchitectureRules.BOOKING_TIME_OVERRIDE;
 }

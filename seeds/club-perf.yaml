@@ -1,0 +1,127 @@
+# E5-T06 round 2 (ruling E28): fictional load-test club for bin/e5-perf (S08 T-08-41, S15 T-15-30). Not the Cànic and
+# not a demo for screens: one level with levels off, one ring, ALL_AT_ONCE waiting list, the N-33 fan-out on. Its demo
+# data is seeds/demo-perf.yaml (330 fictional members with one dog each and the 5-seat classes of the load runs).
+apiVersion: "agilityhub.club/v1"
+club:
+  slug: "perf"
+  name: "Club Fictici Càrrega"
+  locales:
+    - "ca"
+    - "es"
+  defaultLocale: "ca"
+  timeZone: "Europe/Madrid"
+  currency: "EUR"
+  countryProfile: "ES"
+  status: "ONBOARDING"
+  template: false
+  contactEmail: "perf@example.test"
+domains:
+  -
+    host: "perf.example.test"
+    app: "clubs"
+    primary: true
+theme:
+  colors:
+    primary: "#2563EB"
+    onPrimary: "#FFFFFF"
+    background: "#F8FAFC"
+    surface: "#FFFFFF"
+    surfaceAlt: "#F1F5F9"
+    text: "#0F172A"
+    textMuted: "#475569"
+    border: "#CBD5E1"
+    success: "#15803D"
+    warning: "#A16207"
+    danger: "#B91C1C"
+    info: "#0369A1"
+  fontFamily: "system-ui"
+  radius: "8px"
+  ringPalette: []
+  mode: "light"
+modules:
+  - "BILLING"
+  - "WAITLIST"
+  - "PUSH"
+paymentProviders:
+  - "MANUAL"
+parameters:
+  messaging.email.fromName: "Club Fictici Càrrega"
+  levels.enabled: false
+  messaging.notifyWeekOpening: true
+# Fictional identities only. Password values come from the process environment.
+accounts:
+  - email: "perf.admin@example.test"
+    name: "Adrià Example"
+    locale: "ca"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+catalogs: {
+  "levels": [
+    {
+      "code": "GEN",
+      "name": {
+        "ca": "General",
+        "es": "General"
+      },
+      "order": 0,
+      "color": "#85B8E8",
+      "capacity": 5,
+      "grantsFreeTraining": false,
+      "active": true
+    }
+  ],
+  "rings": [
+    {
+      "name": "Pista de càrrega",
+      "shortName": "CAR",
+      "color": "#8FCE8F",
+      "allowsFreeTraining": false,
+      "trainingCapacity": null,
+      "order": 0,
+      "active": true
+    }
+  ],
+  "instructors": [],
+  "plans": [
+    {
+      "code": "MENSUAL",
+      "name": {
+        "ca": "Mensual",
+        "es": "Mensual"
+      },
+      "type": "MONTHLY",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "NONE"
+      },
+      "showOnSignup": false,
+      "showOnWeb": false,
+      "order": 0,
+      "active": true,
+      "billingMode": "MONTHLY_FEE"
+    }
+  ],
+  "prices": [
+    {
+      "planCode": "MENSUAL",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 4000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    }
+  ],
+  "faq": []
+}
+messageTemplates: []
+
+legal:
+  privacyPolicyUrl: "https://perf.example.test/privacy"
+  legalTextsVersion: "2026-09"
+  imageConsentText:
+    ca: "Autoritzo la publicació de fotos meves i del meu gos en activitats del club."
+    es: "Autorizo la publicación de fotos mías y de mi perro en actividades del club."

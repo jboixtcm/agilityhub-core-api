@@ -455,7 +455,8 @@ Run from the API checkout with Docker, Compose, Python 3 and curl (k6 optional: 
 bin/e5-smoke
 bin/e5-smoke
 bin/e5-smoke --image <tag>     # consumer Compose with an image that contains E5-T06 and seeds/club-fifo.yaml, demo-fifo.yaml
-bin/e5-perf                    # k6: peak 300 VUs + last seat 50 VUs + zero-overbooking check (perf/README.md)
+bin/e5-perf                    # k6 (ruling E28): peak 300 distinct members in 5 s on 10 empty 5-seat classes + last seat
+                               # 50 at once + burst; zero-overbooking check; load-test club seeds/club-perf.yaml (perf/README.md)
 ```
 
 Same isolation as `bin/e4-smoke`: each run uses a new random Compose project, free loopback ports and a generated
@@ -538,8 +539,10 @@ after review:
   steps 1–2.
 - [ ] P1/P2/P6/P7/P9 active with the clock advanced: the `(scheduler, SCHEDULE|CATCH_UP)` lines and the three
   `jobs:run` lines.
-- [ ] k6 within the targets, and no overbooking with 50 simultaneous requests for the last seat: `bin/e5-perf` `RESULT`
-  lines, plus the k6 threshold summaries.
+- [ ] k6 within the targets (ruling E28: 300 distinct members within 5 s, all 50 seats booked, hold p95 < 500 ms, flow
+  p95 < 800 ms), and no overbooking with 50 simultaneous requests for the last seat: `bin/e5-perf` `RESULT` lines
+  (distinct members, seats filled, answer histogram), plus the k6 threshold summaries. The load-test club
+  (`seeds/club-perf.yaml`) exists only on the disposable stack; never apply it to staging or production.
 - [ ] Front (organizer-run, E5-W…): screens 03/04/06/29/07/08/24 and the web E2E T-08-40 against the same seed
   (`seeds/README.md` → «E5 bookings…», with the test clock at `demoNow`).
 - [ ] Run `./mvnw -q verify` (includes `MemberAggregatesIT`, `DemoScenarioSeedIT`) and repeat image mode with the

@@ -34,11 +34,13 @@ public class SeatHoldService {
      * opening peak the members who cannot get a seat never queue behind the class's lane (E5-T06 k6: 300 members, 10
      * classes of 5 seats). A hold that looks possible still takes the lock and the transaction, which decide again from
      * scratch: the no-overbooking guarantee stays with R-08-07. A claim's hold (waiting-list offer) always goes straight
-     * to the locked path.
+     * to the locked path. A pre-check `CLASS_FULL{heldOnly: true}` (the free seats are only held by other dogs) is not
+     * answered from outside the lock: those holds may expire in the next milliseconds, so the locked path decides it with
+     * its own `now` (E5-T06 review #9).
      */
     public Held hold(BookingActor actor, String classSessionId, String dogId, String waitlistEntryId) {
         return events.loggingBlocked("hold", classSessionId, () -> {
-            if (waitlistEntryId == null) { admit(actor, classSessionId, dogId, null, context.now()); }
+            if (waitlistEntryId == null) { precheck(actor, classSessionId, dogId); }
             return transactions.write(List.of(classSessionId), () -> {
                 var now = context.now();
                 locks.lock(classSessionId);
@@ -51,6 +53,12 @@ public class SeatHoldService {
                 return new Held(hold, subject, limit, singleClass(subject.owner().id()), now, seconds);
             });
         });
+    }
+    private void precheck(BookingActor actor, String classSessionId, String dogId) {
+        try { admit(actor, classSessionId, dogId, null, context.now()); }
+        catch (ApiException rejected) {
+            if (rejected.code() != ErrorCode.CLASS_FULL || !Boolean.TRUE.equals(rejected.details().get("heldOnly"))) { throw rejected; }
+        }
     }
     private record Admitted(BookingChecks.Subject subject, BookingLimits.Result limit) { }
     /** The ordered R-08-04…07/09/15 checks of a hold at `now`; throws the first rejection, reads only. */

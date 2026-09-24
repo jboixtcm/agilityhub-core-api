@@ -3,6 +3,16 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T06 round 2 · `activities` absent without ACTIVITIES; `dogName` only with «Tots»
+
+- `GET /me/bookable-classes` → `BookableClasses.activities` is now optional and nullable: with the `ACTIVITIES`
+  module off it is `null` (S08 §9 «04 sense bloc Activitats»), like `pack` and `singleClass`; it was `[]`.
+- `GET /me/home` → `ReservationRow.dogName` (already nullable) is documented and served only with «Tots» (no `dogId`);
+  with a dog selected every row has `dogName: null` (T-08-12 «amb {gos} només amb Tots»). `dogId` is still sent.
+
+Web adopters: regenerate the types (`activities` nullable); screen 04 hides the «Activitats» block when it is null;
+screen 03 no longer has to hide the dog name when a chip is selected.
+
 ## 2026-09-24 · E5-T09 · explicit error statuses and S05 rings follow S09 R-09-13
 
 - Error statuses (organizer ruling, `CATALEG_ERRORS.md` §1): `JOB_UNKNOWN` 422 → **404** on the five `/jobs/{name}*`

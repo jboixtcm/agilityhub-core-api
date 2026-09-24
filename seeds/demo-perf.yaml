@@ -1,0 +1,47 @@
+# E5-T06 round 2 (ruling E28): fictional census and classes of the load-test club (seeds/club-perf.yaml) for bin/e5-perf.
+# 330 ACTIVE members with one dog each, all linked to a passwordless account: the harness mints one impersonation token
+# per member, so at least 300 distinct members can arrive at the Sunday-20:00 opening. Ordinal 0 is perf.admin@
+# (administrator, never impersonated), ordinal 1 the instructor. Names are fictional and generated.
+activeMembers: 330
+pendingMembers: 0
+inactiveMembers: 0
+leftMembers: 0
+levelDogs: {GEN: 330}
+firstNames: [Adrià, Berta, Cesc, Dolors, Eudald, Fiona, Gerard, Helena, Ignasi, Judit, Kilian, Lídia, Martí, Noemí, Oriol, Patrícia]
+surnamePrefix: Carrega
+dogNames: [Pinya, Coco, Llamp, Sorra, Tro, Mora, Nuvol, Sal]
+accountEmails: [perf.admin@example.test]
+planCodes: [MENSUAL]
+familyPlanCode: MENSUAL
+familyGroups: 0
+instructors: [1]
+administrators: [0]
+receivedDocuments: 0
+referenceDate: '2026-09-01'
+pendingSignups: []
+phoneNumberFormat: '622%06d'
+
+# Eleven 5-seat classes on the only ring (levels off: every dog may book every class), generated and validated in the
+# two weeks after --week-start. At the Sunday-20:00 opening that closes the anchor week, week +2 becomes W1 (limit 1 per
+# dog): its first ten classes are the empty classes of the gated `peak`. Week +1 is W0 (limit 2): its first ten classes
+# are the `burst`'s and the eleventh is the `last_seat` class. Nothing is booked by the seed.
+planning:
+  templates:
+    - name: Setmana de càrrega
+      kind: WEEKDAYS
+      bands: ['17:00-18:00', '18:00-19:00', '19:00-20:00']
+      classes:
+        - {day: MONDAY, start: '17:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: MONDAY, start: '18:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: MONDAY, start: '19:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: TUESDAY, start: '17:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: TUESDAY, start: '18:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: TUESDAY, start: '19:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: WEDNESDAY, start: '17:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: WEDNESDAY, start: '18:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: WEDNESDAY, start: '19:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: THURSDAY, start: '17:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+        - {day: THURSDAY, start: '18:00', ring: CAR, levels: [GEN], instructor: 0, capacity: 5}
+  weeks:
+    - {offset: 1, weekdays: Setmana de càrrega, validate: true}
+    - {offset: 2, weekdays: Setmana de càrrega, validate: true}

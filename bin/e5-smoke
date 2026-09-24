@@ -26,6 +26,10 @@ ROOT = Path(__file__).resolve().parents[1]
 LOCAL_IMAGE = "agilityhub-e5-smoke:local"
 PUBLISHED_IMAGE = "ghcr.io/jboixtcm/agilityhub-core-api:main"
 DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+# The seeds Smoke.start applies twice; WEEK_START stands for `--week-start=<the anchor Monday>`.
+WEEK_START = "--week-start"
+SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", WEEK_START),
+         ("club:apply", "seeds/club-fifo.yaml"), ("seed:demo", "--club=fifo", "--seed=42", WEEK_START))
 # S14 R-14-06: form A → D1 status names (RiskCardBuilder.status).
 S14_STATUS = {"AUTO_CANCELLED": "CANCELLED", "AT_RISK": "AT_RISK", "WILL_CANCEL": "WILL_CANCEL", "WILL_REVIEW": "PENDING_DECISION"}
 SIX_STATES = ["BOOKABLE", "NOT_BOOKABLE", "NOT_YET_OPEN", "WAITLIST_FULL", "WAITLIST_OPEN", "WEEKLY_LIMIT_DONE"]
@@ -214,7 +218,9 @@ class Smoke:
         return self.mongo('db.members.findOne({_id:' + json.dumps(member_id) + '}).accountId')
 
     # ---- stack
-    def start(self):
+    def start(self, seeds=SEEDS, label="Cànic, FIFO club"):
+        """Starts the disposable stack and applies `seeds` twice (the second run must change nothing); bin/e5-perf passes
+        the load-test club's. Every seeded club is activated; its id and clubs host land in `club_ids` / `hosts`."""
         self.command(["docker", "info", "--format", "{{.ServerVersion}}"])
         self.started = True
         print("Starting disposable " + ("consumer image" if self.image else "development build") + " Compose stack", flush=True)
@@ -225,8 +231,9 @@ class Smoke:
             print("PASS working tree image built", flush=True)
         require(self.mongo("db.clubs.countDocuments()") == 0, "Smoke database must be empty")
         start = "--week-start=" + str(self.week_start)
-        for command in (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", start),
-                        ("club:apply", "seeds/club-fifo.yaml"), ("seed:demo", "--club=fifo", "--seed=42", start)):
+        commands = [tuple(start if part == WEEK_START else part for part in command) for command in seeds]
+        slugs = [part.split("=", 1)[1] for command in commands if command[0] == "seed:demo" for part in command if part.startswith("--club=")]
+        for command in commands:
             for attempt in (1, 2):
                 output = self.cli(*command)
                 if attempt == 2:
@@ -236,17 +243,20 @@ class Smoke:
                     if "changes" in line or line.startswith("{"):
                         print("  " + line, flush=True)
                 print(f"PASS {' '.join(command)} run {attempt}" + (": 0 changes" if attempt == 2 else ""), flush=True)
-        self.record("club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2)", "second runs 0 changes",
+        self.record(f"club:apply + seed:demo --seed=42 --week-start ({label}; x2)", "second runs 0 changes",
                     f"week start {self.week_start} (8+ days ahead)")
         # Activation is fixture setup on this named disposable database only.
-        self.mongo('db.clubs.updateMany({slug:{$in:["canic","fifo"]}},{$set:{status:"ACTIVE"}}).modifiedCount')
-        clubs = {c["slug"]: c for c in self.mongo('db.clubs.find({slug:{$in:["canic","fifo"]}},{slug:1,domains:1}).toArray()')}
-        self.canic, self.fifo = clubs["canic"]["_id"], clubs["fifo"]["_id"]
-        self.host = next(d["host"] for d in clubs["canic"]["domains"] if d["app"] == "clubs")
-        self.fifo_host = next(d["host"] for d in clubs["fifo"]["domains"] if d["app"] == "clubs")
+        self.mongo('db.clubs.updateMany({slug:{$in:' + json.dumps(slugs) + '}},{$set:{status:"ACTIVE"}}).modifiedCount')
+        clubs = {c["slug"]: c for c in self.mongo('db.clubs.find({slug:{$in:' + json.dumps(slugs) + '}},{slug:1,domains:1}).toArray()')}
+        self.club_ids = {slug: club["_id"] for slug, club in clubs.items()}
+        self.hosts = {slug: next(d["host"] for d in club["domains"] if d["app"] == "clubs") for slug, club in clubs.items()}
+        if "canic" in clubs:
+            self.canic, self.host = self.club_ids["canic"], self.hosts["canic"]
+        if "fifo" in clubs:
+            self.fifo, self.fifo_host = self.club_ids["fifo"], self.hosts["fifo"]
         self.compose("up", "-d", "--no-deps", "--wait", "--wait-timeout", "180", self.service)
         require(self.call("GET", "/api/v1/health")["status"] == "UP", "Health must be UP")
-        print("PASS API up (scheduler on); both fixture clubs activated", flush=True)
+        print(f"PASS API up (scheduler on); fixture clubs activated: {', '.join(slugs)}", flush=True)
 
     # ---- scenario
     def scenario(self):

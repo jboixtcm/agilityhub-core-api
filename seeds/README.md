@@ -275,8 +275,45 @@ the Cànic): one ring, one level, levels off, `waitlist.mode = FIFO`, `SINGLE_CL
 `PAYMENT_PENDING` from the Sunday opening on. At `demoNow` P6 expires the first entry and offers the seat to the
 second; P7 cancels the booking with `PAYMENT_TIMEOUT` and N-40.
 
+**Fictional load-test club** (`seeds/club-perf.yaml` + `seeds/demo-perf.yaml`, slug `perf`, host `perf.example.test`,
+E5-T06 round 2, ruling E28): only for `bin/e5-perf` on a disposable stack, never for screens, staging or production.
+330 `ACTIVE` members (generated `Carrega###` surnames, one dog each, all linked to a passwordless account; ordinal 0
+`perf.admin@` is the administrator, ordinal 1 the instructor), one level with `levels.enabled = false`, one ring, the
+N-33 fan-out on (`messaging.notifyWeekOpening = true`) and one template of eleven 5-seat classes generated and
+validated in weeks +1 and +2 after `--week-start`. Nothing is booked: at the Sunday-20:00 opening that closes the
+anchor week, week +2 (W1) holds the 10 empty classes of the gated peak and week +1 (W0) those of the burst and the
+last-seat run. `DemoScenarioSeedIT.T_08_41_…` checks the census, the classes, the BOOKABLE rows at the opening and that
+a second run changes nothing.
+
 `bin/e5-smoke` (see `docs/DEPLOY.md`) seeds both clubs on a disposable stack with a `--week-start` 8+ days ahead, and
 replays the E5 gate at `demoNow`.
+
+#### Exact commands for the web E2E T-08-40 (and any front test on the E5 states)
+
+The seed without `--week-start` (the Verification default) creates **none** of the E5 states: the scenario needs a
+future anchor week. The web T-08-40 therefore seeds and moves the clock exactly as `bin/e5-smoke` does, on a fresh
+stack (`compose.yaml` or `docker-compose.consumer.yml`, local/test profile, so `POST /test/clock` exists):
+
+1. `WEEK_START` = the Monday of the week after next, club-local (`Europe/Madrid`): today + (7 − ISO weekday index,
+   Monday = 0) + 7 days, i.e. 8 to 14 days ahead. On Thursday 2026-09-24 it is `2026-10-05`.
+2. Seed (second runs report `0 changes`):
+   ```sh
+   bin/core club:apply seeds/club-canic.yaml
+   bin/core seed:demo --club=canic --seed=42 --week-start=2026-10-05
+   bin/core club:apply seeds/club-fifo.yaml            # only for the FIFO / P6 / P7 cases
+   bin/core seed:demo --club=fifo --seed=42 --week-start=2026-10-05
+   ```
+   With the published image, each line is `docker compose -f docker-compose.consumer.yml run --rm --no-deps -T
+   --entrypoint java seed -jar /app/app.jar --core.command=<command> <arguments>` (what `bin/e5-smoke --image` runs),
+   e.g. `--core.command=seed:demo --club=canic --seed=42 --week-start=2026-10-05`.
+3. As the Cànic's `admin@`, switch P2 off so the 07:30 review of the days the test crosses does not cancel the
+   scenario's under-minimum classes: `PUT /api/v1/jobs/risk-review/switch {"enabled": false}` (200).
+4. Move the test clock to `demoNow`, Monday 07:00 `Europe/Madrid` of `WEEK_START` (05:00Z in October, 06:00Z in winter
+   time): `POST /api/v1/test/clock {"instant": "2026-10-05T05:00:00Z"}` → `200 {"now": "2026-10-05T05:00:00Z"}`.
+   It needs no token and exists only under the `local`/`test` profiles.
+5. Sign in again after every clock move: access tokens follow the moved clock (15 min).
+
+The table above then holds at `demoNow`; select rows by account and state, never by date or by generated first names.
 
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.

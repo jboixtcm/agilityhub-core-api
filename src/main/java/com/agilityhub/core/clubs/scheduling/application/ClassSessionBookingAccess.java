@@ -37,8 +37,19 @@ public class ClassSessionBookingAccess {
                 .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id)).map(ClassSessionBookingAccess::view).toList();
     }
     public Labels labels(Session s, Locale locale) {
-        var c = classes.findById(s.id()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); var catalog = context.catalog();
-        var ring = catalogs.rings().stream().filter(r -> r.id().equals(c.ringId())).findFirst();
+        return labels(classes.findById(s.id()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), context.catalog(), catalogs.rings(), locale);
+    }
+    /** The labels of several classes with one class query; ids of classes that no longer exist are absent from the map. */
+    public Map<String, Labels> labels(Collection<String> ids, Locale locale) {
+        var found = classes.findAllById(new LinkedHashSet<>(ids));
+        if (found.isEmpty()) { return Map.of(); }
+        var catalog = context.catalog(); var rings = catalogs.rings(); var out = new HashMap<String, Labels>();
+        found.forEach(c -> out.put(c.id(), labels(c, catalog, rings, locale)));
+        return out;
+    }
+    private Labels labels(ClassSession c, com.agilityhub.core.clubs.scheduling.domain.SchedulingCatalog catalog,
+            List<com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess.RingView> rings, Locale locale) {
+        var ring = rings.stream().filter(r -> r.id().equals(c.ringId())).findFirst();
         var levels = catalog.levels().stream().filter(l -> c.levelIds().contains(l.id())).sorted(Comparator.comparingInt(l -> l.order()))
                 .map(l -> l.name().resolve(locale).value()).toList();
         var instructors = String.join(", ", catalog.instructors().stream().filter(i -> c.instructorIds().contains(i.id())).map(i -> i.name()).toList());

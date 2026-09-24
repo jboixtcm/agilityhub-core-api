@@ -23,6 +23,8 @@ COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
 COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
 COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
 COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
 USER agilityhub
 EXPOSE 8080

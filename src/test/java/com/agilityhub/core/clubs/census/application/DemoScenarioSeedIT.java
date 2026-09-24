@@ -188,6 +188,47 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
         }
     }
 
+    /**
+     * E5-T06 round 2 (ruling E28): the load-test club holds at least 300 distinct members with a bookable dog and, at the
+     * Sunday-20:00 opening that closes the anchor week, ten or more empty 5-seat classes in the week that opens (W1) and in
+     * W0, all BOOKABLE; a second run changes nothing.
+     */
+    @Test void T_08_41_perfSeedHoldsThreeHundredDistinctMembersAndEmptyFiveSeatClassesAtTheOpening() throws Exception {
+        String perf = definitions.apply(codec.read(Path.of("seeds/club-perf.yaml")), false).id();
+        seed("perf");
+        var saved = snapshot();
+        seed("perf");
+        assertThat(snapshot()).isEqualTo(saved);
+        var members = mongo.find(Query.query(Criteria.where("clubId").is(perf).and("status").is("ACTIVE").and("accountId").ne(null)), Document.class, "members");
+        var dogs = mongo.find(Query.query(Criteria.where("clubId").is(perf).and("status").is("ACTIVE")), Document.class, "dogs");
+        assertThat(members).hasSize(330);
+        assertThat(dogs).hasSize(330).extracting(d -> d.getString("memberId")).doesNotHaveDuplicates();
+        assertThat(members.stream().map(m -> m.getString("accountId")).distinct()).hasSize(330);
+        assertThat(configs.get(perf).get("levels.enabled", Boolean.class)).isFalse();
+        assertThat(configs.get(perf).get("messaging.notifyWeekOpening", Boolean.class)).isTrue();
+        for (int week = 1; week <= 2; week++) {
+            var from = WEEK.plusWeeks(week); var classes = mongo.find(Query.query(Criteria.where("clubId").is(perf).and("date").gte(from.toString())
+                    .lt(from.plusWeeks(1).toString())), Document.class, "class_sessions");
+            assertThat(classes).as("week +" + week).hasSize(11).allSatisfy(c -> {
+                assertThat(c.getString("state")).isEqualTo("ACTIVE"); assertThat(c.getInteger("capacity")).isEqualTo(5);
+                assertThat(c.get("counters", Document.class)).containsEntry("booked", 0).containsEntry("waiting", 0);
+            });
+        }
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(perf)), "bookings")).isZero();
+        // At the opening every class of W0 (week +1) and of the week that opens (W1, week +2) is BOOKABLE for any member.
+        // Fixture setup (as bin/e5-perf does on its disposable database): the club leaves ONBOARDING.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(perf)), new Update().set("status", "ACTIVE"), "clubs"); configs.invalidate(perf);
+        clock.setInstant(WEEK.plusDays(6).atTime(20, 0, 5).atZone(MADRID).toInstant());
+        var any = members.stream().filter(m -> m.getInteger("memberNumber") > 2).findFirst().orElseThrow();
+        String account = any.getString("accountId"), memberId = any.getString("_id");
+        var bookable = mapper.readTree(mvc.perform(get("/api/v1/me/bookable-classes").header("Host", "perf.example.test")
+                .with(jwt().jwt(j -> j.subject(account).claim("clubId", perf).claim("memberId", memberId)).authorities(() -> "ROLE_MEMBER")))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(week(bookable, "CURRENT")).hasSize(11); assertThat(week(bookable, "NEXT")).hasSize(11);
+        assertThat(states(bookable)).containsExactly("BOOKABLE");
+        assertThat(bookable.path("classes")).allSatisfy(c -> assertThat(c.path("freeSeats").asInt()).isEqualTo(5));
+    }
+
     @Test void T_08_40_scenarioIsSkippedWhenItsWeekHasAlreadyStarted() throws Exception {
         command.run(new DefaultApplicationArguments("--club=canic", "--seed=42", "--week-start=2026-09-07"));
         var run = mongo.findById(club + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);

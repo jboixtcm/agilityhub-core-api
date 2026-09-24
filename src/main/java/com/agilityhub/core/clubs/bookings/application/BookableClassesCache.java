@@ -1,7 +1,7 @@
 package com.agilityhub.core.clubs.bookings.application;
 
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
-import com.github.benmanes.caffeine.cache.Cache;
+import com.agilityhub.core.shared.application.CacheLoads;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.time.Clock;
 import java.time.Duration;
@@ -21,16 +21,16 @@ public class BookableClassesCache {
     static final Duration TTL = Duration.ofSeconds(30);
     public record Base(String currentWeekKey, Instant from, Instant to, Instant loadedAt, List<ClassSessionBookingAccess.Session> classes) { }
     private final BookingContext context; private final ClassSessionBookingAccess classes; private final Clock clock;
-    private final Cache<String, Base> cache;
+    private final CacheLoads<String, Base> cache;
     public BookableClassesCache(BookingContext context, ClassSessionBookingAccess classes, Clock clock) {
         this.context = context; this.classes = classes; this.clock = clock;
-        this.cache = Caffeine.newBuilder().maximumSize(1000).expireAfterWrite(TTL).ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build();
+        this.cache = CacheLoads.of(Caffeine.newBuilder().maximumSize(1000).expireAfterWrite(TTL).ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build());
     }
     public static String key(String clubId, String currentWeekKey) { return clubId + ":" + currentWeekKey; }
 
     public Base get() {
         var weeks = context.weeks(); var current = weeks.week(clock.instant());
-        return com.agilityhub.core.shared.application.CacheLoads.get(cache, key(context.clubId(), current.key()), key -> {
+        return cache.get(key(context.clubId(), current.key()), key -> {
             // W0 … W2: three booking weeks from the current opening.
             var to = weeks.week(weeks.week(current.end()).end()).end();
             return new Base(current.key(), current.start(), to, clock.instant(), classes.activeBetween(current.start(), to));
@@ -38,5 +38,5 @@ public class BookableClassesCache {
     }
     /** Drops the club's entries and loads the current one again. */
     public Base warm() { invalidate(context.clubId()); return get(); }
-    public void invalidate(String clubId) { cache.asMap().keySet().removeIf(key -> key.startsWith(clubId + ":")); }
+    public void invalidate(String clubId) { cache.invalidateIf(key -> key.startsWith(clubId + ":")); }
 }

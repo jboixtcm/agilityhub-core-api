@@ -15,13 +15,13 @@ import org.springframework.transaction.support.*;
 @Service
 public class TemplateQuery {
     private record Key(String club, String locale, String id) { }
-    private final Cache<Key, WeekTemplate> cache;
+    private final CacheLoads<Key, WeekTemplate> cache;
     private final WeekTemplateRepository templates;
     private final PlanningContext context;
     public TemplateQuery(WeekTemplateRepository templates, PlanningContext context, Clock clock) {
         this.templates = templates; this.context = context;
-        cache = Caffeine.newBuilder().maximumSize(10000).expireAfterWrite(Duration.ofSeconds(60))
-                .ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build();
+        cache = CacheLoads.of(Caffeine.newBuilder().maximumSize(10000).expireAfterWrite(Duration.ofSeconds(60))
+                .ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build());
     }
     public WeekTemplate require(String id) { return templates.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public PlanningViews.WeekTemplates list(TemplateKind kind, Boolean active) {
@@ -34,7 +34,7 @@ public class TemplateQuery {
     }
     public PlanningViews.WeekTemplate get(String id) {
         var template = TransactionSynchronizationManager.isActualTransactionActive() ? require(id)
-                : com.agilityhub.core.shared.application.CacheLoads.get(cache, new Key(TenantContext.require(), LocaleContext.current().toLanguageTag(), id), key -> require(key.id()));
+                : cache.get(new Key(TenantContext.require(), LocaleContext.current().toLanguageTag(), id), key -> require(key.id()));
         // Catalog-derived capacity, labels and inconsistencies always reflect the live catalog.
         return view(template);
     }
@@ -60,7 +60,7 @@ public class TemplateQuery {
         return context.detector().detect(items, catalog, false, LocaleContext.current()).stream().map(i ->
                 new PlanningViews.Inconsistency(i.id(), i.type(), i.dayOfWeek(), i.date(), i.startTime(), i.bandId(), i.ringId(), i.instructorId(), i.levelId(), i.itemIds(), i.message())).toList();
     }
-    public void invalidate(String clubId) { cache.asMap().keySet().removeIf(k -> k.club().equals(clubId)); }
+    public void invalidate(String clubId) { cache.invalidateIf(k -> k.club().equals(clubId)); }
     public void invalidateAfterCommit(String clubId) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() { @Override public void afterCommit() { invalidate(clubId); } });

@@ -6,9 +6,9 @@ import com.agilityhub.core.clubs.bookings.persistence.*;
 import com.agilityhub.core.clubs.census.application.BookingMemberAccess;
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.shared.application.CacheLoads;
 import com.agilityhub.core.shared.application.LocaleContext;
 import com.agilityhub.core.shared.domain.*;
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.time.*;
 import java.util.*;
@@ -31,14 +31,14 @@ public class BookableClassesQuery {
     private final BookingChecks checks; private final BookingRepository bookings; private final WaitlistEntryRepository waitlist;
     private final BookingViews views; private final PackBalancePort packs; private final InactivityPort inactivity;
     private final SingleClassChargePort charges; private final MemberActivityRowsPort activities;
-    private final Cache<String, ClassSessionBookingAccess.Labels> labels;
+    private final CacheLoads<String, ClassSessionBookingAccess.Labels> labels;
     public BookableClassesQuery(BookingContext context, BookingMemberAccess census, MemberDogs dogs, BookableClassesCache base, BookingChecks checks,
             BookingRepository bookings, WaitlistEntryRepository waitlist, BookingViews views, PackBalancePort packs,
             InactivityPort inactivity, SingleClassChargePort charges, MemberActivityRowsPort activities, Clock clock) {
         this.context = context; this.census = census; this.dogs = dogs; this.base = base; this.checks = checks; this.bookings = bookings; this.waitlist = waitlist;
         this.views = views; this.packs = packs; this.inactivity = inactivity; this.charges = charges; this.activities = activities;
-        this.labels = Caffeine.newBuilder().maximumSize(5000).expireAfterWrite(BookableClassesCache.TTL)
-                .ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build();
+        this.labels = CacheLoads.of(Caffeine.newBuilder().maximumSize(5000).expireAfterWrite(BookableClassesCache.TTL)
+                .ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build());
     }
 
     public Map<String, Object> bookable(String memberId, String dogId) {
@@ -59,7 +59,8 @@ public class BookableClassesQuery {
         out.put("singleClass", terms.map(t -> BookingViews.map("chargeMode", t.mode(), "pricePerClass", t.price())).orElse(null));
         var blocked = member.blocked() ? member : owner.blocked() ? owner : null;
         out.put("bookingBlock", blocked == null ? null : Map.of("reason", Objects.toString(blocked.blockReason(), "")));
-        out.put("activities", !context.enabled(Module.ACTIVITIES) ? List.of() : activities.bookable(memberId, dog.id()).stream()
+        // S08 §9: with ACTIVITIES off screen 04 has no «Activitats» block at all, so it is absent like `pack` and `singleClass`.
+        out.put("activities", !context.enabled(Module.ACTIVITIES) ? null : activities.bookable(memberId, dog.id()).stream()
                 .map(a -> BookingViews.map("id", a.id(), "title", a.title(), "startsAtLocal", a.startsAtLocal(), "freeSeats", a.freeSeats())).toList());
         out.put("classes", classes(dog, owner, blocked != null, pack, terms, now));
         return out;
@@ -93,7 +94,7 @@ public class BookableClassesQuery {
             var row = BookableRow.resolve(new BookableRow.Input(reason, relative == RelativeWeek.LATER,
                     pack.isPresent() && BookingEligibility.packEmpty(new BookingEligibility.Pack(pack.get().available(), pack.get().expiresOn()), date),
                     limitDone, s.booked() >= s.capacity(), waitlistOn, s.waiting(), waitlistMax));
-            var label = com.agilityhub.core.shared.application.CacheLoads.get(labels,context.clubId() + ":" + s.id() + ":" + s.version() + ":" + locale.toLanguageTag(), key -> views.labels(s));
+            var label = labels.get(context.clubId() + ":" + s.id() + ":" + s.version() + ":" + locale.toLanguageTag(), key -> views.labels(s));
             var out = new LinkedHashMap<String, Object>();
             out.put("id", s.id()); out.put("startsAtLocal", views.local(s.startsAt())); out.put("endsAtLocal", views.local(s.endsAt()));
             out.put("description", label.description()); out.put("ringName", label.ringName()); out.put("ringColor", label.ringColor());

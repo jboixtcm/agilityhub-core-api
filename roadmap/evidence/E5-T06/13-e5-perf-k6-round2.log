@@ -1,0 +1,140 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 4 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-perf.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-perf.yaml run 2: 0 changes
+  {activeMembers=330, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=330, dogs=330, familyGroups=0, activeDogs=330, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=330}
+  660 changes (demo seed)
+  {templateClasses=11, templates=1, weeks=2, generatedClasses=22, validatedWeeks=2, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  38 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=perf --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=330, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=330, dogs=330, familyGroups=0, activeDogs=330, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=330}
+  0 changes (demo seed)
+  {templateClasses=11, templates=1, weeks=2, generatedClasses=22, validatedWeeks=2, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=perf --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (load-test club; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: perf
+PASS POST /test/clock: 200 · 30 min before the opening (token minting) (Sun 11-10 19:30 Europe/Madrid; server now 2026-10-11T17:30Z)
+PASS fixture: 330 members with a dog, 329 impersonation tokens minted in 7 s (values withheld); peak: 10 empty classes of 5 in W1 (2026-10-19…2026-10-22); burst: 10 in W0; last seat: W0 2026-10-15 18:00
+PASS preflight (host curl, impersonation token): /me/bookable-classes 200 with 22 rows
+PASS POST /test/clock: 200 · 20 s before the opening (Sun 11-10 19:59 Europe/Madrid; server now 2026-10-11T17:59Z)
+
+     ✓ list: list 200
+     ✓ hold: hold 201 | hold 409 CLASS_FULL | hold 409 SEAT_TAKEN
+     ✓ booking: booking 201
+
+   ✓ answer_booking_201.............: 50      9.999575/s
+   ✓ answer_hold_201................: 50      9.999575/s
+   ✓ answer_hold_409_CLASS_FULL.....: 250     49.997875/s
+   ✓ answer_hold_409_SEAT_TAKEN.....: 0       0/s
+   ✓ answer_list_200................: 300     59.99745/s
+   ✓ bookings_created...............: 50      9.999575/s
+     checks.........................: 100.00% 650 out of 650
+     data_received..................: 2.7 MB  547 kB/s
+     data_sent......................: 934 kB  187 kB/s
+   ✓ dropped_iterations.............: 0       0/s
+   ✓ flow_duration..................: avg=77.19ms  min=8ms     med=9.5ms    p(90)=357ms    p(95)=485.05ms p(99)=594.04ms max=644ms   
+   ✓ holds_created..................: 50      9.999575/s
+   ✓ holds_rejected.................: 250     49.997875/s
+     http_req_blocked...............: avg=117.57µs min=1.2µs   med=4.29µs   p(90)=212.32µs p(95)=253.35µs p(99)=555.85µs max=7.87ms  
+     http_req_connecting............: avg=95.74µs  min=0s      med=0s       p(90)=162.73µs p(95)=194.35µs p(99)=427.24µs max=7.84ms  
+     http_req_duration..............: avg=35.33ms  min=3.49ms  med=4.62ms   p(90)=158.42ms p(95)=209.55ms p(99)=299.33ms max=439.19ms
+       { expected_response:true }...: avg=35.33ms  min=3.49ms  med=4.62ms   p(90)=158.42ms p(95)=209.55ms p(99)=299.33ms max=439.19ms
+     ✓ { name:bookable-classes }....: avg=9.45ms   min=3.57ms  med=4.61ms   p(90)=16.48ms  p(95)=25.83ms  p(99)=98.6ms   max=146.18ms
+     ✓ { name:bookings }............: avg=156.95ms min=77.93ms med=163.79ms p(90)=216.97ms p(95)=240.69ms p(99)=250.82ms max=254.42ms
+     ✓ { name:seat-holds }..........: avg=40.94ms  min=3.49ms  med=4.38ms   p(90)=178.54ms p(95)=249.34ms p(99)=379.62ms max=439.19ms
+   ✓ http_req_failed................: 0.00%   0 out of 650
+     http_req_receiving.............: avg=171.65µs min=10µs    med=104.27µs p(90)=295.79µs p(95)=432.85µs p(99)=1.45ms   max=4.88ms  
+     http_req_sending...............: avg=22.71µs  min=6.25µs  med=19.45µs  p(90)=35.37µs  p(95)=45.04µs  p(99)=89.81µs  max=186.95µs
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=35.14ms  min=3.42ms  med=4.47ms   p(90)=158.31ms p(95)=209.18ms p(99)=298.87ms max=438.98ms
+     http_reqs......................: 650     129.994474/s
+     iteration_duration.............: avg=77.23ms  min=7.62ms  med=9.53ms   p(90)=357.3ms  p(95)=484.8ms  p(99)=594.15ms max=643.57ms
+   ✓ iterations.....................: 300     59.99745/s
+   ✓ unexpected_answers.............: 0       0/s
+     vus............................: 1       min=1          max=23 
+     vus_max........................: 300     min=300        max=300
+
+
+RESULT peak: k6 exit 0; 300 distinct members arrived over 5 s (iterations 300, dropped 0); seats filled 50/50 [5, 5, 5, 5, 5, 5, 5, 5, 5, 5] by 50 distinct members; answers: list 200 × 300, hold 201 × 50, hold 409 CLASS_FULL × 250, booking 201 × 50; seat-holds p95 249 ms, flow p95 485 ms; overbooked classes []; P1 SCHEDULE notified True, 660 N-33 rows within 0.4 s
+
+     ✓ hold: hold 201 | hold 409 CLASS_FULL | hold 409 SEAT_TAKEN
+     ✓ booking: booking 201
+
+   ✓ answer_booking_201.............: 1       2.392391/s
+   ✓ answer_hold_201................: 1       2.392391/s
+   ✓ answer_hold_409_CLASS_FULL.....: 49      117.227159/s
+   ✓ answer_hold_409_SEAT_TAKEN.....: 0       0/s
+   ✓ answer_list_200................: 0       0/s
+   ✓ bookings_created...............: 1       2.392391/s
+     checks.........................: 100.00% 51 out of 51
+     data_received..................: 38 kB   91 kB/s
+     data_sent......................: 75 kB   180 kB/s
+   ✓ dropped_iterations.............: 0       0/s
+   ✓ holds_created..................: 1       2.392391/s
+   ✓ holds_rejected.................: 49      117.227159/s
+     http_req_blocked...............: avg=1.03ms   min=3µs     med=1ms      p(90)=1.45ms   p(95)=1.72ms   p(99)=1.94ms   max=2.01ms  
+     http_req_connecting............: avg=247.26µs min=0s      med=154.66µs p(90)=532.79µs p(95)=661.62µs p(99)=878.66µs max=929.83µs
+     http_req_duration..............: avg=228.71ms min=45.26ms med=236.51ms p(90)=370.71ms p(95)=381.92ms p(99)=394.78ms max=398.13ms
+       { expected_response:true }...: avg=228.71ms min=45.26ms med=236.51ms p(90)=370.71ms p(95)=381.92ms p(99)=394.78ms max=398.13ms
+   ✓ http_req_failed................: 0.00%   0 out of 51
+     http_req_receiving.............: avg=156.31µs min=52.25µs med=150.87µs p(90)=192.45µs p(95)=211.24µs p(99)=295.79µs max=352.7µs 
+     http_req_sending...............: avg=110.38µs min=11.16µs med=60.33µs  p(90)=294.58µs p(95)=393.08µs p(99)=421.39µs max=433µs   
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=228.44ms min=44.7ms  med=236.24ms p(90)=370.64ms p(95)=381.52ms p(99)=394.6ms  max=397.98ms
+     http_reqs......................: 51      122.011941/s
+     iteration_duration.............: avg=234.58ms min=53.8ms  med=241.49ms p(90)=374.46ms p(95)=390.39ms p(99)=408.43ms max=417.15ms
+   ✓ iterations.....................: 50      119.61955/s
+   ✓ unexpected_answers.............: 0       0/s
+
+
+RESULT last_seat: k6 exit 0; 50 distinct members at once; answers: hold 201 × 1, hold 409 CLASS_FULL × 49, booking 201 × 1; Mongo: 5/5 live bookings; overbooked classes []
+
+     ✓ list: list 200
+     ✓ hold: hold 201 | hold 409 CLASS_FULL | hold 409 SEAT_TAKEN
+     ✓ booking: booking 201
+
+   ✓ answer_booking_201.............: 50      51.58552/s
+   ✓ answer_hold_201................: 50      51.58552/s
+   ✓ answer_hold_409_CLASS_FULL.....: 250     257.927598/s
+   ✓ answer_hold_409_SEAT_TAKEN.....: 0       0/s
+   ✓ answer_list_200................: 300     309.513118/s
+   ✓ bookings_created...............: 50      51.58552/s
+     checks.........................: 100.00% 650 out of 650
+     data_received..................: 2.7 MB  2.8 MB/s
+     data_sent......................: 934 kB  964 kB/s
+   ✓ dropped_iterations.............: 0       0/s
+   ✓ flow_duration..................: avg=672.17ms min=442ms    med=665.5ms  p(90)=860.6ms  p(95)=916.1ms  p(99)=957.03ms max=962ms   
+   ✓ holds_created..................: 50      51.58552/s
+   ✓ holds_rejected.................: 250     257.927598/s
+     http_req_blocked...............: avg=3.68ms   min=500ns    med=4.6µs    p(90)=15.14ms  p(95)=25.32ms  p(99)=25.68ms  max=25.79ms 
+     http_req_connecting............: avg=597.47µs min=0s       med=0s       p(90)=559.35µs p(95)=5.6ms    p(99)=9.73ms   max=17.55ms 
+     http_req_duration..............: avg=306.34ms min=69.08ms  med=279.69ms p(90)=494.55ms p(95)=519.08ms p(99)=579.12ms max=608.33ms
+       { expected_response:true }...: avg=306.34ms min=69.08ms  med=279.69ms p(90)=494.55ms p(95)=519.08ms p(99)=579.12ms max=608.33ms
+     ✓ { name:bookable-classes }....: avg=189.23ms min=69.08ms  med=186.01ms p(90)=270.79ms p(95)=289.47ms p(99)=311.94ms max=330.2ms 
+     ✓ { name:bookings }............: avg=492.96ms min=457.31ms med=489.34ms p(90)=519.59ms p(95)=523.68ms p(99)=524.93ms max=525.12ms
+     ✓ { name:seat-holds }..........: avg=392.34ms min=172.11ms med=402.08ms p(90)=508ms    p(95)=540.39ms p(99)=602.76ms max=608.33ms
+   ✓ http_req_failed................: 0.00%   0 out of 650
+     http_req_receiving.............: avg=341.64µs min=11.62µs  med=201.66µs p(90)=761.62µs p(95)=1.12ms   p(99)=3.01ms   max=7.29ms  
+     http_req_sending...............: avg=91.6µs   min=2.66µs   med=15.95µs  p(90)=132.62µs p(95)=185.91µs p(99)=1.43ms   max=8.46ms  
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=305.91ms min=68.4ms   med=279.28ms p(90)=494.47ms p(95)=518.89ms p(99)=578.86ms max=608.08ms
+     http_reqs......................: 650     670.611755/s
+     iteration_duration.............: avg=672.16ms min=441.37ms med=665.22ms p(90)=861.47ms p(95)=915.75ms p(99)=956.78ms max=961.54ms
+   ✓ iterations.....................: 300     309.513118/s
+   ✓ unexpected_answers.............: 0       0/s
+     vus............................: 30      min=30         max=30 
+     vus_max........................: 300     min=300        max=300
+
+
+RESULT burst: k6 exit 0; 300 distinct members all at once; seats filled 50/50 [5, 5, 5, 5, 5, 5, 5, 5, 5, 5] by 50 distinct members; answers: list 200 × 300, hold 201 × 50, hold 409 CLASS_FULL × 250, booking 201 × 50; seat-holds p95 540 ms, flow p95 916 ms (reported, not gated); overbooked classes []
+PASS E5 load and concurrency (ruling E28): peak thresholds met with 300 distinct members and all 50 seats booked; last seat 1 × 201 + 49 × 409; burst correct; zero overbooking
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

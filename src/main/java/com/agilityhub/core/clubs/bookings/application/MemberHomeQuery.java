@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
  * (`CLASS`), waiting-list entries (`CLASS_WAITLIST`), free-training bookings (`TRAINING`, {@link MemberTrainingRowsPort})
  * and activity registrations (`ACTIVITY`, {@link MemberActivityRowsPort}). Everything is decided here (R-08-20
  * instructor visibility included); module off removes its rows (§9). Activity registrations belong to the member, not
- * to a dog, so the dog filter keeps them.
+ * to a dog, so the dog filter keeps them. `dogName` is sent only with «Tots» (T-08-12: «amb {gos} només amb Tots»): with a
+ * dog selected every row is that dog's. The class labels of the CLASS and CLASS_WAITLIST rows come from one class query.
  */
 @Service
 public class MemberHomeQuery {
@@ -34,11 +35,14 @@ public class MemberHomeQuery {
         this.views = views; this.training = training; this.activities = activities; this.feed = feed; this.messages = messages;
     }
     private record Entry(Instant startsAt, Map<String, Object> row) { }
+    private static final ClassSessionBookingAccess.Labels EMPTY = new ClassSessionBookingAccess.Labels("", null, null, List.of(), "");
 
     public Map<String, Object> home(String memberId, String dogId) {
         var member = census.member(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        var chips = dogs.chips(memberId); var names = new HashMap<String, String>(); chips.forEach(c -> names.put(c.id(), c.dog().name()));
-        if (dogId != null && !names.containsKey(dogId)) { throw new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE); }
+        var chips = dogs.chips(memberId);
+        if (dogId != null && chips.stream().noneMatch(c -> c.id().equals(dogId))) { throw new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE); }
+        var names = new HashMap<String, String>();
+        if (dogId == null) { chips.forEach(c -> names.put(c.id(), c.dog().name())); }
         List<String> filtered = dogId == null ? chips.stream().map(MemberDogs.Chip::id).toList() : List.of(dogId);
         var now = context.now(); var locale = LocaleContext.current();
         var out = new LinkedHashMap<String, Object>();
@@ -48,7 +52,6 @@ public class MemberHomeQuery {
         out.put("limits", limits(filtered, now));
         var rows = new ArrayList<Entry>();
         classRows(filtered, names, now, locale, rows);
-        if (context.enabled(Module.WAITLIST)) { waitlistRows(filtered, names, now, locale, rows); }
         if (context.enabled(Module.FREE_TRAINING)) {
             String title = messages.format("bookings.home.trainingTitle", Map.of(), locale);
             for (var t : training.upcoming(memberId, filtered, now)) {
@@ -82,23 +85,26 @@ public class MemberHomeQuery {
                 "currentWeek", BookingViews.map("count", counts.getOrDefault(current.key(), 0), "max", context.integer("bookings.maxCurrentWeek"), "weekKey", current.key()),
                 "nextWeek", BookingViews.map("count", counts.getOrDefault(next.key(), 0), "max", context.integer("bookings.maxNextWeek"), "weekKey", next.key()));
     }
+    /** CLASS rows, and CLASS_WAITLIST rows with WAITLIST on; the labels of both come from one class query. */
     private void classRows(List<String> dogIds, Map<String, String> names, Instant now, Locale locale, List<Entry> rows) {
         if (dogIds.isEmpty()) { return; }
         int hours = context.integer("bookings.showInstructorHoursBefore");
         // A class lasts well under a day: starting after now − 1 day covers every class still running.
-        for (var b : bookings.forDogs(dogIds, BookingRepository.LIVE, now.minusSeconds(86_400), null)) {
-            if (!b.classEndsAt().isAfter(now)) { continue; }
-            var labels = views.labelsOf(b);
+        var live = bookings.forDogs(dogIds, BookingRepository.LIVE, now.minusSeconds(86_400), null).stream().filter(b -> b.classEndsAt().isAfter(now)).toList();
+        var waiting = context.enabled(Module.WAITLIST) ? waitlist.liveForDogs(dogIds, now) : List.<WaitlistEntry>of();
+        var ids = new ArrayList<String>(); live.forEach(b -> ids.add(b.classSessionId())); waiting.forEach(e -> ids.add(e.classSessionId()));
+        var labelsById = ids.isEmpty() ? Map.<String, ClassSessionBookingAccess.Labels>of() : classes.labels(ids, locale);
+        for (var b : live) {
+            // Bookings are never deleted (BR-12): a class that no longer exists keeps empty labels.
+            var labels = labelsById.getOrDefault(b.classSessionId(), EMPTY);
             var visibility = InstructorVisibility.of(labels.instructorNames() == null || labels.instructorNames().isBlank() ? null : labels.instructorNames(),
                     now, b.classStartsAt(), hours, false);
             rows.add(new Entry(b.classStartsAt(), row("CLASS", b.id(), b.state() == BookingState.PAYMENT_PENDING ? "PAYMENT_PENDING" : "CONFIRMED", b.dogId(),
                     names.get(b.dogId()), title(labels.description(), locale), b.classStartsAt(), views.local(b.classStartsAt()), views.local(b.classEndsAt()),
                     labels.ringName(), visibility.instructorName(), visibility.instructorVisibleAt())));
         }
-    }
-    private void waitlistRows(List<String> dogIds, Map<String, String> names, Instant now, Locale locale, List<Entry> rows) {
-        for (var e : waitlist.liveForDogs(dogIds, now)) {
-            var labels = classes.find(e.classSessionId()).map(views::labels).orElse(null);
+        for (var e : waiting) {
+            var labels = labelsById.get(e.classSessionId());
             rows.add(new Entry(e.classStartsAt(), row("CLASS_WAITLIST", e.id(), "WAITLISTED", e.dogId(), names.get(e.dogId()),
                     title(labels == null ? "" : labels.description(), locale), e.classStartsAt(), views.local(e.classStartsAt()), null,
                     labels == null ? null : labels.ringName(), null, null)));

@@ -7,7 +7,6 @@ import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.application.TimeZoneProvider;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.time.Duration;
 import java.time.ZoneId;
@@ -25,8 +24,8 @@ public class ClubConfigService implements TimeZoneProvider {
     private final ParameterCatalog catalog;
     private final CountryProfileRegistry countries;
     private final ParameterValidator validator = new ParameterValidator();
-    private final Cache<String, ClubConfig> cache = Caffeine.newBuilder().maximumSize(10000)
-            .expireAfterWrite(Duration.ofMinutes(5)).build();
+    private final com.agilityhub.core.shared.application.CacheLoads<String, ClubConfig> cache = com.agilityhub.core.shared.application.CacheLoads.of(
+            Caffeine.newBuilder().maximumSize(10000).expireAfterWrite(Duration.ofMinutes(5)).build());
     public ClubConfigService(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog, CountryProfileRegistry countries) {
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.countries = countries;
     }
@@ -37,7 +36,7 @@ public class ClubConfigService implements TimeZoneProvider {
             // Declarative applies validate dependent catalogs against the same transaction's club and parameters.
             // Uncommitted configuration must never enter the shared cache.
             if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) { return load(clubId); }
-            return com.agilityhub.core.shared.application.CacheLoads.get(cache, clubId, this::load);
+            return cache.get(clubId, this::load);
         }
     }
     public void invalidate(String clubId) { cache.invalidate(clubId); }

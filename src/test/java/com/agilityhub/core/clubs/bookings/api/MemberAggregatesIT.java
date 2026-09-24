@@ -115,6 +115,9 @@ class MemberAggregatesIT extends BookingFixtures {
         var duna = home("laura", "s08-d-duna", 200);
         assertThat(duna.path("selectedDogId").asText()).isEqualTo("s08-d-duna");
         assertThat(duna.path("reservations")).extracting(r -> r.path("type").asText()).containsExactly("CLASS", "CLASS_WAITLIST", "ACTIVITY");
+        // «amb {gos} només amb Tots»: with a dog selected no row names it, and the class labels still come through.
+        assertThat(duna.path("reservations")).allSatisfy(r -> assertThat(r.path("dogName").isNull()).isTrue());
+        assertThat(duna.at("/reservations/0/title").asText()).isEqualTo("Classe Classe wed"); assertThat(duna.at("/reservations/1/ringName").asText()).isEqualTo("Central");
         assertThat(duna.at("/limits/currentWeek/count").asInt()).isEqualTo(1); assertThat(duna.at("/limits/nextWeek/count").asInt()).isZero();
         // A CANCELLED_LATE booking still counts, an in-time cancellation does not (R-08-02).
         clock.setInstant(local("2026-10-07T18:00"));
@@ -152,7 +155,9 @@ class MemberAggregatesIT extends BookingFixtures {
         assertThat(home("laura", null, 200).path("reservations")).extracting(r -> r.path("type").asText()).containsExactly("ACTIVITY");
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.ACTIVITIES).toArray(Module[]::new));
         assertThat(home("laura", null, 200).path("reservations")).isEmpty();
-        assertThat(bookable("laura", "s08-d-duna", 200).path("activities")).isEmpty();
+        // S08 §9 «04 sense bloc Activitats»: the block is absent (null), like `pack` and `singleClass`.
+        var noBlock = bookable("laura", "s08-d-duna", 200).path("activities");
+        assertThat(noBlock.isNull() || noBlock.isMissingNode()).as("activities without ACTIVITIES: %s", noBlock).isTrue();
         modules(Module.values());
         assertThat(home("laura", null, 200).path("reservations")).extracting(r -> r.path("type").asText()).containsExactly("ACTIVITY");
     }

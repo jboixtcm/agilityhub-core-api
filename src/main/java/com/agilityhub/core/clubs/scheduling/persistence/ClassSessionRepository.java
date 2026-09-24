@@ -29,6 +29,11 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
         if (saved == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
         return saved;
     }
+    /** The club's classes with these ids, in one query (E5-T06 round 2: the labels of the rows of `GET /me/home`). */
+    public java.util.List<ClassSession> findAllById(java.util.Collection<String> ids) {
+        if (ids.isEmpty()) { return java.util.List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(ids)), ClassSession.class);
+    }
     public java.util.List<ClassSession> between(java.time.Instant from, java.time.Instant to) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("startsAt").lt(to).and("endsAt").gt(from)), ClassSession.class);
     }

@@ -21,7 +21,8 @@ public class BookingContext {
     /**
      * Demo seed only (E4-T05 timeline, E5-T06 scenario): the seeded classes are not yet bookable on the run date, so the
      * seed books, cancels and trains «as of» a scenario instant (S09 reads the same instant through `TrainingContext`).
-     * Every rule runs unchanged; only the evaluation instant moves.
+     * Every rule runs unchanged; only the evaluation instant moves. Only `Demo*` seed classes may call it (ArchUnit
+     * `BOOKING_TIME_OVERRIDE`, E5-T06 round 2).
      */
     public <T> T asOf(Instant instant, java.util.function.Supplier<T> work) {
         var previous = asOf.get(); asOf.set(instant);

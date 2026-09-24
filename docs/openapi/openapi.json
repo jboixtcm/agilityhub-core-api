@@ -1535,11 +1535,11 @@
       "BookableClasses" : {
         "properties" : {
           "activities" : {
-            "description" : "Empty without ACTIVITIES",
+            "description" : "Absent (null) without ACTIVITIES (S08 §9)",
             "items" : {
               "$ref" : "#/components/schemas/BookableActivity"
             },
-            "type" : "array"
+            "type" : [ "array", "null" ]
           },
           "bookingBlock" : {
             "anyOf" : [ {
@@ -1580,7 +1580,7 @@
             "description" : "Only with SINGLE_CLASS and a SINGLE_CLASS plan"
           }
         },
-        "required" : [ "activities", "classes", "dog", "dogs" ],
+        "required" : [ "classes", "dog", "dogs" ],
         "type" : "object"
       },
       "BookableDog" : {
@@ -9501,6 +9501,7 @@
             "type" : [ "string", "null" ]
           },
           "dogName" : {
+            "description" : "Only with «Tots» (no dogId); null when a dog is selected (T-08-12)",
             "type" : [ "string", "null" ]
           },
           "endsAtLocal" : {

@@ -1,5 +1,6 @@
 package com.agilityhub.core.arch;
 
+import com.agilityhub.core.clubs.bookings.application.BookingContext;
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
 import com.agilityhub.core.shared.application.DemoSeedActor;
 import com.agilityhub.core.shared.domain.DomainEvent;
@@ -17,6 +18,9 @@ class SeedAndWriterRulesTest {
     }
     static final class WritesTheClassCounters {
         Object run(ClassSessionBookingAccess classes) { return classes.counters("class", 1, 0, ClassSessionBookingAccess.LowAlert.KEEP); }
+    }
+    static final class MovesTheBookingTime {
+        Object run(BookingContext context) { return context.asOf(Instant.EPOCH, () -> "work"); }
     }
     record SneakyForeignEvent(String type, String clubId, String aggregateType, String aggregateId, Instant occurredAt, Map<String, Object> payload,
             String actorAccountId, String impersonatedMemberId, Origin origin) implements DomainEvent { }
@@ -36,6 +40,14 @@ class SeedAndWriterRulesTest {
         assertThat(result.getFailureReport().getDetails()).anyMatch(line -> line.contains("ClassSessionBookingAccess.counters"));
     }
 
+    @Test void E5_T06_onlyDemoSeedClassesMayMoveTheBookingTime() {
+        var result = ArchitectureRules.BOOKING_TIME_OVERRIDE.evaluate(new ClassFileImporter().importClasses(MovesTheBookingTime.class));
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails()).anyMatch(line -> line.contains("BookingContext.asOf"));
+        assertThatCode(() -> ArchitectureRules.BOOKING_TIME_OVERRIDE.check(new ClassFileImporter().importClasses(DemoRuleFixtureSeeder.class,
+                DemoRuleFixtureSeeder.Nested.class, RunsAsTheSeedActor.class))).doesNotThrowAnyException();
+    }
+
     @Test void E5_T09_aConsumerEnvelopeThatIsADomainEventIsAViolation() {
         assertThat(ArchitectureRules.CONSUMER_ENVELOPES.evaluate(new ClassFileImporter().importClasses(SneakyForeignEvent.class)).hasViolation()).isTrue();
         assertThatCode(() -> ArchitectureRules.CONSUMER_ENVELOPES.check(new ClassFileImporter().importClasses(
@@ -47,6 +59,7 @@ class SeedAndWriterRulesTest {
 /** A top-level `Demo*` class (and its nested classes) may run as the seed actor. */
 final class DemoRuleFixtureSeeder {
     Object run() { return DemoSeedActor.as("account", "MEMBER", () -> "work"); }
+    Object asOf(BookingContext context) { return context.asOf(Instant.EPOCH, () -> "work"); }
     static final class Nested {
         Object run() { return DemoSeedActor.as("account", "INSTRUCTOR", () -> "work"); }
     }

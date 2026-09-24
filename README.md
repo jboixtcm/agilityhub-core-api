@@ -501,7 +501,8 @@ bin/core club:apply seeds/club-fifo.yaml                                   # fic
 bin/core seed:demo --club=fifo --seed=42 --week-start=<the same Monday>
 curl -fsS -X POST localhost:8080/api/v1/test/clock -H 'Content-Type: application/json' -d '{"instant":"<that Monday 07:00 local, in UTC>"}'
 bin/e5-smoke            # gate E5 (back) on a disposable Compose stack, twice-safe (fresh stack per run)
-bin/e5-perf             # k6 peak (300 VUs) and last-seat (50 VUs) with the zero-overbooking check; see perf/README.md
+bin/e5-perf             # k6 (ruling E28) on the load-test club seeds/club-perf.yaml: peak 300 distinct members in 5 s,
+                        # last seat 50 at once, burst; zero-overbooking check; see perf/README.md
 ```
 
 The E5 scenario (`seeds/README.md`) is applied only when `--week-start` is the

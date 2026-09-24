@@ -43,7 +43,7 @@ public final class BookingContracts {
     public record WeekCount(int count, int max, @Schema(description = "bookingWeekKey YYYY-MM-DD (R-08-01)") String weekKey) { }
     public record ReservationRow(ReservationType type, String id, ReservationState state,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogId,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName, String title,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with «Tots» (no dogId); null when a dog is selected (T-08-12)") String dogName, String title,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant startsAt,
             @Schema(description = LOCAL) String startsAtLocal,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = LOCAL) String endsAtLocal,
@@ -58,7 +58,7 @@ public final class BookingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with PACKS and a PACK plan") PackCard pack,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with SINGLE_CLASS and a SINGLE_CLASS plan") SingleClassTerms singleClass,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) BookingBlockNotice bookingBlock,
-            @Schema(description = "Empty without ACTIVITIES") List<BookableActivity> activities, List<BookableClass> classes) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Absent (null) without ACTIVITIES (S08 §9)") List<BookableActivity> activities, List<BookableClass> classes) { }
     public record BookableDog(String id, String name, @Schema(allowableValues = {"MALE", "FEMALE"}) String sex,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelName, boolean own) { }

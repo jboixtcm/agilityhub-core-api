@@ -246,7 +246,7 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
             }
         }
         var sources = new ArrayList<>(List.of(Path.of("seeds/demo-canic.yaml"), Path.of("seeds/club-canic.yaml"), Path.of("seeds/demo-fifo.yaml"),
-                Path.of("seeds/club-fifo.yaml")));
+                Path.of("seeds/club-fifo.yaml"), Path.of("seeds/demo-perf.yaml"), Path.of("seeds/club-perf.yaml")));
         try (var files = Files.walk(Path.of("src/main/java"))) { files.filter(p -> p.getFileName().toString().startsWith("Demo")).forEach(sources::add); }
         assertThat(sources).hasSizeGreaterThan(8);
         for (var source : sources) {

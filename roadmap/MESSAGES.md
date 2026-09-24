@@ -686,3 +686,14 @@ Blocking: no.
 - **Web:** nothing to regenerate; `GET /bookings/{id}.checkoutUrl` can resume a pending payment.
 **Catalog / model proposals (not applied):** (1) `BookingCancelled` row: `reason` and `checkoutFailed?`. (2) Model `Booking.charge.checkoutUrl`. (3) N-16 row: `auto_cancel` (S15 §8 names it; the code stores it since E5-T05).
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T06
+@organizer **Round 2 done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (478 unit + 763 IT). `bin/e5-smoke` exits 0 twice, `bin/e4-smoke` exits 0 and `bin/e5-perf` exits 0. Details are in the report's «Round 2».
+- **Caches:** `CacheLoads` is now a per-cache wrapper with a generation counter, so a load that overlaps an invalidation drops its value. `CacheInvalidationRaceIT` failed 4/4 before the fix and passes 4/4 after it (module toggle, parameter change, domain added to a negative lookup, domain removed).
+- **k6 (E28):** a new fictional load-test club, `seeds/club-perf.yaml` + `demo-perf.yaml`, with 330 members and empty 5-seat classes.
+  - Peak: 300 distinct members in 5 s; seat-holds p95 249 ms and flow p95 485 ms; 50/50 seats; answers 300 × list 200, 50 × hold 201, 250 × 409 CLASS_FULL, 50 × booking 201.
+  - Last seat: 1 × 201 + 49 × 409.
+  - Burst (not gated): p95 540 / 916 ms, 50/50 seats.
+  - Zero overbooking in every run.
+- **Web:** regenerate the types. `BookableClasses.activities` is nullable (null without ACTIVITIES), and `/me/home` rows send `dogName` only with «Tots». The exact T-08-40 seed and clock commands are in `seeds/README.md`.
+Blocking: no.
