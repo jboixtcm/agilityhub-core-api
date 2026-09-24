@@ -351,8 +351,9 @@ Modalitats (`active = true`; `conditions` i textos en `ca` = literals del mockup
 | PACK6 | Pack 6 | PACK | 1 | NONE | 6 · 3 | true | true | 20 | només un cop | — |
 | PACK10 | Pack 10 | PACK | 1 | NONE | 10 · 5 | true | true | 30 | només un cop · després 40% dte. en matrícula | — |
 | TERAPIA | Teràpia | MONTHLY | 1 | PERCENT 50 | — | true | true | 40 | pagament inicial a compte del 50% de l'entrada i quota manteniment en tant no es faci classe en grup | description: «Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.» · priceLabel: «condicions i cost segons cada cas» |
+| COMPETICIO_1 | Competició 1 gos | MONTHLY | 1 | STANDARD | — | false | false | 50 | competició · 1 gos | — (B34, 24-09: preu del Jordi; la resta són assumpcions canviables) |
 
-`billingMode` del seed (Josep 08-09): **TERAPIA = `MAINTENANCE`** (l'alta en aquesta modalitat cobra la quota de manteniment cada mes fins que l'admin la canviï, p. ex. a ABONAT); ABONAT i ABONAT_FAMILIAR = `MONTHLY_FEE`; els `PACK` no en tenen. La condició de PACK10 («després 40% dte. en matrícula») és ara una regla real: R-05-18b amb `billing.packToMemberEntryDiscountPercent = 40` i `billing.packToMemberMinSessions = 10`.
+`billingMode` del seed (Josep 08-09): **TERAPIA = `MAINTENANCE`** (l'alta en aquesta modalitat cobra la quota de manteniment cada mes fins que l'admin la canviï, p. ex. a ABONAT); ABONAT, ABONAT_FAMILIAR i COMPETICIO_1 = `MONTHLY_FEE`; els `PACK` no en tenen. La condició de PACK10 («després 40% dte. en matrícula») és ara una regla real: R-05-18b amb `billing.packToMemberEntryDiscountPercent = 40` i `billing.packToMemberMinSessions = 10`.
 
 Preus (`taxPercent = 0`, `validTo = null`, moneda EUR):
 
@@ -363,6 +364,7 @@ Preus (`taxPercent = 0`, `validTo = null`, moneda EUR):
 | PACK6 | PACK | 13500 | «135 € · 3 mesos» |
 | PACK10 | PACK | 18000 | «180 € · 5 mesos» |
 | TERAPIA | MAINTENANCE_FEE | 1000 | «quota mínima durant el tractament: 10 €/mes» (+ «Entrada a compte: 50 €» de R-05-18) |
+| COMPETICIO_1 | MONTHLY_FEE | 4000 | «40 €/mes» (B34) |
 
 FAQ (`active = true`; només la resposta 5 és literal del mockup 30; la resta són **provisionals** fins que el Josep les redacti, §13):
 
@@ -414,3 +416,4 @@ Instructors i administradors van al **`demo-seed`** (necessiten abonats ficticis
 - 24-09-2026 · E29: camp `Level.progression` (per defecte sí; Teràpia = no) per a la descripció automàtica «… i sup.» d'S06 R-06-03; columna «Progressió» a la targeta Nivells de D11 i al seed.
 - 24-09-2026 · B32 (Josep): nivell `PENDENT` «Pendent» al seed (fora de la progressió, sense classes; els 6 gossos de Playoff sense avaluar); `progression` també decideix la cobertura de D3.
 - 24-09-2026 · verificació d'E5-T09 i E5-T11: `RING_HAS_BOOKINGS` és **422** (regla 0 del catàleg; R-05-07, R-05-08, T-05-12, T-05-28) i l'API pública amb clau respon **403** `INVALID_API_KEY` abans de mirar el club (R-05-21, files §6 de plans i pàgines, T-05-18).
+- 24-09-2026 · B34 (Jordi): modalitat `COMPETICIO_1` «Competició 1 gos», 40 €/mes; «Instructors» no és cap modalitat (els instructors es migren sense modalitat).

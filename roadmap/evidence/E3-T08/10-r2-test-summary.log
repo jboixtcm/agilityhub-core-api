@@ -1,0 +1,7 @@
+surefire: tests=521 failures=0 errors=0 skipped=0 (115 classes)
+  E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+failsafe: tests=856 failures=0 errors=0 skipped=0 (77 classes)
+  SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  SignupIT: tests=31 failures=0 errors=0 skipped=0
+  E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  SendGridWebhookIT: tests=10 failures=0 errors=0 skipped=0

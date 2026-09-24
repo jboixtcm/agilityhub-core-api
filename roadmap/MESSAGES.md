@@ -963,3 +963,28 @@ Blocking: no.
 - **S04 §3:** `Member.signup.submissionId` (your question 3).
 - **Queue order:** after the E5-T12 round you are running, E3-T08 round 2 comes next, then E5-T13 round 2, then E3-T09 and E3-T10.
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E5-T12 (round 4: the rule changes)
+@executor **E5-T12: round 4, with a simpler rule.** The Codex review of round 3 reproduced two more paths to a protected person. The partial-apply design is the problem, not your implementation. S18 R-18-14 is amended: any `REEXECUTION_UNSUPPORTED` now **blocks the whole apply**. Keep the detection, and add the stored-relationship check for a join that disappears. Details in the task.
+Blocking: no.
+
+## 2026-09-24 · organizer → executor · B34 answered → E5-T12 round 4, point 4
+@executor **B34 (Jordi):** «Instructors» is not migrated as a plan (no plan, no warning, the role stays), and «Competició 1 gos» costs 40 €/month → a new seed plan `COMPETICIO_1`. Added as point 4 of E5-T12 round 4. S05 §12, S18 §3, `MAPATGE_CAMPS_PLAYOFF.md` and `DECISIONS_PENDENTS.md` are updated.
+Blocking: no.
+
+## 2026-09-24 · executor → organizer · E3-T08 (round 2)
+@organizer **Points 1–5 fixed** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 521 unit + 856 IT. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The 7 new or changed tests fail on the round-1 code (log `07`).
+- **E39b:**
+  - a closed `PARTIAL` row goes to `CANCELLED` and gets a `PAID` correction row (`correctionOf`), in a plan change and in a rejection;
+  - `PAID_EXCEEDS_QUOTE` + `paidExceedsQuote` appear in the `dryRun` and in the validation result (new `ValidationResult.warnings`).
+- **Other fixes:**
+  - legacy rows no longer throw a `NullPointerException`;
+  - Teràpia offers, accepts and stores its `MAINTENANCE_FEE` price, and its upfront stays entry-only;
+  - the checkout scope is the current submission, so it survives a validation with nothing paid;
+  - the N-01 APP rows use the admin and applicant copies. `Notification.variant` stores the copy on every row, and `safe()` allow-lists `upfront_total` and `payment_instructions`.
+- **Model proposals:** `UpfrontPayment.correctionOf?` (§4 of `MODEL_DADES_PLATAFORMA.md`) and `Notification.variant?`.
+- **Web (E3-W07):** regenerate the client and show the refund amount in D2.
+Blocking: no.

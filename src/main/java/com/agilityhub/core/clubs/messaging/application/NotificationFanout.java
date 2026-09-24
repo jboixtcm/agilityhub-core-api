@@ -71,7 +71,7 @@ public class NotificationFanout {
             for (Row row : rows) {
                 if (existing.contains(row.id())) { continue; }
                 fresh.add(new Notification(row.id(), club, row.accountId(), code, channel, status, null, status == Notification.Status.SENT ? now : null,
-                        null, null, row.locale(), now));
+                        null, null, row.locale(), now, null));
                 variables.put(row.id(), row.variables());
             }
             notifications.insertBatch(fresh, variables);

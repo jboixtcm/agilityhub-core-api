@@ -6,5 +6,7 @@ public enum SignupWarning {
     NO_IMAGE_CONSENT, ACCOUNT_NOT_PROVIDED, DOCUMENT_PENDING,
     FAMILY_HOLDER_NOT_FOUND, UPFRONT_UNPAID, READMISSION,
     /** D2 `dryRun` only (S04 §5, E39): the plan change would be refused because a checkout of the submission is in progress. */
-    CHECKOUT_PENDING
+    CHECKOUT_PENDING,
+    /** D2 `dryRun` and validation (S04 §5, E39b): the plan change leaves more paid than the new quote; the club refunds it (S12). */
+    PAID_EXCEEDS_QUOTE
 }

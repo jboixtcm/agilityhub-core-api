@@ -36,6 +36,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     alphanumerics) in `POST /signup`, `POST /me/dogs/signup` and the D2 PATCH of a pending dog.
   - M12: `GET /members/{id}/signup.dogs[].version`. Flags `allowFamilyGroupPending`/`requireDogDocumentAtSignup` in
     `GET /signup`. E35: the D1 «Gossos per nivell» columns are the active progression levels; the rest count in `others`.
+- E3-T08 round 2 (review `roadmap/reviews/E3-T08-20260924-1756-codex.md`):
+  - E39b: a plan change or a rejection closes a `PARTIAL` row (`CANCELLED`, amounts untouched) and writes a `PAID`
+    correction row for the money received (`UpfrontPayment.correctionOf`); the new rows are «new quote − paid». Paid
+    beyond the new quote → `SignupWarning.PAID_EXCEEDS_QUOTE` + `paidExceedsQuote` in the `dryRun` and the validation
+    result. A rejection with a `PARTIAL` row answers `paidPaymentRequiresRefund: true`.
+  - Fixed: a plan change on legacy rows (no `submissionId`) threw a `NullPointerException` (500).
+  - A plan's billed price follows its billing mode: Teràpia (`MAINTENANCE`) offers, accepts and stores its
+    `MAINTENANCE_FEE` price (`planOptions`, `proposals.priceId`, `member.priceId`); its upfront stays entry-only.
+  - The checkout scope is the member's current submission, whatever its dogs' status, plus every pending dog: a
+    validation with nothing paid (R-04-16) no longer empties it.
+  - N-01 APP rows use the copies: the admins' row is `variant = admin`, the member's add-dog row the applicant copy
+    with `upfront_total` and `payment_instructions` (allow-listed). `Notification.variant` records the copy on every row.
 - E5-T14: follow-ups of the E5-T09 and E5-T11 reviews.
   - Demo `seed:demo --reanchor`: registrants go only into the weeks the run generated (`DemoSeedStep.Input.generatedWeeks`),
     never into a kept week. A kept, still-draft, non-past week whose `planning.weeks` row says `validate` is validated,

@@ -82,7 +82,12 @@ public class SystemNotificationService {
      */
     @Transactional(propagation = Propagation.NEVER)
     public void appOnce(String id,String code,String accountId,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> app(id,code,accountId,variables));
+        appOnceVariant(id,code,null,accountId,variables);
+    }
+    /** {@link #appOnce} with another copy (`variant`) of the same catalog code, stored on the row (E3-T08: the N-01 copies). */
+    @Transactional(propagation = Propagation.NEVER)
+    public void appOnceVariant(String id,String code,String variant,String accountId,Map<String,Object> variables) {
+        transactions.executeWithoutResult(tx -> app(id,code,variant,accountId,variables));
     }
     @Transactional(propagation = Propagation.NEVER)
     public void smsIntentOnce(String id,String code,String accountId,String locale,java.util.List<String> phones,
@@ -99,7 +104,7 @@ public class SystemNotificationService {
      * entry's `offerNotifiedAt` (E5-T11/E5-T14). The same holds for the SMS and PUSH variants below.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void appOnceInTransaction(String id,String code,String accountId,Map<String,Object> variables) { app(id,code,accountId,variables); }
+    public void appOnceInTransaction(String id,String code,String accountId,Map<String,Object> variables) { app(id,code,null,accountId,variables); }
     @Transactional(propagation = Propagation.MANDATORY)
     public void smsIntentOnceInTransaction(String id,String code,String accountId,String locale,java.util.List<String> phones,
             String body,boolean enabled,Map<String,Object> variables) {
@@ -109,24 +114,24 @@ public class SystemNotificationService {
     public void pushIntentOnceInTransaction(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
         push(id,code,accountId,locale,enabled,variables);
     }
-    private void app(String id,String code,String accountId,Map<String,Object> variables) {
+    private void app(String id,String code,String variant,String accountId,Map<String,Object> variables) {
         if(notifications.findScoped(id).isPresent()) return;
         var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant()));
+        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant(),variant));
         notifications.appContent(id,variables);
         events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
     }
     private void sms(String id,String code,String accountId,String locale,java.util.List<String> phones,String body,boolean enabled,Map<String,Object> variables) {
         if(notifications.findScoped(id).isPresent()) return;
         notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"SMS",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
-                null,null,null,null,locale,clock.instant()));
+                null,null,null,null,locale,clock.instant(),null));
         notifications.smsContent(id,phones,body,variables);
         events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
     }
     private void push(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
         if(notifications.findScoped(id).isPresent()) return;
         notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"PUSH",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
-                null,null,null,null,locale,clock.instant()));
+                null,null,null,null,locale,clock.instant(),null));
         notifications.content(id,"PUSH",variables);
         events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
     }
@@ -145,7 +150,7 @@ public class SystemNotificationService {
         if (clubId != null) { tags.put("clubId", clubId); }
         var email = renderer.render(code, variant, account.email(), locale, variables, settings, tags);
         var notification = new Notification(id, clubId, account.id(), code, "EMAIL", Notification.Status.QUEUED,
-                null, null, null, account.email(), locale.toLanguageTag(), clock.instant());
+                null, null, null, account.email(), locale.toLanguageTag(), clock.instant(), variant);
         transactions.executeWithoutResult(tx -> {
             if (notifications.findScoped(id).isEmpty()) {
                 notifications.queue(notification);

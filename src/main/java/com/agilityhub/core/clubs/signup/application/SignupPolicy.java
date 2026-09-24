@@ -17,7 +17,17 @@ public class SignupPolicy {
     public record PlanPrice(String priceId, Money amount, String periodicity, String concept) { }
     public record Plan(String id, String type, String billingMode, int dogsIncluded, LocalizedText name,
             LocalizedText description, LocalizedText conditions, LocalizedText offerLabel, Map<String,Integer> pack,
-            Price price, Money entryFee, Money maintenanceFee, List<PlanPrice> prices) { }
+            Price price, Money entryFee, Money maintenanceFee, List<PlanPrice> prices) {
+        /**
+         * The price the member is billed on (`Member.priceId`), picked by the plan's billing mode (E3-T08 round 2):
+         * `MAINTENANCE` → the current `MAINTENANCE_FEE` price (Teràpia); otherwise the plan's standard price. `price` stays
+         * the standard one, so the public offer and the upfront quote do not change (R-04-09, R-04-14).
+         */
+        public Price billedPrice() {
+            if (!"MAINTENANCE".equals(billingMode)) { return price; }
+            return prices.stream().filter(p -> "MAINTENANCE_FEE".equals(p.concept())).findFirst().map(p -> new Price(p.priceId(), p.amount(), p.periodicity())).orElse(null);
+        }
+    }
     public record Line(String concept, String dogId, Money amountDue) { }
     public record Period(String option, LocalDate startDate, Money amountDue) { }
     public record Quote(List<Line> lines, Money totalDue, Period firstMonth, Period additionalDog) { }

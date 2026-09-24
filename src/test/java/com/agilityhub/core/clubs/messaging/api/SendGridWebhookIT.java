@@ -61,7 +61,7 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
         accounts.save(new Account("webhook-account", "webhook@example.test", "Example Person", "en", null, Set.of(), Account.Status.ACTIVE,
                 new Account.Security(0, null, null, 0), Map.of(), false, clock.instant()));
         mongo.insert(new Notification("webhook-notification", null, "webhook-account", "N-25", "EMAIL", Notification.Status.SENT,
-                "provider-example-id", clock.instant(), null, "webhook@example.test", "en", clock.instant()));
+                "provider-example-id", clock.instant(), null, "webhook@example.test", "en", clock.instant(), null));
     }
     private byte[] event(String id, String type, String notification, String club, String email) throws Exception {
         var values = new java.util.HashMap<String, String>();

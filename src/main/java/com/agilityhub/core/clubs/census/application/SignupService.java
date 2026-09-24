@@ -45,9 +45,17 @@ public class SignupService implements SignupPaymentAccess {
     private static ApiException notPending() { return new ApiException(ErrorCode.INVALID_STATE,Map.of("reason","NOT_PENDING")); }
     /** S04 §5: the rows of a signup are those of each pending dog's own submission (`submissionId`). */
     private List<UpfrontPayments.Submission> scope(Member member,List<Dog> dogs) {
-        return dogs.stream().map(d -> new UpfrontPayments.Submission(d.id,string(map(d.signup==null?member.signup:d.signup).get("submissionId")))).toList();
+        return dogs.stream().map(d -> new UpfrontPayments.Submission(d.id,submissionOf(member,d))).toList();
     }
-    @Override public List<UpfrontPayments.Submission> submissions(String memberId) { return scope(access.mutableMember(memberId),pending(memberId)); }
+    private String submissionOf(Member member,Dog dog) { return string(map(dog.signup==null?member.signup:dog.signup).get("submissionId")); }
+    /**
+     * The rows a checkout may charge (E3-T08 round 2): those of the member's current submission, whatever its dogs' status
+     * (a validation with nothing paid, R-04-16, leaves them due), plus the own submission of every dog still pending.
+     */
+    @Override public List<UpfrontPayments.Submission> submissions(String memberId) {
+        var member=access.mutableMember(memberId);String current=string(map(member.signup).get("submissionId"));
+        return scope(member,dogs(memberId).stream().filter(d -> "PENDING".equals(d.status)||Objects.equals(current,submissionOf(member,d))).toList());
+    }
     public void lock() { access.members.lock();policy.lock(); }
     private boolean billing() { return access.enabled(Module.BILLING); }
     private String currency() { return access.config().club().currency(); }
@@ -334,7 +342,8 @@ public class SignupService implements SignupPaymentAccess {
             else if("ACTIVE".equals(member.status)) count=dogs(member.id).stream().filter(d -> !"INACTIVE".equals(d.status)).toList().size();
             if(count>=2&&plan!=null&&"MONTHLY_FEE".equals(plan.billingMode())) plan=policy.proposedFamilyFare(count).orElse(plan);
         }
-        if(request.get("priceId")!=null&&(plan==null||plan.price()==null||!request.get("priceId").equals(plan.price().id()))) throw new ApiException(ErrorCode.PLAN_NOT_AVAILABLE);
+        // The accepted price is the one the plan bills (its billing mode): Teràpia's maintenance price, the standard one otherwise.
+        if(request.get("priceId")!=null&&(plan==null||plan.billedPrice()==null||!request.get("priceId").equals(plan.billedPrice().id()))) throw new ApiException(ErrorCode.PLAN_NOT_AVAILABLE);
         return plan;
     }
     private SignupPolicy.Quote validationQuote(Member member,SignupPolicy.Plan plan,List<Dog> dogs) {
@@ -360,14 +369,16 @@ public class SignupService implements SignupPaymentAccess {
         if(holderId!=null) { var holder=access.members.require(holderId);claim.put("holder",object("id",holder.id,"fullName",fullName(holder),"isHolder",true)); }
         return object("member",queries.member(id,true),"dogs",dogs.stream().map(this::dogView).toList(),"signup",select(submission,"submittedAt","pendingDays","readmission","source","locale","planIdRequested"),
                 "familyGroupClaim",access.enabled(Module.FAMILY_GROUP)?claim:null,"upfront",billing()?reviewUpfront(member,dogs):null,
-                "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.price()==null?null:plan.price().id(),"familyGroupId",member.familyGroupId,
+                "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,
                 "nextInvoiceDate",quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),
                 // M8: the D2 plan selector; M11: D2 shows the age warning without calling /dashboard.
                 "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version());
     }
+    /** A D2 plan option offers the price validation accepts and `member.priceId` stores: the plan's billed price. */
     private Map<String,Object> planOption(SignupPolicy.Plan plan) {
+        var billed=plan.billedPrice();
         return object("planId",plan.id(),"name",resolved(plan.name()),"type",plan.type(),
-                "prices",plan.prices().stream().map(p -> object("priceId",p.priceId(),"amount",p.amount(),"periodicity",p.periodicity(),"concept",p.concept())).toList());
+                "prices",plan.prices().stream().filter(p -> billed!=null&&p.priceId().equals(billed.id())).map(p -> object("priceId",p.priceId(),"amount",p.amount(),"periodicity",p.periodicity(),"concept",p.concept())).toList());
     }
     private Map<String,Object> dogView(Dog dog) {
         // M12: the dog's own version is the one `PATCH /dogs/{id}` compares.
@@ -392,15 +403,17 @@ public class SignupService implements SignupPaymentAccess {
         var warnings=new ArrayList<>(warnings(member,dogs));Map<String,Object> upfront=null;
         if(billing()) {
             // The preview is what the validation will write: the rows as they are, or (plan change, S04 §5 / E39) the kept rows plus the new ones.
-            var scope=scope(member,dogs);List<UpfrontPayments.Line> lines;Money due,paid;
+            var scope=scope(member,dogs);List<UpfrontPayments.Line> lines;Money due,paid,exceeds=null;
             if(planChanged(member,plan,dogs)) {
                 var replacement=payments.replacement(id,scope,charges(quote));lines=replacement.lines();due=replacement.due(currency());paid=replacement.paid(currency());
                 if(replacement.checkoutPending()) warnings.add("CHECKOUT_PENDING");
+                // E39b: what was paid beyond the new quote stays paid; D2 warns so the club refunds it (S12).
+                exceeds=replacement.paidExceedsQuote();if(exceeds!=null) warnings.add("PAID_EXCEEDS_QUOTE");
             } else { lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency()); }
             upfront=object("lines",lineViews(lines.stream().map(l -> l.id()!=null?l:new UpfrontPayments.Line(UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),
-                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider())).toList()),"totalDue",due,"totalPaid",paid);
+                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds);
         }
-        return object("upfront",upfront,"price",billing()&&plan!=null?plan.price():null,"nextInvoiceDate",request.get("nextInvoiceDate")!=null?request.get("nextInvoiceDate"):quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"warnings",warnings);
+        return object("upfront",upfront,"price",billing()&&plan!=null?plan.billedPrice():null,"nextInvoiceDate",request.get("nextInvoiceDate")!=null?request.get("nextInvoiceDate"):quote.firstMonth()==null?member.nextInvoiceDate:policy.nextInvoice(quote.firstMonth()),"warnings",warnings);
     }
     private List<Dog> selection(Member member,Map<String,Object> request) {
         if(!Set.of("PENDING","ACTIVE").contains(member.status)) throw notPending();
@@ -426,7 +439,7 @@ public class SignupService implements SignupPaymentAccess {
         }
         if(billing()&&plan!=null&&"MONTHLY".equals(plan.type())&&!addDog&&request.get("nextInvoiceDate")==null) throw new ApiException(ErrorCode.NEXT_INVOICE_DATE_REQUIRED);
         String selectedId=plan==null?null:plan.id();var scope=scope(member,dogs);
-        if(planChanged(member,plan,dogs)) payments.replace(id,scope,charges(quote));
+        Money exceeds=planChanged(member,plan,dogs)?payments.replace(id,scope,charges(quote)).paidExceedsQuote():null;
         Money due=payments.due(id,scope,currency());
         if(billing()&&due.amountMinor()>0&&payments.lines(id,scope).stream().noneMatch(l -> "STRIPE".equals(l.provider())&&l.paidAmount().amountMinor()>0)&&request.get("upfrontAmountPaid")==null) throw invalid("upfrontAmountPaid","REQUIRED");
         if(request.get("upfrontAmountPaid")!=null) {
@@ -434,7 +447,7 @@ public class SignupService implements SignupPaymentAccess {
             payments.allocate(id,scope,mapper.convertValue(request.get("upfrontAmountPaid"),Money.class));
         }
         if(access.enabled(Module.FAMILY_GROUP)) joinFamily(member,request);
-        member.planId=selectedId;member.priceId=plan==null||plan.price()==null?null:plan.price().id();
+        member.planId=selectedId;member.priceId=plan==null||plan.billedPrice()==null?null:plan.billedPrice().id();
         if(request.get("nextInvoiceDate")!=null&&billing()) member.nextInvoiceDate=date(request.get("nextInvoiceDate"));
         boolean readmission=Boolean.TRUE.equals(map(member.signup).get("readmission"));
         if(!addDog) {
@@ -449,7 +462,8 @@ public class SignupService implements SignupPaymentAccess {
         if(!addDog) events.emit("MemberValidated","Member",id,object("memberId",id,"memberNumber",member.memberNumber,"dogs",rows(request.get("dogs")),"nextInvoiceDate",member.nextInvoiceDate,"upfrontPaymentIds",payments.lines(id,scope).stream().map(UpfrontPayments.Line::id).toList(),"familyGroupId",member.familyGroupId,"readmission",readmission));
         else for(var dog:dogs) events.emit("DogRegistered","Dog",dog.id,object("dogId",dog.id,"memberId",id,"levelId",!access.levels()?null:rows(request.get("dogs")).stream().filter(d -> dog.id.equals(d.get("dogId"))).findFirst().orElseThrow().get("levelId")));
         refreshDashboard();
-        return object("memberId",id,"number",member.memberNumber,"accountId",member.accountId,"dogIds",dogIds(dogs));
+        return object("memberId",id,"number",member.memberNumber,"accountId",member.accountId,"dogIds",dogIds(dogs),
+                "warnings",exceeds==null?List.of():List.of("PAID_EXCEEDS_QUOTE"),"paidExceedsQuote",exceeds);
     }
     private void joinFamily(Member member,Map<String,Object> request) {
         String groupId=string(request.get("familyGroupId"));String holderId=string(map(member.familyGroupClaim).get("holderMemberId"));FamilyGroup group=null;

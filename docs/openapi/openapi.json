@@ -12409,7 +12409,7 @@
             "type" : "string"
           },
           "prices" : {
-            "description" : "Current prices; empty without BILLING",
+            "description" : "The current price the plan bills (its billing mode: MAINTENANCE_FEE for a MAINTENANCE plan); the priceId validation accepts. Empty without BILLING or without a current price",
             "items" : {
               "$ref" : "#/components/schemas/SignupPlanOptionPrice"
             },
@@ -12751,6 +12751,10 @@
             },
             "type" : "array"
           },
+          "paidExceedsQuote" : {
+            "$ref" : "#/components/schemas/Money",
+            "description" : "dryRun only (S04 §5, E39b): what was paid beyond the new plan's quote; warning PAID_EXCEEDS_QUOTE"
+          },
           "totalDue" : {
             "$ref" : "#/components/schemas/Money"
           },
@@ -12762,7 +12766,7 @@
         "type" : "object"
       },
       "SignupWarning" : {
-        "enum" : [ "NO_IMAGE_CONSENT", "ACCOUNT_NOT_PROVIDED", "DOCUMENT_PENDING", "FAMILY_HOLDER_NOT_FOUND", "UPFRONT_UNPAID", "READMISSION", "CHECKOUT_PENDING" ],
+        "enum" : [ "NO_IMAGE_CONSENT", "ACCOUNT_NOT_PROVIDED", "DOCUMENT_PENDING", "FAMILY_HOLDER_NOT_FOUND", "UPFRONT_UNPAID", "READMISSION", "CHECKOUT_PENDING", "PAID_EXCEEDS_QUOTE" ],
         "type" : "string"
       },
       "SingleClassSettings" : {
@@ -14201,9 +14205,20 @@
           "number" : {
             "format" : "int32",
             "type" : "integer"
+          },
+          "paidExceedsQuote" : {
+            "$ref" : "#/components/schemas/Money",
+            "description" : "The amount paid beyond the new quote; the refund is S12's"
+          },
+          "warnings" : {
+            "description" : "PAID_EXCEEDS_QUOTE when the plan change left more paid than the new quote (S04 §5, E39b)",
+            "items" : {
+              "$ref" : "#/components/schemas/SignupWarning"
+            },
+            "type" : "array"
           }
         },
-        "required" : [ "accountId", "dogIds", "memberId", "number" ],
+        "required" : [ "accountId", "dogIds", "memberId", "number", "warnings" ],
         "type" : "object"
       },
       "WaitlistEntry" : {

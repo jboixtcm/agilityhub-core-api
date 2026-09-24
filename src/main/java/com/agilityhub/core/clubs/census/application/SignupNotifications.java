@@ -45,10 +45,11 @@ public class SignupNotifications {
                         applicant.put("payment_instructions",instructions==null?"":instructions);applicant.put("pay_link","");
                     }
                     notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
-                    if(member.accountId!=null&&"APP_ADD_DOG".equals(event.payload().get("source"))) notifications.appOnce(eventId+":member-app","N-01",member.accountId,applicant);
-                    // M9: the admins get their own copy (who applied, which dogs, which plan) with the D2 action.
+                    // The member's APP row (add-dog) is the applicant copy too: same variant, total and instructions (E3-T08 round 2).
+                    if(member.accountId!=null&&"APP_ADD_DOG".equals(event.payload().get("source"))) notifications.appOnceVariant(eventId+":member-app","N-01",variant,member.accountId,applicant);
+                    // M9: the admins get their own copy (who applied, which dogs, which plan) with the D2 action, on both channels.
                     var admins=new LinkedHashMap<>(variables);admins.put("action","OPEN_SIGNUP");admins.put("entityId",id);
-                    for(String admin:identities.admins()) { notifications.sendOnceVariant(eventId+":"+admin,"N-01","admin",admin,admins);notifications.appOnce(eventId+":"+admin+":app","N-01",admin,admins); }
+                    for(String admin:identities.admins()) { notifications.sendOnceVariant(eventId+":"+admin,"N-01","admin",admin,admins);notifications.appOnceVariant(eventId+":"+admin+":app","N-01","admin",admin,admins); }
                 }
                 case "SignupRejected" -> { variables.put("reason",event.payload().get("reason"));notifications.sendApplicantOnce(eventId,"N-03",email,locale,variables);if(Boolean.TRUE.equals(event.payload().get("memberWasActive"))) notifications.appOnce(eventId+":app","N-03",member.accountId,variables); }
                 case "DogRegistered" -> { var dog=access.dogs.findById(string(event.payload().get("dogId"))).orElse(null);if(dog!=null&&member.accountId!=null) notifications.appOnce(eventId,"N-37",member.accountId,object("dog_name",dog.name,"action","OPEN_DOG","entityId",dog.id)); }

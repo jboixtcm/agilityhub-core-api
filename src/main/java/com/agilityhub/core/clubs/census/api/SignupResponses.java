@@ -126,7 +126,8 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) String holderName, @Schema(requiredMode = NOT_REQUIRED) String dogName,
             @Schema(requiredMode = NOT_REQUIRED) FamilyMember holder) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record SignupUpfrontReview(List<UpfrontLine> lines, Money totalDue, Money totalPaid) { }
+    public record SignupUpfrontReview(List<UpfrontLine> lines, Money totalDue, Money totalPaid,
+            @Schema(requiredMode = NOT_REQUIRED, description = "dryRun only (S04 §5, E39b): what was paid beyond the new plan's quote; warning PAID_EXCEEDS_QUOTE") Money paidExceedsQuote) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupProposals(@Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
             @Schema(requiredMode = NOT_REQUIRED,format = "uuid") String planId,
@@ -147,14 +148,16 @@ public final class SignupResponses {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupPlanOption(@Schema(format = "uuid") String planId, String name,
             @Schema(allowableValues = {"MONTHLY", "PACK", "SINGLE_CLASS"}) String type,
-            @Schema(description = "Current prices; empty without BILLING") List<SignupPlanOptionPrice> prices) { }
+            @Schema(description = "The current price the plan bills (its billing mode: MAINTENANCE_FEE for a MAINTENANCE plan); the priceId validation accepts. Empty without BILLING or without a current price") List<SignupPlanOptionPrice> prices) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record ValidationDryRun(@Schema(requiredMode = NOT_REQUIRED) SignupUpfrontReview upfront,
             @Schema(requiredMode = NOT_REQUIRED) SignupPrice price,
             @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate, List<SignupWarning> warnings) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record ValidationResult(@Schema(format = "uuid") String memberId, int number,
-            @Schema(format = "uuid") String accountId, List<String> dogIds) { }
+            @Schema(format = "uuid") String accountId, List<String> dogIds,
+            @Schema(description = "PAID_EXCEEDS_QUOTE when the plan change left more paid than the new quote (S04 §5, E39b)") List<SignupWarning> warnings,
+            @Schema(requiredMode = NOT_REQUIRED, description = "The amount paid beyond the new quote; the refund is S12's") Money paidExceedsQuote) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record RejectionResult(@Schema(format = "uuid") String memberId, MemberStatus status, List<String> dogIds, @Schema(requiredMode = NOT_REQUIRED, description = "A collected payment remains recorded and requires a refund through billing") Boolean paidPaymentRequiresRefund) { }
 }

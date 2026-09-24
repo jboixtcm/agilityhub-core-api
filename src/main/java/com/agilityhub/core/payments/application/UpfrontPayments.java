@@ -36,7 +36,7 @@ public class UpfrontPayments {
     public String createForBooking(String memberId,Charge charge,String bookingId) {
         String id=UUID.randomUUID().toString();
         repository.insert(new UpfrontPayment(id,TenantContext.require(),memberId,charge.dogId(),charge.concept(),charge.concept(),charge.amount(),
-                new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null,bookingId,null));
+                new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null,bookingId,null,null));
         return id;
     }
     /** The rows of one submission (`POST /signup`, `POST /me/dogs/signup`); every row carries its `submissionId`. */
@@ -44,7 +44,7 @@ public class UpfrontPayments {
         for (var charge:charges) {
             repository.insert(new UpfrontPayment(UUID.randomUUID().toString(),TenantContext.require(),memberId,charge.dogId(),
                     "ADDITIONAL_DOG_FEE".equals(charge.concept())?"OTHER":charge.concept(),charge.concept(),charge.amount(),new Money(0,charge.amount().currency()),
-                    "DUE",null,null,clock.instant(),null,null,submissionId));
+                    "DUE",null,null,clock.instant(),null,null,submissionId,null));
         }
     }
     public Money due(String memberId,List<Submission> scope,String currency) { return due(lines(memberId,scope),currency); }
@@ -71,10 +71,14 @@ public class UpfrontPayments {
         }
         if (remaining>0) { throw new ApiException(ErrorCode.INVALID_STATE); }
     }
-    /** The rows a plan change would leave: what {@link #replace} writes, without writing (the D2 `dryRun`). */
-    public record Replacement(List<Line> kept,List<Line> cancelled,List<Charge> created,boolean checkoutPending) {
+    /**
+     * The rows a plan change would leave: what {@link #replace} writes, without writing (the D2 `dryRun`). `corrections` are
+     * the `PAID` rows that record what each closed `PARTIAL` row had received (E39b); `paidExceedsQuote` is what was paid
+     * beyond the new quote (`null` when nothing exceeds it; the refund is S12's).
+     */
+    public record Replacement(List<Line> kept,List<Line> cancelled,List<Line> corrections,List<Charge> created,boolean checkoutPending,Money paidExceedsQuote) {
         public List<Line> lines() {
-            var result=new ArrayList<>(kept);
+            var result=new ArrayList<>(kept);result.addAll(corrections);
             for (var charge:created) { result.add(new Line(null,charge.concept(),charge.dogId(),charge.amount(),new Money(0,charge.amount().currency()),"DUE",null)); }
             return result;
         }
@@ -82,19 +86,23 @@ public class UpfrontPayments {
         public Money paid(String currency) { return UpfrontPayments.paid(lines(),currency); }
     }
     /**
-     * S04 §5 and ruling E39: a plan change never rewrites an amount. It cancels the `DUE` rows and creates the new ones;
-     * `PAID` and `PARTIAL` rows stay exactly as they are and the new rows are the new quote minus what the kept rows
-     * already charge, so the outstanding total is the new quote minus what was paid. A `CHECKOUT_PENDING` row makes the
-     * change impossible (`checkoutPending`; {@link #replace} answers 409).
+     * S04 §5 and rulings E39/E39b: a plan change never rewrites an amount. It cancels the `DUE` rows and creates the new
+     * ones. `PAID` rows stay as they are. A `PARTIAL` row is closed: it goes to `CANCELLED` with its amounts untouched, and
+     * a new `PAID` row (`amountDue = amountPaid` = what was received, `correctionOf` = the closed row) records the money.
+     * The new rows are the new quote minus everything paid, so the outstanding total is «new quote − paid»; what was paid
+     * beyond the new quote is `paidExceedsQuote`, and no row is created for it. A `CHECKOUT_PENDING` row makes the change
+     * impossible (`checkoutPending`; {@link #replace} answers 409).
      */
     public Replacement replacement(String memberId,List<Submission> scope,List<Charge> charges) {
-        var kept=new ArrayList<Line>();var cancelled=new ArrayList<Line>();boolean pending=false;long covered=0;
+        var kept=new ArrayList<Line>();var cancelled=new ArrayList<Line>();var corrections=new ArrayList<Line>();boolean pending=false;long covered=0;String currency=null;
         for (var p:selected(memberId,scope)) {
+            currency=p.amountDue().currency();
             switch (p.status()) {
                 case "CANCELLED","REFUNDED" -> { }
                 case "DUE" -> cancelled.add(line(p));
                 case "CHECKOUT_PENDING" -> { pending=true; kept.add(line(p)); }
-                default -> { kept.add(line(p)); covered+=p.amountDue().amountMinor(); }
+                case "PARTIAL" -> { cancelled.add(line(p)); corrections.add(line(correction(p))); covered+=p.amountPaid().amountMinor(); }
+                default -> { kept.add(line(p)); covered+=p.amountPaid().amountMinor(); }
             }
         }
         var created=new ArrayList<Charge>();
@@ -102,25 +110,39 @@ public class UpfrontPayments {
             long consumed=Math.min(covered,charge.amount().amountMinor()); covered-=consumed;
             if (charge.amount().amountMinor()>consumed) { created.add(new Charge(charge.concept(),charge.dogId(),new Money(charge.amount().amountMinor()-consumed,charge.amount().currency()))); }
         }
-        return new Replacement(List.copyOf(kept),List.copyOf(cancelled),List.copyOf(created),pending);
+        return new Replacement(List.copyOf(kept),List.copyOf(cancelled),List.copyOf(corrections),List.copyOf(created),pending,covered>0?new Money(covered,currency):null);
     }
-    public void replace(String memberId,List<Submission> scope,List<Charge> charges) {
+    public Replacement replace(String memberId,List<Submission> scope,List<Charge> charges) {
         var replacement=replacement(memberId,scope,charges);
         if (replacement.checkoutPending()) { throw new ApiException(ErrorCode.INVALID_STATE,Map.of("reason","CHECKOUT_PENDING")); }
         var cancelled=replacement.cancelled().stream().map(Line::id).toList();
-        for (var p:selected(memberId,scope)) { if (cancelled.contains(p.id())) { repository.update(state(p,"CANCELLED",p.amountPaid(),p.provider(),p.checkoutSessionId())); } }
+        for (var p:selected(memberId,scope)) { if (cancelled.contains(p.id())) { close(p); } }
         for (var charge:replacement.created()) {
-            String submission=scope.stream().filter(s -> s.dogId().equals(charge.dogId())).map(Submission::submissionId).findFirst().orElse(null);
+            // The new row belongs to the submission of its dog; a legacy scope entry has none (`null`).
+            String submission=scope.stream().filter(s -> s.dogId().equals(charge.dogId())).findFirst().map(Submission::submissionId).orElse(null);
             create(memberId,submission,List.of(charge));
         }
+        return replacement;
     }
+    /** R-04-23: the open rows are cancelled and a `PARTIAL` row leaves its `PAID` correction (E39b). `true` = money was received. */
     public boolean reject(String memberId,List<Submission> scope) {
         boolean paid=false;
         for(var p:selected(memberId,scope)) {
             if ("PAID".equals(p.status())) { paid=true; }
-            else if (Set.of("DUE","PARTIAL","CHECKOUT_PENDING").contains(p.status())) repository.update(state(p,"CANCELLED",p.amountPaid(),p.provider(),p.checkoutSessionId()));
+            else if ("PARTIAL".equals(p.status())) { close(p); paid=true; }
+            else if (Set.of("DUE","CHECKOUT_PENDING").contains(p.status())) close(p);
         }
         return paid;
+    }
+    /** Cancels a row with its amounts untouched; the money a `PARTIAL` row received moves to a new `PAID` correction row. */
+    private void close(UpfrontPayment p) {
+        repository.update(new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),p.amountPaid(),"CANCELLED",p.provider(),
+                p.checkoutSessionId(),p.createdAt(),p.paidAt(),p.bookingId(),p.submissionId(),p.correctionOf()));
+        if ("PARTIAL".equals(p.status())) { repository.insert(correction(p)); }
+    }
+    private UpfrontPayment correction(UpfrontPayment p) {
+        return new UpfrontPayment(UUID.nameUUIDFromBytes(("correction:"+p.id()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),p.clubId(),p.memberId(),p.dogId(),
+                p.concept(),p.signupConcept(),p.amountPaid(),p.amountPaid(),"PAID",p.provider(),null,clock.instant(),p.paidAt(),p.bookingId(),p.submissionId(),p.id());
     }
     public void pending(String memberId,List<String> ids,String session) {
         for(var p:repository.member(memberId)) if(ids.contains(p.id())) {
@@ -148,7 +170,7 @@ public class UpfrontPayments {
     }
     private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session) {
         return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),paid,status,provider,session,p.createdAt(),
-                paid.amountMinor()>0?clock.instant():null,p.bookingId(),p.submissionId());
+                paid.amountMinor()>0?clock.instant():null,p.bookingId(),p.submissionId(),p.correctionOf());
     }
     private void emit(String type,UpfrontPayment p,Map<String,Object> payload) {
         var user=CurrentUser.current();

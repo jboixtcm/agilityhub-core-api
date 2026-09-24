@@ -377,8 +377,13 @@ class SignupIT extends AbstractIntegrationTest {
             transactions.run(()->{payments.allocate(second,scope,new Money(5000,"EUR"));return null;});
             var partial=collection("upfront_payments").stream().filter(p->"PARTIAL".equals(p.getString("status"))).findFirst().orElseThrow();
             transactions.run(()->{payments.replace(second,scope,List.of(new com.agilityhub.core.payments.application.UpfrontPayments.Charge("PACK",secondDog,new Money(13500,"EUR"))));return null;});
-            // S04 §5 / E39: the PARTIAL row is kept exactly as it was, and what it already charges is deducted from the new rows.
-            assertThat(collection("upfront_payments").stream().filter(p->p.getString("_id").equals(partial.getString("_id"))).findFirst().orElseThrow()).isEqualTo(partial);
+            // S04 §5 / E39b: the PARTIAL row is closed with its amounts untouched, a PAID correction records the 50 € received,
+            // and that is deducted from the new rows.
+            var closed=collection("upfront_payments").stream().filter(p->p.getString("_id").equals(partial.getString("_id"))).findFirst().orElseThrow();
+            assertThat(closed.getString("status")).isEqualTo("CANCELLED");assertThat(closed.get("amountDue")).isEqualTo(partial.get("amountDue"));assertThat(closed.get("amountPaid")).isEqualTo(partial.get("amountPaid"));
+            var correction=collection("upfront_payments").stream().filter(p->partial.getString("_id").equals(p.getString("correctionOf"))).findFirst().orElseThrow();
+            assertThat(correction.getString("status")).isEqualTo("PAID");assertThat(correction.get("amountDue",Document.class).get("amountMinor",Number.class).longValue()).isEqualTo(5000);
+            assertThat(correction.get("amountPaid")).isEqualTo(correction.get("amountDue"));assertThat(correction.getString("submissionId")).isEqualTo(partial.getString("submissionId"));
             assertThat(payments.due(second,scope,"EUR").amountMinor()).isEqualTo(8500);
             assertThat(payments.paid(second,scope,"EUR").amountMinor()).isEqualTo(5000);
         }

@@ -82,9 +82,9 @@ Un abonat = una tipologia. Cal **normalitzar** abans de mapejar (hi ha variants 
 | Manteniment | **12** | `TERAPIA` | la modalitat ja porta `billingMode = MAINTENANCE` (Josep 08-09) |
 | Pack 10 classes | **7** | `PACK10` | saldo real des de «Control packs» |
 | Quota reduïda | **4** | ❓ **cap modalitat al catàleg** | **dubte B30** |
-| Instructors | **4** | `INSTRUCTOR_FREE` + rol `INSTRUCTOR` | quadra amb la llista d'accessos (4 instructors) |
+| Instructors | **4** | sense modalitat + rol `INSTRUCTOR` | quadra amb la llista d'accessos (4 instructors); B34 (24-09): no es migra com a modalitat, i sense avís |
 | Familiar Abonat/curs | **3** | ❓ variant de `FAMILIAR`? | **dubte B31** |
-| Competició 1 gos | **3** | `COMPETICIO_1` | cal crear-la al seed (preu a confirmar) |
+| Competició 1 gos | **3** | `COMPETICIO_1` | B34 (24-09): 40 €/mes, modalitat nova al seed |
 | Pack 6 classes | **2** | `PACK6` | |
 
 No apareixen a les dades vives: «Abonat 3 gossos», «Abonat Plus» ni «Quota COVID» → es treuen del mapatge (queden com a `LEGACY_PLAN` per si surten en baixes antigues).
@@ -126,14 +126,14 @@ No apareixen a les dades vives: «Abonat 3 gossos», «Abonat Plus» ni «Quota 
 
 ## 7. Preguntes obertes
 
-Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDENTS.md`). **B29–B33 tancades el 24-09**: el Josep accepta les propostes (B31 = `ABONAT_FAMILIAR`; el llistat del cas 5 s'ha lliurat fora del Dropbox). Queda oberta la **B34** (modalitats «Instructors» i «Competició 1 gos»).
+Les que van al Josep estan numerades com a part B del registre (`DECISIONS_PENDENTS.md`). **B29–B33 tancades el 24-09**: el Josep accepta les propostes (B31 = `ABONAT_FAMILIAR`; el llistat del cas 5 s'ha lliurat fora del Dropbox). **B34 tancada el 24-09** (Jordi): «Instructors» no es migra com a modalitat; «Competició 1 gos» val 40 €/mes.
 
 - **B29 · Foto**: les 145 fotos són del gos o de la persona? (proposta: del gos, que és on el producte les mostra).
 - **B30 · «Quota reduïda»** (4 abonats): quina modalitat i quin preu? (proposta: `ABONAT` amb una tarifa pròpia «Quota reduïda»).
 - **B31 · «Familiar Abonat/curs»** (3): és `FAMILIAR` o una modalitat diferent?
 - **B32 · Nivell «Pendent»** (6 gossos): creem un nivell `PENDENT` al catàleg (no reservable fins que se'ls avaluï) o els deixem sense nivell?
 - **B33 · Emails compartits** (~20): són famílies? Es poden agrupar com a grup familiar amb un sol compte?
-- **B34 · «Instructors» i «Competició 1 gos»** (24-09): cal crear les dues modalitats al catàleg? Quant val «Competició 1 gos», i segueix viva (3 abonats)? Mentrestant es migren sense modalitat (`PLAN_UNMAPPED`).
+- **B34 · «Instructors» i «Competició 1 gos»** — **tancada 24-09 (Jordi)**: «Instructors» no es migra com a modalitat (sense modalitat, sense avís, amb el rol); «Competició 1 gos» = `COMPETICIO_1`, 40 €/mes.
 
 ## Canvis
 

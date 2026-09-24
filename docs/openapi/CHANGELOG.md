@@ -2,6 +2,20 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-24 · E3-T08 round 2 · `PAID_EXCEEDS_QUOTE` (E39b) and the billed price of a plan option
+
+**0 operations added, 2 changed** (paths unchanged), additive:
+
+- `POST /members/{id}/validation`:
+  - `SignupWarning` gains `PAID_EXCEEDS_QUOTE` (S04 §5, E39b): a plan change leaves more paid than the new quote.
+  - `dryRun=true` (`ValidationDryRun.upfront`, schema `SignupUpfrontReview`): optional `paidExceedsQuote` (Money).
+  - `ValidationResult`: `warnings[]` (`SignupWarning`, required, empty unless `PAID_EXCEEDS_QUOTE`) and optional
+    `paidExceedsQuote` (Money). The refund is S12's.
+  - `ValidationDryRun.price` is the price the plan bills: the `MAINTENANCE_FEE` price for a `MAINTENANCE` plan (value
+    change, not schema).
+- `GET /members/{id}/signup` (`SignupPlanOption.prices`): only the price the plan bills, i.e. the `priceId` that the
+  validation accepts and stores (description change). `proposals.priceId` follows the same rule.
+
 ## 2026-09-24 · E3-T08 · gate E3 fixes (api 1/3): per-plan quotes, `planOptions`, `warnDays`, dog `version`, `/me/dogs` status, signup flags, new 409 reasons
 
 **0 operations added, 3 changed** (paths unchanged). Additive except where marked:

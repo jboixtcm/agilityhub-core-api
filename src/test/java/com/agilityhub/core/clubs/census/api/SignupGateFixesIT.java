@@ -166,14 +166,33 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         assertThat(copy.subject()).isEqualTo("Nova sol·licitud d'alta");
         assertThat(copy.text()).contains("Example "+body.at("/person/lastName1").asText(),body.at("/dog/name").asText(),"(Example)").doesNotContain("Hem rebut la teva");
         var appRows=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"APP".equals(n.getString("channel"))).toList();
-        assertThat(appRows).hasSize(1).allSatisfy(n -> {assertThat(n.getString("accountId")).isEqualTo(admin);assertThat(n.get("variables",Document.class).getString("action")).isEqualTo("OPEN_SIGNUP");});
+        // Round 2, point 5: the admins' APP row is the admin copy, with its own variables.
+        assertThat(appRows).hasSize(1).allSatisfy(n -> {
+            assertThat(n.getString("accountId")).isEqualTo(admin);assertThat(n.getString("variant")).isEqualTo("admin");
+            var variables=n.get("variables",Document.class);
+            assertThat(variables.getString("action")).isEqualTo("OPEN_SIGNUP");assertThat(variables.getString("entityId")).isEqualTo(id);
+            assertThat(variables.getString("member_name")).isEqualTo("Example "+body.at("/person/lastName1").asText());
+            assertThat(variables.getString("dogs")).isEqualTo(body.at("/dog/name").asText());assertThat(variables.getString("plan_name")).isEqualTo("Example");
+            assertThat(variables).doesNotContainKeys("upfront_total","payment_instructions");
+        });
+        assertThat(collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel"))).map(n -> n.getString("variant")))
+                .containsExactlyInAnyOrder("upfront","admin");
         // The add-dog N-01 (§8: the member gets APP+EMAIL, the admins their own copy with OPEN_SIGNUP; the member's never).
         validate(id);dispatch();mailbox.clear();String account=member(id).getString("accountId");
         result(asMember(postJson("/me/dogs/signup",addDog("941000009000001")).header("Idempotency-Key",UUID.randomUUID()),id),201);dispatch();
         assertThat(mailbox.lastTo(email).text()).contains("Hem rebut la teva sol·licitud per a Added Dog 001","130,00",instructions.get("ca"));
         assertThat(mailbox.lastTo(admin+"@example.test").text()).contains("ha enviat una sol·licitud per a Added Dog 001 (Example)");
         var memberApp=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&account.equals(n.getString("accountId"))).findFirst().orElseThrow();
-        assertThat(memberApp.get("variables",Document.class).containsKey("action")).isFalse();
+        // The member's APP row is the applicant copy: the total and the instructions, never the D2 action.
+        assertThat(memberApp.getString("channel")).isEqualTo("APP");assertThat(memberApp.getString("variant")).isEqualTo("upfront");
+        var memberVariables=memberApp.get("variables",Document.class);
+        assertThat(memberVariables).doesNotContainKeys("action","entityId");
+        assertThat(memberVariables.getString("upfront_total")).contains("130,00");assertThat(memberVariables.getString("payment_instructions")).isEqualTo(instructions.get("ca"));
+        assertThat(memberVariables.getString("dogs")).isEqualTo("Added Dog 001");
+        var adminApp=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"APP".equals(n.getString("channel"))&&admin.equals(n.getString("accountId"))
+                &&"Added Dog 001".equals(n.get("variables",Document.class).getString("dogs"))).findFirst().orElseThrow();
+        assertThat(adminApp.getString("variant")).isEqualTo("admin");assertThat(adminApp.get("variables",Document.class).getString("action")).isEqualTo("OPEN_SIGNUP");
+        assertThat(adminApp.get("variables",Document.class)).doesNotContainKeys("upfront_total","payment_instructions");
     }
 
     // ---- Step 4 (M5): one quote per plan, on the R-04-14/15 examples of the Cànic ----
@@ -280,21 +299,111 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         var old=rows(id).stream().filter(p -> p.getString("_id").equals(entry.getString("_id"))).findFirst().orElseThrow();
         assertThat(old.getString("status")).isEqualTo("PAID");assertThat(old.get("submissionId")).isNotEqualTo(submission);
     }
-    @Test void T_04_18_planChangeKeepsAPartialRowIntactAndDeductsIt() throws Exception {
-        String id=submit(request()).path("memberId").asText();String dog=pendingDog(id);String pack=pack();
+    /** The ENTRY_FEE row of the submission (100 €) with 50 € received: `PARTIAL`, as R-04-16 leaves it. */
+    Document partialEntry(String id) {
         var entry=rows(id).stream().filter(p -> "ENTRY_FEE".equals(p.getString("concept"))).findFirst().orElseThrow();
-        mongo.getCollection("upfront_payments").updateOne(new Document("_id",entry.getString("_id")),new Document("$set",new Document("status","PARTIAL").append("amountPaid",new Document("amountMinor",5000L).append("currency","EUR"))));
-        var body=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",dog,"levelId",level)),"planId",pack));
-        var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
-        assertThat(dry.at("/upfront/totalDue/amountMinor").asLong()).isEqualTo(8500);assertThat(dry.at("/upfront/totalPaid/amountMinor").asLong()).isEqualTo(5000);
-        assertThat(dry.at("/upfront/lines").findValuesAsText("id")).contains(entry.getString("_id"));
-        body.put("upfrontAmountPaid",Map.of("amountMinor",8500,"currency","EUR"));result(admin(postJson("/members/"+id+"/validation",body)),200);
-        var kept=rows(id).stream().filter(p -> p.getString("_id").equals(entry.getString("_id"))).findFirst().orElseThrow();
-        // The row keeps its own amount; only the later payment moved amountPaid.
-        assertThat(kept.get("amountDue",Document.class).get("amountMinor",Number.class).longValue()).isEqualTo(10000);
+        mongo.getCollection("upfront_payments").updateOne(new Document("_id",entry.getString("_id")),new Document("$set",new Document("status","PARTIAL").append("provider","MANUAL").append("amountPaid",new Document("amountMinor",5000L).append("currency","EUR"))));
+        return entry;
+    }
+    static long minor(JsonNode money) { return money.path("amountMinor").asLong(); }
+    static long minor(Document row,String field) { return row.get(field,Document.class).get("amountMinor",Number.class).longValue(); }
+    @Test void T_04_18_E39b_closingAPartialRowRecordsWhatWasPaidInDryRunAndValidation() throws Exception {
+        // Round 2, point 1: 100 € with 50 € paid → a 60 € quote leaves 10 € due; → a 40 € quote leaves 0 € due and
+        // PAID_EXCEEDS_QUOTE 10 €; → the 135 € pack leaves 85 € due.
+        for(long quote:List.of(6000L,4000L,13500L)) {
+            String id=submit(request()).path("memberId").asText();String dog=pendingDog(id);String pack=pack(quote);var entry=partialEntry(id);
+            long due=Math.max(0,quote-5000),exceeds=Math.max(0,5000-quote);
+            String correctionId=UUID.nameUUIDFromBytes(("correction:"+entry.getString("_id")).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+            var body=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",dog,"levelId",level)),"planId",pack));
+            var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
+            assertThat(minor(dry.at("/upfront/totalDue"))).as("dry-run due for %s",quote).isEqualTo(due);assertThat(minor(dry.at("/upfront/totalPaid"))).isEqualTo(5000);
+            // The closed row is not part of the outcome; its PAID correction (the id the validation writes) is.
+            assertThat(dry.at("/upfront/lines").findValuesAsText("id")).doesNotContain(entry.getString("_id")).contains(correctionId);
+            var correctionLine=dry.at("/upfront/lines").findParents("id").stream().filter(l -> correctionId.equals(l.path("id").asText())).findFirst().orElseThrow();
+            assertThat(correctionLine.path("status").asText()).isEqualTo("PAID");assertThat(minor(correctionLine.path("amount"))).isEqualTo(5000);assertThat(minor(correctionLine.path("paidAmount"))).isEqualTo(5000);
+            if(exceeds>0) { assertThat(dry.path("warnings").toString()).contains("PAID_EXCEEDS_QUOTE");assertThat(minor(dry.at("/upfront/paidExceedsQuote"))).isEqualTo(exceeds); }
+            else { assertThat(dry.path("warnings").toString()).doesNotContain("PAID_EXCEEDS_QUOTE");assertThat(dry.at("/upfront").has("paidExceedsQuote")).isFalse(); }
+            if(due>0) body.put("upfrontAmountPaid",Map.of("amountMinor",due,"currency","EUR"));
+            var validated=result(admin(postJson("/members/"+id+"/validation",body)),200);
+            if(exceeds>0) { assertThat(validated.path("warnings").toString()).contains("PAID_EXCEEDS_QUOTE");assertThat(minor(validated.path("paidExceedsQuote"))).isEqualTo(exceeds); }
+            else { assertThat(validated.path("warnings")).isEmpty();assertThat(validated.has("paidExceedsQuote")).isFalse(); }
+            var closed=rows(id).stream().filter(p -> p.getString("_id").equals(entry.getString("_id"))).findFirst().orElseThrow();
+            // The closed row keeps its own amounts; the PAID correction records the 50 € received.
+            assertThat(closed.getString("status")).isEqualTo("CANCELLED");assertThat(minor(closed,"amountDue")).isEqualTo(10000);assertThat(minor(closed,"amountPaid")).isEqualTo(5000);
+            var correction=rows(id).stream().filter(p -> correctionId.equals(p.getString("_id"))).findFirst().orElseThrow();
+            assertThat(correction.getString("correctionOf")).isEqualTo(entry.getString("_id"));assertThat(correction.getString("status")).isEqualTo("PAID");
+            assertThat(minor(correction,"amountDue")).isEqualTo(5000);assertThat(minor(correction,"amountPaid")).isEqualTo(5000);
+            assertThat(correction.getString("submissionId")).isEqualTo(entry.getString("submissionId"));assertThat(correction.getString("provider")).isEqualTo("MANUAL");
+            assertThat(rows(id).stream().filter(p -> "FIRST_MONTH".equals(p.getString("concept"))).map(p -> p.getString("status"))).containsExactly("CANCELLED");
+            assertThat(rows(id).stream().filter(p -> "PACK".equals(p.getString("concept"))).map(p -> minor(p,"amountDue")).toList()).isEqualTo(due>0?List.of(due):List.of());
+            assertThat(rows(id).stream().filter(p -> !"CANCELLED".equals(p.getString("status")))).allMatch(p -> "PAID".equals(p.getString("status")));
+        }
+    }
+    @Test void T_04_23_E39b_rejectionWithAPartialRowWarnsAboutTheRefund() throws Exception {
+        String id=submit(request()).path("memberId").asText();var entry=partialEntry(id);
+        var rejected=result(admin(postJson("/members/"+id+"/rejection",Map.of("version",member(id).get("version"),"reason","Fictional partial rejection"))),200);
+        assertThat(rejected.path("paidPaymentRequiresRefund").asBoolean()).isTrue();
+        var closed=rows(id).stream().filter(p -> p.getString("_id").equals(entry.getString("_id"))).findFirst().orElseThrow();
+        assertThat(closed.getString("status")).isEqualTo("CANCELLED");assertThat(minor(closed,"amountPaid")).isEqualTo(5000);
+        var correction=rows(id).stream().filter(p -> entry.getString("_id").equals(p.getString("correctionOf"))).findFirst().orElseThrow();
+        assertThat(correction.getString("status")).isEqualTo("PAID");assertThat(minor(correction,"amountDue")).isEqualTo(5000);
         assertThat(rows(id).stream().filter(p -> "FIRST_MONTH".equals(p.getString("concept"))).map(p -> p.getString("status"))).containsExactly("CANCELLED");
-        assertThat(rows(id).stream().filter(p -> "PACK".equals(p.getString("concept"))).map(p -> p.get("amountDue",Document.class).get("amountMinor",Number.class).longValue())).containsExactly(3500L);
-        assertThat(rows(id).stream().filter(p -> !"CANCELLED".equals(p.getString("status")))).allMatch(p -> "PAID".equals(p.getString("status")));
+        // Without a PARTIAL or PAID row, nothing was received and no refund is announced.
+        String plain=submit(request()).path("memberId").asText();
+        assertThat(result(admin(postJson("/members/"+plain+"/rejection",Map.of("version",member(plain).get("version"),"reason","Fictional plain rejection"))),200).path("paidPaymentRequiresRefund").asBoolean()).isFalse();
+    }
+    @Test void T_04_18_legacyRowsWithoutASubmissionIdSurviveAPlanChange() throws Exception {
+        // Round 2, point 2: rows, member and dog written before submissions existed carry no submissionId.
+        String id=submit(request()).path("memberId").asText();String dog=pendingDog(id);
+        mongo.getCollection("upfront_payments").updateMany(new Document("memberId",id),new Document("$unset",new Document("submissionId","")));
+        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$unset",new Document("signup.submissionId","")));
+        mongo.getCollection("dogs").updateOne(new Document("_id",dog),new Document("$unset",new Document("signup.submissionId","")));
+        var body=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",dog,"levelId",level)),"planId",pack()));
+        assertThat(minor(result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200).at("/upfront/totalDue"))).isEqualTo(13500);
+        body.put("upfrontAmountPaid",Map.of("amountMinor",13500,"currency","EUR"));
+        result(admin(postJson("/members/"+id+"/validation",body)),200);
+        var created=rows(id).stream().filter(p -> "PACK".equals(p.getString("concept"))).findFirst().orElseThrow();
+        assertThat(created.getString("status")).isEqualTo("PAID");assertThat(created.get("submissionId")).isNull();
+        assertThat(rows(id).stream().filter(p -> !"PACK".equals(p.getString("concept")))).allMatch(p -> "CANCELLED".equals(p.getString("status")));
+    }
+    @Test void T_04_18_therapyIsOfferedAndValidatedOnItsMaintenancePrice() throws Exception {
+        // Round 2, point 3: a MAINTENANCE plan bills its MAINTENANCE_FEE price; its upfront quote stays entry-only (R-04-14).
+        canic();clock.setInstant(Instant.parse("2026-08-10T08:00:00Z"));String therapy=planId("TERAPIA");
+        String maintenance=mongo.getCollection("prices").find(new Document("clubId",club).append("planId",therapy).append("concept","MAINTENANCE_FEE")).first().getString("_id");
+        String id=submit(canicRequest(therapy)).path("memberId").asText();
+        var review=review(id);
+        var option=review.path("planOptions").findParents("planId").stream().filter(o -> therapy.equals(o.path("planId").asText())).findFirst().orElseThrow();
+        assertThat(option.path("prices")).hasSize(1);assertThat(option.at("/prices/0/priceId").asText()).isEqualTo(maintenance);
+        assertThat(option.at("/prices/0/concept").asText()).isEqualTo("MAINTENANCE_FEE");assertThat(minor(option.at("/prices/0/amount"))).isEqualTo(1000);
+        assertThat(review.at("/proposals/priceId").asText()).isEqualTo(maintenance);
+        assertThat(review.at("/upfront/lines").findValuesAsText("concept")).containsExactly("ENTRY_FEE");assertThat(minor(review.at("/upfront/totalDue"))).isEqualTo(5000);
+        var body=new LinkedHashMap<String,Object>(Map.of("version",review.path("version").asLong(),"dogs",List.of(Map.of("dogId",pendingDog(id),"levelId",level)),
+                "planId",therapy,"priceId",maintenance,"nextInvoiceDate","2026-09-01","upfrontAmountPaid",Map.of("amountMinor",5000,"currency","EUR")));
+        var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
+        assertThat(dry.at("/price/id").asText()).isEqualTo(maintenance);assertThat(minor(dry.at("/upfront/totalDue"))).isEqualTo(5000);
+        result(admin(postJson("/members/"+id+"/validation",body)),200);
+        assertThat(member(id).getString("planId")).isEqualTo(therapy);assertThat(member(id).getString("priceId")).isEqualTo(maintenance);
+        // The public offer still shows Teràpia without a standard price (R-04-09).
+        var offered=signupConfig("ca").path("plans").findParents("id").stream().filter(p -> therapy.equals(p.path("id").asText())).findFirst().orElseThrow();
+        assertThat(offered.path("price").isMissingNode()||offered.path("price").isNull()).isTrue();assertThat(minor(offered.path("maintenanceFee"))).isEqualTo(1000);
+    }
+    @Test void T_04_22_checkoutAfterAValidationWithNothingPaidChargesTheSubmissionRows() throws Exception {
+        // Round 2, point 4: the scope is the submission, not the pending dogs.
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders",new Document("MANUAL",new Document("enabled",true)).append("SEPA_XML",new Document("enabled",true)).append("STRIPE",new Document("enabled",true)))));
+        configs.invalidate(club);signupService.invalidateConfiguration(club);
+        var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));var submitted=submit(body);String id=submitted.path("memberId").asText();
+        var review=review(id);
+        var validation=new LinkedHashMap<String,Object>(Map.of("version",review.path("version").asLong(),"dogs",List.of(Map.of("dogId",pendingDog(id),"levelId",level)),
+                "nextInvoiceDate",review.at("/proposals/nextInvoiceDate").asText(),"upfrontAmountPaid",Map.of("amountMinor",0,"currency","EUR")));
+        result(admin(postJson("/members/"+id+"/validation",validation)),200);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");assertThat(rows(id)).hasSize(2).allMatch(p -> "DUE".equals(p.getString("status")));
+        String session=result(postJson("/checkout-sessions",Map.of("memberId",id,"signupToken",submitted.path("signupToken").asText(),"successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel"))
+                .header("Idempotency-Key",UUID.randomUUID()),201).path("checkoutSessionId").asText();
+        var charged=fake.request(session);
+        assertThat(charged.mode()).isEqualTo("payment");
+        assertThat(charged.lines().stream().map(l -> l.paymentId())).containsExactlyInAnyOrderElementsOf(rows(id).stream().map(p -> p.getString("_id")).toList());
+        assertThat(charged.lines().stream().mapToLong(l -> l.amount().amountMinor()).sum()).isEqualTo(16000);
+        assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
     }
     @Test void T_04_22_planChangeWithACheckoutInProgressIsRefused() throws Exception {
         mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders",new Document("MANUAL",new Document("enabled",true)).append("SEPA_XML",new Document("enabled",true)).append("STRIPE",new Document("enabled",true)))));
@@ -309,10 +418,12 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         assertThat(refused.path("code").asText()).isEqualTo("INVALID_STATE");assertThat(refused.at("/details/reason").asText()).isEqualTo("CHECKOUT_PENDING");
         assertThat(rows(id)).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
     }
-    String pack() {
+    String pack() { return pack(13500); }
+    /** A pack plan without entry fee: its whole quote is `amountMinor`. */
+    String pack(long amountMinor) {
         String id=UUID.randomUUID().toString();var name=new LocalizedText(Map.of("ca","Pack","es","Pack","en","Pack"),"en");
         mongo.insert(new Plan(id,club,"PACK_"+sequence++,name,PlanType.PACK,null,1,new EntryFee(EntryFeeMode.NONE,null,null),new Pack(6,3),null,name,new Texts(name,name,name),true,true,1,true,0,clock.instant(),clock.instant(),null,null));
-        mongo.insert(new Price(UUID.randomUUID().toString(),club,id,PriceConcept.PACK,new Money(13500,"EUR"),java.math.BigDecimal.ZERO,LocalDate.of(2020,1,1),null,0,clock.instant(),clock.instant(),null,null));
+        mongo.insert(new Price(UUID.randomUUID().toString(),club,id,PriceConcept.PACK,new Money(amountMinor,"EUR"),java.math.BigDecimal.ZERO,LocalDate.of(2020,1,1),null,0,clock.instant(),clock.instant(),null,null));
         signupService.invalidateConfiguration(club);return id;
     }
 
