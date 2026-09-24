@@ -17,8 +17,6 @@ public class DashboardPortDefaults {
     PendingRequestsQuery dashboardPendingRequests() { return club -> new PendingRequestsQuery.Counts(0, 0); }
     @Bean @ConditionalOnMissingBean(FollowUpUnreadQuery.class)
     FollowUpUnreadQuery dashboardFollowUpUnread() { return (club, account) -> 0; }
-    @Bean @ConditionalOnMissingBean(ClassSessionsQuery.class)
-    ClassSessionsQuery dashboardClassSessions() { return (club, from, through) -> List.of(); }
-    @Bean @ConditionalOnMissingBean(RiskEvaluator.class)
-    RiskEvaluator dashboardRiskEvaluator() { return session -> false; }
+    @Bean @ConditionalOnMissingBean(RiskReviewSource.class)
+    RiskReviewSource dashboardRiskReview() { return (club, today) -> List.of(); }
 }

@@ -62,8 +62,9 @@ class CleanupJobIT extends BookingFixtures {
                 .append("expiresAt", Date.from(RUN.minus(Duration.ofHours(hoursAgo)).plusSeconds(900))), "attachment_uploads");
         ((com.agilityhub.core.clubs.followup.persistence.LocalAttachmentStorage) storage).put(key(name), "application/pdf", 3, new ByteArrayInputStream(new byte[] {1, 2, 3}));
     }
-    private void run(String id, JobName name, Instant at) {
-        mongo.insert(new JobRun(id, CLUB, name, at, "x", "Europe/Madrid", JobTrigger.SCHEDULE, false, JobStatus.SUCCEEDED, null, at, at, 0L,
+    private void run(String id, JobName name, Instant at) { run(id, CLUB, name, at, false, JobStatus.SUCCEEDED, null); }
+    private void run(String id, String club, JobName name, Instant at, boolean dryRun, JobStatus status, SkipReason skip) {
+        mongo.insert(new JobRun(id, club, name, at, "x", "Europe/Madrid", dryRun ? JobTrigger.MANUAL : JobTrigger.SCHEDULE, dryRun, status, skip, at, at, 0L,
                 List.of(), List.of(), List.of(), null, List.of(), true, null, false));
     }
     private void export(String id, int daysAgo) {
@@ -131,5 +132,44 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(again.items()).isEmpty();
         System.out.println("E5-T05 cleanup JobRun dry  " + mongo.findById(dry.id(), Document.class, "job_runs").toJson());
         System.out.println("E5-T05 cleanup JobRun real " + mongo.findById(real.id(), Document.class, "job_runs").toJson());
+    }
+
+    @Autowired com.agilityhub.core.clubs.common.persistence.CleanupRepository cleanup;
+
+    @Test void T_15_27_cleanupIsBoundToItsClubAndKeepsTheLastFiveExecutionsNotDryRunsOrSkips() {
+        // Newer than every real risk-review run: five dry runs and two SKIPPED rows of yesterday, plus an old dry run of 100 days.
+        for (int i = 0; i < 5; i++) { run("s08-rr-dry-" + i, CLUB, JobName.RISK_REVIEW, RUN.minus(Duration.ofDays(1)).plusSeconds(i), true, JobStatus.SUCCEEDED, null); }
+        for (int i = 0; i < 2; i++) { run("s08-rr-skip-" + i, CLUB, JobName.RISK_REVIEW, RUN.minus(Duration.ofHours(2)).plusSeconds(i), false, JobStatus.SKIPPED, SkipReason.DISABLED); }
+        run("s08-rr-dry-old", CLUB, JobName.RISK_REVIEW, RUN.minus(Duration.ofDays(100)), true, JobStatus.SUCCEEDED, null);
+        // Another club with the same expired technical data: none of it may go.
+        mongo.save(new Document("_id", "s08-other-event-old").append("clubId", OTHER).append("type", "BookingCreated").append("status", "PUBLISHED")
+                .append("occurredAt", Date.from(RUN.minus(Duration.ofDays(91)))).append("publishedAt", Date.from(RUN.minus(Duration.ofDays(91)))), "domain_events");
+        for (int i = 0; i < 8; i++) { run("s08-other-rr-" + i, OTHER, JobName.RISK_REVIEW, RUN.minus(Duration.ofDays(108 - i)), false, JobStatus.SUCCEEDED, null); }
+
+        var real = runner.scheduled(CLUB, true, job, RUN).orElseThrow();
+        // Kept: the five newest real executions (rr-3…rr-7) and the recent dry/skipped rows; deleted: rr-0…rr-2 and the old dry run.
+        assertThat(counters(real)).containsEntry("jobRunsDeleted", 4L).containsEntry("domainEventsDeleted", 1L).containsEntry("orphanUploadsDeleted", 3L);
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("job").is("RISK_REVIEW").and("dryRun").is(false).and("status").is("SUCCEEDED")),
+                Document.class, "job_runs")).extracting(d -> d.getString("_id")).containsExactlyInAnyOrder("s08-rr-3", "s08-rr-4", "s08-rr-5", "s08-rr-6", "s08-rr-7");
+        assertThat(mongo.findById("s08-rr-dry-old", Document.class, "job_runs")).isNull();
+        assertThat(mongo.count(Query.query(Criteria.where("_id").regex("^s08-rr-(dry|skip)-\\d")), "job_runs")).isEqualTo(7);
+        // The other club is untouched: its old event, its eight old runs and its orphan upload.
+        assertThat(mongo.findById("s08-other-event-old", Document.class, "domain_events")).isNotNull();
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("job").is("RISK_REVIEW")), "job_runs")).isEqualTo(8);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER)), "attachment_uploads")).isEqualTo(1);
+        // The repository is bound to the open tenant like TenantRepository: another club → TENANT_MISMATCH, no tenant → refused.
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            assertThat(cleanup.processedEvents(CLUB, RUN.minus(Duration.ofDays(90)))).isZero();
+            for (Runnable call : List.<Runnable>of(() -> cleanup.processedEvents(OTHER, RUN), () -> cleanup.deleteProcessedEvents(OTHER, RUN),
+                    () -> cleanup.expiredRuns(OTHER, "RISK_REVIEW", RUN, 5), () -> cleanup.deleteRuns(OTHER, List.of("s08-other-rr-0")),
+                    () -> cleanup.orphanUploads(OTHER, RUN), () -> cleanup.deleteUpload(OTHER, "signup/" + OTHER + "/202610/x/other.pdf"),
+                    () -> cleanup.ttlPending(OTHER, "job_locks", "expiresAt", RUN), () -> cleanup.ttlPending(OTHER, "seat_holds", "expiresAt", RUN),
+                    () -> cleanup.stripeEvents(OTHER, RUN))) {
+                assertThatThrownBy(call::run).isInstanceOfSatisfying(ApiException.class,
+                        failure -> assertThat(failure.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.TENANT_MISMATCH));
+            }
+        }
+        assertThatThrownBy(() -> cleanup.processedEvents(CLUB, RUN)).isInstanceOf(RuntimeException.class);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(OTHER).and("job").is("RISK_REVIEW")), "job_runs")).isEqualTo(8);
     }
 }

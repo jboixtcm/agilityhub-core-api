@@ -72,6 +72,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E5-T05 Round 2: S15 review fixes.
+  - S14 D1 risk card = `GET /risk-review`. The dashboard maps the form-A rows of `RiskReviewQuery.rows()`
+    (`AUTO_CANCELLED` → `CANCELLED`, `WILL_REVIEW` → `PENDING_DECISION`) through the new `RiskReviewSource` port and no
+    longer evaluates risk itself. The `ClassSessionsQuery` and `RiskEvaluator` dashboard ports are removed. The OpenAPI
+    is unchanged.
+  - P2 `risk-review` neither cancels nor warns about a class that has already started (`skippedStarted`), also with
+    `classes.riskAutoCancelSameDay = false`. Form A leaves such classes out.
+  - R-15-12b after a FIFO expiry: P6 re-checks the minimum inside its own item transaction. The separate
+    `alerts.WaitlistExpired` consumer is removed.
+  - N-16: the admins' copy has its own wording (ICU `select` on the new variable `audience` = `STAFF` | `MEMBER`), in
+    ca/es/en.
+  - P9 `cleanup`: `CleanupRepository` binds every query to the open tenant (`TENANT_MISMATCH` otherwise). The five
+    `job_runs` kept per process are the latest real executions, so dry runs and `SKIPPED` rows no longer count.
+
 - E5-T02 Round 2: S08 R-08-18 PAY_TO_BOOK now runs end to end.
   - The booking transaction only prepares the checkout in Mongo: the `SINGLE_CLASS` `UpfrontPayment` line with the new
     `bookingId` (model `UpfrontPayment.bookingId?`) and a `checkout_sessions` row with `bookingId`.

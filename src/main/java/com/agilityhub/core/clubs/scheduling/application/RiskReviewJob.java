@@ -19,9 +19,10 @@ import org.springframework.stereotype.Component;
  * S15 R-15-12 P2 `risk-review` (daily at `classes.riskReviewTime`). Scope: ACTIVE classes of `[today, today +
  * classes.riskLookaheadDays]`, not exempt, whose counted dogs (ACTIVE + PAYMENT_PENDING bookings, recounted through
  * {@link ClassBookingsPort}, never `counters.booked`) are below `classes.minDogs`. Today's classes are cancelled with
- * S06's transaction when `classes.riskAutoCancelSameDay` (a class that has already started is only counted in
- * `skippedStarted`); the rest are warned once per booking and once for the admins (`risk` marks). Each item runs in the
- * runner's transaction, which S06's cancellation joins (R-15-10).
+ * S06's transaction when `classes.riskAutoCancelSameDay`; the rest are warned once per booking and once for the
+ * admins (`risk` marks). A class that has already started is neither cancelled nor warned (a CATCH_UP or manual
+ * evening run): it is only counted in `skippedStarted`. Each item runs in the runner's transaction, which S06's
+ * cancellation joins (R-15-10).
  */
 @Component
 public class RiskReviewJob implements Job {
@@ -50,9 +51,9 @@ public class RiskReviewJob implements Job {
             if (c.risk() != null && c.risk().exempt()) { context.recorder().count("exempt", 1); continue; }
             var live = bookings.activeBookings(c.id());
             if (live.size() >= policy.minDogs()) { continue; }
+            // R-15-05: a late (CATCH_UP) or manual run never cancels, nor warns about, a class that has begun.
+            if (!c.startsAt().isAfter(now)) { context.recorder().count("skippedStarted", 1); continue; }
             if (c.date().equals(today) && policy.autoCancel()) {
-                // R-15-05: a late (CATCH_UP) run never cancels a class that has begun.
-                if (!c.startsAt().isAfter(now)) { context.recorder().count("skippedStarted", 1); continue; }
                 items.add(new JobItem("ClassSession", c.id(), CANCEL, cancelDetail(c.id(), live)));
                 continue;
             }
@@ -70,11 +71,11 @@ public class RiskReviewJob implements Job {
         // Recounted inside the transaction (R-15-12): never trust the denormalized counters.
         var live = bookings.activeBookings(c.id());
         if (live.size() >= policy.minDogs()) { return new JobEffect("NOT_AT_RISK", Map.of(), Map.of()); }
+        if (!c.startsAt().isAfter(clock.instant())) { return new JobEffect("SKIPPED_STARTED", Map.of(), Map.of("skippedStarted", 1L)); }
         return CANCEL.equals(item.action()) ? cancel(context, c, live, policy) : warn(c, live, policy, context);
     }
 
     private JobEffect cancel(JobContext context, ClassSession c, List<ClassBookingsPort.BookingRef> live, Policy policy) {
-        if (!c.startsAt().isAfter(clock.instant())) { return new JobEffect("SKIPPED_STARTED", Map.of(), Map.of("skippedStarted", 1L)); }
         var waiting = bookings.liveWaitlist(c.id());
         var locale = Locale.forLanguageTag(context.config().club().defaultLocale());
         String adminText = messages.format("scheduling.autoCancel.text", Map.of("minDogs", policy.minDogs()), locale);

@@ -29,18 +29,17 @@ public class DashboardQuery {
     private final DogActivityQuery dogs;
     private final ClassOccupancyQuery occupancy;
     private final TrainingBookingsQuery training;
-    private final ClassSessionsQuery sessions;
-    private final RiskCardBuilder risk;
+    private final RiskReviewSource risk;
     private final PendingRequestsQuery requests;
     private final FollowUpUnreadQuery followUp;
 
     public DashboardQuery(ClubConfigService configs, ClubClock clubClock, Clock clock, DashboardRepository repository,
-            DogActivityQuery dogs, ClassOccupancyQuery occupancy, TrainingBookingsQuery training, ClassSessionsQuery sessions,
-            RiskEvaluator evaluator, PendingRequestsQuery requests, FollowUpUnreadQuery followUp,
+            DogActivityQuery dogs, ClassOccupancyQuery occupancy, TrainingBookingsQuery training, RiskReviewSource risk,
+            PendingRequestsQuery requests, FollowUpUnreadQuery followUp,
             @Value("${app.dashboard.cacheSeconds:60}") long cacheSeconds) {
         this.configs = configs; this.clubClock = clubClock; this.clock = clock; this.repository = repository;
-        this.dogs = dogs; this.occupancy = occupancy; this.training = training; this.sessions = sessions;
-        this.risk = new RiskCardBuilder(evaluator); this.requests = requests; this.followUp = followUp;
+        this.dogs = dogs; this.occupancy = occupancy; this.training = training; this.risk = risk;
+        this.requests = requests; this.followUp = followUp;
         dashboards = Caffeine.newBuilder().maximumSize(10000).expireAfterWrite(Duration.ofSeconds(cacheSeconds))
                 .ticker(() -> TimeUnit.MILLISECONDS.toNanos(clock.millis())).build();
         counters = Caffeine.newBuilder().maximumSize(20000).expireAfterWrite(Duration.ofSeconds(30))
@@ -78,7 +77,7 @@ public class DashboardQuery {
         var classKpi = KpiBuilder.occupancy(occupancy.sessions(club, period.from(), period.until()), period, config.modules().contains(Module.WAITLIST));
         var trainingKpi = config.modules().contains(Module.FREE_TRAINING)
                 ? KpiBuilder.training(training.bookings(club, period.from(), period.until()), period) : null;
-        var classes = sessions.sessions(club, today, today.plusDays(lookahead));
+        var riskRows = risk.rows(club, today);
         var levelRows = levels ? repository.levels() : List.<LevelSource>of();
         var dogCounts = levels ? dogs.counts(today, period.zone(), weeks) : List.<DogCount>of();
         var variants = new LinkedHashMap<String, Snapshot>();
@@ -88,7 +87,7 @@ public class DashboardQuery {
                     config.modules().contains(Module.FAMILY_GROUP), locale, config.club().defaultLocale());
             variants.put(locale, new Snapshot(generated, today, new Week(period.weekStart(), period.weekEnd()),
                     new Kpis(members, classKpi, trainingKpi, signups.kpi()),
-                    risk.build(classes, period, lookahead, reviewTime, autoCancel, locale, config.club().defaultLocale()), signups.card(),
+                    RiskCardBuilder.build(riskRows, lookahead, reviewTime, autoCancel, locale, config.club().defaultLocale()), signups.card(),
                     levels ? DogActivityBuilder.build(levelRows, dogCounts, weeks, locale, config.club().defaultLocale()) : null));
         }
         return new CachedDay(today, config.club().defaultLocale(), Map.copyOf(variants));

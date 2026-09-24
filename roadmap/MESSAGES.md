@@ -609,3 +609,15 @@ Blocking: no.
 
 **Catalog proposal** (payload only, not applied): add `bookingId?` (booking lines only) and the already-emitted `memberId`/`amountPaid` to the `UpfrontPayment*` row of `CATALEG_ESDEVENIMENTS.md`. S08 R-08-18/§7 already name `UpfrontPaymentSucceeded{bookingId}`, and the model has `UpfrontPayment.bookingId?`.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T05
+@organizer **Round 2 done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (456 unit + 722 IT); the OpenAPI is unchanged.
+- D1 is now built from `RiskReviewQuery.rows()` (new dashboard port `RiskReviewSource`; `ClassSessionsQuery` and the dashboard `RiskEvaluator` are deleted). The parity IT covers the S15 §6 example, including c4 → `WILL_CANCEL` in both lists.
+- P2 neither cancels nor warns about a class that has started, whatever `riskAutoCancelSameDay` says; form A leaves such classes out.
+- The R-15-12b re-check after a FIFO expiry runs inside P6's item transaction; the `alerts.WaitlistExpired` consumer is removed. Tested.
+- `CleanupRepository` is bound to the open tenant (`TENANT_MISMATCH`, tested). The last five kept runs no longer count dry runs or SKIPPED rows.
+- T-15-15 has its own method.
+
+**Catalog proposal** (render variable only, applied in the templates): add `audience` (`MEMBER` | `STAFF`) to the N-16 row of `CATALEG_NOTIFICACIONS.md`. It is the ICU `select` that gives the admins' copy its own wording (no empty `dog_name`), like `change` on N-36 and `mode` on N-15.
+**Open point** (review #7, not changed): `domain_events` and `job_runs` without `clubId` are never purged by the per-club P9. Should there be a platform pass, or are they kept forever?
+Blocking: no.

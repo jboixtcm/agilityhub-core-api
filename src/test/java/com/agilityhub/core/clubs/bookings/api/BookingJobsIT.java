@@ -93,6 +93,45 @@ class BookingJobsIT extends BookingFixtures {
                 .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.code()).isEqualTo(ErrorCode.MODULE_DISABLED));
     }
 
+    /** An open FIFO offer of `class` whose `confirmBy` has just passed (the offer path itself is T-15-24's). */
+    private String dueOffer(String classId, org.springframework.test.web.servlet.request.RequestPostProcessor who, String dogId) throws Exception {
+        String id = join(who, classId, dogId, 201).path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(id)), new Update().set("state", "NOTIFIED")
+                .set("notifiedAt", NOW.minus(Duration.ofMinutes(31))).set("confirmBy", NOW.minus(Duration.ofMinutes(1))), "waitlist_entries");
+        return id;
+    }
+
+    @Test void R_15_12b_aFifoExpiryThatLeavesTheClassBelowTheMinimumAlertsStaffInTheSameTransaction() throws Exception {
+        parameter("waitlist.mode", "FIFO");
+        // «last» (capacity 1) keeps Laura's single dog: below classes.minDogs = 2, with no low alert standing (a booking never alerts).
+        book(as("laura"), "last", "s08-d-duna");
+        assertThat(session("last").get("risk", Document.class).get("lowAlertSentAt")).isNull();
+        String pere = dueOffer("last", as("pere"), "s08-d-nit");
+        String joan = dueOffer("last", as("joan"), "s08-d-toby");
+        dispatch(); mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "notifications");
+        long before = events("ClassBelowMinimum");
+        var run = runner.scheduled(CLUB, true, fifo, NOW).orElseThrow();
+        assertThat(run.items()).extracting(JobRun.Item::entityId).containsExactlyInAnyOrder(pere, joan);
+        // Emitted by P6's own item transaction (already in the outbox, before any consumer ran), once: the second expiry finds the mark.
+        assertThat(events("ClassBelowMinimum")).isEqualTo(before + 1);
+        assertThat(eventsOf("ClassBelowMinimum")).anySatisfy(e -> assertThat(e.get("payload", Document.class))
+                .containsEntry("classId", "s08-last").containsEntry("countedDogs", 1).containsEntry("minDogs", 2));
+        assertThat(session("last").get("risk", Document.class).get("lowAlertSentAt")).isNotNull();
+        assertThat(session("last").getString("state")).isEqualTo("ACTIVE");
+        dispatch();
+        assertThat(notifications("N-54")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
+                .containsExactlyInAnyOrder("s08-admin:APP", "s08-admin:EMAIL", "s08-inst:APP", "s08-inst:EMAIL");
+        assertThat(eventsOf("ClassAtRisk")).isEmpty();
+        // A class that has already started never alerts, even with the mark cleared.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-last")), new Update().unset("risk.lowAlertSentAt"), "class_sessions");
+        String crowd = dueOffer("last", as("c0"), "s08-d-c0");
+        Instant started = session("last").getDate("startsAt").toInstant().plusSeconds(60);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(crowd)), new Update().set("confirmBy", started.minusSeconds(30)), "waitlist_entries");
+        clock.setInstant(started);
+        assertThat(runner.manual(CLUB, JobName.WAITLIST_FIFO, false, "s08-admin").items()).extracting(JobRun.Item::entityId).containsExactly(crowd);
+        assertThat(events("ClassBelowMinimum")).isEqualTo(before + 1);
+    }
+
     private String pending(String id, String classId, String dogId, String memberId, Instant bookedAt) {
         var session = session(classId.substring("s08-".length()));
         Instant starts = session.getDate("startsAt").toInstant();

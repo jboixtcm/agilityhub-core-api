@@ -313,18 +313,17 @@ class CalendarIT extends AbstractIntegrationTest {
         try(var tenant=TenantContext.open(CLUB)) { cancellations.cancel(risk,ClassCancellationReason.RISK_REVIEW,"Minimum not reached",null); }
         dispatcher.dispatch();assertThat(notifications("N-08a")).isEmpty();assertThat(session(risk).at("/cancellation/reason").asText()).isEqualTo("RISK_REVIEW");
     }
-    @Autowired com.agilityhub.core.clubs.dashboard.application.ports.ClassSessionsQuery dashboardSessions;
+    @Autowired com.agilityhub.core.clubs.dashboard.application.ports.RiskReviewSource dashboardRisk;
     @Autowired com.agilityhub.core.clubs.dashboard.application.ports.ClassOccupancyQuery occupancy;
-    @Autowired com.agilityhub.core.clubs.dashboard.application.ports.RiskEvaluator dashboardRisk;
     @Autowired FinishEndedCommand finishCommand;
     @Test void T_06_25_dashboardCoverageAndCliUseRealSessionsAndEnforceTenant() throws Exception {
         String id=session("2026-08-25","18:00","plan-ring");validate(id);audience(id,1,0);
         var from=Instant.parse("2026-08-23T22:00:00Z");var to=from.plusSeconds(7*86400);
         try(var tenant=TenantContext.open(CLUB)) {
             assertThat(occupancy.sessions(CLUB,from,to)).hasSize(1).first().satisfies(c -> {assertThat(c.booked()).isEqualTo(1);assertThat(c.capacity()).isEqualTo(5);});
-            var rows=dashboardSessions.sessions(CLUB,LocalDate.of(2026,8,24),LocalDate.of(2026,8,30));assertThat(rows).hasSize(1);assertThat(rows.getFirst().description().resolve("en").value()).isEqualTo("D and up");assertThat(dashboardRisk.atRisk(rows.getFirst())).isTrue();
+            var rows=dashboardRisk.rows(CLUB,LocalDate.of(2026,8,24));assertThat(rows).hasSize(1);assertThat(rows.getFirst().description().resolve("en").value()).isEqualTo("D and up");assertThat(rows.getFirst().status()).isEqualTo("WILL_CANCEL");
             assertThatThrownBy(() -> occupancy.sessions(OTHER,from,to)).isInstanceOf(ApiException.class);
-            assertThatThrownBy(() -> dashboardSessions.sessions(OTHER,LocalDate.of(2026,8,24),LocalDate.of(2026,8,30))).isInstanceOf(ApiException.class);
+            assertThatThrownBy(() -> dashboardRisk.rows(OTHER,LocalDate.of(2026,8,24))).isInstanceOf(ApiException.class);
             assertThat(sessions.findActiveBetween(CLUB,from,to)).hasSize(1);assertThat(sessions.countFutureByRing("plan-ring",clock.instant())).isEqualTo(1);assertThat(sessions.countFutureByInstructor("plan-instructor",clock.instant())).isEqualTo(1);
         }
         var coverage=ok("GET","/coverage?weekId="+session(id).path("weekId").asText(),null);assertThat(coverage.path("levels").findValuesAsText("booked")).contains("1");

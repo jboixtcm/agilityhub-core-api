@@ -59,7 +59,7 @@ public class NotificationRepository extends TenantRepository<Notification> {
     private static java.util.Map<String,Object> safe(java.util.Map<String,Object> variables) {
         var safe=new java.util.LinkedHashMap<String,Object>();
         for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change","confirm_by","mode","time","has_admin_text",
-                "dogs_count","review_time","review_day","auto_cancel","week_start")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
+                "dogs_count","review_time","review_day","auto_cancel","audience","week_start")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
         return safe;
     }
     public void smsContent(String id,java.util.List<String> phones,String body,java.util.Map<String,Object> variables) {

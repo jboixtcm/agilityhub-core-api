@@ -10,7 +10,8 @@ import org.springframework.context.annotation.*;
 /**
  * S08 §7 consumed waiting-list events, idempotent by state (a redelivery finds nothing left to offer):
  * `waitlist.SeatReleased` → {@link WaitlistService#offerSeats} when `notifyWaitlist` is true (R-08-13/14);
- * `waitlist.WaitlistExpired` (S15 P6, FIFO) → {@link WaitlistService#offerNext}.
+ * `waitlist.WaitlistExpired` (S15 P6, FIFO) → {@link WaitlistService#offerNext}. The R-15-12b minimum re-check of an
+ * expiry runs inside P6's own transaction ({@link WaitlistFifoJob}), not here.
  */
 @Configuration(proxyBeanMethods = false)
 public class WaitlistConsumers {
@@ -36,26 +37,6 @@ public class WaitlistConsumers {
                     var classId = event.payload().get("classId") != null ? event.payload().get("classId").toString()
                             : entries.findById(entryId).map(WaitlistEntry::classSessionId).orElse(null);
                     if (classId != null) { waitlist.offerNext(classId, entryId); }
-                }
-            }
-        };
-    }
-    /**
-     * S15 R-15-12b: an expired FIFO offer that leaves the class as it was re-checks the minimum inside its own
-     * transaction; `ClassBelowMinimum` (→ N-54) is emitted only while `risk.lowAlertSentAt` is unset, never for a class
-     * that has started, and nothing else changes.
-     */
-    @Bean("alerts.WaitlistExpired") DomainEventHandler<SchedulerEvent> lowAlertAfterExpiry(BookingTransactions transactions, SeatLockRepository locks,
-            BookingCounters counters, WaitlistEntryRepository entries) {
-        return new DomainEventHandler<>() {
-            public String eventType() { return "WaitlistExpired"; } public Class<SchedulerEvent> eventClass() { return SchedulerEvent.class; }
-            public void handle(String id, SchedulerEvent event) {
-                try (var tenant = TenantContext.open(event.clubId())) {
-                    var entryId = Objects.toString(event.payload().getOrDefault("entryId", event.aggregateId()), null);
-                    var classId = event.payload().get("classId") != null ? event.payload().get("classId").toString()
-                            : entries.findById(entryId).map(WaitlistEntry::classSessionId).orElse(null);
-                    if (classId == null) { return; }
-                    transactions.write(java.util.List.of(classId), () -> { locks.lock(classId); counters.recount(classId, true, BookingActor.system()); return null; });
                 }
             }
         };

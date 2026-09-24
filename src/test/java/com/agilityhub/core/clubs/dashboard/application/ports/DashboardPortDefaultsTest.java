@@ -16,8 +16,7 @@ class DashboardPortDefaultsTest {
             assertThat(context.getBean(BookingActivity.class).dogsWithBooking("club", Instant.EPOCH, Instant.EPOCH)).isEmpty();
             assertThat(context.getBean(PendingRequestsQuery.class).counts("club")).isEqualTo(new PendingRequestsQuery.Counts(0, 0));
             assertThat(context.getBean(FollowUpUnreadQuery.class).count("club", "account")).isZero();
-            assertThat(context.getBean(ClassSessionsQuery.class).sessions("club", LocalDate.of(2026, 8, 10), LocalDate.of(2026, 8, 12))).isEmpty();
-            assertThat(context.getBean(RiskEvaluator.class).atRisk(null)).isFalse();
+            assertThat(context.getBean(RiskReviewSource.class).rows("club", LocalDate.of(2026, 8, 10))).isEmpty();
         });
     }
     @Configuration(proxyBeanMethods = false)

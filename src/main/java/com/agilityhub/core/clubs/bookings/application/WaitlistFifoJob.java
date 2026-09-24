@@ -18,8 +18,9 @@ import org.springframework.stereotype.Component;
 /**
  * S15 R-15-16 P6 `waitlist-fifo` (every minute, module WAITLIST and `waitlist.mode = FIFO`): a NOTIFIED entry whose
  * `confirmBy` has passed → EXPIRED + `WaitlistExpired{entryId, classId}`, one transaction per entry (the runner's, with
- * the class's seat lock). The `waitlist.WaitlistExpired` consumer ({@link WaitlistService#offerNext}) offers the seat to
- * the next entry. In ALL_AT_ONCE the framework records `SKIPPED{MODULE_OFF}` at most once per hour.
+ * the class's seat lock). The same transaction re-checks the class minimum (S15 R-15-12b: `ClassBelowMinimum` → N-54
+ * while no low alert stands). The `waitlist.WaitlistExpired` consumer ({@link WaitlistService#offerNext}) offers the
+ * seat to the next entry. In ALL_AT_ONCE the framework records `SKIPPED{MODULE_OFF}` at most once per hour.
  */
 @Component
 public class WaitlistFifoJob implements Job {
@@ -48,7 +49,8 @@ public class WaitlistFifoJob implements Job {
             return new JobEffect("NOT_IN_SCOPE", Map.of(), Map.of());
         }
         transitions.expire(e, clock.instant());
-        counters.recount(e.classSessionId(), false, BookingActor.system());
+        // R-15-12b: the expiry leaves the class as it was, so the minimum is re-checked here, in the same transaction.
+        counters.recount(e.classSessionId(), true, BookingActor.system());
         publisher.publish(new SchedulerEvent(SchedulerEvent.Kind.WaitlistExpired, TenantContext.require(), e.id(), clock.instant(),
                 Map.of("entryId", e.id(), "classId", e.classSessionId()), null, null, DomainEvent.Origin.SYSTEM));
         return new JobEffect("EXPIRE", Map.of("entryId", e.id(), "position", e.position()), Map.of("expired", 1L));

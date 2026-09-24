@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  * S15 §8 notifications of the risk processes, one outbox consumer per event, idempotent per event and recipient:
  * <ul>
  * <li>`notifications.N-16` (`ClassAtRisk`): «Possible anul·lació de classe» to the owners of the new bookings (APP + EMAIL)
- * and, the first day only, to the ADMINS (APP).</li>
+ * and, the first day only, to the ADMINS (APP) with the staff wording (`audience = STAFF`).</li>
  * <li>`notifications.N-17` (`ClassAutoCancelled`): N-17 to the ADMINS and the class's INSTRUCTORS (APP + EMAIL) on every
  * auto-cancellation, also with 0 registrants (§13-3), plus N-08a to the affected registrants through
  * {@link SchedulingNotifications#autoCancelled}.</li>
@@ -55,7 +55,8 @@ public class RiskNotifications {
                 var member = census.member(booking.memberId()).orElse(null); if (member == null) { continue; }
                 var account = member.accountId() == null ? null : accounts.find(member.accountId()).orElse(null);
                 String language = account == null ? member.locale() : account.locale();
-                var variables = variables("N-16", c, language, payload); variables.put("dog_name", census.dog(booking.dogId()).map(SchedulingRecipients.Dog::name).orElse(""));
+                var variables = variables("N-16", c, language, payload); variables.put("audience", "MEMBER");
+                variables.put("dog_name", census.dog(booking.dogId()).map(SchedulingRecipients.Dog::name).orElse(""));
                 String key = eventId + ":" + booking.bookingId();
                 if (account != null) { notifications.appOnce(key + ":app", "N-16", account.id(), variables); }
                 if (member.email() != null) {
@@ -111,7 +112,8 @@ public class RiskNotifications {
         values.put("class_date", c.startsAt().atZone(projection.zone()).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)));
         values.put("class_time", c.startTime());
         if (code.equals("N-16")) {
-            values.put("dog_name", "");
+            // ICU `select` of the N-16 template: the staff copy has no dog phrase; the registrants' copy sets MEMBER + `dog_name`.
+            values.put("audience", "STAFF");
             values.put("review_time", config.get("classes.riskReviewTime", String.class));
             values.put("review_day", c.date().getDayOfWeek().getDisplayName(TextStyle.FULL, locale));
             // ICU `select` of the N-16 template: will the class be cancelled automatically on its own day?

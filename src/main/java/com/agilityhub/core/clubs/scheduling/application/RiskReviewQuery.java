@@ -36,32 +36,43 @@ public class RiskReviewQuery {
     }
 
     public Review review(LocalDate requested) {
-        var config = context.config(); var zone = projection.zone();
-        var date = requested == null ? clock.instant().atZone(zone).toLocalDate() : requested;
+        var rows = rows(requested); var locale = LocaleContext.current();
+        var items = rows.rows().stream().map(r -> new Item(r.session().id(), r.session().date(), r.dayLabel(), r.session().startTime(),
+                projection.description(r.session(), locale), r.ringName(), r.bookedCount(), r.status(), r.cancelledAt(), r.reviewAt(), r.notified())).toList();
+        return new Review(rows.date(), rows.reviewTime(), rows.lookaheadDays(), rows.minDogs(), rows.autoCancelSameDay(), items);
+    }
+
+    /** A form-A row before localization. S14's D1 card maps these same rows: the statuses are computed only here. */
+    public record Row(ClassSession session, String dayLabel, String ringName, int bookedCount, String status, Instant cancelledAt, Instant reviewAt,
+            List<Notified> notified) { }
+    public record Rows(LocalDate date, String reviewTime, int lookaheadDays, int minDogs, boolean autoCancelSameDay, List<Row> rows) { }
+
+    public Rows rows(LocalDate requested) {
+        var config = context.config(); var zone = projection.zone(); var now = clock.instant();
+        var date = requested == null ? now.atZone(zone).toLocalDate() : requested;
         int lookahead = config.get("classes.riskLookaheadDays", Integer.class); int minDogs = config.get("classes.minDogs", Integer.class);
         boolean autoCancel = config.get("classes.riskAutoCancelSameDay", Boolean.class);
         var reviewTime = LocalTime.parse(config.get("classes.riskReviewTime", String.class));
-        var catalog = context.catalog(); var locale = LocaleContext.current();
-        var items = new ArrayList<Item>();
+        var catalog = context.catalog();
+        var rows = new ArrayList<Row>();
         for (ClassSession c : classes.startingBetween(date.atStartOfDay(zone).toInstant(), date.plusDays(lookahead + 1L).atStartOfDay(zone).toInstant())) {
             String label = c.date().equals(date) ? "TODAY" : c.date().equals(date.plusDays(1)) ? "TOMORROW" : "OTHER";
             String ring = catalog.rings().stream().filter(r -> r.id().equals(c.ringId())).map(SchedulingCatalog.Resource::name).findFirst().orElse(null);
             if (c.state() == ClassState.CANCELLED && c.cancellation() != null && c.cancellation().reason() == ClassCancellationReason.RISK_REVIEW) {
-                items.add(new Item(c.id(), c.date(), label, c.startTime(), projection.description(c, locale), ring, c.cancellation().affectedBookings(),
-                        "AUTO_CANCELLED", c.cancellation().at(), null, cancellationNotified(c)));
+                rows.add(new Row(c, label, ring, c.cancellation().affectedBookings(), "AUTO_CANCELLED", c.cancellation().at(), null, cancellationNotified(c)));
                 continue;
             }
-            if (c.state() != ClassState.ACTIVE || c.risk() != null && c.risk().exempt()) { continue; }
+            // A class that has begun is out of the review's reach (RiskReviewJob's skippedStarted): nothing will act on it.
+            if (c.state() != ClassState.ACTIVE || c.risk() != null && c.risk().exempt() || !c.startsAt().isAfter(now)) { continue; }
             int booked = bookings.activeBookings(c.id()).size();
             if (booked >= minDogs) { continue; }
             var notified = riskNotified(c);
             boolean warned = !notified.isEmpty() || c.risk() != null && c.risk().adminNotifiedAt() != null;
             // AT_RISK = warned registrants; otherwise the review will act (WILL_CANCEL), or the club decides (WILL_REVIEW).
             String status = warned && booked > 0 ? "AT_RISK" : autoCancel ? "WILL_CANCEL" : "WILL_REVIEW";
-            items.add(new Item(c.id(), c.date(), label, c.startTime(), projection.description(c, locale), ring, booked, status, null,
-                    WeekCalendarRules.resolve(c.date(), reviewTime, zone).instant(), notified));
+            rows.add(new Row(c, label, ring, booked, status, null, WeekCalendarRules.resolve(c.date(), reviewTime, zone).instant(), notified));
         }
-        return new Review(date, reviewTime.toString(), lookahead, minDogs, autoCancel, items);
+        return new Rows(date, reviewTime.toString(), lookahead, minDogs, autoCancel, List.copyOf(rows));
     }
 
     /** The registrants the review has warned (N-16), by booking. */

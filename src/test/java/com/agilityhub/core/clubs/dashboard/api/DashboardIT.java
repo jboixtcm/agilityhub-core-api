@@ -58,7 +58,7 @@ class DashboardIT extends AbstractIntegrationTest {
     @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
     @MockitoBean ClassOccupancyQuery occupancy; @MockitoBean TrainingBookingsQuery training;
     @MockitoBean BookingActivity bookings; @MockitoBean PendingRequestsQuery requests;
-    @MockitoBean FollowUpUnreadQuery unread; @MockitoBean ClassSessionsQuery sessions; @MockitoBean RiskEvaluator evaluator;
+    @MockitoBean FollowUpUnreadQuery unread; @MockitoBean RiskReviewSource riskReview;
     String club, host;
     @BeforeEach void prepare() {
         clock.setInstant(Instant.parse("2026-08-10T06:00:00Z"));
@@ -70,7 +70,7 @@ class DashboardIT extends AbstractIntegrationTest {
         when(training.bookings(anyString(), any(), any())).thenReturn(List.of());
         when(bookings.dogsWithBooking(anyString(), any(), any())).thenReturn(Set.of());
         when(requests.counts(anyString())).thenReturn(new PendingRequestsQuery.Counts(0, 0));
-        when(sessions.sessions(anyString(), any(), any())).thenReturn(List.of());
+        when(riskReview.rows(anyString(), any())).thenReturn(List.of());
     }
     MockHttpServletRequestBuilder admin(MockHttpServletRequestBuilder request) {
         return request.header("Host", host).with(jwt().jwt(j -> j.subject("dashboard-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN"));

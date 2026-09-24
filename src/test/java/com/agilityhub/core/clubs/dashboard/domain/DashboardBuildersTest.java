@@ -73,32 +73,30 @@ class DashboardBuildersTest {
         assertThat(PendingSignupBuilder.build(missing, period, 0, true, true, "en", "ca").card().items())
                 .allSatisfy(item -> { assertThat(item.pendingDays()).isZero(); assertThat(item.shortName()).doesNotContain("."); assertThat(item.planName()).isEqualTo("English Abonat"); });
     }
-    ClassSessionsQuery.Session risk(String id, int days, String time, String state, String reason, boolean exempt, int booked, boolean notice, List<Notified> notified) {
-        return new ClassSessionsQuery.Session(id, period.today().plusDays(days), LocalTime.parse(time), label(id), label("Ring"), state, reason, exempt, booked, notice,
-                state.equals("CANCELLED") ? notified : List.of(), notice ? notified : List.of());
+    RiskReviewSource.Row risk(String id, int days, String time, int booked, String status, List<Notified> notified) {
+        var date = period.today().plusDays(days);
+        return new RiskReviewSource.Row(id, date, LocalTime.parse(time), label(id), label("Ring"), booked, status, notified,
+                date.atTime(7, 30).atZone(period.zone()).toInstant());
     }
+    /** The window, the policy and the recount are S15's (`RiskReviewQuery`, parity in `RiskReviewJobIT`): the card only maps and localizes. */
     @Test void T_14_05_riskRowsMatchMockupWindowPolicyAndNotificationSnapshots() {
         var laura = List.of(new Notified("Laura", "FEMALE", "Duna")); var pau = List.of(new Notified("Pau", "MALE", "Blat"));
-        var rows = List.of(risk("future", 2, "09:30", "ACTIVE", null, false, 0, false, List.of()),
-                risk("zero", 0, "09:30", "CANCELLED", "RISK_REVIEW", false, 0, false, List.of()),
-                risk("laura", 0, "17:40", "CANCELLED", "RISK_REVIEW", false, 1, false, laura),
-                risk("pau", 1, "20:00", "ACTIVE", null, false, 1, true, pau),
-                risk("manual", 0, "12:00", "CANCELLED", "CLUB_MANUAL", false, 0, false, List.of()),
-                risk("deleted", 0, "12:00", "CANCELLED", "DELETED", false, 0, false, List.of()),
-                risk("exempt", 0, "12:00", "ACTIVE", null, true, 0, false, List.of()),
-                risk("outside", 3, "12:00", "ACTIVE", null, false, 0, false, List.of()),
-                risk("past", -1, "12:00", "ACTIVE", null, false, 0, false, List.of()),
-                risk("draft", 1, "12:00", "DRAFT", null, false, 0, false, List.of()),
-                risk("safe", 1, "12:00", "ACTIVE", null, false, 2, false, List.of()));
-        var builder = new RiskCardBuilder(s -> s.booked() < 2);
-        var result = builder.build(rows, period, 2, LocalTime.of(7, 30), true, "ca", "ca");
-        assertThat(result.count()).isEqualTo(4);
+        var rows = List.of(risk("zero", 0, "09:30", 0, "AUTO_CANCELLED", List.of()),
+                risk("laura", 0, "17:40", 1, "AUTO_CANCELLED", laura),
+                risk("pau", 1, "20:00", 1, "AT_RISK", pau),
+                risk("future", 2, "09:30", 0, "WILL_CANCEL", List.of()));
+        var result = RiskCardBuilder.build(rows, 2, LocalTime.of(7, 30), true, "ca", "ca");
+        assertThat(result.count()).isEqualTo(4); assertThat(result.reviewTime()).isEqualTo("07:30"); assertThat(result.lookaheadDays()).isEqualTo(2);
+        assertThat(result.items()).extracting(RiskItem::classSessionId).containsExactly("zero", "laura", "pau", "future");
         assertThat(result.items()).extracting(RiskItem::status).containsExactly(RiskStatus.CANCELLED, RiskStatus.CANCELLED, RiskStatus.AT_RISK, RiskStatus.WILL_CANCEL);
         assertThat(result.items().get(1).notified()).isEqualTo(laura); assertThat(result.items().get(2).notified()).isEqualTo(pau);
         assertThat(result.items().getLast().reviewAt()).isEqualTo("2026-08-12T05:30:00Z");
-        assertThat(builder.build(rows, period, 2, LocalTime.of(7, 30), false, "ca", "ca").items().getLast().status()).isEqualTo(RiskStatus.PENDING_DECISION);
-        assertThat(builder.build(List.of(risk("unnotified", 1, "12:00", "ACTIVE", null, false, 1, false, List.of())), period, 2, LocalTime.of(7,30), true, "en", "ca")
-                .items().getFirst().status()).isEqualTo(RiskStatus.AT_RISK);
+        assertThat(result.items().getLast().startTime()).isEqualTo("09:30"); assertThat(result.items().getLast().displayDescription()).isEqualTo("future");
+        var english = RiskCardBuilder.build(List.of(risk("review", 1, "12:00", 1, "WILL_REVIEW", List.of())), 2, LocalTime.of(7, 30), false, "en", "ca");
+        assertThat(english.autoCancelSameDay()).isFalse();
+        assertThat(english.items().getFirst().status()).isEqualTo(RiskStatus.PENDING_DECISION);
+        assertThat(english.items().getFirst().displayDescription()).isEqualTo("English review"); assertThat(english.items().getFirst().ringName()).isEqualTo("English Ring");
+        assertThatThrownBy(() -> RiskCardBuilder.status("CANCELLED")).isInstanceOf(IllegalArgumentException.class);
     }
     @Test void T_14_06_dogsOfInactiveLevelsAndMissingLevelsBelongToOthersIncludingTotal() {
         var levels = List.of(new LevelSource("F", "F", label("F"), "#000000", 2, false),
