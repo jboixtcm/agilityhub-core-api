@@ -112,6 +112,7 @@ abstract class ActivityFixtures extends AbstractIntegrationTest {
         }
         public List<Booking> findActiveBookings(String ring,Instant from,Instant to) { return training.stream().filter(b -> b.ringId().equals(ring) && b.from().isBefore(to) && from.isBefore(b.to())).toList(); }
         public void cancelByClub(List<String> ids,String reason) { var old=training.stream().filter(b -> ids.contains(b.id())).toList();training.removeAll(old);undo(() -> training.addAll(old)); }
+        public void lockSlots(String ring,Instant from,Instant to) { }
         private void undo(Runnable work) {
             assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isTrue();
             org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(new org.springframework.transaction.support.TransactionSynchronization() {

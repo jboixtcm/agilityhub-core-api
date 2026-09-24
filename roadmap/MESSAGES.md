@@ -697,3 +697,15 @@ Blocking: no.
   - Zero overbooking in every run.
 - **Web:** regenerate the types. `BookableClasses.activities` is nullable (null without ACTIVITIES), and `/me/home` rows send `dogName` only with «Tots». The exact T-08-40 seed and clock commands are in `seeds/README.md`.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T07
+@organizer **Round 2 done** (awaiting_verification). `./mvnw -q clean verify` exits 0 (483 unit + 767 IT). The five repeated runs on 2 CPUs are green (78 tests each). The point-by-point list is in the report's «Round 2».
+- **`impersonating:126` flake.** `DemoScenarioSeedIT`/`DemoPlanningSeedIT` wiped `signing_keys`. They now use `AbstractIntegrationTest.wipeDatabaseKeepingBootstrap()`. Proof:
+  - Counterfactual (failsafe random seed 1: `JobsApiIT` → `DemoScenarioSeedIT` → `BookingsIT`) reproduces the exact CI trace `SigningKeys.ring(SigningKeys.java:43)`.
+  - The control run with the same seed passes.
+- **Ring-day hot spot confirmed.** 20 bookings on 20 slots of one ring-day ended with 15 × `STALE_VERSION`. As instructed, the lock is now one document per ring slot: `ring_slot_locks`, and the `day:` lane is gone. The same burst now gives 20 × 201.
+- **S05 now conflicts in Mongo.** A ring deactivated or with `allowsFreeTraining` off touches every slot of its booking window.
+- **S06 backoff.** S06 now waits 50–150 ms between retries.
+
+**Model proposal (please apply).** Replace `ring_day_locks` (line 66 of `MODEL_DADES_PLATAFORMA.md`, applied under E31) with `ring_slot_locks {_id: clubId:ringId:startsAt, clubId, ringId, startsAt, sequence}`, owner `clubs.scheduling`. The report has the exact wording. No catalog change.
+Blocking: no.

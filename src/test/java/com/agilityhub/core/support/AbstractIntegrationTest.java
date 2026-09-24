@@ -1,5 +1,6 @@
 package com.agilityhub.core.support;
 
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,6 +61,12 @@ public abstract class AbstractIntegrationTest {
      * and a test's few synchronous {@code dispatch()} calls could end without reaching them — how many depended on the
      * order the test classes ran in. Each test therefore starts with an empty outbox backlog (JUnit runs this superclass
      * method before the subclass fixtures publish anything).
+     *
+     * <p>Production is unaffected: it has one real clock, so {@code nextAttemptAt} follows publication order, and the
+     * background dispatcher drains the oldest records first on every tick; no caller depends on a bounded number of
+     * synchronous dispatches. The discard removes the PENDING rows of <b>every</b> tenant before each test, so no IT may
+     * rely on events published by an earlier test or in {@code @BeforeAll}: publish and dispatch inside the test (or
+     * its {@code @BeforeEach}).
      */
     @BeforeEach
     void discardOutboxBacklog() {
@@ -72,4 +79,25 @@ public abstract class AbstractIntegrationTest {
     }
 
     private static final int OUTBOX_BATCH = 100;
+
+    /**
+     * Collections whose documents the application writes once at startup and never again: `signing_keys` (the
+     * encrypted key ring {@code SigningKeys} creates in its constructor and reads on every token). The other startup
+     * runners only create collections and indexes, which {@code remove} keeps.
+     */
+    protected static final Set<String> BOOTSTRAP_COLLECTIONS = Set.of("signing_keys");
+
+    /**
+     * E5-T07 round 2: empties every collection of the shared test database except `system.*` and
+     * {@link #BOOTSTRAP_COLLECTIONS}. Every IT that needs an empty database uses this instead of its own loop: wiping
+     * `signing_keys` left each cached Spring context unable to sign a token afterwards
+     * ({@code SigningKeys.ring()} → {@code NoSuchElementException}, the CI flake of {@code BookingFixtures.impersonating},
+     * {@code JobsApiIT} and {@code MemberAggregatesIT}), depending on the class order.
+     */
+    protected void wipeDatabaseKeepingBootstrap() {
+        for (String collection : sharedDatabase.getCollectionNames()) {
+            if (collection.startsWith("system.") || BOOTSTRAP_COLLECTIONS.contains(collection) && !Boolean.getBoolean("it.wipeBootstrap")) { continue; }
+            sharedDatabase.remove(new Query(), collection);
+        }
+    }
 }

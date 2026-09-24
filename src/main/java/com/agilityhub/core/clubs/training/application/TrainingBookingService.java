@@ -20,8 +20,9 @@ import org.springframework.transaction.annotation.*;
  * (1) `$inc` of the unit's `trainingSeq` (serialises the weekly counter); (2) eligibility, ring, member conditions,
  * grid and window; (3) no overlapping training or class booking of the dog; (4) the counter of the slot's training
  * week (by session date) below `training.maxPerWeek` unless an impersonating admin overrides it; (5) the live slot
- * state («Qualsevol» = first FREE ring in catalog order) and the `$inc` of the chosen ring's ring-day sequence, which
- * the S06 writes checking the ring's bookings also touch (R-09-13: a concurrent block or class conflicts in Mongo);
+ * state («Qualsevol» = first FREE ring in catalog order) and the `$inc` of the chosen ring's ring-slot sequence, which
+ * the S05/S06/S07 writes checking the ring's bookings also touch (R-09-13: a concurrent block, class or ring change
+ * conflicts in Mongo; bookings of other slots do not);
  * (6) insert with the lowest free `seatIndex`, the partial unique index being the final guard; (7)
  * `Member.lastDogForTraining`, audit when impersonated, `TrainingBooked`. Step (1) also `$inc`s `Dog.trainingSeq`
  * whatever the unit, so two bookings of one shared dog conflict in Mongo.
@@ -43,11 +44,11 @@ public class TrainingBookingService {
         this.schedule = schedule;
     }
     /**
-     * The in-process lanes of a booking: the dog, the booking member, the slot instant and its club-local day (the
-     * bookings of one day share the ring-day sequences, so they queue locally instead of retrying their conflicts).
+     * The in-process lanes of a booking: the dog, the booking member and the slot instant (the bookings of one slot
+     * share its seats and ring-slot sequences, so they queue locally instead of retrying their conflicts).
      */
     public List<String> lanes(String dogId, String memberId, Instant startsAt) {
-        return List.of("dog:" + dogId, "member:" + memberId, "slot:" + startsAt, "day:" + startsAt.atZone(context.zone()).toLocalDate());
+        return List.of("dog:" + dogId, "member:" + memberId, "slot:" + startsAt);
     }
 
     public Booked book(TrainingActor actor, String dogId, Instant startsAt, String ringId, Override override, String idempotencyKey) {
@@ -105,7 +106,7 @@ public class TrainingBookingService {
         String chosen = ringId != null ? ringId : TrainingWeek.firstFree(cells).orElse(null);
         var cell = chosen == null ? null : cells.get(chosen);
         if (cell == null || !cell.free()) { throw slotTaken(ringId, startsAt, cells, cell); }
-        schedule.lockRingDay(chosen, date);
+        schedule.lockRingSlots(chosen, List.of(slot.startsAt()));
         // (6) insert with the lowest free seat; the partial unique index is the final guarantee
         var id = UUID.randomUUID().toString();
         var booking = bookings.insert(new TrainingBooking(id, TenantContext.require(), actor.memberId(), dog.id(), chosen, slot.startsAt(), slot.endsAt(),

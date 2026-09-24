@@ -5,7 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import com.agilityhub.core.shared.domain.*;
 
-/** Retry aborted Mongo transactions, never a committed business operation or external side effect. */
+/**
+ * Retry aborted Mongo transactions (at most 6 attempts, 50–150 ms randomised backoff like the S07/S08/S09 contexts),
+ * never a committed business operation or external side effect. The backoff lets a concurrent writer of the same
+ * documents (for example a training booking of the ring-slot a block covers, R-09-13) commit before the next attempt.
+ */
 @Service
 public class SchedulingTransactions {
     private final TransactionTemplate transactions;
@@ -22,6 +26,8 @@ public class SchedulingTransactions {
             catch (RuntimeException failure) {
                 if (!conflict(failure)) { throw failure; }
                 if (attempt >= 5) { throw new ApiException(ErrorCode.STALE_VERSION); }
+                try { Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151)); }
+                catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
             }
         }
     }

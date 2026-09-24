@@ -18,6 +18,7 @@ public class SchedulingPortDefaults {
     TrainingConflictPort trainingConflicts() { return new TrainingConflictPort() {
         public List<Booking> findActiveBookings(String ring, java.time.Instant from, java.time.Instant to) { return List.of(); }
         public void cancelByClub(List<String> ids, String reason) { }
+        public void lockSlots(String ring, java.time.Instant from, java.time.Instant to) { }
     }; }
     @Bean @ConditionalOnMissingBean(TrainingOccupancyPort.class)
     TrainingOccupancyPort trainingOccupancy() { return (from, to, rings, role) -> List.of(); }

@@ -96,7 +96,8 @@ public class ActivityRegistrationService {
         return cancelMatching(memberId,RegistrationCancelReason.MEMBER_LEFT,a -> context.times(a).startsAt().isAfter(context.clock.instant()));
     }
     private int cancelMatching(String memberId,RegistrationCancelReason reason,java.util.function.Predicate<Activity> match) {
-        var lanes=registrations.forMember(memberId).stream().map(ActivityRegistration::activityId).distinct().toList();
+        // Only the activities of live registrations: the transaction skips the CANCELLED ones, so their lanes are not needed.
+        var lanes=registrations.forMember(memberId).stream().filter(r -> r.state()!=RegistrationState.CANCELLED).map(ActivityRegistration::activityId).distinct().toList();
         return transactions.write(lanes,() -> {
             int count=0;
             for(var initial:registrations.forMember(memberId)) if(initial.state()!=RegistrationState.CANCELLED) {

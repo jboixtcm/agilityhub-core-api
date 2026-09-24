@@ -15,12 +15,11 @@ import org.springframework.stereotype.Service;
 public class ClassSessionService {
     private final ClassSessionRepository classes; private final WeekRepository weeks; private final RingBlockRepository blocks;
     private final PlanningContext context; private final SchedulingTransactions transactions; private final SchedulingEvents events;
-    private final SchedulingAudit audit; private final TrainingConflictPort training; private final Clock clock; private final RingDayLockRepository ringDays;
+    private final SchedulingAudit audit; private final TrainingConflictPort training; private final Clock clock;
     public ClassSessionService(ClassSessionRepository classes, WeekRepository weeks, RingBlockRepository blocks, PlanningContext context,
-            SchedulingTransactions transactions, SchedulingEvents events, SchedulingAudit audit, TrainingConflictPort training, Clock clock,
-            RingDayLockRepository ringDays) {
+            SchedulingTransactions transactions, SchedulingEvents events, SchedulingAudit audit, TrainingConflictPort training, Clock clock) {
         this.classes = classes; this.weeks = weeks; this.blocks = blocks; this.context = context; this.transactions = transactions;
-        this.events = events; this.audit = audit; this.training = training; this.clock = clock; this.ringDays = ringDays;
+        this.events = events; this.audit = audit; this.training = training; this.clock = clock;
     }
     public ClassSession require(String id) { return classes.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     /** @param manualCapacity whether `capacity` was set by hand (MANUAL) rather than derived from the levels (AUTO) */
@@ -106,8 +105,8 @@ public class ClassSessionService {
         edit.startsAt = WeekCalendarRules.resolve(edit.before.date(), start, zone).instant(); edit.endsAt = WeekCalendarRules.resolve(edit.before.date(), end, zone).instant();
         if (moving && edit.ringId != null) {
             if (blocks.between(edit.startsAt, edit.endsAt).stream().anyMatch(b -> b.ringId().equals(edit.ringId))) { throw new ApiException(ErrorCode.RING_BLOCKED); }
-            // R-09-13: the ring-day sequence a training booking also touches, so a concurrent booking conflicts in Mongo.
-            if (config.modules().contains(Module.FREE_TRAINING)) { ringDays.touch(edit.ringId, edit.startsAt.atZone(zone).toLocalDate()); }
+            // R-09-13: the ring-slot sequences a training booking of those slots also touches, so it conflicts in Mongo.
+            if (config.modules().contains(Module.FREE_TRAINING)) { training.lockSlots(edit.ringId, edit.startsAt, edit.endsAt); }
             var booked = config.modules().contains(Module.FREE_TRAINING) ? training.findActiveBookings(edit.ringId, edit.startsAt, edit.endsAt) : List.<TrainingConflictPort.Booking>of();
             if (!booked.isEmpty()) {
                 if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", booked)); }

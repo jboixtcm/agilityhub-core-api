@@ -10,4 +10,11 @@ public interface TrainingConflictPort {
     List<Booking> findActiveBookings(String ringId, Instant from, Instant to);
     @Transactional(propagation = Propagation.MANDATORY)
     void cancelByClub(List<String> bookingIds, String cancelReason);
+    /**
+     * R-09-13: `$inc` the ring-slot sequences of every training grid slot of the ring overlapping `[from, to)` inside the
+     * caller's transaction, before it reads {@link #findActiveBookings}: a concurrent booking of one of those slots
+     * then conflicts with the caller in Mongo instead of both committing.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    void lockSlots(String ringId, Instant from, Instant to);
 }

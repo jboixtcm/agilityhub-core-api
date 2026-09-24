@@ -10,14 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * In-process fair locks keyed per aggregate (`activity:<id>`, `class:<id>`, `dog:<id>`, `member:<id>`, `slot:…`,
- * `day:…`), never per tenant, taken in key order around a whole retried Mongo transaction. One lock exists per key
+ * In-process fair locks keyed per aggregate (`activity:<id>`, `class:<id>`, `dog:<id>`, `member:<id>`, `slot:…`),
+ * never per tenant, taken in key order around a whole retried Mongo transaction. One lock exists per key
  * while somebody holds or waits for it, so unrelated aggregates never block each other.
  *
  * <p>R1 runs a single API instance (ADR-003). The local lanes only bound contention inside one process: a burst on one
  * aggregate queues instead of exhausting its write-conflict retries. With more than one instance they protect
  * nothing and the Mongo mechanisms are the guarantee: the `$inc` sequences with `WriteConflict` retries (R-07-08,
- * R-08-07), the partial unique index `training_active_seat` and the `trainingSeq` / ring-day sequences (R-09-06,
+ * R-08-07), the partial unique index `training_active_seat` and the `trainingSeq` / ring-slot sequences (R-09-06,
  * R-09-13). Switched by the infrastructure property `core.concurrency.local-lanes` (default `true`).
  */
 @Component

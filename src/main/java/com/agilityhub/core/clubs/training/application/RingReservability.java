@@ -13,9 +13,10 @@ import java.util.*;
  */
 public class RingReservability implements RingTrainingBookings {
     private final TrainingContext context; private final TrainingBookingRepository bookings; private final TrainingBookingService service;
-    private final TrainingMemberAccess census;
-    public RingReservability(TrainingContext context, TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census) {
-        this.context = context; this.bookings = bookings; this.service = service; this.census = census;
+    private final TrainingMemberAccess census; private final TrainingSlotLocks slotLocks;
+    public RingReservability(TrainingContext context, TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census,
+            TrainingSlotLocks slotLocks) {
+        this.context = context; this.bookings = bookings; this.service = service; this.census = census; this.slotLocks = slotLocks;
     }
     @Override public List<Booking> futureActive(String ringId) {
         var active = bookings.activeAfter("ringId", ringId, context.now());
@@ -24,5 +25,6 @@ public class RingReservability implements RingTrainingBookings {
         return active.stream().map(b -> new Booking(b.id(), b.ringId(), b.startsAt(), b.endsAt(), Objects.toString(names.get(b.memberId()), ""),
                 Objects.toString(dogs.get(b.dogId()), ""))).toList();
     }
+    @Override public void lockBookableSlots(String ringId) { slotLocks.bookable(ringId); }
     @Override public void cancelNotReservable(List<String> bookingIds) { service.cancelByClub(bookingIds, TrainingCancelReason.RING_NOT_RESERVABLE, null); }
 }

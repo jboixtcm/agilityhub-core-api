@@ -1,8 +1,8 @@
 package com.agilityhub.core.clubs.training.api;
 
-import com.agilityhub.core.clubs.scheduling.persistence.RingDayLockRepository;
 import com.agilityhub.core.clubs.training.application.TrainingActor;
 import com.agilityhub.core.clubs.training.application.TrainingBookingService;
+import com.agilityhub.core.clubs.training.application.TrainingSlotLocks;
 import com.agilityhub.core.clubs.training.domain.*;
 import com.agilityhub.core.clubs.training.persistence.TrainingBooking;
 import com.agilityhub.core.shared.application.LocalLanes;
@@ -22,17 +22,18 @@ import org.springframework.data.mongodb.core.query.*;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * E5-T07 · S09 R-09-06/R-09-13 on the Mongo path alone: the local lanes are off, so concurrent bookings meet only the
- * partial unique index `training_active_seat`, the `trainingSeq` `$inc`s (the dog's always) and the ring-day sequence
- * shared with the S06 ring blocks (T-09-28/32/33).
+ * partial unique index `training_active_seat`, the `trainingSeq` `$inc`s (the dog's always) and the ring-slot sequences
+ * shared with the S06 ring blocks and the S05 ring changes (T-09-28/32/33, R-09-13).
  */
 @TestPropertySource(properties = "core.concurrency.local-lanes=false")
 class TrainingLanesOffIT extends TrainingFixtures {
     static final String CONTEXT = "training";
-    @Autowired LocalLanes lanes; @Autowired TransactionRetries retries; @Autowired TrainingBookingService service; @Autowired RingDayLockRepository ringDays;
+    @Autowired LocalLanes lanes; @Autowired TransactionRetries retries; @Autowired TrainingBookingService service; @Autowired TrainingSlotLocks slotLocks;
     record Reply(int status, JsonNode body) { String code() { return body.path("code").asText(); } String outcome() { return status + (status >= 400 ? " " + code() : ""); } }
 
     Reply send(String path, Object body, RequestPostProcessor auth) throws Exception {
@@ -44,6 +45,14 @@ class TrainingLanesOffIT extends TrainingFixtures {
     Reply booking(String account, String dogId, String localStart, String ringId) throws Exception {
         var body = new LinkedHashMap<String, Object>(); body.put("dogId", dogId); body.put("startsAt", local(localStart).toString()); if (ringId != null) { body.put("ringId", ringId); }
         return send("/training-bookings", body, as(account));
+    }
+    /** S05 `PATCH /rings/{id}` by the admin, with the ring's current version. */
+    Reply ringChange(String ringId, Map<String, Object> change) throws Exception {
+        var body = new LinkedHashMap<String, Object>(change);
+        body.put("version", ((Number) mongo.findById(ringId, Document.class, "rings").get("version")).longValue());
+        var response = mvc.perform(patch("/api/v1/rings/" + ringId).header("Host", HOST).with(as("admin")).contentType("application/json")
+                .content(mapper.writeValueAsBytes(body))).andReturn().getResponse();
+        return new Reply(response.getStatus(), response.getContentAsByteArray().length == 0 ? mapper.nullNode() : mapper.readTree(response.getContentAsString()));
     }
     Reply ringBlock(String ringId, String localFrom, String localTo) throws Exception {
         return send("/ring-blocks", Map.of("ringId", ringId, "from", local(localFrom).toString(), "to", local(localTo).toString(), "kind", "BLOCK", "reason", "MAINTENANCE"), as("admin"));
@@ -112,7 +121,7 @@ class TrainingLanesOffIT extends TrainingFixtures {
             System.out.println("E5-T07 T-09-32 lanes off, capacity " + capacity + ", 20 dogs on one slot: " + counts + " · retries " + retriedNow + " · exhausted " + exhaustedNow);
             assertThat(counts.keySet()).isSubsetOf("201", "409 SLOT_TAKEN", "409 STALE_VERSION");
             assertThat(counts).containsEntry("201", (long) capacity);
-            assertThat(retriedNow).as("the ring-day / seat conflicts were met and retried").isPositive();
+            assertThat(retriedNow).as("the ring-slot / seat conflicts were met and retried").isPositive();
             assertThat((long) exhaustedNow).isEqualTo(counts.getOrDefault("409 STALE_VERSION", 0L));
             var seats = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("ringId").is(ring).and("state").is("ACTIVE")), Document.class, "training_bookings")
                     .stream().map(d -> d.getInteger("seatIndex")).toList();
@@ -166,22 +175,22 @@ class TrainingLanesOffIT extends TrainingFixtures {
         }
     }
 
-    @Test void T_09_28_aRingBlockDuringAnUncommittedBookingConflictsInsteadOfSkippingIt() throws Exception {
+    @Test void R_09_13_aRingBlockDuringAnUncommittedBookingConflictsInsteadOfSkippingIt() throws Exception {
         Reply block;
         try (var held = new HeldTransaction(tx, CLUB, serviceBooking("pau", "s09-m-pau", "s09-d-blat", "2026-10-06T10:00", MUN))) {
             block = ringBlock(MUN, "2026-10-06T10:00", "2026-10-06T11:00");
             held.commit();
         }
-        System.out.println("E5-T07 R-09-13 ring block while a booking of the ring-day is uncommitted: " + block.outcome());
-        assertThat(block.outcome()).as("the S06 side meets the ring-day write conflict (never 201 over the booking)").isEqualTo("409 STALE_VERSION");
+        System.out.println("E5-T07 R-09-13 ring block while a booking of the ring slot is uncommitted: " + block.outcome());
+        assertThat(block.outcome()).as("the S06 side meets the ring-slot write conflict (never 201 over the booking)").isEqualTo("409 STALE_VERSION");
         assertThat(ringBlock(MUN, "2026-10-06T10:00", "2026-10-06T11:00").outcome()).isEqualTo("422 RING_HAS_BOOKINGS");
         assertThat(count("ring_blocks", Criteria.where("ringId").is(MUN).and("state").is("ACTIVE"))).isZero();
     }
 
-    @Test void T_09_28_aBookingDuringAnUncommittedRingBlockIsRetriedAndSeesTheBlock() throws Exception {
+    @Test void R_09_13_aBookingDuringAnUncommittedRingBlockIsRetriedAndSeesTheBlock() throws Exception {
         Reply reply;
         try (var held = new HeldTransaction(tx, CLUB, () -> {
-            ringDays.touch(MUN, LocalDate.parse("2026-10-06"));
+            slotLocks.overlapping(MUN, local("2026-10-06T10:00"), local("2026-10-06T11:00"));
             block("s09-held-block", MUN, "2026-10-06T10:00", "2026-10-06T11:00", "BLOCK", "MAINTENANCE", null, null);
         })) {
             reply = whileHeld(held, () -> booking("pau", "s09-d-blat", "2026-10-06T10:00", MUN));
@@ -190,7 +199,20 @@ class TrainingLanesOffIT extends TrainingFixtures {
         assertThat(reply.body().at("/details/reason").asText()).isEqualTo("RING_BLOCK");
     }
 
-    @Test void T_09_28_lanesOffAConcurrentBlockAndBookingOnOneSlotNeverBothCommit() throws Exception {
+    /** Review E5-T07 #4: the S06↔S09 serialisation document must not make unrelated slots of one ring-day conflict. */
+    @Test void R_09_13_lanesOffTwentyBookingsOnTwentySlotsOfOneRingDayNeverExhaustTheirRetries() throws Exception {
+        double retried = retries.retries(CONTEXT), exhausted = retries.exhaustions(CONTEXT);
+        var replies = ConcurrencySupport.parallel(20, i -> () -> booking("c" + i, "s09-d-c" + i,
+                "2026-10-06T" + LocalTime.of(8, 0).plusMinutes(30L * i), MUN));
+        var counts = tally(replies);
+        double retriedNow = retries.retries(CONTEXT) - retried, exhaustedNow = retries.exhaustions(CONTEXT) - exhausted;
+        System.out.println("E5-T07 R-09-13 lanes off, 20 dogs on 20 different slots of one ring-day: " + counts + " · retries " + retriedNow + " · exhausted " + exhaustedNow);
+        assertThat((long) exhaustedNow).isEqualTo(counts.getOrDefault("409 STALE_VERSION", 0L));
+        assertThat(counts).as("different slots share no document: every booking commits").isEqualTo(Map.of("201", 20L));
+        assertThat(active(Criteria.where("ringId").is(MUN))).isEqualTo(20);
+    }
+
+    @Test void R_09_13_lanesOffAConcurrentBlockAndBookingOnOneSlotNeverBothCommit() throws Exception {
         for (int round = 0; round < 6; round++) {
             String day = "2026-10-0" + (6 + round / 2), hour = round % 2 == 0 ? "10" : "12";
             String from = day + "T" + hour + ":00", to = day + "T" + (Integer.parseInt(hour) + 1) + ":00";
@@ -204,6 +226,50 @@ class TrainingLanesOffIT extends TrainingFixtures {
             long bookings = active(Criteria.where("ringId").is(MUN).and("startsAt").is(Date.from(local(from))));
             long blocks = count("ring_blocks", Criteria.where("ringId").is(MUN).and("state").is("ACTIVE").and("from").is(Date.from(local(from))));
             assertThat(bookings + blocks).isLessThanOrEqualTo(1);
+        }
+    }
+
+    // S05 side of R-09-13 (review E5-T07 #3): a ring deactivated or no longer open to free training touches every slot
+    // of the booking window, so it meets a concurrent booking of the ring in Mongo.
+    @Test void T_09_28_aRingMadeNotReservableDuringAnUncommittedBookingConflictsInsteadOfSkippingIt() throws Exception {
+        Reply change;
+        try (var held = new HeldTransaction(tx, CLUB, serviceBooking("pau", "s09-m-pau", "s09-d-blat", "2026-10-07T18:00", CAD))) {
+            change = ringChange(CAD, Map.of("allowsFreeTraining", false));
+            held.commit();
+        }
+        System.out.println("E5-T07 R-09-13 S05 ring change while a booking of the ring is uncommitted: " + change.outcome());
+        assertThat(change.outcome()).as("the S05 side meets the ring-slot write conflict (never 200 over the booking)").isEqualTo("409 STALE_VERSION");
+        assertThat(ringChange(CAD, Map.of("allowsFreeTraining", false)).outcome()).isEqualTo("422 RING_HAS_BOOKINGS");
+        assertThat(mongo.findById(CAD, Document.class, "rings").getBoolean("allowsFreeTraining")).isTrue();
+        assertThat(active(Criteria.where("ringId").is(CAD))).isEqualTo(1);
+    }
+
+    @Test void T_09_28_aBookingDuringAnUncommittedRingChangeIsRetriedAndSeesTheRingNotReservable() throws Exception {
+        Reply reply;
+        try (var held = new HeldTransaction(tx, CLUB, () -> {
+            slotLocks.bookable(CAD);
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(CAD)), new Update().set("allowsFreeTraining", false).inc("version", 1), "rings");
+        })) {
+            reply = whileHeld(held, () -> booking("pau", "s09-d-blat", "2026-10-07T18:00", CAD));
+        }
+        assertThat(reply.outcome()).isEqualTo("422 RING_NOT_RESERVABLE");
+        assertThat(retries.retries(CONTEXT, "write_conflict")).isPositive();
+        assertThat(active(Criteria.where("ringId").is(CAD))).isZero();
+    }
+
+    @Test void T_09_28_lanesOffAConcurrentRingChangeAndBookingNeverLeaveALiveBookingOnANonReservableRing() throws Exception {
+        var rings = List.of(MUN, CEN, CAR, CAD);
+        for (int round = 0; round < rings.size(); round++) {
+            final int member = round; final String ring = rings.get(round);
+            final Map<String, Object> change = round % 2 == 0 ? Map.of("allowsFreeTraining", false) : Map.of("active", false);
+            var replies = ConcurrencySupport.parallel(2, i -> () -> i == 0 ? booking("c" + member, "s09-d-c" + member, "2026-10-07T18:00", ring) : ringChange(ring, change));
+            var booking = replies.get(0); var ringReply = replies.get(1);
+            System.out.println("E5-T07 R-09-13 lanes off, round " + round + " booking vs S05 " + change.keySet() + " on " + ring + ": " + booking.outcome() + " / " + ringReply.outcome());
+            assertThat(booking.outcome()).isIn("201", "422 RING_NOT_RESERVABLE", "404 NOT_FOUND", "409 STALE_VERSION");
+            assertThat(ringReply.outcome()).isIn("200", "422 RING_HAS_BOOKINGS", "409 STALE_VERSION");
+            assertThat(booking.status() == 201 && ringReply.status() == 200).as("never a live booking on a ring that stopped being reservable").isFalse();
+            var after = mongo.findById(ring, Document.class, "rings");
+            if (!after.getBoolean("active") || !after.getBoolean("allowsFreeTraining")) { assertThat(active(Criteria.where("ringId").is(ring))).isZero(); }
         }
     }
 }

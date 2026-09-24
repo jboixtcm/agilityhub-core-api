@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T07 round 2: the organizer's six points.
+  - Integration tests: the `BookingFixtures.impersonating:126 NoSuchElement` CI flake. `DemoScenarioSeedIT` and
+    `DemoPlanningSeedIT` emptied every collection, `signing_keys` included, so a Spring context cached before them
+    could no longer sign (`SigningKeys.ring()`). They now use `AbstractIntegrationTest.wipeDatabaseKeepingBootstrap()`,
+    which keeps the bootstrap-owned collections (`signing_keys`). No production change.
+  - R-09-13 serialisation: one document per ring and training grid slot (`ring_slot_locks`) replaces `ring_day_locks`,
+    and the `day:` training lane is dropped. With the lanes off, 20 bookings on 20 different slots of one ring-day
+    ended 15 × `409 STALE_VERSION` on the ring-day document; they now all commit. A booking touches its slot; a ring
+    block, a class moved onto a ring or an activity block touches every grid slot its range overlaps
+    (`TrainingConflictPort.lockSlots`, S09 `TrainingSlotLocks` computes the grid over any number of days).
+  - R-09-13, S05 side: a ring deactivated or no longer open to free training touches every slot of its booking
+    window (`RingTrainingBookings.lockBookableSlots`), so it conflicts in Mongo with a concurrent booking of the ring.
+  - S06 `SchedulingTransactions` waits 50–150 ms (jittered) between its 6 attempts, like the other contexts.
+  - `cancelMatching` (S07) takes the lanes of live registrations' activities only.
 - E5-T06 round 2: the organizer's seven points.
   - Caches: `shared.application.CacheLoads` is now a per-cache wrapper with a generation counter. A lock-free load
     that overlaps an invalidation drops the value it stored, so a module toggle, a parameter change or a domain

@@ -517,14 +517,17 @@ bound contention inside one process; with more than one instance they protect no
 are the guarantee. `core.concurrency.local-lanes` (default `true` in `application.yml`; Spring's relaxed binding also reads the
 environment variable `CORE_CONCURRENCY_LOCALLANES`) switches them; it is an infrastructure setting, not a club
 parameter, and no deployment needs to set it at R1. The lanes are fair in-process locks, one per aggregate
-(an activity, a class, a dog, a member, a training slot or day), held around each retried booking transaction, so a
+(an activity, a class, a dog, a member or a training slot), held around each retried booking transaction, so a
 burst on one last seat queues instead of exhausting its retries. The guarantees that hold across instances are:
 
 - S07 registrations: the `$inc registrationSeq` on the activity, `WriteConflict` → at most 3 retries (R-07-08).
 - S08 holds, bookings and waiting lists: the `$inc` on `seat_locks` per class, at most 3 attempts (R-08-07).
 - S09 free training: the partial unique index `training_active_seat` and the `$inc` of `Dog.trainingSeq` (always) and
-  `Member.trainingSeq` (unit `MEMBER`), at most 3 attempts (R-09-06). The ring-day sequence in `ring_day_locks` is
-  written by a training booking and by every ring block or class move that checks the ring's bookings (R-09-13).
+  `Member.trainingSeq` (unit `MEMBER`), at most 3 attempts (R-09-06). The ring-slot sequences in `ring_slot_locks`
+  (one document per ring and training grid slot) are written by a training booking (its own slot) and by every write
+  that checks the ring's bookings (R-09-13): a ring block, a class moved onto the ring or an activity block touches
+  each grid slot its range overlaps, and a ring deactivated or no longer open to free training touches every slot
+  of the booking window. Bookings of different slots never share a document.
 
 With the lanes off, a burst on one aggregate ends partly in `409 STALE_VERSION` (see the E5-T07 report for the
 measured numbers). `core.transactions.retries{context,cause}` and `core.transactions.exhausted{context}` in the

@@ -30,13 +30,14 @@ public class TrainingAutoConfiguration {
         return new TrainingOccupancyService(context, bookings, schedule, census);
     }
     @Bean @ConditionalOnMissingBean(TrainingConflictPort.class)
-    TrainingConflictPort trainingConflicts(TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census) {
-        return new TrainingConflictService(bookings, service, census);
+    TrainingConflictPort trainingConflicts(TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census, TrainingSlotLocks slotLocks) {
+        return new TrainingConflictService(bookings, service, census, slotLocks);
     }
     /** S05 R-05-08 → R-09-13: a ring that stops being reservable (E5-T09). */
     @Bean @ConditionalOnMissingBean(RingTrainingBookings.class)
-    RingTrainingBookings ringTrainingBookings(TrainingContext context, TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census) {
-        return new RingReservability(context, bookings, service, census);
+    RingTrainingBookings ringTrainingBookings(TrainingContext context, TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census,
+            TrainingSlotLocks slotLocks) {
+        return new RingReservability(context, bookings, service, census, slotLocks);
     }
     /** E3-T04 dashboard KPI: training bookings by session start, any state (the KPI keeps the ACTIVE ones). */
     @Bean @ConditionalOnMissingBean(TrainingBookingsQuery.class)

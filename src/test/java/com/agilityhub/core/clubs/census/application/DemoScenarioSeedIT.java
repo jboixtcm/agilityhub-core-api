@@ -44,7 +44,7 @@ class DemoScenarioSeedIT extends AbstractIntegrationTest {
     String club;
 
     @BeforeEach void clear() {
-        for (String collection : mongo.getCollectionNames()) { if (!collection.startsWith("system.")) { mongo.remove(new Query(), collection); } }
+        wipeDatabaseKeepingBootstrap();
         hosts.invalidate(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
         club = definitions.apply(codec.read(Path.of("seeds/club-canic.yaml")), false).id();
     }

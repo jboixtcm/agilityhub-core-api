@@ -14,9 +14,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * S09 R-09-06: one Mongo transaction per mutation, retried whole (at most 3 attempts, 50–150 ms randomised backoff)
  * on `DuplicateKey` (the partial unique seat index) and `WriteConflict` / `TransientTransactionError` (the
- * `trainingSeq` and ring-day `$inc`s), never after a commit. Inside an outer transaction (S06/S07 callers, the
+ * `trainingSeq` and ring-slot `$inc`s), never after a commit. Inside an outer transaction (S06/S07 callers, the
  * idempotency filter) the work joins it and the outer owner retries. The {@link LocalLanes} (`dog:`, `member:`,
- * `slot:`, `day:` keys) only bound contention inside one API instance — a burst on one slot queues instead of
+ * `slot:` keys) only bound contention inside one API instance — a burst on one slot queues instead of
  * exhausting its retries; the unique index and Mongo's write conflicts stay authoritative across replicas.
  */
 @Service

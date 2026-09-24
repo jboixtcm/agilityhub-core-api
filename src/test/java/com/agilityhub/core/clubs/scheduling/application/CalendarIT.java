@@ -372,6 +372,7 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         public List<TrainingConflictPort.Booking> findActiveBookings(String ring,Instant from,Instant to) {return training.stream().filter(b -> b.ringId().equals(ring) && b.from().isBefore(to) && from.isBefore(b.to())).toList();}
         public void cancelByClub(List<String> ids,String reason) {var removed=training.stream().filter(b -> ids.contains(b.id())).toList();training.removeAll(removed);undo(() -> training.addAll(removed));if(fail) throw new IllegalStateException("Forced training failure");}
+        public void lockSlots(String ring,Instant from,Instant to) {}
         public List<Interval> occupancy(Instant from,Instant to,Collection<String> rings,String role) {return training.stream().filter(b -> b.from().isBefore(to) && from.isBefore(b.to())).map(b -> new Interval(b.ringId(),b.from(),b.to(),Type.TRAINING,"TRAINING",b.memberName(),b.dogName(),null,b.id())).toList();}
         public Map<String,String> titles(Collection<String> ids,Locale locale) {var titles=new HashMap<String,String>();ids.forEach(id -> titles.put(id,"Example activity"));return titles;}
         private void undo(Runnable action) {assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {public void afterCompletion(int status) {if(status!=STATUS_COMMITTED) action.run();}});}

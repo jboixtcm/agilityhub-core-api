@@ -147,6 +147,8 @@ public class CatalogService {
      * R-05-07: deactivating a ring with future live classes stays `409 RING_IN_USE`. R-05-08 (organizer 2026-09-24, S09
      * R-09-13 wins): turning `allowsFreeTraining` off or deactivating a ring with live training bookings answers
      * `RING_HAS_BOOKINGS{bookings[]}` unless the ADMIN sends `cancelBookings: true`, which cancels them in this transaction.
+     * The change first touches the ring-slot sequences of the booking window (S09 R-09-13), so a concurrent booking of the
+     * ring meets it as a Mongo write conflict: this side answers `409 STALE_VERSION`, or the retried booking sees the ring.
      */
     private void stopsBeingReservable(Ring before, Ring after, boolean cancelBookings) {
         boolean deactivating = before.active() && !after.active();
@@ -155,6 +157,7 @@ public class CatalogService {
         var references = usage(CatalogKind.RING, before.id());
         if (deactivating && references.get("futureClassSessions") > 0) { throw new ApiException(ErrorCode.RING_IN_USE, new LinkedHashMap<>(references)); }
         var port = trainings.getIfAvailable(() -> RingTrainingBookings.NONE);
+        port.lockBookableSlots(before.id()); // R-09-13: a concurrent booking of the ring conflicts in Mongo (no write skew)
         var live = port.futureActive(before.id());
         if (live.isEmpty()) { return; }
         if (!cancelBookings) { throw new ApiException(ErrorCode.RING_HAS_BOOKINGS, Map.of("bookings", live)); }

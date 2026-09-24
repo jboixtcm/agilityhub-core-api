@@ -15,16 +15,17 @@ public class RingScheduleAccess {
     public record ClassInterval(String id, String ringId, Instant from, Instant to, String description) { }
     public record BlockInterval(String id, String ringId, Instant from, Instant to, String kind, String reason, String note, String createdByName, String activityId) { }
     private final ClassSessionRepository classes; private final RingBlockRepository blocks; private final SessionProjection projection;
-    private final RingDayLockRepository ringDays;
-    public RingScheduleAccess(ClassSessionRepository classes, RingBlockRepository blocks, SessionProjection projection, RingDayLockRepository ringDays) {
-        this.classes = classes; this.blocks = blocks; this.projection = projection; this.ringDays = ringDays;
+    private final RingSlotLockRepository ringSlots;
+    public RingScheduleAccess(ClassSessionRepository classes, RingBlockRepository blocks, SessionProjection projection, RingSlotLockRepository ringSlots) {
+        this.classes = classes; this.blocks = blocks; this.projection = projection; this.ringSlots = ringSlots;
     }
     /**
-     * R-09-13: `$inc` of the ring-day sequence inside the caller's transaction. A training booking and the S06 writes
-     * that check the ring's live bookings (ring block, class moved onto the ring) both touch it, so they conflict.
+     * R-09-13: `$inc` of the ring-slot sequences inside the caller's transaction, in instant order. A training booking
+     * touches its own slot; the writes that check the ring's live bookings (S05, S06, S07) touch every grid slot their
+     * range overlaps (S09 computes the grid), so the two sides conflict and bookings of other slots do not.
      */
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
-    public void lockRingDay(String ringId, java.time.LocalDate date) { ringDays.touch(ringId, date); }
+    public void lockRingSlots(String ringId, Collection<Instant> slotStarts) { new TreeSet<>(slotStarts).forEach(start -> ringSlots.touch(ringId, start)); }
     public List<ClassInterval> classes(Instant from, Instant to, Locale locale) {
         return classes.between(from, to).stream().filter(c -> c.ringId() != null && (c.state() == ClassState.DRAFT || c.state() == ClassState.ACTIVE))
                 .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id))

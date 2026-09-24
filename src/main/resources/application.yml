@@ -67,7 +67,7 @@ core:
   concurrency:
     # R1 runs a single API instance (ADR-003). The local lanes only bound contention inside one process; with more
     # than one instance they protect nothing and the Mongo mechanisms (the $inc sequences with WriteConflict retries,
-    # the partial unique index training_active_seat, the ring-day sequences) are the guarantee. Infrastructure
+    # the partial unique index training_active_seat, the ring-slot sequences) are the guarantee. Infrastructure
     # setting, not a club parameter (shared.application.LocalLanes).
     local-lanes: true
   migration:

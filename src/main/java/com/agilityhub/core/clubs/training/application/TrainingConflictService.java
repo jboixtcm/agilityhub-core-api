@@ -15,8 +15,9 @@ import java.util.*;
  */
 public class TrainingConflictService implements TrainingConflictPort {
     private final TrainingBookingRepository bookings; private final TrainingBookingService service; private final TrainingMemberAccess census;
-    public TrainingConflictService(TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census) {
-        this.bookings = bookings; this.service = service; this.census = census;
+    private final TrainingSlotLocks slotLocks;
+    public TrainingConflictService(TrainingBookingRepository bookings, TrainingBookingService service, TrainingMemberAccess census, TrainingSlotLocks slotLocks) {
+        this.bookings = bookings; this.service = service; this.census = census; this.slotLocks = slotLocks;
     }
     @Override public List<Booking> findActiveBookings(String ringId, Instant from, Instant to) {
         var active = bookings.activeBetween(from, to, ringId);
@@ -26,6 +27,7 @@ public class TrainingConflictService implements TrainingConflictPort {
                 Objects.toString(dogs.get(b.dogId()), ""))).toList();
     }
     @Override public void cancelByClub(List<String> bookingIds, String cancelReason) { service.cancelByClub(bookingIds, reason(cancelReason), null); }
+    @Override public void lockSlots(String ringId, Instant from, Instant to) { slotLocks.overlapping(ringId, from, to); }
     static TrainingCancelReason reason(String value) {
         if (value == null) { return TrainingCancelReason.RING_BLOCK; }
         return switch (value) {
