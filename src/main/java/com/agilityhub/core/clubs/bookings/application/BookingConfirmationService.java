@@ -9,6 +9,7 @@ import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * S08 R-08-08 confirmation and R-08-09 atomic swap in one transaction: the hold must be the caller's and live;
@@ -17,11 +18,13 @@ import org.springframework.stereotype.Service;
  * (R-08-18) — with the class times and week denormalised; pack consumed, hold deleted, waiting-list entry
  * consolidated, `Member.lastDogForClass` of the booker written, `BookingCreated` + `SeatHoldReleased` emitted; in
  * ALL_AT_ONCE a booking that takes the last seat demotes the other NOTIFIED entries (R-08-13). The claim of
- * R-08-15 is this same transaction, entered through {@link WaitlistService#claim}.
+ * R-08-15 is this same transaction, entered through {@link WaitlistService#claim}. A PAY_TO_BOOK confirmation only
+ * prepares its checkout here (Mongo only); the entry point opens it with {@link #openCheckout} after the commit.
  */
 @Service
 public class BookingConfirmationService {
-    public record Confirmed(Booking booking, String checkoutUrl) { }
+    /** `checkout` is the PAY_TO_BOOK checkout still to open after the commit; `checkoutUrl` is set once it is open. */
+    public record Confirmed(Booking booking, String checkoutUrl, SingleClassChargePort.Pending checkout) { }
     private final BookingContext context; private final BookingTransactions transactions; private final BookingChecks checks;
     private final SeatLockRepository locks; private final SeatHoldRepository holds; private final BookingRepository bookings;
     private final BookingCancellationService cancellations; private final PackBalancePort packs; private final WaitlistConsolidationPort waitlist;
@@ -75,10 +78,10 @@ public class BookingConfirmationService {
             String id = UUID.randomUUID().toString();
             String movement = subject.pack().isPresent() ? packs.consume(subject.owner().id(), subject.dog().id(), id) : null;
             String entry = context.enabled(Module.WAITLIST) ? waitlist.consolidate(s.id(), subject.dog().id(), id, hold.waitlistEntryId() != null, actor).orElse(null) : null;
-            String checkoutUrl = null;
-            if (payToBook) {
-                var checkout = charges.checkout(subject.owner().id(), subject.dog().id(), id, terms.get().price(), views.labels(s).description());
-                charge = new Booking.Charge(charge.mode(), charge.price(), null, checkout.sessionId(), null, null); checkoutUrl = checkout.url();
+            SingleClassChargePort.Pending checkout = null;
+            if (payToBook) { // R-08-18: the due line and the session only; the provider is called after the commit (openCheckout)
+                checkout = charges.prepare(subject.owner().id(), subject.dog().id(), id, terms.get().price(), views.labels(s).description());
+                charge = new Booking.Charge(charge.mode(), charge.price(), null, checkout.sessionId(), null, null);
             }
             var booking = bookings.insert(new Booking(id, TenantContext.require(), s.id(), subject.dog().id(), subject.owner().id(),
                     payToBook ? BookingState.PAYMENT_PENDING : BookingState.ACTIVE, actor.origin(), now,
@@ -94,8 +97,25 @@ public class BookingConfirmationService {
             counters.recount(s.id(), false, actor);
             waitlist.demoteIfFull(s.id(), actor); // R-08-13: the last seat is gone → the other NOTIFIED entries go back to ACTIVE
             if (actor.impersonated()) { audit.createdByClub(booking); }
-            return new Confirmed(booking, checkoutUrl);
+            return new Confirmed(booking, null, checkout);
         });
+    }
+
+    /**
+     * R-08-18 PAY_TO_BOOK, after the booking transaction committed (never inside the retried transaction, no seat lock
+     * held): the provider is asked once for the checkout. If that call fails, the checkout is abandoned and the
+     * PAYMENT_PENDING booking is cancelled by the system (PAYMENT_TIMEOUT: the seat is released now instead of after
+     * `bookings.paymentPendingMinutes`) and the failure is rethrown.
+     */
+    public Confirmed openCheckout(Confirmed confirmed) {
+        if (confirmed.checkout() == null) { return confirmed; }
+        if (TransactionSynchronizationManager.isActualTransactionActive()) { throw new IllegalStateException("The PAY_TO_BOOK checkout opens after the commit"); }
+        try { return new Confirmed(confirmed.booking(), charges.open(confirmed.checkout()), null); }
+        catch (RuntimeException failure) {
+            charges.abandon(confirmed.checkout());
+            cancellations.cancelBySystem(confirmed.booking().id(), BookingCancelReason.PAYMENT_TIMEOUT);
+            throw failure;
+        }
     }
     void created(Booking b, BookingActor actor) {
         var payload = new LinkedHashMap<String, Object>(); payload.put("bookingId", b.id()); payload.put("classId", b.classSessionId());

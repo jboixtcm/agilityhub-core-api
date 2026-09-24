@@ -1,0 +1,104 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_cli, local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0 (log 14-r2-club-apply.log)
++ catalogs.prices.TERAPIA:MAINTENANCE_FEE:2026-01-01
++ catalogs.faq.FAQ_1
++ catalogs.faq.FAQ_2
++ catalogs.faq.FAQ_3
++ catalogs.faq.FAQ_4
++ catalogs.faq.FAQ_5
++ catalogs.faq.FAQ_6
++ catalogs.faq.FAQ_7
++ catalogs: 31 catalog changes
++ messageTemplates: schema accepted; application deferred to E7
++ pages: 3 page changes
+15 changes (applied)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0 (log 15-r2-seed-demo-first.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=93, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+224 changes (demo planning, week start 2026-09-21)
+bookings=23 (with pack 4, origin APP 23) waitlist_entries=3 demo_class_bookings=0 BookingCreated=23 seat_holds=0
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0 (log 16-r2-seed-demo-second.log)
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=93, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+0 changes (demo planning, week start 2026-09-21)
+PASS second seed:demo run: 0 changes and complete Mongo document snapshot unchanged
+API jar up on a random loopback port (local profile, database e5_cli); the seed outbox is drained
+member dog Suro 190: classes 2026-09-24 08:30, 2026-09-24 17:40, 2026-09-24 20:00, 2026-09-25 18:50
+curl POST /api/v1/test/clock -> 200
+  test clock -> 2026-09-24T00:30:00Z (club-local Thu 24-09 02:30)
+
+1. hold → confirm (class A)
+curl POST /api/v1/seat-holds -> 201
+  hold expiresAt=2026-09-24T00:30:30.149Z serverNow=2026-09-24T00:30:00.149194Z limit=0/2 reached=False
+curl POST /api/v1/bookings -> 201
+  booking ACTIVE origin=APP calendarLinks.ics=True
+  outbox SeatHeld PUBLISHED f223d128… {"classId":"21e3c196…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:30.149Z"}}
+  outbox BookingCreated PUBLISHED e2eab88e… {"bookingId":"e2eab88e…","classId":"21e3c196…","memberId":"83f909f7…","dogId":"eebee3bf…","origin":"APP"}
+  outbox SeatHoldReleased PUBLISHED f223d128… {"classId":"21e3c196…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:30.149Z"}}
+  outbox NotificationQueued PUBLISHED e9f62f6b…:83f909f7…:app {"channel":"EMAIL","notificationId":"e9f62f6b…:83f909f7…:app"}
+  notification N-04 APP SENT account 9b8fc30a…
+
+2. GET /bookings/{id}
+curl GET /api/v1/bookings/e2eab88e… -> 200
+  displayState=CONFIRMED instructorName=Aina instructorVisibleAt=None
+  (no outbox event or notification)
+
+3. cancel in time (6 h before, threshold 240 min)
+curl POST /api/v1/bookings/e2eab88e…/cancellation -> 200
+  state=CANCELLED late=False minutesBefore=359
+  outbox BookingCancelled PUBLISHED e2eab88e… {"bookingId":"e2eab88e…","by":"MEMBER","late":false,"minutesBefore":359,"origin":"APP","reason":"MEMBER"}
+  outbox SeatReleased PUBLISHED 21e3c196… {"classId":"21e3c196…","freeSeats":4,"minutesBefore":359,"notifyWaitlist":false}
+  outbox ClassBelowMinimum PUBLISHED 21e3c196… {"classId":"21e3c196…","minDogs":2,"countedDogs":0}
+  outbox NotificationQueued PUBLISHED b5e254e4…:83f909f7…:app {"channel":"EMAIL","notificationId":"b5e254e4…:83f909f7…:app"}
+  outbox NotificationQueued PUBLISHED ed63b191…:staff:c2943f0c…:app {"channel":"EMAIL","notificationId":"ed63b191…:staff:c2943f0c…:app"}
+  outbox NotificationQueued PUBLISHED ed63b191…:staff:c2943f0c…:email {"channel":"EMAIL","notificationId":"ed63b191…:staff:c2943f0c…:email"}
+  outbox NotificationSent PUBLISHED ed63b191…:staff:c2943f0c…:email {"channel":"EMAIL","notificationId":"ed63b191…:staff:c2943f0c…:email"}
+  outbox NotificationQueued PUBLISHED ed63b191…:staff:775c4c32…:app {"channel":"EMAIL","notificationId":"ed63b191…:staff:775c4c32…:app"}
+  outbox NotificationQueued PUBLISHED ed63b191…:staff:775c4c32…:email {"channel":"EMAIL","notificationId":"ed63b191…:staff:775c4c32…:email"}
+  outbox NotificationSent PUBLISHED ed63b191…:staff:775c4c32…:email {"channel":"EMAIL","notificationId":"ed63b191…:staff:775c4c32…:email"}
+  outbox NotificationQueued PUBLISHED ed63b191…:staff:c22254e8…:app {"channel":"EMAIL","notificationId":"ed63b191…:staff:c22254e8…:app"}
+  outbox NotificationQueued PUBLISHED ed63b191…:staff:c22254e8…:email {"channel":"EMAIL","notificationId":"ed63b191…:staff:c22254e8…:email"}
+  outbox NotificationSent PUBLISHED ed63b191…:staff:c22254e8…:email {"channel":"EMAIL","notificationId":"ed63b191…:staff:c22254e8…:email"}
+  notification N-05 APP SENT account 9b8fc30a…
+  notification N-54 APP SENT account 775c4c32…
+  notification N-54 APP SENT account c22254e8…
+  notification N-54 APP SENT account c2943f0c…
+  notification N-54 EMAIL SENT account 775c4c32…
+  notification N-54 EMAIL SENT account c22254e8…
+  notification N-54 EMAIL SENT account c2943f0c…
+
+4. book B and C, then hold D at the weekly limit
+curl POST /api/v1/seat-holds -> 201
+curl POST /api/v1/bookings -> 201
+curl POST /api/v1/seat-holds -> 201
+curl POST /api/v1/bookings -> 201
+  outbox SeatHeld PUBLISHED b7fcdfd7… {"classId":"f7304149…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:41.635Z"}}
+  outbox BookingCreated PUBLISHED 11f8bdb1… {"bookingId":"11f8bdb1…","classId":"f7304149…","memberId":"83f909f7…","dogId":"eebee3bf…","origin":"APP"}
+  outbox SeatHoldReleased PUBLISHED b7fcdfd7… {"classId":"f7304149…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:41.635Z"}}
+  outbox SeatHeld PUBLISHED 7600bd9e… {"classId":"efcefb19…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:41.725Z"}}
+  outbox BookingCreated PUBLISHED f2863ad6… {"bookingId":"f2863ad6…","classId":"efcefb19…","memberId":"83f909f7…","dogId":"eebee3bf…","origin":"APP"}
+  outbox SeatHoldReleased PUBLISHED 7600bd9e… {"classId":"efcefb19…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:41.725Z"}}
+  outbox NotificationQueued PUBLISHED 286afe7b…:83f909f7…:app {"channel":"EMAIL","notificationId":"286afe7b…:83f909f7…:app"}
+  outbox NotificationQueued PUBLISHED 552d1d17…:83f909f7…:app {"channel":"EMAIL","notificationId":"552d1d17…:83f909f7…:app"}
+  notification N-04 APP SENT account 9b8fc30a…
+  notification N-04 APP SENT account 9b8fc30a…
+curl POST /api/v1/seat-holds -> 201
+  hold limit=2/2 reached=True swappable=2
+  outbox SeatHeld PUBLISHED a7909916… {"classId":"a719f654…","memberId":"83f909f7…","dogId":"eebee3bf…","expiresAt":{"$date":"2026-09-24T00:30:45.732Z"}}
+
+5. swap: confirm D cancelling B in the same transaction
+curl POST /api/v1/bookings -> 409 SEAT_HOLD_EXPIRED
+FAIL: POST /api/v1/bookings: expected 201, got 409 {"code":"SEAT_HOLD_EXPIRED","message":"La retenció temporal de la plaça ha caducat.","details":{},"traceId":"c69d80af…"}
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+Removed the disposable Mongo container and runtime directory

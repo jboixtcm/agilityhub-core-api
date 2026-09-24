@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * S14 R-14-09 booking actions, written inside the booking transaction. Impersonated (BACKOFFICE) creation and
- * cancellation carry the admin as actor and the member as impersonated; a late cancellation made by anyone else
- * is `BOOKING_CANCELLED_LATE`. One entry per mutation: an impersonated late cancellation is `BY_CLUB` with `late = true`.
+ * cancellation carry the admin as actor and the member as impersonated; every late cancellation is also
+ * `BOOKING_CANCELLED_LATE`, so an impersonated late cancellation writes both entries (`BY_CLUB` and `LATE`).
  */
 @Service
 public class BookingAudit {

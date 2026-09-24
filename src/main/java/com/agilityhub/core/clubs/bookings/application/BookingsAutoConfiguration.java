@@ -8,7 +8,7 @@ import com.agilityhub.core.clubs.dashboard.application.ports.DashboardPortDefaul
 import com.agilityhub.core.clubs.scheduling.application.ports.ClassBookingsPort;
 import com.agilityhub.core.clubs.scheduling.application.ports.SchedulingPortDefaults;
 import com.agilityhub.core.payments.application.PaymentProvider;
-import com.agilityhub.core.payments.application.UpfrontPayments;
+import com.agilityhub.core.payments.application.CheckoutService;
 import com.agilityhub.core.platform.application.CensusClubSettings;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
@@ -43,8 +43,8 @@ public class BookingsAutoConfiguration {
     @Bean @ConditionalOnMissingBean(AttendanceStatePort.class)
     AttendanceStatePort noAttendance() { return bookingId -> Optional.empty(); }
     @Bean @ConditionalOnMissingBean(SingleClassChargePort.class)
-    SingleClassChargePort singleClassCharges(BookingMemberAccess census, UpfrontPayments payments, ObjectProvider<PaymentProvider> gateways,
+    SingleClassChargePort singleClassCharges(BookingMemberAccess census, CheckoutService checkouts, ObjectProvider<PaymentProvider> gateways,
             BookingContext context, CensusClubSettings clubs) {
-        return new SingleClassCharges(census, payments, gateways, context, clubs);
+        return new SingleClassCharges(census, checkouts, gateways, context, clubs);
     }
 }

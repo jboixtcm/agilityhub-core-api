@@ -41,7 +41,7 @@ public class CheckoutService {
             var request=new PaymentProvider.Request(id,TenantContext.require(),memberId,mode,lines.stream().map(l -> new PaymentProvider.Item(l.id(),messages.format("signup:payment.concept."+l.concept(),Map.of(),Locale.forLanguageTag((String)member.get("locale"))),l.amount().minus(l.paidAmount()))).toList(),
                     (String)member.get("email"),memberId,Map.of("clubId",TenantContext.require(),"memberId",memberId,"upfrontPaymentIds",ids),card?"off_session":null,success,cancel,expires);
             String url=gateway.createCheckoutSession(request);
-            sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires));payments.pending(memberId,ids,id);
+            sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires,null));payments.pending(memberId,ids,id);
             return new Result(url,id);
         });
     }
@@ -51,6 +51,18 @@ public class CheckoutService {
             if(!"https".equals(uri.getScheme())||!clubs.appHost().equalsIgnoreCase(uri.getHost())||uri.getPort()!=-1||uri.getUserInfo()!=null) throw new IllegalArgumentException();
         } catch(IllegalArgumentException|NullPointerException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR,Map.of("field","redirectUrl")); }
     }
+    /**
+     * S08 R-08-18 PAY_TO_BOOK, Mongo only and inside the caller's booking transaction: the due line (`concept = SINGLE_CLASS`,
+     * `bookingId`) in CHECKOUT_PENDING and its PENDING session. The provider is asked for the session only after the commit
+     * (with this `sessionId`), so a retried transaction never opens a second provider checkout.
+     */
+    public BookingCheckout prepareBooking(String memberId,String bookingId,UpfrontPayments.Charge charge,Instant expiresAt) {
+        String paymentId=payments.createForBooking(memberId,charge,bookingId),id=UUID.randomUUID().toString();
+        sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING","payment",List.of(paymentId),expiresAt,bookingId));
+        payments.pending(memberId,List.of(paymentId),id);
+        return new BookingCheckout(id,paymentId);
+    }
+    public record BookingCheckout(String sessionId,String paymentId) { }
     public void complete(String sessionId,Map<String,Object> card) { finish(sessionId,true,card); }
     public void expire(String sessionId) { finish(sessionId,false,Map.of()); }
     private void finish(String id,boolean complete,Map<String,Object> card) {
@@ -60,7 +72,7 @@ public class CheckoutService {
             if(complete&&!session.expiresAt().isAfter(clock.instant())) throw new ApiException(ErrorCode.INVALID_STATE);
             if(!sessions.finish(id,complete?"COMPLETE":"EXPIRED")) return null;
             payments.checkout(session.memberId(),id,complete);
-            if(complete) members.card(session.memberId(),card);
+            if(complete&&session.bookingId()==null) members.card(session.memberId(),card); // a booking payment never changes the payment method
             return null;
         });
     }

@@ -4,7 +4,7 @@ import csv
 import glob
 import xml.etree.ElementTree as ET
 
-SHOWN = ["BookingRulesTest", "BookingPortsTest", "BookingsIT", "BookingConcurrencyIT", "E5ContractIT", "DemoPlanningSeedIT",
+SHOWN = ["BookingRulesTest", "BookingPortsTest", "BookingsIT", "SingleClassCheckoutIT", "BookingConcurrencyIT", "E5ContractIT", "DemoPlanningSeedIT",
          "EventCatalogContractTest", "AuditContractTest", "ArchitectureTest", "ErrorCatalogContractTest", "MessageParityTest", "SecurityHeadersIT"]
 for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TEST-*.xml"), ("integration (failsafe)", "target/failsafe-reports/TEST-*.xml")]:
     totals = [0, 0, 0, 0]

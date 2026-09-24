@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /** S08 WP-08-B over real Mongo: holds, confirmation, swap, cancellation, payment, reads, roles, tenant and origin. */
 class BookingsIT extends BookingFixtures {
     @Autowired BookingCancellationService cancellations; @Autowired ClassCancellationUseCase classCancellations; @Autowired BookingActivity activity;
+    @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway gateway; @Autowired com.agilityhub.core.payments.application.UpfrontPayments upfrontPayments;
 
     @Test void T_08_14_holdCreatesRefreshesAndRejectsWithTheRightDetails() throws Exception {
         var held = hold(as("laura"), "wed", "s08-d-duna", 201);
@@ -246,31 +247,49 @@ class BookingsIT extends BookingFixtures {
     }
 
     @Test void T_08_24_singleClassPayToBookChargeOnAttendanceAndModuleOff() throws Exception {
-        mongo.save(new Document("_id", "s08-plan").append("clubId", CLUB).append("type", "SINGLE_CLASS").append("singleClass", new Document("chargeMode", "PAY_TO_BOOK")), "plans");
-        mongo.save(new Document("_id", "s08-price").append("clubId", CLUB).append("planId", "s08-plan").append("amount", new Document("amountMinor", 1200L).append("currency", "EUR")), "prices");
-        mongo.updateMulti(Query.query(Criteria.where("_id").in("s08-m-laura", "s08-m-pere")), new Update().set("planId", "s08-plan").set("priceId", "s08-price"), "members");
+        payToBook();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-laura")),
+                new Update().set("paymentMethod", new Document("type", "CARD").append("card", new Document("last4", "1111"))), "members");
         var held = hold(as("laura"), "wed", "s08-d-duna", 201);
         assertThat(held.at("/payment/mode").asText()).isEqualTo("PAY_TO_BOOK"); assertThat(held.at("/payment/price/amountMinor").asLong()).isEqualTo(1200);
         var pending = confirm(as("laura"), held.path("id").asText(), null, 201);
-        assertThat(pending.path("state").asText()).isEqualTo("PAYMENT_PENDING"); assertThat(pending.path("checkoutUrl").asText()).startsWith("https://checkout.test/");
+        String bookingId = pending.path("id").asText(), sessionId = checkoutSession(bookingId);
+        assertThat(pending.path("state").asText()).isEqualTo("PAYMENT_PENDING"); assertThat(pending.path("checkoutUrl").asText()).isEqualTo("https://checkout.test/" + sessionId);
         assertThat(pending.path("displayState").asText()).isEqualTo("PAYMENT_PENDING"); assertThat(events("BookingCreated")).isZero();
         assertThat(session("wed").get("counters", Document.class)).containsEntry("booked", 1);
-        assertThat(count("upfront_payments", Criteria.where("concept").is("SINGLE_CLASS").and("status").is("CHECKOUT_PENDING"))).isEqualTo(1);
-        publish(payment("UpfrontPaymentSucceeded", pending.path("id").asText()));
-        dispatch();
-        assertThat(booking(pending.path("id").asText()).getString("state")).isEqualTo("ACTIVE");
-        assertThat(booking(pending.path("id").asText()).get("charge", Document.class).get("paidAt")).isNotNull();
+        // One provider checkout carrying the bookingId, one SINGLE_CLASS line with the bookingId, one PENDING session expiring after bookings.paymentPendingMinutes.
+        var request = gateway.request(sessionId);
+        assertThat(request.metadata()).containsEntry("bookingId", bookingId); assertThat(request.clientReferenceId()).isEqualTo(bookingId);
+        assertThat(request.lines()).singleElement().satisfies(l -> assertThat(l.amount()).isEqualTo(new Money(1200, "EUR")));
+        assertThat(line(bookingId)).containsEntry("concept", "SINGLE_CLASS").containsEntry("status", "CHECKOUT_PENDING").containsEntry("checkoutSessionId", sessionId);
+        assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("bookingId", bookingId).containsEntry("status", "PENDING")
+                .containsEntry("expiresAt", Date.from(NOW.plus(Duration.ofMinutes(30))));
+        // The signup flows never list, charge or cancel the booking's line.
+        try (var tenant = TenantContext.open(CLUB)) {
+            assertThat(upfrontPayments.lines("s08-m-laura", null)).isEmpty(); assertThat(upfrontPayments.due("s08-m-laura", null, "EUR").amountMinor()).isZero();
+            assertThat(upfrontPayments.reject("s08-m-laura", null)).isFalse();
+        }
+        assertThat(line(bookingId)).containsEntry("status", "CHECKOUT_PENDING");
+        // The provider completes the checkout → UpfrontPaymentSucceeded{bookingId} → ACTIVE + BookingCreated + N-04.
+        gateway.complete(sessionId); dispatch();
+        assertThat(booking(bookingId).getString("state")).isEqualTo("ACTIVE"); assertThat(booking(bookingId).get("charge", Document.class).get("paidAt")).isNotNull();
+        assertThat(eventsOf("UpfrontPaymentSucceeded")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class))
+                .containsEntry("bookingId", bookingId).containsEntry("concept", "SINGLE_CLASS").containsEntry("provider", "STRIPE"));
         assertThat(events("BookingCreated")).isEqualTo(1); assertThat(count("notifications", Criteria.where("code").is("N-04"))).isEqualTo(1);
-        publish(payment("UpfrontPaymentSucceeded", pending.path("id").asText())); dispatch();
-        assertThat(events("BookingCreated")).as("a repeated success is a no-op").isEqualTo(1);
-        publish(payment("UpfrontPaymentFailed", pending.path("id").asText()));
-        publish(new com.agilityhub.core.payments.domain.SignupPaymentEvent("UpfrontPaymentSucceeded", CLUB, "s08-signup", clock.instant(), Map.of("paymentId", "p"), null, null, DomainEvent.Origin.WEBHOOK));
-        publish(payment("UpfrontPaymentSucceeded", "s08-missing")); dispatch();
-        assertThat(booking(pending.path("id").asText()).getString("state")).as("a late failure or a signup payment changes nothing").isEqualTo("ACTIVE");
+        assertThat(line(bookingId)).containsEntry("status", "PAID"); assertThat(mongo.findById(sessionId, Document.class, "checkout_sessions")).containsEntry("status", "COMPLETE");
+        assertThat(mongo.findById("s08-m-laura", Document.class, "members").get("paymentMethod", Document.class).get("card", Document.class))
+                .as("a booking payment never replaces the payment method").containsEntry("last4", "1111");
+        // A repeated completion (webhook retry) and a late expiry change nothing.
+        gateway.complete(sessionId); gateway.expire(sessionId); dispatch();
+        assertThat(events("BookingCreated")).isEqualTo(1); assertThat(events("UpfrontPaymentFailed")).isZero(); assertThat(booking(bookingId).getString("state")).isEqualTo("ACTIVE");
+        // The provider's checkout expires → UpfrontPaymentFailed{bookingId} → CANCELLED{PAYMENT_TIMEOUT} + SeatReleased + N-40.
         var failing = confirm(as("pere"), hold(as("pere"), "wed", "s08-d-nit", 201).path("id").asText(), null, 201);
-        publish(payment("UpfrontPaymentFailed", failing.path("id").asText())); dispatch();
-        assertThat(booking(failing.path("id").asText())).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "PAYMENT_TIMEOUT").containsEntry("late", false);
-        assertThat(eventsOf("SeatReleased")).hasSize(1);
+        String failingId = failing.path("id").asText();
+        gateway.expire(checkoutSession(failingId)); dispatch();
+        assertThat(booking(failingId)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "PAYMENT_TIMEOUT").containsEntry("late", false);
+        assertThat(line(failingId)).containsEntry("status", "CANCELLED");
+        assertThat(eventsOf("UpfrontPaymentFailed")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("bookingId", failingId));
+        assertThat(eventsOf("SeatReleased")).hasSize(1); assertThat(session("wed").get("counters", Document.class)).containsEntry("booked", 1);
         assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-40")), Document.class, "notifications"))
                 .extracting(n -> n.getString("channel")).containsExactlyInAnyOrder("APP", "EMAIL");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-plan")), new Update().set("singleClass.chargeMode", "CHARGE_ON_ATTENDANCE"), "plans");
@@ -280,10 +299,7 @@ class BookingsIT extends BookingFixtures {
         modules(java.util.Arrays.stream(Module.values()).filter(m -> m != Module.SINGLE_CLASS).toArray(Module[]::new));
         var off = book(as("laura"), "fri", "s08-d-rock");
         assertThat(off.path("charge").isMissingNode() || off.path("charge").isNull()).isTrue(); assertThat(booking(off.path("id").asText()).get("charge")).isNull();
-    }
-    private com.agilityhub.core.payments.domain.SignupPaymentEvent payment(String type, String bookingId) {
-        return new com.agilityhub.core.payments.domain.SignupPaymentEvent(type, CLUB, "s08-payment", clock.instant(), Map.of("bookingId", bookingId, "provider", "STRIPE"),
-                null, null, DomainEvent.Origin.WEBHOOK);
+        assertThat(count("upfront_payments", new Criteria())).as("only the two PAY_TO_BOOK lines").isEqualTo(2);
     }
 
     @Test void T_08_25_cancelByClubCancelsBookingsEntriesAndHoldsAllOrNothing() throws Exception {
@@ -315,7 +331,7 @@ class BookingsIT extends BookingFixtures {
         assertThat(code(hold(as("joan"), "sat", "s08-d-toby", 422))).isEqualTo("CLASS_NOT_BOOKABLE");
     }
 
-    @Test @AuditCovers({AuditAction.BOOKING_CREATED_BY_CLUB, AuditAction.BOOKING_CANCELLED_BY_CLUB})
+    @Test @AuditCovers({AuditAction.BOOKING_CREATED_BY_CLUB, AuditAction.BOOKING_CANCELLED_BY_CLUB, AuditAction.BOOKING_CANCELLED_LATE})
     void T_08_27_impersonatedBookingAndCancellationAreBackofficeAuditedAndNotifiedWithN36() throws Exception {
         var admin = impersonating("admin", "s08-m-laura");
         var held = hold(admin, "wed", "s08-d-duna", 201);
@@ -330,7 +346,10 @@ class BookingsIT extends BookingFixtures {
         assertThat(cancelled.at("/cancellation/byRole").asText()).isEqualTo("ADMIN"); assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED_LATE");
         assertThat(booking(booking.path("id").asText()).get("cancelledBy", Document.class)).containsEntry("accountId", "s08-admin").containsEntry("impersonatedMemberId", "s08-m-laura");
         assertThat(count("audit_entries", Criteria.where("action").is("BOOKING_CANCELLED_BY_CLUB").and("impersonatedMemberId").is("s08-m-laura"))).isEqualTo(1);
-        assertThat(count("audit_entries", Criteria.where("action").is("BOOKING_CANCELLED_LATE"))).as("one entry per mutation").isZero();
+        var lateEntry = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("BOOKING_CANCELLED_LATE")), Document.class, "audit_entries");
+        assertThat(lateEntry).as("S14 R-14-09: an impersonated late cancellation is audited as late too").isNotNull()
+                .containsEntry("actorAccountId", "s08-admin").containsEntry("impersonatedMemberId", "s08-m-laura").containsEntry("entityId", booking.path("id").asText());
+        assertThat(count("audit_entries", Criteria.where("action").is("BOOKING_CANCELLED_LATE"))).isEqualTo(1);
         assertThat(eventsOf("BookingCancelled").getFirst().get("payload", Document.class)).containsEntry("origin", "BACKOFFICE").containsEntry("by", "ADMIN");
         dispatch();
         var n36 = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-36")), Document.class, "notifications");

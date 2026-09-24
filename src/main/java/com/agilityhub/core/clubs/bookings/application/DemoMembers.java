@@ -47,6 +47,11 @@ public class DemoMembers {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, Map.of("demoMember", memberId, "levelId", String.valueOf(levelId))));
         return new Candidate(member.id(), member.accountId(), member.name().split(" ")[0], dog.id(), dog.levelId());
     }
+    /**
+     * Hold + confirm as the member. The seed runs inside its own transaction, so a PAY_TO_BOOK booking (the FIFO demo
+     * club) keeps its prepared checkout (line CHECKOUT_PENDING, session PENDING) and no provider checkout is opened: it
+     * stays PAYMENT_PENDING for P7.
+     */
     public Booking book(String classId, Candidate c, Instant at) {
         var actor = c.actor();
         return DemoSeedActor.as(c.accountId(), "MEMBER", () -> context.asOf(at, () -> {

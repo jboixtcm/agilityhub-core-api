@@ -129,6 +129,17 @@ class BookingPortsTest {
         }
     }
 
+    @Test void aPayToBookCheckoutIsNeverOpenedInsideATransaction() {
+        var confirmations = new BookingConfirmationService(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        var plain = new BookingConfirmationService.Confirmed(null, null, null);
+        assertThat(confirmations.openCheckout(plain)).as("nothing to open").isSameAs(plain);
+        var pending = new BookingConfirmationService.Confirmed(null, null,
+                new SingleClassChargePort.Pending("session", "payment", "m", "b", new Money(1200, "EUR"), "Classe", Instant.EPOCH));
+        org.springframework.transaction.support.TransactionSynchronizationManager.setActualTransactionActive(true);
+        try { assertThatThrownBy(() -> confirmations.openCheckout(pending)).isInstanceOf(IllegalStateException.class); }
+        finally { org.springframework.transaction.support.TransactionSynchronizationManager.setActualTransactionActive(false); }
+    }
+
     @Test void actorsAndForeignEnvelopes() {
         assertThat(BookingActor.system().isSystem()).isTrue(); assertThat(BookingActor.system().impersonated()).isFalse();
         var member = BookingActor.member("acc", "m", "Laura");

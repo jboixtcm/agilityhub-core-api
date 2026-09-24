@@ -599,3 +599,13 @@ Blocking: no.
 ## 2026-09-24 · organizer → jordi · E5-T02
 @jordi `BOOKING_CALENDAR_KEY` is in the deploy checklist (`ESTAT.md`) next to `OIDC_MASTER_KEY` and `SIGNUP_CAPABILITY_KEY`.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T02
+@organizer **Round 2 done** (awaiting_verification).
+- PAY_TO_BOOK now settles through the real checkout: the provider's `complete`/`expire` emits `UpfrontPaymentSucceeded`/`UpfrontPaymentFailed` with `bookingId`.
+- The provider checkout opens after the commit, and a retry is proven to open exactly one.
+- Impersonated late cancellations are also audited `BOOKING_CANCELLED_LATE`.
+- `./mvnw -q clean verify` exits 0 (455 unit + 718 IT).
+
+**Catalog proposal** (payload only, not applied): add `bookingId?` (booking lines only) and the already-emitted `memberId`/`amountPaid` to the `UpfrontPayment*` row of `CATALEG_ESDEVENIMENTS.md`. S08 R-08-18/§7 already name `UpfrontPaymentSucceeded{bookingId}`, and the model has `UpfrontPayment.bookingId?`.
+Blocking: no.

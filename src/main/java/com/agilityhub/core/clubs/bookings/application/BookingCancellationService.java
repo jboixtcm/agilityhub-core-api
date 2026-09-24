@@ -90,7 +90,8 @@ public class BookingCancellationService {
         events.publish(BookingEvent.Kind.BookingCancelled, b.id(), payload, actor);
         if (now.isBefore(b.classStartsAt())) { seatReleased(b, now, outcome.minutesBefore(), actor); }
         counters.recount(b.classSessionId(), !late, actor);
-        if (actor.impersonated()) { audit.cancelledByClub(b, after); } else if (late) { audit.cancelledLate(b, after); }
+        if (actor.impersonated()) { audit.cancelledByClub(b, after); }
+        if (late) { audit.cancelledLate(b, after); } // S14 R-14-09: every late cancellation, impersonated ones too
         return after;
     }
     private void seatReleased(Booking b, Instant now, int minutesBefore, BookingActor actor) {

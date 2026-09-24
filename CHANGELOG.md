@@ -72,6 +72,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E5-T02 Round 2: S08 R-08-18 PAY_TO_BOOK now runs end to end.
+  - The booking transaction only prepares the checkout in Mongo: the `SINGLE_CLASS` `UpfrontPayment` line with the new
+    `bookingId` (model `UpfrontPayment.bookingId?`) and a `checkout_sessions` row with `bookingId`.
+  - The provider checkout opens once, after the commit, with no seat lock held. The 201 with `checkoutUrl` is stored for
+    idempotent replay after that.
+  - If the provider call fails, the checkout is abandoned and the booking is cancelled at once (`PAYMENT_TIMEOUT`).
+  - The provider's completion or expiry (`CheckoutService.complete` / `expire`) emits `UpfrontPaymentSucceeded` /
+    `UpfrontPaymentFailed` carrying `bookingId` and `concept`. The booking consumer settles the booking (ACTIVE + N-04,
+    or CANCELLED + `SeatReleased` + N-40).
+  - The signup flows never list, charge, replace or cancel booking lines, and a booking payment never replaces the
+    member's payment method.
+  - An impersonated late cancellation is audited as `BOOKING_CANCELLED_LATE` too (S14 R-14-09).
 - E5-T01 Round 2: the final write of a job run is conditional (R-15-04/R-15-06). `JobRunRepository.finish` replaces the
   row only while it is still `RUNNING` under the same lease holder. `SchedulerRun`/`JobFailed` are published only when
   that write closed the row, so a reaper with a stale read and a slow holder whose lease was reaped change nothing. A

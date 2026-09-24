@@ -164,9 +164,9 @@ print(EJSON.stringify({member:m._id,dogs:out}));"""))
         api.effects()
         print('\n4. book B and C, then hold D at the weekly limit', flush=True)
         bb = confirm(hold(b)); cc = confirm(hold(c)); api.effects()
+        # Hold D and confirm it at once: the 30 s hold must not wait for the (slow, large-seed) effects listing.
         at_limit = hold(e); print(f"  hold limit={at_limit['limit']['count']}/{at_limit['limit']['max']} reached={at_limit['limit']['reached']} swappable={len(at_limit['limit']['swappable'])}")
-        api.effects()
-        print('\n5. swap: confirm D cancelling B in the same transaction', flush=True)
+        print('\n5. swap: confirm D cancelling B in the same transaction (effects of the hold D and of the swap)', flush=True)
         swapped = confirm(at_limit, swap=bb['id'])
         print(f"  new booking swapFromBookingId={swapped['swapFromBookingId'][:8]}…")
         api.effects()
@@ -199,14 +199,14 @@ try:
             break
         time.sleep(.5)
     print('Disposable Mongo 7 replica set on a random localhost port, database e5_cli, local profile; generated credentials private.', flush=True)
-    step(4, 'club-apply', ['bin/core', 'club:apply', 'seeds/club-canic.yaml'])
-    first = step(5, 'seed-demo-first', ['bin/core', 'seed:demo', '--club=canic', '--seed=42'])
+    step(14, 'r2-club-apply', ['bin/core', 'club:apply', 'seeds/club-canic.yaml'])
+    first = step(15, 'r2-seed-demo-first', ['bin/core', 'seed:demo', '--club=canic', '--seed=42'])
     assert 'changes (demo planning' in first
     print(mongo("print('bookings='+d.bookings.countDocuments({})+' (with pack '+d.bookings.countDocuments({packMovementId:{$ne:null}})+', origin APP '+d.bookings.countDocuments({origin:'APP'})+')'"
                 "+' waitlist_entries='+d.waitlist_entries.countDocuments({})+' demo_class_bookings='+d.demo_class_bookings.countDocuments({})"
                 "+' BookingCreated='+d.domain_events.countDocuments({type:'BookingCreated'})+' seat_holds='+d.seat_holds.countDocuments({}))"), flush=True)
     before = snapshot()
-    second = step(6, 'seed-demo-second', ['bin/core', 'seed:demo', '--club=canic', '--seed=42'])
+    second = step(16, 'r2-seed-demo-second', ['bin/core', 'seed:demo', '--club=canic', '--seed=42'])
     assert '0 changes (demo seed)' in second and '0 changes (demo planning' in second, 'second run changed data'
     assert snapshot() == before, 'Mongo snapshot changed on the second run'
     print('PASS second seed:demo run: 0 changes and complete Mongo document snapshot unchanged', flush=True)

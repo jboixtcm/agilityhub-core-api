@@ -21,6 +21,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * last seat queues instead of exhausting its retries; Mongo's write conflicts stay authoritative across replicas.
  * `cancelAllByClub` runs inside the S06 transaction that already holds the class and therefore takes no seat lock:
  * a concurrent booking of that class still conflicts on `class_sessions` and, retried, finds the class CANCELLED.
+ * No external call runs inside these transactions: the PAY_TO_BOOK provider checkout (R-08-18) opens after the
+ * commit ({@link BookingConfirmationService#openCheckout}).
  */
 @Service
 public class BookingTransactions {

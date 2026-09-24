@@ -20,21 +20,22 @@ public class UpfrontPayments {
         return selected(memberId,dogs).stream().filter(p -> !Set.of("CANCELLED","REFUNDED").contains(p.status())).map(this::line).toList();
     }
     private List<UpfrontPayment> selected(String memberId,List<String> dogs) {
-        return repository.member(memberId).stream().filter(p -> dogs==null || dogs.contains(p.dogId())).sorted(Comparator.comparing(UpfrontPayment::createdAt)
+        // S08 PAY_TO_BOOK lines belong to their booking: the signup flows never list, charge, replace or cancel them.
+        return repository.member(memberId).stream().filter(p -> p.bookingId()==null && (dogs==null || dogs.contains(p.dogId()))).sorted(Comparator.comparing(UpfrontPayment::createdAt)
                 .thenComparing(p -> "ENTRY_FEE".equals(p.concept()) ? 0 : 1).thenComparing(UpfrontPayment::id)).toList();
     }
     private Line line(UpfrontPayment p) { return new Line(p.id(),p.signupConcept()==null?p.concept():p.signupConcept(),p.dogId(),p.amountDue(),p.amountPaid(),p.status(),p.provider()); }
-    /** One due line, e.g. the S08 PAY_TO_BOOK single class (`concept = SINGLE_CLASS`); returns its id for the checkout. */
-    public String createOne(String memberId,Charge charge) {
+    /** The due line of an S08 PAY_TO_BOOK booking (`concept = SINGLE_CLASS`, `bookingId`); returns its id for the checkout. */
+    public String createForBooking(String memberId,Charge charge,String bookingId) {
         String id=UUID.randomUUID().toString();
         repository.insert(new UpfrontPayment(id,TenantContext.require(),memberId,charge.dogId(),charge.concept(),charge.concept(),charge.amount(),
-                new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null));
+                new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null,bookingId));
         return id;
     }
     public void create(String memberId,List<Charge> charges) {
         for (var charge:charges) {
             repository.insert(new UpfrontPayment(UUID.randomUUID().toString(),TenantContext.require(),memberId,charge.dogId(),
-                    "ADDITIONAL_DOG_FEE".equals(charge.concept())?"OTHER":charge.concept(),charge.concept(),charge.amount(),new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null));
+                    "ADDITIONAL_DOG_FEE".equals(charge.concept())?"OTHER":charge.concept(),charge.concept(),charge.amount(),new Money(0,charge.amount().currency()),"DUE",null,null,clock.instant(),null,null));
         }
     }
     public Money due(String memberId,List<String> dogs,String currency) {
@@ -67,7 +68,7 @@ public class UpfrontPayments {
             if (currency!=null) { p.amountDue().plus(new Money(0,currency)); }
             credit+=p.amountPaid().amountMinor();
             if (!"PAID".equals(p.status())) {
-                if(p.amountPaid().amountMinor()>0) repository.update(new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountPaid(),p.amountPaid(),"PAID",p.provider(),p.checkoutSessionId(),p.createdAt(),p.paidAt()));
+                if(p.amountPaid().amountMinor()>0) repository.update(new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountPaid(),p.amountPaid(),"PAID",p.provider(),p.checkoutSessionId(),p.createdAt(),p.paidAt(),p.bookingId()));
                 else repository.update(state(p,"CANCELLED",p.amountPaid(),p.provider(),p.checkoutSessionId()));
             }
         }
@@ -90,14 +91,26 @@ public class UpfrontPayments {
             repository.update(state(p,"CHECKOUT_PENDING",p.amountPaid(),"STRIPE",session));
         }
     }
+    /**
+     * The provider finished the session: PAID + `UpfrontPaymentSucceeded`, or an expired session puts a signup line back
+     * to DUE and cancels a booking line (+ `UpfrontPaymentFailed`). Booking lines carry `bookingId` in both events (S08 R-08-18).
+     */
     public void checkout(String memberId,String session,boolean complete) {
         for(var p:repository.member(memberId)) if(session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status())) {
-            repository.update(state(p,complete?"PAID":"DUE",complete?p.amountDue():p.amountPaid(),complete?"STRIPE":null,complete?session:null));
-            if(complete) emit("UpfrontPaymentSucceeded",p,Map.of("paymentId",p.id(),"memberId",memberId,"amountPaid",p.amountDue(),"provider","STRIPE"));
+            boolean booking=p.bookingId()!=null;
+            var payload=new LinkedHashMap<String,Object>();payload.put("paymentId",p.id());payload.put("memberId",memberId);payload.put("concept",p.concept());payload.put("provider","STRIPE");
+            if(booking) payload.put("bookingId",p.bookingId());
+            if(complete) {
+                repository.update(state(p,"PAID",p.amountDue(),"STRIPE",session));
+                payload.put("amountPaid",p.amountDue());emit("UpfrontPaymentSucceeded",p,payload);
+            } else if(booking) {
+                repository.update(state(p,"CANCELLED",p.amountPaid(),"STRIPE",session));
+                emit("UpfrontPaymentFailed",p,payload);
+            } else repository.update(state(p,"DUE",p.amountPaid(),null,null));
         }
     }
     private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session) {
-        return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),paid,status,provider,session,p.createdAt(),paid.amountMinor()>0?clock.instant():null);
+        return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),paid,status,provider,session,p.createdAt(),paid.amountMinor()>0?clock.instant():null,p.bookingId());
     }
     private void emit(String type,UpfrontPayment p,Map<String,Object> payload) {
         var user=CurrentUser.current();

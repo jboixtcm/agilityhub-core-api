@@ -126,14 +126,30 @@ public class BookingsController {
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         var actor = actors.member(memberId(jwt));
-        return transactions.write(confirmations.classes(request.seatHoldId(), request.swapBookingId()), () -> {
+        return confirmed(confirmations.classes(request.seatHoldId(), request.swapBookingId()),
+                () -> confirmations.confirm(actor, request.seatHoldId(), request.swapBookingId()));
+    }
+    /**
+     * Confirmation and claim: the booking and the idempotent 201 commit together; a PAY_TO_BOOK booking (R-08-18)
+     * commits first, then its provider checkout opens outside the retried transaction and the 201 carrying the
+     * `checkoutUrl` is stored in a second, short transaction.
+     */
+    private Booking confirmed(java.util.Collection<String> classes, java.util.function.Supplier<BookingConfirmationService.Confirmed> work) {
+        var committed = transactions.write(classes, () -> {
             IdempotentOperation.lock();
-            var confirmed = confirmations.confirm(actor, request.seatHoldId(), request.swapBookingId());
-            var result = view(views.booking(confirmed.booking(), false, confirmed.checkoutUrl()), Booking.class);
-            try { IdempotentOperation.complete(201, mapper.writeValueAsBytes(result)); }
-            catch (com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
-            return result;
+            var confirmed = work.get();
+            return confirmed.checkout() == null ? new Committed(stored(confirmed), null) : new Committed(null, confirmed);
         });
+        if (committed.pendingCheckout() == null) { return committed.response(); }
+        var opened = confirmations.openCheckout(committed.pendingCheckout());
+        return transactions.write(java.util.List.of(), () -> { IdempotentOperation.lock(); return stored(opened); });
+    }
+    private record Committed(Booking response, BookingConfirmationService.Confirmed pendingCheckout) { }
+    private Booking stored(BookingConfirmationService.Confirmed confirmed) {
+        var result = view(views.booking(confirmed.booking(), false, confirmed.checkoutUrl()), Booking.class);
+        try { IdempotentOperation.complete(201, mapper.writeValueAsBytes(result)); }
+        catch (com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
+        return result;
     }
 
     @GetMapping("/api/v1/me/bookings")
@@ -257,14 +273,7 @@ public class BookingsController {
         access.tenant();
         waitlist.visible(id, memberId(jwt), false);
         var actor = actors.member(memberId(jwt));
-        return transactions.write(waitlist.classes(id, request.swapBookingId()), () -> {
-            IdempotentOperation.lock();
-            var confirmed = waitlist.claim(actor, id, request.seatHoldId(), request.swapBookingId());
-            var result = view(views.booking(confirmed.booking(), false, confirmed.checkoutUrl()), Booking.class);
-            try { IdempotentOperation.complete(201, mapper.writeValueAsBytes(result)); }
-            catch (com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
-            return result;
-        });
+        return confirmed(waitlist.classes(id, request.swapBookingId()), () -> waitlist.claim(actor, id, request.seatHoldId(), request.swapBookingId()));
     }
 
     @GetMapping("/api/v1/class-sessions/{id}/bookings")

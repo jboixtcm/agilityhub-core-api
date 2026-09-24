@@ -38,7 +38,7 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
     static final Instant NOW = local("2026-10-06T10:00");
     static final List<String> DATA = List.of("bookings", "seat_holds", "seat_locks", "waitlist_entries", "class_sessions", "members", "dogs", "family_groups",
             "memberships", "accounts", "levels", "rings", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records",
-            "plans", "prices", "upfront_payments", "impersonation_sessions");
+            "plans", "prices", "upfront_payments", "checkout_sessions", "impersonation_sessions");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher;
     @Autowired InMemoryPackBalances packs; @Autowired InMemoryInactivity inactivity; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;
@@ -175,6 +175,15 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open(CLUB)) { tx.executeWithoutResult(status -> events.publish(event)); }
     }
     String code(JsonNode error) { return error.path("code").asText(); }
+    /** R-08-18: Laura and Pere on a fictional SINGLE_CLASS plan that pays to book (12,00 €). */
+    void payToBook() {
+        mongo.save(new Document("_id", "s08-plan").append("clubId", CLUB).append("type", "SINGLE_CLASS").append("singleClass", new Document("chargeMode", "PAY_TO_BOOK")), "plans");
+        mongo.save(new Document("_id", "s08-price").append("clubId", CLUB).append("planId", "s08-plan").append("amount", new Document("amountMinor", 1200L).append("currency", "EUR")), "prices");
+        mongo.updateMulti(Query.query(Criteria.where("_id").in("s08-m-laura", "s08-m-pere")),
+                new org.springframework.data.mongodb.core.query.Update().set("planId", "s08-plan").set("priceId", "s08-price"), "members");
+    }
+    String checkoutSession(String bookingId) { return booking(bookingId).get("charge", Document.class).getString("checkoutSessionId"); }
+    Document line(String bookingId) { return mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("bookingId").is(bookingId)), Document.class, "upfront_payments"); }
     void openPack(String memberId, String dogId, int total, int consumed, LocalDate expiresOn) {
         try (var tenant = TenantContext.open(CLUB)) { packs.open(memberId, dogId, total, consumed, expiresOn); }
     }
