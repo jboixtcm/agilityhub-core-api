@@ -20,6 +20,8 @@ public class MigrationIdentityService {
         return accounts.findByEmail(email).map(account -> new Preview(account.id(),memberships.findByAccountId(account.id()).map(Membership::memberId).orElse(null),
                 account.status()==Account.Status.ACTIVE && memberships.findByAccountId(account.id()).map(m -> m.status()!=Membership.Status.ERASED).orElse(true))).orElse(null);
     }
+    /** Whether the club member has a membership in the current tenant (R-18-14 re-execution checks). */
+    public boolean hasMembership(String memberId) { return memberships.findByMemberId(memberId).isPresent(); }
     public String apply(String memberId,String email,String name,String locale,boolean active,Set<String> roles) {
         var before=preview(email);
         if (before!=null && (!before.active() || before.memberId()!=null && !before.memberId().equals(memberId))) { throw new ApiException(ErrorCode.INVALID_STATE); }

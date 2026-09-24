@@ -46,6 +46,8 @@ public class PlayoffPlanner {
         // R-18-04 (f): joined record → principal record, and principal record → the NIF the club confirmed.
         final Map<String,String> joins=new HashMap<>(), confirmedDocuments=new HashMap<>(), personBySource=new HashMap<>();
         final Map<String,PlayoffInput.Row> emailOwners=new HashMap<>(); final List<Shared> shared=new ArrayList<>();
+        // R-18-14: records whose re-execution transition is rejected, not reconciled → the report field of the error.
+        final Map<String,String> unsupported=new HashMap<>();
         int maximum;
         State(PlayoffInput input,MappingConfig mapping) { this.input=input; this.mapping=mapping; rows.addAll(input.incidents()); }
         void incident(PlayoffInput.Row row,String entity,String outcome,String code) { rows.add(new MigrationReport.Entry(row.file(),row.row(),entity,outcome,code)); }
@@ -77,6 +79,10 @@ public class PlayoffPlanner {
                     if (number!=null) { maximum=Math.max(maximum,number); }
                     String status=mapping.statuses().get(normalize(row.get("status")));
                     if (status==null) { throw new ApiException(ErrorCode.MAPPING_INVALID); }
+                    if (status.equals("LEFT") && importedWithAccess(row.get("id"))) { unsupported.put(row.get("id"),"status"); }
+                    if (unsupported.containsKey(row.get("id"))) {
+                        rows.add(new MigrationReport.Entry(row.file(),row.row(),"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,unsupported.get(row.get("id")))); continue;
+                    }
                     LocalDate left=date(row.get("left"));
                     if (status.equals("SKIP") || status.equals("LEFT") && (left==null || left.isBefore(today.minusYears(config.get("migration.leftMaxYears",Integer.class)).withDayOfYear(1)))) {
                         incident(row,"members","SKIPPED",""); continue;
@@ -112,6 +118,20 @@ public class PlayoffPlanner {
                 }
                 joins.put(joined,principal); confirmedDocuments.put(principal,document);
             }
+            // R-18-14: a join over a record that an earlier load imported as its own person is rejected. Every join of that
+            // principal is dropped: the principal is planned as before, without the confirmed NIF, and its joined records stay untouched.
+            var rejected=new HashSet<String>();
+            joins.forEach((joined,principal) -> { if (memberBySource.containsKey(joined) && !memberBySource.get(joined).equals(memberBySource.get(principal))) { rejected.add(principal); } });
+            for (var join:List.copyOf(joins.entrySet())) {
+                if (rejected.contains(join.getValue())) { joins.remove(join.getKey()); unsupported.put(join.getKey(),"persons"); }
+            }
+            confirmedDocuments.keySet().removeAll(rejected);
+        }
+        /** R-18-14: the record's own member was imported ACTIVE with an account or a membership. */
+        boolean importedWithAccess(String source) {
+            String memberId=memberBySource.get(source); var old=memberId==null ? null : storedMembers.get(memberId);
+            return old!=null && source.equals(string(map(old.get("sourceIds")).get("playoffMemberId"))) && "ACTIVE".equals(old.get("status"))
+                    && (old.get("accountId")!=null || identities.hasMembership(memberId));
         }
         /** R-18-12: a record left without account proposes a family group with the account holder, unless they already share one. */
         void proposals() {

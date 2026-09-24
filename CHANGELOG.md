@@ -47,6 +47,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     row counts once (R-10-02). A class with every row marked is now `DONE` in the calendar and the instructor day grid,
     not `PENDING`.
   - `POST /attachments` declares the optional `Idempotency-Key` (S10 §6). The same key replays the stored `201` body.
+- E5-T12 round 2 (organizer review, R-18-14): two re-execution transitions of `migration:playoff` are rejected, not
+  reconciled, with the report line `members ERROR REEXECUTION_UNSUPPORTED`: a record imported `ACTIVE` with an account
+  or membership that now arrives `LEFT` (`field=status`), and a `persones.csv` join over a record already loaded as its
+  own person (`field=persons`; every join of that principal is dropped). Unlike other errors they do not stop the
+  apply: those records stay untouched, the rest is applied, the summary points to `--reset` on staging, and the
+  command exits non-zero. Before, the apply kept a stale account link, or failed on `member_playoff_ids` /
+  `ID_DOCUMENT_ALREADY_EXISTS` after a clean dry run.
 
 ### Fixed
 

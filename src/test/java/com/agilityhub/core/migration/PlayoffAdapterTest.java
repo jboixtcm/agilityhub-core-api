@@ -163,6 +163,14 @@ class PlayoffAdapterTest {
         }
         when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(new MigrationReport(true,List.of(new MigrationReport.Entry("members",2,"members","ERROR","MAPPING_INVALID"))));
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("input"))).isInstanceOf(ApiException.class);
+        // R-18-14: an unsupported re-execution does not stop the apply, but the command still exits non-zero.
+        var unsupported=new MigrationReport(false,List.of(new MigrationReport.Entry("members",3,"members","ERROR",MigrationReport.REEXECUTION_UNSUPPORTED,"status")));
+        assertThat(unsupported.hasErrors()).isTrue(); assertThat(unsupported.hasBlockingErrors()).isFalse(); assertThat(unsupported.unsupported()).isEqualTo(1);
+        assertThat(unsupported.render()).doesNotContain("Validation failed").contains("REEXECUTION_UNSUPPORTED: 1 records","--reset","members:3 members ERROR REEXECUTION_UNSUPPORTED field=status");
+        var mixed=new MigrationReport(true,List.of(unsupported.rows().getFirst(),new MigrationReport.Entry("members",2,"members","ERROR","MAPPING_INVALID")));
+        assertThat(mixed.hasBlockingErrors()).isTrue(); assertThat(mixed.render()).contains("Validation failed","REEXECUTION_UNSUPPORTED: 1 records");
+        when(importer.importDirectory(any(),any(),anyString(),anyBoolean(),anyBoolean(),anyBoolean())).thenReturn(unsupported);
+        assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("input"))).isInstanceOf(ApiException.class);
         var source=copy(); AnonymizeCommand.run(new DefaultApplicationArguments(source.toString(),temp.resolve("command").toString()),key);
         for(String[] args:List.of(new String[]{},new String[]{"in","out","--bad"},new String[]{"in","out","--mapping"},new String[]{"in","out","--mapping="})) {
             assertThatThrownBy(() -> AnonymizeCommand.run(new DefaultApplicationArguments(args),key)).isInstanceOf(IllegalArgumentException.class);

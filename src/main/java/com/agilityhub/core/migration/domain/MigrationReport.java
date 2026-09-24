@@ -4,15 +4,24 @@ import java.util.*;
 
 /** Reports contain only adapter keys, row ordinals, outcomes and fixed incident codes. */
 public record MigrationReport(boolean dryRun, List<Entry> rows) {
+    /** R-18-14: a re-execution transition that is rejected, not reconciled; only its record is left untouched. */
+    public static final String REEXECUTION_UNSUPPORTED = "REEXECUTION_UNSUPPORTED";
     public MigrationReport { rows = List.copyOf(rows); }
     public record Entry(String file, int row, String entity, String outcome, String code, String field) {
         public Entry(String file, int row, String entity, String outcome, String code) { this(file,row,entity,outcome,code,""); }
     }
     public long count(String entity, String outcome) { return rows.stream().filter(r -> r.entity().equals(entity) && r.outcome().equals(outcome)).count(); }
     public boolean hasErrors() { return rows.stream().anyMatch(r -> r.outcome().equals("ERROR")); }
+    /** Errors that stop the whole apply; an unsupported re-execution does not (R-18-14). */
+    public boolean hasBlockingErrors() { return rows.stream().anyMatch(r -> r.outcome().equals("ERROR") && !r.code().equals(REEXECUTION_UNSUPPORTED)); }
+    public long unsupported() { return rows.stream().filter(r -> r.outcome().equals("ERROR") && r.code().equals(REEXECUTION_UNSUPPORTED)).count(); }
     public String render() {
         var out = new StringBuilder(dryRun ? "Playoff DRY_RUN\n" : "Playoff APPLY\n");
-        if (hasErrors()) { out.append("Validation failed; no changes applied. Counts below describe the proposed changes.\n"); }
+        if (hasBlockingErrors()) { out.append("Validation failed; no changes applied. Counts below describe the proposed changes.\n"); }
+        if (unsupported() > 0) {
+            out.append(REEXECUTION_UNSUPPORTED).append(": ").append(unsupported())
+                .append(" records are left untouched and the rest is applied (R-18-14). On staging, the way out is --reset and a new load.\n");
+        }
         for (String entity : List.of("members", "dogs", "familyGroups", "accounts")) {
             out.append(entity).append(": created=").append(count(entity,"CREATED")).append(" updated=").append(count(entity,"UPDATED"))
                 .append(" skipped=").append(count(entity,"SKIPPED")).append(" errors=").append(count(entity,"ERROR"));

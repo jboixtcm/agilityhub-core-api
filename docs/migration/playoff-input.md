@@ -134,7 +134,27 @@ is also a principal (no chains) or is joined twice, or the same principal gets t
 different NIFs. A joined record whose principal is not migrated is an error. Without
 the file each NIF is one person. The anonymizer uses the same HMAC ids and document
 replacement as `socis.csv`, so the joins survive. Supply the file from the first apply:
-a club already loaded without it keeps the joined record's own member.
+a join over a record that an earlier load imported as its own person is rejected, not
+reconciled (see Re-execution below).
+
+## Re-execution (R-18-14)
+
+A reapply updates the mapped fields of what an earlier load created. Two transitions
+are rejected, not reconciled; each is a report line `members ERROR
+REEXECUTION_UNSUPPORTED` on the source record:
+
+- `field=status`: a record that an earlier load imported `ACTIVE` with an account or a
+  membership now arrives `LEFT` (recent or old leave date alike);
+- `field=persons`: `persones.csv` joins a record that an earlier load imported as its
+  own person, including when the confirmed NIF is that record's own. Every join of
+  that principal is dropped: the principal is planned as before (its own NIF and
+  aliases) and its joined records are left untouched.
+
+The dry run lists them. Unlike every other error, they do not stop the apply: the
+apply leaves those records (member, dog, account, membership) untouched and applies
+the rest, and the summary line says so. The command still exits non-zero. On staging
+the way out is `--reset` and a new load (S18 R-18-14; the reset switch is not part of
+this command yet); production allows a single `APPLY`.
 
 ## Commands
 
@@ -222,7 +242,8 @@ invented where the known three exports provide none.
 ## Transactions, report and fixtures
 
 Dry-run performs reads only, including no run, audit, outbox, identity or sequence
-writes. Any input error prevents apply. Census-only apply uses one transaction
+writes. Any input error prevents apply, except `REEXECUTION_UNSUPPORTED`
+(Re-execution above). Census-only apply uses one transaction
 under the existing tenant census/catalog locks so a failed row cannot leave a
 partial person/dog/group graph. This stage does not implement S18's later billing
 batch checkpoints. A failed apply rolls back the complete graph and stores a FAILED run plus a

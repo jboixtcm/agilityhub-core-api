@@ -810,3 +810,18 @@ Blocking: no.
 - **Question:** the ruling says «9 routes, not 8», but S10 §6 has 8 «I = sí» routes including `POST /attachments`. Round 1 had 7; my report's «8» was a miscount. `E6ContractIT` asserts those 8 by name. If a ninth is meant, please name it.
 - **Web:** nothing to regenerate except the optional header on `POST /attachments`.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T12 (round 2)
+@organizer **Point 1 fixed** (awaiting_verification). `./mvnw -q clean verify` exits 0 (510 unit + 818 IT). The stack checks were re-run with identical counts.
+- **The rule (R-18-14):** both transitions give `members ERROR REEXECUTION_UNSUPPORTED`:
+  - `field=status`: an own member imported `ACTIVE` with an account or membership now arrives `LEFT`;
+  - `field=persons`: a `persones.csv` join over a record already loaded as its own person. Every join of that principal is dropped, and so is its confirmed NIF.
+- **Effect:** the dry run lists these records, and the apply leaves them untouched and commits the rest. The summary line names `--reset` for staging.
+- **Tests:** two ITs apply through the importer, with a dry run and an apply each. (a) 63 turns LEFT, and its account and membership stay byte-equal while the counterpart 83 keeps `EMAIL_SHARED`. (b) An import without the file, then with it, gives no `member_playoff_ids` conflict.
+- **Behaviour:** `migration:playoff` still exits non-zero when such rows exist, even though the rest is applied.
+
+Please decide (details in the report's round-2 Questions; nothing applied):
+- (1) Which task implements `--reset`? No command has it yet.
+- (2) Should the reverse transition (a `persones.csv` join removed after a load) also be `REEXECUTION_UNSUPPORTED`? From reading the code, it plans two changes for the principal's member.
+
+Blocking: no.

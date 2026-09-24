@@ -32,6 +32,7 @@ public class PlayoffCommand implements CoreCommand {
         var report=importer.importDirectory(Path.of(args.getNonOptionArgs().getFirst()),mapping,
                 clubs.resolve(option(args,"club",mapping.defaultClub())),args.containsOption("dry-run"),production,args.containsOption("confirm-production"));
         System.out.print(report.render());
+        // Any error row exits non-zero, including a REEXECUTION_UNSUPPORTED record left out of an otherwise applied load.
         if (report.hasErrors()) { throw new ApiException(ErrorCode.INPUT_SCHEMA_MISMATCH); }
     }
     private String option(ApplicationArguments args,String name,String fallback) {

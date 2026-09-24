@@ -1,4 +1,4 @@
-$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-qof_zjty/anonymized --dry-run --club=canic        (exit 0)
+$ bin/core migration:playoff /var/folders/xn/c1yrcx212h18679n6kwf4kxh0000gn/T/e5-t12-cli-8gbnfn7w/anonymized --dry-run --club=canic        (exit 0)
 Playoff DRY_RUN
 members: created=187 updated=0 skipped=4 errors=0
 dogs: created=189 updated=0 skipped=0 errors=0
@@ -291,13 +291,13 @@ members:66 dogs CREATED
 members:67 accounts CREATED 
 members:67 members CREATED 
 members:67 dogs CREATED 
-members:88 accounts CREATED 
-members:88 members CREATED 
-members:88 dogs CREATED 
-members:68 members WARNING EMAIL_SHARED
-members:68 accounts SKIPPED 
+members:68 accounts CREATED 
 members:68 members CREATED 
 members:68 dogs CREATED 
+members:88 members WARNING EMAIL_SHARED
+members:88 accounts SKIPPED 
+members:88 members CREATED 
+members:88 dogs CREATED 
 members:69 accounts CREATED 
 members:69 members CREATED 
 members:69 dogs CREATED 
@@ -675,17 +675,17 @@ members:186 accounts SKIPPED
 members:186 members CREATED 
 members:186 members WARNING LEVEL_PENDING
 members:186 dogs CREATED 
+members:190 members WARNING PLAN_UNMAPPED
+members:190 accounts SKIPPED 
+members:190 members CREATED 
+members:190 members WARNING LEVEL_PENDING
+members:190 dogs CREATED 
 members:189 members WARNING NUMBER_CONFLICT
 members:189 members WARNING PLAN_UNMAPPED
 members:189 accounts SKIPPED 
 members:189 members CREATED 
 members:189 members WARNING LEVEL_PENDING
 members:189 dogs CREATED 
-members:190 members WARNING PLAN_UNMAPPED
-members:190 accounts SKIPPED 
-members:190 members CREATED 
-members:190 members WARNING LEVEL_PENDING
-members:190 dogs CREATED 
 members:188 members WARNING NUMBER_CONFLICT
 members:188 members WARNING PLAN_UNMAPPED
 members:188 accounts SKIPPED 
@@ -696,7 +696,7 @@ members:83 members WARNING PERSON_MERGED
 members:83 members SKIPPED 
 members:83 dogs CREATED 
 groups:2 familyGroups CREATED 
-members:68 familyGroups PROPOSED EMAIL_SHARED field=holder@88
+members:88 familyGroups PROPOSED EMAIL_SHARED field=holder@68
 members:84 familyGroups PROPOSED EMAIL_SHARED field=holder@64
 members:85 familyGroups PROPOSED EMAIL_SHARED field=holder@65
 members:86 familyGroups PROPOSED EMAIL_SHARED field=holder@66

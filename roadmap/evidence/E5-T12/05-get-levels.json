@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "93df6b1a-8da7-4dbc-82e0-0036c1a9c751",
+      "id": "c2640718-24a2-441f-85a3-648fce943ef4",
       "code": "CAD",
       "name": "Cadells",
       "nameI18n": {
@@ -20,14 +20,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.859Z",
+        "at": "2026-09-24T13:37:09.201Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "d4e4f697-1fc0-41d0-9bb4-bd9a214c74fa",
+      "id": "f0d3f91a-a226-45ad-a797-5dec2134b71f",
       "code": "A",
       "name": "A",
       "nameI18n": {
@@ -46,14 +46,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.884Z",
+        "at": "2026-09-24T13:37:09.217Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "1619b649-c406-4ea4-b275-5d0b2551072e",
+      "id": "c38c77a7-d5a1-4851-9d05-c695e65a706c",
       "code": "B",
       "name": "B",
       "nameI18n": {
@@ -72,14 +72,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.907Z",
+        "at": "2026-09-24T13:37:09.232Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "89d13c1a-f07a-4fa0-b3a1-ac461a5deb75",
+      "id": "c90c2ac8-de57-4908-a097-53a0d343ff5c",
       "code": "C",
       "name": "C",
       "nameI18n": {
@@ -98,14 +98,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.927Z",
+        "at": "2026-09-24T13:37:09.244Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "4f45773e-3bc7-499a-8b3d-192e14b34229",
+      "id": "d196a1dc-ce13-4755-9108-d4f7a91fe0d8",
       "code": "D",
       "name": "D",
       "nameI18n": {
@@ -124,14 +124,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.947Z",
+        "at": "2026-09-24T13:37:09.254Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "d274d656-d9e0-4f6e-9d87-8d1e0e404135",
+      "id": "491879c6-b9f6-4621-8ba8-e400a43715e8",
       "code": "E",
       "name": "E",
       "nameI18n": {
@@ -150,14 +150,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.968Z",
+        "at": "2026-09-24T13:37:09.266Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "3bbf5648-1cfb-4913-8418-3d9108bdd08a",
+      "id": "1ae4a087-6a30-42ae-b53c-377b21383270",
       "code": "F",
       "name": "F",
       "nameI18n": {
@@ -176,14 +176,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:06.988Z",
+        "at": "2026-09-24T13:37:09.277Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "40c1e6cf-7e1b-4951-82c8-c4f5e7981d46",
+      "id": "4797a635-936e-4f5d-9ae9-755cecd46517",
       "code": "G",
       "name": "G",
       "nameI18n": {
@@ -202,14 +202,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:07.013Z",
+        "at": "2026-09-24T13:37:09.290Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "03063101-d2df-4620-a700-1fe60f2dcef3",
+      "id": "184ef15b-95a6-4e28-a304-2618a75bf489",
       "code": "TER",
       "name": "Teràpia",
       "nameI18n": {
@@ -228,14 +228,14 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:07.034Z",
+        "at": "2026-09-24T13:37:09.302Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },
       "version": 0
     },
     {
-      "id": "c22c078d-c583-4d1b-a183-dda3017d6237",
+      "id": "16084cee-2519-40db-8eb8-b91f61695bde",
       "code": "PENDENT",
       "name": "Pendent",
       "nameI18n": {
@@ -254,7 +254,7 @@
         "templateClasses": 0
       },
       "lastChange": {
-        "at": "2026-09-24T13:01:07.051Z",
+        "at": "2026-09-24T13:37:09.315Z",
         "actorName": null,
         "action": "CATALOG_CHANGED"
       },

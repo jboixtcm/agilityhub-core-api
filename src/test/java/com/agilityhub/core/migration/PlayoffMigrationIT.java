@@ -218,6 +218,51 @@ class PlayoffMigrationIT extends AbstractIntegrationTest {
         assertThat(importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,true).hasErrors()).isFalse();
         assertThatThrownBy(() -> importer.importDirectory(FIXTURE,MAPPING,CLUB,false,true,true)).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.MIGRATION_ALREADY_APPLIED));
     }
+    @Test void T_18_08_R_18_14_activeRecordWithAccountThatComesBackLeftIsRejectedAndLeftUntouched() throws Exception {
+        var directory=copyFixture(); var first=importer.importDirectory(directory,MAPPING,CLUB,false,false,false); assertThat(first.hasErrors()).as(first.render()).isFalse();
+        // 63 owns the account of the pair 63/83; the ACTIVE counterpart 83 shares its email.
+        var member=member(63); var dog=dog(63); var account=mongo.findById(member.getString("accountId"),Document.class,"accounts");
+        var membership=mongo.findOne(Query.query(Criteria.where("memberId").is(member.get("_id"))),Document.class,"memberships");
+        assertThat(account).isNotNull(); assertThat(membership).isNotNull();
+        var table=PlayoffTable.read(directory.resolve("socis.csv")); var cells=new ArrayList<>(table.get(63)); cells.set(4,"Baixa"); cells.set(26,"2026-06-30"); table.set(63,cells);
+        PlayoffTable.write(directory.resolve("socis.csv"),table);
+        for (boolean dryRun:List.of(true,false)) {
+            var report=importer.importDirectory(directory,MAPPING,CLUB,dryRun,false,false);
+            assertThat(entries(report,63)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=status");
+            assertThat(report.hasErrors()).isTrue(); assertThat(report.hasBlockingErrors()).as(report.render()).isFalse();
+            assertThat(report.render()).doesNotContain("Validation failed").contains("REEXECUTION_UNSUPPORTED: 1 records are left untouched and the rest is applied","--reset");
+            assertThat(entries(report,83)).contains("members WARNING EMAIL_SHARED","accounts SKIPPED ").doesNotContain("accounts CREATED ","accounts UPDATED ");
+            assertThat(report.count("members","UPDATED")).isEqualTo(186);
+            // Nothing is written for the record, its dog, its account or its membership.
+            assertThat(member(63)).isEqualTo(member); assertThat(dog(63)).isEqualTo(dog);
+            assertThat(mongo.findById(account.get("_id"),Document.class,"accounts")).isEqualTo(account);
+            assertThat(mongo.findById(membership.get("_id"),Document.class,"memberships")).isEqualTo(membership);
+            assertThat(member(83).get("accountId")).isNull();
+        }
+        assertThat(rows("migration_runs")).hasSize(2).allMatch(d -> "COMPLETED".equals(d.get("status")));
+    }
+    @Test void T_18_08_R_18_14_personsFileAfterAFirstLoadIsRejectedWithoutAnAliasConflict() throws Exception {
+        var directory=copyFixture(); Files.delete(directory.resolve(MAPPING.files().get("persons").name()));
+        var first=importer.importDirectory(directory,MAPPING,CLUB,false,false,false); assertThat(first.hasErrors()).as(first.render()).isFalse();
+        var own=member(82); var dog=dog(82); var principal=member(62); assertThat(own.get("_id")).isNotEqualTo(principal.get("_id"));
+        // Now with persones.csv (62 principal, 82 joined): the dry run and the apply report the error, and the apply writes the rest.
+        for (boolean dryRun:List.of(true,false)) {
+            var report=importer.importDirectory(FIXTURE,MAPPING,CLUB,dryRun,false,false);
+            assertThat(entries(report,82)).containsExactly("members ERROR REEXECUTION_UNSUPPORTED field=persons");
+            assertThat(report.rows()).noneMatch(r -> Set.of("PERSON_MERGED","ID_DOCUMENT_ALREADY_EXISTS").contains(r.code()));
+            assertThat(report.hasBlockingErrors()).as(report.render()).isFalse(); assertThat(report.count("members","UPDATED")).isEqualTo(187);
+            assertThat(member(82)).isEqualTo(own); assertThat(dog(82)).isEqualTo(dog);
+            assertThat(((Document)member(62).get("externalIds")).getList("playoff",String.class)).containsExactly(source(62));
+            assertThat(member(62).get("idDocument")).isEqualTo(principal.get("idDocument"));
+        }
+        assertThat(rows("migration_runs")).hasSize(2).allMatch(d -> "COMPLETED".equals(d.get("status")));
+        // The confirmed NIF is the joined record's own: the same error, never ID_DOCUMENT_ALREADY_EXISTS on the principal.
+        String ownDocument=((Document)own.get("idDocument")).getString("number");
+        var plan=preview(persons(List.of(Map.of("principalId",source(62),"joinedId",source(82),"document",ownDocument))));
+        assertThat(new MigrationReport(true,plan.rows()).hasBlockingErrors()).isFalse();
+        assertThat(plan.rows()).anyMatch(r -> r.row()==83 && r.code().equals("REEXECUTION_UNSUPPORTED") && r.field().equals("persons"));
+        assertThat(plan.changes()).noneMatch(c -> c.source().row()==83);
+    }
     @Test void T_18_10_allWritesUseTargetTenantAndExistingGlobalAccountsArePreserved() {
         String email=input().files().get("members").get(49).get("email");
         var account=accounts.getOrCreate(email,"Existing Example","en",com.agilityhub.core.identity.persistence.Account.Source.SIGNUP,null,false);
