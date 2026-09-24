@@ -48,6 +48,12 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
     public List<WaitlistEntry> liveForMember(String memberId) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in(LIVE)).with(Sort.by("classStartsAt", "_id")), WaitlistEntry.class);
     }
+    /** Live entries of the given dogs whose class starts after {@code after} (03 `CLASS_WAITLIST` rows, 04 exclusions). */
+    public List<WaitlistEntry> liveForDogs(Collection<String> dogIds, java.time.Instant after) {
+        if (dogIds.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").in(dogIds).and("state").in(LIVE).and("classStartsAt").gt(after))
+                .with(Sort.by("classStartsAt", "_id")), WaitlistEntry.class);
+    }
     /** Live entries whose class has started (S15 P8 sweep, R-15-18a). */
     public List<WaitlistEntry> liveStartedBy(java.time.Instant now) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").lte(now)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);

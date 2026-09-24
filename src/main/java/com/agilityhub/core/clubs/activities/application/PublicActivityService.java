@@ -31,7 +31,7 @@ public class PublicActivityService {
         var club=club(clubSlug,key,true); var locale=PublicClubLocale.resolve(language,club);
         if(slug==null && !Set.of("upcoming","past").contains(scope)) throw new ApiException(ErrorCode.VALIDATION_ERROR);
         try(var tenant=TenantContext.open(club.club().id()); var ignored=LocaleContext.open(locale)) {
-            var value=cache.get(new Key(club.club().id(),locale.toLanguageTag(),slug==null?"list:"+scope:"slug:"+slug),k -> {
+            var value=com.agilityhub.core.shared.application.CacheLoads.get(cache,new Key(club.club().id(),locale.toLanguageTag(),slug==null?"list:"+scope:"slug:"+slug),k -> {
                 if(slug!=null) return projection.publicActivity(publicActivity(slug));
                 Instant now=context.clock.instant(); Instant earliest=now.atZone(context.zone()).minusMonths(12).toInstant();
                 return ActivityProjection.object("items",activities.findAll().stream().filter(a -> "upcoming".equals(scope)

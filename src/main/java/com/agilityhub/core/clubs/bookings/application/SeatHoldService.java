@@ -28,30 +28,48 @@ public class SeatHoldService {
         this.waitlist = waitlist; this.events = events; this.charges = charges; this.views = views;
     }
 
+    /**
+     * A plain hold first runs {@link #admit} once without the lock: the rejections it finds (CLASS_FULL,
+     * BOOKING_LIMIT_REACHED, the eligibility codes) are the ones the locked path would give at that instant. So at an
+     * opening peak the members who cannot get a seat never queue behind the class's lane (E5-T06 k6: 300 members, 10
+     * classes of 5 seats). A hold that looks possible still takes the lock and the transaction, which decide again from
+     * scratch: the no-overbooking guarantee stays with R-08-07. A claim's hold (waiting-list offer) always goes straight
+     * to the locked path.
+     */
     public Held hold(BookingActor actor, String classSessionId, String dogId, String waitlistEntryId) {
-        return events.loggingBlocked("hold", classSessionId, () -> transactions.write(List.of(classSessionId), () -> {
+        return events.loggingBlocked("hold", classSessionId, () -> {
+            if (waitlistEntryId == null) { admit(actor, classSessionId, dogId, null, context.now()); }
+            return transactions.write(List.of(classSessionId), () -> {
                 var now = context.now();
                 locks.lock(classSessionId);
-                var subject = checks.subject(actor, classSessionId, dogId, now);
-                checks.notBookedYet(subject);
-                int active = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
-                long others = holds.live(classSessionId, now).stream().filter(h -> !h.dogId().equals(dogId)).count();
-                boolean full = active + others >= subject.session().capacity();
-                if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now, full); }
-                var limit = checks.limit(subject, now);
-                if (limit.done()) {
-                    throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(subject.session().startsAt())));
-                }
-                if (full) {
-                    if (waitlistEntryId != null) { throw new ApiException(ErrorCode.SEAT_TAKEN); }
-                    throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", active < subject.session().capacity()));
-                }
+                var admitted = admit(actor, classSessionId, dogId, waitlistEntryId, now);
+                var subject = admitted.subject(); var limit = admitted.limit();
                 int seconds = context.integer("bookings.seatHoldSeconds");
                 var hold = holds.upsert(new SeatHold(UUID.randomUUID().toString(), TenantContext.require(), classSessionId, dogId, subject.owner().id(),
                         actor.accountId(), waitlistEntryId, now, now.plusSeconds(seconds)));
                 events.publish(BookingEvent.Kind.SeatHeld, hold.id(), payload(hold), actor);
                 return new Held(hold, subject, limit, singleClass(subject.owner().id()), now, seconds);
-        }));
+            });
+        });
+    }
+    private record Admitted(BookingChecks.Subject subject, BookingLimits.Result limit) { }
+    /** The ordered R-08-04…07/09/15 checks of a hold at `now`; throws the first rejection, reads only. */
+    private Admitted admit(BookingActor actor, String classSessionId, String dogId, String waitlistEntryId, Instant now) {
+        var subject = checks.subject(actor, classSessionId, dogId, now);
+        checks.notBookedYet(subject);
+        int active = bookings.forClass(classSessionId, BookingRepository.LIVE).size();
+        long others = holds.live(classSessionId, now).stream().filter(h -> !h.dogId().equals(dogId)).count();
+        boolean full = active + others >= subject.session().capacity();
+        if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now, full); }
+        var limit = checks.limit(subject, now);
+        if (limit.done()) {
+            throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(subject.session().startsAt())));
+        }
+        if (full) {
+            if (waitlistEntryId != null) { throw new ApiException(ErrorCode.SEAT_TAKEN); }
+            throw new ApiException(ErrorCode.CLASS_FULL, Map.of("heldOnly", active < subject.session().capacity()));
+        }
+        return new Admitted(subject, limit);
     }
     /** `DELETE /seat-holds/{id}`: 204 also when the hold is gone; only its owner account releases it. */
     public void release(BookingActor actor, String seatHoldId) {

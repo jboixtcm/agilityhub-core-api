@@ -1,0 +1,191 @@
+# E5-T06: fictional second club for the E5 gate (S08 R-08-14 FIFO waiting list, S08 R-08-18 PAY_TO_BOOK single classes,
+# S15 P6 waitlist-fifo and P7 payment-timeouts). Not the Cànic: one ring, one level, levels off, FIFO, SINGLE_CLASS on.
+# Its demo data is seeds/demo-fifo.yaml (bin/core seed:demo --club=fifo); bin/e5-smoke applies both.
+apiVersion: "agilityhub.club/v1"
+club:
+  slug: "fifo"
+  name: "Club Fictici Cua"
+  locales:
+    - "ca"
+    - "es"
+  defaultLocale: "ca"
+  timeZone: "Europe/Madrid"
+  currency: "EUR"
+  countryProfile: "ES"
+  status: "ONBOARDING"
+  template: false
+  contactEmail: "fifo@example.test"
+domains:
+  -
+    host: "fifo.example.test"
+    app: "clubs"
+    primary: true
+theme:
+  colors:
+    primary: "#2563EB"
+    onPrimary: "#FFFFFF"
+    background: "#F8FAFC"
+    surface: "#FFFFFF"
+    surfaceAlt: "#F1F5F9"
+    text: "#0F172A"
+    textMuted: "#475569"
+    border: "#CBD5E1"
+    success: "#15803D"
+    warning: "#A16207"
+    danger: "#B91C1C"
+    info: "#0369A1"
+  fontFamily: "system-ui"
+  radius: "8px"
+  ringPalette: []
+  mode: "light"
+modules:
+  - "BILLING"
+  - "SINGLE_CLASS"
+  - "WAITLIST"
+  - "FAQ"
+  - "PUSH"
+paymentProviders:
+  - "STRIPE"
+  - "MANUAL"
+parameters:
+  messaging.email.fromName: "Club Fictici Cua"
+  levels.enabled: false
+  waitlist.mode: "FIFO"
+# Fictional identities only. Password values come from the process environment.
+accounts:
+  - email: "fifo.admin@example.test"
+    name: "Abril Example"
+    locale: "ca"
+    roles: ["ADMIN"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "fifo.member@example.test"
+    name: "Bernat Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "fifo.member.2@example.test"
+    name: "Carla Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "fifo.member.3@example.test"
+    name: "Dídac Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "fifo.member.4@example.test"
+    name: "Elna Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+  - email: "fifo.member.5@example.test"
+    name: "Fèlix Example"
+    locale: "ca"
+    roles: ["MEMBER"]
+    password: "${SEED_PASSWORD}"
+    onboardingPending: false
+catalogs: {
+  "levels": [
+    {
+      "code": "GEN",
+      "name": {
+        "ca": "General",
+        "es": "General"
+      },
+      "order": 0,
+      "color": "#85B8E8",
+      "capacity": 1,
+      "grantsFreeTraining": false,
+      "active": true
+    }
+  ],
+  "rings": [
+    {
+      "name": "Pista única",
+      "shortName": "PIS",
+      "color": "#8FCE8F",
+      "allowsFreeTraining": false,
+      "trainingCapacity": null,
+      "order": 0,
+      "active": true
+    }
+  ],
+  "instructors": [],
+  "plans": [
+    {
+      "code": "MENSUAL",
+      "name": {
+        "ca": "Mensual",
+        "es": "Mensual"
+      },
+      "type": "MONTHLY",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "NONE"
+      },
+      "showOnSignup": false,
+      "showOnWeb": false,
+      "order": 0,
+      "active": true,
+      "billingMode": "MONTHLY_FEE"
+    },
+    {
+      "code": "UNICA",
+      "name": {
+        "ca": "Classe única",
+        "es": "Clase única"
+      },
+      "type": "SINGLE_CLASS",
+      "dogsIncluded": 1,
+      "entryFee": {
+        "mode": "NONE"
+      },
+      "showOnSignup": false,
+      "showOnWeb": false,
+      "order": 10,
+      "active": true,
+      "singleClass": {
+        "chargeMode": "PAY_TO_BOOK",
+        "cancelPolicy": "REFUND"
+      }
+    }
+  ],
+  "prices": [
+    {
+      "planCode": "MENSUAL",
+      "concept": "MONTHLY_FEE",
+      "amount": {
+        "amountMinor": 4000,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    {
+      "planCode": "UNICA",
+      "concept": "SINGLE_CLASS",
+      "amount": {
+        "amountMinor": 1200,
+        "currency": "EUR"
+      },
+      "taxPercent": 0,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    }
+  ],
+  "faq": []
+}
+messageTemplates: []
+
+legal:
+  privacyPolicyUrl: "https://fifo.example.test/privacy"
+  legalTextsVersion: "2026-09"
+  imageConsentText:
+    ca: "Autoritzo la publicació de fotos meves i del meu gos en activitats del club."
+    es: "Autorizo la publicación de fotos mías y de mi perro en actividades del club."

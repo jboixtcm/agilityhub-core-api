@@ -1,0 +1,134 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 31 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  279 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+  + catalogs: 6 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 2: 0 changes
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  16 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  20 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  0 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); both fixture clubs activated
+PASS FIFO club seeded (waitlist.mode FIFO): positions 1-3 · NOTIFIED, ACTIVE, ACTIVE; 1 PAYMENT_PENDING 7c4e506c…
+curl PUT /api/v1/jobs/risk-review/switch -> 200
+PASS PUT /jobs/risk-review/switch {enabled:false}: 200 · P2 held until its own step
+PASS POST /test/clock: 200 · demoNow (Mon 05-10 07:00 Europe/Madrid; server now 2026-10-05T05:00Z)
+PASS P6 waitlist-fifo (scheduler, SCHEDULE): SUCCEEDED · counters {'expired': 1}; entry 1 EXPIRED, entry 2 NOTIFIED confirmBy 05:30Z + N-15
+PASS P7 payment-timeouts (scheduler, SCHEDULE): SUCCEEDED · counters {'cancelled': 1}; booking CANCELLED{PAYMENT_TIMEOUT} + N-40
+curl GET /api/v1/me/home -> 200
+PASS GET /me/home (member@): 200 · 4 chips (2 own); rows ['CLASS', 'TRAINING', 'TRAINING', 'CLASS_WAITLIST', 'ACTIVITY']; W0 1/2 key 2026-10-04
+curl GET /api/v1/me/bookable-classes -> 200
+curl GET /api/v1/me/bookable-classes -> 200
+curl GET /api/v1/me/bookable-classes -> 200
+curl GET /api/v1/me/bookable-classes -> 200
+PASS GET /me/bookable-classes (member@, .3@, .4@, .7@): 200 · states BOOKABLE, NOT_BOOKABLE, NOT_YET_OPEN, WAITLIST_FULL, WAITLIST_OPEN, WEEKLY_LIMIT_DONE
+curl POST /api/v1/seat-holds -> 201
+curl POST /api/v1/seat-holds -> 201
+PASS POST /seat-holds (x2): 201 · same hold b565bf06…, 30 s, limit 1/2
+curl POST /api/v1/bookings -> 201
+curl POST /api/v1/bookings -> 201
+PASS POST /bookings + same Idempotency-Key: 201 + identical 201 · db3aaa7a… ACTIVE, calendarLinks google/outlook/ics
+curl GET /api/v1/bookings/<id> -> 200
+curl POST /api/v1/bookings/<id>/cancellation -> 200
+PASS GET /bookings/{id} → POST …/cancellation: 200 CANCELLED · late=false, minutesBefore=2969, SeatReleased{notifyWaitlist=false}
+PASS POST /test/clock: 200 · 20 min before Mon 08:30 (Mon 05-10 08:10 Europe/Madrid; server now 2026-10-05T06:10Z)
+curl POST /api/v1/bookings/<id>/cancellation -> 200
+PASS POST /bookings/{Mon 08:30}/cancellation: 200 CANCELLED_LATE · late=true, minutesBefore=19, notifyWaitlist=false
+curl POST /api/v1/seat-holds -> 201
+curl POST /api/v1/bookings -> 201
+PASS POST /seat-holds at the limit → POST /bookings {swapBookingId}: 201 + 201 · limit 2/2, swappable 1, notSelectable [DONE]; old CANCELLED{SWAP}, new ACTIVE
+curl POST /api/v1/waitlist-entries -> 201
+PASS POST /waitlist-entries (WAITLIST_OPEN class): 201 ACTIVE · WaitlistJoined; waiting 2 → 3
+curl POST /api/v1/bookings/<id>/cancellation -> 200
+PASS member.5@ cancels in time → SeatReleased{notifyWaitlist}: 200 · 3 entries NOTIFIED; N-15 for each waiting member
+curl POST /api/v1/seat-holds -> 201
+curl POST /api/v1/waitlist-entries/<id>/claim -> 201
+PASS POST /seat-holds {waitlistEntryId} → POST /waitlist-entries/{id}/claim: 201 + 201 · entry CONSOLIDATED; 2 others back to ACTIVE with N-46
+curl GET /api/v1/me/training-summary -> 200
+curl GET /api/v1/training-slots -> 200
+curl POST /api/v1/training-bookings -> 201
+curl POST /api/v1/training-bookings -> 409 TRAINING_LIMIT_REACHED
+PASS GET /me/training-summary → GET /training-slots → POST /training-bookings (no ringId) → a 4th: 200/200/201/409 · 2/3 → 3/3 on Muntanya; TRAINING_LIMIT_REACHED with 3 cancellable
+curl POST /api/v1/ring-blocks -> 422 RING_HAS_BOOKINGS
+curl POST /api/v1/ring-blocks -> 201
+PASS POST /ring-blocks over a live training booking: 422 RING_HAS_BOOKINGS → 201 {cancelBookings} · booking CANCELLED_BY_CLUB + N-47
+PASS POST /test/clock: 200 · before P2 (Tue 06-10 07:20 Europe/Madrid; server now 2026-10-06T05:20Z)
+curl PUT /api/v1/jobs/risk-review/switch -> 200
+curl POST /api/v1/jobs/risk-review/trigger -> 200
+PASS POST /jobs/risk-review/trigger {dryRun:true}: 200 · counters {'reviewed': 20, 'exempt': 1, 'WOULD_CANCEL': 3, 'WOULD_NOTIFY': 13}
+PASS POST /test/clock: 200 · P2 time (Tue 06-10 07:30 Europe/Madrid; server now 2026-10-06T05:30Z)
+PASS P2 risk-review (scheduler, SCHEDULE): SUCCEEDED · counters {'reviewed': 20, 'exempt': 1, 'cancelledSilent': 2, 'cancelled': 3, 'atRisk': 13, 'notifiedMembers': 1}; today's 1-registrant class CANCELLED{RISK_REVIEW} + N-17 + N-08a; tomorrow's warned (N-16); exempt kept
+curl POST /api/v1/bookings/<id>/cancellation -> 200
+PASS member.6@ cancels Thu 20:00 in time (2 → 1): 200 · exactly one ClassBelowMinimum → N-54
+curl PUT /api/v1/parameters/messaging.notifyWeekOpening -> 200
+PASS PUT /parameters/messaging.notifyWeekOpening {true}: 200 · N-33 on (catalog default false)
+PASS POST /test/clock: 200 · P1 time (Sun 11-10 20:00 Europe/Madrid; server now 2026-10-11T18:00Z)
+PASS P1 week-opening (scheduler, SCHEDULE): SUCCEEDED · WeekOpened{openedWeekKey=2026-10-18, notified=True}; 368 N-33 rows
+PASS bin/core jobs:run cleanup --club=canic: exit 0 · Job cleanup  run=<id> status=SUCCEEDED dryRun=false counters={ttlPendingSeatHolds=0, ttlPendingMagicLinkTokens=0, ttlPendingIdempotencyRecords=0, ttlPendingJobLocks=0, orphanUploadsDeleted=0, exportsPurged=0, domainEventsDeleted=0, stripeEventsDeleted=0, jobRunsDeleted=0} errors=0
+PASS bin/core jobs:run waitlist-fifo --club=fifo: exit 0 · Job waitlist-fifo  run=<id> status=SUCCEEDED dryRun=false counters={} errors=0
+PASS bin/core jobs:run payment-timeouts --club=fifo: exit 0 · Job payment-timeouts  run=<id> status=SUCCEEDED dryRun=false counters={} errors=0
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2)                         · second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+  FIFO club seeded (waitlist.mode FIFO)                                                        · positions 1-3 · NOTIFIED, ACTIVE, ACTIVE; 1 PAYMENT_PENDING 7c4e506c…
+  PUT /jobs/risk-review/switch {enabled:false}                                                 · 200 · P2 held until its own step
+  POST /test/clock                                                                             · 200 · demoNow (Mon 05-10 07:00 Europe/Madrid; server now 2026-10-05T05:00Z)
+  P6 waitlist-fifo (scheduler, SCHEDULE)                                                       · SUCCEEDED · counters {'expired': 1}; entry 1 EXPIRED, entry 2 NOTIFIED confirmBy 05:30Z + N-15
+  P7 payment-timeouts (scheduler, SCHEDULE)                                                    · SUCCEEDED · counters {'cancelled': 1}; booking CANCELLED{PAYMENT_TIMEOUT} + N-40
+  GET /me/home (member@)                                                                       · 200 · 4 chips (2 own); rows ['CLASS', 'TRAINING', 'TRAINING', 'CLASS_WAITLIST', 'ACTIVITY']; W0 1/2 key 2026-10-04
+  GET /me/bookable-classes (member@, .3@, .4@, .7@)                                            · 200 · states BOOKABLE, NOT_BOOKABLE, NOT_YET_OPEN, WAITLIST_FULL, WAITLIST_OPEN, WEEKLY_LIMIT_DONE
+  POST /seat-holds (x2)                                                                        · 201 · same hold b565bf06…, 30 s, limit 1/2
+  POST /bookings + same Idempotency-Key                                                        · 201 + identical 201 · db3aaa7a… ACTIVE, calendarLinks google/outlook/ics
+  GET /bookings/{id} → POST …/cancellation                                                     · 200 CANCELLED · late=false, minutesBefore=2969, SeatReleased{notifyWaitlist=false}
+  POST /test/clock                                                                             · 200 · 20 min before Mon 08:30 (Mon 05-10 08:10 Europe/Madrid; server now 2026-10-05T06:10Z)
+  POST /bookings/{Mon 08:30}/cancellation                                                      · 200 CANCELLED_LATE · late=true, minutesBefore=19, notifyWaitlist=false
+  POST /seat-holds at the limit → POST /bookings {swapBookingId}                               · 201 + 201 · limit 2/2, swappable 1, notSelectable [DONE]; old CANCELLED{SWAP}, new ACTIVE
+  POST /waitlist-entries (WAITLIST_OPEN class)                                                 · 201 ACTIVE · WaitlistJoined; waiting 2 → 3
+  member.5@ cancels in time → SeatReleased{notifyWaitlist}                                     · 200 · 3 entries NOTIFIED; N-15 for each waiting member
+  POST /seat-holds {waitlistEntryId} → POST /waitlist-entries/{id}/claim                       · 201 + 201 · entry CONSOLIDATED; 2 others back to ACTIVE with N-46
+  GET /me/training-summary → GET /training-slots → POST /training-bookings (no ringId) → a 4th · 200/200/201/409 · 2/3 → 3/3 on Muntanya; TRAINING_LIMIT_REACHED with 3 cancellable
+  POST /ring-blocks over a live training booking                                               · 422 RING_HAS_BOOKINGS → 201 {cancelBookings} · booking CANCELLED_BY_CLUB + N-47
+  POST /test/clock                                                                             · 200 · before P2 (Tue 06-10 07:20 Europe/Madrid; server now 2026-10-06T05:20Z)
+  POST /jobs/risk-review/trigger {dryRun:true}                                                 · 200 · counters {'reviewed': 20, 'exempt': 1, 'WOULD_CANCEL': 3, 'WOULD_NOTIFY': 13}
+  POST /test/clock                                                                             · 200 · P2 time (Tue 06-10 07:30 Europe/Madrid; server now 2026-10-06T05:30Z)
+  P2 risk-review (scheduler, SCHEDULE)                                                         · SUCCEEDED · counters {'reviewed': 20, 'exempt': 1, 'cancelledSilent': 2, 'cancelled': 3, 'atRisk': 13, 'notifiedMembers': 1}; today's 1-registrant class CANCELLED{RISK_REVIEW} + N-17 + N-08a; tomorrow's warned (N-16); exempt kept
+  member.6@ cancels Thu 20:00 in time (2 → 1)                                                  · 200 · exactly one ClassBelowMinimum → N-54
+  PUT /parameters/messaging.notifyWeekOpening {true}                                           · 200 · N-33 on (catalog default false)
+  POST /test/clock                                                                             · 200 · P1 time (Sun 11-10 20:00 Europe/Madrid; server now 2026-10-11T18:00Z)
+  P1 week-opening (scheduler, SCHEDULE)                                                        · SUCCEEDED · WeekOpened{openedWeekKey=2026-10-18, notified=True}; 368 N-33 rows
+  bin/core jobs:run cleanup --club=canic                                                       · exit 0 · Job cleanup  run=<id> status=SUCCEEDED dryRun=false counters={ttlPendingSeatHolds=0, ttlPendingMagicLinkTokens=0, ttlPendingIdempotencyRecords=0, ttlPendingJobLocks=0, orphanUploadsDeleted=0, exportsPurged=0, domainEventsDeleted=0, stripeEventsDeleted=0, jobRunsDeleted=0} errors=0
+  bin/core jobs:run waitlist-fifo --club=fifo                                                  · exit 0 · Job waitlist-fifo  run=<id> status=SUCCEEDED dryRun=false counters={} errors=0
+  bin/core jobs:run payment-timeouts --club=fifo                                               · exit 0 · Job payment-timeouts  run=<id> status=SUCCEEDED dryRun=false counters={} errors=0
+PASS E5 backend gate: book / cancel in time / cancel late / swap / waiting list in both modes / free training with the P1, P2, P6, P7 and P9 processes and the clock advanced
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

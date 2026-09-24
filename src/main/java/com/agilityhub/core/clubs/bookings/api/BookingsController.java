@@ -30,8 +30,8 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
  * S08: class bookings, seat holds and waiting list. WP-08-B (E5-T02) serves holds, confirmation, detail, lists,
- * `.ics` and cancellation; WP-08-C (E5-T03) the waiting list (join, detail, leave, claim, class list); `/me/home` and
- * `/me/bookable-classes` (E5-T06) still run their tenant, role and module guards and then answer 501 NOT_IMPLEMENTED.
+ * `.ics` and cancellation; WP-08-C (E5-T03) the waiting list (join, detail, leave, claim, class list); WP-08-D (E5-T06)
+ * the aggregates `/me/home` (03) and `/me/bookable-classes` (04).
  */
 @RestController
 public class BookingsController {
@@ -39,12 +39,13 @@ public class BookingsController {
     private final BookingContractAccess access; private final BookingActors actors; private final SeatHoldService holds;
     private final BookingConfirmationService confirmations; private final BookingCancellationService cancellations; private final BookingQueryService queries;
     private final BookingViews views; private final BookingTransactions transactions; private final ListEngine lists; private final ObjectMapper mapper;
-    private final WaitlistService waitlist;
+    private final WaitlistService waitlist; private final MemberHomeQuery home; private final BookableClassesQuery bookable;
     public BookingsController(BookingContractAccess access, BookingActors actors, SeatHoldService holds, BookingConfirmationService confirmations,
             BookingCancellationService cancellations, BookingQueryService queries, BookingViews views, BookingTransactions transactions,
-            ListEngine lists, ObjectMapper mapper, WaitlistService waitlist) {
+            ListEngine lists, ObjectMapper mapper, WaitlistService waitlist, MemberHomeQuery home, BookableClassesQuery bookable) {
         this.access = access; this.actors = actors; this.holds = holds; this.confirmations = confirmations; this.cancellations = cancellations;
         this.queries = queries; this.views = views; this.transactions = transactions; this.lists = lists; this.mapper = mapper; this.waitlist = waitlist;
+        this.home = home; this.bookable = bookable;
     }
     private <T> T view(Object value, Class<T> type) { return mapper.convertValue(value, type); }
     private static boolean instructorOnly() {
@@ -67,22 +68,22 @@ public class BookingsController {
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, DOG_NOT_ACCESSIBLE})
-    @Operation(summary = "memberHome", description = "Roles: MEMBER (also the impersonation token). S08 screen 03. dogId absent = «Tots». Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "memberHome", description = "Roles: MEMBER (also the impersonation token). S08 screen 03. dogId absent = «Tots». Chips = own dogs plus the family group's (FAMILY_GROUP); limits = R-08-02 counters of W0/W1 summed over the filtered dogs; reservations = future rows (endsAt > now) of CLASS, CLASS_WAITLIST (WAITLIST), TRAINING (FREE_TRAINING) and ACTIVITY (ACTIVITIES) by startsAt; instructorName per R-08-20. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "MeHome", useReturnTypeSchema = true))
-    public MeHome memberHome(@RequestParam(required = false) String dogId) {
+    public MeHome memberHome(@RequestParam(required = false) String dogId, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return view(home.home(memberId(jwt), dogId), MeHome.class);
     }
 
     @GetMapping("/api/v1/me/bookable-classes")
     @PreAuthorize(MEMBER)
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, DOG_NOT_ACCESSIBLE})
-    @Operation(summary = "bookableClasses", description = "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass). Row states per R-08-03. SINGLE_CLASS off: no price. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+    @Operation(summary = "bookableClasses", description = "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass while accessible, else the first own dog); no accessible dog → 404 DOG_NOT_ACCESSIBLE. Classes the dog has booked or waits for are left out; row states per R-08-03, decided by the server. The class list and counters come from a 30 s base cache; the per-dog state is live. SINGLE_CLASS off: no price. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "BookableClasses", useReturnTypeSchema = true))
-    public BookableClasses bookableClasses(@RequestParam(required = false) String dogId) {
+    public BookableClasses bookableClasses(@RequestParam(required = false) String dogId, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        throw new UnsupportedOperationException();
+        return view(bookable.bookable(memberId(jwt), dogId), BookableClasses.class);
     }
 
     @PostMapping("/api/v1/seat-holds")

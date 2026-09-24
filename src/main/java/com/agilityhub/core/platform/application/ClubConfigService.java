@@ -37,7 +37,7 @@ public class ClubConfigService implements TimeZoneProvider {
             // Declarative applies validate dependent catalogs against the same transaction's club and parameters.
             // Uncommitted configuration must never enter the shared cache.
             if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) { return load(clubId); }
-            return cache.get(clubId, this::load);
+            return com.agilityhub.core.shared.application.CacheLoads.get(cache, clubId, this::load);
         }
     }
     public void invalidate(String clubId) { cache.invalidate(clubId); }

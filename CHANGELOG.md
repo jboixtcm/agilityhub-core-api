@@ -8,6 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T06: S08 aggregates (WP-08-D), the E5 demo scenario, `bin/e5-smoke` and the k6 evidence (WP-08-G, WP-09-F, back
+  half of WP-15-E).
+  - `GET /me/home` (03, `MemberHomeQuery`): the chips (own dogs, plus the family group's with FAMILY_GROUP), the
+    R-08-02 counters of W0/W1 summed over the filtered dogs, and one chronological list of future rows from class
+    bookings, waiting-list entries, free training (`MemberTrainingRowsPort`, adapter in `clubs.training`) and activity
+    registrations (`MemberActivityRowsPort`, adapter in `clubs.activities`). It also returns the R-08-20 instructor
+    visibility, `history.monthsVisible`, `notifications.unreadCount` (in-app rows without `readAt`) and the
+    impersonation actor. Module off removes its rows (§9).
+  - `GET /me/bookable-classes` (04, `BookableClassesQuery`): exactly one dog (requested, `lastDogForClass`, or the
+    first own dog), the pack card (`PackCard` state), the single-class terms and price, the booking-block banner and
+    the activities block. Classes come from W0…W2, level-admitted, minus the ones already booked or waited for, with the
+    R-08-03 state through `BookableRow` over `BookingEligibility` and `BookingLimits`. The class list and counters come
+    from `BookableClassesCache` (30 s); the per-dog state is live.
+  - Demo seed: the current week is validated. The E4 waiting registrants join through `WaitlistService.join`. The new
+    `scenario` section (applied with a future `--week-start`) books, cancels, joins, trains, blocks and exempts
+    through the real services «as of» scenario instants. It adds `seeds/club-fifo.yaml` + `seeds/demo-fifo.yaml` (a
+    fictional FIFO + PAY_TO_BOOK club, so P6 and P7 have work). `DemoMembers`, `DemoScenarioSeeder` and
+    `DemoTrainingSeeder` are new; `DemoPlanningSeeder` creates the instructor ring reservations; `DemoActivitySeeder`
+    adds the scenario registrations.
+  - `bin/e5-smoke [--image]` (gate E5 on a disposable stack, with the scheduler on and the test clock moved), and
+    `bin/e5-perf` + `perf/e5-seat-holds.js` (k6 peak and last seat, zero-overbooking check).
+  - Messages `bookings.home.classTitle` / `trainingTitle` in ca/es/en.
+  - Changed: `HomeMember.gender` is optional and nullable (OpenAPI). `TrainingContext.now()` reads
+    `BookingContext.now()`, which is identical outside the demo seed. `DemoSeedStep.Input` carries the census member
+    ids and the run date. The Dockerfile ships the FIFO club seeds. `E5ContractIT` treats the two aggregates as served.
+
 - E5-T05: S15 scheduled processes of E5 (WP-15-C + the api half of WP-15-B).
   - P1 `week-opening` (R-15-11): one transaction per opening; it invalidates the config cache, warms the S08
     `BookableClassesCache` (W0…W2, 30 s, key `{clubId}:{W0 key}`), sets `Week.openedAt` and emits `WeekOpened` and, with

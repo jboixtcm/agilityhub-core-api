@@ -1,0 +1,50 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 31 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  279 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+  + catalogs: 6 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 2: 0 changes
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  16 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  20 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  0 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); both fixture clubs activated
+PASS FIFO club seeded (waitlist.mode FIFO): positions 1-3 · NOTIFIED, ACTIVE, ACTIVE; 1 PAYMENT_PENDING 43abc6a0…
+curl PUT /api/v1/jobs/risk-review/switch -> 200
+PASS PUT /jobs/risk-review/switch {enabled:false}: 200 · P2 held until its own step
+PASS POST /test/clock: 200 · demoNow (Mon 05-10 07:00 Europe/Madrid; server now 2026-10-05T05:00Z)
+PASS P6 waitlist-fifo (scheduler, SCHEDULE): SUCCEEDED · counters {'expired': {'high': 0, 'low': 1, 'unsigned': False}}; entry 1 EXPIRED, entry 2 NOTIFIED confirmBy 05:30Z + N-15
+PASS P7 payment-timeouts (scheduler, SCHEDULE): SUCCEEDED · counters {'cancelled': {'high': 0, 'low': 1, 'unsigned': False}}; booking CANCELLED{PAYMENT_TIMEOUT} + N-40
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: GET /api/v1/me/home: expected 200, got 401 UNAUTHENTICATED

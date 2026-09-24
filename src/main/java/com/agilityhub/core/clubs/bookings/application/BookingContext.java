@@ -19,10 +19,11 @@ public class BookingContext {
     /** Business time: the injected clock, or the instant a demo-seed step books «as of» (see {@link #asOf}). */
     public Instant now() { var fixed = asOf.get(); return fixed != null ? fixed : clock.instant(); }
     /**
-     * Demo seed only (E4-T05 timeline): the W+2 classes are not yet bookable on the run date, so the seed books them as
-     * of the moment their booking week opens. Every rule runs unchanged; only the evaluation instant moves.
+     * Demo seed only (E4-T05 timeline, E5-T06 scenario): the seeded classes are not yet bookable on the run date, so the
+     * seed books, cancels and trains «as of» a scenario instant (S09 reads the same instant through `TrainingContext`).
+     * Every rule runs unchanged; only the evaluation instant moves.
      */
-    <T> T asOf(Instant instant, java.util.function.Supplier<T> work) {
+    public <T> T asOf(Instant instant, java.util.function.Supplier<T> work) {
         var previous = asOf.get(); asOf.set(instant);
         try { return work.get(); } finally { if (previous == null) { asOf.remove(); } else { asOf.set(previous); } }
     }

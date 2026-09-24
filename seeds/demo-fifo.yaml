@@ -1,0 +1,52 @@
+# E5-T06: fictional demo of the second club (seeds/club-fifo.yaml): FIFO waiting list and PAY_TO_BOOK single classes, so
+# S15 P6 (waitlist-fifo) and P7 (payment-timeouts) have work at the scenario's demoNow. Census names are fictional and
+# generated; ordinals 0–5 are the six login accounts below (0 = fifo.admin@, 1…5 = fifo.member@ … fifo.member.5@).
+activeMembers: 8
+pendingMembers: 0
+inactiveMembers: 0
+leftMembers: 0
+levelDogs: {GEN: 8}
+firstNames: [Abril, Bernat, Carla, Dídac, Elna, Fèlix, Gisela, Hug]
+surnamePrefix: Cua
+dogNames: [Brisa, Cuca, Dalí, Espurna, Fum, Grava]
+accountEmails: [fifo.admin@example.test, fifo.member@example.test, fifo.member.2@example.test, fifo.member.3@example.test, fifo.member.4@example.test, fifo.member.5@example.test]
+# Ordinal % 6: members 0–4 MENSUAL (monthly), member 5 UNICA (PAY_TO_BOOK single class).
+planCodes: [MENSUAL, MENSUAL, MENSUAL, MENSUAL, MENSUAL, UNICA]
+familyPlanCode: MENSUAL
+familyGroups: 0
+instructors: [6]
+administrators: [0]
+receivedDocuments: 0
+referenceDate: '2026-09-01'
+pendingSignups: []
+phoneNumberFormat: '611%06d'
+
+# One weekday class a day at 18:00 on the only ring, capacity 1, in the run's week (week 0, validated).
+planning:
+  templates:
+    - name: Setmana
+      kind: WEEKDAYS
+      bands: ['18:00-19:00']
+      classes:
+        - {day: MONDAY, start: '18:00', ring: PIS, levels: [GEN], instructor: 0, capacity: 1}
+        - {day: TUESDAY, start: '18:00', ring: PIS, levels: [GEN], instructor: 0, capacity: 1}
+        - {day: WEDNESDAY, start: '18:00', ring: PIS, levels: [GEN], instructor: 0, capacity: 1}
+        - {day: THURSDAY, start: '18:00', ring: PIS, levels: [GEN], instructor: 0, capacity: 1}
+        - {day: FRIDAY, start: '18:00', ring: PIS, levels: [GEN], instructor: 0, capacity: 1}
+  weeks:
+    - {offset: 0, weekdays: Setmana, validate: true}
+
+# Same conventions as seeds/demo-canic.yaml `scenario` (applied only with --week-start on or after the run's Monday).
+# Tuesday's class is full (member 1); members 2, 3, 4 join in that order (FIFO positions 1, 2, 3); member 1 cancels in time
+# on Sunday 21:00, so the first entry is NOTIFIED with confirmBy 21:30, already past at demoNow: P6 expires it and offers
+# the seat to the next one. Member 5 (UNICA) books Wednesday's class: PAYMENT_PENDING since the Sunday opening, older
+# than bookings.paymentPendingMinutes at demoNow: P7 cancels it (PAYMENT_TIMEOUT, N-40).
+scenario:
+  demoNow: {day: MONDAY, time: '07:00'}
+  classBookings:
+    - {member: 1, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS, cancelAt: {week: -1, day: SUNDAY, time: '21:00'}}
+    - {member: 5, dog: GEN, day: WEDNESDAY, start: '18:00', ring: PIS}
+  waitlist:
+    - {member: 2, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
+    - {member: 3, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}
+    - {member: 4, dog: GEN, day: TUESDAY, start: '18:00', ring: PIS}

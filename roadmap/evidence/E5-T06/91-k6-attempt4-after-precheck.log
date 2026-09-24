@@ -1,0 +1,87 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 31 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  279 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+  + catalogs: 6 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 2: 0 changes
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  16 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  20 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  0 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); both fixture clubs activated
+PASS POST /test/clock: 200 · 30 min before the W+2 opening (token minting) (Sun 11-10 19:30 Europe/Madrid; server now 2026-10-11T17:30Z)
+PASS fixture: 10 peak classes (37 free seats), 106 members with an eligible dog; last-seat class 2026-10-21 20:00 (124 eligible members)
+PASS 106 impersonation tokens minted in 2 s (values withheld)
+PASS preflight (host curl, impersonation token): /me/bookable-classes 200 with 13 rows
+PASS POST /test/clock: 200 · 20 s before the W+2 opening (Sun 11-10 19:59 Europe/Madrid; server now 2026-10-11T17:59Z)
+time="2026-09-24T05:00:03Z" level=warning msg="unexpected confirmation answer 422 SWAP_NOT_ALLOWED" source=console
+time="2026-09-24T05:00:03Z" level=warning msg="unexpected confirmation answer 422 SWAP_NOT_ALLOWED" source=console
+time="2026-09-24T05:00:03Z" level=warning msg="unexpected confirmation answer 422 SWAP_NOT_ALLOWED" source=console
+
+     ✓ bookable classes 200
+     ✗ confirmation answers 201 or 409
+      ↳  93% — ✓ 41 / ✗ 3
+
+     bookings_created...............: 35     24.277135/s
+     checks.........................: 99.12% 341 out of 344
+     data_received..................: 1.8 MB 1.3 MB/s
+     data_sent......................: 923 kB 640 kB/s
+   ✗ flow_duration..................: avg=1.06s    min=695ms    med=1.09s    p(90)=1.3s     p(95)=1.35s    p(99)=1.41s    max=1.44s   
+     holds_created..................: 44     30.519827/s
+     holds_rejected.................: 256    177.569904/s
+     http_req_blocked...............: avg=77.65ms  min=542ns    med=3.39µs   p(90)=37.25ms  p(95)=1.04s    p(99)=1.04s    max=1.04s   
+     http_req_connecting............: avg=72.2ms   min=0s       med=0s       p(90)=14.77ms  p(95)=1.01s    p(99)=1.02s    max=1.03s   
+     http_req_duration..............: avg=416.77ms min=12.43ms  med=453.22ms p(90)=602.03ms p(95)=643.73ms p(99)=722.06ms max=812.91ms
+       { expected_response:true }...: avg=416.77ms min=12.43ms  med=453.22ms p(90)=602.03ms p(95)=643.73ms p(99)=722.06ms max=812.91ms
+     ✓ { name:bookable-classes }....: avg=415.43ms min=34.3ms   med=457.27ms p(90)=544.84ms p(95)=567.03ms p(99)=611.46ms max=627.95ms
+     ✓ { name:bookings }............: avg=541.15ms min=12.43ms  med=571.44ms p(90)=618.36ms p(95)=629.46ms p(99)=639.81ms max=640.54ms
+     ✗ { name:seat-holds }..........: avg=399.86ms min=19.23ms  med=407.82ms p(90)=645.54ms p(95)=690.99ms p(99)=769.65ms max=812.91ms
+   ✓ http_req_failed................: 0.00%  0 out of 644
+     http_req_receiving.............: avg=398.33µs min=12.62µs  med=278.85µs p(90)=785.25µs p(95)=1.2ms    p(99)=2.71ms   max=6.48ms  
+     http_req_sending...............: avg=187.92µs min=2.66µs   med=15.54µs  p(90)=601.56µs p(95)=1.03ms   p(99)=2.07ms   max=9.06ms  
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=416.18ms min=12.37ms  med=452.33ms p(90)=601.11ms p(95)=643.4ms  p(99)=721.8ms  max=812.59ms
+     http_reqs......................: 644    446.699289/s
+     iteration_duration.............: avg=1.06s    min=694.83ms med=1.09s    p(90)=1.3s     p(95)=1.36s    p(99)=1.41s    max=1.43s   
+     iterations.....................: 300    208.089731/s
+   ✗ unexpected_answers.............: 3      2.080897/s
+     vus............................: 217    min=217        max=217
+     vus_max........................: 300    min=300        max=300
+
+time="2026-09-24T05:00:03Z" level=error msg="thresholds on metrics 'flow_duration, http_req_duration{name:seat-holds}, unexpected_answers' have been crossed"
+
+RESULT peak: k6 exit 99; seat-holds p95 691 ms, flow p95 1359 ms, holds 44, rejected 256, bookings 35 of 37 free seats (Mongo: 48 live bookings in the 10 classes, capacity 50); overbooked classes []; P1 SCHEDULE notified True, 368 N-33 rows within 0.2 s
+API exception classes: com.agilityhub.core.shared.domain.ApiException
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: Peak scenario failed its thresholds or the fan-out/overbooking checks

@@ -29,6 +29,10 @@ public class NotificationRepository extends TenantRepository<Notification> {
         return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
     }
     public void appContent(String id,java.util.Map<String,Object> variables) { content(id,"APP",variables); }
+    /** In-app rows of the account in the tenant without `readAt` (the S08 03 bell). */
+    public long unreadApp(String accountId) {
+        return mongo.count(tenantQuery().addCriteria(Criteria.where("accountId").is(accountId).and("channel").is("APP").and("readAt").exists(false)),Notification.class);
+    }
     /** Ids of the given ones already queued in the tenant (a batch never writes a row twice). */
     public java.util.Set<String> existingIds(java.util.Collection<String> ids) {
         if(ids.isEmpty()) return java.util.Set.of();

@@ -476,3 +476,37 @@ curl -fsS -X POST localhost:8080/api/v1/test/clock -H 'Content-Type: application
 
 Exactly one of `instant` and `advanceSeconds` is required; the response is `{"now": …}`.
 Under `local` the clock keeps flowing from the new instant.
+
+Access tokens are validated against this moved clock and live 15 minutes, so sign in
+again after moving it. The CLI (`bin/core jobs:run`) runs in its own process on the
+real clock. To drive a process at a moved instant, move the API clock and let the
+scheduler run it, or use `POST /api/v1/jobs/{name}/trigger`, which runs in the API
+process.
+
+## E5 bookings, waiting lists and free training (aggregates, demo scenario and gate)
+
+`GET /api/v1/me/home` (screen 03) and `GET /api/v1/me/bookable-classes` (screen 04)
+are the member aggregates: the server decides every row state, counter, pack, price
+and instructor visibility. The bookable-classes base (the `ACTIVE` classes of W0…W2
+with their counters) is `BookableClassesCache` (S08-owned, key
+`{clubId}:{W0 key}`, 30 s, warmed by P1); the per-dog state is always read live.
+
+```sh
+bin/core club:apply seeds/club-canic.yaml
+bin/core seed:demo --club=canic --seed=42 --week-start=<a future Monday>   # E4 data + the E5 scenario on that week
+bin/core club:apply seeds/club-fifo.yaml                                   # fictional FIFO + SINGLE_CLASS club
+bin/core seed:demo --club=fifo --seed=42 --week-start=<the same Monday>
+curl -fsS -X POST localhost:8080/api/v1/test/clock -H 'Content-Type: application/json' -d '{"instant":"<that Monday 07:00 local, in UTC>"}'
+bin/e5-smoke            # gate E5 (back) on a disposable Compose stack, twice-safe (fresh stack per run)
+bin/e5-perf             # k6 peak (300 VUs) and last-seat (50 VUs) with the zero-overbooking check; see perf/README.md
+```
+
+The E5 scenario (`seeds/README.md`) is applied only when `--week-start` is the
+run's Monday or later. Without it, `seed:demo` behaves as in E4, and the current
+week is validated so the screens have classes. `bin/e5-smoke [--image]` builds the
+working tree image (or uses the published one) and seeds both clubs on a week 8+
+days ahead. It then moves the test clock through that week and asserts statuses,
+codes, Mongo documents, outbox events and notification rows, with the scheduler on:
+P6/P7 on the FIFO club at the first tick, P2 on Tuesday 07:30 and P1 on Sunday 20:00
+(P9 from `bin/core jobs:run`). It prints a summary table, exits non-zero on the
+first failed assertion, and never prints `SEED_PASSWORD`, tokens or full ids.

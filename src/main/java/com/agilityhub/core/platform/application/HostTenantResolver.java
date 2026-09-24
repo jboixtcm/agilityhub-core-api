@@ -19,11 +19,11 @@ public class HostTenantResolver implements com.agilityhub.core.shared.applicatio
     public Optional<String> resolve(String host) {
         String normalized = HostNames.normalize(host);
         if (normalized.isEmpty()) { return Optional.empty(); }
-        return hosts.get(normalized, key -> clubs.findByHost(key).map(club -> club.id()));
+        return com.agilityhub.core.shared.application.CacheLoads.get(hosts, normalized, key -> clubs.findByHost(key).map(club -> club.id()));
     }
     // Evict negative lookups as well as hosts removed or reassigned by a domain update.
     public void invalidate() { hosts.invalidateAll(); localCorsHosts.invalidateAll(); }
     public boolean isCorsHost(String host, boolean local) {
-        return local ? localCorsHosts.get(host, key -> clubs.findByAnyHost(key).isPresent()) : resolve(host).isPresent();
+        return local ? com.agilityhub.core.shared.application.CacheLoads.get(localCorsHosts, host, key -> clubs.findByAnyHost(key).isPresent()) : resolve(host).isPresent();
     }
 }

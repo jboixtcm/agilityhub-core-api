@@ -20,6 +20,17 @@ class BookingRulesTest {
         return new BookingLimits.Counted(id, "class-" + id, dog, member, state, startsAt);
     }
 
+    @Test void T_08_13_packCardStateFollowsBalanceExpiryAndTheN11Warnings() {
+        var today = LocalDate.parse("2026-10-06");
+        assertThat(PackCard.state(0, LocalDate.parse("2026-12-31"), today, 1, 14)).isEqualTo(PackCard.State.EMPTY);
+        assertThat(PackCard.state(4, LocalDate.parse("2026-10-05"), today, 1, 14)).isEqualTo(PackCard.State.EXPIRED);
+        assertThat(PackCard.state(4, LocalDate.parse("2026-10-20"), today, 1, 14)).as("expires within 14 days").isEqualTo(PackCard.State.EXPIRING);
+        assertThat(PackCard.state(1, LocalDate.parse("2026-12-31"), today, 1, 14)).as("low balance").isEqualTo(PackCard.State.EXPIRING);
+        assertThat(PackCard.state(4, LocalDate.parse("2026-10-21"), today, 1, 14)).isEqualTo(PackCard.State.ACTIVE);
+        assertThat(PackCard.state(4, null, today, 1, 14)).as("no expiry").isEqualTo(PackCard.State.ACTIVE);
+        assertThat(PackCard.state(4, today, today, 1, 14)).as("expires today").isEqualTo(PackCard.State.EXPIRING);
+    }
+
     @Test void T_08_01_weeksOpenAtTheLocalOccurrenceAndClassesBelongToTheWeekOfTheirStart() {
         var weeks = new BookingWeeks(SUNDAY_20, MADRID);
         clock.setInstant(local("2026-10-06T10:00", MADRID));

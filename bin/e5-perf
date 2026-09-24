@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+"""E5 load and concurrency evidence (S08 T-08-41, S15 T-15-30) with k6 on a disposable local Compose stack.
+
+Starts the stack and seeds it like bin/e5-smoke, moves the test clock to just before the Sunday-20:00 opening of the
+seeded validated week (W+2 of the scenario week), mints one impersonation token per member (the demo members have no
+password; the booking code path is the member's), waits for P1 week-opening to start (the N-33 fan-out, T-15-30) and
+then runs perf/e5-seat-holds.js: `peak` (VUS members, default 300, arriving over --arrival-seconds, default 5, on
+10 classes of 5 seats; latency thresholds), `burst` (the same number all at the same instant on 10 other classes;
+stress, correctness thresholds only) and `last_seat` (50 simultaneous holds for a class's single free seat). After each run it asserts in Mongo that no class holds more
+ACTIVE + PAYMENT_PENDING bookings than its capacity. k6 runs from PATH when installed, otherwise from the grafana/k6
+container image (`--k6 docker`). Tokens stay in a private temporary file; nothing secret is printed.
+"""
+import argparse
+import datetime
+import importlib.machinery
+import importlib.util
+import json
+import re
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+
+ROOT = Path(__file__).resolve().parents[1]
+K6_IMAGE = "grafana/k6:0.54.0"
+
+
+def load_smoke():
+    loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin" / "e5-smoke"))
+    spec = importlib.util.spec_from_loader("e5smoke", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+class Perf:
+    def __init__(self, smoke_module, private, image, vus, k6, arrival=5):
+        self.s = smoke_module.Smoke(private, image)
+        self.m = smoke_module
+        self.private = private
+        self.vus = vus
+        self.k6 = k6
+        self.arrival = arrival
+
+    def mongo(self, script):
+        return self.s.mongo(script)
+
+    def monday(self, week):
+        return self.s.week_start + datetime.timedelta(weeks=week)
+
+    def classes(self):
+        """ACTIVE classes of the seeded validated W+2, with their free seats and levels."""
+        start, end = self.monday(2), self.monday(3)
+        return self.mongo('db.class_sessions.find({clubId:' + json.dumps(self.s.canic) + ',state:"ACTIVE",date:{$gte:' + json.dumps(str(start))
+                          + ',$lt:' + json.dumps(str(end)) + '}}).toArray().map(c=>({id:c._id,date:c.date,start:c.startTime,capacity:c.capacity,'
+                          'booked:c.counters.booked,levels:c.levelIds}))')
+
+    def dogs(self):
+        """ACTIVE members with an account, not blocked, and their ACTIVE dogs (id, level)."""
+        return self.mongo('db.members.find({clubId:' + json.dumps(self.s.canic) + ',status:"ACTIVE",accountId:{$ne:null},"bookingBlock.active":{$ne:true}})'
+                          '.sort({memberNumber:1}).toArray().map(m=>({member:m._id,dogs:db.dogs.find({memberId:m._id,status:"ACTIVE"})'
+                          '.sort({_id:1}).toArray().map(d=>({id:d._id,level:d.levelId}))})).filter(m=>m.dogs.length>0)')
+
+    def impersonate(self, member):
+        """An impersonation token, or None for a member the admin may not impersonate (staff: 403 IMPERSONATION_DENIED)."""
+        try:
+            response = self.s.call("POST", f"/api/v1/members/{member}/impersonation-token", 201, access=self.s.admin,
+                                   body=dict(reason="E5 k6 load run (fictional demo data)"), quiet=True)
+        except AssertionError as denied:
+            if "403 IMPERSONATION_DENIED" in str(denied):
+                return None
+            raise
+        return response["token"]
+
+    def overbooked(self):
+        return self.mongo('db.class_sessions.find({clubId:' + json.dumps(self.s.canic) + '}).toArray().filter(c=>db.bookings.countDocuments('
+                          '{classSessionId:c._id,state:{$in:["ACTIVE","PAYMENT_PENDING"]}})>c.capacity).map(c=>c._id)')
+
+    def run_k6(self, name, pool, extra):
+        pool_file = self.private / f"pool-{name}.json"
+        pool_file.write_text(json.dumps(pool))
+        summary = self.private / f"summary-{name}.json"
+        env = dict(BASE_URL=self.s.base, CLUB_HOST=self.s.host, POOL_FILE=str(pool_file), SCENARIO=name, **extra)
+        if self.k6 == "local":
+            args = ["k6", "run", "--quiet", "--summary-export", str(summary)]
+            for key, value in env.items():
+                args += ["-e", f"{key}={value}"]
+            args.append(str(ROOT / "perf" / "e5-seat-holds.js"))
+        else:
+            # The API publishes its port on the host's loopback only: join the stack's network and call the service directly.
+            env.update(BASE_URL=f"http://{self.s.service}:{self.s.env['SERVER_PORT']}", POOL_FILE="/work/" + pool_file.name)
+            args = ["docker", "run", "--rm", "--network", f"{self.s.project}_default", "-v", f"{self.private}:/work",
+                    "-v", f"{ROOT / 'perf'}:/scripts:ro", K6_IMAGE, "run", "--quiet", "--summary-export", "/work/" + summary.name]
+            for key, value in env.items():
+                args += ["-e", f"{key}={value}"]
+            args.append("/scripts/e5-seat-holds.js")
+        result = subprocess.run(args, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=900)
+        # k6's own summary holds only metric names and numbers; tokens never reach argv (they are in the pool file).
+        print(result.stdout, flush=True)
+        metrics = json.loads(summary.read_text())["metrics"] if summary.exists() else {}
+        return result.returncode, metrics
+
+    def run(self):
+        s = self.s
+        s.start()
+        s.sign_in()
+        s.call("PUT", "/api/v1/jobs/risk-review/switch", access=s.admin, body=dict(enabled=False), quiet=True)
+        # T-15-30 needs the N-33 fan-out: a club choice (messaging.notifyWeekOpening, product default false).
+        current = s.call("GET", "/api/v1/parameters/messaging.notifyWeekOpening", access=s.admin, quiet=True)
+        s.call("PUT", "/api/v1/parameters/messaging.notifyWeekOpening", access=s.admin, quiet=True,
+               body=dict(value=True, version=current["version"], reason="E5 k6: N-33 fan-out during the peak"))
+        opening = s.local("SUNDAY", "20:00")  # W+2 becomes W1 at the Sunday closing week 0 (R-08-01)
+        s.set_clock(opening - datetime.timedelta(minutes=30), "30 min before the W+2 opening (token minting)")
+
+        classes = self.classes()
+        members = self.dogs()
+        # Last-seat class: the widest-level class of 5 seats; peak targets: the next 10 classes of 5 seats by eligibility.
+        def eligible(c):
+            return sum(1 for m in members if any(d["level"] in c["levels"] for d in m["dogs"]))
+        fives = sorted((c for c in classes if c["capacity"] == 5), key=lambda c: (-eligible(c), c["date"], c["start"], c["id"]))
+        require = self.m.require
+        require(len(fives) >= 11, f"Need 11 classes of 5 seats in W+2, found {len(fives)}")
+        last, targets = fives[0], fives[1:11]
+        seats = sum(c["capacity"] - c["booked"] for c in targets)
+        taken = set(self.mongo('db.bookings.distinct("dogId",{clubId:' + json.dumps(s.canic) + ',classStartsAt:{$gte:new Date('
+                               + json.dumps(s.utc(s.local("MONDAY", "00:00", week=2))) + ')},state:{$in:["ACTIVE","PAYMENT_PENDING"]}})'))
+        # The last-seat run needs 50 members plus the fillers: reserve them before the peak takes its members.
+        reserved = []
+        for m in members:
+            dog = next((d for d in m["dogs"] if d["id"] not in taken and d["level"] in last["levels"]), None)
+            if dog and len(reserved) < 60:
+                reserved.append(m["member"])
+        peak_pool = []
+        for m in (m for m in members if m["member"] not in reserved):
+            dog = next((d for d in m["dogs"] if d["id"] not in taken and any(d["level"] in c["levels"] for c in targets)), None)
+            if dog and len(peak_pool) < self.vus:
+                peak_pool.append(dict(member=m["member"], dogId=dog["id"], classIds=[c["id"] for c in targets if dog["level"] in c["levels"]]))
+        members_after_peak = [m for m in members if m["member"] in reserved] + [m for m in members if m["member"] not in reserved]
+        print(f"PASS fixture: {len(targets)} peak classes ({seats} free seats), {len(peak_pool)} members with an eligible dog; "
+              f"last-seat class {last['date']} {last['start']} ({eligible(last)} eligible members)", flush=True)
+        started = time.monotonic()
+        for entry in peak_pool:
+            entry["token"] = self.impersonate(entry.pop("member"))
+        peak_pool = [e for e in peak_pool if e["token"]]
+        print(f"PASS {len(peak_pool)} impersonation tokens minted in {time.monotonic() - started:.0f} s (values withheld)", flush=True)
+        probe = peak_pool[0]
+        listed = s.call("GET", f"/api/v1/me/bookable-classes?dogId={probe['dogId']}", access=probe["token"], quiet=True)
+        print(f"PASS preflight (host curl, impersonation token): /me/bookable-classes 200 with {len(listed['classes'])} rows", flush=True)
+
+        # T-15-30: start the peak while P1 week-opening fans N-33 out.
+        s.set_clock(opening - datetime.timedelta(seconds=20), "20 s before the W+2 opening")
+        p1 = s.run_after(s.canic, "WEEK_OPENING", opening)
+        code, peak = self.run_k6("peak", peak_pool, dict(VUS=str(self.vus), ARRIVAL_SECONDS=str(self.arrival)))
+        key = str(self.s.week_start + datetime.timedelta(days=13))  # opensAt + 7 days (R-15-11 openedWeekKey)
+        opened = self.mongo('db.domain_events.find({clubId:' + json.dumps(s.canic) + ',type:"WeekOpened","payload.openedWeekKey":' + json.dumps(key)
+                            + '}).toArray().map(e=>({at:e.occurredAt,payload:e.payload}))[0]')
+        n33 = self.m.wait(lambda: (lambda r: r if r and r["count"] > 0 else None)(self.mongo(
+            'db.notifications.aggregate([{$match:{clubId:' + json.dumps(s.canic) + ',code:"N-33"}},{$group:{_id:null,count:{$sum:1},'
+            'first:{$min:"$createdAt"},last:{$max:"$createdAt"}}}]).toArray()[0]')), "N-33 rows missing")
+        lag = (datetime.datetime.fromisoformat(n33["last"].replace("Z", "+00:00"))
+               - datetime.datetime.fromisoformat(opened["at"].replace("Z", "+00:00"))).total_seconds()
+        over = self.overbooked()
+        booked = self.mongo('db.bookings.countDocuments({classSessionId:{$in:' + json.dumps([c["id"] for c in targets]) + '},state:{$in:["ACTIVE","PAYMENT_PENDING"]}})')
+        print(f"RESULT peak: k6 exit {code}; seat-holds p95 {peak['http_req_duration{name:seat-holds}']['p(95)']:.0f} ms, "
+              f"flow p95 {peak['flow_duration']['p(95)']:.0f} ms, holds {int(peak.get('holds_created', {}).get('count', 0))}, "
+              f"rejected {int(peak.get('holds_rejected', {}).get('count', 0))}, bookings {int(peak.get('bookings_created', {}).get('count', 0))} "
+              f"of {seats} free seats (Mongo: {booked} live bookings in the 10 classes, capacity {sum(c['capacity'] for c in targets)}); "
+              f"overbooked classes {over}; P1 {p1['trigger']} notified {opened['payload'].get('notified')}, {n33['count']} N-33 rows within {lag:.1f} s",
+              flush=True)
+        if code != 0:
+            # Diagnostics without payloads: the exception classes the API logged during the run.
+            logs = s.compose("logs", "--no-color", s.service, timeout=120)
+            print("API exception classes: " + ", ".join(sorted(set(re.findall(r"([A-Za-z0-9_.]+(?:Exception|Error|Timeout))\b", logs)))[:40]), flush=True)
+        require(code == 0 and not over and lag < 10, "Peak scenario failed its thresholds or the fan-out/overbooking checks")
+
+        # Dogs that already hold a W+2 booking have used their W1 limit (1): the next runs pick others.
+        def w2_dogs():
+            return set(self.mongo('db.bookings.distinct("dogId",{clubId:' + json.dumps(s.canic) + ',classStartsAt:{$gte:new Date('
+                                  + json.dumps(s.utc(s.local("MONDAY", "00:00", week=2))) + ')},state:{$in:["ACTIVE","PAYMENT_PENDING"]}})'))
+
+        # Last seat: fill to capacity − 1, then 50 members hold the last seat at once.
+        s.sign_in()
+        used = {e["dogId"] for e in peak_pool} | w2_dogs()
+        fill = last["capacity"] - 1 - self.mongo('db.bookings.countDocuments({classSessionId:' + json.dumps(last["id"]) + ',state:{$in:["ACTIVE","PAYMENT_PENDING"]}})')
+        candidates = []
+        for m in members_after_peak:
+            dog = next((d for d in m["dogs"] if d["id"] not in used and d["level"] in last["levels"]), None)
+            token = self.impersonate(m["member"]) if dog and len(candidates) < 50 + fill else None
+            if token:
+                candidates.append((token, dog["id"]))
+        require(len(candidates) >= 50 + fill, f"Not enough members for the last-seat run ({len(candidates)})")
+        for token, dog in candidates[:fill]:
+            hold = s.call("POST", "/api/v1/seat-holds", 201, access=token, body=dict(classSessionId=last["id"], dogId=dog), quiet=True)
+            s.call("POST", "/api/v1/bookings", 201, access=token, body=dict(seatHoldId=hold["id"]), idempotent=True, quiet=True)
+        pool = [dict(token=token, dogId=dog, classIds=[last["id"]]) for token, dog in candidates[fill:fill + 50]]
+        code, seat = self.run_k6("last_seat", pool, dict(VUS="50", LAST_SEAT_CLASS=last["id"]))
+        live = self.mongo('db.bookings.countDocuments({classSessionId:' + json.dumps(last["id"]) + ',state:{$in:["ACTIVE","PAYMENT_PENDING"]}})')
+        over = self.overbooked()
+        print(f"RESULT last_seat: k6 exit {code}; holds 201 × {int(seat.get('holds_created', {}).get('count', 0))}, "
+              f"409 CLASS_FULL/SEAT_TAKEN × {int(seat.get('holds_rejected', {}).get('count', 0))}, bookings {int(seat.get('bookings_created', {}).get('count', 0))}; "
+              f"Mongo: {live}/{last['capacity']} live bookings; overbooked classes {over}", flush=True)
+        require(code == 0 and live == last["capacity"] and not over, "Last-seat scenario failed")
+
+        # Burst (stress, not gated on latency): the same flow with every member starting at the same instant, on ten
+        # other classes, by members whose dogs hold no W+2 booking yet.
+        s.sign_in()
+        burst_targets = fives[11:21]
+        used = {e["dogId"] for e in peak_pool} | {dog for _, dog in candidates} | w2_dogs()
+        burst_pool = []
+        for m in members:
+            dog = next((d for d in m["dogs"] if d["id"] not in used and any(d["level"] in c["levels"] for c in burst_targets)), None)
+            token = self.impersonate(m["member"]) if dog and burst_targets else None
+            if token:
+                burst_pool.append(dict(token=token, dogId=dog["id"], classIds=[c["id"] for c in burst_targets if dog["level"] in c["levels"]]))
+        require(burst_pool, "No member left for the burst run")
+        code, burst = self.run_k6("burst", burst_pool, dict(VUS=str(self.vus)))
+        over = self.overbooked()
+        failed = burst["http_req_failed"].get("value", burst["http_req_failed"].get("rate"))
+        print(f"RESULT burst (all {self.vus} at once, {len(burst_targets)} classes, {len(burst_pool)} members): k6 exit {code}; "
+              f"seat-holds p95 {burst['http_req_duration{name:seat-holds}']['p(95)']:.0f} ms, flow p95 {burst['flow_duration']['p(95)']:.0f} ms (reported, not gated), "
+              f"holds {int(burst.get('holds_created', {}).get('count', 0))}, bookings {int(burst.get('bookings_created', {}).get('count', 0))}, "
+              f"failed-request rate {failed}; overbooked classes {over}", flush=True)
+        require(code == 0 and not over, "Burst scenario failed its correctness thresholds or overbooked")
+        print("PASS E5 load and concurrency: peak, last-seat and burst thresholds met, zero overbooking", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--image", nargs="?", const="ghcr.io/jboixtcm/agilityhub-core-api:main",
+                        help="Use the consumer Compose image instead of building; defaults to the published :main")
+    parser.add_argument("--vus", type=int, default=300, help="Virtual users of the peak scenario (default 300)")
+    parser.add_argument("--arrival-seconds", type=int, default=5, help="Window the peak arrivals spread over (default 5 s)")
+    parser.add_argument("--k6", choices=["auto", "local", "docker"], default="auto", help="k6 from PATH or from the grafana/k6 image")
+    options = parser.parse_args()
+    k6 = options.k6 if options.k6 != "auto" else ("local" if shutil.which("k6") else "docker")
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    module = load_smoke()
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e5-perf-") as directory:
+        perf = Perf(module, Path(directory), options.image, options.vus, k6, options.arrival_seconds)
+        try:
+            perf.run()
+        finally:
+            perf.s.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, StopIteration, KeyError, TypeError, IndexError, ValueError) as error:
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

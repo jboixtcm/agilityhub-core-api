@@ -126,7 +126,7 @@ state, never by date or first name:
 
 | Week | State | What it holds (screens) |
 |---|---|---|
-| W (current) | untouched | no planning data (nothing can be generated or blocked in the past) |
+| W (current) | `VALIDATED` since E5-T06 (remaining days only) | the E5 screens' bookable classes; see the E5 section below |
 | W+1 | `GENERATED`, 38 `DRAFT` classes from «Setmana A» + «Dissabtes» | D4b «Esborrany» filter, validation card (`draftCount = 38`, `canValidate = true`) |
 | W+2 | `VALIDATED`, classes `ACTIVE` | D4/D4c/D7 data below |
 | W+3 | not generated | `GET /weeks/generation-candidates` proposes it (`proposed = true`) |
@@ -179,6 +179,73 @@ state, never by date or first name:
   Seminari/Lliga blocks (validation reports `RING_BLOCKED`).
 
 `bin/e4-smoke` (see `docs/DEPLOY.md`) exercises this seed on a disposable stack.
+
+### E5 bookings, waiting lists, free training and processes (`scenario` section, E5-T06)
+
+E5 changes three things in the E4 arrangement above:
+
+- **W (current week)** is now generated from «Setmana A» + «Dissabtes» and `VALIDATED`, so screens 03/04 have
+  bookable classes. Generation skips the days already past (R-06 `PAST`); on a Sunday nothing is left and the week
+  stays unvalidated. W+1 (`DRAFT`, D4b), W+2 (`VALIDATED`, D4/D4c/D7) and the W+3 candidate are unchanged.
+- **The E4 demo bookings adapter is retired**: since E5-T02 the W+2 registrants are real S08 bookings, and since E5-T06
+  the waiting registrants join through `WaitlistService.join` too. R-08-12 needs a class that is full through its
+  bookings, so a row with free seats (the D4c «4/5 + 2») briefly gets its booked count as capacity through the S06
+  class edit. The entries then join, and the class gets its capacity and `AUTO`/`MANUAL` mode back. A capacity raise
+  releases no seat, so the entries stay `ACTIVE`, as D4c shows them. Nothing writes `bookings`, `seat_holds`,
+  `waitlist_entries` or `training_bookings` directly, and no counter is set by hand.
+- **The `scenario` section** is applied only when `--week-start` is the run's Monday or a later one (club-local).
+  Every day of its anchor week must still be ahead. Without it, `seed:demo` reports the `scenario*` counts as `0`, and
+  E4 still gets everything. Use it with a future Monday and set the test clock to `demoNow`, the scenario's Monday at
+  07:00 local, with `POST /api/v1/test/clock {"instant": …}` (local/test profiles only):
+
+```sh
+bin/core club:apply seeds/club-canic.yaml
+bin/core seed:demo --club=canic --seed=42 --week-start=<a future Monday>
+bin/core club:apply seeds/club-fifo.yaml
+bin/core seed:demo --club=fifo --seed=42 --week-start=<the same Monday>
+```
+
+Every scenario action goes through the real services, as the member it belongs to, «as of» a scenario instant.
+Bookings, cancellations and waiting-list joins run through `BookingContext.asOf`, and free training through the same
+instant in `TrainingContext`. The default instant is the opening of the class's booking week, so the classes of the
+anchor week are W0 with limit 2. Blocks, exemptions and overrides go through the S03/S06 services as the demo admin, and
+ring reservations as the instructor. The rows use the **seed login accounts** (the E4 rows never do), so front tests
+can log in as them. Select them by account and state, never by date or by the generated first names. The table below
+lists what each account holds at `demoNow` (anchor week = week 0; ids differ per club):
+
+| Account (census ordinal) | Holds | Screens / smoke step |
+|---|---|---|
+| `member@` (5), E dog | Mon 08:30 MUN `ACTIVE` · waiting on Thu 17:40 CAR · free training Mon and Tue 11:00 MUN (2/3) · registered to «Torneig d'Estiu 2026»; its CAD dog trains by `freeTrainingOverride` | 03 with all four row types; 04 `BOOKABLE`, `WAITLIST_FULL`, `NOT_YET_OPEN`; 08 at 2/3; smoke: book, cancel in time, `CANCELLED_LATE` < 30 min, training 3/3 + 409 |
+| `member.2@` (6), E dog | Mon 08:30 MUN `CANCELLED_LATE` (DONE) + Wed 08:30 MUN `ACTIVE` (swappable) · free training Mon 11:00 CEN (a taken capacity-1 slot for others) | 06 swap (`limit.reached`, 1 swappable, 1 not selectable) |
+| `member.3@` (7), E dog | Thu 20:00 CEN `CANCELLED` in time · Mon 08:30 MUN `ACTIVE` (inside 4 h at 07:00) · Mon 09:30 CEN `CANCELLED_LATE` | 04 `WEEKLY_LIMIT_DONE`, 29 informative, 07 green and yellow notes |
+| `member.4@` (8), E and CAD dogs | nothing booked; CAD dog without free-training right | 04 `WAITLIST_OPEN` (Thu 17:40 CAR); smoke: join, then hold + claim |
+| `member.5@` (9), E dog | Thu 17:40 CAR `ACTIVE` | smoke: in-time cancellation frees the seat, so N-15 goes to every waiting member |
+| `member.6@` (10), E dog | Thu 20:00 CEN `ACTIVE` (the class has exactly `classes.minDogs` = 2) | smoke: in-time cancellation, so exactly one N-54 |
+| `member.7@` (11) | `bookingBlock` «Quota pendent (fictícia)» | 04 `NOT_BOOKABLE{BLOCKED}` + banner |
+| instructor 0 | `RESERVATION`/`PRIVATE_CLASS` on Petita, Tue 11:00–12:00, note «Classe particular (fictícia)» | 24 and the grids |
+
+Classes of week 0 filled with non-login registrants (member-number order, seed 42): Tue 17:40 CAR full + 3 waiting
+(`WAITLIST_FULL`); Thu 17:40 CAR full + 1 waiting (+ `member@`, so 2) (`WAITLIST_OPEN`); Thu 20:00 CEN + 1. The S15 P2
+fixture for a review on **Tuesday 07:30**: Tue 18:50 CEN with 1 registrant (cancelled that day, N-17 + N-08a), Wed
+16:30 CEN with 0 (warned, N-16 to the admins), Tue 20:00 MUN `riskExempt`. P2 cancels every other class of that day
+below `classes.minDogs` as well: that is the rule, not seed data.
+
+Live row states at `demoNow` across these accounts: `BOOKABLE`, `WAITLIST_OPEN`, `WAITLIST_FULL`,
+`WEEKLY_LIMIT_DONE`, `NOT_YET_OPEN` (the W+2 classes) and `NOT_BOOKABLE`. **Deviations:** there are no `NEXT` rows,
+because W+1 stays a draft (E4 D4b). `PACK_EMPTY` and the pack card need S12 packs (E8): the local stand-in lives in
+each process's memory, so a seed-time pack is invisible to the API. `T-08-13` covers both on the API. `FULL` needs a
+club with `WAITLIST` off.
+
+**Fictional FIFO club** (`seeds/club-fifo.yaml` + `seeds/demo-fifo.yaml`, slug `fifo`, host `fifo.example.test`, not
+the Cànic): one ring, one level, levels off, `waitlist.mode = FIFO`, `SINGLE_CLASS` on (plan «Classe única»,
+`PAY_TO_BOOK`, 12 €), accounts `fifo.admin@` and `fifo.member@` … `fifo.member.5@`. Tuesday 18:00, capacity 1, is booked by
+`fifo.member@`; `.2@`, `.3@` and `.4@` join (FIFO positions 1–3). The booking is cancelled in time on the Sunday at
+21:00, so the first entry is `NOTIFIED` until 21:30. `fifo.member.5@` books Wednesday 18:00, which stays
+`PAYMENT_PENDING` from the Sunday opening on. At `demoNow` P6 expires the first entry and offers the seat to the
+second; P7 cancels the booking with `PAYMENT_TIMEOUT` and N-40.
+
+`bin/e5-smoke` (see `docs/DEPLOY.md`) seeds both clubs on a disposable stack with a `--week-start` 8+ days ahead, and
+replays the E5 gate at `demoNow`.
 
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.

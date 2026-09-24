@@ -17,15 +17,16 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class DemoPlanningService {
-    public static final List<String> SECTIONS = List.of("planning", "bookings", "activities");
+    public static final List<String> SECTIONS = List.of("planning", "bookings", "activities", "scenario");
     public record Result(String id, int changes, Map<String, Integer> counts, LocalDate weekStart) {
         public String render() { return counts + "\n" + changes + " changes (demo planning, week start " + weekStart + ")"; }
     }
     private final CensusAccess census; private final DemoSeedRepository runs; private final List<DemoSeedStep> steps;
-    private final ObjectMapper mapper; private final Environment environment;
-    public DemoPlanningService(CensusAccess census, DemoSeedRepository runs, List<DemoSeedStep> steps, ObjectMapper mapper, Environment environment) {
+    private final ObjectMapper mapper; private final Environment environment; private final ClubClock clubClock;
+    public DemoPlanningService(CensusAccess census, DemoSeedRepository runs, List<DemoSeedStep> steps, ObjectMapper mapper, Environment environment,
+            ClubClock clubClock) {
         this.census = census; this.runs = runs; this.steps = steps.stream().sorted(Comparator.comparingInt(DemoSeedStep::order)).toList();
-        this.mapper = mapper; this.environment = environment;
+        this.mapper = mapper; this.environment = environment; this.clubClock = clubClock;
     }
     @Transactional
     public Result apply(DemoDataset.Spec spec, Map<String, Object> specification, long seed, LocalDate weekStart) {
@@ -43,7 +44,8 @@ public class DemoPlanningService {
         var members = DemoDataset.generate(spec, seed, club).members();
         String admin = census.members.require(members.get(spec.administrators().getFirst()).id()).accountId;
         var logins = new HashSet<String>(); members.subList(0, spec.accountEmails().size()).forEach(m -> logins.add(m.id()));
-        var input = new DemoSeedStep.Input(specification, seed, weekStart, admin, logins);
+        var input = new DemoSeedStep.Input(specification, seed, weekStart, admin, logins, members.stream().map(DemoDataset.MemberRow::id).toList(),
+                clubClock.today(club));
         var counts = new LinkedHashMap<String, Integer>();
         for (var step : steps) { counts.putAll(DemoSeedActor.as(admin, "ADMIN", () -> step.apply(input))); }
         runs.insert(new DemoSeedRun(id, club, seed, signature, counts, weekStart.toString()));

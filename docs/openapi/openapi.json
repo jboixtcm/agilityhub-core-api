@@ -4923,14 +4923,15 @@
             "type" : "string"
           },
           "gender" : {
+            "description" : "Null when never declared",
             "enum" : [ "MALE", "FEMALE", "OTHER" ],
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "id" : {
             "type" : "string"
           }
         },
-        "required" : [ "firstName", "gender", "id" ],
+        "required" : [ "firstName", "id" ],
         "type" : "object"
       },
       "HomeNotifications" : {
@@ -32857,7 +32858,7 @@
     },
     "/api/v1/me/bookable-classes" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass). Row states per R-08-03. SINGLE_CLASS off: no price. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). S08 screen 04, horizon until the end of W2; dogId absent = proposed dog (Member.lastDogForClass while accessible, else the first own dog); no accessible dog → 404 DOG_NOT_ACCESSIBLE. Classes the dog has booked or waits for are left out; row states per R-08-03, decided by the server. The class list and counters come from a 30 s base cache; the per-dog state is live. SINGLE_CLASS off: no price. Tenant comes from the JWT.",
         "operationId" : "bookableClasses",
         "parameters" : [ {
           "in" : "query",
@@ -34252,7 +34253,7 @@
     },
     "/api/v1/me/home" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token). S08 screen 03. dogId absent = «Tots». Contract only; returns 501 NOT_IMPLEMENTED after tenant, role and module guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). S08 screen 03. dogId absent = «Tots». Chips = own dogs plus the family group's (FAMILY_GROUP); limits = R-08-02 counters of W0/W1 summed over the filtered dogs; reservations = future rows (endsAt > now) of CLASS, CLASS_WAITLIST (WAITLIST), TRAINING (FREE_TRAINING) and ACTIVITY (ACTIVITIES) by startsAt; instructorName per R-08-20. Tenant comes from the JWT.",
         "operationId" : "memberHome",
         "parameters" : [ {
           "in" : "query",

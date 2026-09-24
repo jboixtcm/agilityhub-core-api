@@ -575,3 +575,13 @@ Decisions and proposals (details in the report's Assumptions and Questions):
 - (5) **`ClassBelowMinimum.classId`.** Kept as in the catalog (repeated question).
 - (6) **First deployment.** A club's first tick after 07:30 records `risk-review` `MISSED_WINDOW` + one N-42 (R-15-05 as written). No code change.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T06
+@organizer **E5 aggregates, demo scenario, smoke and k6 done.**
+- **Results:** `GET /me/home` and `GET /me/bookable-classes` are served. `./mvnw -q clean verify` exits 0 (453 unit/contract + 714 IT, all gates), and the fresh OpenAPI snapshot is byte-identical: only `HomeMember.gender` becomes nullable, plus two descriptions. `bin/e5-smoke` exits 0 twice, with the scheduler's own P1/P2/P6/P7 runs at the moved test clock plus `jobs:run` for P9. `bin/e4-smoke` exits 0. `bin/e5-perf` (k6 via the `grafana/k6` image) exits 0: peak seat-holds p95 49 ms and flow p95 125 ms; last seat 1×201 + 49×409 with 5/5 bookings; zero overbooking; N-33 fan-out within 1 s. The fictional FIFO club is `seeds/club-fifo.yaml` + `demo-fifo.yaml`.
+- **Found and fixed:** with 300 simultaneous requests the whole API stalled. Caffeine loaders doing Mongo I/O pinned the JDK 21 virtual-thread carriers. `shared.application.CacheLoads` now loads outside the lock for the per-request caches; the dashboard keeps its atomic load (T-14-11). Seat holds also pre-check without the class lock.
+- **Please decide:**
+  - (1) The gated k6 `peak` spreads the 300 arrivals over 5 s. With all 300 in the same millisecond (the `burst` run), correctness holds but seat-holds p95 is 1.2 s on a laptop Docker VM. Is the 5 s arrival window acceptable for «k6 dins d'objectius»?
+  - (2) The seed now validates the current week (remaining days only). The E5 scenario applies only with a future `--week-start`, and the smoke sets the test clock to `demoNow`. P2 runs on Tuesday, before P1, because W+1 stays E4's draft. Details: `seeds/README.md` and the report's Assumptions.
+- **Web:** screens 03/04/06/29/07/08/24 and T-08-40 read the seed from `seeds/README.md` → «E5 bookings…». They must regenerate their types for the nullable `gender`.
+Blocking: no.

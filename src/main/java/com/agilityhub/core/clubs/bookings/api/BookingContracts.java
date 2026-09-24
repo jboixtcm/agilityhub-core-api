@@ -35,7 +35,8 @@ public final class BookingContracts {
             HomeLimits limits, @Schema(description = "Future rows only (endsAt > now), ordered by startsAt") List<ReservationRow> reservations,
             HomeHistory history, HomeNotifications notifications,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Present while an admin acts as the member") BookingImpersonation impersonation) { }
-    public record HomeMember(String id, String firstName, @Schema(allowableValues = {"MALE", "FEMALE", "OTHER"}) String gender) { }
+    public record HomeMember(String id, String firstName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, allowableValues = {"MALE", "FEMALE", "OTHER"}, description = "Null when never declared") String gender) { }
     public record HomeDog(String id, String name, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelName, boolean own,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Owner of a family-group dog") String ownerFirstName) { }
     public record HomeLimits(LimitUnit unit, WeekCount currentWeek, WeekCount nextWeek) { }

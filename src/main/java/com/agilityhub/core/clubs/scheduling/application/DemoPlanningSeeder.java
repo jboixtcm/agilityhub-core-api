@@ -36,12 +36,13 @@ public class DemoPlanningSeeder implements DemoSeedStep {
     private final TemplateService templates; private final TemplateQuery query; private final WeekGenerationUseCase generation;
     private final WeekValidationUseCase validation; private final ClassSessionService sessions; private final RingBlockService blocks;
     private final ClassCancellationUseCase cancellations; private final PlanningCatalogAccess catalogs; private final PlanningContext context;
-    private final IcuMessageSource messages; private final ObjectMapper mapper;
+    private final IcuMessageSource messages; private final ObjectMapper mapper; private final com.agilityhub.core.clubs.census.application.SchedulingRecipients recipients;
     public DemoPlanningSeeder(TemplateService templates, TemplateQuery query, WeekGenerationUseCase generation, WeekValidationUseCase validation,
             ClassSessionService sessions, RingBlockService blocks, ClassCancellationUseCase cancellations, PlanningCatalogAccess catalogs,
-            PlanningContext context, IcuMessageSource messages, ObjectMapper mapper) {
+            PlanningContext context, IcuMessageSource messages, ObjectMapper mapper, com.agilityhub.core.clubs.census.application.SchedulingRecipients recipients) {
         this.templates = templates; this.query = query; this.generation = generation; this.validation = validation; this.sessions = sessions;
         this.blocks = blocks; this.cancellations = cancellations; this.catalogs = catalogs; this.context = context; this.messages = messages; this.mapper = mapper;
+        this.recipients = recipients;
     }
     @Override public int order() { return 10; }
     public static LocalDate date(LocalDate weekStart, int week, DayOfWeek day) { return weekStart.plusWeeks(week).plusDays(day.getValue() - 1L); }
@@ -64,7 +65,8 @@ public class DemoPlanningSeeder implements DemoSeedStep {
             var week = generation.create(input.weekStart().plusWeeks(w.offset())).week();
             var result = generation.generate(week.id(), require(templateIds, w.weekdays()), w.saturday() == null ? null : require(templateIds, w.saturday()));
             counts.merge("weeks", 1, Integer::sum); counts.merge("generatedClasses", result.classCount(), Integer::sum);
-            if (w.validate()) { validation.validate(week.id()); counts.merge("validatedWeeks", 1, Integer::sum); }
+            // The current week (E5-T06) keeps only its remaining days (R-06 PAST): on a Sunday nothing is left to validate.
+            if (w.validate() && result.classCount() > 0) { validation.validate(week.id()); counts.merge("validatedWeeks", 1, Integer::sum); }
         }
         for (var c : spec.looseClasses()) {
             sessions.create(date(input.weekStart(), c.week(), c.day()), c.start(), c.end(), require(rings, c.ring()),
@@ -78,6 +80,7 @@ public class DemoPlanningSeeder implements DemoSeedStep {
                     day.atTime(LocalTime.parse(b.to())).atZone(zone).toInstant(), b.kind(), b.reason(), b.note(), false);
             counts.merge("ringBlocks", 1, Integer::sum);
         }
+        counts.putAll(scenarioBlocks(input, rings, instructors, zone));
         var text = messages.format("scheduling.autoCancel.text", Map.of("minDogs", context.config().get("classes.minDogs", Integer.class)), Locale.forLanguageTag(context.config().club().defaultLocale()));
         for (var r : spec.riskCancellations()) {
             var slot = sessions.slot(r.date(input.weekStart()), r.start(), require(rings, r.ring())).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -85,6 +88,21 @@ public class DemoPlanningSeeder implements DemoSeedStep {
             counts.merge("riskCancellations", 1, Integer::sum);
         }
         return counts;
+    }
+    /** E5-T06 `scenario.ringBlocks`: reservations an instructor makes on a ring (screen 24, the grids), as that instructor. */
+    public record ScenarioBlock(int instructor, DayOfWeek day, String from, String to, String ring, RingBlockKind kind, RingBlockReason reason, String note) { }
+    private Map<String, Integer> scenarioBlocks(Input input, Map<String, String> rings, List<String> instructors, ZoneId zone) {
+        List<ScenarioBlock> specs = mapper.convertValue(input.scenario().getOrDefault("ringBlocks", List.of()),
+                new com.fasterxml.jackson.core.type.TypeReference<>() { });
+        for (var b : specs) {
+            String member = catalogs.instructorMembers(List.of(instructor(instructors, b.instructor()))).getFirst();
+            String account = recipients.member(member).map(com.agilityhub.core.clubs.census.application.SchedulingRecipients.Member::accountId)
+                    .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, Map.of("instructor", b.instructor())));
+            var day = date(input.weekStart(), 0, b.day());
+            DemoSeedActor.as(account, "INSTRUCTOR", () -> blocks.create(require(rings, b.ring()), day.atTime(LocalTime.parse(b.from())).atZone(zone).toInstant(),
+                    day.atTime(LocalTime.parse(b.to())).atZone(zone).toInstant(), b.kind(), b.reason(), b.note(), false));
+        }
+        return Map.of("scenarioRingBlocks", specs.size());
     }
     private static String instructor(List<String> instructors, int index) {
         if (index < 0 || index >= instructors.size()) { throw new ApiException(ErrorCode.NOT_FOUND, Map.of("instructor", index)); }

@@ -153,7 +153,7 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         }
         for (String profile : List.of("prod", "staging", "local,prod")) {
             var environment = new org.springframework.mock.env.MockEnvironment(); environment.setActiveProfiles(profile.split(","));
-            var restricted = new DemoPlanningService(null, null, List.of(), mapper, environment);
+            var restricted = new DemoPlanningService(null, null, List.of(), mapper, environment, null);
             assertThatThrownBy(() -> restricted.apply(spec, Map.of(), 42, MONDAY)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.FORBIDDEN));
         }
     }
@@ -205,13 +205,16 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
 
     @Test void T_06_28_seedSourcesContainNoRealStaffOrMockupFirstNames() throws Exception {
         // Mockup people of D3/D4/D4c/D7; the real staff file (DECISIONS_PENDENTS B28) is added to the check if it is ever committed.
-        var names = new TreeSet<>(List.of("Estel", "Josep", "Neus", "Jordi", "Marc", "Núria"));
+        // E5-T06 adds the S08/S09 example people (R-08-02, R-08-13, R-09-01) and dogs.
+        var names = new TreeSet<>(List.of("Estel", "Josep", "Neus", "Jordi", "Marc", "Núria", "Laura", "Duna", "Rock", "Toby", "Kira", "Nala",
+                "Blat", "Estela", "Anna", "Maria"));
         for (var staff : List.of(Path.of("seeds/staff.canic.yaml"), Path.of("seed/clubs/canic/staff.canic.yaml"))) {
             if (Files.exists(staff)) {
                 for (String line : Files.readAllLines(staff)) { var m = java.util.regex.Pattern.compile("name:\\s*\"?([^\"\\s]+)").matcher(line); if (m.find()) { names.add(m.group(1)); } }
             }
         }
-        var sources = new ArrayList<>(List.of(Path.of("seeds/demo-canic.yaml"), Path.of("seeds/club-canic.yaml")));
+        var sources = new ArrayList<>(List.of(Path.of("seeds/demo-canic.yaml"), Path.of("seeds/club-canic.yaml"), Path.of("seeds/demo-fifo.yaml"),
+                Path.of("seeds/club-fifo.yaml")));
         try (var files = Files.walk(Path.of("src/main/java"))) { files.filter(p -> p.getFileName().toString().startsWith("Demo")).forEach(sources::add); }
         assertThat(sources).hasSizeGreaterThan(8);
         for (var source : sources) {

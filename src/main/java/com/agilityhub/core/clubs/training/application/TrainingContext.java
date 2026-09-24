@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
 public class TrainingContext {
     private final ClubConfigService configs; private final Clock clock; private final BookingContext bookings;
     public TrainingContext(ClubConfigService configs, Clock clock, BookingContext bookings) { this.configs = configs; this.clock = clock; this.bookings = bookings; }
-    public Instant now() { return clock.instant(); }
+    /** The injected clock through {@link BookingContext#now()}: identical outside the demo seed, which books «as of» an instant. */
+    public Instant now() { return bookings.now(); }
     public String clubId() { return TenantContext.require(); }
     public ClubConfig config() { return configs.get(clubId()); }
     public ZoneId zone() { return ZoneId.of(config().club().timeZone()); }

@@ -445,3 +445,83 @@ organizer-owned `roadmap/ROADMAP.md` after review:
   activities («Lliga social — 3a jornada» is open to members) appear in screen 04.
 - [ ] Run `./mvnw -q verify` (includes `DemoPlanningSeedIT`) and repeat image mode
   with the reviewed published tag.
+
+## E5 bookings, waiting lists, free training and processes gate (backend)
+
+Run from the API checkout with Docker, Compose, Python 3 and curl (k6 optional: `bin/e5-perf` falls back to the
+`grafana/k6` image):
+
+```sh
+bin/e5-smoke
+bin/e5-smoke
+bin/e5-smoke --image <tag>     # consumer Compose with an image that contains E5-T06 and seeds/club-fifo.yaml, demo-fifo.yaml
+bin/e5-perf                    # k6: peak 300 VUs + last seat 50 VUs + zero-overbooking check (perf/README.md)
+```
+
+Same isolation as `bin/e4-smoke`: each run uses a new random Compose project, free loopback ports and a generated
+`SEED_PASSWORD`, checks exact HTTP statuses and codes, and runs `down --volumes` on success or failure. It applies
+`seeds/club-canic.yaml` and `seeds/club-fifo.yaml` (the fictional FIFO + `SINGLE_CLASS` club), and runs
+`seed:demo --seed=42` for each club twice with `--week-start` on the Monday at least 8 days ahead, so nothing seeded
+is due in real time. The second run of every command prints 0 changes. The smoke activates both disposable clubs and
+starts the API **with the scheduler on**. It switches P2 off until P2's own step. Then it moves the test clock
+(`POST /api/v1/test/clock`, local/test only) through the anchor week and signs in again after every move, because
+access tokens follow the moved clock:
+
+1. **FIFO club, before the jump:** only entry 1 is `NOTIFIED`; one booking is `PAYMENT_PENDING`.
+2. **Monday 07:00:** the scheduler's P6 run expires entry 1 and notifies entry 2 (N-15 with `confirm_by`). Its P7
+   run cancels the stale booking with `CANCELLED{PAYMENT_TIMEOUT}` and N-40.
+3. **Screens 03 and 04:** `GET /me/home` returns the chips and the chronological rows of the four sources.
+   `GET /me/bookable-classes` for four members shows the six live row states.
+4. **Booking cycle:** hold, then the same hold refreshed; confirm (201 with `calendarLinks`); the same
+   `Idempotency-Key` again (identical 201); `GET /bookings/{id}`; cancellation in time (`late = false`,
+   `SeatReleased{notifyWaitlist}`).
+5. **Monday 08:10:** a cancellation 20 min before the class gives `CANCELLED_LATE`, `late = true`,
+   `notifyWaitlist = false`.
+6. **Swap at the limit:** the hold returns `limit.swappable`; confirming with `swapBookingId` gives old
+   `CANCELLED{SWAP}` + new `ACTIVE`.
+7. **ALL_AT_ONCE waiting list:** a member joins a `WAITLIST_OPEN` class (`WaitlistJoined`). Another member frees a
+   seat in time: every waiting member is `NOTIFIED` with N-15. Hold + claim gives `CONSOLIDATED`, and the others go
+   back to `ACTIVE` with N-46.
+8. **Free training:** the counter goes from 2/3 to 3/3 with a «Qualsevol» booking (first free ring in catalog order);
+   a fourth booking gets `409 TRAINING_LIMIT_REACHED{cancellableBookings}`. An admin ring block over a live training
+   booking gets `422 RING_HAS_BOOKINGS`; with `cancelBookings` it gets 201, the booking is `CANCELLED_BY_CLUB`, and
+   N-47 is sent.
+9. **Tuesday 07:20:** P2 is switched on and dry-run (`WOULD_CANCEL` / `WOULD_NOTIFY`). At 07:30 the scheduler's P2
+   cancels today's 1-registrant class (`CANCELLED{RISK_REVIEW}`, N-17 + N-08a), warns tomorrow's (N-16) and keeps
+   the exempt class.
+10. **Minimum:** an in-time cancellation that leaves one dog of `classes.minDogs` gives exactly one
+    `ClassBelowMinimum` and N-54.
+11. **Sunday 20:00:** the admin first switches `messaging.notifyWeekOpening` on (`PUT /parameters/…`; the
+    catalog default is off). Then the scheduler's P1 opens W+2 (validated), with `WeekOpened{notified}` and the
+    N-33 rows.
+12. **CLI:** `bin/core jobs:run cleanup --club=canic`, then `waitlist-fifo` and `payment-timeouts --club=fifo`, each
+    exits 0 with its counters.
+
+It ends with a summary table (step · status · key values). Any failed assertion exits nonzero. Ids are truncated;
+no token, password or key is printed.
+
+**Scheduler in staging (E5):** run **one** API instance with `SHARED_SCHEDULING_ENABLED=true` at R1. The `tick`
+lease in `job_locks` makes extra instances skip, not double-run. Each process has a `jobs.<name>.enabled` club
+parameter: `weekOpening`, `riskReview`, `waitlistFifo` (FIFO clubs), `paymentTimeouts` (`SINGLE_CLASS` clubs) and
+`cleanup`. Admins switch them with `PUT /api/v1/jobs/{name}/switch`; the defaults are on. Staging has no test clock.
+The gate's «processos actius a staging amb el rellotge avançat» is therefore demonstrated locally by `bin/e5-smoke`,
+which runs the same `Job` beans under the same scheduler with the clock moved. In staging, check that `GET /jobs`
+lists the processes and that `job_runs` records a `SCHEDULE` run of `cleanup` (daily at `jobs.dailyTime`) and of P1
+at the Sunday opening. **E5-T06 adds no environment variable**: the aggregates, the demo scenario, the smoke and k6
+use the existing settings. E5's only new variable remains `BOOKING_CALENDAR_KEY` (E5-T02, table above). k6 needs no
+secret: the harness mints short-lived impersonation tokens on the disposable stack.
+
+Organizer-run checklist for Gate E5 (back); copy its evidence links into the organizer-owned `roadmap/ROADMAP.md`
+after review:
+
+- [ ] Run `bin/e5-smoke` twice successfully and retain both complete outputs (`roadmap/evidence/E5-T06/`).
+- [ ] Book / cancel / waiting list in both modes / free training: summary lines for steps 4–8 and the FIFO lines of
+  steps 1–2.
+- [ ] P1/P2/P6/P7/P9 active with the clock advanced: the `(scheduler, SCHEDULE|CATCH_UP)` lines and the three
+  `jobs:run` lines.
+- [ ] k6 within the targets, and no overbooking with 50 simultaneous requests for the last seat: `bin/e5-perf` `RESULT`
+  lines, plus the k6 threshold summaries.
+- [ ] Front (organizer-run, E5-W…): screens 03/04/06/29/07/08/24 and the web E2E T-08-40 against the same seed
+  (`seeds/README.md` → «E5 bookings…», with the test clock at `demoNow`).
+- [ ] Run `./mvnw -q verify` (includes `MemberAggregatesIT`, `DemoScenarioSeedIT`) and repeat image mode with the
+  reviewed published tag.

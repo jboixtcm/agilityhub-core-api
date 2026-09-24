@@ -22,10 +22,12 @@ public class ClassSessionService {
         this.events = events; this.audit = audit; this.training = training; this.clock = clock;
     }
     public ClassSession require(String id) { return classes.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
-    public record Slot(String id, LocalDate date, String startTime, List<String> levelIds, int capacity, String state) { }
+    /** @param manualCapacity whether `capacity` was set by hand (MANUAL) rather than derived from the levels (AUTO) */
+    public record Slot(String id, LocalDate date, String startTime, List<String> levelIds, int capacity, String state, boolean manualCapacity) { }
     /** The DRAFT or ACTIVE class of a ring at a club-local date and start time. */
     public Optional<Slot> slot(LocalDate date, String startTime, String ringId) {
-        return classes.findLive(date, startTime, ringId).map(c -> new Slot(c.id(), c.date(), c.startTime(), c.levelIds(), c.capacity(), c.state().name()));
+        return classes.findLive(date, startTime, ringId).map(c -> new Slot(c.id(), c.date(), c.startTime(), c.levelIds(), c.capacity(), c.state().name(),
+                c.capacityMode() == com.agilityhub.core.clubs.scheduling.domain.CapacityMode.MANUAL));
     }
     @PreAuthorize("hasRole('ADMIN')")
     public ClassSession create(LocalDate date, String start, String end, String ring, List<String> levels, List<String> instructors,

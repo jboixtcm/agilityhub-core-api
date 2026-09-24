@@ -85,8 +85,11 @@ planning:
         - {day: SATURDAY, start: '09:30', ring: CAD, levels: [CAD], instructor: 1}
         - {day: SATURDAY, start: '16:30', ring: CEN, levels: [D, E], instructor: 2}
         - {day: SATURDAY, start: '18:30', ring: CEN, levels: [A, B], instructor: 0}
-  # Week +1 stays GENERATED with DRAFT classes (D4b); week +2 is VALIDATED (D4/D4c/D7). Generation candidates then propose week +3.
+  # E5-T06: the current week is generated (its past days are skipped) and VALIDATED, so screens 03/04 have bookable
+  # classes (and the E5 scenario below its data). Week +1 stays GENERATED with DRAFT classes (D4b); week +2 is VALIDATED
+  # (D4/D4c/D7). Generation candidates then propose week +3.
   weeks:
+    - {offset: 0, weekdays: Setmana A, saturday: Dissabtes, validate: true}
     - {offset: 1, weekdays: Setmana A, saturday: Dissabtes, validate: false}
     - {offset: 2, weekdays: Setmana A, saturday: Dissabtes, validate: true}
   # Added after validation; its instructor already teaches Cadells at the same time -> D4 INSTRUCTOR_DOUBLE_BOOKED warning.
@@ -97,7 +100,9 @@ planning:
   riskCancellations:
     - {week: 2, day: WEDNESDAY, start: '09:30', ring: CAD}
 
-# Registrants of week +2 booked through the S08 hold + confirmation services (D4 counts). Wednesday 18:50 B+C is the R-06-10 / D4c case.
+# Registrants of week +2 booked through the S08 hold + confirmation services (D4 counts) and, since E5-T06, the waiting
+# ones through WaitlistService.join (the class is briefly held at its booked count so the join sees it full, then gets its
+# capacity back). Wednesday 18:50 B+C is the R-06-10 / D4c case.
 bookings:
   - {week: 2, day: MONDAY, start: '08:30', ring: CEN, booked: 4, withPack: 0, waiting: 0}
   - {week: 2, day: MONDAY, start: '08:30', ring: MUN, booked: 3, withPack: 1, waiting: 0}
@@ -155,3 +160,47 @@ activities:
     location: {atClub: false, name: 'Plaça Major de Poble Fictici'}
     registrationClosesDaysBefore: 1
     publish: false
+
+# E5-T06 (S08/S09/S15: screens 03/04/06/29/07/08/24, bin/e5-smoke, web T-08-40). Everything happens on week 0 (the run's
+# --week-start) and is consistent at `demoNow`, the instant bin/e5-smoke and the web E2E set the test clock to
+# (POST /test/clock). It needs every day of week 0 ahead, so seed:demo applies it only when --week-start is the run's
+# Monday or later (club-local); otherwise it reports scenario counts of 0. `member` = census ordinal of a seed login
+# account (accountEmails order: 5 = member@, 6 = member.2@ … 14 = member.10@); `dog` = that member's first ACTIVE dog of
+# the level code; `ring` = catalog short name. Each member acts through the real services «as of» an instant: a class
+# booking as of the opening of the class's booking week (+ one second per item), a cancellation at `cancelAt`, free
+# training at `trainingAt` (`week: -1` = the week before week 0, so `{week: -1, day: SUNDAY}` is the Sunday of the opening). Non-login registrants are picked like the E4 rows (seed 42,
+# member-number order), never the login members. seeds/README.md maps every row to its screen state.
+scenario:
+  demoNow: {day: MONDAY, time: '07:00'}
+  classBookings:
+    - {member: 5, dog: E, day: MONDAY, start: '08:30', ring: MUN}                                        # 03 CLASS row; smoke: CANCELLED_LATE under 30 min
+    - {member: 6, dog: E, day: MONDAY, start: '08:30', ring: MUN, cancelAt: {day: MONDAY, time: '06:00'}}  # CANCELLED_LATE: «ja feta» on 06
+    - {member: 6, dog: E, day: WEDNESDAY, start: '08:30', ring: MUN}                                     # 06: the swappable booking
+    - {member: 7, dog: E, day: THURSDAY, start: '20:00', ring: CEN, cancelAt: {week: -1, day: SUNDAY, time: '20:30'}} # CANCELLED in time: 07 green note
+    - {member: 7, dog: E, day: MONDAY, start: '08:30', ring: MUN, at: {week: -1, day: SUNDAY, time: '20:40'}}  # LATE_WINDOW at demoNow
+    - {member: 7, dog: E, day: MONDAY, start: '09:30', ring: CEN, at: {week: -1, day: SUNDAY, time: '20:41'},
+       cancelAt: {day: MONDAY, time: '06:00'}}                                                           # CANCELLED_LATE: 29 informative, 07 yellow note
+    - {member: 9, dog: E, day: THURSDAY, start: '17:40', ring: CAR}                                      # frees the WAITLIST_OPEN seat in the smoke
+    - {member: 10, dog: E, day: THURSDAY, start: '20:00', ring: CEN}                                     # 2 counted; smoke: in-time cancellation, N-54
+  classes:
+    - {day: TUESDAY, start: '17:40', ring: CAR, fill: true, waiting: 3}     # WAITLIST_FULL (waitlist.maxPerClass = 3)
+    - {day: THURSDAY, start: '17:40', ring: CAR, fill: true, waiting: 1}    # WAITLIST_OPEN
+    - {day: THURSDAY, start: '20:00', ring: CEN, booked: 1}                 # with member 10: exactly classes.minDogs
+    - {day: TUESDAY, start: '18:50', ring: CEN, booked: 1}                  # P2 on Tuesday 07:30: cancelled, N-17 + N-08a
+    - {day: WEDNESDAY, start: '16:30', ring: CEN, booked: 0}                # P2 on Tuesday 07:30: tomorrow, N-16 to the admins
+    - {day: TUESDAY, start: '20:00', ring: MUN, booked: 1, riskExempt: true}
+  waitlist:
+    - {member: 5, dog: E, day: THURSDAY, start: '17:40', ring: CAR}                                      # 03 CLASS_WAITLIST row
+  bookingBlocks:
+    - {member: 11, reason: 'Quota pendent (fictícia)'}                                                   # 04 NOT_BOOKABLE{BLOCKED} + banner
+  training:
+    overrides:
+      - {member: 5, dog: CAD, freeTraining: true}      # right by override; member 5's E dog has it by level; member 8's CAD dog has none
+    bookings:
+      - {member: 5, dog: E, trainingAt: {week: -1, day: SUNDAY, time: '20:05'}, day: MONDAY, start: '11:00', ring: MUN}
+      - {member: 5, dog: E, trainingAt: {week: -1, day: SUNDAY, time: '20:06'}, day: TUESDAY, start: '11:00', ring: MUN}
+      - {member: 6, dog: E, trainingAt: {week: -1, day: SUNDAY, time: '20:07'}, day: MONDAY, start: '11:00', ring: CEN}  # another dog's slot on a capacity-1 ring
+  ringBlocks:                                          # created by the instructor (screen 24 and the grids); instructor = demo instructor index
+    - {instructor: 0, day: TUESDAY, from: '11:00', to: '12:00', ring: PET, kind: RESERVATION, reason: PRIVATE_CLASS, note: 'Classe particular (fictícia)'}
+  activityRegistrations:
+    - {member: 5, title: "Torneig d'Estiu 2026"}       # 03 ACTIVITY row

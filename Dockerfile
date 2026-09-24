@@ -21,6 +21,8 @@ COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
 COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
 COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
 COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
 COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
 USER agilityhub
 EXPOSE 8080

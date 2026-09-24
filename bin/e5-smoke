@@ -1,0 +1,505 @@
+#!/usr/bin/env python3
+"""Rehearse the E5 backend gate (S08/S09/S15, T-08-40 back half) with curl on a disposable local Compose stack.
+
+Seeds the Cànic and the fictional FIFO club with the E5 scenario on a week 8+ days ahead, moves the test clock
+(POST /api/v1/test/clock) through that week and asserts exact statuses, codes, Mongo documents, outbox events,
+notification rows and the scheduler's own runs of P1, P2, P6 and P7 (the scheduler is on; P9 runs from the CLI).
+"""
+import argparse
+import base64
+import datetime
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+import zoneinfo
+
+ROOT = Path(__file__).resolve().parents[1]
+LOCAL_IMAGE = "agilityhub-e5-smoke:local"
+PUBLISHED_IMAGE = "ghcr.io/jboixtcm/agilityhub-core-api:main"
+DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+SIX_STATES = ["BOOKABLE", "NOT_BOOKABLE", "NOT_YET_OPEN", "WAITLIST_FULL", "WAITLIST_OPEN", "WEEKLY_LIMIT_DONE"]
+
+
+def require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+def port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def wait(action, message, timeout=150):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        value = action()
+        if value:
+            return value
+        time.sleep(1)
+    raise AssertionError(message)
+
+
+def short(value):
+    return (value or "")[:8] + "…"
+
+
+class Smoke:
+    def __init__(self, private, image):
+        self.private = private
+        self.image = image
+        self.suffix = secrets.token_hex(3)
+        self.project = "e5-smoke-" + secrets.token_hex(6)
+        self.service = "core" if image else "api"
+        self.started = False
+        self.summary = []
+        # Explicit allowlist: never inherit deployment credentials or delivery settings.
+        self.env = {key: os.environ[key] for key in (
+            "PATH", "HOME", "LANG", "TMPDIR", "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG",
+            "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY") if key in os.environ}
+        api_port = str(port())
+        self.env.update(SERVER_PORT=api_port, CONSUMER_PORT=api_port, MONGO_PORT=str(port()),
+                        MONGODB_DATABASE="e5_smoke", CONSUMER_DATABASE="e5_smoke",
+                        CORE_IMAGE=image or LOCAL_IMAGE, SEED_PASSWORD=secrets.token_urlsafe(32),
+                        BUILDX_CONFIG=str(private / "buildx"))
+        self.base = "http://127.0.0.1:" + api_port
+        environment = dict(SPRING_PROFILES_ACTIVE="local", MAIL_LOCAL_DIRECTORY="/app/mailbox",
+                           ATTACHMENT_LOCAL_DIRECTORY="/app/attachments", EXPORT_LOCAL_DIRECTORY="/app/exports",
+                           AUTH_ISSUER="https://id.example.test", OIDC_LOGIN_URL="https://id.example.test/login", OIDC_MASTER_KEY="",
+                           SIGNUP_CAPABILITY_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
+                           BOOKING_CALENDAR_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
+                           SEED_PASSWORD=self.env["SEED_PASSWORD"], SHARED_SCHEDULING_ENABLED="true",
+                           LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off")
+        override = {"services": {self.service: {"environment": environment}}, "volumes": {"mailbox": {}}}
+        if not image:
+            override["services"][self.service].update(image=LOCAL_IMAGE, volumes=["mailbox:/app/mailbox"])
+        else:
+            override["services"]["seed"] = {"environment": environment}
+        path = private / "compose.override.json"
+        path.write_text(json.dumps(override))
+        source = "docker-compose.consumer.yml" if image else "compose.yaml"
+        self.compose_args = ["docker", "compose", "--env-file", os.devnull, "--project-name", self.project,
+                             "-f", str(ROOT / source), "-f", str(path)]
+        self.tz = zoneinfo.ZoneInfo("Europe/Madrid")
+        today = datetime.datetime.now(self.tz).date()
+        # The scenario's anchor week: the Monday at least 8 days ahead, so no seeded instant is due in real time.
+        self.week_start = today + datetime.timedelta(days=7 - today.weekday() + 7)
+
+    def record(self, step, status, values=""):
+        self.summary.append((step, status, values))
+        print(f"PASS {step}: {status}" + (f" · {values}" if values else ""), flush=True)
+
+    def command(self, args, timeout=180):
+        result = subprocess.run(args, cwd=ROOT, env=self.env, text=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, timeout=timeout)
+        if result.returncode:
+            classes = sorted(set(re.findall(r"Caused by: ([A-Za-z0-9_.$]+)", result.stdout)))
+            codes = sorted(set(re.findall(r"code=([A-Z_]+)|ApiException: ([A-Z_]+)", result.stdout)))
+            operation = next((part for part in args if part in ("build", "run", "up", "down", "exec", "cp")), "command")
+            raise AssertionError(f"{Path(args[0]).name} {operation} failed (exit {result.returncode}; "
+                                 f"exception classes: {', '.join(classes) or 'none'}; codes: {codes or 'none'}; private output withheld)")
+        return result.stdout
+
+    def compose(self, *args, timeout=300):
+        return self.command([*self.compose_args, *args], timeout)
+
+    def mongo(self, script):
+        return json.loads(self.compose("exec", "-T", "mongo", "mongosh", "--quiet", "e5_smoke", "--eval",
+                                       "print(JSON.stringify(" + script + "))").strip().splitlines()[-1])
+
+    def cli(self, *args):
+        service = "seed" if self.image else self.service
+        return self.compose("run", "--rm", "--no-deps", "-T", "--entrypoint", "java", service,
+                            "-jar", "/app/app.jar", "--core.command=" + args[0], *args[1:])
+
+    def call(self, method, path, expected=200, *, access=None, body=None, form=None, key=None, idempotent=False,
+             error=None, host=None, quiet=False):
+        headers = ["User-Agent: AgilityHub-E5-Smoke"]
+        target = host or getattr(self, "host", None)
+        if target:
+            headers.append("Host: " + target)
+        if access:
+            headers.append("Authorization: Bearer " + access)
+        if idempotent or key:
+            headers.append("Idempotency-Key: " + (key or str(uuid.uuid4())))
+        args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60",
+                "--request", method, "--output", str(self.private / "response"), "--write-out", "%{http_code}", "--config", "-"]
+        if body is not None or form is not None:
+            payload = self.private / "request"
+            if body is not None:
+                payload.write_text(json.dumps(body)); mime = "application/json"
+            else:
+                payload.write_text("&".join(f"{k}={v}" for k, v in form.items())); mime = "application/x-www-form-urlencoded"
+            headers.append("Content-Type: " + mime)
+            args += ["--data-binary", "@" + str(payload)]
+        # Tokens stay in stdin/private files, never in argv or output.
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.base + path)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.env, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed (exit {result.returncode})")
+        status = int(result.stdout)
+        data = (self.private / "response").read_text()
+        value = json.loads(data) if data else None
+        code = value.get("code", "") if isinstance(value, dict) else ""
+        require(status == expected, f"{method} {path.split('?')[0]}: expected {expected}, got {status} {code}")
+        if error:
+            require(code == error, f"Expected {error}, got {code}")
+        if not quiet:
+            print(f"curl {method} {re.sub('[0-9a-f]{8}-[0-9a-f-]{27}', '<id>', path.split('?')[0])} -> {status}" + (" " + error if error else ""), flush=True)
+        return value
+
+    def login(self, email, client, host=None):
+        return self.call("POST", "/oauth2/token", form=dict(grant_type="password", client_id=client, username=email,
+                                                           password=self.env["SEED_PASSWORD"]), host=host, quiet=True)["access_token"]
+
+    # ---- time
+    def local(self, day, clock, week=0):
+        date = self.week_start + datetime.timedelta(weeks=week, days=DAYS.index(day))
+        return datetime.datetime.combine(date, datetime.time.fromisoformat(clock), self.tz)
+
+    def utc(self, moment):
+        return moment.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def set_clock(self, moment, label):
+        now = self.call("POST", "/api/v1/test/clock", body=dict(instant=self.utc(moment)), quiet=True)["now"]
+        self.record("POST /test/clock", "200", f"{label} ({moment.strftime('%a %d-%m %H:%M')} {self.tz.key}; server now {now[:16]}Z)")
+        self.sign_in()
+
+    def sign_in(self):
+        """Access tokens live 15 min on the API's (moved) clock: every clock move needs fresh ones."""
+        self.admin = self.login("admin@example.test", "clubs-admin")
+        self.m = {n: self.login(e, "clubs-app") for n, e in ((5, "member@example.test"), (6, "member.2@example.test"),
+                                                              (7, "member.3@example.test"), (8, "member.4@example.test"),
+                                                              (9, "member.5@example.test"), (10, "member.6@example.test"),
+                                                              (11, "member.7@example.test"))}
+
+    def run_after(self, club, job, since):
+        """The first SUCCEEDED non-dry scheduler run (SCHEDULE or CATCH_UP) of a process scheduled at or after `since`."""
+        script = ('db.job_runs.find({clubId:' + json.dumps(club) + ',job:' + json.dumps(job) + ',dryRun:false,status:"SUCCEEDED",'
+                  'trigger:{$in:["SCHEDULE","CATCH_UP"]},scheduledFor:{$gte:new Date(' + json.dumps(self.utc(since)) + ')}})'
+                  '.sort({scheduledFor:1}).limit(1).toArray().map(r=>({id:r._id,trigger:r.trigger,scheduledFor:r.scheduledFor,'
+                  'counters:Object.fromEntries((r.counters||[]).map(c=>[c.key,Number(c.value)]))}))')
+        return wait(lambda: (self.mongo(script) or [None])[0], f"No scheduled {job} run after {self.utc(since)}")
+
+    def notifications(self, code, accounts, channel="APP"):
+        return self.mongo('db.notifications.countDocuments({clubId:{$in:' + json.dumps([self.canic, self.fifo]) + '},code:' + json.dumps(code)
+                          + ',channel:' + json.dumps(channel) + ',accountId:{$in:' + json.dumps(accounts) + '}})')
+
+    def account_of(self, member_id):
+        return self.mongo('db.members.findOne({_id:' + json.dumps(member_id) + '}).accountId')
+
+    # ---- stack
+    def start(self):
+        self.command(["docker", "info", "--format", "{{.ServerVersion}}"])
+        self.started = True
+        print("Starting disposable " + ("consumer image" if self.image else "development build") + " Compose stack", flush=True)
+        self.compose("up", "-d", "--wait", "--wait-timeout", "180", "mongo")
+        if not self.image:
+            print("Building the current working tree image", flush=True)
+            self.compose("build", self.service, timeout=1500)
+            print("PASS working tree image built", flush=True)
+        require(self.mongo("db.clubs.countDocuments()") == 0, "Smoke database must be empty")
+        start = "--week-start=" + str(self.week_start)
+        for command in (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", start),
+                        ("club:apply", "seeds/club-fifo.yaml"), ("seed:demo", "--club=fifo", "--seed=42", start)):
+            for attempt in (1, 2):
+                output = self.cli(*command)
+                if attempt == 2:
+                    require("0 changes (" in output and not re.search(r"\n[1-9][0-9]* changes \(", "\n" + output),
+                            "Seed reapply was not idempotent")
+                for line in output.strip().splitlines():
+                    if "changes" in line or line.startswith("{"):
+                        print("  " + line, flush=True)
+                print(f"PASS {' '.join(command)} run {attempt}" + (": 0 changes" if attempt == 2 else ""), flush=True)
+        self.record("club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2)", "second runs 0 changes",
+                    f"week start {self.week_start} (8+ days ahead)")
+        # Activation is fixture setup on this named disposable database only.
+        self.mongo('db.clubs.updateMany({slug:{$in:["canic","fifo"]}},{$set:{status:"ACTIVE"}}).modifiedCount')
+        clubs = {c["slug"]: c for c in self.mongo('db.clubs.find({slug:{$in:["canic","fifo"]}},{slug:1,domains:1}).toArray()')}
+        self.canic, self.fifo = clubs["canic"]["_id"], clubs["fifo"]["_id"]
+        self.host = next(d["host"] for d in clubs["canic"]["domains"] if d["app"] == "clubs")
+        self.fifo_host = next(d["host"] for d in clubs["fifo"]["domains"] if d["app"] == "clubs")
+        self.compose("up", "-d", "--no-deps", "--wait", "--wait-timeout", "180", self.service)
+        require(self.call("GET", "/api/v1/health")["status"] == "UP", "Health must be UP")
+        print("PASS API up (scheduler on); both fixture clubs activated", flush=True)
+
+    # ---- scenario
+    def scenario(self):
+        self.sign_in()
+        self.login("fifo.admin@example.test", "clubs-admin", self.fifo_host)
+
+        # Before the clock moves: FIFO club seeded with the first entry offered, the others waiting, one stale payment.
+        fifo_entries = lambda: self.mongo('db.waitlist_entries.find({clubId:' + json.dumps(self.fifo) + '}).sort({position:1}).toArray()'
+                                          '.map(e=>({id:e._id,state:e.state,member:e.memberId,confirmBy:e.confirmBy}))')
+        entries = fifo_entries()
+        require([e["state"] for e in entries] == ["NOTIFIED", "ACTIVE", "ACTIVE"], "FIFO: only the first entry must be notified")
+        pending = self.mongo('db.bookings.findOne({clubId:' + json.dumps(self.fifo) + ',state:"PAYMENT_PENDING"},{_id:1,bookedAt:1})')
+        require(pending, "FIFO club lacks the PAYMENT_PENDING booking")
+        self.record("FIFO club seeded (waitlist.mode FIFO)", "positions 1-3", "NOTIFIED, ACTIVE, ACTIVE; 1 PAYMENT_PENDING " + short(pending["_id"]))
+        self.call("PUT", "/api/v1/jobs/risk-review/switch", access=self.admin, body=dict(enabled=False))
+        self.record("PUT /jobs/risk-review/switch {enabled:false}", "200", "P2 held until its own step")
+
+        demo_now = self.local("MONDAY", "07:00")
+        self.set_clock(demo_now, "demoNow")
+
+
+        # P6 + P7 on the FIFO club, run by the scheduler at the moved clock.
+        p6 = self.run_after(self.fifo, "WAITLIST_FIFO", demo_now - datetime.timedelta(minutes=1))
+        after = wait(lambda: (lambda e: e if [x["state"] for x in e] == ["EXPIRED", "NOTIFIED", "ACTIVE"] else None)(fifo_entries()),
+                     "FIFO: the first entry must expire and the second be notified")
+        second = self.account_of(after[1]["member"])
+        wait(lambda: self.notifications("N-15", [second]) > 0, "FIFO: N-15 for the second entry missing")
+        self.record("P6 waitlist-fifo (scheduler, " + p6["trigger"] + ")", "SUCCEEDED",
+                    f"counters {p6['counters']}; entry 1 EXPIRED, entry 2 NOTIFIED confirmBy {after[1]['confirmBy'][11:16]}Z + N-15")
+        p7 = self.run_after(self.fifo, "PAYMENT_TIMEOUTS", demo_now - datetime.timedelta(minutes=1))
+        stale = wait(lambda: (lambda b: b if b["state"] == "CANCELLED" else None)(
+            self.mongo('db.bookings.findOne({_id:' + json.dumps(pending["_id"]) + '},{state:1,cancelReason:1,memberId:1})')), "P7 did not cancel")
+        require(stale["cancelReason"] == "PAYMENT_TIMEOUT", "P7 cancel reason mismatch")
+        wait(lambda: self.notifications("N-40", [self.account_of(stale["memberId"])]) > 0, "N-40 missing")
+        self.record("P7 payment-timeouts (scheduler, " + p7["trigger"] + ")", "SUCCEEDED",
+                    f"counters {p7['counters']}; booking CANCELLED{{PAYMENT_TIMEOUT}} + N-40")
+
+        # 03: chips, chronological rows of the four sources, counters.
+        home = self.call("GET", "/api/v1/me/home", access=self.m[5])
+        types = [r["type"] for r in home["reservations"]]
+        starts = [r["startsAt"] for r in home["reservations"]]
+        require({"CLASS", "CLASS_WAITLIST", "TRAINING", "ACTIVITY"} <= set(types) and starts == sorted(starts), "03 rows mismatch")
+        own = [d for d in home["dogs"] if d["own"]]
+        e_dog = next(d["id"] for d in own if d["levelName"] == "E")
+        self.record("GET /me/home (member@)", "200", f"{len(home['dogs'])} chips ({len(own)} own); rows {types}; "
+                    f"W0 {home['limits']['currentWeek']['count']}/{home['limits']['currentWeek']['max']} key {home['limits']['currentWeek']['weekKey']}")
+
+        # 04: one chip each, the six live row states across the scenario members.
+        states, views = set(), {}
+        for n in (5, 7, 8, 11):
+            dog = None if n == 11 else next(d["id"] for d in self.call("GET", "/api/v1/me/home", access=self.m[n], quiet=True)["dogs"]
+                                             if d["own"] and d["levelName"] == "E")
+            view = self.call("GET", "/api/v1/me/bookable-classes" + (f"?dogId={dog}" if dog else ""), access=self.m[n])
+            views[n] = view
+            states |= {c["state"] for c in view["classes"]}
+        require(sorted(states) == SIX_STATES, f"Row states mismatch: {sorted(states)}")
+        require(views[11]["bookingBlock"] and all(c["notBookableReason"] == "BLOCKED" for c in views[11]["classes"]), "Blocked member rows")
+        require(all(c["state"] == "WEEKLY_LIMIT_DONE" for c in views[7]["classes"] if c["week"] == "CURRENT"), "member.3@ must be at its weekly limit")
+        self.record("GET /me/bookable-classes (member@, .3@, .4@, .7@)", "200", "states " + ", ".join(sorted(states)))
+
+        # Hold → refresh → confirm → idempotent replay → detail → cancel in time.
+        target = next(c for c in views[5]["classes"] if c["state"] == "BOOKABLE" and c["week"] == "CURRENT"
+                      and c["startsAtLocal"] >= str(self.local("WEDNESDAY", "00:00").date()))
+        hold = self.call("POST", "/api/v1/seat-holds", 201, access=self.m[5], body=dict(classSessionId=target["id"], dogId=e_dog))
+        again = self.call("POST", "/api/v1/seat-holds", 201, access=self.m[5], body=dict(classSessionId=target["id"], dogId=e_dog))
+        require(again["id"] == hold["id"] and again["expiresAt"] >= hold["expiresAt"], "The hold must refresh, not duplicate")
+        holds = self.mongo('db.seat_holds.countDocuments({classSessionId:' + json.dumps(target["id"]) + '})')
+        require(holds == 1, "Exactly one hold expected")
+        self.record("POST /seat-holds (x2)", "201", f"same hold {short(hold['id'])}, {hold['holdSeconds']} s, limit {hold['limit']['count']}/{hold['limit']['max']}")
+        key = str(uuid.uuid4())
+        booking = self.call("POST", "/api/v1/bookings", 201, access=self.m[5], body=dict(seatHoldId=hold["id"]), key=key)
+        replay = self.call("POST", "/api/v1/bookings", 201, access=self.m[5], body=dict(seatHoldId=hold["id"]), key=key)
+        require(booking == replay and booking["state"] == "ACTIVE" and booking["calendarLinks"]["ics"], "Idempotent confirmation mismatch")
+        self.record("POST /bookings + same Idempotency-Key", "201 + identical 201", f"{short(booking['id'])} ACTIVE, calendarLinks google/outlook/ics")
+        detail = self.call("GET", f"/api/v1/bookings/{booking['id']}", access=self.m[5])
+        require(detail["displayState"] == "CONFIRMED", "Detail displayState mismatch")
+        cancelled = self.call("POST", f"/api/v1/bookings/{booking['id']}/cancellation", access=self.m[5], body={})
+        require(cancelled["state"] == "CANCELLED" and cancelled["cancellation"]["late"] is False, "In-time cancellation mismatch")
+        released = self.mongo('db.domain_events.find({clubId:' + json.dumps(self.canic) + ',type:"SeatReleased",aggregateId:' + json.dumps(target["id"])
+                              + '}).toArray().map(e=>e.payload)')
+        require(released and "notifyWaitlist" in released[-1], "SeatReleased missing")
+        self.record("GET /bookings/{id} → POST …/cancellation", "200 CANCELLED", f"late=false, minutesBefore={cancelled['cancellation']['minutesBefore']}, "
+                    f"SeatReleased{{notifyWaitlist={str(released[-1]['notifyWaitlist']).lower()}}}")
+
+        # Inside the thresholds: 20 min before the seeded Monday 08:30 class.
+        self.set_clock(self.local("MONDAY", "08:10"), "20 min before Mon 08:30")
+        monday = next(r for r in self.call("GET", "/api/v1/me/home", access=self.m[5], quiet=True)["reservations"]
+                      if r["type"] == "CLASS" and r["startsAtLocal"].endswith("T08:30") and r["startsAtLocal"].startswith(str(self.week_start)))
+        late = self.call("POST", f"/api/v1/bookings/{monday['id']}/cancellation", access=self.m[5], body={})
+        require(late["state"] == "CANCELLED_LATE" and late["cancellation"]["late"] is True, "Late cancellation mismatch")
+        seat = self.mongo('db.domain_events.find({clubId:' + json.dumps(self.canic) + ',type:"SeatReleased",aggregateId:'
+                          + json.dumps(late["classSessionId"]) + '}).sort({_id:-1}).limit(1).toArray()[0].payload')
+        require(seat["notifyWaitlist"] is False, "No waitlist notice expected under the threshold")
+        self.record("POST /bookings/{Mon 08:30}/cancellation", "200 CANCELLED_LATE", f"late=true, minutesBefore={late['cancellation']['minutesBefore']}, notifyWaitlist=false")
+
+        # Swap at the limit (screen 06).
+        six = self.call("GET", "/api/v1/me/home", access=self.m[6], quiet=True)
+        dog6 = next(d["id"] for d in six["dogs"] if d["own"] and d["levelName"] == "E")
+        thursday = str(self.local("THURSDAY", "08:30"))[:16].replace(" ", "T")
+        swap_target = next(c for c in self.call("GET", f"/api/v1/me/bookable-classes?dogId={dog6}", access=self.m[6], quiet=True)["classes"]
+                           if c["startsAtLocal"] == thursday and c["ringName"] == "Muntanya")
+        at_limit = self.call("POST", "/api/v1/seat-holds", 201, access=self.m[6], body=dict(classSessionId=swap_target["id"], dogId=dog6))
+        limit = at_limit["limit"]
+        require(limit["reached"] and len(limit["swappable"]) == 1 and [n["reason"] for n in limit["notSelectable"]] == ["DONE"], "Limit mismatch")
+        old = limit["swappable"][0]["bookingId"]
+        swapped = self.call("POST", "/api/v1/bookings", 201, access=self.m[6], body=dict(seatHoldId=at_limit["id"], swapBookingId=old), idempotent=True)
+        previous = self.call("GET", f"/api/v1/bookings/{old}", access=self.m[6], quiet=True)
+        reason = self.mongo('db.bookings.findOne({_id:' + json.dumps(old) + '}).cancelReason')
+        require(swapped["swapFromBookingId"] == old and previous["state"] == "CANCELLED" and reason == "SWAP", "Swap mismatch")
+        self.record("POST /seat-holds at the limit → POST /bookings {swapBookingId}", "201 + 201",
+                    f"limit {limit['count']}/{limit['max']}, swappable 1, notSelectable [DONE]; old CANCELLED{{SWAP}}, new ACTIVE")
+
+        # ALL_AT_ONCE waiting list: join, free a seat, N-15 to every waiting member, hold + claim, N-46 to the others.
+        eight = self.call("GET", "/api/v1/me/home", access=self.m[8], quiet=True)
+        dog8 = next(d["id"] for d in eight["dogs"] if d["own"] and d["levelName"] == "E")
+        full = next(c for c in views[8]["classes"] if c["state"] == "WAITLIST_OPEN")
+        entry = self.call("POST", "/api/v1/waitlist-entries", 201, access=self.m[8], body=dict(classSessionId=full["id"], dogId=dog8))
+        joined = self.mongo('db.domain_events.countDocuments({type:"WaitlistJoined",aggregateId:' + json.dumps(entry["id"]) + '})')
+        require(entry["state"] == "ACTIVE" and joined == 1, "Join mismatch")
+        self.record("POST /waitlist-entries (WAITLIST_OPEN class)", "201 ACTIVE", f"WaitlistJoined; waiting {full['waiting']} → {full['waiting'] + 1}")
+        nine = next(r for r in self.call("GET", "/api/v1/me/home", access=self.m[9], quiet=True)["reservations"]
+                    if r["type"] == "CLASS" and r["startsAtLocal"] == full["startsAtLocal"])
+        self.call("POST", f"/api/v1/bookings/{nine['id']}/cancellation", access=self.m[9], body={})
+        live = lambda: self.mongo('db.waitlist_entries.find({classSessionId:' + json.dumps(full["id"]) + ',state:{$in:["ACTIVE","NOTIFIED"]}})'
+                                  '.toArray().map(e=>({id:e._id,state:e.state,member:e.memberId}))')
+        offered = wait(lambda: (lambda e: e if e and all(x["state"] == "NOTIFIED" for x in e) else None)(live()), "Entries not notified")
+        accounts = [self.account_of(e["member"]) for e in offered]
+        wait(lambda: all(self.notifications("N-15", [a]) > 0 for a in accounts), "N-15 rows missing")
+        self.record("member.5@ cancels in time → SeatReleased{notifyWaitlist}", "200", f"{len(offered)} entries NOTIFIED; N-15 for each waiting member")
+        claim_hold = self.call("POST", "/api/v1/seat-holds", 201, access=self.m[8], body=dict(classSessionId=full["id"], dogId=dog8, waitlistEntryId=entry["id"]))
+        claimed = self.call("POST", f"/api/v1/waitlist-entries/{entry['id']}/claim", 201, access=self.m[8], body=dict(seatHoldId=claim_hold["id"]), idempotent=True)
+        consolidated = self.mongo('db.waitlist_entries.findOne({_id:' + json.dumps(entry["id"]) + '}).state')
+        others = [a for e, a in zip(offered, accounts) if e["id"] != entry["id"]]
+        wait(lambda: all(x["state"] == "ACTIVE" for x in live()), "Other entries not demoted")
+        wait(lambda: all(self.notifications("N-46", [a]) > 0 for a in others), "N-46 rows missing")
+        require(claimed["state"] == "ACTIVE" and consolidated == "CONSOLIDATED", "Claim mismatch")
+        self.record("POST /seat-holds {waitlistEntryId} → POST /waitlist-entries/{id}/claim", "201 + 201",
+                    f"entry CONSOLIDATED; {len(others)} others back to ACTIVE with N-46")
+
+        # Free training (S09): 2/3 → «Qualsevol» booking → 3/3 → 409 → ring block over a live booking.
+        summary = self.call("GET", f"/api/v1/me/training-summary?dogId={e_dog}", access=self.m[5])
+        require(summary["counter"]["used"] == 2 and summary["counter"]["limit"] == 3, "Training counter must start at 2/3")
+        wednesday = str(self.local("WEDNESDAY", "00:00").date())
+        grid = self.call("GET", f"/api/v1/training-slots?from={wednesday}&to={wednesday}&dogId={e_dog}", access=self.m[5])
+        slot = next(s for day in grid["days"] for s in day["slots"] if s["startsAtLocal"] == "11:00" and s["bookable"])
+        booked = self.call("POST", "/api/v1/training-bookings", 201, access=self.m[5], body=dict(dogId=e_dog, startsAt=slot["startsAt"]), idempotent=True)
+        ring_order = [r["id"] for r in grid["rings"]]
+        require(booked["ringId"] == next(r for r in ring_order if slot["rings"][r]["state"] == "FREE"), "«Qualsevol» must take the first free ring")
+        summary = self.call("GET", f"/api/v1/me/training-summary?dogId={e_dog}", access=self.m[5], quiet=True)
+        require(summary["counter"]["used"] == 3, "Counter must reach 3/3")
+        fourth = self.utc(self.local("THURSDAY", "11:00"))
+        rejected = self.call("POST", "/api/v1/training-bookings", 409, access=self.m[5], body=dict(dogId=e_dog, startsAt=fourth), idempotent=True,
+                             error="TRAINING_LIMIT_REACHED")
+        require(rejected["details"]["cancellableBookings"], "cancellableBookings missing")
+        self.record("GET /me/training-summary → GET /training-slots → POST /training-bookings (no ringId) → a 4th", "200/200/201/409",
+                    f"2/3 → 3/3 on {booked['ringName']}; TRAINING_LIMIT_REACHED with {len(rejected['details']['cancellableBookings'])} cancellable")
+        tuesday = next(b for b in self.call("GET", "/api/v1/me/training-bookings?state=ACTIVE", access=self.m[5], quiet=True)["items"]
+                       if b["startsAt"] == self.utc(self.local("TUESDAY", "11:00")))
+        block = dict(ringId=tuesday["ringId"], to=self.utc(self.local("TUESDAY", "12:00")), kind="BLOCK", reason="MAINTENANCE",
+                     note="E5 smoke " + self.suffix, **{"from": self.utc(self.local("TUESDAY", "11:00"))})
+        self.call("POST", "/api/v1/ring-blocks", 422, access=self.admin, body=block, idempotent=True, error="RING_HAS_BOOKINGS")
+        self.call("POST", "/api/v1/ring-blocks", 201, access=self.admin, body=dict(block, cancelBookings=True), idempotent=True)
+        gone = self.call("GET", f"/api/v1/training-bookings/{tuesday['id']}", access=self.m[5], quiet=True)
+        require(gone["state"] == "CANCELLED_BY_CLUB", "Training booking not cancelled by the club")
+        wait(lambda: self.notifications("N-47", [self.account_of(tuesday["memberId"])]) > 0, "N-47 missing")
+        self.record("POST /ring-blocks over a live training booking", "422 RING_HAS_BOOKINGS → 201 {cancelBookings}",
+                    "booking CANCELLED_BY_CLUB + N-47")
+
+        # P2 risk review on Tuesday 07:30: dry run first, then the scheduler.
+        self.set_clock(self.local("TUESDAY", "07:20"), "before P2")
+        self.call("PUT", "/api/v1/jobs/risk-review/switch", access=self.admin, body=dict(enabled=True))
+        dry = self.call("POST", "/api/v1/jobs/risk-review/trigger", access=self.admin, body=dict(dryRun=True))
+        risky = self.mongo('db.class_sessions.find({clubId:' + json.dumps(self.canic) + ',date:{$in:' + json.dumps(
+            [str(self.local(d, "00:00").date()) for d in ("TUESDAY", "WEDNESDAY")]) + '}}).toArray().map(c=>({id:c._id,date:c.date,'
+            'start:c.startTime,booked:c.counters.booked,exempt:c.risk.exempt}))')
+        tue = next(c for c in risky if c["date"] == str(self.local("TUESDAY", "00:00").date()) and c["start"] == "18:50" and c["booked"] == 1)
+        wed = next(c for c in risky if c["date"] == str(self.local("WEDNESDAY", "00:00").date()) and c["start"] == "16:30" and c["booked"] == 0)
+        actions = {i["entityId"]: i["action"] for i in dry["effects"]["items"]}
+        require(actions.get(tue["id"], "").startswith("WOULD_CANCEL") and actions.get(wed["id"], "").startswith("WOULD_NOTIFY"), "Dry-run plan mismatch")
+        self.record("POST /jobs/risk-review/trigger {dryRun:true}", "200", f"counters {dry['effects']['counters']}")
+        review_at = self.local("TUESDAY", "07:30")
+        self.set_clock(review_at + datetime.timedelta(seconds=5), "P2 time")
+        p2 = self.run_after(self.canic, "RISK_REVIEW", review_at)
+        state = self.mongo('db.class_sessions.findOne({_id:' + json.dumps(tue["id"]) + '},{state:1,cancellation:1})')
+        require(state["state"] == "CANCELLED" and state["cancellation"]["reason"] == "RISK_REVIEW", "Tuesday class not auto-cancelled")
+        registrant = self.mongo('db.bookings.findOne({classSessionId:' + json.dumps(tue["id"]) + '}).memberId')
+        wait(lambda: self.notifications("N-08a", [self.account_of(registrant)]) > 0, "N-08a missing")
+        wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.canic) + ',code:"N-17"})') > 0, "N-17 missing")
+        wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.canic) + ',code:"N-16"})') > 0, "N-16 missing")
+        warned = self.mongo('db.class_sessions.findOne({_id:' + json.dumps(wed["id"]) + '}).risk')
+        require(warned.get("adminNotifiedAt"), "Wednesday class not warned")
+        exempt = next(c for c in risky if c["exempt"])
+        require(self.mongo('db.class_sessions.findOne({_id:' + json.dumps(exempt["id"]) + '}).state') == "ACTIVE", "Exempt class touched")
+        self.record("P2 risk-review (scheduler, " + p2["trigger"] + ")", "SUCCEEDED",
+                    f"counters {p2['counters']}; today's 1-registrant class CANCELLED{{RISK_REVIEW}} + N-17 + N-08a; tomorrow's warned (N-16); exempt kept")
+        self.call("PUT", "/api/v1/jobs/risk-review/switch", access=self.admin, body=dict(enabled=False), quiet=True)
+
+        # R-15-12b: an in-time cancellation that leaves 1 of classes.minDogs = 2 → exactly one N-54.
+        ten = next(r for r in self.call("GET", "/api/v1/me/home", access=self.m[10], quiet=True)["reservations"]
+                   if r["type"] == "CLASS" and r["startsAtLocal"].endswith("T20:00"))
+        self.call("POST", f"/api/v1/bookings/{ten['id']}/cancellation", access=self.m[10], body={})
+        below = lambda: self.mongo('db.domain_events.countDocuments({type:"ClassBelowMinimum","payload.classId":' + json.dumps(
+            self.mongo('db.bookings.findOne({_id:' + json.dumps(ten["id"]) + '}).classSessionId')) + '})')
+        wait(lambda: below() == 1, "ClassBelowMinimum missing")
+        wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.canic) + ',code:"N-54"})') > 0, "N-54 missing")
+        time.sleep(3)
+        require(below() == 1, "More than one ClassBelowMinimum")
+        self.record("member.6@ cancels Thu 20:00 in time (2 → 1)", "200", "exactly one ClassBelowMinimum → N-54")
+
+        # P1 week opening on Sunday 20:00: the week that opens (W+2) is validated → WeekOpened + N-33. N-33 is a club
+        # choice (messaging.notifyWeekOpening, product default false): the smoke's admin switches it on, as D11 would.
+        current = self.call("GET", "/api/v1/parameters/messaging.notifyWeekOpening", access=self.admin, quiet=True)
+        self.call("PUT", "/api/v1/parameters/messaging.notifyWeekOpening", access=self.admin,
+                  body=dict(value=True, version=current["version"], reason="E5 smoke: N-33 on the week opening"))
+        self.record("PUT /parameters/messaging.notifyWeekOpening {true}", "200", "N-33 on (catalog default false)")
+        opening = self.local("SUNDAY", "20:00")
+        self.set_clock(opening + datetime.timedelta(seconds=5), "P1 time")
+        p1 = self.run_after(self.canic, "WEEK_OPENING", opening)
+        key = str(self.week_start + datetime.timedelta(days=13))  # opensAt + 7 days (R-15-11): the booking week that becomes W1
+        opened = wait(lambda: self.mongo('db.domain_events.find({clubId:' + json.dumps(self.canic) + ',type:"WeekOpened","payload.openedWeekKey":'
+                                         + json.dumps(key) + '}).toArray().map(e=>e.payload)[0]'), "WeekOpened missing")
+        require(opened["notified"] is True, "WeekOpened must be notified (the opened week is validated)")
+        n33 = wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.canic) + ',code:"N-33"})'), "N-33 rows missing")
+        self.record("P1 week-opening (scheduler, " + p1["trigger"] + ")", "SUCCEEDED",
+                    f"WeekOpened{{openedWeekKey={opened['openedWeekKey']}, notified={opened['notified']}}}; {n33} N-33 rows")
+
+        # P9 from the CLI (its own clock), and the P6/P7 routes of the CLI on the FIFO club.
+        for job, club in (("cleanup", "canic"), ("waitlist-fifo", "fifo"), ("payment-timeouts", "fifo")):
+            output = self.cli("jobs:run", job, "--club=" + club)
+            line = next(l for l in output.splitlines() if l.startswith("Job "))
+            require("status=SUCCEEDED" in line, f"jobs:run {job} failed")
+            self.record(f"bin/core jobs:run {job} --club={club}", "exit 0", re.sub(r"run=[0-9a-f-]+", "run=<id>", re.sub(r"club=[0-9a-f-]+", "", line)))
+
+    def report(self):
+        width = max(len(s[0]) for s in self.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print("PASS E5 backend gate: book / cancel in time / cancel late / swap / waiting list in both modes / free training "
+              "with the P1, P2, P6, P7 and P9 processes and the clock advanced", flush=True)
+
+    def cleanup(self):
+        if self.started:
+            self.compose("down", "--volumes", "--remove-orphans", "--timeout", "15")
+            print("Removed disposable Compose services, volumes and private mailbox; existing stacks preserved", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--image", nargs="?", const=PUBLISHED_IMAGE,
+                        help="Use the consumer Compose image instead of building; defaults to the published :main")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e5-") as directory:
+        smoke = Smoke(Path(directory), options.image)
+        try:
+            smoke.start()
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, StopIteration, KeyError, TypeError, IndexError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

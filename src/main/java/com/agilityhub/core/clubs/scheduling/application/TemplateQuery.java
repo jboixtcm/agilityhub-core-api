@@ -34,7 +34,7 @@ public class TemplateQuery {
     }
     public PlanningViews.WeekTemplate get(String id) {
         var template = TransactionSynchronizationManager.isActualTransactionActive() ? require(id)
-                : cache.get(new Key(TenantContext.require(), LocaleContext.current().toLanguageTag(), id), key -> require(key.id()));
+                : com.agilityhub.core.shared.application.CacheLoads.get(cache, new Key(TenantContext.require(), LocaleContext.current().toLanguageTag(), id), key -> require(key.id()));
         // Catalog-derived capacity, labels and inconsistencies always reflect the live catalog.
         return view(template);
     }

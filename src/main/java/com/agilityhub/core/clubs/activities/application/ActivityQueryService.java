@@ -40,7 +40,7 @@ public class ActivityQueryService implements ActivityTitlePort {
             var a=activities.require(r.activityId());
             if(r.state()==RegistrationState.CANCELLED || !context.times(a).endsAt().isAfter(context.clock.instant())) continue;
             var times=context.times(a); result.add(object("type","ACTIVITY","id",r.id(),"activityId",a.id(),"state",r.state()==RegistrationState.ACTIVE?"REGISTERED":"WAITLISTED",
-                    "title",projection.title(a),"startsAtLocal",projection.local(times.startsAt()),"endsAtLocal",projection.local(times.endsAt()),"ringName",projection.place(a),"dogId",null));
+                    "title",projection.title(a),"startsAt",times.startsAt(),"startsAtLocal",projection.local(times.startsAt()),"endsAtLocal",projection.local(times.endsAt()),"ringName",projection.place(a),"dogId",null));
         }
         result.sort(Comparator.comparing(r -> r.get("startsAtLocal").toString())); return result;
     }

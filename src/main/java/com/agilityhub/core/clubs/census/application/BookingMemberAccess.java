@@ -76,6 +76,20 @@ public class BookingMemberAccess {
         Money amount = price.get("amountMinor") == null ? null : new Money(number(price.get("amountMinor")), string(price.get("currency")));
         return new PlanTerms(string(plan.get("type")), string(map(plan.get("singleClass")).get("chargeMode")), amount);
     }
+    /** `Member.gender` for the 03 greeting (null when the member never declared it, e.g. migrated or demo rows). */
+    public String gender(String memberId) { return memberId == null ? null : access.members.findById(memberId).map(m -> m.gender).orElse(null); }
+    /** `Plan.name` of the member's plan in the locale (the 04 pack card «Pack 10»), or null without a plan. */
+    public String planName(String memberId, Locale locale) {
+        var member = memberId == null ? null : access.members.findById(memberId).orElse(null);
+        if (member == null || member.planId == null) { return null; }
+        var name = map(map(access.references.plan(member.planId)).get("name"));
+        var values = map(name.get("values"));
+        if (values.isEmpty()) { return null; }
+        var text = new com.agilityhub.core.shared.domain.LocalizedText(values.entrySet().stream()
+                .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue()))),
+                string(name.getOrDefault("defaultLocale", values.keySet().iterator().next())));
+        return text.resolve(locale).value();
+    }
     /** R-08-23: written on each booking of the person who booked. */
     public void lastDogForClass(String memberId, String dogId) { access.members.setField(memberId, "lastDogForClass", dogId); }
 }

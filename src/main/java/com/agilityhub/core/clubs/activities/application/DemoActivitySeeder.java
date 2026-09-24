@@ -41,8 +41,11 @@ public class DemoActivitySeeder implements DemoSeedStep {
     @Override public Map<String, Integer> apply(Input input) {
         List<Spec> specs = mapper.convertValue(input.specification().getOrDefault("activities", List.of()), new TypeReference<>() { });
         var counts = new LinkedHashMap<String, Integer>();
-        for (String key : List.of("activities", "publishedActivities", "activityRegistrations", "activityWaitlist", "activityFiles")) { counts.put(key, 0); }
+        for (String key : List.of("activities", "publishedActivities", "activityRegistrations", "activityWaitlist", "activityFiles", "scenarioActivityRegistrations")) {
+            counts.put(key, 0);
+        }
         if (specs.isEmpty()) { return counts; }
+        var ids = new HashMap<String, String>();
         var rings = catalogs.ringIdsByShortName(); var levels = catalogs.levelIdsByCode(); var pool = candidates(input.loginMemberIds());
         var today = clubClock.today(TenantContext.require());
         for (int index = 0; index < specs.size(); index++) {
@@ -56,7 +59,7 @@ public class DemoActivitySeeder implements DemoSeedStep {
             patch.put("registrationFrom", today); patch.put("registrationTo", date.minusDays(spec.registrationClosesDaysBefore()));
             patch.put("maxPlaces", spec.maxPlaces()); patch.put("waitlistEnabled", spec.waitlistEnabled());
             var draft = activities.patch(created.id(), created.version(), patch, new RingBlockService.Options(false, false, null));
-            counts.merge("activities", 1, Integer::sum);
+            counts.merge("activities", 1, Integer::sum); spec.title().values().forEach(title -> ids.put(title, draft.id()));
             if (spec.files()) {
                 upload(draft.id(), "ACTIVITY_IMAGE", "demo-image.png", "image/png", PNG); upload(draft.id(), "ACTIVITY_DOCUMENT", "demo-document.pdf", "application/pdf", pdf());
                 counts.merge("activityFiles", 2, Integer::sum);
@@ -75,7 +78,19 @@ public class DemoActivitySeeder implements DemoSeedStep {
                 counts.merge(waitlist ? "activityWaitlist" : "activityRegistrations", 1, Integer::sum);
             }
         }
+        counts.put("scenarioActivityRegistrations", scenario(input, ids));
         return counts;
+    }
+    /** E5-T06 `scenario.activityRegistrations`: a login member registers to a seeded activity (by one of its titles), as that member. */
+    public record ScenarioRegistration(int member, String title) { }
+    private int scenario(Input input, Map<String, String> ids) {
+        List<ScenarioRegistration> specs = mapper.convertValue(input.scenario().getOrDefault("activityRegistrations", List.of()), new TypeReference<>() { });
+        for (var s : specs) {
+            String activity = Optional.ofNullable(ids.get(s.title())).orElseThrow(() -> new IllegalStateException("Unknown demo activity " + s.title()));
+            var member = members.member(input.member(s.member()));
+            DemoSeedActor.as(member.accountId(), "MEMBER", () -> registrations.register(activity, false));
+        }
+        return specs.size();
     }
     private void upload(String activity, String purpose, String name, String type, byte[] body) {
         var grant = attachments.upload(purpose, name, type, body.length); var query = new HashMap<String, String>();

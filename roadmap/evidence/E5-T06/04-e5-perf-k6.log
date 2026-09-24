@@ -1,0 +1,141 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 31 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  279 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+  + catalogs: 6 catalog changes
+  = pages: 0 page changes
+  12 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-fifo.yaml run 2: 0 changes
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  16 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  20 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=8, pendingMembers=0, inactiveMembers=0, leftMembers=0, members=8, dogs=8, familyGroups=0, activeDogs=8, pendingDogs=0, instructors=1, administrators=1, receivedDocuments=0, pendingDocuments=8}
+  0 changes (demo seed)
+  {templateClasses=5, templates=1, weeks=1, generatedClasses=5, validatedWeeks=1, scenarioRingBlocks=0, classBookings=0, classWaitlist=0, activities=0, publishedActivities=0, activityRegistrations=0, activityWaitlist=0, activityFiles=0, scenarioActivityRegistrations=0, scenarioClassBookings=2, scenarioCancellations=1, scenarioWaitlist=3, scenarioOffers=1, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=fifo --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic, FIFO club; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); both fixture clubs activated
+PASS POST /test/clock: 200 · 30 min before the W+2 opening (token minting) (Sun 11-10 19:30 Europe/Madrid; server now 2026-10-11T17:30Z)
+PASS fixture: 10 peak classes (37 free seats), 46 members with an eligible dog; last-seat class 2026-10-21 20:00 (124 eligible members)
+PASS 46 impersonation tokens minted in 1 s (values withheld)
+PASS preflight (host curl, impersonation token): /me/bookable-classes 200 with 12 rows
+PASS POST /test/clock: 200 · 20 s before the W+2 opening (Sun 11-10 19:59 Europe/Madrid; server now 2026-10-11T17:59Z)
+
+     ✓ bookable classes 200
+     ✓ confirmation answers 201, 409 or 422
+
+     bookings_created...............: 25      4.998851/s
+     bookings_rejected..............: 15      2.99931/s
+     checks.........................: 100.00% 340 out of 340
+     data_received..................: 1.7 MB  348 kB/s
+     data_sent......................: 918 kB  184 kB/s
+   ✓ flow_duration..................: avg=24.07ms  min=8ms     med=11ms     p(90)=45.2ms   p(95)=125.14ms p(99)=171.16ms max=221ms   
+     holds_created..................: 40      7.998161/s
+     holds_rejected.................: 260     51.988046/s
+     http_req_blocked...............: avg=97.91µs  min=1.08µs  med=2.91µs   p(90)=184.85µs p(95)=205.93µs p(99)=324.36µs max=4.12ms  
+     http_req_connecting............: avg=79.26µs  min=0s      med=0s       p(90)=146.74µs p(95)=163.15µs p(99)=235.6µs  max=4.09ms  
+     http_req_duration..............: avg=11.07ms  min=3.3ms   med=5.67ms   p(90)=20.28ms  p(95)=49.22ms  p(99)=74.96ms  max=106.12ms
+       { expected_response:true }...: avg=11.07ms  min=3.3ms   med=5.67ms   p(90)=20.28ms  p(95)=49.22ms  p(99)=74.96ms  max=106.12ms
+     ✓ { name:bookable-classes }....: avg=7.8ms    min=4.68ms  med=6.08ms   p(90)=13.48ms  p(95)=15.79ms  p(99)=31.33ms  max=46.98ms 
+     ✓ { name:bookings }............: avg=45.38ms  min=10.52ms med=47.26ms  p(90)=99.72ms  p(95)=105.87ms p(99)=106.06ms max=106.12ms
+     ✓ { name:seat-holds }..........: avg=9.76ms   min=3.3ms   med=4.53ms   p(90)=19.4ms   p(95)=49.4ms   p(99)=67.09ms  max=71.91ms 
+   ✓ http_req_failed................: 0.00%   0 out of 640
+     http_req_receiving.............: avg=139.63µs min=11.41µs med=112.91µs p(90)=227.53µs p(95)=283.92µs p(99)=519.72µs max=1.86ms  
+     http_req_sending...............: avg=18.97µs  min=5.37µs  med=16.45µs  p(90)=29.68µs  p(95)=36.46µs  p(99)=58.82µs  max=204.87µs
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=10.91ms  min=3.23ms  med=5.53ms   p(90)=20.22ms  p(95)=48.75ms  p(99)=74.84ms  max=106.08ms
+     http_reqs......................: 640     127.970574/s
+     iteration_duration.............: avg=24.13ms  min=8.45ms  med=11.29ms  p(90)=45.5ms   p(95)=125.01ms p(99)=171.8ms  max=221.04ms
+     iterations.....................: 300     59.986207/s
+   ✓ unexpected_answers.............: 0       0/s
+     vus............................: 1       min=1          max=1  
+     vus_max........................: 300     min=300        max=300
+
+
+RESULT peak: k6 exit 0; seat-holds p95 49 ms, flow p95 125 ms, holds 40, rejected 260, bookings 25 of 37 free seats (Mongo: 38 live bookings in the 10 classes, capacity 50); overbooked classes []; P1 SCHEDULE notified True, 368 N-33 rows within 1.0 s
+
+     ✓ last seat: 201 or 409 CLASS_FULL/SEAT_TAKEN
+     ✓ confirmation answers 201, 409 or 422
+
+   ✓ bookings_created...............: 1       2.477225/s
+     checks.........................: 100.00% 51 out of 51
+     data_received..................: 38 kB   95 kB/s
+     data_sent......................: 75 kB   185 kB/s
+   ✓ holds_created..................: 1       2.477225/s
+   ✓ holds_rejected.................: 49      121.384026/s
+     http_req_blocked...............: avg=2.42ms   min=1.83µs  med=3.01ms   p(90)=3.43ms   p(95)=3.65ms   p(99)=3.79ms   max=3.88ms  
+     http_req_connecting............: avg=918.31µs min=0s      med=528.08µs p(90)=2.2ms    p(95)=2.45ms   p(99)=2.62ms   max=2.7ms   
+     http_req_duration..............: avg=222.83ms min=54.3ms  med=231.47ms p(90)=350.1ms  p(95)=366.91ms p(99)=377.9ms  max=380.57ms
+       { expected_response:true }...: avg=222.83ms min=54.3ms  med=231.47ms p(90)=350.1ms  p(95)=366.91ms p(99)=377.9ms  max=380.57ms
+   ✓ http_req_failed................: 0.00%   0 out of 51
+     http_req_receiving.............: avg=143.98µs min=30.62µs med=130.08µs p(90)=186.58µs p(95)=199.02µs p(99)=359.18µs max=386.62µs
+     http_req_sending...............: avg=158.15µs min=6.41µs  med=42.45µs  p(90)=449.62µs p(95)=894.72µs p(99)=1.29ms   max=1.68ms  
+     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=222.53ms min=53.88ms med=231.25ms p(90)=349.96ms p(95)=366.74ms p(99)=377.74ms max=380.44ms
+     http_reqs......................: 51      126.338476/s
+     iteration_duration.............: avg=229.91ms min=60.88ms med=237.6ms  p(90)=360.35ms p(95)=375.47ms p(99)=393.77ms max=403.52ms
+     iterations.....................: 50      123.861251/s
+   ✓ unexpected_answers.............: 0       0/s
+
+
+RESULT last_seat: k6 exit 0; holds 201 × 1, 409 CLASS_FULL/SEAT_TAKEN × 49, bookings 1; Mongo: 5/5 live bookings; overbooked classes []
+
+     ✓ bookable classes 200
+     ✓ confirmation answers 201, 409 or 422
+
+     bookings_created...............: 25      13.848554/s
+     bookings_rejected..............: 110     60.933636/s
+     checks.........................: 100.00% 435 out of 435
+     data_received..................: 1.6 MB  883 kB/s
+     data_sent......................: 1.0 MB  581 kB/s
+   ✓ flow_duration..................: avg=1.02s    min=410ms    med=865ms    p(90)=1.6s     p(95)=1.77s    p(99)=1.79s    max=1.8s    
+     holds_created..................: 135     74.78219/s
+     holds_rejected.................: 165     91.400454/s
+     http_req_blocked...............: avg=38.93ms  min=458ns    med=2.79µs   p(90)=17.71ms  p(95)=18.45ms  p(99)=1.02s    max=1.02s   
+     http_req_connecting............: avg=36.35ms  min=0s       med=0s       p(90)=4.73ms   p(95)=9.9ms    p(99)=1s       max=1.02s   
+     http_req_duration..............: avg=379.1ms  min=7.72ms   med=271.25ms p(90)=947.88ms p(95)=1.15s    p(99)=1.33s    max=1.37s   
+       { expected_response:true }...: avg=379.1ms  min=7.72ms   med=271.25ms p(90)=947.88ms p(95)=1.15s    p(99)=1.33s    max=1.37s   
+     ✓ { name:bookable-classes }....: avg=225.38ms min=14.23ms  med=235.91ms p(90)=303.38ms p(95)=317.27ms p(99)=333.59ms max=338.09ms
+     ✓ { name:bookings }............: avg=368.18ms min=16.18ms  med=303.66ms p(90)=762.49ms p(95)=1.17s    p(99)=1.35s    max=1.36s   
+     ✓ { name:seat-holds }..........: avg=537.73ms min=7.72ms   med=372.82ms p(90)=1.14s    p(95)=1.23s    p(99)=1.32s    max=1.37s   
+   ✓ http_req_failed................: 0.00%   0 out of 735
+     http_req_receiving.............: avg=250.2µs  min=9.95µs   med=130.08µs p(90)=379.75µs p(95)=791.59µs p(99)=2.64ms   max=11.84ms 
+     http_req_sending...............: avg=244.46µs min=2.41µs   med=13.54µs  p(90)=394.6µs  p(95)=808.63µs p(99)=6.46ms   max=16.55ms 
+     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       p(90)=0s       p(95)=0s       p(99)=0s       max=0s      
+     http_req_waiting...............: avg=378.6ms  min=7.33ms   med=270.64ms p(90)=947.74ms p(95)=1.15s    p(99)=1.33s    max=1.37s   
+     http_reqs......................: 735     407.147479/s
+     iteration_duration.............: avg=1.02s    min=410.31ms med=864.59ms p(90)=1.6s     p(95)=1.77s    p(99)=1.79s    max=1.8s    
+     iterations.....................: 300     166.182644/s
+   ✓ unexpected_answers.............: 0       0/s
+     vus............................: 137     min=137        max=137
+     vus_max........................: 300     min=300        max=300
+
+
+RESULT burst (all 300 at once, 9 classes, 56 members): k6 exit 0; seat-holds p95 1232 ms, flow p95 1775 ms (reported, not gated), holds 135, bookings 25, failed-request rate 0; overbooked classes []
+PASS E5 load and concurrency: peak, last-seat and burst thresholds met, zero overbooking
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

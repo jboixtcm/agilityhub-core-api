@@ -30,7 +30,7 @@ public class BookableClassesCache {
 
     public Base get() {
         var weeks = context.weeks(); var current = weeks.week(clock.instant());
-        return cache.get(key(context.clubId(), current.key()), key -> {
+        return com.agilityhub.core.shared.application.CacheLoads.get(cache, key(context.clubId(), current.key()), key -> {
             // W0 … W2: three booking weeks from the current opening.
             var to = weeks.week(weeks.week(current.end()).end()).end();
             return new Base(current.key(), current.start(), to, clock.instant(), classes.activeBetween(current.start(), to));

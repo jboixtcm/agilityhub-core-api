@@ -3,6 +3,17 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T06 · S08 WP-08-D aggregates served (the last 2 E5 operations no longer 501)
+
+No path, parameter, request body or response shape change. Two things change:
+- The `description` of `GET /me/home` and `GET /me/bookable-classes` drops «Contract only; returns 501…» and
+  states the served rules: the four row sources and their modules on 03, the proposed dog (`lastDogForClass`, then
+  the first own dog; no accessible dog → `404 DOG_NOT_ACCESSIBLE`), the exclusions and the 30 s base cache of 04.
+- `HomeMember.gender` becomes optional and nullable (`MALE`/`FEMALE`/`OTHER` or null): members migrated or seeded
+  without a declared gender have none, and the aggregate does not invent one.
+
+Web adopters: regenerate the types for the nullable `gender`; nothing else.
+
 ## 2026-09-24 · E5-T05 · S15 routes served (8 operations no longer 501)
 
 No path, parameter, request body, response or schema change: only the `description` of the eight S15

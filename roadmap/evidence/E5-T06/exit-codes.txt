@@ -1,0 +1,4 @@
+e5-smoke run 1 exit 0
+e5-smoke run 2 exit 0
+e4-smoke exit 0
+e5-perf exit 0

@@ -54,10 +54,10 @@ class E5ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
-        /** E5-T02 serves the S08 WP-08-B routes, E5-T03 the WP-08-C waiting list, E5-T04 S09, E5-T05 S15; the rest stay 501 until E5-T06. */
+        /** E5-T02 serves the S08 WP-08-B routes, E5-T03 the WP-08-C waiting list, E5-T04 S09, E5-T05 S15 and E5-T06 the S08 aggregates: every route. */
         boolean implemented() { return IMPLEMENTED.contains(method + " " + path); }
     }
-    static final Set<String> IMPLEMENTED = Set.of("POST /api/v1/seat-holds", "DELETE /api/v1/seat-holds/{id}", "POST /api/v1/bookings",
+    static final Set<String> IMPLEMENTED = Set.of("GET /api/v1/me/home", "GET /api/v1/me/bookable-classes", "POST /api/v1/seat-holds", "DELETE /api/v1/seat-holds/{id}", "POST /api/v1/bookings",
             "GET /api/v1/me/bookings", "GET /api/v1/bookings/{id}", "GET /api/v1/bookings/{id}/calendar.ics", "POST /api/v1/bookings/{id}/cancellation",
             "GET /api/v1/bookings", "GET /api/v1/class-sessions/{id}/bookings",
             "POST /api/v1/waitlist-entries", "GET /api/v1/waitlist-entries/{id}", "POST /api/v1/waitlist-entries/{id}/cancellation",

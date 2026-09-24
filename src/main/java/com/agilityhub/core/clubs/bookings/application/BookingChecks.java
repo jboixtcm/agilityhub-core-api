@@ -46,12 +46,14 @@ public class BookingChecks {
     public void notBookedYet(Subject s) {
         if (bookings.live(s.session().id(), s.dog().id()).isPresent()) { throw new ApiException(ErrorCode.ALREADY_BOOKED); }
     }
-    public BookingLimits.Result limit(Subject s, Instant now) {
+    public BookingLimits.Result limit(Subject s, Instant now) { return limit(s.week().key(), s.relative(), s.dog().id(), s.owner().id(), now); }
+    /** The weekly limit of one booking week for a dog and its owner (R-08-02/03/09); also the per-week input of the 04 rows. */
+    public BookingLimits.Result limit(String weekKey, RelativeWeek relative, String dogId, String ownerMemberId, Instant now) {
         var unit = context.unit();
-        var week = bookings.week(s.week().key(), unit == LimitUnit.DOG ? "dogId" : "memberId", unit == LimitUnit.DOG ? s.dog().id() : s.owner().id()).stream()
+        var week = bookings.week(weekKey, unit == LimitUnit.DOG ? "dogId" : "memberId", unit == LimitUnit.DOG ? dogId : ownerMemberId).stream()
                 .map(BookingChecks::counted).toList();
-        int max = BookingLimits.max(s.relative(), context.integer("bookings.maxCurrentWeek"), context.integer("bookings.maxNextWeek"));
-        return BookingLimits.evaluate(week, unit, s.dog().id(), s.owner().id(), max, now, context.lateThreshold());
+        int max = BookingLimits.max(relative, context.integer("bookings.maxCurrentWeek"), context.integer("bookings.maxNextWeek"));
+        return BookingLimits.evaluate(week, unit, dogId, ownerMemberId, max, now, context.lateThreshold());
     }
     static BookingLimits.Counted counted(Booking b) { return new BookingLimits.Counted(b.id(), b.classSessionId(), b.dogId(), b.memberId(), b.state(), b.classStartsAt()); }
     private static BookingEligibility.Person person(BookingMemberAccess.Member m) {
