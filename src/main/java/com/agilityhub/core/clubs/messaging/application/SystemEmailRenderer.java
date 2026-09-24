@@ -24,7 +24,7 @@ public final class SystemEmailRenderer {
     }
     public EmailMessage render(String code, String to, Locale locale, Map<String, ?> variables,
                                ClubEmailSettings.Settings settings, Map<String, String> tags) {
-        if (!Set.of("N-01", "N-02", "N-03", "N-08a", "N-08b", "N-32a", "N-32b", "N-32c", "N-32d", "N-25", "N-26", "N-27", "N-39", "N-42", "N-36", "N-40", "N-47").contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
+        if (!Set.of("N-01", "N-02", "N-03", "N-08a", "N-08b", "N-32a", "N-32b", "N-32c", "N-32d", "N-25", "N-26", "N-27", "N-39", "N-42", "N-36", "N-40", "N-47", "N-16", "N-17", "N-54").contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
         String link = null;
         String expiry = null;
         if (Set.of("N-02","N-25","N-27","N-39").contains(code)) {

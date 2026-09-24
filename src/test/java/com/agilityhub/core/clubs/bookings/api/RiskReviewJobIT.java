@@ -1,0 +1,292 @@
+package com.agilityhub.core.clubs.bookings.api;
+
+import com.agilityhub.core.clubs.bookings.domain.BookingOrigin;
+import com.agilityhub.core.clubs.bookings.domain.BookingState;
+import com.agilityhub.core.clubs.bookings.persistence.Booking;
+import com.agilityhub.core.clubs.scheduling.application.RiskReviewJob;
+import com.agilityhub.core.platform.application.jobs.*;
+import com.agilityhub.core.platform.persistence.jobs.JobRun;
+import com.agilityhub.core.shared.application.TenantContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.time.Instant;
+import java.util.*;
+import org.bson.Document;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+
+/**
+ * S15 R-15-12 P2 `risk-review`, R-15-12b (`ClassBelowMinimum` → N-54) and §6 `GET /risk-review` on the fictional S08 club
+ * (Laura + Duna, Pere + Nit, Joan + Toby; admin «Admin», instructor Estela), `classes.minDogs = 2`, lookahead 2 days.
+ */
+class RiskReviewJobIT extends BookingFixtures {
+    @Autowired JobRunner runner;
+    @Autowired RiskReviewJob job;
+    @Autowired com.agilityhub.core.clubs.dashboard.application.ports.ClassSessionsQuery dashboardSessions;
+
+    @BeforeEach void planning() {
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "class_sessions");
+        mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs");
+        mongo.remove(new Query(), "job_locks");
+        // Bookings are made on Monday 05-10 (booking week W0 = [Sun 04-10 20:00, Sun 11-10 20:00)).
+        clock.setInstant(local("2026-10-05T10:00"));
+    }
+    private JobRun review(String localTime) {
+        var at = local(localTime); clock.setInstant(at);
+        return runner.scheduled(CLUB, true, job, at).orElseThrow();
+    }
+    private List<Document> notifications(String code) {
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code)), Document.class, "notifications");
+    }
+    private Map<String, Long> counters(JobRun run) {
+        var map = new TreeMap<String, Long>(); run.counters().forEach(e -> map.put(e.key(), ((Number) e.value()).longValue())); return map;
+    }
+    private Document risk(String id) { return session(id).get("risk", Document.class); }
+    private void clearNotifications() { dispatch(); mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "notifications"); }
+
+    @Test void T_15_13_theReviewCancelsTodayWarnsTheNextDaysOnceAndNotifiesStaffAndStudents() throws Exception {
+        session("c1", "2026-10-06T09:30", 5, List.of()); session("c2", "2026-10-06T17:40", 5, List.of());
+        session("c3", "2026-10-08T20:00", 5, List.of()); session("c4", "2026-10-08T09:30", 5, List.of());
+        String b2 = book(as("laura"), "c2", "s08-d-duna").path("id").asText();
+        String b3 = book(as("pere"), "c3", "s08-d-nit").path("id").asText();
+        clearNotifications();
+
+        // Tuesday 06-10 07:30 (05:30Z): today = c1, c2 (auto-cancel); c3, c4 on Thursday are warned.
+        var tuesday = review("2026-10-06T07:30");
+        assertThat(tuesday.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(tuesday.trigger()).isEqualTo(JobTrigger.SCHEDULE);
+        assertThat(tuesday.scheduledFor()).isEqualTo(Instant.parse("2026-10-06T05:30:00Z"));
+        assertThat(counters(tuesday)).containsEntry("reviewed", 4L).containsEntry("cancelled", 2L).containsEntry("cancelledSilent", 1L)
+                .containsEntry("atRisk", 2L).containsEntry("notifiedMembers", 1L);
+        assertThat(tuesday.parametersSnapshot()).contains(new JobRun.Entry("classes.minDogs", 2), new JobRun.Entry("classes.riskLookaheadDays", 2));
+        assertThat(tuesday.items()).extracting(JobRun.Item::entityId, JobRun.Item::action)
+                .containsExactly(tuple("s08-c1", "CANCEL"), tuple("s08-c2", "CANCEL"), tuple("s08-c4", "NOTIFY"), tuple("s08-c3", "NOTIFY"));
+        for (String id : List.of("c1", "c2")) {
+            assertThat(session(id).getString("state")).isEqualTo("CANCELLED");
+            assertThat(session(id).get("cancellation", Document.class).getString("reason")).isEqualTo("RISK_REVIEW");
+            assertThat(session(id).get("cancellation", Document.class).getString("adminText")).contains("2");
+        }
+        assertThat(booking(b2).getString("state")).isEqualTo("CANCELLED_BY_CLUB");
+        assertThat(booking(b2).getString("cancelReason")).isEqualTo("AUTO_CANCELLED");
+        var autoCancelled = eventsOf("ClassAutoCancelled");
+        assertThat(autoCancelled).extracting(e -> e.getString("aggregateId")).containsExactlyInAnyOrder("s08-c1", "s08-c2");
+        var c2Event = autoCancelled.stream().filter(e -> e.getString("aggregateId").equals("s08-c2")).findFirst().orElseThrow().get("payload", Document.class);
+        assertThat(c2Event.getInteger("dogsCount")).isEqualTo(1);
+        assertThat(c2Event.getList("affected", Document.class)).singleElement().satisfies(a -> assertThat(a.getString("bookingId")).isEqualTo(b2));
+        assertThat(eventsOf("ClassCancelledByClub")).hasSize(2)
+                .allSatisfy(e -> assertThat(e.get("payload", Document.class).getString("reason")).isEqualTo("RISK_REVIEW"));
+        assertThat(risk("c3").getList("notifiedBookingIds", String.class)).containsExactly(b3);
+        assertThat(risk("c3").get("adminNotifiedAt")).isNotNull();
+        assertThat(risk("c4").getList("notifiedBookingIds", String.class)).isEmpty();
+        assertThat(risk("c4").get("adminNotifiedAt")).isNotNull();
+        var atRisk = eventsOf("ClassAtRisk");
+        assertThat(atRisk).hasSize(2);
+        var c3Event = atRisk.stream().filter(e -> e.getString("aggregateId").equals("s08-c3")).findFirst().orElseThrow().get("payload", Document.class);
+        assertThat(c3Event.getList("newBookingIds", String.class)).containsExactly(b3);
+        assertThat(c3Event.getBoolean("notifyAdmins")).isTrue();
+        assertThat(c3Event.getString("reviewAt")).isEqualTo("2026-10-08T05:30:00Z");
+
+        dispatch();
+        // N-17 on every auto-cancellation (c1 with 0 registrants too) to the admin and the class instructor, APP + EMAIL.
+        assertThat(notifications("N-17")).hasSize(8).extracting(n -> n.getString("accountId")).containsOnly("s08-admin", "s08-inst");
+        // N-08a only to Laura (c2), APP + EMAIL + SMS intent; c1 is silent towards the students.
+        assertThat(notifications("N-08a")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
+                .containsExactlyInAnyOrder("s08-laura:APP", "s08-laura:EMAIL", "s08-laura:SMS");
+        var laura = notifications("N-08a").stream().filter(n -> n.getString("channel").equals("APP")).findFirst().orElseThrow();
+        assertThat(laura.get("variables", Document.class).getString("admin_text")).contains("2");
+        assertThat(laura.get("variables", Document.class)).containsEntry("action", "CHANGE_CLASS").containsEntry("dog_name", "Duna");
+        assertThat(notifications("N-17")).filteredOn(n -> n.getString("channel").equals("APP") && "s08-c1".equals(n.get("variables", Document.class).getString("entityId")))
+                .isNotEmpty().allSatisfy(n -> assertThat(n.get("variables", Document.class)).containsEntry("dogs_count", 0).doesNotContainKey("review_time"));
+        // N-16: Pere (APP + EMAIL) for c3, the admins (APP) for c3 and c4.
+        assertThat(notifications("N-16")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
+                .containsExactlyInAnyOrder("s08-pere:APP", "s08-pere:EMAIL", "s08-admin:APP", "s08-admin:APP");
+        var pere = notifications("N-16").stream().filter(n -> n.getString("accountId").equals("s08-pere") && n.getString("channel").equals("APP")).findFirst().orElseThrow();
+        assertThat(pere.get("variables", Document.class)).containsEntry("dog_name", "Nit").containsEntry("review_time", "07:30").containsEntry("auto_cancel", "true")
+                .containsEntry("class_time", "20:00");
+        assertThat(pere.get("variables", Document.class).getString("review_day")).isEqualTo("dijous");
+        assertThat(notifications("N-54")).isEmpty();
+
+        // T-15-15 on the same state: form A with the four statuses and the names.
+        clock.setInstant(local("2026-10-06T08:00"));
+        var form = call(GET, "/risk-review", null, as("admin"), 200);
+        assertThat(form.path("reviewTime").asText()).isEqualTo("07:30");
+        assertThat(form.path("lookaheadDays").asInt()).isEqualTo(2);
+        assertThat(form.path("minDogs").asInt()).isEqualTo(2);
+        assertThat(form.path("autoCancelSameDay").asBoolean()).isTrue();
+        assertThat(form.path("items")).extracting(i -> i.path("classId").asText() + ":" + i.path("status").asText() + ":" + i.path("dayLabel").asText())
+                .containsExactly("s08-c1:AUTO_CANCELLED:TODAY", "s08-c2:AUTO_CANCELLED:TODAY", "s08-c4:WILL_CANCEL:OTHER", "s08-c3:AT_RISK:OTHER");
+        JsonNode c2Item = form.path("items").get(1);
+        assertThat(c2Item.path("notified").get(0).path("memberName").asText()).isEqualTo("Laura");
+        assertThat(c2Item.path("notified").get(0).path("dogName").asText()).isEqualTo("Duna");
+        assertThat(c2Item.path("bookedCount").asInt()).isEqualTo(1);
+        assertThat(c2Item.path("cancelledAt").asText()).isEqualTo("2026-10-06T05:30:00Z");
+        assertThat(form.path("items").get(3).path("notified").get(0).path("dogName").asText()).isEqualTo("Nit");
+        assertThat(form.path("items").get(3).path("reviewAt").asText()).isEqualTo("2026-10-08T05:30:00Z");
+        assertThat(call(GET, "/risk-review", null, as("inst"), 200).path("items")).hasSize(4);
+        assertThat(call(GET, "/risk-review?date=2026-10-08", null, as("admin"), 200).path("items")).extracting(i -> i.path("dayLabel").asText())
+                .containsExactly("TODAY", "TODAY");
+        call(GET, "/risk-review", null, as("laura"), 403);
+        mongo.save(new com.agilityhub.core.identity.persistence.Membership("s08-other-admin", "s08-admin", OTHER, null, Set.of(com.agilityhub.core.identity.domain.Role.ADMIN),
+                com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.ADMIN));
+        var other = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/risk-review").header("Host", OTHER_HOST)
+                .with(jwt().jwt(j -> j.subject("s08-admin").claim("clubId", OTHER)).authorities(() -> "ROLE_ADMIN"))).andReturn().getResponse();
+        assertThat(other.getStatus()).isEqualTo(200);
+        assertThat(mapper.readTree(other.getContentAsString()).path("items")).isEmpty();
+        // S14 D1 embeds the same resolution (the dashboard adapter no longer returns empty names).
+        try (var tenant = TenantContext.open(CLUB)) {
+            var sessions = dashboardSessions.sessions(CLUB, java.time.LocalDate.parse("2026-10-06"), java.time.LocalDate.parse("2026-10-08"));
+            assertThat(sessions.stream().filter(s -> s.id().equals("s08-c3")).findFirst().orElseThrow().riskNotified())
+                    .singleElement().satisfies(n -> assertThat(n.dogName()).isEqualTo("Nit"));
+            assertThat(sessions.stream().filter(s -> s.id().equals("s08-c2")).findFirst().orElseThrow().cancellationNotified())
+                    .singleElement().satisfies(n -> assertThat(n.memberFirstName()).isEqualTo("Laura"));
+        }
+
+        // Wednesday 07:30: c3 and c4 are still at risk, everybody already warned → no new N-16.
+        var wednesday = review("2026-10-07T07:30");
+        assertThat(counters(wednesday)).containsEntry("atRisk", 2L).doesNotContainKey("notifiedMembers").doesNotContainKey("cancelled");
+        assertThat(wednesday.items()).isEmpty();
+        dispatch();
+        assertThat(notifications("N-16")).hasSize(4);
+
+        // Thursday 07:30: both are cancelled; c4 silently (N-17 yes, N-08a no), c3 with N-08a to Pere.
+        var thursday = review("2026-10-08T07:30");
+        assertThat(counters(thursday)).containsEntry("cancelled", 2L).containsEntry("cancelledSilent", 1L);
+        dispatch();
+        assertThat(notifications("N-17")).hasSize(16);
+        assertThat(notifications("N-08a")).extracting(n -> n.getString("accountId")).containsOnly("s08-laura", "s08-pere").hasSize(6);
+        assertThat(session("c3").getString("state")).isEqualTo("CANCELLED");
+        assertThat(session("c4").getString("state")).isEqualTo("CANCELLED");
+    }
+
+    @Test void T_15_14_exemptSameDayOffMinimumStartedPendingDraftAndStaleCounters() throws Exception {
+        session("exempt", "2026-10-06T09:00", 5, List.of());
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-exempt")), new Update().set("risk.exempt", true), "class_sessions");
+        session("draft", "2026-10-06T10:00", 5, List.of());
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-draft")), new Update().set("state", "DRAFT"), "class_sessions");
+        session("started", "2026-10-06T17:40", 5, List.of()); session("evening", "2026-10-06T20:00", 5, List.of());
+        session("stale", "2026-10-07T18:00", 5, List.of()); session("pending", "2026-10-07T19:00", 5, List.of());
+        session("three", "2026-10-07T20:00", 5, List.of());
+        book(as("laura"), "stale", "s08-d-duna");
+        // counters.booked out of sync (3) with one real booking: the review recounts.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-stale")), new Update().set("counters.booked", 3), "class_sessions");
+        book(as("pere"), "pending", "s08-d-nit");
+        var now = clock.instant(); var starts = local("2026-10-07T19:00");
+        mongo.insert(new Booking("s08-pending-b", CLUB, "s08-pending", "s08-d-toby", "s08-m-joan", BookingState.PAYMENT_PENDING, BookingOrigin.APP, now,
+                new Booking.Actor("s08-joan", null, "Joan"), starts, starts.plusSeconds(3600), "2026-10-04", null, null, null, null, null, null, null, null,
+                null, null, null, null, null, 1L, now, "s08-joan", now, "s08-joan"));
+        book(as("laura"), "three", "s08-d-rock"); book(as("joan"), "three", "s08-d-toby");
+        clearNotifications();
+
+        // A late run (CATCH_UP at 18:00) never cancels a class that has started; the 20:00 one is cancelled.
+        var late = review("2026-10-06T18:00");
+        assertThat(late.trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(counters(late)).containsEntry("exempt", 1L).containsEntry("skippedStarted", 1L).containsEntry("cancelled", 1L);
+        assertThat(session("started").getString("state")).isEqualTo("ACTIVE");
+        assertThat(session("evening").getString("state")).isEqualTo("CANCELLED");
+        assertThat(session("exempt").getString("state")).isEqualTo("ACTIVE");
+        assertThat(session("draft").getString("state")).isEqualTo("DRAFT");
+        assertThat(late.items()).extracting(JobRun.Item::entityId).doesNotContain("s08-exempt", "s08-draft", "s08-pending", "s08-three")
+                .contains("s08-stale");
+        // PAYMENT_PENDING counts as a dog: «pending» (1 ACTIVE + 1 PAYMENT_PENDING) is not at risk; «stale» is treated as 1.
+        assertThat(risk("stale").getList("notifiedBookingIds", String.class)).hasSize(1);
+
+        // minDogs = 3 → «three» (2 registrants) is at risk; with riskAutoCancelSameDay = false today only warns, auto_cancel = false.
+        parameter("classes.minDogs", 3); parameter("classes.riskAutoCancelSameDay", false);
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
+        clearNotifications();
+        var sameDayOff = review("2026-10-07T07:30");
+        assertThat(sameDayOff.items()).extracting(JobRun.Item::action).containsOnly("NOTIFY");
+        assertThat(session("three").getString("state")).isEqualTo("ACTIVE");
+        assertThat(risk("three").getList("notifiedBookingIds", String.class)).hasSize(2);
+        dispatch();
+        assertThat(notifications("N-16")).filteredOn(n -> n.getString("accountId").equals("s08-laura") && n.getString("channel").equals("APP"))
+                .isNotEmpty().allSatisfy(n -> assertThat(n.get("variables", Document.class).getString("auto_cancel")).isEqualTo("false"));
+        // A new registrant of a warned class is warned alone on the next review.
+        clock.setInstant(local("2026-10-07T08:00"));
+        String newcomer = book(as("pere"), "three", "s08-d-nit").path("id").asText();
+        parameter("classes.minDogs", 4);
+        clearNotifications();
+        var next = runner.manual(CLUB, JobName.RISK_REVIEW, false, "s08-admin");
+        assertThat(next.trigger()).isEqualTo(JobTrigger.MANUAL);
+        dispatch();
+        assertThat(notifications("N-16")).filteredOn(n -> !n.getString("accountId").equals("s08-admin"))
+                .extracting(n -> n.getString("accountId")).containsOnly("s08-pere");
+        assertThat(risk("three").getList("notifiedBookingIds", String.class)).contains(newcomer).hasSize(3);
+    }
+
+    @Test void T_15_06_dryRunPlanMatchesTheRealRunAndWritesNothing() throws Exception {
+        session("c1", "2026-10-06T09:30", 5, List.of()); session("c2", "2026-10-06T17:40", 5, List.of()); session("c3", "2026-10-08T20:00", 5, List.of());
+        book(as("laura"), "c2", "s08-d-duna"); book(as("pere"), "c3", "s08-d-nit");
+        dispatch();
+        clock.setInstant(local("2026-10-06T07:30"));
+        long events = mongo.count(new Query(), "domain_events"), sessions = mongo.count(Query.query(Criteria.where("state").is("CANCELLED")), "class_sessions");
+        var dry = runner.manual(CLUB, JobName.RISK_REVIEW, true, "s08-admin");
+        assertThat(mongo.count(new Query(), "domain_events")).isEqualTo(events);
+        assertThat(mongo.count(Query.query(Criteria.where("state").is("CANCELLED")), "class_sessions")).isEqualTo(sessions);
+        assertThat(dry.items()).extracting(JobRun.Item::action).containsExactly("WOULD_CANCEL", "WOULD_CANCEL", "WOULD_NOTIFY");
+        var real = runner.manual(CLUB, JobName.RISK_REVIEW, false, "s08-admin");
+        assertThat(real.items()).extracting(JobRun.Item::entityId).containsExactlyElementsOf(dry.items().stream().map(JobRun.Item::entityId).toList());
+        assertThat(real.items()).extracting(JobRun.Item::action)
+                .containsExactlyElementsOf(dry.items().stream().map(i -> i.action().substring("WOULD_".length())).toList());
+        assertThat(real.items()).extracting(JobRun.Item::detail).containsExactlyElementsOf(dry.items().stream().map(JobRun.Item::detail).toList());
+        // R-15-04: a second execution finds nothing new (c1/c2 are CANCELLED, c3 already warned).
+        var again = runner.manual(CLUB, JobName.RISK_REVIEW, false, "s08-admin");
+        assertThat(again.items()).isEmpty();
+        System.out.println("E5-T05 risk-review JobRun dry  " + mongo.findById(dry.id(), Document.class, "job_runs").toJson());
+        System.out.println("E5-T05 risk-review JobRun real " + mongo.findById(real.id(), Document.class, "job_runs").toJson());
+    }
+
+    @Test void T_15_04_riskReviewCatchesUpUntilTheEndOfTheLocalDayThenMissesItsWindow() {
+        session("c1", "2026-10-06T23:59", 5, List.of());
+        var catchUp = review("2026-10-06T23:58");
+        assertThat(catchUp.trigger()).isEqualTo(JobTrigger.CATCH_UP);
+        assertThat(catchUp.scheduledFor()).isEqualTo(Instant.parse("2026-10-06T05:30:00Z"));
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs");
+        var missed = review("2026-10-07T00:01");
+        assertThat(missed.status()).isEqualTo(JobStatus.SKIPPED);
+        assertThat(missed.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
+        assertThat(eventsOf("JobFailed")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).getString("job")).isEqualTo("RISK_REVIEW"));
+        dispatch();
+        assertThat(notifications("N-42")).extracting(n -> n.getString("accountId")).contains("s08-admin");
+    }
+
+    @Test void R_15_12b_anInTimeDropBelowTheMinimumAlertsStaffOnceAndClearsWhenRecovered() throws Exception {
+        session("thu", "2026-10-08T18:50", 5, List.of());
+        String laura = book(as("laura"), "thu", "s08-d-duna").path("id").asText();
+        String pere = book(as("pere"), "thu", "s08-d-nit").path("id").asText();
+        clearNotifications();
+        // Wednesday 10:00: Laura cancels in time → 1 dog < 2 → ClassBelowMinimum → N-54 to the instructor and the admins, nothing else.
+        clock.setInstant(local("2026-10-07T10:00"));
+        cancel(as("laura"), laura, 200);
+        assertThat(eventsOf("ClassBelowMinimum")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class))
+                .containsEntry("classId", "s08-thu").containsEntry("countedDogs", 1).containsEntry("minDogs", 2));
+        assertThat(session("thu").get("risk", Document.class).get("lowAlertSentAt")).isNotNull();
+        dispatch();
+        assertThat(notifications("N-54")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
+                .containsExactlyInAnyOrder("s08-admin:APP", "s08-admin:EMAIL", "s08-inst:APP", "s08-inst:EMAIL");
+        var variables = notifications("N-54").getFirst().get("variables", Document.class);
+        assertThat(variables).containsEntry("class_time", "18:50").containsEntry("ring_name", "Central").containsEntry("dogs_count", 1).containsEntry("action", "CHANGE_CLASS");
+        assertThat(notifications("N-54")).noneMatch(n -> n.getString("accountId").equals("s08-pere") || n.getString("accountId").equals("s08-laura"));
+        assertThat(session("thu").getString("state")).isEqualTo("ACTIVE");
+        assertThat(eventsOf("ClassAtRisk")).isEmpty();
+        // A second in-time cancellation while the first alert stands sends nothing.
+        cancel(as("pere"), pere, 200);
+        dispatch();
+        assertThat(eventsOf("ClassBelowMinimum")).hasSize(1);
+        assertThat(notifications("N-54")).hasSize(4);
+        // Back to the minimum clears the mark; a new drop alerts again.
+        book(as("joan"), "thu", "s08-d-toby"); String rock = book(as("laura"), "thu", "s08-d-rock").path("id").asText();
+        assertThat(session("thu").get("risk", Document.class).get("lowAlertSentAt")).isNull();
+        cancel(as("laura"), rock, 200);
+        assertThat(eventsOf("ClassBelowMinimum")).hasSize(2);
+        // Nothing once the class has started (a late cancellation there is not in time anyway): the guard is startsAt.
+        dispatch();
+        assertThat(notifications("N-54")).hasSize(8);
+    }
+}

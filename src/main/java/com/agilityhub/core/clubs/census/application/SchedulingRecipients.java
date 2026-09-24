@@ -18,5 +18,18 @@ public class SchedulingRecipients {
                 rows(m.phones).stream().map(p -> p.get("number")==null?null:Objects.toString(p.get("prefix"),"")+p.get("number")).filter(Objects::nonNull).distinct().toList(),
                 string(map(m.signup).getOrDefault("locale",access.config().club().defaultLocale()))));
     }
+    public record Person(String firstName,String gender) { }
+    /** First name (and gender, for the agreement of the D1 labels) for the short staff labels («Pau + Blat»). */
+    public Optional<Person> person(String id) { return access.members.findById(id).filter(m -> m.erasedAt==null).map(m -> new Person(m.firstName,m.gender)); }
+    /**
+     * S15 R-15-11 N-33 audience: ACTIVE members with at least one ACTIVE dog and an app account (APP + PUSH only),
+     * with the account's language falling back to the signup one.
+     */
+    public List<Member> activeWithActiveDog() {
+        var owners = new HashSet<String>();
+        access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("status").is("ACTIVE")).forEach(d -> owners.add(d.memberId));
+        return access.members.matching(org.springframework.data.mongodb.core.query.Criteria.where("status").is("ACTIVE").and("erasedAt").is(null)).stream()
+                .filter(m -> owners.contains(m.id)).map(m -> member(m.id).orElse(null)).filter(Objects::nonNull).toList();
+    }
     public Optional<Dog> dog(String id) { return access.dogs.findById(id).map(d -> new Dog(d.id,d.name,d.levelId)); }
 }

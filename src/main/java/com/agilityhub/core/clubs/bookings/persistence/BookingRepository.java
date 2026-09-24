@@ -67,6 +67,15 @@ public class BookingRepository extends TenantRepository<Booking> {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("state").in(LIVE).and("classStartsAt").gt(after))
                 .with(Sort.by("classStartsAt", "_id")), Booking.class);
     }
+    public List<Booking> byIds(Collection<String> ids) {
+        if (ids.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(ids)), Booking.class);
+    }
+    /** S15 P7: PAYMENT_PENDING bookings booked at or before `cutoff` (`bookedAt + bookings.paymentPendingMinutes ≤ now`). */
+    public List<Booking> pendingSince(Instant cutoff) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").is(BookingState.PAYMENT_PENDING).and("bookedAt").lte(cutoff))
+                .with(Sort.by("bookedAt", "_id")), Booking.class);
+    }
     public Optional<Booking> byCheckoutSession(String sessionId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("charge.checkoutSessionId").is(sessionId)), Booking.class));
     }

@@ -1,0 +1,135 @@
+Disposable Mongo 7 replica set on a random localhost port, database e5_jobs, local profile; generated credentials private.
+$ bin/core club:apply seeds/club-canic.yaml -> exit 0
+  + catalogs: 31 catalog changes
+  + messageTemplates: schema accepted; application deferred to E7
+  + pages: 3 page changes
+  15 changes (applied)
+$ bin/core seed:demo --club=canic --seed=42 -> exit 0
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+  451 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=2, generatedClasses=76, validatedWeeks=1, looseClasses=1, ringBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2}
+  205 changes (demo planning, week start 2026-09-21)
+API jar up on a random loopback port (local profile, scheduler and outbox on); the seed outbox is drained
+
+0. The admin switches the calendar of risk-review off (manual runs still work, R-15-09)
+curl PUT /api/v1/jobs/risk-review/switch -> 200   [admin]
+  {"name": "risk-review", "enabled": false}
+curl POST /api/v1/test/clock -> 200   [test clock]
+  test clock -> 2026-10-05T05:25:00Z (club-local Mon 05-10 07:25)
+
+1. GET /jobs
+curl GET /api/v1/jobs -> 200   [admin]
+  {"name": "week-opening", "jobName": "WEEK_OPENING", "module": null, "enabled": true, "schedule": {"kind": "WEEKLY", "localTime": "20:00", "dayOfWeek": "SUNDAY", "dayOfMonth": null}, "nextScheduledForLocal": "2026-10-11T20:00"}
+  {"name": "risk-review", "jobName": "RISK_REVIEW", "module": null, "enabled": false, "schedule": {"kind": "DAILY", "localTime": "07:30", "dayOfWeek": null, "dayOfMonth": null}, "nextScheduledForLocal": "2026-10-05T07:30"}
+  {"name": "cleanup", "jobName": "CLEANUP", "module": null, "enabled": true, "schedule": {"kind": "DAILY", "localTime": "06:00", "dayOfWeek": null, "dayOfMonth": null}, "nextScheduledForLocal": "2026-10-06T06:00"}
+
+2. POST /jobs/risk-review/trigger {dryRun: true} -> the plan
+curl POST /api/v1/jobs/risk-review/trigger -> 200   [admin]
+  {"runId": "76148690…", "job": "RISK_REVIEW", "scheduledForLocal": "2026-10-05T07:25", "trigger": "MANUAL", "dryRun": true, "status": "SUCCEEDED"}
+  counters {"reviewed": 20, "WOULD_CANCEL": 5, "WOULD_NOTIFY": 11}
+  plan WOULD_CANCEL ClassSession ae08782f… {"affected": [], "dogsCount": 0, "classId": "ae08782f…"}
+  plan WOULD_CANCEL ClassSession 68927c14… {"affected": ["635c0a8b…"], "dogsCount": 1, "classId": "68927c14…"}
+  plan WOULD_CANCEL ClassSession 31e1b770… {"affected": [], "dogsCount": 0, "classId": "31e1b770…"}
+  plan WOULD_CANCEL ClassSession 4d6af74e… {"affected": [], "dogsCount": 0, "classId": "4d6af74e…"}
+  plan WOULD_CANCEL ClassSession 9b49212f… {"affected": [], "dogsCount": 0, "classId": "9b49212f…"}
+  plan WOULD_NOTIFY ClassSession 05449b1d… {"notifyAdmins": true, "newBookingIds": [], "classId": "05449b1d…"}
+  plan WOULD_NOTIFY ClassSession 75a031ec… {"notifyAdmins": true, "newBookingIds": [], "classId": "75a031ec…"}
+  plan WOULD_NOTIFY ClassSession 344c5a25… {"notifyAdmins": true, "newBookingIds": [], "classId": "344c5a25…"}
+  plan WOULD_NOTIFY ClassSession 5ee40ba4… {"notifyAdmins": true, "newBookingIds": [], "classId": "5ee40ba4…"}
+  plan WOULD_NOTIFY ClassSession a97a7e2b… {"notifyAdmins": true, "newBookingIds": [], "classId": "a97a7e2b…"}
+  plan WOULD_NOTIFY ClassSession 04e88af8… {"notifyAdmins": true, "newBookingIds": [], "classId": "04e88af8…"}
+  plan WOULD_NOTIFY ClassSession 8c36e196… {"notifyAdmins": true, "newBookingIds": [], "classId": "8c36e196…"}
+  plan WOULD_NOTIFY ClassSession 5a550e81… {"notifyAdmins": true, "newBookingIds": [], "classId": "5a550e81…"}
+  plan WOULD_NOTIFY ClassSession 6bfd5fa8… {"notifyAdmins": true, "newBookingIds": [], "classId": "6bfd5fa8…"}
+  plan WOULD_NOTIFY ClassSession 2780736b… {"notifyAdmins": true, "newBookingIds": [], "classId": "2780736b…"}
+  plan WOULD_NOTIFY ClassSession 8456358b… {"notifyAdmins": true, "newBookingIds": [], "classId": "8456358b…"}
+  outbox events: none
+  notifications: none
+
+3. POST /jobs/risk-review/trigger {dryRun: false} -> the summary
+curl POST /api/v1/jobs/risk-review/trigger -> 200   [admin]
+  {"runId": "2a82f79b…", "job": "RISK_REVIEW", "scheduledForLocal": "2026-10-05T07:25", "trigger": "MANUAL", "dryRun": false, "status": "SUCCEEDED", "durationMs": 180}
+  counters {"reviewed": 20, "cancelledSilent": 4, "cancelled": 5, "atRisk": 11, "notifiedMembers": 0}
+  plan ≡ effects: the same 16 items, actions without WOULD_
+  outbox events: ClassAtRisk ×11, ClassAutoCancelled ×5, ClassCancelledByClub ×5, NotificationQueued ×55, NotificationSent ×16, SchedulerRun ×1
+  outbox ClassCancelledByClub PUBLISHED ae08782f… {"classId": "ae08782f…", "reason": "RISK_REVIEW", "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!", "affected": [], "waitlistIds": []}
+  outbox ClassAutoCancelled PUBLISHED ae08782f… {"classId": "ae08782f…", "dogsCount": 0, "affected": [], "waitlistIds": [], "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!"}
+  outbox ClassCancelledByClub PUBLISHED 68927c14… {"classId": "68927c14…", "reason": "RISK_REVIEW", "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!", "affected": [{"bookingId": "635c0a8b…", "dogId": "0e3d201d…", "memberId": "5d7fa127…"}], "waitlistIds": []}
+  outbox ClassAutoCancelled PUBLISHED 68927c14… {"classId": "68927c14…", "dogsCount": 1, "affected": [{"bookingId": "635c0a8b…", "dogId": "0e3d201d…", "memberId": "5d7fa127…"}], "waitlistIds": [], "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!"}
+  outbox ClassCancelledByClub PUBLISHED 31e1b770… {"classId": "31e1b770…", "reason": "RISK_REVIEW", "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!", "affected": [], "waitlistIds": []}
+  outbox ClassAutoCancelled PUBLISHED 31e1b770… {"classId": "31e1b770…", "dogsCount": 0, "affected": [], "waitlistIds": [], "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!"}
+  outbox ClassCancelledByClub PUBLISHED 4d6af74e… {"classId": "4d6af74e…", "reason": "RISK_REVIEW", "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!", "affected": [], "waitlistIds": []}
+  outbox ClassAutoCancelled PUBLISHED 4d6af74e… {"classId": "4d6af74e…", "dogsCount": 0, "affected": [], "waitlistIds": [], "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!"}
+  outbox ClassCancelledByClub PUBLISHED 9b49212f… {"classId": "9b49212f…", "reason": "RISK_REVIEW", "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!", "affected": [], "waitlistIds": []}
+  outbox ClassAutoCancelled PUBLISHED 9b49212f… {"classId": "9b49212f…", "dogsCount": 0, "affected": [], "waitlistIds": [], "adminText": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!"}
+  outbox ClassAtRisk PUBLISHED 05449b1d… {"classId": "05449b1d…", "dogsCount": 0, "reviewAt": "2026-10-06T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 75a031ec… {"classId": "75a031ec…", "dogsCount": 0, "reviewAt": "2026-10-06T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 344c5a25… {"classId": "344c5a25…", "dogsCount": 0, "reviewAt": "2026-10-06T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 5ee40ba4… {"classId": "5ee40ba4…", "dogsCount": 0, "reviewAt": "2026-10-06T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED a97a7e2b… {"classId": "a97a7e2b…", "dogsCount": 0, "reviewAt": "2026-10-06T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 04e88af8… {"classId": "04e88af8…", "dogsCount": 0, "reviewAt": "2026-10-07T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 8c36e196… {"classId": "8c36e196…", "dogsCount": 0, "reviewAt": "2026-10-07T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 5a550e81… {"classId": "5a550e81…", "dogsCount": 0, "reviewAt": "2026-10-07T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 6bfd5fa8… {"classId": "6bfd5fa8…", "dogsCount": 0, "reviewAt": "2026-10-07T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 2780736b… {"classId": "2780736b…", "dogsCount": 0, "reviewAt": "2026-10-07T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox ClassAtRisk PUBLISHED 8456358b… {"classId": "8456358b…", "dogsCount": 0, "reviewAt": "2026-10-07T05:30:00Z", "newBookingIds": [], "notifyAdmins": true}
+  outbox SchedulerRun PUBLISHED 2a82f79b… {"job": "RISK_REVIEW", "clubId": "4854419b…", "runId": "2a82f79b…", "scheduledFor": "2026-10-05T05:25:00Z", "trigger": "MANUAL", "status": "SUCCEEDED", "startedAt": "2026-10-05T05:25:07.259688Z", "finishedAt": "2026-10-05T05:25:07.439910Z", "counters": {"reviewed": 20, "cancelledSilent": 4, "cancelled": 5, "atRisk": 11, "notifiedMembers": 0}, "errorCount": 0}
+  notifications: N-08a APP SENT ×1, N-08a EMAIL SENT ×1, N-08a SMS QUEUED ×1, N-16 APP SENT ×22, N-17 APP SENT ×15, N-17 EMAIL SENT ×15
+  notification N-08a APP SENT account 26d1f97c… {"club_name": "Club Agility Cànic", "dog_name": "Taca 30", "entityId": "68927c14…", "action": "CHANGE_CLASS", "class_date": "dilluns, 5 d’octubre de 2026", "class_time": "17:40", "class_description": "Teràpia", "admin_text": "No s'ha arribat al mínim de 2 gossos: la classe queda anul·lada. Disculpeu les molèsties!", "changes": ""}
+  notification N-08a EMAIL SENT account 26d1f97c… {}
+  notification N-16 APP SENT account 7b06fa55… {"club_name": "Club Agility Cànic", "dog_name": "", "entityId": "344c5a25…", "action": "CHANGE_CLASS", "class_date": "dimarts, 6 d’octubre de 2026", "class_time": "18:50", "review_time": "07:30", "review_day": "dimarts", "auto_cancel": "true"}
+  notification N-16 APP SENT account 7b06fa55… {"club_name": "Club Agility Cànic", "dog_name": "", "entityId": "5ee40ba4…", "action": "CHANGE_CLASS", "class_date": "dimarts, 6 d’octubre de 2026", "class_time": "20:00", "review_time": "07:30", "review_day": "dimarts", "auto_cancel": "true"}
+  notification N-17 APP SENT account 28503d12… {"club_name": "Club Agility Cànic", "entityId": "4d6af74e…", "action": "CHANGE_CLASS", "class_date": "dilluns, 5 d’octubre de 2026", "class_time": "18:50", "dogs_count": 0}
+  notification N-17 APP SENT account 472389a7… {"club_name": "Club Agility Cànic", "entityId": "68927c14…", "action": "CHANGE_CLASS", "class_date": "dilluns, 5 d’octubre de 2026", "class_time": "17:40", "dogs_count": 1}
+
+4. GET /jobs/risk-review/runs/{runId}
+curl GET /api/v1/jobs/risk-review/runs/2a82f79b… -> 200   [admin]
+  {"runId": "2a82f79b…", "status": "SUCCEEDED", "errors": [], "parametersSnapshot": {"jobs.riskReview.enabled": false, "classes.riskReviewTime": "07:30", "classes.minDogs": 2, "classes.riskLookaheadDays": 2, "classes.riskAutoCancelSameDay": true}}
+  items ["CANCEL ae08782f…", "CANCEL 68927c14…", "CANCEL 31e1b770…", "CANCEL 4d6af74e…", "CANCEL 9b49212f…", "NOTIFY 05449b1d…", "NOTIFY 75a031ec…", "NOTIFY 344c5a25…", "NOTIFY 5ee40ba4…", "NOTIFY a97a7e2b…", "NOTIFY 04e88af8…", "NOTIFY 8c36e196…", "NOTIFY 5a550e81…", "NOTIFY 6bfd5fa8…", "NOTIFY 2780736b…", "NOTIFY 8456358b…"]
+curl GET /api/v1/jobs/risk-review/runs?filter=dryRun:eq:false -> 200   [admin, history]
+  [{"runId": "2a82f79b…", "trigger": "MANUAL", "dryRun": false, "status": "SUCCEEDED", "skipReason": null, "counters": {"reviewed": 20, "cancelledSilent": 4, "cancelled": 5, "atRisk": 11, "notifiedMembers": 0}}]
+
+5. GET /risk-review
+curl GET /api/v1/risk-review -> 200   [admin]
+  {"date": "2026-10-05", "reviewTime": "07:30", "lookaheadDays": 2, "minDogs": 2, "autoCancelSameDay": true}
+  {"dayLabel": "TODAY", "startTime": "09:30", "displayDescription": "D i sup.", "ringName": "Central", "bookedCount": 0, "status": "AUTO_CANCELLED", "notified": []}
+  {"dayLabel": "TODAY", "startTime": "17:40", "displayDescription": "Teràpia", "ringName": "Petita", "bookedCount": 1, "status": "AUTO_CANCELLED", "notified": [{"memberName": "Queralt", "dogName": "Taca 30"}]}
+  {"dayLabel": "TODAY", "startTime": "18:50", "displayDescription": "Cadells", "ringName": "Cadells", "bookedCount": 0, "status": "AUTO_CANCELLED", "notified": []}
+  {"dayLabel": "TODAY", "startTime": "18:50", "displayDescription": "B+C", "ringName": "Central", "bookedCount": 0, "status": "AUTO_CANCELLED", "notified": []}
+  {"dayLabel": "TODAY", "startTime": "20:00", "displayDescription": "F+G", "ringName": "Central", "bookedCount": 0, "status": "AUTO_CANCELLED", "notified": []}
+  {"dayLabel": "TOMORROW", "startTime": "08:30", "displayDescription": "F+G", "ringName": "Central", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "TOMORROW", "startTime": "17:40", "displayDescription": "D+E", "ringName": "Carretera", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "TOMORROW", "startTime": "18:50", "displayDescription": "A+B", "ringName": "Central", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "TOMORROW", "startTime": "20:00", "displayDescription": "A", "ringName": "Central", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "TOMORROW", "startTime": "20:00", "displayDescription": "B+C", "ringName": "Muntanya", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "08:30", "displayDescription": "C+D+E", "ringName": "Muntanya", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "09:30", "displayDescription": "Cadells", "ringName": "Cadells", "bookedCount": 0, "status": "AUTO_CANCELLED", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "16:30", "displayDescription": "B+C", "ringName": "Central", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "17:40", "displayDescription": "A", "ringName": "Central", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "18:50", "displayDescription": "Teràpia", "ringName": "Petita", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "20:00", "displayDescription": "Obed. urbana", "ringName": "Central", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+  {"dayLabel": "OTHER", "startTime": "20:00", "displayDescription": "F+G", "ringName": "Muntanya", "bookedCount": 0, "status": "WILL_CANCEL", "notified": []}
+curl GET /api/v1/risk-review -> 403 FORBIDDEN   [member]
+
+6. An in-time cancellation that drops a class below the minimum (R-15-12b)
+  class 6c0b7133… 2026-10-08 18:50 with 2 registrants; the instructor records a notice for one of them
+curl POST /api/v1/bookings/76c360b7…/cancellation -> 200   [instructor, «ha avisat»]
+  outbox events: BookingCancelled ×1, ClassBelowMinimum ×1, NotificationQueued ×7, NotificationSent ×3, SchedulerRun ×2, SeatReleased ×1, TrainingCounterReset ×1, WeekOpened ×1
+  outbox BookingCancelled PUBLISHED 76c360b7… {"bookingId": "76c360b7…", "by": "INSTRUCTOR", "late": false, "minutesBefore": 5004, "origin": "INSTRUCTOR", "reason": "INSTRUCTOR_NOTICE"}
+  outbox ClassBelowMinimum PUBLISHED 6c0b7133… {"countedDogs": 1, "minDogs": 2, "classId": "6c0b7133…"}
+  notifications: N-05 APP SENT ×1, N-54 APP SENT ×3, N-54 EMAIL SENT ×3
+  notification N-54 APP SENT account 28503d12… {"club_name": "Club Agility Cànic", "entityId": "6c0b7133…", "action": "CHANGE_CLASS", "class_date": "dijous, 8 d’octubre de 2026", "class_time": "18:50", "class_description": "Cadells", "ring_name": "Cadells", "dogs_count": 1}
+  notification N-54 APP SENT account 7b06fa55… {"club_name": "Club Agility Cànic", "entityId": "6c0b7133…", "action": "CHANGE_CLASS", "class_date": "dijous, 8 d’octubre de 2026", "class_time": "18:50", "class_description": "Cadells", "ring_name": "Cadells", "dogs_count": 1}
+  notification N-54 APP SENT account e67ba942… {"club_name": "Club Agility Cànic", "entityId": "6c0b7133…", "action": "CHANGE_CLASS", "class_date": "dijous, 8 d’octubre de 2026", "class_time": "18:50", "class_description": "Cadells", "ring_name": "Cadells", "dogs_count": 1}
+  notification N-54 EMAIL SENT account 28503d12… {}
+  class after the alert: ACTIVE booked=1 lowAlertSentAt=set
+
+7. The same processes from the CLI (step 10), on the same database, without the scheduler
+$ bin/core jobs:run risk-review --club=canic --dry-run -> exit 0
+  Job risk-review club=4854419b… run=08c50361… status=SUCCEEDED dryRun=true counters={} errors=0
+$ bin/core jobs:run cleanup --club=canic -> exit 0
+  Job cleanup club=4854419b… run=9d6d196c… status=SUCCEEDED dryRun=false counters={ttlPendingSeatHolds=0, ttlPendingMagicLinkTokens=0, ttlPendingIdempotencyRecords=0, ttlPendingJobLocks=0, orphanUploadsDeleted=0, exportsPurged=0, domainEventsDeleted=0, stripeEventsDeleted=0, jobRunsDeleted=0} errors=0
+$ bin/core jobs:run no-such-job --club=canic -> exit 1 (JOB_UNKNOWN)
+
+PASS risk-review curl sequence
+Removed the disposable Mongo container and runtime directory

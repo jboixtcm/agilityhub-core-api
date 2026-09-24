@@ -84,7 +84,8 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         configs.invalidate(CLUB);
     }
     private List<Document> runs() {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB)).with(org.springframework.data.domain.Sort.by("startedAt", "_id")), Document.class, "job_runs");
+        // Only the fictitious job: since E5-T05 the tick also runs the five real E5 processes for every club.
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("job").is("TEST_NOOP")).with(org.springframework.data.domain.Sort.by("startedAt", "_id")), Document.class, "job_runs");
     }
     private List<Document> events(String type) {
         return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type))
@@ -293,7 +294,7 @@ class JobFrameworkIT extends AbstractIntegrationTest {
             assertThat(locks.acquire(CLUB + ":TEST_NOOP", "other-instance", clock.instant(), Duration.ofSeconds(300))).isTrue();
             assertThatThrownBy(() -> triggers.trigger(JobName.TEST_NOOP, false))
                     .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.code()).isEqualTo(ErrorCode.JOB_ALREADY_RUNNING));
-            assertThatThrownBy(() -> triggers.trigger(JobName.RISK_REVIEW, false))
+            assertThatThrownBy(() -> triggers.trigger(JobName.BILLING_REMINDER, false))
                     .isInstanceOfSatisfying(ApiException.class, failure -> assertThat(failure.code()).isEqualTo(ErrorCode.JOB_UNKNOWN));
         }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("JOB_TRIGGERED")), "audit_entries")).isEqualTo(1);
@@ -307,9 +308,11 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(metrics.counter("jobs.tick.overrun").count()).isEqualTo(overruns + 1);
         assertThat(runs()).singleElement().satisfies(run -> assertThat(run.getString("status")).isEqualTo("SUCCEEDED"));
         var suspended = mongo.find(Query.query(Criteria.where("clubId").is(SUSPENDED)), Document.class, "job_runs");
-        assertThat(suspended).singleElement().satisfies(run -> assertThat(run.getString("skipReason")).isEqualTo("CLUB_INACTIVE"));
-        assertThat(runner.registered()).extracting(Job::name).containsExactly(JobName.TEST_NOOP);
-        assertThat(runner.registered(JobName.RISK_REVIEW)).isEmpty();
+        assertThat(suspended).isNotEmpty().allSatisfy(run -> assertThat(run.getString("skipReason")).isEqualTo("CLUB_INACTIVE"));
+        // E5-T05: the five E5 processes in R-15-01 order, then the test job; P3, P4, P5, P8 and P10 have no bean yet.
+        assertThat(runner.registered()).extracting(Job::name).containsExactly(JobName.WEEK_OPENING, JobName.RISK_REVIEW, JobName.WAITLIST_FIFO,
+                JobName.PAYMENT_TIMEOUTS, JobName.CLEANUP, JobName.TEST_NOOP);
+        assertThat(runner.registered(JobName.BILLING_REMINDER)).isEmpty();
         // A failing club does not stop the tick.
         job.configure(DAILY, 1, 0, true);
         clock.setInstant(at("2026-10-06T04:00:00Z"));

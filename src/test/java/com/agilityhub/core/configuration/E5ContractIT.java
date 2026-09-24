@@ -54,7 +54,7 @@ class E5ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
-        /** E5-T02 serves the S08 WP-08-B routes, E5-T03 the WP-08-C waiting list; the rest stay 501 until E5-T04…T06. */
+        /** E5-T02 serves the S08 WP-08-B routes, E5-T03 the WP-08-C waiting list, E5-T04 S09, E5-T05 S15; the rest stay 501 until E5-T06. */
         boolean implemented() { return IMPLEMENTED.contains(method + " " + path); }
     }
     static final Set<String> IMPLEMENTED = Set.of("POST /api/v1/seat-holds", "DELETE /api/v1/seat-holds/{id}", "POST /api/v1/bookings",
@@ -65,7 +65,11 @@ class E5ContractIT extends AbstractIntegrationTest {
             // E5-T04 serves every S09 route.
             "GET /api/v1/training-slots", "GET /api/v1/me/training-summary", "GET /api/v1/me/training-bookings", "POST /api/v1/training-bookings",
             "GET /api/v1/training-bookings/{id}", "POST /api/v1/training-bookings/{id}/cancellation", "GET /api/v1/training-bookings",
-            "GET /api/v1/training-bookings/export");
+            "GET /api/v1/training-bookings/export",
+            // E5-T05 serves every S15 route.
+            "GET /api/v1/jobs", "GET /api/v1/jobs/{name}/runs", "GET /api/v1/jobs/{name}/runs/{runId}", "POST /api/v1/jobs/{name}/trigger",
+            "PUT /api/v1/jobs/{name}/switch", "GET /api/v1/risk-review", "GET /api/v1/platform/jobs/overview",
+            "POST /api/v1/platform/clubs/{clubId}/jobs/{name}/trigger");
     /** An implemented route passed its guards: whatever business answer it gives, it is not an auth failure, a stub or a crash. */
     private void served(MockHttpServletRequestBuilder request) throws Exception {
         var result = mvc.perform(request).andReturn();
@@ -214,7 +218,9 @@ class E5ContractIT extends AbstractIntegrationTest {
         var admin = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN");
         error(get("/api/v1/jobs/payment-timeouts/runs").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
         error(post("/api/v1/jobs/waitlist-fifo/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 404, "MODULE_DISABLED");
-        error(get("/api/v1/jobs/billing-reminder/runs").header("Host", HOST).with(admin), 501, "NOT_IMPLEMENTED");
+        // A catalog process without an implementation yet (P10 is E8) still has its (empty) history once its module is on.
+        mvc.perform(get("/api/v1/jobs/billing-reminder/runs").header("Host", HOST).with(admin)).andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+        error(post("/api/v1/jobs/billing-reminder/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 422, "JOB_UNKNOWN");
         error(get("/api/v1/jobs/foo/runs").header("Host", HOST).with(admin), 422, "JOB_UNKNOWN");
         error(get("/api/v1/jobs/risk-review/runs/missing").header("Host", HOST).with(admin), 404, "NOT_FOUND");
         error(get("/api/v1/jobs/cleanup/runs/e5-run-a").header("Host", HOST).with(admin), 404, "NOT_FOUND");

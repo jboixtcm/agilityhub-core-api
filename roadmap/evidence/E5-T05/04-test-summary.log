@@ -1,0 +1,45 @@
+E5-T05 test summary, parsed from target/surefire-reports and target/failsafe-reports/TEST-*.xml after the final `./mvnw -q verify` (07-verify.log, exit 0; the same totals and list as the previous green run)
+
+surefire (unit/contract) classes 98 tests 452 failures 0 errors 0 skipped 0
+failsafe (integration) classes 66 tests 704 failures 0 errors 0 skipped 0
+
+E5-T05 tests (class :: method):
+BookingJobsIT :: T_15_25_T_08_35_aStalePaymentPendingBookingIsCancelledOnceAndItsSeatReleased -> passed
+BookingJobsIT :: T_15_24_T_08_34_aFifoOfferExpiresAtConfirmByIntoTheNextEntryOnce -> passed
+CleanupJobIT :: T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns -> passed
+JobsApiIT :: T_15_09_theSwitchWritesTheParameterAndTheListsAreScopedToTheTenant -> passed
+JobsApiIT :: T_15_10_theOverviewMarksHealthPerClubAndProcess -> passed
+JobsApiIT :: T_15_08_manualTriggerRunsTheProcessEvenSwitchedOffIsAuditedAndGuarded -> passed
+RiskReviewJobIT :: T_15_06_dryRunPlanMatchesTheRealRunAndWritesNothing -> passed
+RiskReviewJobIT :: T_15_04_riskReviewCatchesUpUntilTheEndOfTheLocalDayThenMissesItsWindow -> passed
+RiskReviewJobIT :: T_15_14_exemptSameDayOffMinimumStartedPendingDraftAndStaleCounters -> passed
+RiskReviewJobIT :: T_15_13_theReviewCancelsTodayWarnsTheNextDaysOnceAndNotifiesStaffAndStudents -> passed
+RiskReviewJobIT :: R_15_12b_anInTimeDropBelowTheMinimumAlertsStaffOnceAndClearsWhenRecovered -> passed
+WaitlistIT :: T_08_34_aDuplicateWaitlistExpiredProducesASingleOffer -> passed
+WeekOpeningJobIT :: T_15_11_theOpeningRecordsTheWeekEmitsWeekOpenedAndQueuesN33OnceForTheRightMembers -> passed
+WeekOpeningJobIT :: T_15_04_T_15_06_theOpeningCatchesUpForADayThePlanMatchesAndNothingIsLostWhenMissed -> passed
+WeekOpeningJobIT :: T_15_11_withoutTheNoticeOrFreeTrainingOnlyTheOpeningHappens -> passed
+WeekOpeningJobIT :: T_15_12_aWeekValidatedAfterTheOpeningGetsItsDeferredNoticeOnce -> passed
+CalendarIT :: T_06_25_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithoutN08a -> passed
+CalendarIT :: T_06_25_dashboardCoverageAndCliUseRealSessionsAndEnforceTenant -> passed
+E5ContractIT :: T_15_29_testClockMovesTheInjectedClockOnlyUnderTheTestProfile -> passed
+E5PersistenceIT :: T_15_11_T_15_12b_weekAndClassSessionCarryTheS15Marks -> passed
+JobFrameworkIT :: T_15_31_aRunWhoseLeaseExpiredIsFailedAndTakenAgainAsCatchUp -> passed
+JobFrameworkIT :: T_15_08_manualTriggerIsAuditedAndRefusedWhileRunning -> passed
+JobFrameworkIT :: T_15_03_anOccurrenceRunsOnceAcrossTicksInstancesAndTheUniqueIndex -> passed
+JobFrameworkIT :: T_15_05_missedWindowSkipsAndAlerts -> passed
+JobFrameworkIT :: T_15_06_dryRunRecordsOnlyThePlanAndThePlanMatchesTheRealEffects -> passed
+JobFrameworkIT :: T_15_05_switchModuleAndClubStatusRecordSkippedRunsOncePerOccurrenceOrHour -> passed
+JobFrameworkIT :: T_15_10_itemFailuresArePartialJobFailuresAlertAdminsOncePerLocalDay -> passed
+JobFrameworkIT :: T_15_01_tickRunsEveryClubInCatalogOrderOncePerMinute -> passed
+JobFrameworkTwoInstancesIT :: T_15_31_twoInstancesKeepOneTickPerMinuteAndOneExecutionPerOccurrence -> passed
+ClockRuleTest :: T_15_07_systemClockCallsOutsideTheClockBeansAreViolations -> passed
+ClockRuleTest :: T_15_07_injectedClockReadsPass -> passed
+ForeignEventTest :: T_15_12_theWeekValidatedEnvelopeReadsKindOrTypeAndNeverANullPayload -> passed
+JobOccurrencesTest :: T_15_01_catalogHasTheTenR1ProcessesWithTheirRowsAndResolvesClubSchedules -> passed
+JobOccurrencesTest :: T_15_10_itemsAndEffectsNormaliseMissingValues -> passed
+JobOccurrencesTest :: T_15_01_eachClubIsDueAtItsOwnLocalHour -> passed
+JobOccurrencesTest :: T_15_02_daylightSavingTakesTheFirstOccurrenceAndShiftsGapsForward -> passed
+JobOccurrencesTest :: T_15_04_lateRunsAreOnScheduleCaughtUpOrMissedByCatalogWindow -> passed
+JobOccurrencesTest :: T_15_02_monthlyContinuousAndNextOccurrences -> passed
+OffsetClockTest :: T_15_07_setAndAdvanceMoveTheSameOffsetForEveryZoneView -> passed

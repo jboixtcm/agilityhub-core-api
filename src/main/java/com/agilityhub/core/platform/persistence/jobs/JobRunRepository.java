@@ -48,4 +48,23 @@ public class JobRunRepository extends TenantRepository<JobRun> {
     public Optional<JobRun> forJob(JobName job, String runId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(runId).and("job").is(job)), JobRun.class));
     }
+    /** D11 `lastRun`: the latest finished execution of the process (SKIPPED rows included, RUNNING ones excluded). */
+    public Optional<JobRun> last(JobName job) {
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("job").is(job).and("status").ne(JobStatus.RUNNING))
+                .with(Sort.by(Sort.Direction.DESC, "startedAt", "_id")).limit(1), JobRun.class));
+    }
+    /** S17 health: the latest non-dry execution that says something about the process (neutral skips excluded). */
+    public Optional<JobRun> lastExecution(JobName job, java.util.Collection<SkipReason> neutral) {
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("job").is(job).and("dryRun").is(false)
+                .and("status").ne(JobStatus.RUNNING).and("skipReason").nin(neutral)).with(Sort.by(Sort.Direction.DESC, "startedAt", "_id")).limit(1), JobRun.class));
+    }
+    /** S17 health: the latest non-dry SUCCEEDED run of the process. */
+    public Optional<JobRun> lastSuccess(JobName job) {
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("job").is(job).and("status").is(JobStatus.SUCCEEDED)
+                .and("dryRun").is(false)).with(Sort.by(Sort.Direction.DESC, "startedAt", "_id")).limit(1), JobRun.class));
+    }
+    public List<JobRun> byIds(List<String> ids) {
+        if (ids.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(ids)), JobRun.class);
+    }
 }

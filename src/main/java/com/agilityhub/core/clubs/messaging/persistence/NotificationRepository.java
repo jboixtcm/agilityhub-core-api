@@ -29,11 +29,34 @@ public class NotificationRepository extends TenantRepository<Notification> {
         return Optional.ofNullable(mongo.findOne(scoped(id), Notification.class));
     }
     public void appContent(String id,java.util.Map<String,Object> variables) { content(id,"APP",variables); }
+    /** Ids of the given ones already queued in the tenant (a batch never writes a row twice). */
+    public java.util.Set<String> existingIds(java.util.Collection<String> ids) {
+        if(ids.isEmpty()) return java.util.Set.of();
+        var found=new java.util.HashSet<String>();
+        mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(ids)),Notification.class).forEach(n -> found.add(n.id()));
+        return found;
+    }
+    /** S15 fan-out: one `insertMany` for a batch of APP/PUSH rows of the tenant with their allow-listed variables. */
+    public void insertBatch(java.util.List<Notification> rows,java.util.Map<String,java.util.Map<String,Object>> variables) {
+        if(rows.isEmpty()) return;
+        String club=com.agilityhub.core.shared.application.TenantContext.require();
+        var documents=new java.util.ArrayList<org.bson.Document>();
+        for(var row:rows) {
+            if(!club.equals(row.clubId())) throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.TENANT_MISMATCH);
+            var document=new org.bson.Document(); mongo.getConverter().write(row,document);
+            document.put("variables",safe(variables.getOrDefault(row.id(),java.util.Map.of()))); documents.add(document);
+        }
+        mongo.insert(documents,"notifications");
+    }
     /** Renderable variables of an APP or PUSH row (allow-listed: never tokens or contact data). */
     public void content(String id,String channel,java.util.Map<String,Object> variables) {
+        mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is(channel)),new Update().set("variables",safe(variables)),Notification.class);
+    }
+    private static java.util.Map<String,Object> safe(java.util.Map<String,Object> variables) {
         var safe=new java.util.LinkedHashMap<String,Object>();
-        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change","confirm_by","mode","time","has_admin_text")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
-        mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is(channel)),new Update().set("variables",safe),Notification.class);
+        for(String field:java.util.List.of("member_name","member_first_name","gender","club_name","dogs","plan_name","dog_name","reason","entityId","action","class_date","class_time","class_description","admin_text","changes","activity_title","date","state","ring_name","calendar_links","late","actor","change","confirm_by","mode","time","has_admin_text",
+                "dogs_count","review_time","review_day","auto_cancel","week_start")) if(variables.get(field)!=null) safe.put(field,variables.get(field));
+        return safe;
     }
     public void smsContent(String id,java.util.List<String> phones,String body,java.util.Map<String,Object> variables) {
         mongo.updateFirst(scoped(id).addCriteria(Criteria.where("channel").is("SMS")),new Update().set("recipientPhones",phones).set("body",body)

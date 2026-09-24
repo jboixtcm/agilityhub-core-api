@@ -13,15 +13,15 @@ import org.springframework.stereotype.Service;
  * A class or a new ring block invalidates the grid cache of its days; weeks, cancelled/updated blocks, activities,
  * rings, modules and the S09 parameters (`training.*`, `club.openingHours`, `club.holidays`, `club.timeZone`,
  * `bookings.weekOpensAt`, `bookings.limitUnit`) the whole club. The dog/level events change no state (eligibility is
- * computed on read), and `WeekOpened` / `TrainingCounterReset` reset nothing: the counter is per session week and the
- * summary is always computed live, so there is no summary cache to drop.
+ * computed on read), and `WeekOpened` resets nothing: the counter is per session week and the summary is always
+ * computed live. `TrainingCounterReset` (S15 P1, «S09 només invalida cache») drops the club's grid cache.
  */
 @Service
 public class TrainingConsumers {
     static final List<String> DAYS = List.of("ClassSessionCreated", "ClassSessionUpdated", "ClassCancelledByClub", "ClassAutoCancelled", "RingBlockCreated");
     static final List<String> CLUB = List.of("WeekGenerated", "WeekValidated", "RingBlockCancelled", "RingBlockUpdated", "ActivityPublished", "ActivityCancelled",
-            "RingChanged", "ClubModulesChanged", "ParameterChanged");
-    static final List<String> STATELESS = List.of("DogFreeTrainingChanged", "DogLevelChanged", "LevelChanged", "WeekOpened", "TrainingCounterReset");
+            "RingChanged", "ClubModulesChanged", "ParameterChanged", "TrainingCounterReset");
+    static final List<String> STATELESS = List.of("DogFreeTrainingChanged", "DogLevelChanged", "LevelChanged", "WeekOpened");
     static final Set<String> PARAMETERS = Set.of("club.openingHours", "club.holidays", "club.timeZone", "bookings.weekOpensAt", "bookings.limitUnit");
     private final TrainingGridCache cache; private final ClassSessionBookingAccess classes; private final ClubClock clocks;
     public TrainingConsumers(TrainingGridCache cache, ClassSessionBookingAccess classes, ClubClock clocks) { this.cache = cache; this.classes = classes; this.clocks = clocks; }

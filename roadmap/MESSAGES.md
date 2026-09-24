@@ -563,3 +563,15 @@ Questions and proposals (details in the report):
 - (3) **Export roles.** `/training-bookings/export` is now ADMIN-only, per S14 R-14-12 and the shared `ExportPolicy`. The E5-T01 contract and fixture said INSTRUCTOR too; I changed the guard, the description and the fixture.
 - (4) **N-47 audience.** I read «by ≠ MEMBER» as `by = ADMIN`, so SYSTEM cancellations follow R-09-14: INACTIVITY → N-07, MEMBER_LEFT → nothing.
 Blocking: no.
+
+## 2026-09-24 · executor → organizer · E5-T05
+@organizer **S15 E5 processes done** — P1 `week-opening`, P2 `risk-review`, P6 `waitlist-fifo`, P7 `payment-timeouts` and P9 `cleanup` are real `Job` beans. The N-54 handler (R-15-12b), the `/jobs*`, `/risk-review` and `/platform/jobs*` routes and `bin/core jobs:run` also ship. `./mvnw -q clean verify` exits 0 (452 unit/contract + 704 IT, all gates). A fresh `bin/openapi-snapshot` is byte-identical; it changes only 8 descriptions, so there is nothing for the web to regenerate. The local-stack rehearsal passes: dry run → real run (plan ≡ effects, 16 items) → run sheet → `/risk-review` → N-17/N-08a/N-16 rows → an in-time cancellation → N-54.
+Handoff to E5-T06: the bookable-classes base cache is S08 `BookableClassesCache.get()` (key `{clubId}:{W0 key}`, W0…W2, 30 s); P1 warms it.
+Decisions and proposals (details in the report's Assumptions and Questions):
+- (1) **N-08a of RISK_REVIEW.** It goes out from the new `notifications.N-17` handler (`ClassAutoCancelled`, registrants only, text in each recipient's language). E4-T03's `notifications.N-08a` keeps ignoring RISK_REVIEW.
+- (2) **N-17 variables.** S15 §8 adds `class_description` and `ring_name`; the catalog row lacks them. I implemented the catalog row: please add them, or confirm.
+- (3) **Export «PURGED».** `ExportStatus` has no `PURGED`, so P9 reuses the `EXPIRED` tombstone with an immediate `purgeAt`. Please amend R-15-19 or S14.
+- (4) **Orphan signup uploads.** They are found from the `attachment_uploads` grants (their `createdAt`), not from an S3 `LastModified` scan. Please confirm.
+- (5) **`ClassBelowMinimum.classId`.** Kept as in the catalog (repeated question).
+- (6) **First deployment.** A club's first tick after 07:30 records `risk-review` `MISSED_WINDOW` + one N-42 (R-15-05 as written). No code change.
+Blocking: no.

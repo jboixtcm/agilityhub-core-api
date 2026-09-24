@@ -78,7 +78,7 @@ public class DemoPlanningSeeder implements DemoSeedStep {
                     day.atTime(LocalTime.parse(b.to())).atZone(zone).toInstant(), b.kind(), b.reason(), b.note(), false);
             counts.merge("ringBlocks", 1, Integer::sum);
         }
-        var text = messages.format("scheduling.autoCancel.text", Map.of(), Locale.forLanguageTag(context.config().club().defaultLocale()));
+        var text = messages.format("scheduling.autoCancel.text", Map.of("minDogs", context.config().get("classes.minDogs", Integer.class)), Locale.forLanguageTag(context.config().club().defaultLocale()));
         for (var r : spec.riskCancellations()) {
             var slot = sessions.slot(r.date(input.weekStart()), r.start(), require(rings, r.ring())).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
             cancellations.cancel(slot.id(), ClassCancellationReason.RISK_REVIEW, text, input.adminAccountId());

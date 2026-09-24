@@ -24,4 +24,11 @@ public final class RiskReviewContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "classes.riskReviewTime of the class day") Instant reviewAt,
             @Schema(description = "From risk.notifiedBookingIds, or the affected bookings when cancelled") List<RiskReviewNotified> notified) { }
     public record RiskReviewNotified(String memberName, String dogName) { }
+
+    static RiskReview from(com.agilityhub.core.clubs.scheduling.application.RiskReviewQuery.Review review) {
+        return new RiskReview(review.date(), review.reviewTime(), review.lookaheadDays(), review.minDogs(), review.autoCancelSameDay(),
+                review.items().stream().map(item -> new RiskReviewItem(item.classId(), item.date(), RiskDayLabel.valueOf(item.dayLabel()), item.startTime(),
+                        item.displayDescription(), item.ringName(), item.bookedCount(), RiskReviewStatus.valueOf(item.status()), item.cancelledAt(), item.reviewAt(),
+                        item.notified().stream().map(n -> new RiskReviewNotified(n.memberName(), n.dogName())).toList())).toList());
+    }
 }

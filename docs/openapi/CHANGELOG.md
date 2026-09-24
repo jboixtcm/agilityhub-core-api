@@ -3,6 +3,16 @@
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
 
+## 2026-09-24 · E5-T05 · S15 routes served (8 operations no longer 501)
+
+No path, parameter, request body, response or schema change: only the `description` of the eight S15
+operations drops «Contract only; returns 501…»: `GET /jobs` · `GET /jobs/{name}/runs` · `GET /jobs/{name}/runs/{runId}` ·
+`POST /jobs/{name}/trigger` · `PUT /jobs/{name}/switch` · `GET /risk-review` · `GET /platform/jobs/overview` (now also
+states that only implemented processes with their module on are listed and that `status` keeps the cells of that
+health) · `POST /platform/clubs/{clubId}/jobs/{name}/trigger`. `GET /jobs` lists `week-opening`, `risk-review`,
+`waitlist-fifo` (FIFO clubs only), `payment-timeouts` (SINGLE_CLASS) and `cleanup`; the other catalog rows appear
+with E6–E8. Web adopters: nothing to regenerate.
+
 ## 2026-09-24 · E5-T03 · S08 WP-08-C waiting list served (5 operations no longer 501)
 
 No path, parameter, request body or response change. Two things change:

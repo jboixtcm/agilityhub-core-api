@@ -362,6 +362,8 @@ class CalendarIT extends AbstractIntegrationTest {
         public List<BookingRef> activeBookings(String id) {return cancelled.contains(id)?List.of():List.copyOf(bookings.getOrDefault(id,List.of()));}
         public List<WaitlistRef> liveWaitlist(String id) {return cancelled.contains(id)?List.of():List.copyOf(waiting.getOrDefault(id,List.of()));}
         public List<WaitlistRef> waitlistEntries(List<String> ids) {return waiting.values().stream().flatMap(List::stream).filter(w -> ids.contains(w.entryId())).toList();}
+        public List<BookingRef> clubCancelled(String id) {return cancelled.contains(id)?List.copyOf(bookings.getOrDefault(id,List.of())):List.of();}
+        public List<BookingRef> bookings(List<String> ids) {return bookings.values().stream().flatMap(List::stream).filter(b -> ids.contains(b.bookingId())).toList();}
         public CancellationEffects cancelAllByClub(String id,String reason,String actor) {
             var result=new CancellationEffects(activeBookings(id),liveWaitlist(id));boolean was=cancelled.contains(id);cancelled.add(id);
             var removedHolds=holds.remove(id);

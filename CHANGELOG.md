@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T05: S15 scheduled processes of E5 (WP-15-C + the api half of WP-15-B).
+  - P1 `week-opening` (R-15-11): one transaction per opening; it invalidates the config cache, warms the S08
+    `BookableClassesCache` (W0…W2, 30 s, key `{clubId}:{W0 key}`), sets `Week.openedAt` and emits `WeekOpened` and, with
+    FREE_TRAINING, `TrainingCounterReset` (S09 drops its grid cache). N-33 goes out right away, or later from the
+    `WeekValidated` consumer. APP rows use one `insertMany` per 500 (`NotificationFanout`); PUSH intents go in batches
+    of 100 on their own pool.
+  - P2 `risk-review` (R-15-12): the counted dogs are recounted in the item transaction; today's under-strength
+    classes are cancelled through S06 (`ClassAutoCancelled`, N-17 to the admins and instructors, N-08a to the
+    registrants with the text in each recipient's language); the next days get `ClassAtRisk` → N-16, once per
+    booking and once for the admins (`risk` marks). A late run never cancels a class that has started.
+  - R-15-12b: N-54 handler of `ClassBelowMinimum`, plus the `WaitlistExpired` re-check.
+  - P6 `waitlist-fifo` (R-15-16), P7 `payment-timeouts` (R-15-17), P9 `cleanup` (R-15-19; orphan signup uploads, finished
+    exports, processed outbox events, `stripe_events` when present, `job_runs` except the last five per process; the
+    TTL collections are only reported).
+  - `/jobs*`, `GET /risk-review` (form A, also feeding the S14 D1 card's names) and `/platform/jobs*` served;
+    `bin/core jobs:run <route-id> [--club=] [--dry-run]`.
+  - Messages `notif.N-16/N-17/N-33/N-54.*` in ca/es/en; `scheduling.autoCancel.text` now takes `{minDogs}`.
+
 - E5-T04: S09 free training (WP-09-B + WP-09-C).
   - `GET /training-slots` (R-09-02/03/04/15): computed grid (never persisted) from opening hours, holidays, DRAFT/ACTIVE
     classes, ACTIVE ring blocks and ACTIVE bookings, with Java DST semantics; MEMBER clipped to the booking window, staff

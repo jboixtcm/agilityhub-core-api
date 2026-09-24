@@ -35,6 +35,11 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
     public java.util.List<ClassSession> findActiveBetween(String clubId, java.time.Instant from, java.time.Instant to) {
         return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("state").is("ACTIVE").and("startsAt").gte(from).lt(to)), ClassSession.class);
     }
+    /** Classes of any state starting in `[from, to)`, by start (S15 §6 `GET /risk-review`). */
+    public java.util.List<ClassSession> startingBetween(java.time.Instant from, java.time.Instant to) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("startsAt").gte(from).lt(to))
+                .with(org.springframework.data.domain.Sort.by("startsAt", "_id")), ClassSession.class);
+    }
     public java.util.Optional<ClassSession> findLive(java.time.LocalDate date, String startTime, String ringId) {
         return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("date").is(date).and("startTime").is(startTime)
                 .and("ringId").is(ringId).and("state").in("DRAFT", "ACTIVE")), ClassSession.class));

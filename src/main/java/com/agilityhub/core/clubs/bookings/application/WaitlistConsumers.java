@@ -40,4 +40,24 @@ public class WaitlistConsumers {
             }
         };
     }
+    /**
+     * S15 R-15-12b: an expired FIFO offer that leaves the class as it was re-checks the minimum inside its own
+     * transaction; `ClassBelowMinimum` (→ N-54) is emitted only while `risk.lowAlertSentAt` is unset, never for a class
+     * that has started, and nothing else changes.
+     */
+    @Bean("alerts.WaitlistExpired") DomainEventHandler<SchedulerEvent> lowAlertAfterExpiry(BookingTransactions transactions, SeatLockRepository locks,
+            BookingCounters counters, WaitlistEntryRepository entries) {
+        return new DomainEventHandler<>() {
+            public String eventType() { return "WaitlistExpired"; } public Class<SchedulerEvent> eventClass() { return SchedulerEvent.class; }
+            public void handle(String id, SchedulerEvent event) {
+                try (var tenant = TenantContext.open(event.clubId())) {
+                    var entryId = Objects.toString(event.payload().getOrDefault("entryId", event.aggregateId()), null);
+                    var classId = event.payload().get("classId") != null ? event.payload().get("classId").toString()
+                            : entries.findById(entryId).map(WaitlistEntry::classSessionId).orElse(null);
+                    if (classId == null) { return; }
+                    transactions.write(java.util.List.of(classId), () -> { locks.lock(classId); counters.recount(classId, true, BookingActor.system()); return null; });
+                }
+            }
+        };
+    }
 }

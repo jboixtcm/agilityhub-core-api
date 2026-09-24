@@ -52,6 +52,11 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
     public List<WaitlistEntry> liveStartedBy(java.time.Instant now) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").lte(now)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
     }
+    /** S15 P6: NOTIFIED (FIFO) entries whose `confirmBy` has passed, oldest offer first. */
+    public List<WaitlistEntry> notifiedDue(java.time.Instant now) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").is(WaitlistState.NOTIFIED).and("confirmBy").lte(now))
+                .with(Sort.by("confirmBy", "_id")), WaitlistEntry.class);
+    }
     public WaitlistEntry update(WaitlistEntry next, long expectedVersion) {
         var saved = mongo.findAndReplace(tenantQuery(next.clubId()).addCriteria(Criteria.where("_id").is(next.id()).and("version").is(expectedVersion)),
                 next, org.springframework.data.mongodb.core.FindAndReplaceOptions.options().returnNew());

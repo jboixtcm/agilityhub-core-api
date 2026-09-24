@@ -18,7 +18,10 @@ public class BookingCounters {
     public BookingCounters(BookingContext context, ClassSessionBookingAccess classes, BookingRepository bookings, WaitlistEntryRepository waitlist, BookingEvents events) {
         this.context = context; this.classes = classes; this.bookings = bookings; this.waitlist = waitlist; this.events = events;
     }
-    /** @param inTimeCancellation a `BookingCancelled{late: false}` of this class happened in the transaction */
+    /**
+     * @param inTimeCancellation a `BookingCancelled{late: false}` of this class happened in the transaction, or a
+     *        `WaitlistExpired` left it unchanged (R-15-12b): the drops that may alert
+     */
     public void recount(String classSessionId, boolean inTimeCancellation, BookingActor actor) {
         var session = classes.find(classSessionId).orElse(null);
         if (session == null || !session.active()) { return; }

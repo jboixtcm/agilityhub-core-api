@@ -13,6 +13,12 @@ public class SchedulingEvents {
     private final EventPublisher publisher; private final AuditActorProvider actors; private final Clock clock;
     public SchedulingEvents(EventPublisher publisher, AuditActorProvider actors, Clock clock) { this.publisher = publisher; this.actors = actors; this.clock = clock; }
     public String actor() { return actors.current().accountId(); }
+    /** S15 §7 events owned by the scheduling processes (`ClassAtRisk`, `ClassAutoCancelled`), with the same actor rules. */
+    public void publish(com.agilityhub.core.shared.domain.events.SchedulerEvent.Kind kind, String id, Map<String, Object> payload) {
+        var actor = actors.current(); var user = CurrentUser.current();
+        publisher.publish(new com.agilityhub.core.shared.domain.events.SchedulerEvent(kind, TenantContext.require(), id, clock.instant(), payload,
+                actor.accountId(), actor.impersonatedMemberId(), user == null ? DomainEvent.Origin.SYSTEM : user.origin()));
+    }
     public void publish(SchedulingEvent.Kind kind, String id, Map<String, Object> payload) {
         var actor = actors.current(); var user = CurrentUser.current();
         publisher.publish(new SchedulingEvent(kind, TenantContext.require(), id, clock.instant(), payload, actor.accountId(), actor.impersonatedMemberId(),

@@ -95,7 +95,7 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         var risk = mongo.findOne(Query.query(Criteria.where("date").is(wednesday.toString()).and("startTime").is("09:30").and("ringId").is(ring("CAD"))), Document.class, "class_sessions");
         assertThat(risk.getString("state")).isEqualTo("CANCELLED");
         assertThat(risk.get("cancellation", Document.class).getString("reason")).isEqualTo("RISK_REVIEW");
-        assertThat(risk.get("cancellation", Document.class).getString("adminText")).isEqualTo(messages.format("scheduling.autoCancel.text", Map.of(), Locale.forLanguageTag("ca")));
+        assertThat(risk.get("cancellation", Document.class).getString("adminText")).isEqualTo(messages.format("scheduling.autoCancel.text", Map.of("minDogs", 2), Locale.forLanguageTag("ca")));
         var full = session(wednesday, "08:30", ring("CEN")).get("counters", Document.class);
         assertThat(full).containsEntry("booked", 5).containsEntry("waiting", 1);
         var saturday = mongo.findOne(Query.query(Criteria.where("date").is(MONDAY.plusWeeks(2).plusDays(5).toString()).and("startTime").is("18:30")), Document.class, "class_sessions");

@@ -31,6 +31,11 @@ public class ClassSessionBookingAccess {
     }
     public Optional<Session> find(String id) { return id == null ? Optional.empty() : classes.findById(id).map(ClassSessionBookingAccess::view); }
     public Session require(String id) { return find(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
+    /** ACTIVE classes starting in `[from, to)`, by start (S15 P1 warm-up of the bookable-classes base cache). */
+    public List<Session> activeBetween(Instant from, Instant to) {
+        return classes.findActiveBetween(com.agilityhub.core.shared.application.TenantContext.require(), from, to).stream()
+                .sorted(Comparator.comparing(ClassSession::startsAt).thenComparing(ClassSession::id)).map(ClassSessionBookingAccess::view).toList();
+    }
     public Labels labels(Session s, Locale locale) {
         var c = classes.findById(s.id()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); var catalog = context.catalog();
         var ring = catalogs.rings().stream().filter(r -> r.id().equals(c.ringId())).findFirst();

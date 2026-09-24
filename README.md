@@ -447,9 +447,23 @@ smoke and the gate E4 checklist.
 `shared.scheduling.enabled=false`, as in the integration tests) and executes, club
 by club (`ACTIVE` and `ONBOARDING`; `SUSPENDED` records `SKIPPED{CLUB_INACTIVE}`),
 every registered `Job` bean in the R-15-01 catalog order. Runs are traced in
-`job_runs` (also `SKIPPED` and dry runs) and leased in `job_locks`. E5-T01 ships
-the framework only; the processes arrive with E5-T05 (P1, P2, P6, P7, P9), E6, E7
-and E8, and `/jobs*` answers 501 until then.
+`job_runs` (also `SKIPPED` and dry runs) and leased in `job_locks`. E5-T05 ships
+P1 `week-opening`, P2 `risk-review`, P6 `waitlist-fifo`, P7 `payment-timeouts` and
+P9 `cleanup`; P3/P8 arrive with E6, P4 with E7, P5/P10 with E8 (their `GET /jobs`
+rows stay absent until then). The same code runs from the CLI, without the
+scheduler, under the same lock (a manual run, `actorAccountId` empty):
+
+```sh
+bin/core jobs:run risk-review --club=canic --dry-run   # the plan only (WOULD_* items), nothing written but the JobRun
+bin/core jobs:run risk-review --club=canic             # [Executa ara]
+bin/core jobs:run week-opening                         # every ACTIVE club
+bin/core jobs:run cleanup --club=canic                 # also waitlist-fifo, payment-timeouts (module permitting)
+```
+
+`<route-id>` is the R-15-01 id (`week-opening`, `risk-review`, `waitlist-fifo`,
+`payment-timeouts`, `cleanup`); an unknown id or a process whose module is off
+fails with `JOB_UNKNOWN` / `MODULE_DISABLED`. Each run prints its id, status and
+counters. `scheduling:finish-ended` (above) stays the E4 command until P8 lands.
 
 Under the `test` and `local` profiles only, the application clock can be moved for
 end-to-end sessions (S15 WP-15-E); the endpoint does not exist elsewhere and is not

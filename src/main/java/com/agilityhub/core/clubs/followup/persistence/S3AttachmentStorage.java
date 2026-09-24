@@ -20,6 +20,7 @@ public class S3AttachmentStorage implements AttachmentStorage {
                 .getObjectRequest(request -> request.bucket(bucket).key(objectKey(key)).responseContentDisposition("attachment")))
                 .url().toExternalForm();
     }
+    @Override public void delete(String key) { client.deleteObject(request -> request.bucket(bucket).key(objectKey(key))); }
     @Override public Metadata metadata(String key) {
         try {
             var result = client.headObject(request -> request.bucket(bucket).key(objectKey(key)));

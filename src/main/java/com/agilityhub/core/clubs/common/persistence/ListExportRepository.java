@@ -55,6 +55,17 @@ public class ListExportRepository extends TenantRepository<ExportJob> {
     public List<ExportJob> expired(Instant now) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("status").ne("EXPIRED").and("expiresAt").lte(now)).limit(100), ExportJob.class);
     }
+    /** S15 P9: finished (READY/FAILED) jobs created before `before` that still keep their tombstone-less record. */
+    public List<ExportJob> purgeable(Instant before) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("status").in("READY", "FAILED").and("createdAt").lt(before))
+                .with(Sort.by("createdAt", "_id")), ExportJob.class);
+    }
+    /** S15 P9 «registre marcat PURGED»: the existing tombstone (EXPIRED, files unset) with an immediate `purgeAt`. */
+    public boolean purged(ExportJob job, Instant now) {
+        return mongo.updateFirst(tenantQuery(job.clubId()).addCriteria(Criteria.where("_id").is(job.id()).and("status").in("READY", "FAILED")),
+                new Update().set("status", "EXPIRED").set("purgeAt", now).unset("fileKey").unset("fileKeys").unset("claimToken").unset("leaseUntil"),
+                ExportJob.class).getModifiedCount() == 1;
+    }
     public void cleaned(ExportJob job, Instant now) {
         mongo.updateFirst(tenantQuery(job.clubId()).addCriteria(Criteria.where("_id").is(job.id()).and("expiresAt").lte(now)),
                 new Update().set("status", "EXPIRED").set("purgeAt", now.plus(Duration.ofDays(7)))

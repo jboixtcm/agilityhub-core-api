@@ -22,6 +22,13 @@ public class ClassBookingsAdapter implements ClassBookingsPort {
         var order = new HashMap<String, Integer>(); for (int i = 0; i < entryIds.size(); i++) { order.putIfAbsent(entryIds.get(i), i); }
         return waitlist.byIds(new LinkedHashSet<>(entryIds)).stream().sorted(Comparator.comparing(e -> order.get(e.id()))).map(ClassBookingsAdapter::ref).toList();
     }
+    @Override public List<BookingRef> bookings(List<String> bookingIds) {
+        var order = new HashMap<String, Integer>(); for (int i = 0; i < bookingIds.size(); i++) { order.putIfAbsent(bookingIds.get(i), i); }
+        return bookings.byIds(new LinkedHashSet<>(bookingIds)).stream().sorted(Comparator.comparing(b -> order.get(b.id()))).map(ClassBookingsAdapter::ref).toList();
+    }
+    @Override public List<BookingRef> clubCancelled(String classId) {
+        return bookings.forClass(classId, List.of(com.agilityhub.core.clubs.bookings.domain.BookingState.CANCELLED_BY_CLUB)).stream().map(ClassBookingsAdapter::ref).toList();
+    }
     @Override @Transactional(propagation = Propagation.MANDATORY)
     public CancellationEffects cancelAllByClub(String classId, String reason, String actorAccountId) {
         var result = cancellations.cancelByClub(classId, reason, null, actorAccountId);

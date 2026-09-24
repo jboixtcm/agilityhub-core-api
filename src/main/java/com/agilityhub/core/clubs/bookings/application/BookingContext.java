@@ -33,6 +33,8 @@ public class BookingContext {
     public int integer(String key) { return config().get(key, Integer.class); }
     public boolean flag(String key) { return Boolean.TRUE.equals(config().get(key, Boolean.class)); }
     public BookingWeeks weeks() { return new BookingWeeks(BookingWeeks.Opening.of(config().get("bookings.weekOpensAt", Map.class)), zone()); }
+    /** The last local `bookings.weekOpensAt` occurrence at or before `at` (S15 P1 `opensAt`). */
+    public Instant lastOpening(Instant at) { return weeks().lastOpening(at); }
     public LimitUnit unit() { return LimitUnit.valueOf(config().get("bookings.limitUnit", String.class)); }
     /** `[O, next O)` around an instant, `O` = the last local `bookings.weekOpensAt` ≤ it (S09 R-09-05 reuses R-08-01's weeks). */
     public record WeekSpan(Instant start, Instant end) { }
