@@ -29,7 +29,7 @@ Resol **com neix i es governa un club** sense codi ni desplegament: (1) a E0, la
 
 ```yaml
 apiVersion: agilityhub.club/v1
-club: { slug: canic, name: Club Agility Cànic, legalName: …, taxId: …, address: {…}, contactEmail: …, websiteUrl: … }
+club: { slug: canic, name: Club Agility Cànic, legalName: Club Agility Cànic, taxId: G63189617, address: {…}, displayCity: Cabrera de Mar, contactEmail: …, websiteUrl: … }
 localization: { locales: [ca, es], defaultLocale: ca, timeZone: Europe/Madrid, currency: EUR, countryProfile: ES }
 domains: [ { host: app.agilitycanic.cat, app: clubs }, { host: admin.agilitycanic.cat, app: clubs-admin } ]
 theme: { preset: null, colors: { primary: "#E26A2A", onPrimary: "#0B0B0B", background: "#0B0B0B", … }, fontFamily: Montserrat, radius: 4, mode: dark, logo: { file: ./marca/logo.svg } }
@@ -44,6 +44,8 @@ catalogs: { levels: [...], rings: [...], plans: [...], prices: [...], faq: [...]
 admins: [ { email: admin@exemple.cat, name: … } ]
 ```
 Secrets **només** per referència a variables d'entorn (`{ env: NOM }`): el fitxer es pot versionar (al repo de l'API, `seeds/`).
+
+**Avui (E3-T14, 25-09)**, `club:apply` accepta de cada proveïdor només l'interruptor, `paymentProviders: {NAME: {enabled: bool}}` (o l'antiga llista de noms), i les credencials es desen per R-17-05, fora del fitxer. La forma amb `{ env: … }` de l'exemple arribarà amb la consola.
 
 ## 4. Regles de negoci
 
@@ -179,3 +181,4 @@ Ordre: A → B → C ∥ D. Fils: (1) A+B, (2) C, (3) D.
 - 03-09-2026 · v0.1 · esborrany inicial a partir de VISIO, PLATAFORMA §2, ADR-002/003/009/010/011/012 i les specs S02/S05/S11/S12/S14/S15.
 - 03-09-2026 · catàleg tancat: «Invitació com a administrador» = **N-53**; «Domini trencat» = N-43.
 - 24-09-2026 · A32 (Jordi): el text sobre el taronja del Cànic és fosc (`onPrimary` `#0B0B0B`, 5,9:1), perquè el tema passi el contrast AA que `THEME_CONTRAST` exigeix.
+- 25-09-2026 · E3-T14: la definició porta `paymentProviders: {NAME: {enabled}}`, i les credencials, per R-17-05. `club.displayCity` (S02, Jordi).

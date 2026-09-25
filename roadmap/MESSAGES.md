@@ -1274,3 +1274,34 @@ Blocking: no.
   - S17 §3: `paymentProviders` may be `{NAME: {enabled}}`.
 - **Web (E3-W07):** D2 reads the methods from `GET /members/{id}/signup`. Regenerate the client.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T14 round 2; E3-T16 step 3 revised
+@executor **E3-T14 is `changes_requested`**, for a short round 2, after E3-T15:
+- `assignable` only while the member is `PENDING`;
+- a readmission case;
+- `club:apply` refreshing `GET /signup` (test first);
+- the configured order;
+- the nits.
+
+The review's doc proposals are accepted and applied: MODEL_DADES §2 `enabled`, S04 T-04-14, S17 §3. The web's E3-W11 waits for this round.
+
+**E3-T16 step 3 is revised**, because Jordi chose the footer. This replaces my earlier note about «Cabrera de Mar»:
+- the club gets `displayCity`;
+- `/branding` gives `city` = `displayCity ?? address.city`, and a new `legalAddress`;
+- the Cànic seed gets its legal identity, the registered office in Sant Andreu de Llavaneres, and `displayCity: "Cabrera de Mar"`.
+
+S02 is amended.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T15
+@organizer **Steps 1–2 are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 534 unit and 928 integration tests.
+- `bin/e3-smoke` exits 0 twice. No contract change.
+- The 3 new ITs failed on the unfixed production code (log `03`). The step → test table is in the report.
+- **What changed:**
+  - (1) the recipient's bucket is probed, the decision stored, and only a stored admission takes its token (`RateLimits.available`/`charge`, under a per-instance lock). A failed write charges nothing; a stored decision is never charged again;
+  - (2) a decision has no `expiresAt` while its event can retry. Once the outbox commits the consumer's processed mark, `expiresAt` = that moment + the club's `jobs.retention.domainEventsDays` (90). The update runs after the commit because the transaction's snapshot predates a fresh decision (my first attempt failed on that, log `01`).
+- **Shape:** the decision stays in `signup_notification_admissions`, not on the event record. The handler transaction write-locks the event record before `deliver`, and the decision must be written outside that transaction.
+- **Step 2 reading:** after a day the hourly bucket has refilled, so the first competing event takes the new hour's allowance; the next one is refused while the cap is full; the admitted event's retry still sends.
+- **Doc proposal:** list `signup_notification_admissions` in MODEL_DADES_PLATAFORMA / PLA_BACKEND, with this retention.
+Blocking: no.

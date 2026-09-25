@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T15: gate E3 audit fixes (api), a failure-safe recipient-cap admission (R-04-20, review of E3-T12 round 2).
+  - The decision is stored before the allowance is charged: the per-recipient bucket is probed, the decision is written
+    to `signup_notification_admissions`, and only a stored admission takes its token (`RateLimits.available` /
+    `charge`). A failed write charges nothing, and a retry that finds a stored decision never charges again.
+  - The decision lives as long as its event: no `expiresAt` while the event can still retry. Once the outbox commits
+    the consumer's processed mark, `expiresAt` = that moment + the club's `jobs.retention.domainEventsDays` (S15, 90).
+    The fixed one-day TTL from the decision time is gone.
+  - No contract change.
 - E3-T14: gate E3 audit fixes (api), the payment methods of a signup.
   - R-04-10: one rule for "enabled". A provider is enabled only with `CLUB.paymentProviders.{provider}.enabled: true`,
     the flag `GET /club` already showed. `GET /signup` offers only those methods, in the configured order. `POST /signup`

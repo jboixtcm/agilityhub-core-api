@@ -189,7 +189,7 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         String id=submit(withEmail(request(),email)).path("memberId").asText();
         dispatch();
         // A is admitted, then its delivery fails: nothing sent, a retry pending.
-        String a=newSubmitted(id);Instant decided=clock.instant();
+        String a=newSubmitted(id);Instant processed;
         assertThat(mailsTo(email)).isEmpty();assertThat(byId("domain_events",a).getString("status")).isEqualTo("PENDING");
         // The application restarts: the per-instance buckets start empty.
         Object target=org.springframework.test.util.AopTestUtils.getUltimateTargetObject(notifications);
@@ -203,7 +203,7 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
             assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
             assertThat(byId("notifications",a+":applicant").getString("status")).as("A not retried yet").isEqualTo("QUEUED");
             // A's retry keeps its stored admission and sends; only then is its consumer processed.
-            clock.advance(Duration.ofSeconds(2));dispatch();
+            clock.advance(Duration.ofSeconds(2));dispatch();processed=clock.instant();
             assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
             assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
             assertThat(byId("domain_events",a).get("processedAt",Document.class)).containsKey(consumer("signupSubmittedMail"));
@@ -217,7 +217,8 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         // The decisions are stored per event and notification, the refusal too, with the club and without the address.
         var stored=byId("signup_notification_admissions",a+":N-01");
         assertThat(stored).containsEntry("clubId",club).containsEntry("eventId",a).containsEntry("notificationCode","N-01").containsEntry("admitted",true);
-        assertThat(stored.getDate("expiresAt").toInstant()).isEqualTo(decided.plus(Duration.ofDays(1)));
+        // E3-T15: its retention is its event's, from the moment the event is processed (`jobs.retention.domainEventsDays`, 90).
+        assertThat(stored.getDate("expiresAt").toInstant()).isEqualTo(processed.plus(Duration.ofDays(90)));
         assertThat(stored.toJson()).doesNotContain(email);
         assertThat(collection("signup_notification_admissions").stream().map(d -> d.getString("_id")+"="+d.getBoolean("admitted")))
                 .containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
@@ -226,9 +227,11 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         // Two deliveries of one event racing for the first decision: the first stored one wins.
         String race=UUID.randomUUID().toString();
         try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
-            var first=admissions.decide(new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission(race+":N-01",club,race,"N-01",true,clock.instant(),clock.instant()));
-            var second=admissions.decide(new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission(race+":N-01",club,race,"N-01",false,clock.instant(),clock.instant()));
-            assertThat(first.admitted()).isTrue();assertThat(second.admitted()).isTrue();
+            var first=admissions.decide(new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission(race+":N-01",club,race,"N-01",true,clock.instant(),null));
+            var second=admissions.decide(new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission(race+":N-01",club,race,"N-01",false,clock.instant(),null));
+            assertThat(first.admission().admitted()).isTrue();assertThat(second.admission().admitted()).isTrue();
+            // E3-T15: only the delivery that stored the decision charges the allowance.
+            assertThat(first.stored()).isTrue();assertThat(second.stored()).isFalse();
             assertThat(admissions.decision(race,"N-01")).hasValueSatisfying(d -> assertThat(d.admitted()).isTrue());
         }
     }
@@ -377,5 +380,100 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         var changed=dryRun(id,other).path("upfront");
         assertThat(changed.path("lines").findValuesAsText("concept")).contains("FIRST_MONTH");
         firstMonth(changed.path("firstMonth"),"TODAY","FULL","2026-01-05",8000);
+    }
+
+    // ---- E3-T15 (review of E3-T12 round 2, R-04-20): a failure-safe recipient-cap admission ----
+    /**
+     * Runs {@code body} while the first {@code failures} admission writes of this club fail, as a lost Mongo primary would
+     * make them. Other clubs' events (the dispatcher serves them all) are untouched.
+     */
+    void withFailingAdmissionWrites(int failures,org.junit.jupiter.api.function.Executable body) throws Throwable {
+        var remaining=new java.util.concurrent.atomic.AtomicInteger(failures);
+        var failing=new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository(mongo) {
+            @Override public com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission insert(com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission decision) {
+                if(club.equals(decision.clubId())&&remaining.getAndDecrement()>0) throw new org.springframework.dao.DataAccessResourceFailureException("Fictional admission write failure");
+                return super.insert(decision);
+            }
+        };
+        Object target=org.springframework.test.util.AopTestUtils.getUltimateTargetObject(notifications);
+        Object before=org.springframework.test.util.ReflectionTestUtils.getField(target,"admissions");
+        org.springframework.test.util.ReflectionTestUtils.setField(target,"admissions",failing);
+        try { body.execute(); } finally { org.springframework.test.util.ReflectionTestUtils.setField(target,"admissions",before); }
+    }
+    List<String> decisions() { return collection("signup_notification_admissions").stream().map(d -> d.getString("_id")+"="+d.getBoolean("admitted")).toList(); }
+    // Step 1: the decision is written before the charge, and a retry never re-charges.
+    @Test void R_04_20_aDecisionThatFailsToBeStoredChargesNothingAndItsRetryAdmitsAndSendsOnce() throws Throwable {
+        parameter("signup.rateLimit",cap(1));
+        String email=unique("unstored");
+        withFailingAdmissionWrites(1,() -> {
+            String id=submit(withEmail(request(),email)).path("memberId").asText();
+            dispatch();
+            // The write failed: no decision stored, nothing sent, a retry pending.
+            String a=newSubmitted(id);
+            assertThat(byId("signup_notification_admissions",a+":N-01")).isNull();
+            assertThat(mailsTo(email)).isEmpty();assertThat(byId("domain_events",a).getString("status")).isEqualTo("PENDING");
+            clock.advance(Duration.ofSeconds(2));dispatch();
+            // The retry decides on an untouched bucket: admitted, sent exactly once, and no refusal recorded.
+            assertThat(mailsTo(email)).hasSize(1);
+            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(decisions()).containsExactly(a+":N-01=true");
+            assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
+        });
+    }
+    @Test void R_04_20_aDecisionThatFailsToBeStoredIsChargedOnceSoTheNextEventStillHasItsShare() throws Throwable {
+        parameter("signup.rateLimit",cap(2));
+        String email=unique("charged-once");
+        withFailingAdmissionWrites(1,() -> {
+            String id=submit(withEmail(request(),email)).path("memberId").asText();
+            dispatch();clock.advance(Duration.ofSeconds(2));dispatch();
+            String a=newSubmitted(id);
+            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            // With a cap of 2, A's failed write and its retry took one allowance: B, within the hour, takes the second; C is refused.
+            validate(id);addDog(id,"Second Dog");dispatch();String b=newSubmitted(id,a);
+            addDog(id,"Third Dog");dispatch();String c=newSubmitted(id,a,b);
+            assertThat(byId("notifications",b+":applicant")).as("B admitted").isNotNull();
+            assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(byId("notifications",c+":applicant")).as("C refused").isNull();
+            assertThat(decisions()).containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
+        });
+    }
+    /** What Mongo's TTL monitor removes once the clock has reached {@code expiresAt} (it runs on the server's own time). */
+    void ttlMonitor() {
+        mongo.getCollection("signup_notification_admissions").deleteMany(new Document("clubId",club).append("expiresAt",new Document("$lte",Date.from(clock.instant()))));
+    }
+    // Step 2: the decision lives as long as its event; its retention starts once the event is processed.
+    @Test void R_04_20_anAdmittedEventPendingForMoreThanADayKeepsItsDecisionAndSendsAfterACompetingEvent() throws Exception {
+        parameter("signup.rateLimit",cap(1));
+        String email=unique("pending");mailbox().failNextTo(email);
+        String id=submit(withEmail(request(),email)).path("memberId").asText();
+        dispatch();
+        // A is admitted, then its delivery fails: nothing sent, a retry pending.
+        String a=newSubmitted(id);
+        var whilePending=byId("signup_notification_admissions",a+":N-01");
+        assertThat(whilePending).containsEntry("admitted",true);
+        assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("QUEUED");
+        // More than a day passes with A still pending (an outage, a dispatch backlog); the TTL monitor runs meanwhile.
+        clock.advance(Duration.ofDays(1).plusHours(1));ttlMonitor();
+        // The backlog: A's retry comes due after the next events of this address.
+        mongo.getCollection("domain_events").updateOne(new Document("_id",a),new Document("$set",new Document("nextAttemptAt",Date.from(clock.instant().plus(Duration.ofMinutes(5))))));
+        // B, a competing event to the same address, takes this hour's only allowance; C arrives while the cap is full and is refused.
+        validate(id);addDog(id,"Competing Dog");dispatch();String b=newSubmitted(id,a);
+        addDog(id,"Refused Dog");dispatch();String c=newSubmitted(id,a,b);
+        assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
+        assertThat(byId("notifications",c+":applicant")).as("C refused while the cap is full").isNull();
+        assertThat(byId("notifications",a+":applicant").getString("status")).as("A not retried yet").isEqualTo("QUEUED");
+        // A's retry still sends: its decision outlived the day.
+        clock.advance(Duration.ofMinutes(5));dispatch();Instant processed=clock.instant();
+        assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+        assertThat(mailsTo(email).stream().filter(m -> m.text().contains("Refused Dog"))).isEmpty();
+        assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
+        assertThat(decisions()).containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
+        assertThat(collection("domain_events").stream().filter(e -> !"PUBLISHED".equals(e.getString("status")))).isEmpty();
+        // No expiry while pending; once processed, the event's own retention (`jobs.retention.domainEventsDays`, 90 by default).
+        assertThat(whilePending.get("expiresAt")).as("no expiry while pending").isNull();
+        assertThat(byId("signup_notification_admissions",a+":N-01").getDate("expiresAt").toInstant()).isEqualTo(processed.plus(Duration.ofDays(90)));
+        parameter("jobs.retention.domainEventsDays",7);
+        addDog(id,"Short Retention Dog");clock.advance(Duration.ofHours(1));dispatch();String d=newSubmitted(id,a,b,c);
+        assertThat(byId("signup_notification_admissions",d+":N-01").getDate("expiresAt").toInstant()).isEqualTo(clock.instant().plus(Duration.ofDays(7)));
     }
 }

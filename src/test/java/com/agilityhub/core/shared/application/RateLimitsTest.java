@@ -56,4 +56,22 @@ class RateLimitsTest {
         // A changed parameter opens a bucket with the new capacity.
         assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", new RateLimits.Limit(3, Duration.ofHours(1)))).isZero();
     }
+
+    @Test void R_04_20_availableProbesWithoutTakingAndChargeTakesTheToken() {
+        var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
+        var limits = new RateLimits(true, Map.of(), clock);
+        var one = new RateLimits.Limit(1, Duration.ofHours(1));
+        String subject = "club:N-01:recipient-hash";
+        // E3-T15: probing never takes the token, however often a decision is retried.
+        for (int attempt = 0; attempt < 3; attempt++) { assertThat(limits.available(RateLimits.Route.SIGNUP_RECIPIENT, subject, one)).isTrue(); }
+        limits.charge(RateLimits.Route.SIGNUP_RECIPIENT, subject, one);
+        assertThat(limits.available(RateLimits.Route.SIGNUP_RECIPIENT, subject, one)).isFalse();
+        assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT, subject, one)).isEqualTo(3600);
+        clock.advance(Duration.ofHours(1));
+        assertThat(limits.available(RateLimits.Route.SIGNUP_RECIPIENT, subject, one)).isTrue();
+        // Disabled limits always admit and never charge.
+        var disabled = new RateLimits(false, Map.of(), clock);
+        disabled.charge(RateLimits.Route.SIGNUP_RECIPIENT, subject, one);
+        assertThat(disabled.available(RateLimits.Route.SIGNUP_RECIPIENT, subject, one)).isTrue();
+    }
 }

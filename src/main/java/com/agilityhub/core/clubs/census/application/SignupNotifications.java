@@ -11,6 +11,8 @@ import java.util.*;
 import org.springframework.context.annotation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import static com.agilityhub.core.clubs.census.application.CensusValues.*;
 
 @Service
@@ -19,11 +21,10 @@ public class SignupNotifications {
     private final com.agilityhub.core.platform.application.CensusClubSettings settings;
     private final RateLimits limits;private final SignupCapabilities capabilities;
     private final SignupNotificationAdmissionRepository admissions;private final java.time.Clock clock;
-    /**
-     * How long an admission is kept: beyond the outbox's whole retry horizon (10 attempts at most 300 s apart, plus the
-     * five-minute claim leases), so no retry of an event outlives its decision.
-     */
-    static final java.time.Duration ADMISSION_RETENTION=java.time.Duration.ofDays(1);
+    /** The notification whose recipient cap each event type decides (R-04-20). */
+    private static final Map<String,String> CAPPED=Map.of("SignupRecognitionRequested","N-39","SignupSubmitted","N-01");
+    /** E3-T15: one recipient-cap decision at a time on this instance, whose buckets they charge. */
+    private final java.util.concurrent.locks.ReentrantLock deciding=new java.util.concurrent.locks.ReentrantLock();
     private static final org.slf4j.Logger LOG=org.slf4j.LoggerFactory.getLogger(SignupNotifications.class);
     public SignupNotifications(CensusAccess access,SignupIdentityService identities,SignupLinks links,SystemNotificationService notifications,
             com.agilityhub.core.platform.application.CensusClubSettings settings,RateLimits limits,SignupCapabilities capabilities,
@@ -37,19 +38,54 @@ public class SignupNotifications {
      * per club; the rest are skipped and logged with a hash, never the address. E3-T12: each event is decided once per
      * notification, so a delivery retried after its admission (a provider failure) still sends; only new events count.
      * Round 2: the decision is persisted when taken ({@link SignupNotificationAdmission}), so it also survives a restart,
-     * which empties the per-instance buckets.
+     * which empties the per-instance buckets. E3-T15: a stored decision is never charged again, and it has no expiry until
+     * its event is processed ({@link #processed}).
      */
     private boolean capped(String clubId,String eventId,String code,String recipient) {
         String hash=capabilities.fingerprint(recipient.toLowerCase(Locale.ROOT));
-        var admission=admissions.decision(eventId,code).orElseGet(() -> {
-            var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
-            boolean admitted=limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash,limit)==0;
-            var now=clock.instant();
-            return admissions.decide(new SignupNotificationAdmission(SignupNotificationAdmission.id(eventId,code),clubId,eventId,code,admitted,now,now.plus(ADMISSION_RETENTION)));
-        });
+        var admission=admissions.decision(eventId,code).orElseGet(() -> decide(clubId,eventId,code,hash));
         if(admission.admitted()) return false;
         LOG.info("Signup notification capped per recipient code={} clubId={} recipientHash={}",code,clubId,hash);
         return true;
+    }
+    /**
+     * E3-T15 step 1: the bucket is probed, the decision stored, and only then does an admission take its token. A failed
+     * write throws before the charge, so the retry decides again on an untouched bucket; a decision a concurrent delivery
+     * of the same event stored first is used as it is, and charged by that delivery. The lock keeps another event of the
+     * same recipient from probing in between.
+     */
+    private SignupNotificationAdmission decide(String clubId,String eventId,String code,String hash) {
+        var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
+        String subject=clubId+":"+code+":"+hash;
+        deciding.lock();
+        try {
+            boolean admitted=limits.available(RateLimits.Route.SIGNUP_RECIPIENT,subject,limit);
+            var decided=admissions.decide(new SignupNotificationAdmission(SignupNotificationAdmission.id(eventId,code),clubId,eventId,code,admitted,clock.instant(),null));
+            if(decided.stored()&&admitted) limits.charge(RateLimits.Route.SIGNUP_RECIPIENT,subject,limit);
+            return decided.admission();
+        } finally { deciding.unlock(); }
+    }
+    /**
+     * E3-T15 step 2: the consumer calls this after {@link #deliver}, inside the outbox transaction that marks it processed.
+     * The decision's retention (its event's, S15 `jobs.retention.domainEventsDays`) starts once that transaction commits:
+     * a rolled-back delivery leaves the decision without expiry, however long its event stays pending. The update runs
+     * after the commit because the transaction reads a snapshot taken before this delivery stored its decision. If it
+     * fails, the decision is kept without expiry (logged): a leftover, never a lost admission.
+     */
+    @Transactional
+    public void processed(String eventId,CensusEvent event) {
+        String code=CAPPED.get(event.type());
+        if(code==null) return;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() {
+                try(var tenant=TenantContext.open(event.clubId())) {
+                    int days=access.config().get("jobs.retention.domainEventsDays",Integer.class);
+                    admissions.retain(eventId,code,clock.instant().plus(java.time.Duration.ofDays(days)));
+                } catch(RuntimeException failure) {
+                    LOG.warn("Signup notification admission kept without expiry eventId={} code={} error={}",eventId,code,failure.getClass().getSimpleName());
+                }
+            }
+        });
     }
     /** The event's dogs (`dogIds`). The ids are a collection: `in(Object...)` would search for the list itself and find no dog. */
     private List<com.agilityhub.core.clubs.census.persistence.Dog> dogs(CensusEvent event) {
@@ -130,7 +166,7 @@ public class SignupNotifications {
         @Bean DomainEventHandler<CensusEvent> signupRecognitionMail(SignupNotifications service) { return handler("SignupRecognitionRequested",service); }
         @Bean DomainEventHandler<CensusEvent> signupDogNotification(SignupNotifications service) { return handler("DogRegistered",service); }
         private DomainEventHandler<CensusEvent> handler(String type,SignupNotifications service) {
-            return new DomainEventHandler<>() {public String eventType(){return type;}public Class<CensusEvent> eventClass(){return CensusEvent.class;}public void handle(String id,CensusEvent event){service.deliver(id,event);}};
+            return new DomainEventHandler<>() {public String eventType(){return type;}public Class<CensusEvent> eventClass(){return CensusEvent.class;}public void handle(String id,CensusEvent event){service.deliver(id,event);service.processed(id,event);}};
         }
     }
 }

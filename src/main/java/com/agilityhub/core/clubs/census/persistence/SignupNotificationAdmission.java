@@ -9,7 +9,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * R-04-20 (E3-T12 round 2): the recipient-cap decision of one signup notification of one event, `_id` = `eventId:code`.
  * It is written when the decision is taken, outside the delivery's transaction, so every retry of that event reuses it,
  * after a restart too: an admitted event keeps its right to send and a refused one stays refused. It holds no recipient
- * data (the cap's buckets hold the hashed address). The TTL on `expiresAt` removes it once the outbox can no longer retry.
+ * data (the cap's buckets hold the hashed address). E3-T15: it is stored before the allowance is charged, and it lives as
+ * long as its event: `expiresAt` stays empty while the event may retry and is set when its consumer is processed, to the
+ * club's `jobs.retention.domainEventsDays` later (S15); the TTL on `expiresAt` removes it then.
  */
 @Document("signup_notification_admissions")
 public record SignupNotificationAdmission(@Id String id, String clubId, String eventId, String notificationCode, boolean admitted,

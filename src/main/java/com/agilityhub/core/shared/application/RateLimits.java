@@ -65,10 +65,27 @@ public final class RateLimits {
      */
     public long retryAfter(Route route, String subject, Limit limit) {
         if (!enabled) { return 0; }
-        var bucket = buckets.get(new Key(route, subject, limit), key -> Bucket.builder().withCustomTimePrecision(time)
-                .addLimit(bandwidth -> bandwidth.capacity(key.limit().capacity()).refillIntervally(key.limit().capacity(), key.limit().period())).build());
-        var probe = bucket.tryConsumeAndReturnRemaining(1);
+        var probe = bucket(route, subject, limit).tryConsumeAndReturnRemaining(1);
         return probe.isConsumed() ? 0 : Math.max(1, (probe.getNanosToWaitForRefill() + 999_999_999L) / 1_000_000_000L);
+    }
+
+    /**
+     * E3-T15: whether {@code subject} has one request left now, without taking it. With {@link #charge}, a caller can store
+     * its decision between the two, so a decision that failed to be stored has charged nothing. The caller serialises the
+     * pair per subject; a concurrent {@link #retryAfter} on the same bucket may still take the token in between.
+     */
+    public boolean available(Route route, String subject, Limit limit) {
+        return !enabled || bucket(route, subject, limit).estimateAbilityToConsume(1).canBeConsumed();
+    }
+
+    /** E3-T15: takes the token {@link #available} saw. */
+    public void charge(Route route, String subject, Limit limit) {
+        if (enabled) { bucket(route, subject, limit).tryConsume(1); }
+    }
+
+    private Bucket bucket(Route route, String subject, Limit limit) {
+        return buckets.get(new Key(route, subject, limit), key -> Bucket.builder().withCustomTimePrecision(time)
+                .addLimit(bandwidth -> bandwidth.capacity(key.limit().capacity()).refillIntervally(key.limit().capacity(), key.limit().period())).build());
     }
 
     /** The limit of {@code route} for a club whose `signup.rateLimit` is {@code parameter} (null: the defaults). */

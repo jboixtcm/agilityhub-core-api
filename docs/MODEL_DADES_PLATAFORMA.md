@@ -132,12 +132,12 @@ erDiagram
 ### CLUB
 | Bloc | Atributs | Notes |
 |---|---|---|
-| Identitat | id, slug, name, legalName, taxId, address (per camps), contactEmail, contactPhone, websiteUrl | |
+| Identitat | id, slug, name, legalName, taxId, address (per camps; el domicili), displayCity (la població que es mostra; per defecte address.city; S02, 25-09), contactEmail, contactPhone, websiteUrl | |
 | Localització (ADR-011) | **locales[]**, **defaultLocale**, **timeZone** (IANA), **currency** (ISO 4217), **countryProfile** (`ES` · `GENERIC`) | Cànic: `[ca, es]`, `ca`, `Europe/Madrid`, `EUR`, `ES` |
 | Dominis | domains[] {host, app: `clubs`/`clubs-admin`, verifiedAt} | resolució del tenant pel host (ADR-002) |
 | Tema | theme {logoUrl, logoDarkUrl, markUrl, colors {primary, background, surface, text…}, fontFamily, radius, ringPalette[], mode: `dark`/`light`/`auto`}, pwa {name, shortName, icons} | tokens consumits per `packages/ui` i pel manifest PWA |
 | **Mòduls** (ADR-012) | modules[] | claus del `CATALEG_MODULS.md` |
-| Pagaments (ADR-009) | paymentProviders {SEPA_XML {creditorId, creditorName, iban, suffix, invoiceSeries, nextNumber}, STRIPE {secretKeyEnc, publishableKey, webhookSecretEnc, mode}, MANUAL {instructions: LocalizedText}} | claus xifrades (AES-GCM amb clau del servidor) |
+| Pagaments (ADR-009) | paymentProviders {SEPA_XML {creditorId, creditorName, iban, suffix, invoiceSeries, nextNumber}, STRIPE {secretKeyEnc, publishableKey, webhookSecretEnc, mode}, MANUAL {instructions: LocalizedText}}; cada proveïdor porta `enabled: bool`, l'interruptor que llegeixen l'oferta de l'alta (S04 R-04-10) i els cobraments (S12); `configured` es deriva de la resta de camps (E3-T14, 25-09) | claus xifrades (AES-GCM amb clau del servidor) |
 | Legal | privacyPolicyUrl, imageConsentText: LocalizedText, legalTextsVersion | consentiments versionats per `legalTextsVersion` |
 | Operació | status (ONBOARDING · ACTIVE · SUSPENDED), createdAt, onboardingChecklist {dns, sepa, branding, templates, faq, legal, firstAdmin} | consola de clubs (S17) |
 | Comptadors | usage {smsSentMonth, storageBytes} | per al futur model SAAS |

@@ -1,0 +1,11 @@
+surefire: tests=534 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.RateLimitsTest: tests=4 failures=0 errors=0 skipped=0
+    - R_04_20_availableProbesWithoutTakingAndChargeTakesTheToken
+    - R_04_20_signupRateLimitParameterSetsTheClubsCapacityAndKeepsThePeriod
+failsafe: tests=928 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=12 failures=0 errors=0 skipped=0
+    - R_04_20_aDecisionThatFailsToBeStoredChargesNothingAndItsRetryAdmitsAndSendsOnce
+    - R_04_20_aDecisionThatFailsToBeStoredIsChargedOnceSoTheNextEventStillHasItsShare
+    - R_04_20_aDeliveryRetriedAfterItsAdmissionReusesItAndSends
+    - R_04_20_anAdmittedEventKeepsItsAdmissionAcrossARestartAndNewEventsAreStillCounted
+    - R_04_20_anAdmittedEventPendingForMoreThanADayKeepsItsDecisionAndSendsAfterACompetingEvent
