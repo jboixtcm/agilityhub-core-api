@@ -104,8 +104,12 @@ class CensusIT extends AbstractIntegrationTest {
                 .append("nameKeys", List.of("en:" + id)).append("order", 1).append("active", true).append("grantsFreeTraining", free).append("version", 0), "levels");
     }
     ResultActions call(MockHttpServletRequestBuilder request, String club, String account, String... roles) throws Exception {
+        return reading("en", request, club, account, roles);
+    }
+    /** A caller whose account reads {@code locale} (the JWT `locale` claim, R-03-32). */
+    ResultActions reading(String locale, MockHttpServletRequestBuilder request, String club, String account, String... roles) throws Exception {
         return mvc.perform(request.header("Host", club + ".example.test").with(jwt().jwt(j -> j.subject(account + "-account").claim("clubId", club)
-                .claim("name", "Example Operator").claim("locale", "en")).authorities(Arrays.stream(roles)
+                .claim("name", "Example Operator").claim("locale", locale)).authorities(Arrays.stream(roles)
                         .<org.springframework.security.core.GrantedAuthority>map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role)).toList())));
     }
     ResultActions admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, CLUB, "admin", "ADMIN"); }
@@ -321,7 +325,72 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(response.path("dogs").get(0).path("tasks").path("open").asInt()).isEqualTo(1);
         assertThat(response.path("dogs").get(1).path("pack").path("remaining").asInt()).isEqualTo(4);
         assertThat(response.path("dogs").get(1).path("licenses").get(0).path("division").asText()).isEqualTo("2D");
+        // E3-T16 (R-03-15, R-03-32): the club's document types for «＋ DOC.», in catalog order and the reader's language (`en` here).
+        assertThat(response.path("documentTypes")).isEqualTo(mapper.readTree("[{\"key\":\"VACCINATION_CARD\",\"label\":\"Vaccination card\",\"required\":true},"
+                + "{\"key\":\"INSURANCE\",\"label\":\"Insurance\",\"required\":false},{\"key\":\"OTHER\",\"label\":\"Other\",\"required\":false}]"));
         assertThat(json(own(get("/api/v1/me/family-group")), 200).toString()).contains("dog-family").doesNotContain("chip");
+    }
+    /** The `label` of each `documentTypes` row, in order. */
+    List<String> documentLabels(JsonNode response) { return response.path("documentTypes").findValuesAsText("label"); }
+    /**
+     * E3-T16 step 1 (R-03-15, R-03-32; S03 amended 25-09): screen 13 reads the document types from `GET /me/dogs`, because a
+     * MEMBER (and an impersonation token) cannot read `/parameters`. The catalog here is the product default, which is the
+     * Cànic's value (CATALEG_PARAMETRES `census.dogDocumentTypes`).
+     */
+    @Test void T_03_26_R_03_32_documentTypesComeInTheReadersLanguageForEveryMemberAndUnderImpersonation() throws Exception {
+        var catalan = json(reading("ca", get("/api/v1/me/dogs"), CLUB, "one", "MEMBER"), 200);
+        assertThat(catalan.path("documentTypes").findValuesAsText("key")).containsExactly("VACCINATION_CARD", "INSURANCE", "OTHER");
+        assertThat(catalan.path("documentTypes").findValuesAsText("required")).containsExactly("true", "false", "false");
+        assertThat(documentLabels(catalan)).containsExactly("Cartilla de vacunes", "Assegurança", "Altres");
+        assertThat(documentLabels(json(reading("es", get("/api/v1/me/dogs"), CLUB, "two", "MEMBER"), 200))).containsExactly("Cartilla de vacunas", "Seguro", "Otros");
+        // A member without any dog gets them too (the dialog opens from the first card the member adds).
+        var withoutDogs = json(reading("en", get("/api/v1/me/dogs"), CLUB, "admin", "MEMBER"), 200);
+        assertThat(withoutDogs.path("dogs")).isEmpty();
+        assertThat(documentLabels(withoutDogs)).containsExactly("Vaccination card", "Insurance", "Other");
+        // `/parameters/*` stays ADMIN only: refused to the member and to the impersonation token, which still gets the types.
+        error(reading("ca", get("/api/v1/parameters/census.dogDocumentTypes"), CLUB, "one", "MEMBER"), ErrorCode.FORBIDDEN);
+        String token;
+        try (var tenant = TenantContext.open(CLUB)) { token = impersonation.create("admin-account", "one", "Example support").token().getTokenValue(); }
+        var impersonated = mvc.perform(get("/api/v1/me/dogs").header("Host", CLUB + ".example.test").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(mapper.readTree(impersonated).path("documentTypes").findValuesAsText("key")).containsExactly("VACCINATION_CARD", "INSURANCE", "OTHER");
+        mvc.perform(get("/api/v1/parameters/census.dogDocumentTypes").header("Host", CLUB + ".example.test").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+    /**
+     * E3-T16 step 1: a type the ADMIN adds is offered by the next `GET /me/dogs` (the configuration cache is evicted after the
+     * change), with the club's default language when the reader's is missing; the member's upload of that type is accepted,
+     * and an unknown type is still `400 DOCUMENT_TYPE_UNKNOWN`.
+     */
+    @Test void T_03_23_R_03_15_aTypeTheAdminAddsIsOfferedAtOnceAndAMemberCanUploadIt() throws Exception {
+        assertThat(documentLabels(json(own(get("/api/v1/me/dogs")), 200))).containsExactly("Vaccination card", "Insurance", "Other");
+        var current = json(admin(get("/api/v1/parameters/census.dogDocumentTypes")), 200);
+        var catalog = new ArrayList<Object>(); current.path("value").forEach(row -> catalog.add(mapper.convertValue(row, Map.class)));
+        catalog.add(object("key", "LICENSE", "label", object("ca", "Llicència", "es", "Licencia"), "required", false));
+        admin(body(put("/api/v1/parameters/census.dogDocumentTypes"), object("value", catalog, "version", current.path("version").asLong())))
+                .andExpect(status().isOk());
+        var after = json(own(get("/api/v1/me/dogs")), 200);
+        assertThat(after.path("documentTypes").findValuesAsText("key")).containsExactly("VACCINATION_CARD", "INSURANCE", "OTHER", "LICENSE");
+        // The reader's `en` is missing from the new label: the club's default language (`ca`) answers.
+        assertThat(documentLabels(after)).containsExactly("Vaccination card", "Insurance", "Other", "Llicència");
+        var grant = uploadUrl("DOG_DOCUMENT", "application/pdf", "Example PDF".getBytes(), false);
+        var uploaded = json(own(body(post("/api/v1/me/dogs/dog-one/documents"), object("type", "LICENSE", "name", "license.pdf", "fileKey", grant.path("fileKey").asText()))), 201);
+        assertThat(uploaded.path("type").asText()).isEqualTo("LICENSE"); assertThat(uploaded.path("typeLabel").asText()).isEqualTo("Llicència");
+        var other = uploadUrl("DOG_DOCUMENT", "application/pdf", "Example PDF".getBytes(), false);
+        error(own(body(post("/api/v1/me/dogs/dog-one/documents"), object("type", "UNKNOWN", "name", "unknown.pdf", "fileKey", other.path("fileKey").asText()))), ErrorCode.DOCUMENT_TYPE_UNKNOWN);
+    }
+    /**
+     * E3-T16 step 2 (R-03-30): screen 13 shows «Nivell {codi}» only when a dog carries `level`. With `levels.enabled=false`, a dog
+     * whose `levelId` is still stored has no `level` in `GET /me/dogs`.
+     */
+    @Test void T_03_26_R_03_30_withLevelsDisabledADogWithAStoredLevelHasNoLevel() throws Exception {
+        var enabled = json(own(get("/api/v1/me/dogs")), 200);
+        assertThat(enabled.path("dogs").get(0).path("id").asText()).isEqualTo("dog-one");
+        assertThat(enabled.path("dogs").get(0).path("level").path("code").asText()).isEqualTo("level-c");
+        parameter("levels.enabled", false);
+        var disabled = json(own(get("/api/v1/me/dogs")), 200);
+        assertThat(disabled.path("dogs")).hasSize(2).allSatisfy(dog -> assertThat(dog.has("level")).as(dog.path("id").asText()).isFalse());
+        assertThat(dog("dog-one").levelId).isEqualTo("level-c");
     }
     void task(String id, String state, Instant done) {
         mongo.insert(new Document("_id", id).append("clubId", CLUB).append("dogId", "dog-one").append("state", state).append("text", "Example task")

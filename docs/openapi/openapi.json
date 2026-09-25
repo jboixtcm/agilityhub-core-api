@@ -3415,6 +3415,10 @@
           "defaultLocale" : {
             "type" : "string"
           },
+          "displayCity" : {
+            "description" : "The town shown with the club's name (S02 §3); /branding falls back to address.city without it.",
+            "type" : "string"
+          },
           "domains" : {
             "items" : {
               "$ref" : "#/components/schemas/ClubDomain"
@@ -3465,7 +3469,6 @@
             "type" : "string"
           },
           "taxId" : {
-            "format" : "uuid",
             "type" : "string"
           },
           "theme" : {
@@ -3488,7 +3491,13 @@
       "ClubSummary" : {
         "properties" : {
           "city" : {
+            "description" : "The town shown with the club's name: displayCity, else the registered office's town.",
             "type" : [ "string", "null" ]
+          },
+          "legalAddress" : {
+            "$ref" : "#/components/schemas/LegalAddress",
+            "description" : "The registered office (LSSI art. 10), or null when the club has no street or postal code.",
+            "type" : [ "object", "null" ]
           },
           "legalName" : {
             "type" : [ "string", "null" ]
@@ -3503,19 +3512,24 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "legalName", "name", "slug", "taxId" ],
+        "required" : [ "city", "legalAddress", "legalName", "name", "slug", "taxId" ],
         "type" : "object"
       },
       "ClubUpdate" : {
         "description" : "Versioned edit of club identity, contact and theme. Omitted fields are preserved. Console fields are rejected with PLATFORM_ONLY; a timeZone change with existing classes returns TIMEZONE_CHANGE_BLOCKED.",
         "properties" : {
           "address" : {
-            "$ref" : "#/components/schemas/ClubAddress"
+            "$ref" : "#/components/schemas/ClubAddress",
+            "description" : "The registered office (S02 §3); /branding.legalAddress."
           },
           "contactEmail" : {
             "type" : "string"
           },
           "contactPhone" : {
+            "type" : "string"
+          },
+          "displayCity" : {
+            "description" : "The town shown with the club's name (S02 §3); null clears it, and /branding shows address.city.",
             "type" : "string"
           },
           "legalName" : {
@@ -3525,6 +3539,7 @@
             "type" : "string"
           },
           "taxId" : {
+            "description" : "Checked by the club's country profile (ES: CIF, NIF or NIE with its check character).",
             "type" : "string"
           },
           "theme" : {
@@ -4347,6 +4362,23 @@
           }
         },
         "required" : [ "fileKey", "name", "type" ],
+        "type" : "object"
+      },
+      "DogDocumentType" : {
+        "description" : "One type of the club's census.dogDocumentTypes catalog (R-03-15), label in the reader's locale (fallback club.defaultLocale, R-03-32).",
+        "properties" : {
+          "key" : {
+            "description" : "Catalog key; the `type` of POST /me/dogs/{id}/documents",
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "required" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "key", "label", "required" ],
         "type" : "object"
       },
       "DogLevelRequest" : {
@@ -6611,6 +6643,21 @@
         "required" : [ "privacyPolicyUrl" ],
         "type" : "object"
       },
+      "LegalAddress" : {
+        "properties" : {
+          "city" : {
+            "type" : [ "string", "null" ]
+          },
+          "postalCode" : {
+            "type" : "string"
+          },
+          "street" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "city", "postalCode", "street" ],
+        "type" : "object"
+      },
       "Level" : {
         "description" : "ADMIN projection; reduced catalog readers omit usage and nameI18n.",
         "properties" : {
@@ -7745,6 +7792,13 @@
           "canAddDog" : {
             "type" : "boolean"
           },
+          "documentTypes" : {
+            "description" : "The club's document types for «＋ DOC.» (screen 13), in catalog order: a MEMBER cannot read /parameters (S03 §6, 25-09).",
+            "items" : {
+              "$ref" : "#/components/schemas/DogDocumentType"
+            },
+            "type" : "array"
+          },
           "dogs" : {
             "items" : {
               "$ref" : "#/components/schemas/MeDog"
@@ -7752,7 +7806,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "canAddDog", "dogs" ],
+        "required" : [ "canAddDog", "documentTypes", "dogs" ],
         "type" : "object"
       },
       "MeFamilyGroup" : {
@@ -15553,13 +15607,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -15942,13 +15996,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -16193,13 +16247,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -17950,13 +18004,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -18473,13 +18527,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -20248,13 +20302,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -20472,13 +20526,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -20716,13 +20770,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -20983,13 +21037,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -21847,13 +21901,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -22990,13 +23044,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -27242,13 +27296,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -27513,13 +27567,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -27807,13 +27861,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -32449,13 +32503,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -34359,13 +34413,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -34724,13 +34778,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -37458,7 +37512,7 @@
     },
     "/api/v1/me/dogs" : {
       "get" : {
-        "description" : "Tenant-scoped S03 response with role and ownership checks.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks. `documentTypes` is the club's document-type catalog in the reader's locale (R-03-15, R-03-32), also under impersonation: the member never reads /parameters.",
         "operationId" : "myDogs",
         "responses" : {
           "200" : {
@@ -40312,13 +40366,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -40600,13 +40654,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -40911,13 +40965,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -41841,13 +41895,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -44241,13 +44295,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -46633,13 +46687,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -47017,13 +47071,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -47564,13 +47618,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -49317,13 +49371,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -54299,13 +54353,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -54697,13 +54751,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {
@@ -57566,13 +57620,13 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size.",
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
             "format" : "int32",
-            "minimum" : 1,
             "type" : "integer"
           }
         }, {

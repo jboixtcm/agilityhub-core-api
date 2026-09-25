@@ -30,6 +30,31 @@ public class SpanishCountryProfile extends GenericCountryProfile {
     private boolean checkLetter(String value) {
         return LETTERS.charAt(Integer.parseInt(value.substring(0, 8)) % 23) == value.charAt(8);
     }
+    /** S02 §3: an organisation's CIF (the Cànic's G63189617), or a person's NIF (DNI) or NIE, with its check character. */
+    @Override public boolean validateTaxId(String value) {
+        if (value == null) { return false; }
+        String id = super.normalizeIdDocument("CIF", value);
+        return checkCif(id) || validateIdDocument("DNI", id) || validateIdDocument("NIE", id);
+    }
+    /**
+     * The CIF control: the digits in even positions are added, those in odd positions doubled and their digits added; the
+     * control is the complement to 10 of the total's last digit, written as a digit or as the letter of "JABCDEFGHI". K, L,
+     * M, N, P, Q, R, S and W take the letter; A, B, E and H the digit; the other entity letters either.
+     */
+    private static boolean checkCif(String value) {
+        if (!value.matches("[ABCDEFGHJKLMNPQRSUVW][0-9]{7}[0-9A-J]")) { return false; }
+        int total = 0;
+        for (int position = 1; position <= 7; position++) {
+            int digit = value.charAt(position) - '0';
+            total += position % 2 == 0 ? digit : digit * 2 / 10 + digit * 2 % 10;
+        }
+        int control = (10 - total % 10) % 10;
+        char actual = value.charAt(8), kind = value.charAt(0);
+        boolean asDigit = actual == (char) ('0' + control), asLetter = actual == "JABCDEFGHI".charAt(control);
+        if ("KLMNPQRSW".indexOf(kind) >= 0) { return asLetter; }
+        if ("ABEH".indexOf(kind) >= 0) { return asDigit; }
+        return asDigit || asLetter;
+    }
     @Override public String normalizePhone(String raw) {
         String phone = raw == null ? "" : raw.replaceAll("[\\s().-]", "");
         if (phone.matches("[0-9]{9}")) { phone = defaultPhonePrefix() + phone; }

@@ -47,11 +47,23 @@ public class DocumentService {
         return list(dogId).stream().filter(row -> "PENDING".equals(row.get("state")) && required.contains(row.get("type")))
                 .map(row -> string(row.get("type"))).toList();
     }
+    /**
+     * R-03-15, R-03-32 (E3-T16): the club's `census.dogDocumentTypes` for the member's «＋ DOC.» (`GET /me/dogs`), in catalog
+     * order, each `label` in the reader's language: a MEMBER, and an impersonation token, cannot read `/parameters`.
+     */
+    public List<Map<String,Object>> types() {
+        return catalog().stream().map(row -> object("key", row.get("key"), "label", label(row, string(row.get("key"))),
+                "required", Boolean.TRUE.equals(row.get("required")))).toList();
+    }
+    /** A type's `LocalizedText` label in the reader's language, else the club's default one, else {@code fallback}. */
+    private String label(Map<String,Object> definition, String fallback) {
+        var labels = map(definition.get("label")); String club = access.config().club().defaultLocale();
+        return string(labels.getOrDefault(LocaleContext.current().getLanguage(), labels.getOrDefault(club, fallback)));
+    }
     public Map<String,Object> view(DogDocument doc) {
         var active = rows(doc.files).stream().filter(file -> file.get("removedAt") == null).toList();
         var definition = catalog().stream().filter(row -> doc.type.equals(row.get("key"))).findFirst().orElse(Map.of());
-        var labels = map(definition.get("label")); String fallback = access.config().club().defaultLocale();
-        String label = string(labels.getOrDefault(LocaleContext.current().getLanguage(), labels.getOrDefault(fallback, doc.type)));
+        String label = label(definition, doc.type);
         return object("id", doc.id, "type", doc.type, "typeLabel", label, "state", active.isEmpty() ? "PENDING" : "RECEIVED",
                 "files", active.stream().map(file -> object("id", file.get("id"), "name", file.get("name"),
                         "url", attachments.url(string(file.get("fileKey")), string(file.get("name"))), "uploadedAt", instant(file.get("uploadedAt")))).toList(),

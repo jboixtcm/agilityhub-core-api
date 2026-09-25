@@ -33,18 +33,24 @@ public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Modu
     }
     public List<String> ringPalette() { return club.theme().ringPalette(); }
     public String primaryColor() { return club.theme().colors().primary(); }
-    /** `legalName` and `taxId` are the club's public legal identity (S02 §3, R-02-02); both may be unset. */
+    /**
+     * `legalName` and `taxId` are the club's public legal identity (S02 §3, R-02-02); both may be unset. E3-T16 (R-02-02,
+     * amended 25-09): `city` is the town shown with the club's name, `displayCity ?? address.city`; `legalAddress` is the
+     * registered office for the public footer (LSSI art. 10), or null without a street or a postal code.
+     */
     public record ClubView(String id, String slug, String name, List<String> locales, String defaultLocale,
                            String timeZone, String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city,
-                           String legalName, String taxId) {
+                           String legalName, String taxId, LegalAddress legalAddress) {
         public ClubView(String id, String slug, String name, List<String> locales, String defaultLocale, String timeZone,
                         String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl) {
             this(id, slug, name, locales, defaultLocale, timeZone, currency, theme, pwa, status, privacyPolicyUrl, null);
         }
         public ClubView(String id, String slug, String name, List<String> locales, String defaultLocale, String timeZone,
                         String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city) {
-            this(id, slug, name, locales, defaultLocale, timeZone, currency, theme, pwa, status, privacyPolicyUrl, city, null, null);
+            this(id, slug, name, locales, defaultLocale, timeZone, currency, theme, pwa, status, privacyPolicyUrl, city, null, null, null);
         }
         public ClubView { locales = List.copyOf(locales); }
     }
+    /** The registered office as the public footer prints it: «{street} · {postalCode} {city}». */
+    public record LegalAddress(String street, String postalCode, String city) { }
 }

@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ClubSettingsService {
-    private static final Set<String> EDITABLE = Set.of("name", "legalName", "taxId", "address", "contactEmail", "contactPhone", "websiteUrl", "theme");
+    private static final Set<String> EDITABLE = Set.of("name", "legalName", "taxId", "address", "displayCity", "contactEmail", "contactPhone", "websiteUrl", "theme");
     private static final Set<String> PLATFORM = Set.of("id", "slug", "locales", "defaultLocale", "timeZone", "currency", "countryProfile",
             "domains", "modules", "paymentProviders", "legal", "pwa", "status", "onboardingChecklist", "usage", "template", "createdAt", "updatedAt");
     private final ClubRepository clubs;
@@ -33,11 +33,13 @@ public class ClubSettingsService {
     private final AuditActorProvider actors;
     private final ObjectMapper mapper;
     private final Clock clock;
+    private final CountryProfileRegistry countries;
 
     public ClubSettingsService(ClubRepository clubs, ClubConfigService configs, ModuleDependencyValidator modules,
-            ClubScheduleAccess schedule, EventPublisher events, AuditActorProvider actors, ObjectMapper mapper, Clock clock) {
+            ClubScheduleAccess schedule, EventPublisher events, AuditActorProvider actors, ObjectMapper mapper, Clock clock,
+            CountryProfileRegistry countries) {
         this.clubs = clubs; this.configs = configs; this.modules = modules; this.schedule = schedule;
-        this.events = events; this.actors = actors; this.mapper = mapper; this.clock = clock;
+        this.events = events; this.actors = actors; this.mapper = mapper; this.clock = clock; this.countries = countries;
     }
     public Club club() { return clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND)); }
     public record State(String id, @AuditField Map<String, Object> settings) { }
@@ -109,9 +111,14 @@ public class ClubSettingsService {
         catch (DataAccessException failure) { throw SettingsWriteConflict.translate(failure); }
     }
     private void validate(ObjectNode club) {
-        for (String key : List.of("name", "legalName", "taxId", "contactEmail", "contactPhone", "websiteUrl")) {
+        for (String key : List.of("name", "legalName", "taxId", "displayCity", "contactEmail", "contactPhone", "websiteUrl")) {
             var value = club.path(key);
             if (!value.isNull() && !value.isTextual()) { throw new IllegalArgumentException("Expected text"); }
+        }
+        // S02 §3: the club's country profile checks its tax id (ES: a CIF, NIF or NIE with its check character).
+        var taxId = club.path("taxId");
+        if (taxId.isTextual() && !taxId.asText().isBlank() && !countries.get(club.path("countryProfile").asText()).validateTaxId(taxId.asText())) {
+            throw new IllegalArgumentException("Invalid tax id");
         }
         var email = club.path("contactEmail");
         if (email.isTextual() && !email.asText().matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) { throw new IllegalArgumentException("Invalid email"); }

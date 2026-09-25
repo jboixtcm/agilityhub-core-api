@@ -21,9 +21,16 @@ public class SignupNotifications {
     private final com.agilityhub.core.platform.application.CensusClubSettings settings;
     private final RateLimits limits;private final SignupCapabilities capabilities;
     private final SignupNotificationAdmissionRepository admissions;private final java.time.Clock clock;
-    /** The notification whose recipient cap each event type decides (R-04-20). */
+    /**
+     * The notification whose recipient cap each event type decides (R-04-20). The only place the capped codes are written:
+     * {@link #deliver} caps and {@link #processed} retains the decision of the code this map gives (E3-T16).
+     */
     private static final Map<String,String> CAPPED=Map.of("SignupRecognitionRequested","N-39","SignupSubmitted","N-01");
-    /** E3-T15: one recipient-cap decision at a time on this instance, whose buckets they charge. */
+    /**
+     * E3-T15: one recipient-cap decision at a time. There is one lock per instance, shared by every club, recipient and code
+     * (E3-T16, review #5): it is held while the decision is stored (one Mongo insert), which today's single dispatcher thread
+     * never contends. The buckets it guards are this instance's too.
+     */
     private final java.util.concurrent.locks.ReentrantLock deciding=new java.util.concurrent.locks.ReentrantLock();
     private static final org.slf4j.Logger LOG=org.slf4j.LoggerFactory.getLogger(SignupNotifications.class);
     public SignupNotifications(CensusAccess access,SignupIdentityService identities,SignupLinks links,SystemNotificationService notifications,
@@ -41,7 +48,8 @@ public class SignupNotifications {
      * which empties the per-instance buckets. E3-T15: a stored decision is never charged again, and it has no expiry until
      * its event is processed ({@link #processed}).
      */
-    private boolean capped(String clubId,String eventId,String code,String recipient) {
+    private boolean capped(String eventId,CensusEvent event,String recipient) {
+        String clubId=event.clubId(),code=Objects.requireNonNull(CAPPED.get(event.type()),"Uncapped signup notification event");
         String hash=capabilities.fingerprint(recipient.toLowerCase(Locale.ROOT));
         var admission=admissions.decision(eventId,code).orElseGet(() -> decide(clubId,eventId,code,hash));
         if(admission.admitted()) return false;
@@ -51,8 +59,8 @@ public class SignupNotifications {
     /**
      * E3-T15 step 1: the bucket is probed, the decision stored, and only then does an admission take its token. A failed
      * write throws before the charge, so the retry decides again on an untouched bucket; a decision a concurrent delivery
-     * of the same event stored first is used as it is, and charged by that delivery. The lock keeps another event of the
-     * same recipient from probing in between.
+     * of the same event stored first is used as it is, and charged by that delivery. The lock ({@link #deciding}, one per
+     * instance) keeps any other decision, of this recipient or another, from probing in between.
      */
     private SignupNotificationAdmission decide(String clubId,String eventId,String code,String hash) {
         var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
@@ -115,7 +123,7 @@ public class SignupNotifications {
             variables.put("locale",locale);
             String email=submitted?string(person.get("email")):rows(member.contactEmails).isEmpty()?null:string(rows(member.contactEmails).getFirst().get("email"));
             switch(event.type()) {
-                case "SignupRecognitionRequested" -> { if(!capped(event.clubId(),eventId,"N-39",member.accountId)) links.send(eventId,member.accountId,false,variables); }
+                case "SignupRecognitionRequested" -> { if(!capped(eventId,event,member.accountId)) links.send(eventId,member.accountId,false,variables); }
                 case "MemberValidated" -> { links.send(eventId,member.accountId,true,variables);notifications.appOnce(eventId+":app","N-02",member.accountId,variables); }
                 case "SignupSubmitted" -> {
                     // E3-T10/E3-T12 (R-04-06 c, S04 §8): each copy describes its own submission, even when later ones are queued.
@@ -138,7 +146,7 @@ public class SignupNotifications {
                         String instructions=Boolean.TRUE.equals(event.payload().get("checkoutRequired"))?null:settings.manualInstructions(locale);
                         applicant.put("payment_instructions",instructions==null?"":instructions);applicant.put("pay_link","");
                     }
-                    if(email!=null&&!capped(event.clubId(),eventId,"N-01",email)) notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
+                    if(email!=null&&!capped(eventId,event,email)) notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
                     // The member's APP row (add-dog) is the applicant copy too: same variant, total and instructions (E3-T08 round 2).
                     if(member.accountId!=null&&"APP_ADD_DOG".equals(event.payload().get("source"))) notifications.appOnceVariant(eventId+":member-app","N-01",variant,member.accountId,applicant);
                     // M9: the admins get their own copy (who applied, which dogs, which plan) with the D2 action, on both channels.

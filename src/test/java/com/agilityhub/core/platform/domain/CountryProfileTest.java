@@ -35,6 +35,20 @@ class CountryProfileTest {
         assertThat(es.validateIban(null)).isFalse(); assertThat(es.validateIban("XX1234")).isFalse();
         assertThat(es.dateFormat()).isEqualTo("dd/MM/yyyy"); assertThat(es.timeFormat()).isEqualTo("HH:mm");
     }
+    /** E3-T16 step 3 (S02 §3): the club's tax id; the Cànic's CIF G63189617 (Jordi, 25-09) passes the Spanish profile. */
+    @Test void T_02_04_spanishTaxIdsAreACifNifOrNieWithTheirCheckCharacter() {
+        var es = registry.get("ES");
+        for (String valid : new String[]{"G63189617", "g-6318 9617", "B12345674", "Q0000000J", "P0800000B", "S2800000H", "G0000000J", "12345678Z", "X1234567L"}) {
+            assertThat(es.validateTaxId(valid)).as(valid).isTrue();
+        }
+        // A wrong control; a letter where A/B/E/H take a digit; a digit where K–W take a letter; not a tax id at all.
+        for (String invalid : new String[]{"G63189618", "B1234567D", "Q00000000", "S2800000E", "I12345674", "G6318961", "G631896177", "12345678A", "EXAMPLE-ORG", "", " ", null}) {
+            assertThat(es.validateTaxId(invalid)).as(String.valueOf(invalid)).isFalse();
+        }
+        var generic = registry.get("GENERIC");
+        assertThat(generic.validateTaxId("PT 501.234.567")).isTrue(); assertThat(generic.validateTaxId("EXAMPLE-ORG")).isTrue();
+        for (String invalid : new String[]{"AB1", "", null, "x".repeat(41), "ÀÉÍ-ÒÚ"}) { assertThat(generic.validateTaxId(invalid)).as(String.valueOf(invalid)).isFalse(); }
+    }
     @Test void T_02_04_genericIsFallbackWithNoNationalFormatValidation() {
         var generic = registry.get("GENERIC");
         assertThat(registry.get("PT")).isSameAs(generic);

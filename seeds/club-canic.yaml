@@ -4,7 +4,12 @@ apiVersion: "agilityhub.club/v1"
 club:
   slug: "canic"
   name: "Club Agility Cànic"
-  address: {city: "Cabrera de Mar", country: "ES"}
+  # The club's public legal identity and registered office (product owner, 25-09; S02 §3, R-02-02: the public footer, LSSI art. 10).
+  legalName: "Club Agility Cànic"
+  taxId: "G63189617"
+  address: {street: "Carrer Sant Pere, 10", postalCode: "08392", city: "Sant Andreu de Llavaneres", region: "Barcelona", country: "ES"}
+  # The town shown with the club's name, where it trains; /branding `city`.
+  displayCity: "Cabrera de Mar"
   locales:
     - "ca"
     - "es"

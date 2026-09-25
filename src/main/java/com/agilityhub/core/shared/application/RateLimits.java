@@ -71,8 +71,9 @@ public final class RateLimits {
 
     /**
      * E3-T15: whether {@code subject} has one request left now, without taking it. With {@link #charge}, a caller can store
-     * its decision between the two, so a decision that failed to be stored has charged nothing. The caller serialises the
-     * pair per subject; a concurrent {@link #retryAfter} on the same bucket may still take the token in between.
+     * its decision between the two, so a decision that failed to be stored has charged nothing. The caller must serialise
+     * the pair: the signup notifications hold one lock per instance for it, across clubs and recipients (E3-T16). A
+     * concurrent {@link #retryAfter} on the same bucket may still take the token in between.
      */
     public boolean available(Route route, String subject, Limit limit) {
         return !enabled || bucket(route, subject, limit).estimateAbilityToConsume(1).canBeConsumed();

@@ -476,4 +476,88 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         addDog(id,"Short Retention Dog");clock.advance(Duration.ofHours(1));dispatch();String d=newSubmitted(id,a,b,c);
         assertThat(byId("signup_notification_admissions",d+":N-01").getDate("expiresAt").toInstant()).isEqualTo(clock.instant().plus(Duration.ofDays(7)));
     }
+
+    // ---- E3-T16 step 4 (E3-T15 review #1): the «never charge twice» guard and the decision lock, through the service ----
+    /** Swaps the service's admission repository for {@code repository} while {@code body} runs. */
+    void withAdmissions(com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository repository,org.junit.jupiter.api.function.Executable body) throws Throwable {
+        Object target=org.springframework.test.util.AopTestUtils.getUltimateTargetObject(notifications);
+        Object before=org.springframework.test.util.ReflectionTestUtils.getField(target,"admissions");
+        org.springframework.test.util.ReflectionTestUtils.setField(target,"admissions",repository);
+        try { body.execute(); } finally { org.springframework.test.util.ReflectionTestUtils.setField(target,"admissions",before); }
+    }
+    /**
+     * A delivery that stores its decision and is then told the key was taken (`DuplicateKeyException`): what a delivery sees
+     * when another delivery of the same event, claimed again after the lease, stored the decision first. That one charged.
+     */
+    @Test void R_04_20_aDecisionAnotherDeliveryStoredFirstIsUsedAndNeverChargedAgain() throws Throwable {
+        parameter("signup.rateLimit",cap(1));
+        String email=unique("raced");
+        var remaining=new java.util.concurrent.atomic.AtomicInteger(1);
+        var racing=new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository(mongo) {
+            @Override public com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission insert(com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission decision) {
+                var stored=super.insert(decision);
+                if(club.equals(decision.clubId())&&remaining.getAndDecrement()>0) throw new org.springframework.dao.DuplicateKeyException("Fictional decision stored first by another delivery");
+                return stored;
+            }
+        };
+        withAdmissions(racing,() -> {
+            String id=submit(withEmail(request(),email)).path("memberId").asText();
+            dispatch();
+            // A uses the stored decision (admitted) and sends; the allowance is untouched, because this delivery did not store it.
+            String a=newSubmitted(id);
+            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(decisions()).containsExactly(a+":N-01=true");
+            // With a cap of 1, B, the next event to the same address within the hour, is still admitted.
+            validate(id);addDog(id,"Second Dog");dispatch();String b=newSubmitted(id,a);
+            assertThat(byId("notifications",b+":applicant")).as("B admitted: A charged nothing").isNotNull();
+            assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
+            // B charged the allowance: C is refused.
+            addDog(id,"Third Dog");dispatch();String c=newSubmitted(id,a,b);
+            assertThat(byId("notifications",c+":applicant")).as("C refused").isNull();
+            assertThat(decisions()).containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
+        });
+    }
+    /**
+     * The decision lock: while one event's decision is being stored (its allowance probed, not yet charged), a second event of
+     * the same recipient waits, and then sees the charged bucket. Without the lock, both would take the cap's last allowance.
+     */
+    @Test void R_04_20_oneRecipientCapDecisionAtATimeSoTwoEventsNeverShareTheLastAllowance() throws Throwable {
+        parameter("signup.rateLimit",cap(1));
+        String first=UUID.randomUUID().toString(),second=UUID.randomUUID().toString(),hash="fictional-recipient-hash";
+        var entered=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+        var holding=new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository(mongo) {
+            @Override public com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission insert(com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission decision) {
+                if(first.equals(decision.eventId())) {
+                    entered.countDown();
+                    try { if(!release.await(30,java.util.concurrent.TimeUnit.SECONDS)) throw new IllegalStateException("never released"); }
+                    catch(InterruptedException interrupted) { Thread.currentThread().interrupt();throw new IllegalStateException(interrupted); }
+                }
+                return super.insert(decision);
+            }
+        };
+        Object target=org.springframework.test.util.AopTestUtils.getUltimateTargetObject(notifications);
+        var lock=(java.util.concurrent.locks.ReentrantLock)org.springframework.test.util.ReflectionTestUtils.getField(target,"deciding");
+        var threads=java.util.concurrent.Executors.newFixedThreadPool(2);
+        withAdmissions(holding,() -> {
+            try {
+                java.util.function.Function<String,java.util.concurrent.Callable<com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission>> decide=event -> () -> {
+                    try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
+                        return org.springframework.test.util.ReflectionTestUtils.invokeMethod(target,"decide",club,event,"N-01",hash);
+                    }
+                };
+                var a=threads.submit(decide.apply(first));
+                assertThat(entered.await(30,java.util.concurrent.TimeUnit.SECONDS)).as("A is storing its decision").isTrue();
+                var b=threads.submit(decide.apply(second));
+                // B either waits for the lock (the rule) or, without it, decides at once on the uncharged bucket.
+                long deadline=System.nanoTime()+Duration.ofSeconds(30).toNanos();
+                while(!b.isDone()&&!lock.hasQueuedThreads()&&System.nanoTime()<deadline) Thread.sleep(5);
+                boolean waited=lock.hasQueuedThreads()&&!b.isDone();
+                release.countDown();
+                assertThat(a.get(30,java.util.concurrent.TimeUnit.SECONDS).admitted()).as("A admitted").isTrue();
+                assertThat(waited).as("B waited for A's decision").isTrue();
+                assertThat(b.get(30,java.util.concurrent.TimeUnit.SECONDS).admitted()).as("B refused: A took the only allowance").isFalse();
+            } finally { release.countDown();threads.shutdownNow(); }
+        });
+        assertThat(decisions()).containsExactlyInAnyOrder(first+":N-01=true",second+":N-01=false");
+    }
 }

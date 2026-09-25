@@ -37,7 +37,7 @@ public class MyCensusController {
     @ListContract(filterable = {}, sortable = {},
             columns = {"name*", "breed*", "level#levels.enabled", "photoUrl", "documents", "licenses", "freeTrainingAllowed@FREE_TRAINING"}, paged = false, exportable = false)
     @Operation(summary = "My dogs",
-            description = "Tenant-scoped S03 response with role and ownership checks.",
+            description = "Tenant-scoped S03 response with role and ownership checks. `documentTypes` is the club's document-type catalog in the reader's locale (R-03-15, R-03-32), also under impersonation: the member never reads /parameters.",
             responses = @ApiResponse(responseCode = "200", description = "MeDogs", content = @Content(schema = @Schema(implementation = MeDogs.class))))
     public java.util.Map<String,Object> myDogs() { return queries.myDogs(); }
 

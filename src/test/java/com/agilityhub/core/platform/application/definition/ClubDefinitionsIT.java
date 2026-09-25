@@ -130,6 +130,44 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         codec.validate(exported); assertThat(definitions.apply(exported, false).changes()).isZero();
     }
     /**
+     * E3-T16 step 3 (Jordi, 25-09; S02 §3, R-02-02; S17 §3): the Cànic's seed carries its legal identity and registered office,
+     * and the town it shows with its name (`displayCity`), for the public footer «Club Agility Cànic · G63189617 · Cabrera de
+     * Mar» over «Carrer Sant Pere, 10 · 08392 Sant Andreu de Llavaneres». A club applied from the previous seed gets them as one
+     * `club` change, then none; the export round-trips them.
+     */
+    @Test void T_02_07_T_02_12_canicSeedCarriesItsLegalIdentityAndRegisteredOfficeForThePublicFooter() throws Exception {
+        var previous = seed("canic"); var identity = previous.withObject("club");
+        identity.remove(List.of("legalName", "taxId", "displayCity"));
+        identity.set("address", mapper.readTree("{\"city\":\"Cabrera de Mar\",\"country\":\"ES\"}"));
+        definitions.apply(previous, false);
+        var preview = definitions.apply(Path.of("seeds/club-canic.yaml"), true);
+        assertThat(preview.changes()).isEqualTo(1);
+        assertThat(preview.render(true)).contains("~ club changed", "club.displayCity: null -> \"Cabrera de Mar\"",
+                "club.legalName: null -> \"Club Agility Cànic\"", "club.taxId: null -> \"G63189617\"",
+                "club.address: {\"city\":\"Cabrera de Mar\",\"country\":\"ES\"} -> {\"street\":\"Carrer Sant Pere, 10\",\"postalCode\":\"08392\",\"city\":\"Sant Andreu de Llavaneres\",\"region\":\"Barcelona\",\"country\":\"ES\"}");
+        assertThat(definitions.apply(seed("canic"), false).changes()).isEqualTo(1);
+        var club = mapper.readTree(mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).path("club");
+        assertThat(club.path("city").asText()).isEqualTo("Cabrera de Mar");
+        assertThat(club.path("legalName").asText()).isEqualTo("Club Agility Cànic");
+        assertThat(club.path("taxId").asText()).isEqualTo("G63189617");
+        assertThat(club.path("legalAddress")).isEqualTo(mapper.readTree("{\"street\":\"Carrer Sant Pere, 10\",\"postalCode\":\"08392\",\"city\":\"Sant Andreu de Llavaneres\"}"));
+        assertThat(definitions.apply(seed("canic"), false).changes()).isZero();
+        var exported = definitions.export("canic");
+        assertThat(exported.at("/club/displayCity").asText()).isEqualTo("Cabrera de Mar");
+        assertThat(exported.at("/club/address/street").asText()).isEqualTo("Carrer Sant Pere, 10");
+        codec.validate(exported); assertThat(definitions.apply(exported, false).changes()).isZero();
+        // The Spanish country profile checks the CIF's control character (S02 §3): a wrong one is refused and nothing is written.
+        var wrong = seed("canic"); wrong.withObject("club").put("taxId", "G63189618");
+        failure(wrong, ErrorCode.VALIDATION_ERROR);
+        assertThat(clubs.findBySlug("canic").orElseThrow().taxId()).isEqualTo("G63189617");
+        // A blank town (the club settings accept any text) still exports to a valid definition that applies with no change.
+        mongo.updateFirst(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("slug").is("canic")),
+                new org.springframework.data.mongodb.core.query.Update().set("displayCity", ""), Club.class);
+        var blank = definitions.export("canic"); codec.validate(blank);
+        assertThat(blank.at("/club/displayCity").asText()).isEmpty(); assertThat(definitions.apply(blank, false).changes()).isZero();
+    }
+    /**
      * E3-T14: a club applied before (provider names only, so no `enabled` flag) gets one change from the new seed, then none.
      * The seed only switches the providers on: configuration stored outside it stays, and the names-only form keeps the flags.
      */

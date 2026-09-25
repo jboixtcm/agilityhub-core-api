@@ -321,9 +321,16 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) boolean freeTrainingAllowed,
             @Schema(requiredMode = NOT_REQUIRED, description = "ACTIVE dogs only") List<License> licenses,
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack) { }
+    @Schema(description = "One type of the club's census.dogDocumentTypes catalog (R-03-15), label in the reader's locale (fallback club.defaultLocale, R-03-32).")
+    public record DogDocumentType(
+            @Schema(requiredMode = REQUIRED, description = "Catalog key; the `type` of POST /me/dogs/{id}/documents") String key,
+            @Schema(requiredMode = REQUIRED) String label,
+            @Schema(requiredMode = REQUIRED) boolean required) { }
     public record MeDogs(
             @Schema(requiredMode = REQUIRED) List<MeDog> dogs,
-            @Schema(requiredMode = REQUIRED) boolean canAddDog) { }
+            @Schema(requiredMode = REQUIRED) boolean canAddDog,
+            @Schema(requiredMode = REQUIRED, description = "The club's document types for «＋ DOC.» (screen 13), in catalog order: a MEMBER cannot read /parameters (S03 §6, 25-09).")
+            List<DogDocumentType> documentTypes) { }
     public record MeProfile(
             @Schema(requiredMode = REQUIRED) String idDocumentMasked,
             @Schema(requiredMode = REQUIRED) String firstName,

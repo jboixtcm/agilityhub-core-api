@@ -1,0 +1,40 @@
+surefire: tests=542 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E2ResponseContractTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3GateFixesContractTest: tests=3 failures=0 errors=0 skipped=0
+    - T_02_07_brandingNamesTheTownAndTheRegisteredOfficeAndTheClubSettingsCarryDisplayCity
+    - T_03_08_everyListDocumentsTheFourPageSizes
+    - T_03_26_meDogsAlwaysCarriesTheClubsDocumentTypes
+  com.agilityhub.core.configuration.OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.domain.CountryProfileTest: tests=4 failures=0 errors=0 skipped=0
+    - T_02_04_spanishTaxIdsAreACifNifOrNieWithTheirCheckCharacter
+  com.agilityhub.core.shared.application.lists.ListQueryTest: tests=34 failures=0 errors=0 skipped=0
+failsafe: tests=950 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=41 failures=0 errors=0 skipped=0
+    - T_03_26_R_03_30_withLevelsDisabledADogWithAStoredLevelHasNoLevel
+    - T_03_23_R_03_15_aTypeTheAdminAddsIsOfferedAtOnceAndAMemberCanUploadIt
+    - T_03_26_R_03_32_documentTypesComeInTheReadersLanguageForEveryMemberAndUnderImpersonation
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=14 failures=0 errors=0 skipped=0
+    - R_04_20_aDecisionAnotherDeliveryStoredFirstIsUsedAndNeverChargedAgain
+    - R_04_20_oneRecipientCapDecisionAtATimeSoTwoEventsNeverShareTheLastAllowance
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=21 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.application.DemoPlanningSeedIT: tests=7 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.common.api.UniversalListsIT: tests=33 failures=0 errors=0 skipped=0
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[1]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[2]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[3]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[4]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[5]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[6]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[7]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[8]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[9]
+    - T_03_08_sizeIsOneOfTheFourPageSizes(String, int)[10]
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.SettingsIT: tests=15 failures=0 errors=0 skipped=0
+    - T_02_11_R_02_02_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=11 failures=0 errors=0 skipped=0
+    - T_02_07_T_02_12_canicSeedCarriesItsLegalIdentityAndRegisteredOfficeForThePublicFooter
+  com.agilityhub.core.platform.persistence.PlatformIT: tests=10 failures=0 errors=0 skipped=0
+    - T_02_07_R_02_02_cityFallsBackToTheRegisteredOfficeAndTheLegalAddressNeedsStreetAndPostalCode

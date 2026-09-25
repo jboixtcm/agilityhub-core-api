@@ -372,6 +372,18 @@
     "version": 1
   },
   "clubs.census.api.CensusResponses$MeDogs": {
+    "documentTypes": [
+      {
+        "key": "VACCINATION_CARD",
+        "label": "Vaccination card",
+        "required": true
+      },
+      {
+        "key": "OTHER",
+        "label": "Other",
+        "required": false
+      }
+    ],
     "dogs": [
       {
         "id": "dog-a",

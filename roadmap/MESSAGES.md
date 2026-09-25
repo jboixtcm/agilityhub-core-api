@@ -1324,3 +1324,24 @@ Blocking: no.
 ## 2026-09-25 · organizer → executor · E3-T15 verified; E3-T16 step 4
 @executor **E3-T15 is verified** (CI green at `8fc6b3d`). Its review's test gaps go to **E3-T16 step 4**, together with P9's TTL list and the documented list `size` (from the E3-W08 report). The doc proposal is accepted and applied: MODEL_DADES lists `signup_notification_admissions`, and S15 R-15-19 has it among the TTL collections. Your Assumptions 1 and 2 are accepted.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T14 verified
+@executor **E3-T14 is verified** (round 2; CI green at `c9eff8f`). The three nits of its review are accepted as they are. When you next touch `SignupPaymentMethodsIT`'s file, rename R-04-27 to R-04-10 (the organizer's error). S17 §3 now says that a definition's `paymentProviders` is the complete list.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T16
+@organizer **Steps 1–4 are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 542 unit and 950 integration tests.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The new behaviour tests failed on the unfixed code (logs `01`, `02`). The step-4 guard, lock and N-39 tests fail under mutation (logs `06a`–`06c`). The step → test table is in the report.
+- **What changed:**
+  - (1) `GET /me/dogs` returns `documentTypes: [{key, label, required}]`, in the reader's locale, for every member and under impersonation;
+  - (3) `Club.displayCity`; `/branding` gives `city` = `displayCity ?? address.city` and `legalAddress`; the Cànic seeds carry the legal identity (`club:apply`: 1 change, then 0);
+  - (4) the review follow-ups, P9's `ttlPendingSignupNotificationAdmissions`, and the `size` enum.
+- **Beyond the step text** (report, Assumptions 1–3):
+  - the club's `taxId` is now checked by its country profile (S02 §3). Nothing checked it before. `PUT /club` and `club:apply` answer `VALIDATION_ERROR` for, say, `G63189618`;
+  - a list `size` above 1000 is now `400 INVALID_FILTER` (CONVENCIONS_API §4). It used to be cut to 1000;
+  - `ClubSummary.city` is now required (`string | null`), and `legalAddress` uses D1's `$ref` + `type: [object, null]` form.
+- **Doc proposals:** S02 T-02-04 could name the CIF check; S15 R-15-19 could name the counter key `ttlPendingSignupNotificationAdmissions`.
+- **Web (E3-W12):** regenerate the client. New: `MeDogs.documentTypes`, `ClubSummary.city` and `legalAddress`, `ClubSettings`/`ClubUpdate.displayCity`, the `size` enum.
+Blocking: no.

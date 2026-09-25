@@ -48,11 +48,13 @@ public class ClubDefinitionWriter {
     private final ClubDefinitionMapper definitions;
     private final Clock clock;
     private final boolean trustedDomains;
+    private final com.agilityhub.core.platform.application.CountryProfileRegistry countries;
     public ClubDefinitionWriter(ClubRepository clubs, ParameterRepository parameters, ParameterCatalog catalog,
                                 ClubAdminProvisioner admins, ClubAccountProvisioner accounts, EventPublisher events, ObjectMapper mapper,
-                                ClubDefinitionMapper definitions, Clock clock, Environment environment, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs) {
+                                ClubDefinitionMapper definitions, Clock clock, Environment environment, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs,
+                                com.agilityhub.core.platform.application.CountryProfileRegistry countries) {
         this.clubs = clubs; this.parameters = parameters; this.catalog = catalog; this.admins = admins;
-        this.accounts = accounts; this.pages = pages; this.catalogs = catalogs;
+        this.accounts = accounts; this.pages = pages; this.catalogs = catalogs; this.countries = countries;
         this.events = events; this.mapper = mapper; this.definitions = definitions; this.clock = clock;
         trustedDomains = environment.acceptsProfiles(Profiles.of("local", "test")) && !environment.acceptsProfiles(Profiles.of("staging", "prod"));
     }
@@ -104,6 +106,10 @@ public class ClubDefinitionWriter {
             return new Plan(old, List.of(), List.of(), changedAccounts, List.of(), List.of(), new Result(id, List.copyOf(lines), Map.copyOf(summary)));
         }
         Club next = definitions.merge(definition, old, id, clock.instant(), trustedDomains);
+        // S02 §3: the club's country profile checks its tax id (the Cànic's CIF under `ES`).
+        if (next.taxId() != null && !next.taxId().isBlank() && !countries.get(next.countryProfile()).validateTaxId(next.taxId())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "club.taxId"));
+        }
         for (var domain : next.domains()) {
             clubs.findByAnyHost(domain.host()).filter(owner -> !owner.id().equals(id)).ifPresent(owner -> {
                 throw new ApiException(ErrorCode.HOST_ALREADY_USED, Map.of("host", domain.host()));

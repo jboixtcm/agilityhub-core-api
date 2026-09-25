@@ -24,7 +24,7 @@ class ListQueryTest {
     }
     @Test void T_03_08_defaultsProjectionCanonicalSortAndPageCap() {
         assertThat(parse().size()).isEqualTo(50); assertThat(parse().page()).isZero();
-        assertThat(parse("size", "9000", "sort", "name", "fields", "id,name", "q", "  literal .*  ").size()).isEqualTo(1000);
+        assertThat(parse("size", "1000", "sort", "name", "fields", "id,name", "q", "  literal .*  ").size()).isEqualTo(1000);
         assertThat(parse("sort", "name").sort()).containsExactly("name,asc");
         assertThat(parse("size", "200", "sort", "name,desc").sort()).containsExactly("name,desc");
         assertThat(parse("filter", "n:between:1,2").filters().getFirst().value()).isEqualTo(List.of(new java.math.BigDecimal("1"), new java.math.BigDecimal("2")));
@@ -34,7 +34,8 @@ class ListQueryTest {
     }
     @ParameterizedTest @ValueSource(strings = {"foo:eq:1", "name:no:1", "name:eq", "name:between:a,b", "only:eq:a", "n:eq:nan", "n:between:3,1", "n:between:1,2,3", "n:between:1", "n:in:", "name:in:a,,b", "name:in:a,a", "active:eq:yes", "name:exists:no", "date:eq:2026-99-01", "at:eq:2026-01-01", "name:eq:", "active:lt:true"})
     void T_03_08_invalidFiltersAreAlwaysCatalog400(String filter) { invalid(() -> parse("filter", filter)); }
-    @ParameterizedTest @ValueSource(strings = {"size=-1", "size=0", "size=21", "size=no", "page=-1", "page=2147483648", "sort=unknown", "sort=name,down", "sort=name,asc,desc", "sort=", "fields=secret", "fields="})
+    // E3-T16 step 4 (CONVENCIONS_API §4, amended 25-09): a size above 1000 is refused too, never cut to 1000.
+    @ParameterizedTest @ValueSource(strings = {"size=-1", "size=0", "size=21", "size=1001", "size=9000", "size=no", "page=-1", "page=2147483648", "sort=unknown", "sort=name,down", "sort=name,asc,desc", "sort=", "fields=secret", "fields="})
     void T_03_08_invalidPaginationSortAndProjection(String input) { var pair = input.split("=", -1); invalid(() -> parse(pair)); }
     @Test void T_03_08_savedJsonFiltersRejectWrongTypesAndMalformedRequests() {
         invalid(() -> parse("page", "0", "page", "1")); invalid(() -> parse("sort", "name", "sort", "name"));

@@ -244,7 +244,7 @@ class SettingsIT extends AbstractIntegrationTest {
         update.put("version", before.path("version").asLong()); update.put("name", "Renamed Example Club");
         update.put("contactEmail", "settings@example.test"); update.put("contactPhone", "+34930000000");
         update.put("websiteUrl", "https://settings.example.test"); update.put("legalName", "Example Association");
-        update.put("taxId", "EXAMPLE-ORG"); update.put("address", Map.of("city", "Example City"));
+        update.put("taxId", "B12345674"); update.put("address", Map.of("city", "Example City"));
         var theme = (com.fasterxml.jackson.databind.node.ObjectNode) before.path("theme").deepCopy();
         theme.put("mode", "dark"); update.put("theme", theme);
         var after = json(admin(body(put("/api/v1/club"), update)));
@@ -266,6 +266,34 @@ class SettingsIT extends AbstractIntegrationTest {
         }
         admin(body(put("/api/v1/club"), Map.of("version", 1.5))).andExpect(status().isConflict());
         admin(body(put("/api/v1/club"), Map.of())).andExpect(status().isConflict());
+    }
+
+    /**
+     * E3-T16 step 3 (S02 §3, R-02-02, amended 25-09): the club's `displayCity` (the town shown with its name) is edited with the
+     * club settings; `/branding` shows it as `city`, and falls back to the registered office's town without it. The `taxId`
+     * is checked by the club's country profile (`ES`: a CIF, NIF or NIE with its check character).
+     */
+    @Test @AuditCovers(AuditAction.CLUB_UPDATED)
+    void T_02_11_R_02_02_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile() throws Exception {
+        var before = json(admin(get("/api/v1/club")));
+        assertThat(before.path("displayCity").isMissingNode() || before.path("displayCity").isNull()).isTrue();
+        assertThat(json(mvc.perform(get("/api/v1/branding").header("Host", HOST))).at("/club/city").asText()).isEqualTo("Cabrera de Mar");
+        var after = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "displayCity", "Example Display Town", "taxId", "B12345674"))));
+        assertThat(after.path("displayCity").asText()).isEqualTo("Example Display Town");
+        assertThat(after.path("taxId").asText()).isEqualTo("B12345674");
+        assertThat(after.at("/address/city").asText()).isEqualTo("Cabrera de Mar");
+        var branding = json(mvc.perform(get("/api/v1/branding").header("Host", HOST)));
+        assertThat(branding.at("/club/city").asText()).isEqualTo("Example Display Town");
+        assertThat(branding.at("/club/legalAddress/city").asText()).as("the registered office keeps its own town").isEqualTo("Cabrera de Mar");
+        assertThat(audits()).singleElement().satisfies(entry -> assertThat(entry.changes()).contains(new AuditChange("settings.displayCity", null, "Example Display Town")));
+        // A wrong check character, a malformed value and a non-text town are refused, and nothing changes.
+        for (Map<String, Object> invalid : List.<Map<String, Object>>of(Map.of("taxId", "B12345675"), Map.of("taxId", "EXAMPLE-ORG"), Map.of("displayCity", 5))) {
+            var request = new LinkedHashMap<String, Object>(invalid); request.put("version", after.path("version").asLong());
+            admin(body(put("/api/v1/club"), request)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        }
+        var cleared = new LinkedHashMap<String, Object>(); cleared.put("version", after.path("version").asLong()); cleared.put("displayCity", null);
+        assertThat(json(admin(body(put("/api/v1/club"), cleared))).path("displayCity").isNull()).isTrue();
+        assertThat(json(mvc.perform(get("/api/v1/branding").header("Host", HOST))).at("/club/city").asText()).isEqualTo("Cabrera de Mar");
     }
 
     @Test void T_02_15_timezoneChangeBlockedByTenantClassesAndWeekOpeningStaysLocal() throws Exception {

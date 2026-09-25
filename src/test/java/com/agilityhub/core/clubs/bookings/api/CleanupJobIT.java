@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.*;
 /** S15 R-15-19 P9 `cleanup` (T-15-27) at Tuesday 06-10-2026 06:00 Madrid (`jobs.dailyTime`, 04:00Z). */
 class CleanupJobIT extends BookingFixtures {
     static final Instant RUN = Instant.parse("2026-10-06T04:00:00Z");
-    static final List<String> TECHNICAL = List.of("attachment_uploads", "dog_documents", "export_jobs", "magic_link_tokens", "job_runs");
+    static final List<String> TECHNICAL = List.of("attachment_uploads", "dog_documents", "export_jobs", "magic_link_tokens", "job_runs", "signup_notification_admissions");
     @Autowired JobRunner runner;
     @Autowired CleanupJob job;
     @Autowired AttachmentStorage storage;
@@ -53,9 +53,18 @@ class CleanupJobIT extends BookingFixtures {
         mongo.insert(new Document("_id", "s08-token").append("clubId", CLUB).append("tokenHash", "s08-hash-" + UUID.randomUUID()).append("expiresAt", Date.from(RUN.minusSeconds(30))), "magic_link_tokens");
         mongo.insert(new Document("_id", "s08-idem").append("clubId", CLUB).append("createdAt", Date.from(RUN.minus(Duration.ofHours(25)))), "idempotency_records");
         mongo.insert(new Document("_id", CLUB + ":REMINDERS").append("holder", "gone").append("expiresAt", Date.from(RUN.minusSeconds(30))), "job_locks");
+        // Recipient-cap decisions (E3-T15, R-15-19 amended 25-09): one past its expiry (reported), one whose event is still
+        // pending (no expiry), one expiring tomorrow, and another club's expired one.
+        admission("s08-event-a:N-01", CLUB, RUN.minusSeconds(30)); admission("s08-event-b:N-01", CLUB, null);
+        admission("s08-event-c:N-39", CLUB, RUN.plus(Duration.ofDays(1))); admission("s08-event-d:N-01", OTHER, RUN.minusSeconds(30));
         // The platform pass of this cycle is already taken (by no club of this fixture): the club tests see only their club.
         mongo.insert(new Document("_id", "platform:CLEANUP").append("holder", "elsewhere").append("acquiredAt", Date.from(RUN.minusSeconds(60)))
                 .append("expiresAt", Date.from(RUN.plus(Duration.ofDays(1)))), "job_locks");
+    }
+    private void admission(String id, String club, Instant expiresAt) {
+        mongo.insert(new Document("_id", id).append("clubId", club).append("eventId", id.substring(0, id.indexOf(':'))).append("notificationCode", id.substring(id.indexOf(':') + 1))
+                .append("admitted", true).append("decidedAt", Date.from(RUN.minus(Duration.ofDays(2)))).append("expiresAt", expiresAt == null ? null : Date.from(expiresAt)),
+                "signup_notification_admissions");
     }
     private void platformEvent(String id, String status, int daysAgo) {
         var event = new Document("_id", id).append("type", "AccountCreated").append("status", status).append("occurredAt", Date.from(RUN.minus(Duration.ofDays(daysAgo))));
@@ -165,13 +174,15 @@ class CleanupJobIT extends BookingFixtures {
 
     @Test void T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns() {
         var before = new TreeMap<String, Long>();
-        for (String c : List.of("attachment_uploads", "domain_events", "export_jobs", "seat_holds", "magic_link_tokens", "idempotency_records")) { before.put(c, count(c)); }
+        for (String c : List.of("attachment_uploads", "domain_events", "export_jobs", "seat_holds", "magic_link_tokens", "idempotency_records", "signup_notification_admissions")) { before.put(c, count(c)); }
         long runs = count("job_runs");
         var dry = runner.manual(CLUB, JobName.CLEANUP, true, "s08-admin");
         assertThat(counters(dry)).containsEntry("WOULD_DELETE_orphanUploads", 3L).containsEntry("WOULD_DELETE_exports", 1L)
                 .containsEntry("WOULD_DELETE_domainEvents", 1L).containsEntry("WOULD_DELETE_jobRuns", 3L).containsEntry("WOULD_DELETE_stripeEvents", 0L)
                 .containsEntry("WOULD_DELETE", 6L).containsEntry("ttlPendingSeatHolds", 1L).containsEntry("ttlPendingMagicLinkTokens", 1L)
-                .containsEntry("ttlPendingIdempotencyRecords", 1L).containsEntry("ttlPendingJobLocks", 1L).doesNotContainKey("orphanUploadsDeleted");
+                .containsEntry("ttlPendingIdempotencyRecords", 1L).containsEntry("ttlPendingJobLocks", 1L)
+                // E3-T16 step 4 (R-15-19 amended 25-09): the recipient-cap decisions past their expiry; not one still pending.
+                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L).doesNotContainKey("orphanUploadsDeleted");
         // The dry run writes nothing but its JobRun.
         before.forEach((collection, value) -> assertThat(count(collection)).as(collection).isEqualTo(value));
         assertThat(count("job_runs")).isEqualTo(runs + 1);
@@ -183,7 +194,8 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(real.items()).extracting(JobRun.Item::entityId).containsExactlyElementsOf(dry.items().stream().map(JobRun.Item::entityId).toList());
         assertThat(real.items()).extracting(JobRun.Item::action).containsOnly("DELETE");
         assertThat(counters(real)).containsEntry("orphanUploadsDeleted", 3L).containsEntry("exportsPurged", 1L).containsEntry("domainEventsDeleted", 1L)
-                .containsEntry("jobRunsDeleted", 3L).containsEntry("stripeEventsDeleted", 0L).containsEntry("ttlPendingSeatHolds", 1L);
+                .containsEntry("jobRunsDeleted", 3L).containsEntry("stripeEventsDeleted", 0L).containsEntry("ttlPendingSeatHolds", 1L)
+                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L);
         assertThat(real.parametersSnapshot()).contains(new JobRun.Entry("jobs.retention.orphanUploadsHours", 48), new JobRun.Entry("jobs.retention.jobRunsDays", 90));
         // Uploads: the three old orphans are gone (grant and file); the referenced and the recent ones stay; another club is untouched.
         assertThat(List.of("orphan-1", "orphan-2", "orphan-3")).noneMatch(this::stored);
@@ -207,6 +219,7 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(mongo.findById("s08-export-new", Document.class, "export_jobs").getString("status")).isEqualTo("READY");
         // TTL-managed documents are only reported, never deleted.
         assertThat(count("seat_holds")).isEqualTo(1); assertThat(count("magic_link_tokens")).isEqualTo(1);
+        assertThat(count("signup_notification_admissions")).isEqualTo(3);
         assertThat(mongo.findById(CLUB + ":REMINDERS", Document.class, "job_locks")).isNotNull();
         // No business event: only the SchedulerRun of the run itself.
         assertThat(eventsOf("SchedulerRun")).hasSize(1);

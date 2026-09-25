@@ -40,6 +40,12 @@ An email cannot appear twice across these sections. Provider names
 are stored as configuration slots; existing configuration remains intact. This E0
 format accepts provider names only, so credential values cannot enter a seed.
 
+`club.legalName`, `club.taxId` and `club.address` (the registered office) are the club's
+public legal identity: `/branding` shows them in the public footer (S02 R-02-02, LSSI
+art. 10). The country profile checks `taxId` (`ES`: a CIF, NIF or NIE with its check
+character). `club.displayCity` is the town shown with the club's name; without it,
+`/branding` shows `address.city`. The Cànic's are its real public identifiers (product owner, 25-09).
+
 Diffs show added/changed/unchanged sections and the before/after fields. A dry run
 performs no aggregate, parameter, identity, audit, or outbox writes. Infrastructure
 startup may create collections and indexes. Reapplying unchanged input writes

@@ -3,8 +3,13 @@
     "slug": "canic",
     "name": "Club Agility Cànic",
     "city": "Cabrera de Mar",
-    "legalName": null,
-    "taxId": null
+    "legalName": "Club Agility Cànic",
+    "taxId": "G63189617",
+    "legalAddress": {
+      "street": "Carrer Sant Pere, 10",
+      "postalCode": "08392",
+      "city": "Sant Andreu de Llavaneres"
+    }
   },
   "theme": {
     "logoUrl": null,

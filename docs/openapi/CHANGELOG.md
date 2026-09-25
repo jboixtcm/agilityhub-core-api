@@ -2,6 +2,25 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T16 · the member's document types, the public footer, the list page sizes
+
+**0 operations added, 30 changed; 2 schemas added** (`DogDocumentType`, `LegalAddress`), 4 changed (`MeDogs`,
+`ClubSummary`, `ClubSettings`, `ClubUpdate`). Additive, except that the documented `size` values are now closed:
+
+- `GET /me/dogs` (R-03-15, R-03-32; S03 §6 amended 25-09): `MeDogs.documentTypes` (required) `[{key, label,
+  required}]`, the club's `census.dogDocumentTypes` in catalog order, `label` in the reader's locale (fallback
+  `club.defaultLocale`). Also for a member without dogs and under impersonation. Screen 13's «＋ DOC.» reads it: a
+  MEMBER still gets `403` on `/parameters/*`.
+- `GET /branding` (R-02-02, amended 25-09): `ClubSummary.city` is now required (`string | null`) and is
+  `displayCity ?? address.city`. New required `ClubSummary.legalAddress: LegalAddress {street, postalCode, city} |
+  null`, the registered office for the public footer (LSSI art. 10), `null` without a street or a postal code.
+- `GET /club` and `PUT /club` (S02 §3): `ClubSettings.displayCity` and `ClubUpdate.displayCity` (optional; `null`
+  clears it). `ClubSettings.taxId` loses its wrong `format: uuid`. `PUT /club` answers `400 VALIDATION_ERROR` for a
+  `taxId` the club's country profile refuses (`ES`: a CIF, NIF or NIE with its check character).
+- The 29 operations with the shared list `size` parameter (CONVENCIONS_API §4, amended 25-09): `size` is `enum [20,
+  50, 200, 1000]`, default 50 (was `minimum: 1`). Any other value is `400 INVALID_FILTER`; a value above 1000 is now
+  refused too (it was cut to 1000). `GET /tasks` keeps its own `size` (an S10 stub).
+
 ## 2026-09-25 · E3-T14 round 2 · the D2 methods of an add-dog are not assignable
 
 **0 operations added, 1 changed; 0 schemas added** (descriptions only):

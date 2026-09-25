@@ -27,7 +27,7 @@ public class ClubDefinitionMapper {
         ObjectNode identity = root.putObject("club");
         identity.put("slug", club.slug()); identity.put("name", club.name());
         identity.put("legalName", club.legalName()); identity.put("taxId", club.taxId());
-        identity.set("address", mapper.valueToTree(club.address()));
+        identity.set("address", mapper.valueToTree(club.address())); identity.put("displayCity", club.displayCity());
         identity.put("contactEmail", club.contactEmail()); identity.put("contactPhone", club.contactPhone());
         identity.put("websiteUrl", club.websiteUrl()); identity.set("locales", mapper.valueToTree(club.locales()));
         identity.put("defaultLocale", club.defaultLocale()); identity.put("timeZone", club.timeZone());
@@ -67,7 +67,7 @@ public class ClubDefinitionMapper {
         Set<Module> modules = new java.util.HashSet<>(); merged.path("modules").forEach(module -> modules.add(Module.valueOf(module.asText())));
         List<String> locales = new ArrayList<>(); identity.path("locales").forEach(locale -> locales.add(locale.asText()));
         return new Club(id, identity.path("slug").asText(), identity.path("name").asText(), value(identity, "legalName"), value(identity, "taxId"),
-                mapper.convertValue(identity.get("address"), Club.Address.class), value(identity, "contactEmail"), value(identity, "contactPhone"),
+                mapper.convertValue(identity.get("address"), Club.Address.class), value(identity, "displayCity"), value(identity, "contactEmail"), value(identity, "contactPhone"),
                 value(identity, "websiteUrl"), locales, identity.path("defaultLocale").asText(), identity.path("timeZone").asText(),
                 identity.path("currency").asText(), identity.path("countryProfile").asText(), domains,
                 mapper.convertValue(merged.path("theme"), Theme.class), merged.has("pwa") ? mapper.convertValue(merged.get("pwa"), Pwa.class)

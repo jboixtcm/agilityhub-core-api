@@ -320,6 +320,16 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         for(int i=0;i<3;i++) assertThat(result(from(postJson("/signup/identity-checks",identity(body)),"198.51.100."+(242+i)),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
         dispatch();
         assertThat(collection("notifications").stream().filter(n->"N-39".equals(n.getString("code")))).as("one N-39 an hour for this club").hasSize(1);
+        // E3-T16 step 4 (E3-T15 review #2): each N-39 decision, the refused ones too, lives as long as its event: once the event is
+        // processed, `<eventId>:N-39` expires `jobs.retention.domainEventsDays` (90) later.
+        Instant processed=clock.instant();
+        var recognitions=collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type"))).toList();
+        assertThat(recognitions).hasSize(3).allSatisfy(e->assertThat(e.getString("status")).isEqualTo("PUBLISHED"));
+        var decisions=recognitions.stream().map(e->mongo.getCollection("signup_notification_admissions").find(new Document("_id",e.getString("_id")+":N-39")).first()).toList();
+        assertThat(decisions).as("one N-39 decision per event").doesNotContainNull();
+        assertThat(decisions.stream().map(d->d.getBoolean("admitted"))).containsExactlyInAnyOrder(true,false,false);
+        assertThat(decisions).allSatisfy(d->assertThat(d.getDate("expiresAt")).as(d.getString("_id")).isNotNull()
+                .satisfies(at->assertThat(at.toInstant()).isEqualTo(processed.plus(Duration.ofDays(90)))));
     }
 
     // ---- Step 4.1: signup.rateLimit is read per club ----

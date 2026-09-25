@@ -46,6 +46,9 @@
           "required": [],
           "additionalProperties": false
         },
+        "displayCity": {
+          "type": "string"
+        },
         "contactEmail": {
           "type": "string"
         },

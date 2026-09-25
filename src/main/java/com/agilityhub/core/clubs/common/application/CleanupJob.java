@@ -63,6 +63,9 @@ public class CleanupJob implements Job {
         recorder.count("ttlPendingMagicLinkTokens", cleanup.ttlPending(club, "magic_link_tokens", "expiresAt", now));
         recorder.count("ttlPendingIdempotencyRecords", cleanup.ttlPending(club, "idempotency_records", "createdAt", now.minus(IDEMPOTENCY_TTL)));
         recorder.count("ttlPendingJobLocks", cleanup.ttlPending(club, "job_locks", "expiresAt", now));
+        // R-15-19 (amended 25-09, E3-T16): the recipient-cap decisions past their event's retention. One whose event may still
+        // retry has no `expiresAt` (E3-T15), so it is never counted.
+        recorder.count("ttlPendingSignupNotificationAdmissions", cleanup.ttlPending(club, "signup_notification_admissions", "expiresAt", now));
         var items = new ArrayList<JobItem>();
         var totals = new LinkedHashMap<String, Long>();
         var orphans = cleanup.orphanUploads(club, cut.uploads());

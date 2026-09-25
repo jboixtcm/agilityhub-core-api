@@ -125,7 +125,7 @@ class PlatformIT extends AbstractIntegrationTest {
         var json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(first.getContentAsString());
         assertThat(json.size()).isEqualTo(11);
         // R-02-02 (amended 24-09, E3-T10 step 12): the club's legal identity is public (LSSI art. 10) and always present, null when unset.
-        assertThat(json.path("club").fieldNames()).toIterable().containsExactlyInAnyOrder("slug", "name", "city", "legalName", "taxId");
+        assertThat(json.path("club").fieldNames()).toIterable().containsExactlyInAnyOrder("slug", "name", "city", "legalName", "taxId", "legalAddress");
         assertThat(json.at("/club/legalName").asText()).isEqualTo("Example Club Association");
         assertThat(json.at("/club/taxId").isNull()).isTrue();
         mongo.getCollection("clubs").updateOne(new Document("_id", "club-a"), new Document("$set", new Document("taxId", "G00000000")));
@@ -145,6 +145,40 @@ class PlatformIT extends AbstractIntegrationTest {
                 .andExpect(status().isNotModified());
         mvc.perform(get("/api/v1/manifest.webmanifest").header("Host", "unknown.example.test"))
                 .andExpect(status().isNotFound());
+    }
+    com.fasterxml.jackson.databind.JsonNode brandingClub() throws Exception {
+        configs.invalidate("club-a");
+        return new com.fasterxml.jackson.databind.ObjectMapper().readTree(mvc.perform(get("/api/v1/branding").header("Host", "app.example.test"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("club");
+    }
+    void clubField(String field, Object value) {
+        mongo.getCollection("clubs").updateOne(new Document("_id", "club-a"), new Document("$set", new Document(field, value)));
+    }
+    /**
+     * E3-T16 step 3 (R-02-02, amended 25-09): `city` is `displayCity ?? address.city`; `legalAddress` is the registered office
+     * (`address`: street, postal code, town) for the public footer (LSSI art. 10), or `null` without a street or a postal code.
+     */
+    @Test void T_02_07_R_02_02_cityFallsBackToTheRegisteredOfficeAndTheLegalAddressNeedsStreetAndPostalCode() throws Exception {
+        var club = brandingClub();
+        assertThat(club.path("city").asText()).as("no displayCity: the office's town").isEqualTo("Cabrera de Mar");
+        assertThat(club.path("legalAddress")).isEqualTo(new com.fasterxml.jackson.databind.ObjectMapper().readTree(
+                "{\"street\":\"1 Example Street\",\"postalCode\":\"08349\",\"city\":\"Cabrera de Mar\"}"));
+        clubField("displayCity", "Example Display Town");
+        club = brandingClub();
+        assertThat(club.path("city").asText()).isEqualTo("Example Display Town");
+        assertThat(club.at("/legalAddress/city").asText()).isEqualTo("Cabrera de Mar");
+        clubField("displayCity", " ");
+        assertThat(brandingClub().path("city").asText()).as("a blank displayCity is no town").isEqualTo("Cabrera de Mar");
+        for (String missing : List.of("address.street", "address.postalCode")) {
+            clubField(missing, " ");
+            club = brandingClub();
+            assertThat(club.has("legalAddress")).as(missing).isTrue(); assertThat(club.path("legalAddress").isNull()).as(missing).isTrue();
+            clubField(missing, missing.endsWith("street") ? "1 Example Street" : "08349");
+        }
+        clubField("address", null);
+        club = brandingClub();
+        assertThat(club.path("legalAddress").isNull()).isTrue();
+        assertThat(club.path("city").isNull()).as("neither a displayCity nor an office").isTrue();
     }
     @Test void T_02_01_outboxParameterAndClubEventsInvalidateCaches() throws Exception {
         assertThat(configs.get("club-a").get("signup.enabled", Boolean.class)).isTrue();

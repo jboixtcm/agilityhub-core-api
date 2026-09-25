@@ -129,7 +129,8 @@ public class CensusQuery {
             if (access.enabled(Module.FREE_TRAINING)) { result.put("freeTrainingAllowed", access.free(dog).allowed()); }
             return result;
         }).toList();
-        return object("dogs", dogs, "canAddDog", "ACTIVE".equals(member.status) && member.erasedAt == null && Boolean.TRUE.equals(access.config().get("signup.enabled", Boolean.class)));
+        return object("dogs", dogs, "canAddDog", "ACTIVE".equals(member.status) && member.erasedAt == null && Boolean.TRUE.equals(access.config().get("signup.enabled", Boolean.class)),
+                "documentTypes", documents.types());
     }
     public Map<String,Object> myProfile() {
         var member = access.me(); var result = object("idDocumentMasked", CensusRules.maskedId(string(map(member.idDocument).get("number"))),

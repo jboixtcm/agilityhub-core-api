@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T16: gate E3 fixes (api).
+  - R-03-15, R-03-32: `GET /me/dogs` returns `documentTypes: [{key, label, required}]`, the club's
+    `census.dogDocumentTypes` in catalog order with the label in the reader's locale (fallback `club.defaultLocale`),
+    for every member and under impersonation. Screen 13 no longer needs `/parameters`, which stays ADMIN only.
+  - R-02-02, S02 §3 (Jordi, 25-09): the club gets `displayCity` (club definition, club settings API, `club:apply`
+    diff). `/branding` gives `club.city` = `displayCity ?? address.city` and `club.legalAddress {street, postalCode,
+    city}`, the registered office, or `null` without a street or a postal code. The club's `taxId` is checked by its
+    country profile (`ES`: CIF, NIF or NIE with its check character) in `PUT /club` and `club:apply`.
+  - Seeds: the Cànic seed (and its consumer variant) carries its legal identity: `legalName` «Club Agility Cànic»,
+    `taxId` G63189617, the registered office in Sant Andreu de Llavaneres, and `displayCity` «Cabrera de Mar». A club
+    applied before gets 1 change, then 0.
+  - Follow-ups of the E3-T15 review: tests through the service for the «never charge twice» guard and the decision
+    lock; the N-39 decisions' `expiresAt`; the capped codes come from one map; the lock's javadoc says it is one per
+    instance. P9 reports `ttlPendingSignupNotificationAdmissions` (R-15-19, amended 25-09).
+  - CONVENCIONS_API §4 (amended 25-09): the list `size` is one of 20, 50, 200, 1000 in the OpenAPI document (`enum`,
+    default 50), and a value above 1000 is `400 INVALID_FILTER` instead of being cut to 1000. OpenAPI snapshot and
+    `docs/openapi/CHANGELOG.md` updated.
 - E3-T15: gate E3 audit fixes (api), a failure-safe recipient-cap admission (R-04-20, review of E3-T12 round 2).
   - The decision is stored before the allowance is charged: the per-recipient bucket is probed, the decision is written
     to `signup_notification_admissions`, and only a stored admission takes its token (`RateLimits.available` /

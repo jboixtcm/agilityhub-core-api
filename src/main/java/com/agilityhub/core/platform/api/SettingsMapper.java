@@ -44,7 +44,7 @@ public class SettingsMapper {
         if (pwa != null) { pwa.icons().forEach(icon -> icons.put(icon.sizes(), icon.src())); }
         return new ClubSettings(c.id(), c.slug(), c.name(), c.legalName(), c.taxId(), address == null ? null :
                 new ClubAddress(address.street(), address.postalCode(), address.city(), address.region(), address.country()),
-                c.contactEmail(), c.contactPhone(), c.websiteUrl(), c.locales(), c.defaultLocale(), c.timeZone(), c.currency(),
+                c.displayCity(), c.contactEmail(), c.contactPhone(), c.websiteUrl(), c.locales(), c.defaultLocale(), c.timeZone(), c.currency(),
                 c.countryProfile(), c.domains().stream().map(d -> new ClubDomain(d.host(), d.app(), d.verifiedAt(), d.primary())).toList(),
                 c.theme(), pwa == null ? null : new ClubPwa(pwa.name(), pwa.shortName(), icons),
                 c.modules().stream().map(Enum::name).sorted().toList(), providers,

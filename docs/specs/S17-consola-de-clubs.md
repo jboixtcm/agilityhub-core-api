@@ -45,7 +45,7 @@ admins: [ { email: admin@exemple.cat, name: … } ]
 ```
 Secrets **només** per referència a variables d'entorn (`{ env: NOM }`): el fitxer es pot versionar (al repo de l'API, `seeds/`).
 
-**Avui (E3-T14, 25-09)**, `club:apply` accepta de cada proveïdor només l'interruptor, `paymentProviders: {NAME: {enabled: bool}}` (o l'antiga llista de noms), i les credencials es desen per R-17-05, fora del fitxer. La forma amb `{ env: … }` de l'exemple arribarà amb la consola.
+**Avui (E3-T14, 25-09)**, `club:apply` accepta de cada proveïdor només l'interruptor, `paymentProviders: {NAME: {enabled: bool}}` (o l'antiga llista de noms), i les credencials es desen per R-17-05, fora del fitxer. La forma amb `{ env: … }` de l'exemple arribarà amb la consola. La llista de proveïdors de la definició és completa: un proveïdor que no hi surt s'elimina amb la configuració que tenia desada (com ja feia la llista de noms; organitzador 25-09).
 
 ## 4. Regles de negoci
 

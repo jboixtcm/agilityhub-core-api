@@ -174,7 +174,8 @@ public class OpenApiConfiguration {
             if (operation.getParameters().stream().anyMatch(parameter -> name.equals(parameter.getName()))) { continue; }
             Schema<?> schema = switch (name) {
                 case "page" -> new io.swagger.v3.oas.models.media.IntegerSchema()._default(0).minimum(java.math.BigDecimal.ZERO);
-                case "size" -> new io.swagger.v3.oas.models.media.IntegerSchema()._default(50).minimum(java.math.BigDecimal.ONE);
+                case "size" -> { var sizes = new io.swagger.v3.oas.models.media.IntegerSchema()._default(50);
+                    sizes.setEnum(new java.util.ArrayList<Number>(com.agilityhub.core.shared.application.lists.ListQuery.SIZES)); yield sizes; }
                 case "sort", "filter" -> new io.swagger.v3.oas.models.media.ArraySchema()
                         .items(new io.swagger.v3.oas.models.media.StringSchema());
                 default -> new io.swagger.v3.oas.models.media.StringSchema();
@@ -186,7 +187,7 @@ public class OpenApiConfiguration {
                         case "fields" -> "Comma-separated response column keys.";
                         case "q" -> "Free-text search within the caller's permitted projection.";
                         case "page" -> "Zero-based page index.";
-                        default -> "Requested page size.";
+                        default -> "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.";
                     });
             if (name.equals("sort") || name.equals("filter")) { parameter.style(io.swagger.v3.oas.models.parameters.Parameter.StyleEnum.FORM).explode(true); }
             operation.addParametersItem(parameter);

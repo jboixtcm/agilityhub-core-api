@@ -1,0 +1,1082 @@
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.148 s <<< FAILURE! -- in com.agilityhub.core.configuration.E3GateFixesContractTest
+[ERROR] com.agilityhub.core.configuration.E3GateFixesContractTest.T_02_07_brandingNamesTheTownAndTheRegisteredOfficeAndTheClubSettingsCarryDisplayCity -- Time elapsed: 0.033 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["legalName", "name", "slug", "taxId"]
+to contain exactly in any order:
+  ["slug", "name", "city", "legalName", "taxId", "legalAddress"]
+but could not find the following elements:
+  ["city", "legalAddress"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_02_07_brandingNamesTheTownAndTheRegisteredOfficeAndTheClubSettingsCarryDisplayCity(E3GateFixesContractTest.java:46)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes -- Time elapsed: 0.020 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting all elements of:
+  [{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}]
+to satisfy given requirements, but these elements did not:
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_26_meDogsAlwaysCarriesTheClubsDocumentTypes -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["canAddDog", "dogs"]
+to contain exactly in any order:
+  ["dogs", "canAddDog", "documentTypes"]
+but could not find the following elements:
+  ["documentTypes"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_26_meDogsAlwaysCarriesTheClubsDocumentTypes(E3GateFixesContractTest.java:29)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.129 s <<< FAILURE! -- in com.agilityhub.core.configuration.E2ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E2ResponseContractTest.T_03_22_T_05_01_T_14_01_referenceMockResponsesKeepTheirWireFieldsMoneyAndUtcDates -- Time elapsed: 0.082 s <<< ERROR!
+com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: 
+Unrecognized field "documentTypes" (class com.agilityhub.core.clubs.census.api.CensusResponses$MeDogs), not marked as ignorable (2 known properties: "canAddDog", "dogs")
+ at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: com.agilityhub.core.clubs.census.api.CensusResponses$MeDogs["documentTypes"])
+	at com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61)
+	at com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1200)
+	at com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2386)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperty(BeanDeserializerBase.java:1823)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperties(BeanDeserializerBase.java:1773)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeUsingPropertyBased(BeanDeserializer.java:469)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromObjectUsingNonDefault(BeanDeserializerBase.java:1499)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:340)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)
+	at com.fasterxml.jackson.databind.ObjectMapper._readValue(ObjectMapper.java:5023)
+	at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3104)
+	at com.fasterxml.jackson.databind.ObjectMapper.treeToValue(ObjectMapper.java:3572)
+	at com.agilityhub.core.configuration.E2ResponseContractTest.T_03_22_T_05_01_T_14_01_referenceMockResponsesKeepTheirWireFieldsMoneyAndUtcDates(E2ResponseContractTest.java:23)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.071 s <<< FAILURE! -- in com.agilityhub.core.configuration.OpenApiRequiredContractTest
+[ERROR] com.agilityhub.core.configuration.OpenApiRequiredContractTest.E1_T11_everySnapshotObjectDeclaresItsRequiredProperties -- Time elapsed: 0.012 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["legalName", "name", "slug", "taxId"]
+to contain exactly in any order:
+  ["slug", "name", "city", "legalName", "taxId", "legalAddress"]
+but could not find the following elements:
+  ["city", "legalAddress"]
+
+	at com.agilityhub.core.configuration.OpenApiRequiredContractTest.E1_T11_everySnapshotObjectDeclaresItsRequiredProperties(OpenApiRequiredContractTest.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Tests run: 34, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.041 s <<< FAILURE! -- in com.agilityhub.core.shared.application.lists.ListQueryTest
+[ERROR] com.agilityhub.core.shared.application.lists.ListQueryTest.T_03_08_invalidPaginationSortAndProjection(String)[4] -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.shared.application.lists.ListQueryTest.invalid(ListQueryTest.java:53)
+	at com.agilityhub.core.shared.application.lists.ListQueryTest.T_03_08_invalidPaginationSortAndProjection(ListQueryTest.java:39)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.shared.application.lists.ListQueryTest.T_03_08_invalidPaginationSortAndProjection(String)[5] -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code to raise a throwable.
+	at com.agilityhub.core.shared.application.lists.ListQueryTest.invalid(ListQueryTest.java:53)
+	at com.agilityhub.core.shared.application.lists.ListQueryTest.T_03_08_invalidPaginationSortAndProjection(ListQueryTest.java:39)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   E3GateFixesContractTest.T_02_07_brandingNamesTheTownAndTheRegisteredOfficeAndTheClubSettingsCarryDisplayCity:46 
+Expecting actual:
+  ["legalName", "name", "slug", "taxId"]
+to contain exactly in any order:
+  ["slug", "name", "city", "legalName", "taxId", "legalAddress"]
+but could not find the following elements:
+  ["city", "legalAddress"]
+
+[ERROR]   E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes:69 
+Expecting all elements of:
+  [{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}},
+    {"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}]
+to satisfy given requirements, but these elements did not:
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+{"description":"Requested page size.","in":"query","name":"size","schema":{"default":50,"format":"int32","minimum":1,"type":"integer"}}
+error: org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  []
+to contain exactly (and in same order):
+  ["20", "50", "200", "1000"]
+but could not find the following elements:
+  ["20", "50", "200", "1000"]
+
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.lambda$T_03_08_everyListDocumentsTheFourPageSizes$4(E3GateFixesContractTest.java:71)
+	at com.agilityhub.core.configuration.E3GateFixesContractTest.T_03_08_everyListDocumentsTheFourPageSizes(E3GateFixesContractTest.java:69)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   E3GateFixesContractTest.T_03_26_meDogsAlwaysCarriesTheClubsDocumentTypes:29 
+Expecting actual:
+  ["canAddDog", "dogs"]
+to contain exactly in any order:
+  ["dogs", "canAddDog", "documentTypes"]
+but could not find the following elements:
+  ["documentTypes"]
+
+[ERROR]   OpenApiRequiredContractTest.E1_T11_everySnapshotObjectDeclaresItsRequiredProperties:43 
+Expecting actual:
+  ["legalName", "name", "slug", "taxId"]
+to contain exactly in any order:
+  ["slug", "name", "city", "legalName", "taxId", "legalAddress"]
+but could not find the following elements:
+  ["city", "legalAddress"]
+
+[ERROR]   ListQueryTest.T_03_08_invalidPaginationSortAndProjection:39->invalid:53 
+Expecting code to raise a throwable.
+[ERROR]   ListQueryTest.T_03_08_invalidPaginationSortAndProjection:39->invalid:53 
+Expecting code to raise a throwable.
+[ERROR] Errors: 
+[ERROR]   E2ResponseContractTest.T_03_22_T_05_01_T_14_01_referenceMockResponsesKeepTheirWireFieldsMoneyAndUtcDates:23 » UnrecognizedProperty Unrecognized field "documentTypes" (class com.agilityhub.core.clubs.census.api.CensusResponses$MeDogs), not marked as ignorable (2 known properties: "canAddDog", "dogs")
+ at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: com.agilityhub.core.clubs.census.api.CensusResponses$MeDogs["documentTypes"])
+[ERROR] Tests run: 42, Failures: 6, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

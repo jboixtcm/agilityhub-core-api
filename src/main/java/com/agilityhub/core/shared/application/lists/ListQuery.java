@@ -10,12 +10,14 @@ import static com.agilityhub.core.shared.application.lists.ListDefinition.invali
 
 /** Canonical, typed query shared by lists, facets, saved views and exports. */
 public record ListQuery(int page, int size, List<String> sort, String q, List<Filter> filters, List<String> fields) {
+    /** The page sizes a list accepts (CONVENCIONS_API §4), also published as the `size` enum of the OpenAPI document. */
+    public static final List<Integer> SIZES = List.of(20, 50, 200, 1000);
     public static ListQuery parse(ListDefinition definition, MultiValueMap<String, String> params) {
         try {
             int page = Integer.parseInt(single(params, "page", "0"));
-            int requestedSize = Integer.parseInt(single(params, "size", "50"));
-            int size = Math.min(requestedSize, 1000);
-            if (page < 0 || !Set.of(20, 50, 200, 1000).contains(size)) { throw invalid(); }
+            int size = Integer.parseInt(single(params, "size", "50"));
+            // CONVENCIONS_API §4 (amended 25-09): one of the four page sizes; any other value, above 1000 too, is INVALID_FILTER.
+            if (page < 0 || !SIZES.contains(size)) { throw invalid(); }
             var sort = validateSort(definition, params.getOrDefault("sort", definition.defaultSort()));
             String q = single(params, "q", "").strip();
             var filters = new ArrayList<Filter>();

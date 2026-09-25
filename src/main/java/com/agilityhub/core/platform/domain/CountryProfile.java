@@ -9,6 +9,8 @@ public interface CountryProfile {
         return value == null ? "" : value.toUpperCase(java.util.Locale.ROOT).replaceAll("[\\s-]", "");
     }
     boolean validateIdDocument(String type, String value);
+    /** S02 §3: the club's `taxId` (its organisation identifier), checked by its country profile. */
+    boolean validateTaxId(String value);
     String normalizePhone(String raw);
     boolean validateIban(String value);
     List<Town> postalCodeLookup(String code);

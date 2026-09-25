@@ -84,9 +84,14 @@ public class ClubConfigService implements TimeZoneProvider {
                 LOG.warn("ParameterInvalidOverride clubId={} key={} error={}", clubId, override.key(), invalid.code());
             }
         }
+        var address = club.address(); String office = address == null ? null : text(address.city());
         var view = new ClubConfig.ClubView(club.id(), club.slug(), club.name(), club.locales(), club.defaultLocale(),
-                club.timeZone(), club.currency(), club.theme(), club.pwa(), club.status().name(), club.legal().privacyPolicyUrl(), club.address() == null ? null : club.address().city(),
-                club.legalName(), club.taxId());
+                club.timeZone(), club.currency(), club.theme(), club.pwa(), club.status().name(), club.legal().privacyPolicyUrl(),
+                text(club.displayCity()) == null ? office : club.displayCity(), club.legalName(), club.taxId(),
+                address == null || text(address.street()) == null || text(address.postalCode()) == null ? null
+                        : new ClubConfig.LegalAddress(address.street(), address.postalCode(), office));
         return new ClubConfig(view, values, club.modules(), countries.get(club.countryProfile()), scoped);
     }
+    /** A blank value is no value (R-02-02: the town shown and the registered office). */
+    private static String text(String value) { return value == null || value.isBlank() ? null : value; }
 }

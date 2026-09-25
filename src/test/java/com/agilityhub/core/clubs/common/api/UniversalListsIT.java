@@ -98,6 +98,13 @@ class UniversalListsIT extends AbstractIntegrationTest {
         admin(get("/api/v1/members").param("page", "100")).andExpect(jsonPath("$.items.length()").value(0)).andExpect(jsonPath("$.totalItems").value(60));
         call(get("/api/v1/dogs"), OTHER, "admin-b", "ADMIN").andExpect(jsonPath("$.items[0].level.id").doesNotExist());
     }
+    /** E3-T16 step 4 (CONVENCIONS_API §4, amended 25-09): `size` is one of 20, 50, 200 and 1000; any other value is `400 INVALID_FILTER`. */
+    @ParameterizedTest @org.junit.jupiter.params.provider.CsvSource({"20,200", "50,200", "200,200", "1000,200", "1,400", "21,400", "100,400", "1001,400", "5000,400", "-20,400"})
+    void T_03_08_sizeIsOneOfTheFourPageSizes(String size, int expected) throws Exception {
+        var response = admin(get("/api/v1/members").param("size", size)).andExpect(status().is(expected));
+        if (expected == 200) { response.andExpect(jsonPath("$.size").value(Integer.parseInt(size))); }
+        else { response.andExpect(jsonPath("$.code").value("INVALID_FILTER")); }
+    }
     @ParameterizedTest @org.junit.jupiter.params.provider.CsvSource(value = {"memberNumber:eq:2|1", "memberNumber:ne:2|59", "memberNumber:in:2,4|2", "memberNumber:nin:2,4|58", "memberNumber:lt:2|2", "memberNumber:lte:2|3", "memberNumber:gt:58|1", "memberNumber:gte:58|2", "memberNumber:between:2,4|3", "lastName:startsWith:Example 00|10", "joinedAt:gte:2025-01-01T00:00:00Z|60", "nextInvoiceDate:eq:2026-10-01|60", "leaveDate:exists:false|60"}, delimiter = '|')
     void T_03_08_allSupportedMongoOperatorsExecute(String filter, int expected) throws Exception {
         admin(get("/api/v1/members").param("filter", filter)).andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(expected));
