@@ -47,6 +47,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Seed `club-canic`: Pack 6 «Només un cop» / «Solo una vez»; `theme.colors.onPrimary` `#0B0B0B` (A32, AA 5.9:1).
   - Tests strengthened against their §11 rows: T-04-10, T-04-11, T-04-16, T-04-17, T-04-19, T-04-21, T-04-26, T-04-28,
     T-14-02, T-14-11, T-14-22, T-14-23. The unused keys `signup.welcome` and `signup.imageWarning` are removed.
+  - Round 2 (review `E3-T10-20260925-0821-codex`, organizer 25-09):
+    - the checkout's payable scope is built from the debtor's rows (`UpfrontPayment.memberId`), not from the dogs the
+      member owns now: a dog transferred after an unpaid validation (S03 R-03-14) leaves its rows with the member who
+      owes them;
+    - the N-03 of an add-dog rejection renders in the locale of the rejected dogs' own submission block (S04 §8);
+    - OpenAPI: every nullable schema with an `enum` lists `null` in it (14 schemas; `OpenApiConfiguration`
+      `nullableEnumsModule`, checked by `OpenApiNullableEnumContractTest` with a JSON Schema 2020-12 validator);
+    - `PATCH /members/{id}` and `PATCH /dogs/{id}` join `S04ErrorContractTest`, and their error lists are completed;
+    - T-14-22 reads class occupancy from real `class_sessions` in both clubs through the scheduling adapter (the
+      `ClassOccupancyQuery` mock is gone from `DashboardIT`);
+    - `MembershipChanged` uses `before`/`after` for every emitter (`TeamMembershipService`, `DemoIdentityService`,
+      which also adds `clubId`), as `CATALEG_ESDEVENIMENTS.md` states since 25-09;
+    - seed `club-canic`: Pack 10 «Només un cop · després 40% dte. en matrícula» / «Solo una vez · …» (mockup 17).
 
 - E3-T09: gate E3 audit fixes (api, 2/3), security and privacy (`roadmap/reviews/gate-E3/consolidated.md` M16–M18).
   - M16: `POST /signup/upload-urls` returns the signed `headers` (`Content-Type`, `If-None-Match: *`); an IT against an

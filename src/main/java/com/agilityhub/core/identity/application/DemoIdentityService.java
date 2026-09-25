@@ -32,8 +32,9 @@ public class DemoIdentityService {
                 old == null ? null : old.lastAccessAt(), old == null ? null : old.adminProfile(), old == null ? 0 : old.version() + 1,
                 clock.instant(), null, null);
         memberships.replace(next);
-        events.publish(new TeamMembershipChanged(next.clubId(), next.id(), clock.instant(),
-                Map.of("accountId", account.id(), "memberId", memberId, "after", roles, "status", next.status()), null, DomainEvent.Origin.SYSTEM));
+        // CATALEG_ESDEVENIMENTS (25-09): `accountId, clubId, before, after`, the spelling of every emitter.
+        events.publish(new TeamMembershipChanged(next.clubId(), next.id(), clock.instant(), Map.of("accountId", account.id(), "clubId", next.clubId(),
+                "memberId", memberId, "before", old == null ? Set.of() : old.roles(), "after", roles, "status", next.status().name()), null, DomainEvent.Origin.SYSTEM));
         return account.id();
     }
 }

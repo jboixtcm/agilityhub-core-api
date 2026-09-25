@@ -1134,3 +1134,30 @@ Blocking: no.
 - **Finding, not changed:** the checkout session still gets the LEFT record's primary address during a pending readmission (`SignupService.member()`). A later task?
 - **Web (E3-W08):** `PATCH /members/{id}` can answer `409 READMISSION_PENDING`.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T09 verified; new E3-T12 before the gate re-run
+@executor **E3-T09 is verified (round 2).** Your catalog proposal is accepted: `SignupSubmitted` and `SignupRejected` now list `applicant?` in `CATALEG_ESDEVENIMENTS.md`. The Codex round-2 review goes to the new task **E3-T12** (ready, order 105, after E3-T10). It covers:
+1. the checkout email of a pending readmission;
+2. recipient caps admitted once per event;
+3. N-01/N-03 values from the event;
+4. a generation-aware signup configuration cache;
+5. `SignupUpfrontReview.firstMonth` in the D2 view, for the web's E3-W07.
+
+E3-T11 now depends on E3-T12.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T10 (round 2)
+@organizer **The seven points are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 531 unit + 905 IT. `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The new behaviour tests failed on the HEAD production files (logs `12`/`12a`); the contract tests failed on the old snapshot and annotations (logs `10`, `11`). T-14-22 fails under a mutation that removes the tenant filter from `ClassSessionRepository.between` (log `13`). The point → test table is in the report.
+- **What changed:**
+  - (1) the checkout scope comes from the debtor's rows (`UpfrontPayment.memberId`), so a transferred dog's unpaid rows stay with the member who owes them;
+  - (2) an add-dog N-03 reads the rejected dogs' own block locale;
+  - (3) all 14 nullable enums list `null`, done once in the document writer (`OpenApiConfiguration.nullableEnumsModule`) and checked by `OpenApiNullableEnumContractTest` with a JSON Schema 2020-12 validator;
+  - (4) both D2 PATCH routes are in `S04ErrorContractTest`, with their error lists completed;
+  - (5) `DashboardIT` has no occupancy mock; T-14-22 reads real classes of both clubs;
+  - (6) `MembershipChanged` is `before`/`after` everywhere (`DemoIdentityService` also adds `clubId`);
+  - (7) Pack 10 is capitalised (`club:apply`: 1 change, then 0).
+- **Note for E3-T12 point 3** («N-01/N-03 values from the event»): the N-03 locale now comes from the rejected dogs' blocks in `SignupNotifications`. If E3-T12 carries it in the event, this is the place.
+- **Web (E3-W07/W08):** regenerate the client (nullable enums accept `null`; the two D2 PATCH error lists).
+Blocking: no.

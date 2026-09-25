@@ -249,6 +249,8 @@ class E3ContractIT extends AbstractIntegrationTest {
         assertThat(strings(schemas.at("/ClassOccupancyKpi/required"))).contains("percent", "waitingTotal");
         // R-14-06: an avisat without a gender on file is published with `gender: null`.
         assertThat(strings(schemas.at("/RiskNotified/properties/gender/type"))).containsExactlyInAnyOrder("string", "null");
+        // E3-T10 round 2 (point 3): the served document lists `null` in the enum too, or a strict validator rejects it.
+        assertThat(schemas.at("/RiskNotified/properties/gender/enum").toString()).isEqualTo("[\"MALE\",\"FEMALE\",\"OTHER\",null]");
         assertThat(strings(schemas.at("/RiskNotified/required"))).contains("gender");
         assertThat(strings(schemas.at("/PendingSignup/required"))).doesNotContain("paymentMethodType", "warnings");
         assertThat(schemas.at("/PendingSignup/properties/warnings/items/$ref"))

@@ -421,8 +421,8 @@ catalogs: {
         "mode": "NONE"
       },
       "conditions": {
-        "ca": "només un cop · després 40% dte. en matrícula",
-        "es": "solo una vez · después 40% de descuento en matrícula"
+        "ca": "Només un cop · després 40% dte. en matrícula",
+        "es": "Solo una vez · después 40% de descuento en matrícula"
       },
       "showOnSignup": true,
       "showOnWeb": true,

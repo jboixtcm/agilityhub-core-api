@@ -74,7 +74,9 @@ public class MembersController {
     @PatchMapping("/api/v1/members/{id}")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({VALIDATION_ERROR, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, INVALID_STATE, MEMBER_ERASED})
+    // S04 §6 (E3-T10 round 2): the D2 edit of a pending signup (identity document, phones, payment method, requested plan) as well.
+    @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, INVALID_PHONE, INVALID_IBAN, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, INVALID_STATE, MEMBER_ERASED,
+            PAYMENT_METHOD_NOT_AVAILABLE, PLAN_NOT_AVAILABLE})
     @Operation(summary = "Update member",
             description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. "
                     + "A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; "

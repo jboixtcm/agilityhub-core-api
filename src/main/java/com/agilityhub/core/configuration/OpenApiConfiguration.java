@@ -31,9 +31,46 @@ import org.springframework.http.HttpStatus;
 @ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true", matchIfMissing = true)
 public class OpenApiConfiguration {
     @Bean RequiredPropertiesModelConverter requiredProperties(ObjectMapperProvider provider) {
-        provider.jsonMapper().registerModule(requiredArraysModule());
-        provider.yamlMapper().registerModule(requiredArraysModule());
+        provider.jsonMapper().registerModule(requiredArraysModule()).registerModule(nullableEnumsModule());
+        provider.yamlMapper().registerModule(requiredArraysModule()).registerModule(nullableEnumsModule());
         return new RequiredPropertiesModelConverter(provider.jsonMapper());
+    }
+
+    /**
+     * E3-T10 round 2: a nullable schema (`type` lists `null`) with an `enum` lists `null` in the `enum` too; in JSON Schema
+     * 2020-12 the `enum` alone decides which values pass, so without it a strict validator rejects the `null` the type allows.
+     * Applied where the document is written, so it reaches every schema: the model converters', the customizers' and inline ones.
+     */
+    static com.fasterxml.jackson.databind.Module nullableEnumsModule() {
+        return new com.fasterxml.jackson.databind.module.SimpleModule("openapi-nullable-enums")
+                .setSerializerModifier(new com.fasterxml.jackson.databind.ser.BeanSerializerModifier() {
+                    @Override public List<com.fasterxml.jackson.databind.ser.BeanPropertyWriter> changeProperties(
+                            com.fasterxml.jackson.databind.SerializationConfig config,
+                            com.fasterxml.jackson.databind.BeanDescription bean,
+                            List<com.fasterxml.jackson.databind.ser.BeanPropertyWriter> properties) {
+                        if (Schema.class.isAssignableFrom(bean.getBeanClass())) {
+                            properties.replaceAll(property -> property.getName().equals("enum")
+                                    ? new com.fasterxml.jackson.databind.ser.BeanPropertyWriter(property) {
+                                        @Override public void serializeAsField(Object value, com.fasterxml.jackson.core.JsonGenerator generator,
+                                                com.fasterxml.jackson.databind.SerializerProvider provider) throws Exception {
+                                            var schema = (Schema<?>) value;
+                                            if (nullable(schema) && schema.getEnum() != null && !schema.getEnum().isEmpty()
+                                                    && schema.getEnum().stream().noneMatch(java.util.Objects::isNull)) {
+                                                generator.writeArrayFieldStart("enum");
+                                                for (Object item : schema.getEnum()) { provider.defaultSerializeValue(item, generator); }
+                                                generator.writeNull();
+                                                generator.writeEndArray();
+                                            } else { super.serializeAsField(value, generator, provider); }
+                                        }
+                                    } : property);
+                        }
+                        return properties;
+                    }
+                });
+    }
+
+    private static boolean nullable(Schema<?> schema) {
+        return "null".equals(schema.getType()) || schema.getTypes() != null && schema.getTypes().contains("null");
     }
 
     /** Keep empty required arrays for models with only explicitly optional properties. */

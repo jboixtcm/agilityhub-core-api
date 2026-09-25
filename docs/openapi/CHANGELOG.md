@@ -2,6 +2,25 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T10 round 2 · nullable enums list `null`; the D2 PATCH error lists
+
+**0 operations added, 2 changed; 14 schemas corrected** (paths and response shapes unchanged):
+
+- Nullable enums (review of E3-T10 #3, generalised): every schema whose `type` lists `null` and that has an `enum` now
+  lists `null` in the `enum` as well, so a JSON Schema 2020-12 validator accepts the `null` the type allows. It is done
+  once, where the document is written (`OpenApiConfiguration.nullableEnumsModule`), and checked by
+  `OpenApiNullableEnumContractTest`. The 14 of 25-09: `ActivityRegistrationListItem.cancelReason`, `Actor.gender`,
+  `BookableClass.notBookableReason`, `CardMember.gender`, `HomeMember.gender`, `JobRun.skipReason`,
+  `JobRunListItem.skipReason`, `JobScheduleView.dayOfWeek`, `JobSummary.module`, `RiskNotified.gender`, `SlotCell.reason`,
+  `TrainingBooking.cancelReason`, `TrainingBooking.cancelledBy` and `WaitlistEntry.cancelReason`. A generated client
+  that rejected `null` there now accepts it; the values themselves do not change.
+- `PATCH /members/{id}` (D2 edit of a pending signup, S04 §6): + `INVALID_ID_DOCUMENT`, `INVALID_PHONE`, `INVALID_IBAN`
+  (400), `PAYMENT_METHOD_NOT_AVAILABLE`, `PLAN_NOT_AVAILABLE` (422). Now in `S04ErrorContractTest`.
+- `PATCH /dogs/{id}` (D2 edit of a pending dog's documents): + `VALIDATION_ERROR`, `FILE_NOT_FOUND`, `FILE_TOO_LARGE`,
+  `FILE_TYPE_NOT_ALLOWED` (400), `DOCUMENT_TYPE_UNKNOWN`, `DOG_DOCUMENT_REQUIRED` (422). Now in `S04ErrorContractTest`.
+- Behaviour behind unchanged schemas: `POST /checkout-sessions` charges the rows the member owes (`UpfrontPayment.memberId`),
+  also those of a dog transferred to another member after an unpaid validation (S03 R-03-14).
+
 ## 2026-09-25 · E3-T09 round 2 · the pending readmission (R-04-06 a–d): DNI locked in D2, account kept, matching
 
 **0 operations added, 3 changed** (descriptions and one error list; no schema change):

@@ -78,8 +78,9 @@ public class TeamMembershipService {
             if (!old.roles().equals(nextRoles)) {
                 accounts.touchSessions(old.accountId());
                 if (status == Membership.Status.SUSPENDED) { sessions.revokeClub(old.accountId(), old.clubId(), clock.instant()); }
+                // CATALEG_ESDEVENIMENTS (25-09): one spelling for every emitter, `before`/`after`.
                 events.publish(new TeamMembershipChanged(old.clubId(), id, clock.instant(), Map.of("accountId", old.accountId(), "clubId", old.clubId(),
-                        "rolesBefore", new TreeSet<>(old.roles()), "rolesAfter", new TreeSet<>(nextRoles)), actor.accountId(),
+                        "before", new TreeSet<>(old.roles()), "after", new TreeSet<>(nextRoles)), actor.accountId(),
                         actor.accountId() == null ? DomainEvent.Origin.SYSTEM : DomainEvent.Origin.BACKOFFICE));
             }
             audit.write(new AuditCommand(AuditAction.CATALOG_CHANGED, "Administrator", id, old.memberId(),

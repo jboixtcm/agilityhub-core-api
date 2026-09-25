@@ -61,14 +61,16 @@ public class SignupService implements SignupPaymentAccess {
         return dogs.stream().map(d -> block(member,d)).min(Comparator.comparing((Map<String,Object> b) -> Objects.requireNonNullElse(instant(b.get("submittedAt")),Instant.MAX))).orElse(map(member.signup));
     }
     /**
-     * The rows a checkout may charge (E3-T10, review of E3-T08 round 2): the rows of every submission of the member, each
-     * through its own dogs, whatever those dogs' status (a validation with nothing paid, R-04-16, leaves them due) and
-     * whatever was submitted after it. Only the rows that a later public signup superseded (a readmission, R-04-06) are left
-     * out: those of dogs submitted before the member's current `Member.signup`.
+     * The rows a checkout may charge (E3-T10, review of E3-T08 round 2): the rows of every submission the member owes,
+     * whatever its dogs' status (a validation with nothing paid, R-04-16, leaves them due) and whatever was submitted after
+     * it. Round 2: the scope follows the debtor (`UpfrontPayment.memberId`), not the dogs' current owner, so a dog
+     * transferred after an unpaid validation (S03 R-03-14) leaves its rows with the member who owes them. Only the rows
+     * that a later public signup superseded (a readmission, R-04-06) are left out: those written before the member's
+     * current `Member.signup`.
      */
     @Override public List<UpfrontPayments.Submission> submissions(String memberId) {
         var member=access.mutableMember(memberId);Instant since=instant(map(member.signup).get("submittedAt"));
-        return scope(member,dogs(memberId).stream().filter(d -> { Instant at=instant(block(member,d).get("submittedAt"));return since==null||at==null||!at.isBefore(since); }).toList());
+        return payments.owed(memberId).entrySet().stream().filter(e -> since==null||e.getValue().map(at -> !at.isBefore(since)).orElse(true)).map(Map.Entry::getKey).toList();
     }
     private static final int USER_AGENT_LENGTH=256;
     /** `Member.signup.userAgent` (§3): the request's, cut to a bounded length. */

@@ -1,0 +1,90 @@
+09:08:12.627 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1
+09:08:15.630 [main] WARN com.networknt.schema.UnknownKeywordFactory -- Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[ERROR] Tests run: 3, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.232 s <<< FAILURE! -- in com.agilityhub.core.configuration.OpenApiNullableEnumContractTest
+[ERROR] com.agilityhub.core.configuration.OpenApiNullableEnumContractTest.E3_T10_everyNullableEnumOfTheSnapshotListsNull -- Time elapsed: 0.053 s <<< FAILURE!
+java.lang.AssertionError: 
+[/components/schemas/ActivityRegistrationListItem/properties/cancelReason allows null in its type but its enum ["MEMBER","ACTIVITY_CANCELLED","INACTIVITY","MEMBER_LEFT","ADMIN"] does not
+/components/schemas/Actor/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/BookableClass/properties/notBookableReason allows null in its type but its enum ["BLOCKED","INACTIVITY","LEAVING"] does not
+/components/schemas/CardMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/HomeMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/JobRun/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not
+/components/schemas/JobRunListItem/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not
+/components/schemas/JobScheduleView/properties/dayOfWeek allows null in its type but its enum ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"] does not
+/components/schemas/JobSummary/properties/module allows null in its type but its enum ["FREE_TRAINING","BILLING","PACKS","SINGLE_CLASS","ACTIVITIES","FAMILY_GROUP","WAITLIST","TASKS","FAQ","SMS","PUSH","INACTIVITY","COURSES","LEARN_LINK","STATS","SOCIAL_LEAGUE"] does not
+/components/schemas/RiskNotified/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/SlotCell/properties/reason allows null in its type but its enum ["CLASS","RING_BLOCK","TRAINING","OWN_TRAINING"] does not
+/components/schemas/TrainingBooking/properties/cancelReason allows null in its type but its enum ["MEMBER_REQUEST","ADMIN_LATE","INACTIVITY","MEMBER_LEFT","RING_BLOCK","CLASS_CONFLICT","RING_NOT_RESERVABLE"] does not
+/components/schemas/TrainingBooking/properties/cancelledBy allows null in its type but its enum ["MEMBER","ADMIN","SYSTEM"] does not
+/components/schemas/WaitlistEntry/properties/cancelReason allows null in its type but its enum ["MEMBER","CLASS_CANCELLED","CLASS_STARTED","ADMIN","BOOKED_DIRECTLY","MEMBER_LEFT"] does not] 
+Expecting empty but was: ["/components/schemas/ActivityRegistrationListItem/properties/cancelReason allows null in its type but its enum ["MEMBER","ACTIVITY_CANCELLED","INACTIVITY","MEMBER_LEFT","ADMIN"] does not",
+    "/components/schemas/Actor/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/BookableClass/properties/notBookableReason allows null in its type but its enum ["BLOCKED","INACTIVITY","LEAVING"] does not",
+    "/components/schemas/CardMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/HomeMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/JobRun/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not",
+    "/components/schemas/JobRunListItem/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not",
+    "/components/schemas/JobScheduleView/properties/dayOfWeek allows null in its type but its enum ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"] does not",
+    "/components/schemas/JobSummary/properties/module allows null in its type but its enum ["FREE_TRAINING","BILLING","PACKS","SINGLE_CLASS","ACTIVITIES","FAMILY_GROUP","WAITLIST","TASKS","FAQ","SMS","PUSH","INACTIVITY","COURSES","LEARN_LINK","STATS","SOCIAL_LEAGUE"] does not",
+    "/components/schemas/RiskNotified/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/SlotCell/properties/reason allows null in its type but its enum ["CLASS","RING_BLOCK","TRAINING","OWN_TRAINING"] does not",
+    "/components/schemas/TrainingBooking/properties/cancelReason allows null in its type but its enum ["MEMBER_REQUEST","ADMIN_LATE","INACTIVITY","MEMBER_LEFT","RING_BLOCK","CLASS_CONFLICT","RING_NOT_RESERVABLE"] does not",
+    "/components/schemas/TrainingBooking/properties/cancelledBy allows null in its type but its enum ["MEMBER","ADMIN","SYSTEM"] does not",
+    "/components/schemas/WaitlistEntry/properties/cancelReason allows null in its type but its enum ["MEMBER","CLASS_CANCELLED","CLASS_STARTED","ADMIN","BOOKED_DIRECTLY","MEMBER_LEFT"] does not"]
+	at com.agilityhub.core.configuration.OpenApiNullableEnumContractTest.E3_T10_everyNullableEnumOfTheSnapshotListsNull(OpenApiNullableEnumContractTest.java:31)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.OpenApiNullableEnumContractTest.T_14_01_aRiskNotifiedRowWithoutGenderValidatesAgainstTheGeneratedSchema -- Time elapsed: 0.042 s <<< FAILURE!
+java.lang.AssertionError: 
+[R-14-06: a member without a gender on file] 
+Expecting empty but was: [$.gender: does not have a value in the enumeration ["MALE", "FEMALE", "OTHER"]]
+	at com.agilityhub.core.configuration.OpenApiNullableEnumContractTest.T_14_01_aRiskNotifiedRowWithoutGenderValidatesAgainstTheGeneratedSchema(OpenApiNullableEnumContractTest.java:48)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   OpenApiNullableEnumContractTest.E3_T10_everyNullableEnumOfTheSnapshotListsNull:31 [/components/schemas/ActivityRegistrationListItem/properties/cancelReason allows null in its type but its enum ["MEMBER","ACTIVITY_CANCELLED","INACTIVITY","MEMBER_LEFT","ADMIN"] does not
+/components/schemas/Actor/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/BookableClass/properties/notBookableReason allows null in its type but its enum ["BLOCKED","INACTIVITY","LEAVING"] does not
+/components/schemas/CardMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/HomeMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/JobRun/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not
+/components/schemas/JobRunListItem/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not
+/components/schemas/JobScheduleView/properties/dayOfWeek allows null in its type but its enum ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"] does not
+/components/schemas/JobSummary/properties/module allows null in its type but its enum ["FREE_TRAINING","BILLING","PACKS","SINGLE_CLASS","ACTIVITIES","FAMILY_GROUP","WAITLIST","TASKS","FAQ","SMS","PUSH","INACTIVITY","COURSES","LEARN_LINK","STATS","SOCIAL_LEAGUE"] does not
+/components/schemas/RiskNotified/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not
+/components/schemas/SlotCell/properties/reason allows null in its type but its enum ["CLASS","RING_BLOCK","TRAINING","OWN_TRAINING"] does not
+/components/schemas/TrainingBooking/properties/cancelReason allows null in its type but its enum ["MEMBER_REQUEST","ADMIN_LATE","INACTIVITY","MEMBER_LEFT","RING_BLOCK","CLASS_CONFLICT","RING_NOT_RESERVABLE"] does not
+/components/schemas/TrainingBooking/properties/cancelledBy allows null in its type but its enum ["MEMBER","ADMIN","SYSTEM"] does not
+/components/schemas/WaitlistEntry/properties/cancelReason allows null in its type but its enum ["MEMBER","CLASS_CANCELLED","CLASS_STARTED","ADMIN","BOOKED_DIRECTLY","MEMBER_LEFT"] does not] 
+Expecting empty but was: ["/components/schemas/ActivityRegistrationListItem/properties/cancelReason allows null in its type but its enum ["MEMBER","ACTIVITY_CANCELLED","INACTIVITY","MEMBER_LEFT","ADMIN"] does not",
+    "/components/schemas/Actor/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/BookableClass/properties/notBookableReason allows null in its type but its enum ["BLOCKED","INACTIVITY","LEAVING"] does not",
+    "/components/schemas/CardMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/HomeMember/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/JobRun/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not",
+    "/components/schemas/JobRunListItem/properties/skipReason allows null in its type but its enum ["DISABLED","MODULE_OFF","CLUB_INACTIVE","MISSED_WINDOW","LOCKED","NOT_DUE"] does not",
+    "/components/schemas/JobScheduleView/properties/dayOfWeek allows null in its type but its enum ["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"] does not",
+    "/components/schemas/JobSummary/properties/module allows null in its type but its enum ["FREE_TRAINING","BILLING","PACKS","SINGLE_CLASS","ACTIVITIES","FAMILY_GROUP","WAITLIST","TASKS","FAQ","SMS","PUSH","INACTIVITY","COURSES","LEARN_LINK","STATS","SOCIAL_LEAGUE"] does not",
+    "/components/schemas/RiskNotified/properties/gender allows null in its type but its enum ["MALE","FEMALE","OTHER"] does not",
+    "/components/schemas/SlotCell/properties/reason allows null in its type but its enum ["CLASS","RING_BLOCK","TRAINING","OWN_TRAINING"] does not",
+    "/components/schemas/TrainingBooking/properties/cancelReason allows null in its type but its enum ["MEMBER_REQUEST","ADMIN_LATE","INACTIVITY","MEMBER_LEFT","RING_BLOCK","CLASS_CONFLICT","RING_NOT_RESERVABLE"] does not",
+    "/components/schemas/TrainingBooking/properties/cancelledBy allows null in its type but its enum ["MEMBER","ADMIN","SYSTEM"] does not",
+    "/components/schemas/WaitlistEntry/properties/cancelReason allows null in its type but its enum ["MEMBER","CLASS_CANCELLED","CLASS_STARTED","ADMIN","BOOKED_DIRECTLY","MEMBER_LEFT"] does not"]
+[ERROR]   OpenApiNullableEnumContractTest.T_14_01_aRiskNotifiedRowWithoutGenderValidatesAgainstTheGeneratedSchema:48 [R-14-06: a member without a gender on file] 
+Expecting empty but was: [$.gender: does not have a value in the enumeration ["MALE", "FEMALE", "OTHER"]]
+[ERROR] Tests run: 7, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

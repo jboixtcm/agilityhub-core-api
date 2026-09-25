@@ -56,7 +56,8 @@ class DashboardIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.clubs.census.application.DemoSeedService demo;
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
-    @MockitoBean ClassOccupancyQuery occupancy; @MockitoBean TrainingBookingsQuery training;
+    // E3-T10 round 2 (point 5): class occupancy is never stubbed; it is read from `class_sessions` by the real scheduling adapter.
+    @MockitoBean TrainingBookingsQuery training;
     @MockitoBean BookingActivity bookings; @MockitoBean PendingRequestsQuery requests;
     @MockitoBean FollowUpUnreadQuery unread; @MockitoBean RiskReviewSource riskReview;
     String club, host;
@@ -66,7 +67,6 @@ class DashboardIT extends AbstractIntegrationTest {
         var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(club, host));
         tree.set("modules", mapper.valueToTree(Module.values()));
         tree.set("paymentProviders", mapper.valueToTree(Map.of("MANUAL", Map.of(), "SEPA_XML", Map.of()))); clubs.save(mapper.convertValue(tree, Club.class)); hosts.invalidate();
-        when(occupancy.sessions(anyString(), any(), any())).thenReturn(List.of());
         when(training.bookings(anyString(), any(), any())).thenReturn(List.of());
         when(bookings.dogsWithBooking(anyString(), any(), any())).thenReturn(Set.of());
         when(requests.counts(anyString())).thenReturn(new PendingRequestsQuery.Counts(0, 0));
@@ -86,6 +86,14 @@ class DashboardIT extends AbstractIntegrationTest {
     Document member(String id, String status) {
         return new Document("_id", id).append("status", status).append("firstName", "Example").append("lastName1", "Applicant")
                 .append("createdAt", Date.from(clock.instant())).append("joinedAt", Date.from(clock.instant()));
+    }
+    /** A stored S06 class of `clubId`, starting at `startsAt` for one hour; D1 reads it through the real occupancy adapter. */
+    void classSession(String clubId, Instant startsAt, com.agilityhub.core.clubs.scheduling.domain.ClassState state, int capacity, int booked, int waiting) {
+        mongo.insert(new com.agilityhub.core.clubs.scheduling.persistence.ClassSession(UUID.randomUUID().toString(), clubId, "week-" + clubId,
+                LocalDate.ofInstant(startsAt, ZoneId.of("Europe/Madrid")), "10:00", "11:00", startsAt, startsAt.plus(Duration.ofHours(1)), null, List.of(), List.of(),
+                capacity, com.agilityhub.core.clubs.scheduling.domain.CapacityMode.MANUAL, "Example class", state,
+                new com.agilityhub.core.clubs.scheduling.persistence.ClassSession.Counters(booked, waiting), null, null, null, null, null, null,
+                clock.instant(), null, clock.instant(), null));
     }
     void parameter(String key, Object value) {
         mongo.getCollection("parameters").deleteMany(new Document("clubId", club).append("key", key));
@@ -179,10 +187,16 @@ class DashboardIT extends AbstractIntegrationTest {
             mongo.insert(new Document("_id", "b-dog-" + i + club).append("clubId", other).append("memberId", "b-owner-" + club).append("status", "ACTIVE").append("levelId", "b-level-" + club), "dogs");
         }
         mongo.insert(new Document("_id", "b-pending-dog-" + club).append("clubId", other).append("memberId", "b-pending-" + club).append("name", "B Dog").append("status", "PENDING"), "dogs");
-        when(occupancy.sessions(eq(club), any(), any())).thenReturn(List.of(new ClassOccupancyQuery.Session(Instant.parse("2026-08-10T08:00:00Z"), "ACTIVE", 10, 9, 0)));
-        when(occupancy.sessions(eq(other), any(), any())).thenReturn(List.of(new ClassOccupancyQuery.Session(Instant.parse("2026-08-10T08:00:00Z"), "ACTIVE", 4, 2, 0)));
+        // E3-T10 round 2 (point 5): real classes in both clubs, read by the real adapter. B also has a class in A's week that a
+        // leaking query would add to A (A would read 14/11), a CANCELLED one and one of the next week, which count nowhere.
+        var monday = Instant.parse("2026-08-10T08:00:00Z");
+        classSession(club, monday, com.agilityhub.core.clubs.scheduling.domain.ClassState.ACTIVE, 10, 9, 0);
+        classSession(other, monday, com.agilityhub.core.clubs.scheduling.domain.ClassState.ACTIVE, 4, 2, 0);
+        classSession(other, monday.plus(Duration.ofDays(1)), com.agilityhub.core.clubs.scheduling.domain.ClassState.CANCELLED, 8, 8, 0);
+        classSession(other, monday.plus(Duration.ofDays(7)), com.agilityhub.core.clubs.scheduling.domain.ClassState.ACTIVE, 6, 6, 0);
         dashboard.invalidate(club); var a = dashboard();
-        assertThat(a.at("/kpis/classOccupancy/booked").asInt()).isEqualTo(9); assertThat(a.at("/pendingSignups/count").asInt()).isZero();
+        assertThat(a.at("/kpis/classOccupancy/booked").asInt()).isEqualTo(9); assertThat(a.at("/kpis/classOccupancy/capacity").asInt()).isEqualTo(10);
+        assertThat(a.at("/kpis/classOccupancy/percent").asInt()).isEqualTo(90); assertThat(a.at("/pendingSignups/count").asInt()).isZero();
         assertThat(a.toString()).doesNotContain("b-owner-", "b-pending-", "b-dog-", "b-level-");
         for (String path : List.of("/api/v1/dashboard", "/api/v1/dashboard/counters")) {
             for (String role : List.of("MEMBER", "INSTRUCTOR", "AGILITYHUB_ADMIN")) {
@@ -197,6 +211,7 @@ class DashboardIT extends AbstractIntegrationTest {
                 assertThat(b.at("/dogsByLevel/levels/0/code").asText()).isEqualTo("B1"); assertThat(b.at("/dogsByLevel/levels/0/total").asInt()).isEqualTo(2);
                 assertThat(b.at("/pendingSignups/count").asInt()).isEqualTo(1); assertThat(b.at("/pendingSignups/items/0/memberId").asText()).isEqualTo("b-pending-" + club);
                 assertThat(b.at("/kpis/classOccupancy/booked").asInt()).isEqualTo(2); assertThat(b.at("/kpis/classOccupancy/capacity").asInt()).isEqualTo(4);
+                assertThat(b.at("/kpis/classOccupancy/percent").asInt()).isEqualTo(50);
                 assertThat(b.toString()).doesNotContain("\"owner-" + club, "\"dog-" + club);
             } else { assertThat(b.path("pendingSignups").asInt()).isEqualTo(1); }
         }
@@ -234,7 +249,7 @@ class DashboardIT extends AbstractIntegrationTest {
         var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(club, host)); tree.set("modules", mapper.createArrayNode());
         mongo.getCollection("clubs").updateOne(new Document("_id", club), new Document("$set", new Document("modules", List.of()))); parameter("levels.enabled", false);
         insert("members", member("pending-" + club, "PENDING"));
-        when(occupancy.sessions(eq(club), any(), any())).thenReturn(List.of(new ClassOccupancyQuery.Session(Instant.parse("2026-08-10T08:00:00Z"), "ACTIVE", 5, 5, 3)));
+        classSession(club, Instant.parse("2026-08-10T08:00:00Z"), com.agilityhub.core.clubs.scheduling.domain.ClassState.ACTIVE, 5, 5, 3);
         when(requests.counts(club)).thenReturn(new PendingRequestsQuery.Counts(3, 2));
         // S14 §9 (E3-T10 step 10): with TASKS off the port is never asked, even when it would count something.
         when(unread.count(eq(club), anyString())).thenReturn(5);
@@ -382,7 +397,7 @@ class DashboardIT extends AbstractIntegrationTest {
             })); }
             gate.countDown(); var first = calls.getFirst().get(10, java.util.concurrent.TimeUnit.SECONDS);
             for (var call : calls) { assertThat(call.get(10, java.util.concurrent.TimeUnit.SECONDS)).isEqualTo(first); }
-            verify(occupancy, times(1)).sessions(eq(club), any(), any());
+            // One club load for the eight readers (the occupancy port is real since E3-T10 round 2; the booking port still counts calls).
             verify(bookings, times(1)).dogsWithBooking(eq(club), any(), any());
         } finally { executor.shutdownNow(); }
     }

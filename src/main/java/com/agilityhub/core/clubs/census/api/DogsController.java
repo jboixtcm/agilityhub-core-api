@@ -69,7 +69,9 @@ public class DogsController {
     @PatchMapping("/api/v1/dogs/{id}")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({CHIP_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED})
+    // S04 §6 (E3-T10 round 2): the D2 edit of a pending dog replaces its documents with signup uploads as well.
+    @ContractErrors({VALIDATION_ERROR, FILE_NOT_FOUND, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, CHIP_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED,
+            DOCUMENT_TYPE_UNKNOWN, DOG_DOCUMENT_REQUIRED})
     @Operation(summary = "Update dog",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
             responses = @ApiResponse(responseCode = "200", description = "Dog", content = @Content(schema = @Schema(implementation = Dog.class))))

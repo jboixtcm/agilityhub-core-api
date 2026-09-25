@@ -787,7 +787,7 @@
       "ActivityRegistrationListItem" : {
         "properties" : {
           "cancelReason" : {
-            "enum" : [ "MEMBER", "ACTIVITY_CANCELLED", "INACTIVITY", "MEMBER_LEFT", "ADMIN" ],
+            "enum" : [ "MEMBER", "ACTIVITY_CANCELLED", "INACTIVITY", "MEMBER_LEFT", "ADMIN", null ],
             "type" : [ "string", "null" ]
           },
           "cancelledAt" : {
@@ -1039,7 +1039,7 @@
           },
           "gender" : {
             "description" : "Personal article of the member (personArticle)",
-            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "enum" : [ "MALE", "FEMALE", "OTHER", null ],
             "type" : [ "string", "null" ]
           },
           "role" : {
@@ -1763,7 +1763,7 @@
           },
           "notBookableReason" : {
             "description" : "Only with state NOT_BOOKABLE",
-            "enum" : [ "BLOCKED", "INACTIVITY", "LEAVING" ],
+            "enum" : [ "BLOCKED", "INACTIVITY", "LEAVING", null ],
             "type" : [ "string", "null" ]
           },
           "opensAt" : {
@@ -2472,7 +2472,7 @@
             "type" : "string"
           },
           "gender" : {
-            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "enum" : [ "MALE", "FEMALE", "OTHER", null ],
             "type" : [ "string", "null" ]
           },
           "id" : {
@@ -5651,7 +5651,7 @@
           },
           "gender" : {
             "description" : "Null when never declared",
-            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "enum" : [ "MALE", "FEMALE", "OTHER", null ],
             "type" : [ "string", "null" ]
           },
           "id" : {
@@ -6370,7 +6370,7 @@
             "type" : "string"
           },
           "skipReason" : {
-            "enum" : [ "DISABLED", "MODULE_OFF", "CLUB_INACTIVE", "MISSED_WINDOW", "LOCKED", "NOT_DUE" ],
+            "enum" : [ "DISABLED", "MODULE_OFF", "CLUB_INACTIVE", "MISSED_WINDOW", "LOCKED", "NOT_DUE", null ],
             "type" : [ "string", "null" ]
           },
           "startedAt" : {
@@ -6428,7 +6428,7 @@
             "type" : "string"
           },
           "skipReason" : {
-            "enum" : [ "DISABLED", "MODULE_OFF", "CLUB_INACTIVE", "MISSED_WINDOW", "LOCKED", "NOT_DUE" ],
+            "enum" : [ "DISABLED", "MODULE_OFF", "CLUB_INACTIVE", "MISSED_WINDOW", "LOCKED", "NOT_DUE", null ],
             "type" : [ "string", "null" ]
           },
           "startedAt" : {
@@ -6454,7 +6454,7 @@
             "type" : [ "integer", "null" ]
           },
           "dayOfWeek" : {
-            "enum" : [ "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY" ],
+            "enum" : [ "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", null ],
             "type" : [ "string", "null" ]
           },
           "kind" : {
@@ -6499,7 +6499,7 @@
             } ]
           },
           "module" : {
-            "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE" ],
+            "enum" : [ "FREE_TRAINING", "BILLING", "PACKS", "SINGLE_CLASS", "ACTIVITIES", "FAMILY_GROUP", "WAITLIST", "TASKS", "FAQ", "SMS", "PUSH", "INACTIVITY", "COURSES", "LEARN_LINK", "STATS", "SOCIAL_LEAGUE", null ],
             "type" : [ "string", "null" ]
           },
           "name" : {
@@ -11278,7 +11278,7 @@
           },
           "gender" : {
             "description" : "Member.gender; null when the member has none on file.",
-            "enum" : [ "MALE", "FEMALE", "OTHER" ],
+            "enum" : [ "MALE", "FEMALE", "OTHER", null ],
             "type" : [ "string", "null" ]
           },
           "memberFirstName" : {
@@ -12978,7 +12978,7 @@
             "type" : [ "array", "null" ]
           },
           "reason" : {
-            "enum" : [ "CLASS", "RING_BLOCK", "TRAINING", "OWN_TRAINING" ],
+            "enum" : [ "CLASS", "RING_BLOCK", "TRAINING", "OWN_TRAINING", null ],
             "type" : [ "string", "null" ]
           },
           "state" : {
@@ -13584,7 +13584,7 @@
       "TrainingBooking" : {
         "properties" : {
           "cancelReason" : {
-            "enum" : [ "MEMBER_REQUEST", "ADMIN_LATE", "INACTIVITY", "MEMBER_LEFT", "RING_BLOCK", "CLASS_CONFLICT", "RING_NOT_RESERVABLE" ],
+            "enum" : [ "MEMBER_REQUEST", "ADMIN_LATE", "INACTIVITY", "MEMBER_LEFT", "RING_BLOCK", "CLASS_CONFLICT", "RING_NOT_RESERVABLE", null ],
             "type" : [ "string", "null" ]
           },
           "cancellableUntil" : {
@@ -13597,7 +13597,7 @@
             "type" : [ "string", "null" ]
           },
           "cancelledBy" : {
-            "enum" : [ "MEMBER", "ADMIN", "SYSTEM" ],
+            "enum" : [ "MEMBER", "ADMIN", "SYSTEM", null ],
             "type" : [ "string", "null" ]
           },
           "counter" : {
@@ -14345,7 +14345,7 @@
             "type" : [ "string", "null" ]
           },
           "cancelReason" : {
-            "enum" : [ "MEMBER", "CLASS_CANCELLED", "CLASS_STARTED", "ADMIN", "BOOKED_DIRECTLY", "MEMBER_LEFT" ],
+            "enum" : [ "MEMBER", "CLASS_CANCELLED", "CLASS_STARTED", "ADMIN", "BOOKED_DIRECTLY", "MEMBER_LEFT", null ],
             "type" : [ "string", "null" ]
           },
           "cancelledAt" : {
@@ -28378,7 +28378,7 @@
                 }
               }
             },
-            "description" : "Bad Request"
+            "description" : "VALIDATION_ERROR, FILE_NOT_FOUND, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
           },
           "401" : {
             "content" : {
@@ -28428,7 +28428,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "DOCUMENT_TYPE_UNKNOWN, DOG_DOCUMENT_REQUIRED"
           },
           "429" : {
             "content" : {
@@ -41501,7 +41501,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, INVALID_ID_DOCUMENT, INVALID_PHONE, INVALID_IBAN"
           },
           "401" : {
             "content" : {
@@ -41551,7 +41551,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "PAYMENT_METHOD_NOT_AVAILABLE, PLAN_NOT_AVAILABLE"
           },
           "429" : {
             "content" : {

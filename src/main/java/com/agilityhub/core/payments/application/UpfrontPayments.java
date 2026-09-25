@@ -32,6 +32,15 @@ public class UpfrontPayments {
                 .sorted(Comparator.comparing(UpfrontPayment::createdAt).thenComparing(p -> "ENTRY_FEE".equals(p.concept()) ? 0 : 1).thenComparing(UpfrontPayment::id)).toList();
     }
     private Line line(UpfrontPayment p) { return new Line(p.id(),p.signupConcept()==null?p.concept():p.signupConcept(),p.dogId(),p.amountDue(),p.amountPaid(),p.status(),p.provider()); }
+    /**
+     * The signup submissions this member owes (E3-T10 round 2): those of the rows whose debtor it is (`memberId`), whoever
+     * owns the dog now (a transfer, S03 R-03-14, never moves a debt). Each comes with the instant of its first row, which
+     * the submission itself wrote (empty for a row without `createdAt`).
+     */
+    public Map<Submission,Optional<Instant>> owed(String memberId) {
+        return repository.member(memberId).stream().filter(p -> p.bookingId()==null).collect(java.util.stream.Collectors.groupingBy(p -> new Submission(p.dogId(),p.submissionId()),
+                LinkedHashMap::new,java.util.stream.Collectors.mapping(UpfrontPayment::createdAt,java.util.stream.Collectors.filtering(Objects::nonNull,java.util.stream.Collectors.minBy(Comparator.naturalOrder())))));
+    }
     /** The due line of an S08 PAY_TO_BOOK booking (`concept = SINGLE_CLASS`, `bookingId`); returns its id for the checkout. */
     public String createForBooking(String memberId,Charge charge,String bookingId) {
         String id=UUID.randomUUID().toString();

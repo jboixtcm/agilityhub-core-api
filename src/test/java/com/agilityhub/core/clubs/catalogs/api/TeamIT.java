@@ -107,7 +107,10 @@ class TeamIT extends AbstractIntegrationTest {
         assertThat(membership("one").roles()).containsExactlyInAnyOrder(Role.MEMBER, Role.INSTRUCTOR);
         assertThat(membership("one").instructorId()).isEqualTo(id);
         assertThat(event("MembershipChanged")).singleElement().satisfies(row -> {
-            assertThat(row.payload().get("rolesAfter")).asList().containsExactlyInAnyOrder("INSTRUCTOR", "MEMBER");
+            // CATALEG_ESDEVENIMENTS (25-09, E3-T10 round 2): `before`/`after`, the spelling of every MembershipChanged emitter.
+            assertThat(row.payload()).containsOnlyKeys("accountId", "clubId", "before", "after");
+            assertThat(row.payload().get("before")).asList().containsExactly("MEMBER");
+            assertThat(row.payload().get("after")).asList().containsExactlyInAnyOrder("INSTRUCTOR", "MEMBER");
             assertThat(row.actorAccountId()).isEqualTo("operator");
         });
         assertThat(mongo.find(Query.query(Criteria.where("action").is("MEMBER_ROLES_CHANGED")), AuditEntry.class)).singleElement().satisfies(audit -> {

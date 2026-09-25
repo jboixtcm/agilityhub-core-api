@@ -362,6 +362,38 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         assertThat(charged.lines().stream().map(l -> l.paymentId())).containsExactlyInAnyOrderElementsOf(due.stream().map(p -> p.getString("_id")).toList());
         assertThat(charged.lines().stream().mapToLong(l -> l.amount().amountMinor()).sum()).isEqualTo(due.stream().mapToLong(p -> p.get("amountDue",Document.class).get("amountMinor",Number.class).longValue()).sum());
     }
+    String checkout(String id) throws Exception {
+        return result(asMember(postJson("/checkout-sessions",Map.of("memberId",id,"successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel")).header("Idempotency-Key",UUID.randomUUID()),id),201).path("checkoutSessionId").asText();
+    }
+    List<String> charged(String session) { return fake.request(session).lines().stream().map(l -> l.paymentId()).toList(); }
+    List<String> due(String memberId,String dogId) {
+        return rows(memberId).stream().filter(p -> dogId.equals(p.getString("dogId"))&&"DUE".equals(p.getString("status"))).map(p -> p.getString("_id")).toList();
+    }
+    /** Round 2, point 1 (step 15.1, S03 R-03-14): the payable rows follow their debtor (`UpfrontPayment.memberId`), not the dog's owner. */
+    @Test void R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor() throws Exception {
+        stripe();String debtor=activeMember(),owner=activeMember();
+        String dog=addDog(debtor,"941000009000001",null,"ca");validate(debtor,List.of(dog),0L);
+        var owed=due(debtor,dog);assertThat(owed).isNotEmpty();
+        // The new owner has a pending add-dog of its own, so its checkout has something to charge.
+        String own=addDog(owner,"941000009000002",null,"ca");var ownRows=due(owner,own);assertThat(ownRows).isNotEmpty();
+        result(admin(postJson("/dogs/"+dog+"/transfer",Map.of("toMemberId",owner,"reason","Fictional transfer between members"))),200);
+        assertThat(dogDocument(dog).getString("memberId")).isEqualTo(owner);assertThat(due(debtor,dog)).isEqualTo(owed);
+        // The debtor still pays its rows; the new owner pays only its own.
+        assertThat(charged(checkout(debtor))).containsExactlyInAnyOrderElementsOf(owed);
+        assertThat(charged(checkout(owner))).containsExactlyInAnyOrderElementsOf(ownRows).doesNotContainAnyElementsOf(owed);
+    }
+    /** Round 2, point 2 (S04 §8): the N-03 of a rejected add-dog renders in that submission's locale, not the public signup's. */
+    @Test void R_04_23_T_04_21_anAddDogRejectionRendersN03InTheLocaleOfItsOwnSubmission() throws Exception {
+        String id=activeMember();assertThat(member(id).get("signup",Document.class).getString("locale")).isEqualTo("ca");
+        String dog=addDog(id,"941000010000001",null,"es");assertThat(dogDocument(dog).get("signup",Document.class).getString("locale")).isEqualTo("es");
+        dispatch();mailbox().clear();
+        reject(id,"Fictional dog not accepted");dispatch();
+        String email=member(id).getList("contactEmails",Document.class).getFirst().getString("email");
+        var rejection=mailbox().lastTo(email);
+        assertThat(rejection.locale().getLanguage()).isEqualTo("es");assertThat(rejection.text()).contains("Fictional dog not accepted");
+        assertThat(mailbox().messages().stream().filter(m -> email.equals(m.to()))).hasSize(1);
+        assertThat(collection("notifications").stream().filter(n -> "N-03".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel")))).hasSize(1);
+    }
     @Test void T_04_18_nextInvoiceDateIsCheckedAgainstTheFrozenStartWhileTheQuoteIsUnchanged() throws Exception {
         // 01-01 < split day 16: ALTERNATIVE starts on 16-01 (half month), frozen at submission.
         var body=request();((ObjectNode)body.get("payment")).put("firstMonthOption","ALTERNATIVE");String id=submit(body).path("memberId").asText();

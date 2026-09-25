@@ -1,0 +1,82 @@
+09:05:46.474 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.044 s <<< FAILURE! -- in com.agilityhub.core.configuration.S04ErrorContractTest
+[ERROR] com.agilityhub.core.configuration.S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow -- Time elapsed: 0.028 s <<< FAILURE!
+java.lang.AssertionError: 
+[PATCH /members/{id} throws CHIP_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it
+PATCH /members/{id} throws INVALID_IBAN (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it
+PATCH /members/{id} throws INVALID_ID_DOCUMENT (via com.agilityhub.core.platform.application.CountryContactRules.document(java.lang.String, java.lang.String)) but does not document it
+PATCH /members/{id} throws INVALID_PHONE (via com.agilityhub.core.platform.application.CountryContactRules.phone(java.lang.String, java.lang.String, java.lang.String)) but does not document it
+PATCH /members/{id} throws PAYMENT_METHOD_NOT_AVAILABLE (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it
+PATCH /members/{id} throws PLAN_NOT_AVAILABLE (via com.agilityhub.core.clubs.signup.domain.SignupPlanCatalog.require(java.util.List, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws ATTACHMENT_ENTITY_MISMATCH (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it
+PATCH /dogs/{id} throws DOCUMENT_TYPE_UNKNOWN (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it
+PATCH /dogs/{id} throws DOG_DOCUMENT_REQUIRED (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it
+PATCH /dogs/{id} throws FILE_NOT_FOUND (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws FILE_TOO_LARGE (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws FILE_TYPE_NOT_ALLOWED (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws ID_DOCUMENT_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it
+PATCH /dogs/{id} throws MODULE_DISABLED (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it
+PATCH /dogs/{id} throws VALIDATION_ERROR (via com.agilityhub.core.clubs.census.application.CensusValues.invalid(java.lang.String, java.lang.String)) but does not document it] 
+Expecting empty but was: ["PATCH /members/{id} throws CHIP_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it",
+    "PATCH /members/{id} throws INVALID_IBAN (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws INVALID_ID_DOCUMENT (via com.agilityhub.core.platform.application.CountryContactRules.document(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws INVALID_PHONE (via com.agilityhub.core.platform.application.CountryContactRules.phone(java.lang.String, java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws PAYMENT_METHOD_NOT_AVAILABLE (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws PLAN_NOT_AVAILABLE (via com.agilityhub.core.clubs.signup.domain.SignupPlanCatalog.require(java.util.List, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws ATTACHMENT_ENTITY_MISMATCH (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it",
+    "PATCH /dogs/{id} throws DOCUMENT_TYPE_UNKNOWN (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it",
+    "PATCH /dogs/{id} throws DOG_DOCUMENT_REQUIRED (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it",
+    "PATCH /dogs/{id} throws FILE_NOT_FOUND (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws FILE_TOO_LARGE (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws FILE_TYPE_NOT_ALLOWED (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws ID_DOCUMENT_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it",
+    "PATCH /dogs/{id} throws MODULE_DISABLED (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it",
+    "PATCH /dogs/{id} throws VALIDATION_ERROR (via com.agilityhub.core.clubs.census.application.CensusValues.invalid(java.lang.String, java.lang.String)) but does not document it"]
+	at com.agilityhub.core.configuration.S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow(S04ErrorContractTest.java:84)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   S04ErrorContractTest.T_04_25_everyS04RouteDocumentsTheCodesItsHandlerCanThrow:84 [PATCH /members/{id} throws CHIP_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it
+PATCH /members/{id} throws INVALID_IBAN (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it
+PATCH /members/{id} throws INVALID_ID_DOCUMENT (via com.agilityhub.core.platform.application.CountryContactRules.document(java.lang.String, java.lang.String)) but does not document it
+PATCH /members/{id} throws INVALID_PHONE (via com.agilityhub.core.platform.application.CountryContactRules.phone(java.lang.String, java.lang.String, java.lang.String)) but does not document it
+PATCH /members/{id} throws PAYMENT_METHOD_NOT_AVAILABLE (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it
+PATCH /members/{id} throws PLAN_NOT_AVAILABLE (via com.agilityhub.core.clubs.signup.domain.SignupPlanCatalog.require(java.util.List, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws ATTACHMENT_ENTITY_MISMATCH (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it
+PATCH /dogs/{id} throws DOCUMENT_TYPE_UNKNOWN (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it
+PATCH /dogs/{id} throws DOG_DOCUMENT_REQUIRED (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it
+PATCH /dogs/{id} throws FILE_NOT_FOUND (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws FILE_TOO_LARGE (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws FILE_TYPE_NOT_ALLOWED (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it
+PATCH /dogs/{id} throws ID_DOCUMENT_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it
+PATCH /dogs/{id} throws MODULE_DISABLED (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it
+PATCH /dogs/{id} throws VALIDATION_ERROR (via com.agilityhub.core.clubs.census.application.CensusValues.invalid(java.lang.String, java.lang.String)) but does not document it] 
+Expecting empty but was: ["PATCH /members/{id} throws CHIP_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it",
+    "PATCH /members/{id} throws INVALID_IBAN (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws INVALID_ID_DOCUMENT (via com.agilityhub.core.platform.application.CountryContactRules.document(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws INVALID_PHONE (via com.agilityhub.core.platform.application.CountryContactRules.phone(java.lang.String, java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws PAYMENT_METHOD_NOT_AVAILABLE (via com.agilityhub.core.clubs.census.application.SignupService.payment(java.util.Map, com.agilityhub.core.clubs.census.persistence.Member, java.lang.String)) but does not document it",
+    "PATCH /members/{id} throws PLAN_NOT_AVAILABLE (via com.agilityhub.core.clubs.signup.domain.SignupPlanCatalog.require(java.util.List, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws ATTACHMENT_ENTITY_MISMATCH (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it",
+    "PATCH /dogs/{id} throws DOCUMENT_TYPE_UNKNOWN (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it",
+    "PATCH /dogs/{id} throws DOG_DOCUMENT_REQUIRED (via com.agilityhub.core.clubs.census.application.SignupService.saveDocuments(com.agilityhub.core.clubs.census.persistence.Dog, java.util.List)) but does not document it",
+    "PATCH /dogs/{id} throws FILE_NOT_FOUND (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws FILE_TOO_LARGE (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws FILE_TYPE_NOT_ALLOWED (via com.agilityhub.core.clubs.followup.application.AttachmentService.claimSignup(java.lang.String, java.lang.String)) but does not document it",
+    "PATCH /dogs/{id} throws ID_DOCUMENT_ALREADY_EXISTS (via com.agilityhub.core.clubs.census.persistence.CensusRepository.duplicate(org.springframework.dao.DuplicateKeyException)) but does not document it",
+    "PATCH /dogs/{id} throws MODULE_DISABLED (via com.agilityhub.core.clubs.followup.application.AttachmentService.validate(java.lang.String, java.lang.String, long)) but does not document it",
+    "PATCH /dogs/{id} throws VALIDATION_ERROR (via com.agilityhub.core.clubs.census.application.CensusValues.invalid(java.lang.String, java.lang.String)) but does not document it"]
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

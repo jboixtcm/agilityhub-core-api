@@ -49,7 +49,7 @@ class EventCatalogContractTest {
                         Map.of("id", "instructor-a", "diff", Map.of()), "account-a", DomainEvent.Origin.BACKOFFICE));
         samples.put(com.agilityhub.core.identity.domain.TeamMembershipChanged.class,
                 () -> new com.agilityhub.core.identity.domain.TeamMembershipChanged("club-a", "membership-a", Instant.parse("2030-01-01T00:00:00Z"),
-                        Map.of("accountId", "account-a", "clubId", "club-a", "rolesBefore", Set.of("MEMBER"), "rolesAfter", Set.of("MEMBER", "INSTRUCTOR")), "account-a", DomainEvent.Origin.BACKOFFICE));
+                        Map.of("accountId", "account-a", "clubId", "club-a", "before", Set.of("MEMBER"), "after", Set.of("MEMBER", "INSTRUCTOR")), "account-a", DomainEvent.Origin.BACKOFFICE));
         samples.put(com.agilityhub.core.clubs.catalogs.domain.OfferChanged.class,
                 () -> new com.agilityhub.core.clubs.catalogs.domain.OfferChanged(com.agilityhub.core.clubs.catalogs.domain.OfferChanged.Kind.Plan,
                         "club-a", "plan-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "plan-a", "diff", Map.of()), "account-a"));
@@ -190,7 +190,9 @@ class EventCatalogContractTest {
             } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.InstructorChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Instructor"); assertThat(event.payload()).containsKeys("id", "diff");
             } else if (event instanceof com.agilityhub.core.identity.domain.TeamMembershipChanged) {
-                assertThat(event.aggregateType()).isEqualTo("Membership"); assertThat(event.payload()).containsKeys("accountId", "clubId", "rolesBefore", "rolesAfter");
+                // CATALEG_ESDEVENIMENTS (25-09, E3-T10 round 2): one spelling, `before`/`after`, for every emitter.
+                assertThat(event.aggregateType()).isEqualTo("Membership"); assertThat(event.payload()).containsKeys("accountId", "clubId", "before", "after")
+                        .doesNotContainKeys("rolesBefore", "rolesAfter");
             } else if (event instanceof ClubConfigChanged || event instanceof com.agilityhub.core.platform.domain.events.ClubModulesChanged) {
                 assertThat(event.aggregateType()).isEqualTo("Club");
                 assertThat(event.aggregateId()).isEqualTo(event.clubId());

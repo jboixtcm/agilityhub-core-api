@@ -1,0 +1,12 @@
+surefire: 118 classes, tests=531 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiNullableEnumContractTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.S04ErrorContractTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+failsafe: 82 classes, tests=905 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.catalogs.api.TeamIT: tests=13 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=15 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0

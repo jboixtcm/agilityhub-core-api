@@ -1,0 +1,45 @@
+surefire: 1 classes, tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+    PASS T_04_11_T_04_17_T_04_19_T_04_21_signupEventsKeepS04PayloadContracts
+    PASS E0_T04_everyEventImplementationEmitsACatalogName
+failsafe: 3 classes, tests=37 failures=5 errors=0 skipped=0
+  com.agilityhub.core.clubs.catalogs.api.TeamIT: tests=13 failures=1 errors=0 skipped=0
+    PASS T_05_14_futureAndHistoricalReferencesAndTemplateOnlyDeactivation
+    FAIL T_05_13_createReactivateRolesAndAtomicAudit ::  [List check single element] (1 failure) -- failure 1 -- Expecting actual:   {"accountId"="one-account", "clubId"="team-a", "rolesAfter"=["MEMBER", "INSTRUCTOR"], "rolesBefore"=["MEMBER"]} to contain only following keys:   ["accountId", "clubId", "before", "after"] keys not found:   ["before", "afte
+    PASS T_05_15_lastAdminEveryPathAndProfileHistory
+    PASS T_05_15_concurrentRemovalCannotLeaveZeroAdmins
+    PASS T_05_13_defaultsUseClubDateAndThemeAndIdentityUpdatesPreserveProfile
+    PASS T_05_16_outboxLeaveDeactivatesDespiteClassesAndKeepsLastAdmin
+    PASS T_03_18_roleRouteDeniesOtherRolesTenantsAndInvalidTargets
+    PASS T_05_19_T_05_20_eachTeamRouteEnforcesRolesTenantAndValidation(String)[1]
+    PASS T_05_19_T_05_20_eachTeamRouteEnforcesRolesTenantAndValidation(String)[2]
+    PASS T_05_16_staleFutureAndUnlinkedLeaveEventsAreHarmless
+    PASS T_03_18_rolesEndpointCreatesDefaultsAndRejectsSelfRemoval
+    PASS T_05_13_auditInsertFailureRollsBackTeamChanges
+    PASS T_05_13_rollbackIncludesProfilesMembershipAuditAndEvents
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=15 failures=2 errors=0 skipped=0
+    PASS R_04_19_T_04_20_paymentPatchKeepsTheHolderTaxIdIbanAndMandateDateUnlessChanged
+    PASS S04_7_withLevelsDisabledTheEventsCarryThePersistedNullLevelNotTheRequest
+    PASS R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback
+    PASS T_04_21_theAdminN01OfEachQueuedAddDogDescribesItsOwnSubmission
+    PASS R_04_23_theRejectionConsumerLeavesTheDogsOfALaterReadmissionPending
+    FAIL R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor :: [HTTP code=INVALID_STATE details={}]  expected: 201  but was: 409
+    PASS R_04_12_T_04_16_aFoundClaimNoLongerUniqueAtSubmissionFallsBackToNotFoundPending
+    FAIL R_04_23_T_04_21_anAddDogRejectionRendersN03InTheLocaleOfItsOwnSubmission ::  expected: "es"  but was: "ca"
+    PASS S04_7_validationEventsCarryTheActorRolesMemberTriggerAndThePersistedDogs
+    PASS S04_3_addDogSubmissionsKeepOneBlockPerDogAndNeverOverwriteThePublicSignup
+    PASS T_04_22_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaid
+    PASS S04_3_publicSignupSnapshotKeepsTheSubmissionAndDecisionMetadata
+    PASS R_04_18_T_04_14_migratedSepaMembersWithIbanLast4AreNotAccountNotProvided
+    PASS T_04_26_theMinimalClubSeedSignsUpAndValidatesWithoutMoneyFamilyOrLevels
+    PASS T_04_18_nextInvoiceDateIsCheckedAgainstTheFrozenStartWhileTheQuoteIsUnchanged
+  com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=2 errors=0 skipped=0
+    PASS T_03_42_demoRollbackLeavesNoCensusIdentityAuditOrCompletionWrites
+    PASS T_05_21_E29_aStackSeededBeforeLevelProgressionTakesTerapiaOutOfItOnTheNextApply
+    PASS T_03_42_smallFixtureUsesSameGeneratorAndExistingCensusIsProtected
+    FAIL T_03_42_fullDemoCountsDocumentsTeamTenantAndRepeat ::  Expecting all elements of:   [{"_class"="com.agilityhub.core.shared.persistence.DomainEventRecord", "_id"="8a09a2a5-adbb-4fb2-8987-d6f38542de12", "aggregateId"="005617ff-de71-4202-82bf-c68efb6be696", "aggregateType"="Membership", "attempts"=0, "clubId"="e231bd1c-8def-454e-91cc-1a43f5787332", "event
+    PASS T_05_21_configurationAndCatalogsUseTheSameTransactionWithoutCachingRolledBackValues
+    PASS T_03_42_demoRejectsDeploymentProfilesBeforeWriting
+    FAIL T_05_21_catalogSeedAppliesExportsUpdatesAndRepeatsWithoutWrites :: [PACK10]  Expecting actual:   "només un cop · després 40% dte. en matrícula" to start with:   "Només un cop" 
+    PASS T_05_21_duplicateKeysAndInvalidCatalogShapesRollBack
+    PASS T_14_11_T_04_34_demoPendingRowsAreReviewableAndPreserveSubsequentEdits

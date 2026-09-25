@@ -33,6 +33,19 @@ public class SignupNotifications {
         LOG.info("Signup notification capped per recipient code={} clubId={} recipientHash={}",code,clubId,hash);
         return true;
     }
+    /** The event's dogs (`dogIds`). The ids are a collection: `in(Object...)` would search for the list itself and find no dog. */
+    private List<com.agilityhub.core.clubs.census.persistence.Dog> dogs(CensusEvent event) {
+        var ids=event.payload().get("dogIds") instanceof Collection<?> values?values:List.of();
+        return ids.isEmpty()?List.of():access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in(ids));
+    }
+    /**
+     * The block of the submission these dogs came from (S04 §3): the oldest one when several are decided together, the
+     * member's signup for a dog written before the blocks existed.
+     */
+    private static Map<String,Object> submission(com.agilityhub.core.clubs.census.persistence.Member member,List<com.agilityhub.core.clubs.census.persistence.Dog> dogs) {
+        return dogs.stream().filter(d -> d.signup!=null).map(d -> map(d.signup))
+                .min(Comparator.comparing((Map<String,Object> b) -> Objects.requireNonNullElse(instant(b.get("submittedAt")),java.time.Instant.MAX))).orElse(map(member.signup));
+    }
     @Transactional(propagation=Propagation.NOT_SUPPORTED)
     public void deliver(String eventId,CensusEvent event) {
         try(var tenant=TenantContext.open(event.clubId())) {
@@ -50,11 +63,10 @@ public class SignupNotifications {
                 case "SignupRecognitionRequested" -> { if(!capped(event.clubId(),"N-39",member.accountId)) links.send(eventId,member.accountId,false,variables); }
                 case "MemberValidated" -> { links.send(eventId,member.accountId,true,variables);notifications.appOnce(eventId+":app","N-02",member.accountId,variables); }
                 case "SignupSubmitted" -> {
-                    // The ids are a collection: `in(Object...)` would search for the list itself and find no dog (`{dogs}` was empty).
-                    var dogs=access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in((Collection<?>)event.payload().get("dogIds")));
+                    var dogs=dogs(event);
                     // E3-T10 (review of E3-T08 round 2): each copy describes its own submission, even when later ones are queued:
                     // the event's plan, and the submission block's locale and frozen upfront, never the member's latest signup.
-                    var signup=dogs.isEmpty()||dogs.getFirst().signup==null?map(member.signup):map(dogs.getFirst().signup);
+                    var signup=submission(member,dogs);
                     locale=string(signup.getOrDefault("locale",locale));variables.put("locale",locale);
                     variables.put("dogs",String.join(", ",dogs.stream().map(d -> d.name).toList()));
                     String planId=event.payload().containsKey("planId")?string(event.payload().get("planId")):string(signup.get("planIdRequested"));
@@ -76,7 +88,12 @@ public class SignupNotifications {
                     var admins=new LinkedHashMap<>(variables);admins.put("action","OPEN_SIGNUP");admins.put("entityId",id);
                     for(String admin:identities.admins()) { notifications.sendOnceVariant(eventId+":"+admin,"N-01","admin",admin,admins);notifications.appOnceVariant(eventId+":"+admin+":app","N-01","admin",admin,admins); }
                 }
-                case "SignupRejected" -> { variables.put("reason",event.payload().get("reason"));notifications.sendApplicantOnce(eventId,"N-03",email,locale,variables);if(Boolean.TRUE.equals(event.payload().get("memberWasActive"))) notifications.appOnce(eventId+":app","N-03",member.accountId,variables); }
+                case "SignupRejected" -> {
+                    // S04 §8 (E3-T10 round 2): an add-dog N-03 speaks the language of the rejected submission (its dogs' own block),
+                    // not the public signup's, which an add-dog never rewrites. A readmission's applicant already carries it.
+                    if(!submitted) { locale=string(submission(member,dogs(event)).getOrDefault("locale",locale));variables.put("locale",locale); }
+                    variables.put("reason",event.payload().get("reason"));notifications.sendApplicantOnce(eventId,"N-03",email,locale,variables);if(Boolean.TRUE.equals(event.payload().get("memberWasActive"))) notifications.appOnce(eventId+":app","N-03",member.accountId,variables);
+                }
                 case "DogRegistered" -> { var dog=access.dogs.findById(string(event.payload().get("dogId"))).orElse(null);if(dog!=null&&member.accountId!=null) notifications.appOnce(eventId,"N-37",member.accountId,object("dog_name",dog.name,"action","OPEN_DOG","entityId",dog.id)); }
                 default -> throw new IllegalArgumentException("Unsupported signup notification");
             }

@@ -80,6 +80,14 @@ class DemoSeedsIT extends AbstractIntegrationTest {
             assertThat(therapy.billingMode().name()).isEqualTo("MAINTENANCE");
             assertThat(prices.list(therapy.id(), null).getFirst().amount().amountMinor()).isEqualTo(1000);
             assertThat(prices.list(therapy.id(), null).getFirst().validFrom().toString()).isEqualTo("2026-01-01");
+            // Mockup 17 (E3-T10 step 13 and round 2): both pack conditions start with a capital letter.
+            for (String code : List.of("PACK6", "PACK10")) {
+                var pack = plans.list(true).stream().filter(p -> p.code().equals(code)).findFirst().orElseThrow();
+                assertThat(pack.conditions().values().get("ca")).as(code).startsWith("Només un cop");
+                assertThat(pack.conditions().values().get("es")).as(code).startsWith("Solo una vez");
+            }
+            assertThat(plans.list(true).stream().filter(p -> p.code().equals("PACK10")).findFirst().orElseThrow().conditions().values())
+                    .containsEntry("ca", "Només un cop · després 40% dte. en matrícula").containsEntry("es", "Solo una vez · después 40% de descuento en matrícula");
         }
         var exported = definitions.export("canic"); codec.validate(exported);
         assertThat(definitions.apply(exported, false).changes()).isZero(); assertThat(snapshot()).isEqualTo(first);
@@ -145,6 +153,10 @@ class DemoSeedsIT extends AbstractIntegrationTest {
             assertThat(mongo.count(Query.query(Criteria.where("state").is("RECEIVED")), "dog_documents")).isEqualTo(6);
             assertThat(mongo.count(new Query(), "instructors")).isEqualTo(3);
             assertThat(mongo.count(Query.query(Criteria.where("adminProfile.active").is(true)), "memberships")).isEqualTo(2);
+            // CATALEG_ESDEVENIMENTS (25-09, E3-T10 round 2): the demo accounts' MembershipChanged use the one spelling too.
+            var linked = mongo.find(Query.query(Criteria.where("type").is("MembershipChanged").and("clubId").is(club)), Document.class, "domain_events");
+            assertThat(linked).isNotEmpty().allSatisfy(event -> assertThat(event.get("payload", Document.class))
+                    .containsKeys("accountId", "clubId", "before", "after").doesNotContainKeys("rolesBefore", "rolesAfter").containsEntry("clubId", club));
             assertThatThrownBy(() -> demo.apply(DemoFixtures.spec(mapper, false), 43)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.CLUB_NOT_EMPTY));
         }
         for (String role : List.of("ADMIN", "INSTRUCTOR")) {

@@ -3,7 +3,8 @@
 
 Starts only the `mongo` service of compose.yaml under a random project name and port (the developer's own stacks are
 untouched), then runs on the host, with the jar built by `./mvnw -q clean verify`:
-  bin/core club:apply target/seed-before/club-canic.yaml   (the seed of HEAD: onPrimary #FFFFFF, «només un cop»)
+  bin/core club:apply target/seed-before/club-canic.yaml   (the seed of HEAD; round 1: onPrimary #FFFFFF and Pack 6,
+                                                           round 2: Pack 10 still «només un cop · …»)
   bin/core club:apply seeds/club-canic.yaml                (x2: the changes of this task, then nothing)
 Prints each command's exit code and output; SEED_PASSWORD is random and never printed. Removes the stack at the end.
 Adapted from roadmap/evidence/E3-T07/seeds_twice.py. Run from the repository root.

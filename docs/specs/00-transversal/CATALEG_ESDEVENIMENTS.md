@@ -13,10 +13,10 @@
 | `ClubCreated` / `ClubUpdated` / `ClubModulesChanged` / `ClubStatusChanged` | clubId, diff | S02/S17 | cache de branding, auditoria |
 | `ParameterChanged` | key, before, after | S02 | cache de configuració, auditoria |
 | **Cens i alta** | | | |
-| `SignupSubmitted` | memberId (PENDING), dogIds, planId, paymentMethodType | S04 | N-01, D1 pendents |
+| `SignupSubmitted` | memberId (PENDING), dogIds, planId, paymentMethodType, `applicant?` (només readmissió: email, firstName, lastName1, gender, locale — el destinatari de N-01, R-04-06 c; 25-09, E3-T09) | S04 | N-01, D1 pendents |
 | `SignupEdited` | memberId, diff | S04 | auditoria |
 | `MemberValidated` | memberId, memberNumber, dogs[{dogId, levelId}], nextInvoiceDate, upfrontPaymentId | S04 | N-02, MEMBERSHIP, KPIs |
-| `SignupRejected` | memberId, reason | S04 | N-03, GOS → baixa |
+| `SignupRejected` | memberId, reason, dogIds, `applicant?` (només readmissió, com a `SignupSubmitted`; 25-09, E3-T09) | S04 | N-03, GOS → baixa |
 | `MemberUpdated` | memberId, diff (contacte, adreça) | S03 | auditoria |
 | `MemberPaymentMethodChanged` | memberId, type, masked | S03/S12 | N-38, auditoria |
 | `MemberStatusChanged` | memberId, before, after, effectiveDate | S03/S13 | cancel·lació de reserves futures, MEMBERSHIP suspensió, KPIs |

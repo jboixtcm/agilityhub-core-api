@@ -62,6 +62,12 @@ class S04ErrorContractTest {
             new Route("GET /members/{id}/signup", SIGNUP, "review", Set.of(), Map.of("VALIDATION_ERROR", "the quote uses the options stored at submission")),
             new Route("POST /members/{id}/validation", SIGNUP, "validate", Set.of("VALIDATION_ERROR"), SAVED_MEMBER),
             new Route("POST /members/{id}/rejection", SIGNUP, "reject", Set.of("VALIDATION_ERROR"), SAVED_MEMBER),
+            // Round 2, point 4 (S04 §6, D2): the census PATCH routes also edit a pending signup (`patchPending`).
+            new Route("PATCH /members/{id}", com.agilityhub.core.clubs.census.api.MembersController.class, "updateMember", Set.of("VALIDATION_ERROR"),
+                    Map.of("CHIP_ALREADY_EXISTS", "a member PATCH saves no dog")),
+            new Route("PATCH /dogs/{id}", com.agilityhub.core.clubs.census.api.DogsController.class, "updateDog", Set.of("VALIDATION_ERROR"),
+                    Map.of("ATTACHMENT_ENTITY_MISMATCH", SIGNUP_UPLOAD.get("ATTACHMENT_ENTITY_MISMATCH"), "MODULE_DISABLED", SIGNUP_UPLOAD.get("MODULE_DISABLED"),
+                            "ID_DOCUMENT_ALREADY_EXISTS", "a dog PATCH saves no member")),
             new Route("POST /checkout-sessions", com.agilityhub.core.payments.api.CheckoutController.class, "create",
                     Set.of("VALIDATION_ERROR", "RATE_LIMITED", "IDEMPOTENCY_KEY_REUSED", "MODULE_DISABLED"), Map.of()));
 
@@ -87,6 +93,13 @@ class S04ErrorContractTest {
         assertThat(signup).containsKeys("SIGNUP_ALREADY_PENDING", "INVALID_IBAN", "MEMBER_ERASED", "DOG_CHIP_ALREADY_REGISTERED");
         var validation = reachable(ROUTES.stream().filter(r -> r.name().equals("POST /members/{id}/validation")).findFirst().orElseThrow());
         assertThat(validation).containsKeys("LEVEL_NOT_ACTIVE", "MEMBERSHIP_EXISTS", "UPFRONT_AMOUNT_EXCEEDS_DUE");
+        // Round 2, point 4: the D2 PATCH routes reach the pending-signup edits (`patchPending`) through the transaction lambda.
+        var member = ROUTES.stream().filter(r -> r.name().equals("PATCH /members/{id}")).findFirst().orElseThrow();
+        assertThat(reachable(member)).containsKeys("INVALID_IBAN", "PAYMENT_METHOD_NOT_AVAILABLE");
+        assertThat(documented(member)).contains("INVALID_IBAN", "PAYMENT_METHOD_NOT_AVAILABLE");
+        var dog = ROUTES.stream().filter(r -> r.name().equals("PATCH /dogs/{id}")).findFirst().orElseThrow();
+        assertThat(reachable(dog)).containsKeys("DOCUMENT_TYPE_UNKNOWN", "FILE_NOT_FOUND");
+        assertThat(documented(dog)).contains("DOCUMENT_TYPE_UNKNOWN", "FILE_NOT_FOUND");
     }
 
     private static Set<String> documented(Route route) {
