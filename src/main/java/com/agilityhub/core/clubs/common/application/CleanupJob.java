@@ -66,6 +66,8 @@ public class CleanupJob implements Job {
         // R-15-19 (amended 25-09, E3-T16): the recipient-cap decisions past their event's retention. One whose event may still
         // retry has no `expiresAt` (E3-T15), so it is never counted.
         recorder.count("ttlPendingSignupNotificationAdmissions", cleanup.ttlPending(club, "signup_notification_admissions", "expiresAt", now));
+        // R-15-19 (amended 25-09, E5-T17): the ring-slot sequences, kept until `startsAt` + 7 days.
+        recorder.count("ttlPendingRingSlotLocks", cleanup.ttlPending(club, "ring_slot_locks", "expiresAt", now));
         var items = new ArrayList<JobItem>();
         var totals = new LinkedHashMap<String, Long>();
         var orphans = cleanup.orphanUploads(club, cut.uploads());

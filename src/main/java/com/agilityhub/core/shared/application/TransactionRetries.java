@@ -35,6 +35,26 @@ public class TransactionRetries {
         return registry.find(EXHAUSTED).tag("context", context).counters().stream().mapToDouble(Counter::count).sum();
     }
 
+    /**
+     * The conflict that the S05, S06 and S09 writers retry whole (E5-T17, review E5-T15 #4): a write conflict (112), a
+     * duplicate key (11000, for example the first upsert of a ring slot or the partial unique seat index) or any error
+     * labelled `TransientTransactionError`, anywhere in the cause chain.
+     */
+    public static boolean conflict(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof org.springframework.dao.DuplicateKeyException) { return true; }
+            if (cause instanceof com.mongodb.MongoException mongo
+                    && (mongo.getCode() == 112 || mongo.getCode() == 11000 || mongo.hasErrorLabel("TransientTransactionError"))) { return true; }
+        }
+        return false;
+    }
+
+    /** The wait before a retry, in milliseconds; injectable so a unit test does not sleep. */
+    @FunctionalInterface
+    public interface Backoff { void pause(long millis) throws InterruptedException; }
+    /** 50–150 ms, uniformly: the randomised backoff of the retried writers. */
+    public static long jitter() { return java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151); }
+
     /** A Mongo `TransientTransactionError` or `WriteConflict` anywhere in the cause chain: the whole unit of work may run again. */
     public static boolean transientFailure(Throwable failure) {
         for (Throwable cause = failure; cause != null; cause = cause.getCause()) {

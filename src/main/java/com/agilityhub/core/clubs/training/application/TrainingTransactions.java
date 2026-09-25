@@ -44,13 +44,6 @@ public class TrainingTransactions {
             }
         }
     }
-    /** `DuplicateKey` (11000) of the seat index, a write conflict (112) or any error labelled `TransientTransactionError`. */
-    public static boolean retryable(Throwable failure) {
-        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
-            if (cause instanceof org.springframework.dao.DuplicateKeyException) { return true; }
-            if (cause instanceof com.mongodb.MongoException mongo
-                    && (mongo.getCode() == 112 || mongo.getCode() == 11000 || mongo.hasErrorLabel("TransientTransactionError"))) { return true; }
-        }
-        return false;
-    }
+    /** `DuplicateKey` (11000) of the seat index, a write conflict (112) or any error labelled `TransientTransactionError`: {@link TransactionRetries#conflict}. */
+    public static boolean retryable(Throwable failure) { return TransactionRetries.conflict(failure); }
 }

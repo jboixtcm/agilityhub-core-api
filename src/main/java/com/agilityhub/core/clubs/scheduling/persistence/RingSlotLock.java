@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.scheduling.persistence;
 
 import com.agilityhub.core.shared.domain.TenantEntity;
+import java.time.Duration;
 import java.time.Instant;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,6 +13,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * slot its range overlaps, in its transaction. The two sides of the conflict share a document, so Mongo raises a
  * `WriteConflict` instead of letting both commit (write skew), while bookings of different slots never meet (E5-T07
  * round 2: one document per ring-day made 15 of 20 bookings on 20 slots of one day exhaust their retries).
+ * <p>
+ * Retention (S15 R-15-19, amended 25-09): every touch sets `expiresAt` = `startsAt` + {@link #RETENTION}, and the TTL
+ * index of {@link SchedulingPersistence#schedulingCollections} removes the document. A past slot takes no booking; a
+ * later write that touches it recreates the document with the same upsert.
  */
 @Document("ring_slot_locks")
-public record RingSlotLock(@Id String id, String clubId, String ringId, Instant startsAt, long sequence) implements TenantEntity { }
+public record RingSlotLock(@Id String id, String clubId, String ringId, Instant startsAt, long sequence, Instant expiresAt) implements TenantEntity {
+    /** How long a slot's document outlives the slot's start. */
+    public static final Duration RETENTION = Duration.ofDays(7);
+}

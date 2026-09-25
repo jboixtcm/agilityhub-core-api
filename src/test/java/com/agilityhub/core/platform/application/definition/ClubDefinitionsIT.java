@@ -210,6 +210,42 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(definitions.export("canic").at("/club/taxId").asText()).isEqualTo("G63189617");
     }
     /**
+     * E5-T17 (review E5-T16 #1; S02 §3 amended 26-09, R-02-06): a definition whose tax id is made only of separators is
+     * refused (`VALIDATION_ERROR` on `club.taxId`, in the dry run too) and the stored one stays; `""` clears it.
+     */
+    @Test void R_02_06_clubApplyRefusesATaxIdOfSeparatorsOnlyAndOnlyBlankClearsIt() {
+        var id = definitions.apply(seed("canic"), false).id();
+        for (String separators : List.of("-", " / ", ".")) {
+            var definition = seed("canic"); definition.withObject("club").put("taxId", separators);
+            for (boolean dryRun : List.of(true, false)) {
+                assertThatThrownBy(() -> definitions.apply(definition, dryRun)).as(separators).isInstanceOfSatisfying(ApiException.class, error -> {
+                    assertThat(error.code()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+                    assertThat(error.details()).containsEntry("field", "club.taxId")
+                            .containsEntry("fieldErrors", List.of(Map.of("field", "club.taxId", "code", "INVALID_VALUE")));
+                });
+            }
+        }
+        assertThat(clubs.findById(id).orElseThrow().taxId()).isEqualTo("G63189617");
+        var cleared = seed("canic"); cleared.withObject("club").put("taxId", "");
+        assertThat(definitions.apply(cleared, false).changes()).isEqualTo(1);
+        assertThat(clubs.findById(id).orElseThrow().taxId()).isNull();
+        assertThat(TenantContext.current()).isNull();
+    }
+    /**
+     * E5-T17 (review E5-T16 #4, optional; S02 §3, R-02-06): under `ES` a definition's 7-digit DNI is stored padded, the form
+     * the check reads, so the same id with or without the leading zero is no change.
+     */
+    @Test void R_02_06_clubApplyStoresASevenDigitDniPaddedUnderEs() {
+        var typed = seed("canic"); typed.withObject("club").put("taxId", "1234567-l");
+        var id = definitions.apply(typed, false).id();
+        assertThat(clubs.findById(id).orElseThrow().taxId()).isEqualTo("01234567L");
+        for (String same : List.of("01234567L", "1234567L", "1234567 l")) {
+            var again = seed("canic"); again.withObject("club").put("taxId", same);
+            assertThat(definitions.apply(again, true).changes()).as(same).isZero();
+        }
+        assertThat(clubs.findById(id).orElseThrow().taxId()).isEqualTo("01234567L");
+    }
+    /**
      * E3-T14: a club applied before (provider names only, so no `enabled` flag) gets one change from the new seed, then none.
      * The seed only switches the providers on: configuration stored outside it stays, and the names-only form keeps the flags.
      */
@@ -261,8 +297,9 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     /**
      * Round 2 (review #4, R-04-10): the offer follows the configured order, so reordering `paymentProviders` in a definition
      * is a change. `club:apply` reports it (the dry run writes nothing), stores the new order, and the offer follows it.
+     * E5-T17 (review E5-T16 #3): T-17-01 is the Cànic created on an empty database, which this test does not assert.
      */
-    @Test void R_04_10_T_17_01_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt() throws Exception {
+    @Test void R_04_10_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt() throws Exception {
         var definition = activeCanic();
         var id = definitions.apply(definition, false).id();
         var reordered = definition.deepCopy(); var providers = reordered.putObject("paymentProviders");

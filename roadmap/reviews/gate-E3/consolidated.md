@@ -200,7 +200,7 @@ The full lists, with file:line, are in the two source reports. The ones routed t
 ## Fix plan
 The E3 fix tasks run before the E4–E8 tasks of each queue, because the executors take the lowest stage first.
 
-| Task | Repo | Content | Depends on | Status 26-09 00:35 |
+| Task | Repo | Content | Depends on | Status 26-09 01:15 |
 |---|---|---|---|---|
 | **E3-T07** | api | Baseline audit run on `de0e17f` | — | verified |
 | **E3-T08** | api | The smoke (step 1); M5 api side (a quote per plan in `GET /signup`); M6, M7, M8 (+ `planOptions`), M9, M10 (E39), M11 server side (+ `warnDays` in the signup view), M20 api side (E36), M21; the dog `version`; the signup flags; E35 | E3-T07 | verified (2 rounds) |
@@ -212,7 +212,7 @@ The E3 fix tasks run before the E4–E8 tasks of each queue, because the executo
 | **E3-T15** | api | A failure-safe recipient-cap admission: written before the charge, living as long as its event (added 25-09, from the E3-T12 round-2 review) | E3-T10 | verified |
 | **E3-T16** | api | The member's document types in `GET /me/dogs`: screen 13 cannot read `/parameters` (added 25-09, from the E4-W08 report); the Cànic's legal identity, `displayCity` and `legalAddress` for the public footer (Jordi, 25-09); the E3-T15 review's test gaps and the list `size` contract | E3-T10 | verified (2 rounds) |
 | **E3-T11** | api | Audit re-run after the fixes | E3-T07…T10, E3-T12…T16 | verified (2 rounds; the audit record of `d791361`; item 7 holds for the member record only; L66–L68 are ticked on E3-T17's run) |
-| **E3-T17** | api | E38 for the reused dog of a readmission: its values and documents wait in the request, and a rejection leaves them as they were (added 25-09, from the E3-T11 review); the holder's family group (item 3) and the add-dog replay (item 1) | E3-T09 | in progress |
+| **E3-T17** | api | E38 for the reused dog of a readmission: its values and documents wait in the request, and a rejection leaves them as they were (added 25-09, from the E3-T11 review); the holder's family group (item 3) and the add-dog replay (item 1) | E3-T09 | changes requested (round 1: E38 for the dog holds; round 2: the dog's record frozen while pending, D2 document edits by type, validation applies only what was sent; after E5-T17) |
 | **E3-W05** | web | Baseline audit run | — | verified |
 | **E3-W06** | web | B1, M1, M2, M19, the payment texts under the right method; the signup minors (no api change needed) | E3-W04 | verified (2 rounds) |
 | **E3-W07** | web | Snapshot adoption; D2: M12–M15, M11 web side, the refund warning; the D2 and D1 minors (the E38 readmission moved to E3-W08) | E3-W06, api E3-T08 | verified (2 rounds) |
@@ -220,7 +220,7 @@ The E3 fix tasks run before the E4–E8 tasks of each queue, because the executo
 | **E3-W10** | web | Test stability (added 24-09 20:45, re-scoped 21:05; not an audit finding): a build-time budget for the MSW mock worlds (E4-W02 round 4's uncached `clubInstant` made 5 of 5 e2e runs time out), the flaky D3b URL test (CI red at `d95b199`), and a lighter e2e container copy | — | verified (2 rounds) |
 | **E3-W11** | web | D2 follow-ups of the E3-W07 round-2 review: the quote dropped at reload start, the payment methods from the D2 view; the E3 stage of the real-core e2e for every task id (added 25-09) | E3-W07, api E3-T14 | verified |
 | **E3-W12** | web | Screen 13 without `/parameters`: the document types from `GET /me/dogs`, «Nivell» only when the dog carries `level`, mocks that refuse `/parameters` to members (added 25-09, from the E4-W08 report); the footer's registered-office line | api E3-T16 | verified (2 rounds) |
-| **E3-W09** | web | Audit re-run after the fixes | E3-W05…W08, E3-W10…W12, api E3-T16 | ready (opened 25-09 23:37) |
+| **E3-W09** | web | Audit re-run after the fixes | E3-W05…W08, E3-W10…W12, api E3-T16 | in progress |
 
 **Tests that must exist after the fixes:**
 - a NIE and a passport submission (Vitest + real-core e2e);

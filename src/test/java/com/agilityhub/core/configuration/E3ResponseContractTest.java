@@ -18,7 +18,12 @@ class E3ResponseContractTest {
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-    @Test void T_04_29_T_04_33_responseFixturesRetainNestedFieldsEnumsMoneyAndUtcDates() throws Exception {
+    /**
+     * E3-T01: every `SignupResponses` fixture reads and writes back unchanged (nested fields, enums, money, UTC dates), and a
+     * checkout session sends only its URL and id. E5-T17 (review E5-T16 #3): named after what it asserts, not after the web
+     * UI tests T-04-29 and T-04-33.
+     */
+    @Test void E3_T01_signupResponseFixturesRoundTripWithTheirNestedFieldsEnumsMoneyAndUtcDates() throws Exception {
         try (var input = getClass().getResourceAsStream("/fixtures/contracts/e3-responses.json")) {
             var entries = mapper.readTree(input).fields();
             while (entries.hasNext()) {

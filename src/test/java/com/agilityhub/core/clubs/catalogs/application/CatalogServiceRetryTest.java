@@ -6,7 +6,7 @@ import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import java.util.Map;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DuplicateKeyException;
@@ -25,12 +25,14 @@ import static org.mockito.Mockito.*;
 class CatalogServiceRetryTest {
     private final TransactionRetries retries = new TransactionRetries(new SimpleMeterRegistry());
     private final CatalogService attempt = mock(CatalogService.class);
+    /** E5-T17 (review E5-T15 #4): the backoff is injected, so these tests record the waits instead of sleeping. */
+    private final List<Long> waits = Collections.synchronizedList(new ArrayList<>());
 
     @SuppressWarnings("unchecked")
     private CatalogService service() {
         ObjectProvider<CatalogService> self = mock(ObjectProvider.class); when(self.getObject()).thenReturn(attempt);
         return new CatalogService(mock(CatalogRepository.class), mock(CatalogRepository.class), mock(CatalogRepository.class), null, null, null, null, null, null,
-                null, self, retries);
+                null, self, retries, TransactionRetries::jitter, waits::add);
     }
     private static RuntimeException writeConflict() {
         return new UncategorizedMongoDbException("Write conflict", new com.mongodb.MongoException(112, "WriteConflict"));
@@ -43,6 +45,7 @@ class CatalogServiceRetryTest {
         verify(attempt, times(3)).change(any(), anyString(), anyMap());
         assertThat(retries.retries(CatalogService.CONTEXT, "write_conflict")).isEqualTo(1);
         assertThat(retries.retries(CatalogService.CONTEXT, "duplicate_key")).isEqualTo(1);
+        assertThat(waits).hasSize(2).allSatisfy(wait -> assertThat(wait).isBetween(50L, 150L));
     }
 
     @Test void E5_T15_aRingChangeThatKeepsConflictingEndsInStaleVersionAfterItsBudget() {
@@ -52,6 +55,20 @@ class CatalogServiceRetryTest {
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.STALE_VERSION));
         verify(attempt, times(CatalogService.RING_CHANGE_ATTEMPTS)).change(any(), anyString(), anyMap());
         assertThat(retries.exhaustions(CatalogService.CONTEXT)).isEqualTo(1);
+        assertThat(waits).as("a wait before each retry, none after the last attempt").hasSize(CatalogService.RING_CHANGE_ATTEMPTS - 1);
+    }
+
+    /** E5-T17 (review E5-T15 #4): an interrupt during the wait stops the retries and keeps the interrupt flag. */
+    @SuppressWarnings("unchecked")
+    @Test void E5_T17_aRingChangeInterruptedDuringItsBackoffStopsRetrying() {
+        when(attempt.change(any(), anyString(), anyMap())).thenThrow(writeConflict());
+        ObjectProvider<CatalogService> self = mock(ObjectProvider.class); when(self.getObject()).thenReturn(attempt);
+        var interrupted = new CatalogService(mock(CatalogRepository.class), mock(CatalogRepository.class), mock(CatalogRepository.class), null, null, null, null, null,
+                null, null, self, retries, () -> 100L, millis -> { throw new InterruptedException(); });
+        try {
+            assertThatThrownBy(() -> interrupted.update(CatalogKind.RING, "ring", Map.of("version", 0))).isInstanceOf(IllegalStateException.class);
+            verify(attempt, times(1)).change(any(), anyString(), anyMap());
+        } finally { assertThat(Thread.interrupted()).as("the interrupt flag is restored").isTrue(); }
     }
 
     @Test void E5_T15_businessAnswersAndOtherKindsAreNotRetried() {
@@ -73,6 +90,7 @@ class CatalogServiceRetryTest {
         } finally { TransactionSynchronizationManager.setActualTransactionActive(false); }
         verify(attempt, times(1)).change(any(), anyString(), anyMap());
         assertThat(retries.retries(CatalogService.CONTEXT)).isZero();
+        assertThat(waits).isEmpty();
         assertThat(CatalogService.conflict(new IllegalStateException("not Mongo"))).isFalse();
     }
 }

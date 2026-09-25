@@ -215,9 +215,10 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
      * 2020-12 validator, so a `null` the snapshot does not declare fails (and so does any other shape it does not publish):
      * public submissions by cash and by direct debit without an IBAN and their D2 views, an add-dog and its view, a pending
      * readmission and its view, and a view without BILLING. E5-T16 step 3: named by the rules of the D2 view (R-04-19) and of
-     * the two submission results (R-04-25, R-04-26), as T-04-29 and T-04-33 are web UI tests.
+     * the two submission results (R-04-25, R-04-26), as T-04-29 and T-04-33 are web UI tests. E5-T17 (review E5-T16 #2):
+     * named after INC-08, the incidence it asserts, like its Java-side twin in {@code E3GateFixesContractTest}.
      */
-    @Test void R_04_19_R_04_25_R_04_26_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend() throws Exception {
+    @Test void INC_08_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend() throws Exception {
         var problems=new ArrayList<String>();
         java.util.function.BiConsumer<JsonNode,String> conforms=(value,schema) -> {
             assertThat(value.isObject()).as(schema).isTrue();

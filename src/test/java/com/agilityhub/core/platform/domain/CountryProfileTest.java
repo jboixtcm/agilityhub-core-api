@@ -68,6 +68,20 @@ class CountryProfileTest {
         assertThat(es.validateTaxId("G.6318.9617")).isTrue(); assertThat(es.validateTaxId("x-1234567-l")).isTrue();
         assertThat(es.validateTaxId("-./")).isFalse();
     }
+    /**
+     * E5-T17 (review E5-T16 #4; S02 §3, R-02-06): each profile stores a tax id in the form its check reads. `ES` pads a 7-digit
+     * DNI (`1234567L` → `01234567L`), so both writings are the same id; a CIF, an NIE and `GENERIC` values are kept as they are.
+     */
+    @Test void R_02_06_aProfileStoresATaxIdInTheFormItsCheckReads() {
+        var es = registry.get("ES");
+        assertThat(es.validateTaxId("1234567L")).isTrue();
+        assertThat(es.canonicalTaxId(CountryProfile.normalizeTaxId("1234567-l"))).isEqualTo("01234567L");
+        assertThat(es.canonicalTaxId("01234567L")).isEqualTo("01234567L");
+        for (String kept : new String[]{"G63189617", "X1234567L", "B12345674", "EXAMPLEORG"}) { assertThat(es.canonicalTaxId(kept)).isEqualTo(kept); }
+        assertThat(es.canonicalTaxId(null)).isNull();
+        var generic = registry.get("GENERIC");
+        assertThat(generic.canonicalTaxId("1234567L")).isEqualTo("1234567L"); assertThat(generic.canonicalTaxId(null)).isNull();
+    }
     @Test void T_02_04_genericIsFallbackWithNoNationalFormatValidation() {
         var generic = registry.get("GENERIC");
         assertThat(registry.get("PT")).isSameAs(generic);

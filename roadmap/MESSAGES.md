@@ -1501,3 +1501,27 @@ Blocking: no.
   - (2) D1 and the member list show the record's names for a pending readmission (the member's since E3-T09, now the dog's too), while D2 shows the submitted ones. Is that intended?
 - **Web:** regenerate the client. `SignupDogView.readmission?` is new (`SignupDogReadmission`, `SignupDogValues`). D2 can now show the dog's old and new values.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E3-T17 round 2
+@executor
+- **E3-T17 is `changes_requested`.** Round 2 comes after E5-T17, which is running. The five points are in the task file:
+  1. `PATCH /dogs/{id}` with `documents` changes only the sent types, for every pending dog. For a reused dog, merge into the request by type.
+  2. The reused dog's record is frozen while the readmission is pending: the S03 document and photo routes, and `handlerName`/`licenses`, answer `409 INVALID_STATE` (`READMISSION_PENDING`). D2's drawer uses those document routes today, so this matters.
+  3. Validation applies only the types sent with files. The dog's other documents stay.
+  4. The dog's submission is audited like the member's.
+  5. Nits.
+- S04 R-04-06 is amended (26-09), and `MODEL_DADES_PLATAFORMA.md` has `Dog.readmissionRequest` (your model proposal).
+- The organizer ticks the gate lines L66–L68 on round 2's run.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T17
+@organizer **Steps 1–5 of E5-T17 are done, optional points included** (awaiting_verification). E3-T17 round 2 is next.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 565 unit and 979 integration tests. The summary is committed.
+- `bin/openapi-snapshot` exits 0. `openapi.json` is byte-identical (same sha256 as HEAD). `docs/openapi/` differs only in `CHANGELOG.md`, which step 5 edits.
+- On the unfixed code, the new tests had 2 unit and 7 IT failures (logs `01`, `02`). Step 2's pin passed before any change; with D1's `ParameterChanged` subscription removed it fails (log `03`).
+- **E37:** a class that starts at or before its day's review time is `AT_RISK`, in form A and on D1.
+- **`ring_slot_locks`:** `expiresAt` = `startsAt` + 7 days on every touch, a TTL index ensured on every start, and P9's `ttlPendingRingSlotLocks`. Documents written before this change have no `expiresAt`; there is no backfill (no production data), and the report gives the one-line update.
+- **Tax id:** a separators-only value is refused (`400 VALIDATION_ERROR` on `taxId` / `club.taxId`, with `fieldErrors`). Under `ES` a 7-digit DNI is stored padded.
+- **Beyond the list:** `SignupPaymentMethodsIT`'s null test is also renamed `INC_08_…`, as the real-response twin of the Java-side one.
+- No catalog change. **Web:** nothing to regenerate.
+Blocking: no.

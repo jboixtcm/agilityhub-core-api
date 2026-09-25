@@ -70,13 +70,19 @@ public class ClubSettingsService {
                 || version.doubleValue() != version.longValue()) { throw new ApiException(ErrorCode.STALE_VERSION); }
         // S02 §3, R-02-06: the country profile checks a tax id the request changes; a stored one is never re-checked. Both are
         // compared normalized (E5-T16), as the club stores it, so the same id with other spacing or case is no change.
-        String taxId = request.get("taxId") instanceof String typed ? CountryProfile.normalizeTaxId(typed) : null;
-        if (taxId != null && !taxId.equals(before.taxId()) && !countries.get(before.countryProfile()).validateTaxId(taxId)) {
+        // `""` or `null` clears it; a non-blank value made only of separators (`"-"`, `" / "`) is refused (E5-T17, S02 §3 26-09).
+        // The profile's stored form is compared and stored (E5-T17: under `ES` a 7-digit DNI is padded, as its check reads it).
+        var profile = countries.get(before.countryProfile());
+        String typedTaxId = request.get("taxId") instanceof String typed ? typed : null;
+        String taxId = profile.canonicalTaxId(CountryProfile.normalizeTaxId(typedTaxId));
+        if (taxId == null && typedTaxId != null && !typedTaxId.isBlank()
+                || taxId != null && !taxId.equals(before.taxId()) && !profile.validateTaxId(taxId)) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "taxId",
                     "fieldErrors", List.of(Map.of("field", "taxId", "code", "INVALID_VALUE"))));
         }
         ObjectNode tree = mapper.valueToTree(before);
         request.forEach((key, value) -> { if (EDITABLE.contains(key)) { tree.set(key, mapper.valueToTree(value)); } });
+        if (typedTaxId != null) { tree.put("taxId", taxId); }
         Club next;
         try {
             validate(tree);

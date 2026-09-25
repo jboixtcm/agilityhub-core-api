@@ -36,7 +36,7 @@ class E5PersistenceIT extends AbstractIntegrationTest {
     @Autowired TrainingBookingRepository training;
 
     @BeforeEach void clean() {
-        for (String collection : List.of("bookings", "seat_holds", "waitlist_entries", "seat_locks", "training_bookings", "weeks", "class_sessions")) {
+        for (String collection : List.of("bookings", "seat_holds", "waitlist_entries", "seat_locks", "training_bookings", "weeks", "class_sessions", "ring_slot_locks")) {
             mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), collection);
         }
     }
@@ -145,5 +145,45 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         assertThat(stored.risk().lowAlertSentAt()).isEqualTo(now);
         assertThat(stored.risk().notifiedBookingIds()).containsExactly("e5p-b1");
         assertThat(stored.risk().adminNotifiedAt()).isEqualTo(now);
+    }
+
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("schedulingCollections") org.springframework.boot.ApplicationRunner schedulingCollections;
+    @Autowired com.agilityhub.core.clubs.scheduling.persistence.RingSlotLockRepository ringSlots;
+    private void startScheduling() throws Exception { schedulingCollections.run(new org.springframework.boot.DefaultApplicationArguments()); }
+
+    /**
+     * E5-T17 (S15 R-15-19 and `MODEL_DADES_PLATAFORMA.md` `ring_slot_locks`, amended 25-09): the startup runner gives
+     * `ring_slot_locks` a TTL index on `expiresAt` (`expireAfterSeconds: 0`), idempotent on restart and on two instances
+     * starting together; every touch of a slot sets `expiresAt` = `startsAt` + 7 days, and a later write recreates a
+     * document the TTL removed with the same upsert.
+     */
+    @Test void T_15_27_R_15_19_ringSlotLocksExpireSevenDaysAfterTheirSlotThroughATtlIndex() throws Exception {
+        var ttl = indexes("ring_slot_locks").get("ring_slot_lock_ttl");
+        assertThat(ttl).as("created at startup").isNotNull();
+        assertThat(ttl.get("key")).isEqualTo(keys("expiresAt"));
+        assertThat(ttl.get("expireAfterSeconds", Number.class).intValue()).isZero();
+        // A restart finds it in place; two instances starting together on a collection without it both start.
+        startScheduling();
+        mongo.indexOps("ring_slot_locks").dropIndex("ring_slot_lock_ttl");
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            var starts = List.of(pool.submit(() -> { startScheduling(); return null; }), pool.submit(() -> { startScheduling(); return null; }));
+            for (var start : starts) { start.get(60, java.util.concurrent.TimeUnit.SECONDS); }
+        } finally { pool.shutdownNow(); }
+        assertThat(indexes("ring_slot_locks")).containsKey("ring_slot_lock_ttl");
+        assertThat(indexes("ring_slot_locks").get("ring_slot_lock_ttl").get("expireAfterSeconds", Number.class).intValue()).isZero();
+
+        var startsAt = Instant.parse("2026-10-06T16:00:00Z"); String id = CLUB + ":e5p-ring:" + startsAt;
+        try (var tenant = TenantContext.open(CLUB)) { ringSlots.touch("e5p-ring", startsAt); ringSlots.touch("e5p-ring", startsAt); }
+        var lock = mongo.findById(id, Document.class, "ring_slot_locks");
+        assertThat(lock.getString("clubId")).isEqualTo(CLUB);
+        assertThat(lock.getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-10-13T16:00:00Z"));
+        assertThat(lock.get("sequence", Number.class).longValue()).isEqualTo(2);
+        // The TTL monitor removed it (the test container runs without it: removed by hand); a later write recreates it.
+        mongo.remove(Query.query(Criteria.where("_id").is(id)), "ring_slot_locks");
+        try (var tenant = TenantContext.open(CLUB)) { ringSlots.touch("e5p-ring", startsAt); }
+        lock = mongo.findById(id, Document.class, "ring_slot_locks");
+        assertThat(lock.getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-10-13T16:00:00Z"));
+        assertThat(lock.get("sequence", Number.class).longValue()).isEqualTo(1);
     }
 }

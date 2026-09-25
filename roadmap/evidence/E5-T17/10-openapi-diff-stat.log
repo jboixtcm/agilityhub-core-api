@@ -1,0 +1,6 @@
+ docs/openapi/CHANGELOG.md | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+--- git diff --stat docs/openapi/openapi.json:
+--- sha256 working copy / HEAD:
+1895d0c2b193d8f84f268711ea63f72cdf8c688240b19200a8d0b5b31a72f255  docs/openapi/openapi.json
+1895d0c2b193d8f84f268711ea63f72cdf8c688240b19200a8d0b5b31a72f255  -

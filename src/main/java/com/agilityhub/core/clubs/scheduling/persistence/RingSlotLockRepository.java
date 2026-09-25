@@ -15,10 +15,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RingSlotLockRepository extends TenantRepository<RingSlotLock> {
     public RingSlotLockRepository(MongoTemplate mongo) { super(mongo, RingSlotLock.class); }
-    /** `$inc sequence` (upsert) — a concurrent transaction that touches the same ring slot gets a WriteConflict. */
+    /**
+     * `$inc sequence` (upsert) — a concurrent transaction that touches the same ring slot gets a WriteConflict. Sets
+     * `expiresAt` = `startsAt` + {@link RingSlotLock#RETENTION} for the TTL index (R-15-19).
+     */
     public void touch(String ringId, Instant startsAt) {
         String id = TenantContext.require() + ":" + ringId + ":" + startsAt;
-        mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(id)),
-                new Update().set("ringId", ringId).set("startsAt", startsAt).inc("sequence", 1), RingSlotLock.class);
+        mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("ringId", ringId).set("startsAt", startsAt)
+                .set("expiresAt", startsAt.plus(RingSlotLock.RETENTION)).inc("sequence", 1), RingSlotLock.class);
     }
 }

@@ -2,6 +2,17 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T17 · a tax id of separators only; the E37 statuses of an early class
+
+**0 operations or schemas changed** (the snapshot is byte-identical). Behaviour only:
+
+- `PUT /club` (S02 §3 amended 26-09, R-02-06): a non-blank `taxId` that normalizes to nothing (`"-"`, `" / "`, `"."`)
+  answers `400 VALIDATION_ERROR` with `details.field = taxId` and `fieldErrors [{field: taxId, code: INVALID_VALUE}]`,
+  and the stored tax id stays. `""` or `null` clears it. Under the `ES` profile a 7-digit DNI is stored and returned
+  padded (`1234567L` → `01234567L`).
+- `GET /risk-review` and `GET /dashboard` (`riskReview`, S15 §6 E37 amended 25-09): a class that starts at or before its
+  day's review time is `AT_RISK`, never `WILL_CANCEL`/`WILL_REVIEW` (D1: never `WILL_CANCEL`/`PENDING_DECISION`).
+
 ## 2026-09-26 · E3-T17 · the reused dog of a pending readmission on D2 (E38)
 
 **0 operations added; 1 changed (description and error list); 2 schemas added** (`SignupDogReadmission`,
@@ -37,7 +48,8 @@ are always sent become required. No value on the wire changes, apart from the no
   instead of the `$ref` beside `type: "null"`, which accepted neither value.
 - `taxId` (S02 §3, R-02-06; review E3-T16 #3): stored normalized, upper case, without spaces or separators;
   `ClubSettings.taxId`, `/branding.club.taxId` and the `ClubUpdate.taxId` description say so. `PUT /club` with
-  `"g-6318 9617"` stores and publishes `G63189617`; the same id with other spacing is no change.
+  `"g-6318 9617"` stores and publishes `G63189617`; the same id with other spacing is no change. `PUT /club {taxId: ""}`
+  now stores and returns `null`, where it used to return `""` (added in E5-T17, review E5-T16 #7).
 - The snapshot has no `$ref` with a sibling `type` any more (`E3GateFixesContractTest`).
 
 ## 2026-09-25 · E5-T15 · staff class detail, app row hours, descriptions

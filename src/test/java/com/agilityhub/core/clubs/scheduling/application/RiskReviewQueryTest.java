@@ -84,6 +84,10 @@ class RiskReviewQueryTest {
 
     /** Statuses of today's 17:40 and tomorrow's 18:00 class, both at risk with 0 registrants and no notice, read at {@code localNow}. */
     private static Map<String, String> statuses(String localNow, boolean jobOn, boolean autoCancel) {
+        return statuses(localNow, jobOn, autoCancel, LocalTime.of(17, 40), LocalTime.of(18, 0));
+    }
+    /** The same two classes, starting at {@code todayStart} and {@code tomorrowStart}. */
+    private static Map<String, String> statuses(String localNow, boolean jobOn, boolean autoCancel, LocalTime todayStart, LocalTime tomorrowStart) {
         var classes = mock(ClassSessionRepository.class); var context = mock(PlanningContext.class); var projection = mock(SessionProjection.class);
         var config = mock(ClubConfig.class);
         when(context.config()).thenReturn(config); when(projection.zone()).thenReturn(ZONE);
@@ -92,8 +96,9 @@ class RiskReviewQueryTest {
         when(config.get("jobs.riskReview.enabled", Boolean.class)).thenReturn(jobOn);
         when(context.catalog()).thenReturn(new SchedulingCatalog(List.of(), List.of(new SchedulingCatalog.Resource("ring-a", "Ring A", true)), List.of()));
         var today = session("today", TODAY, ClassState.ACTIVE, new ClassSession.Risk(false, List.of(), null, null), null);
-        when(today.startsAt()).thenReturn(TODAY.atTime(17, 40).atZone(ZONE).toInstant());
+        when(today.startsAt()).thenReturn(TODAY.atTime(todayStart).atZone(ZONE).toInstant());
         var tomorrow = session("tomorrow", TODAY.plusDays(1), ClassState.ACTIVE, new ClassSession.Risk(false, List.of(), null, null), null);
+        when(tomorrow.startsAt()).thenReturn(TODAY.plusDays(1).atTime(tomorrowStart).atZone(ZONE).toInstant());
         when(classes.startingBetween(any(), any())).thenReturn(List.of(today, tomorrow));
         var now = LocalDateTime.parse(localNow).atZone(ZONE).toInstant();
         var rows = new RiskReviewQuery(classes, mock(ClassBookingsPort.class), mock(SchedulingRecipients.class), context, projection, Clock.fixed(now, ZoneOffset.UTC)).rows(TODAY);
@@ -113,5 +118,18 @@ class RiskReviewQueryTest {
         assertThat(statuses("2026-10-05T07:00", true, false)).containsExactly(entry("today", "WILL_REVIEW"), entry("tomorrow", "WILL_REVIEW"));
         assertThat(statuses("2026-10-05T10:00", true, false)).containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "WILL_REVIEW"));
         assertThat(statuses("2026-10-05T10:00", false, false)).containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "AT_RISK"));
+        // E5-T17 (review E5-T15 #1, S15 §6 amended 25-09): at its reviewAt P2 skips a class that has started, so a class that
+        // starts before (07:00) or exactly at (07:30) its day's 07:30 review is AT_RISK, never WILL_CANCEL nor WILL_REVIEW.
+        var seven = LocalTime.of(7, 0); var reviewTime = LocalTime.of(7, 30);
+        assertThat(statuses("2026-10-05T06:00", true, true, seven, reviewTime)).as("07:00 and 07:30 classes, before the review")
+                .containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "AT_RISK"));
+        assertThat(statuses("2026-10-05T06:00", true, false, seven, reviewTime)).as("the same with riskAutoCancelSameDay = false")
+                .containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "AT_RISK"));
+        assertThat(statuses("2026-10-05T10:00", true, true, LocalTime.of(17, 40), seven)).as("tomorrow's 07:00 class, read after today's review")
+                .containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "AT_RISK"));
+        assertThat(statuses("2026-10-05T06:00", true, true, LocalTime.of(7, 31), LocalTime.of(7, 31))).as("one minute after the review time")
+                .containsExactly(entry("today", "WILL_CANCEL"), entry("tomorrow", "WILL_CANCEL"));
+        assertThat(statuses("2026-10-05T06:00", true, false, LocalTime.of(7, 31), LocalTime.of(7, 31)))
+                .containsExactly(entry("today", "WILL_REVIEW"), entry("tomorrow", "WILL_REVIEW"));
     }
 }

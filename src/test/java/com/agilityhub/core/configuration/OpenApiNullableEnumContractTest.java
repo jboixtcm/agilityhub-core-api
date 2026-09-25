@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
-import io.swagger.v3.core.util.Json31;
+import io.swagger.v3.core.util.ObjectMapperFactory;
 import io.swagger.v3.oas.models.media.Schema;
 import java.nio.file.Path;
 import java.util.*;
@@ -59,14 +59,17 @@ class OpenApiNullableEnumContractTest {
         model.addProperty("closed", enumSchema(List.of("string"), "A", "B"));
         model.addProperty("alreadyNull", enumSchema(List.of("string", "null"), "A", null));
         model.addProperty("free", new Schema<>().types(new LinkedHashSet<>(List.of("string", "null"))));
-        var mapper = Json31.mapper().copy().registerModule(OpenApiConfiguration.nullableEnumsModule());
+        var mapper = ObjectMapperFactory.createJson31().registerModule(OpenApiConfiguration.nullableEnumsModule());
         var written = mapper.readTree(mapper.writeValueAsString(model)).path("properties");
         assertThat(written.at("/nullable/enum").toString()).isEqualTo("[\"A\",\"B\",null]");
         assertThat(written.at("/closed/enum").toString()).isEqualTo("[\"A\",\"B\"]");
         assertThat(written.at("/alreadyNull/enum").toString()).isEqualTo("[\"A\",null]");
         assertThat(written.path("free").has("enum")).isFalse();
-        // Without the module the writer keeps the enum as the model has it: the defect this test guards.
-        var plain = Json31.mapper().readTree(Json31.mapper().writeValueAsString(model)).path("properties");
+        // Without the module the writer keeps the enum as the model has it: the defect this test guards. E5-T17 (review E5-T16
+        // #4): a fresh 3.1 mapper, never the shared `Json31` one, which a Spring context started earlier in the JVM has already
+        // given the module (`OpenApiConfiguration`), so the result no longer depends on the order of the tests.
+        var fresh = ObjectMapperFactory.createJson31();
+        var plain = fresh.readTree(fresh.writeValueAsString(model)).path("properties");
         assertThat(plain.at("/nullable/enum").toString()).isEqualTo("[\"A\",\"B\"]");
     }
 

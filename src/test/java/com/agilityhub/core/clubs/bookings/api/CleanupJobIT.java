@@ -21,7 +21,8 @@ import static org.assertj.core.api.Assertions.*;
 /** S15 R-15-19 P9 `cleanup` (T-15-27) at Tuesday 06-10-2026 06:00 Madrid (`jobs.dailyTime`, 04:00Z). */
 class CleanupJobIT extends BookingFixtures {
     static final Instant RUN = Instant.parse("2026-10-06T04:00:00Z");
-    static final List<String> TECHNICAL = List.of("attachment_uploads", "dog_documents", "export_jobs", "magic_link_tokens", "job_runs", "signup_notification_admissions");
+    static final List<String> TECHNICAL = List.of("attachment_uploads", "dog_documents", "export_jobs", "magic_link_tokens", "job_runs", "signup_notification_admissions",
+            "ring_slot_locks");
     @Autowired JobRunner runner;
     @Autowired CleanupJob job;
     @Autowired AttachmentStorage storage;
@@ -57,6 +58,9 @@ class CleanupJobIT extends BookingFixtures {
         // pending (no expiry), one expiring tomorrow, and another club's expired one.
         admission("s08-event-a:N-01", CLUB, RUN.minusSeconds(30)); admission("s08-event-b:N-01", CLUB, null);
         admission("s08-event-c:N-39", CLUB, RUN.plus(Duration.ofDays(1))); admission("s08-event-d:N-01", OTHER, RUN.minusSeconds(30));
+        // Ring-slot sequences (E5-T17, R-15-19 amended 25-09; `expiresAt` = `startsAt` + 7 days): a slot of 8 days ago (reported),
+        // one of 6 days ago (kept), and another club's slot of 8 days ago.
+        ringSlot(CLUB, RUN.minus(Duration.ofDays(8))); ringSlot(CLUB, RUN.minus(Duration.ofDays(6))); ringSlot(OTHER, RUN.minus(Duration.ofDays(8)));
         // The platform pass of this cycle is already taken (by no club of this fixture): the club tests see only their club.
         mongo.insert(new Document("_id", "platform:CLEANUP").append("holder", "elsewhere").append("acquiredAt", Date.from(RUN.minusSeconds(60)))
                 .append("expiresAt", Date.from(RUN.plus(Duration.ofDays(1)))), "job_locks");
@@ -65,6 +69,10 @@ class CleanupJobIT extends BookingFixtures {
         mongo.insert(new Document("_id", id).append("clubId", club).append("eventId", id.substring(0, id.indexOf(':'))).append("notificationCode", id.substring(id.indexOf(':') + 1))
                 .append("admitted", true).append("decidedAt", Date.from(RUN.minus(Duration.ofDays(2)))).append("expiresAt", expiresAt == null ? null : Date.from(expiresAt)),
                 "signup_notification_admissions");
+    }
+    private void ringSlot(String club, Instant startsAt) {
+        mongo.insert(new Document("_id", club + ":s08-ring:" + startsAt).append("clubId", club).append("ringId", "s08-ring").append("startsAt", Date.from(startsAt))
+                .append("sequence", 1L).append("expiresAt", Date.from(startsAt.plus(com.agilityhub.core.clubs.scheduling.persistence.RingSlotLock.RETENTION))), "ring_slot_locks");
     }
     private void platformEvent(String id, String status, int daysAgo) {
         var event = new Document("_id", id).append("type", "AccountCreated").append("status", status).append("occurredAt", Date.from(RUN.minus(Duration.ofDays(daysAgo))));
@@ -176,6 +184,32 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("runId", next.id());
     }
 
+    /**
+     * E5-T17 (review E5-T15 #6): the same, through the runner itself. P9's real plan claims the cycle and then the run fails,
+     * so `JobRunner` commits FAILED and calls the `failed` hook, which throws and is only logged (`JobRunner.failed`). The
+     * claim is never released, and the next real run of the same day still takes the platform pass.
+     */
+    @Test void T_15_27_aRunTheRunnerClosesFailedWhoseHookThrowsDoesNotKeepThePlatformCycle() {
+        mongo.remove(Query.query(Criteria.where("_id").is("platform:CLEANUP")), "job_locks");
+        var hooks = new java.util.concurrent.atomic.AtomicInteger();
+        Job failing = new Job() {
+            @Override public JobName name() { return JobName.CLEANUP; }
+            @Override public List<JobItem> plan(JobContext context) { job.plan(context); throw new IllegalStateException("fictional failure after the claim"); }
+            @Override public JobEffect apply(JobContext context, JobItem item) { return job.apply(context, item); }
+            @Override public void failed(String clubId, String runId) { hooks.incrementAndGet(); throw new IllegalStateException("fictional hook failure"); }
+        };
+        var failed = runner.scheduled(CLUB, true, failing, RUN).orElseThrow();
+        assertThat(failed.status()).isEqualTo(JobStatus.FAILED);
+        assertThat(mongo.findById(failed.id(), JobRun.class).status()).as("committed").isEqualTo(JobStatus.FAILED);
+        assertThat(hooks).as("the hook ran once, and its failure did not escape the runner").hasValue(1);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", CLUB).containsEntry("runId", failed.id());
+        clock.setInstant(RUN.plus(Duration.ofMinutes(10)));
+        var next = runner.manual(OTHER, JobName.CLEANUP, false, "s08-admin");
+        assertThat(next.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(counters(next)).containsEntry("platformPass", 1L);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", OTHER).containsEntry("runId", next.id());
+    }
+
     /** Unique per test run: the local attachment store keeps its files between runs. */
     private final String batch = UUID.randomUUID().toString();
     String key(String name) { return "signup/" + CLUB + "/202610/" + batch + "-" + name + "/card.pdf"; }
@@ -213,7 +247,7 @@ class CleanupJobIT extends BookingFixtures {
                 .containsEntry("WOULD_DELETE", 6L).containsEntry("ttlPendingSeatHolds", 1L).containsEntry("ttlPendingMagicLinkTokens", 1L)
                 .containsEntry("ttlPendingIdempotencyRecords", 1L).containsEntry("ttlPendingJobLocks", 1L)
                 // E3-T16 step 4 (R-15-19 amended 25-09): the recipient-cap decisions past their expiry; not one still pending.
-                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L).doesNotContainKey("orphanUploadsDeleted");
+                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L).containsEntry("ttlPendingRingSlotLocks", 1L).doesNotContainKey("orphanUploadsDeleted");
         // The dry run writes nothing but its JobRun.
         before.forEach((collection, value) -> assertThat(count(collection)).as(collection).isEqualTo(value));
         assertThat(count("job_runs")).isEqualTo(runs + 1);
@@ -226,7 +260,7 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(real.items()).extracting(JobRun.Item::action).containsOnly("DELETE");
         assertThat(counters(real)).containsEntry("orphanUploadsDeleted", 3L).containsEntry("exportsPurged", 1L).containsEntry("domainEventsDeleted", 1L)
                 .containsEntry("jobRunsDeleted", 3L).containsEntry("stripeEventsDeleted", 0L).containsEntry("ttlPendingSeatHolds", 1L)
-                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L);
+                .containsEntry("ttlPendingSignupNotificationAdmissions", 1L).containsEntry("ttlPendingRingSlotLocks", 1L);
         assertThat(real.parametersSnapshot()).contains(new JobRun.Entry("jobs.retention.orphanUploadsHours", 48), new JobRun.Entry("jobs.retention.jobRunsDays", 90));
         // Uploads: the three old orphans are gone (grant and file); the referenced and the recent ones stay; another club is untouched.
         assertThat(List.of("orphan-1", "orphan-2", "orphan-3")).noneMatch(this::stored);
@@ -250,7 +284,7 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(mongo.findById("s08-export-new", Document.class, "export_jobs").getString("status")).isEqualTo("READY");
         // TTL-managed documents are only reported, never deleted.
         assertThat(count("seat_holds")).isEqualTo(1); assertThat(count("magic_link_tokens")).isEqualTo(1);
-        assertThat(count("signup_notification_admissions")).isEqualTo(3);
+        assertThat(count("signup_notification_admissions")).isEqualTo(3); assertThat(count("ring_slot_locks")).isEqualTo(2);
         assertThat(mongo.findById(CLUB + ":REMINDERS", Document.class, "job_locks")).isNotNull();
         // No business event: only the SchedulerRun of the run itself.
         assertThat(eventsOf("SchedulerRun")).hasSize(1);
@@ -291,6 +325,7 @@ class CleanupJobIT extends BookingFixtures {
                     () -> cleanup.expiredRuns(OTHER, "RISK_REVIEW", RUN, 5), () -> cleanup.deleteRuns(OTHER, List.of("s08-other-rr-0")),
                     () -> cleanup.orphanUploads(OTHER, RUN), () -> cleanup.deleteUpload(OTHER, "signup/" + OTHER + "/202610/x/other.pdf"),
                     () -> cleanup.ttlPending(OTHER, "job_locks", "expiresAt", RUN), () -> cleanup.ttlPending(OTHER, "seat_holds", "expiresAt", RUN),
+                    () -> cleanup.ttlPending(OTHER, "ring_slot_locks", "expiresAt", RUN),
                     () -> cleanup.stripeEvents(OTHER, RUN))) {
                 assertThatThrownBy(call::run).isInstanceOfSatisfying(ApiException.class,
                         failure -> assertThat(failure.code()).isEqualTo(com.agilityhub.core.shared.domain.ErrorCode.TENANT_MISMATCH));

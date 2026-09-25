@@ -24,6 +24,11 @@ public interface CountryProfile {
         String normalized = value.replaceAll("[^\\p{L}\\p{N}]", "").toUpperCase(java.util.Locale.ROOT);
         return normalized.isEmpty() ? null : normalized;
     }
+    /**
+     * E5-T17 (review E5-T16 #4): the stored form of a {@linkplain #normalizeTaxId normalized} tax id under this profile, the
+     * form its check reads, so the same id written two ways is never a change. By default the normalized value itself.
+     */
+    default String canonicalTaxId(String normalized) { return normalized; }
     String normalizePhone(String raw);
     boolean validateIban(String value);
     List<Town> postalCodeLookup(String code);

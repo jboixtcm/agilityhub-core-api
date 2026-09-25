@@ -347,13 +347,55 @@ class SettingsIT extends AbstractIntegrationTest {
     }
 
     /**
+     * E5-T17 (review E5-T16 #1; S02 §3 amended 26-09, R-02-06): a non-blank tax id that normalizes to nothing (`"-"`,
+     * `" / "`, `"."`) is refused with `VALIDATION_ERROR` on `taxId`, and the stored one stays; only `""` or `null` clears it.
+     */
+    @Test void R_02_06_aTaxIdOfSeparatorsOnlyIsRefusedAndOnlyBlankOrNullClearsIt() throws Exception {
+        var before = json(admin(get("/api/v1/club")));
+        var stored = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "taxId", "G63189617"))));
+        for (String separators : List.of("-", " / ", ".")) {
+            admin(body(put("/api/v1/club"), Map.of("version", stored.path("version").asLong(), "taxId", separators)))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath("$.details.field").value("taxId"))
+                    .andExpect(jsonPath("$.details.fieldErrors[0].field").value("taxId")).andExpect(jsonPath("$.details.fieldErrors[0].code").value("INVALID_VALUE"));
+        }
+        assertThat(json(admin(get("/api/v1/club"))).path("taxId").asText()).as("the stored tax id stays").isEqualTo("G63189617");
+        var blank = json(admin(body(put("/api/v1/club"), Map.of("version", stored.path("version").asLong(), "taxId", ""))));
+        assertThat(blank.path("taxId").isNull()).as("\"\" clears it").isTrue();
+        var again = json(admin(body(put("/api/v1/club"), Map.of("version", blank.path("version").asLong(), "taxId", "G63189617"))));
+        var cleared = new LinkedHashMap<String, Object>(); cleared.put("version", again.path("version").asLong()); cleared.put("taxId", null);
+        assertThat(json(admin(body(put("/api/v1/club"), cleared))).path("taxId").isNull()).as("null clears it").isTrue();
+    }
+
+    /**
+     * E5-T17 (review E5-T16 #4, optional; S02 §3, R-02-06): an `ES` club stores a 7-digit DNI padded, the form its check
+     * reads, so the same id written with or without the leading zero is no change: the audit trail does not name it.
+     */
+    @Test void R_02_06_anEsClubStoresASevenDigitDniPaddedAndBothWritingsAreTheSameId() throws Exception {
+        var before = json(admin(get("/api/v1/club")));
+        var typed = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "taxId", "1234567-l"))));
+        assertThat(typed.path("taxId").asText()).isEqualTo("01234567L");
+        assertThat(mongo.getCollection("clubs").find(new Document("_id", "settings-a")).first().getString("taxId")).isEqualTo("01234567L");
+        assertThat(audits()).singleElement().satisfies(entry -> assertThat(entry.changes()).containsExactly(new AuditChange("settings.taxId", null, "01234567L")));
+        var padded = json(admin(body(put("/api/v1/club"), Map.of("version", typed.path("version").asLong(), "taxId", "01234567L",
+                "websiteUrl", "https://padded.example.test"))));
+        assertThat(padded.path("taxId").asText()).isEqualTo("01234567L");
+        var unpadded = json(admin(body(put("/api/v1/club"), Map.of("version", padded.path("version").asLong(), "taxId", "1234567L",
+                "websiteUrl", "https://unpadded.example.test"))));
+        assertThat(unpadded.path("taxId").asText()).isEqualTo("01234567L");
+        var entries = audits();
+        assertThat(entries).hasSize(3);
+        for (var entry : entries.subList(1, 3)) { assertThat(entry.changes()).extracting(AuditChange::path).containsExactly("settings.websiteUrl"); }
+    }
+
+    /**
      * E5-T16 step 1 (review E3-T16 #1; S02 R-02-12, INC-08): `GET /club` sends every unset optional field as `null`, and the
      * committed snapshot declares each of them: the real responses are validated against it (JSON Schema 2020-12), first
      * with the optional fields unset (a stored club always has its `legal`; the Java-side check covers it), then with them
      * set and nested nulls (an address without a street, a PWA without names, no image-consent text, a pending domain, a
-     * theme without its logos).
+     * theme without its logos). E5-T17 (review E5-T16 #2): named after INC-08, the incidence it asserts.
      */
-    @Test void R_02_12_getClubSendsEveryUnsetFieldAsANullTheSnapshotDeclares() throws Exception {
+    @Test void INC_08_getClubSendsEveryUnsetFieldAsANullTheSnapshotDeclares() throws Exception {
         var unset = new Update();
         for (String field : List.of("legalName", "taxId", "address", "displayCity", "contactEmail", "contactPhone", "websiteUrl", "pwa",
                 "theme.logoUrl", "theme.logoDarkUrl", "theme.markUrl")) { unset.unset(field); }

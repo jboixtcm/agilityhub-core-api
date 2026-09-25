@@ -20,7 +20,8 @@ import org.springframework.stereotype.Service;
  * S15 §6 form A `GET /risk-review` (the D1 card, also embedded by S14 in `GET /dashboard` through the S06 dashboard
  * adapters): the ACTIVE classes at risk and the ones already CANCELLED{RISK_REVIEW} of `[date, date + lookaheadDays]`,
  * by `startsAt`. `notified` comes from `risk.notifiedBookingIds`, or from the affected bookings once cancelled.
- * `WILL_CANCEL`/`WILL_REVIEW` are promises about P2, so they are given only while P2 will still review the class (E37).
+ * `WILL_CANCEL`/`WILL_REVIEW` are promises about P2, so they are given only while P2 will still review the class (E37):
+ * never for a class that starts at or before its day's review time.
  */
 @Service
 public class RiskReviewQuery {
@@ -92,9 +93,10 @@ public class RiskReviewQuery {
             var notified = names.apply(notifiedIds(c).stream().distinct().map(warned::get).filter(Objects::nonNull).toList());
             boolean wasWarned = !notified.isEmpty() || c.risk() != null && c.risk().adminNotifiedAt() != null;
             var reviewAt = WeekCalendarRules.resolve(c.date(), reviewTime, zone).instant();
-            // E37 (S15 §6, 24-09): WILL_CANCEL / WILL_REVIEW only when P2 will really review the class: the `risk-review` job is on
-            // and the class's reviewAt is still ahead. After today's review, or with the job off, an at-risk class is AT_RISK.
-            boolean reviewWillRun = reviewOn && reviewAt.isAfter(now);
+            // E37 (S15 §6, 24-09 and 25-09): WILL_CANCEL / WILL_REVIEW only when P2 will really review the class: the `risk-review`
+            // job is on, the class's reviewAt is still ahead, and the class starts after it (at reviewAt, P2 skips a class that has
+            // started: RiskReviewJob's skippedStarted). After today's review, or with the job off, an at-risk class is AT_RISK.
+            boolean reviewWillRun = reviewOn && reviewAt.isAfter(now) && c.startsAt().isAfter(reviewAt);
             // AT_RISK = warned registrants; otherwise the review will act (WILL_CANCEL), or the club decides (WILL_REVIEW).
             String status = !reviewWillRun || wasWarned && booked > 0 ? "AT_RISK" : autoCancel ? "WILL_CANCEL" : "WILL_REVIEW";
             rows.add(new Row(c, label, ring, booked, status, null, reviewAt, notified));

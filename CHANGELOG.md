@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T17: follow-ups of the E5-T15 and E5-T16 reviews; no contract change (the snapshot is byte-identical).
+  - Ruling E37 (S15 §6, amended 25-09): `GET /risk-review` and D1 never say `WILL_CANCEL`/`WILL_REVIEW` for a class that
+    starts at or before its day's `classes.riskReviewTime`, because P2 skips it as started.
+  - S14 §7: an IT pins that `PUT /jobs/risk-review/switch` evicts D1 through its `ParameterChanged`
+    (`jobs.riskReview.enabled`).
+  - `ring_slot_locks` retention (S15 R-15-19, amended 25-09): each touch sets `expiresAt` = `startsAt` + 7 days, and the
+    `schedulingCollections` startup runner ensures a TTL index on it (`ring_slot_lock_ttl`, `expireAfterSeconds: 0`) on
+    every start. P9 reports `ttlPendingRingSlotLocks`.
+  - The Mongo conflict check (112 / 11000 / `TransientTransactionError`) and the 50–150 ms backoff live in
+    `TransactionRetries`, shared by `CatalogService`, `SchedulingTransactions` and `TrainingTransactions`. The ring-change
+    backoff is injectable.
+  - S02 §3 (amended 26-09): a non-blank `taxId` made only of separators (`"-"`, `" / "`) is refused with
+    `400 VALIDATION_ERROR` on `taxId` (`PUT /club`) or `club.taxId` (`club:apply`); `""` or `null` clears it. Under
+    `ES` a 7-digit DNI is stored padded (`1234567L` → `01234567L`), the form its check reads.
+  - Test names: INC-08 for the null contract tests, `R_07_13` and `R_04_10` where T-07-18 / T-17-01 were mis-cited,
+    and `E3_T01_…` for a test named after web UI ids.
+
 - E3-T17: E38 for the reused dog of a readmission (S04 R-04-06, R-04-23; S15 R-15-19), the last api task of gate E3.
   - The submission no longer writes the member's INACTIVE dog: it becomes `PENDING`, and the submitted name, sex,
     breed, birth month, notes and documents wait in `Dog.readmissionRequest.submitted`, with `previous {status,

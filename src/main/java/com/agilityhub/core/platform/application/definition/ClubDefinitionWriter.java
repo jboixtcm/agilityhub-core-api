@@ -5,6 +5,7 @@ import com.agilityhub.core.platform.application.ClubAccountProvisioner;
 import com.agilityhub.core.platform.application.ParameterCatalog;
 import com.agilityhub.core.platform.application.audit.AuditAction;
 import com.agilityhub.core.platform.application.audit.Audited;
+import com.agilityhub.core.platform.domain.CountryProfile;
 import com.agilityhub.core.platform.domain.ParameterValidator;
 import com.agilityhub.core.platform.domain.events.ParameterChanged;
 import com.agilityhub.core.platform.persistence.Club;
@@ -95,6 +96,13 @@ public class ClubDefinitionWriter {
                 null, null, DomainEvent.Origin.SYSTEM));
         return plan.result();
     }
+    /** The club's tax id in its profile's stored form (E5-T17: under `ES` a 7-digit DNI is padded, as its check reads it). */
+    private Club canonicalTaxId(Club club) {
+        String canonical = countries.get(club.countryProfile()).canonicalTaxId(club.taxId());
+        if (Objects.equals(canonical, club.taxId())) { return club; }
+        ObjectNode tree = mapper.valueToTree(club); tree.put("taxId", canonical);
+        return mapper.convertValue(tree, Club.class);
+    }
     private Plan plan(ObjectNode definition, boolean allowSeedPasswords, boolean accountsOnly) {
         String id = TenantContext.require();
         Club old = clubs.findBySlug(definition.path("club").path("slug").asText()).orElse(null);
@@ -105,13 +113,17 @@ public class ClubDefinitionWriter {
             var changedAccounts = planAccounts(definition, allowSeedPasswords, lines, summary);
             return new Plan(old, List.of(), List.of(), changedAccounts, List.of(), List.of(), new Result(id, List.copyOf(lines), Map.copyOf(summary)));
         }
-        Club next = definitions.merge(definition, old, id, clock.instant(), trustedDomains);
+        Club next = canonicalTaxId(definitions.merge(definition, old, id, clock.instant(), trustedDomains));
         // S02 §3: the club's country profile checks a tax id the definition changes (the Cànic's CIF under `ES`). R-02-06: a
         // profile switch does not re-check the stored one. `Club` keeps both normalized (E5-T16), so the same id with other
-        // spacing is no change here nor in the diff below.
-        if (next.taxId() != null && !next.taxId().equals(old == null ? null : old.taxId())
+        // spacing is no change here nor in the diff below. A non-blank value made only of separators is refused, never read as a
+        // clear (E5-T17, S02 §3 amended 26-09): only `""` or `null` clears it.
+        var typedTaxId = definition.path("club").path("taxId");
+        boolean separatorsOnly = typedTaxId.isTextual() && !typedTaxId.asText().isBlank() && CountryProfile.normalizeTaxId(typedTaxId.asText()) == null;
+        if (separatorsOnly || next.taxId() != null && !next.taxId().equals(old == null ? null : old.taxId())
                 && !countries.get(next.countryProfile()).validateTaxId(next.taxId())) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "club.taxId"));
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "club.taxId",
+                    "fieldErrors", List.of(Map.of("field", "club.taxId", "code", "INVALID_VALUE"))));
         }
         for (var domain : next.domains()) {
             clubs.findByAnyHost(domain.host()).filter(owner -> !owner.id().equals(id)).ifPresent(owner -> {

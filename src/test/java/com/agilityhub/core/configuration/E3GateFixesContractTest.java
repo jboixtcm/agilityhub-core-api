@@ -82,9 +82,9 @@ class E3GateFixesContractTest {
      * absent (no `@JsonInclude(NON_NULL)`) is sent as `null`, so its schema declares `null`. Every record the D2 view (R-04-19)
      * and the two submission results (R-04-25, R-04-26) reach is checked, including the branches
      * {@code SignupPaymentMethodsIT}'s real responses do not take (a level without a colour, an erased member, a holder's dog
-     * without a level…). E5-T16 step 3: named by rule, as T-04-29 and T-04-33 are web UI tests.
+     * without a level…). E5-T17 (review E5-T16 #2): named after INC-08, the incidence it asserts; R-04-19 is the D2 edit.
      */
-    @Test void R_04_19_R_04_25_R_04_26_everyOptionalPropertyTheSignupViewsSendAsNullIsNullable() {
+    @Test void INC_08_everyOptionalPropertyTheSignupViewsSendAsNullIsNullable() {
         var schemas = reached(SignupResponses.MemberSignupView.class, SignupResponses.SignupResult.class, SignupResponses.AddDogSignupResult.class);
         assertThat(schemas.values()).contains("Member", "PaymentMethodView", "Address", "Phone", "BookingBlock", "ImageRights", "DisplayStatus",
                 "PlanReference", "LevelSummary", "FamilyMember", "FamilyDog", "SignupReadmission", "ReadmissionValues", "SignupUpfront");
@@ -95,8 +95,9 @@ class E3GateFixesContractTest {
      * E5-T16 step 1 (review E3-T16 #1; S02 R-02-12, INC-08): `GET /club` sends `legalName`, `taxId`, `address`,
      * `contactEmail`, `contactPhone`, `websiteUrl`, `pwa`, `legal` and `lastChange` as `null` when unset, and so do the
      * records it reaches (a pending domain's `verifiedAt`, a theme without a logo, an address without a street…).
+     * E5-T17 (review E5-T16 #2): named after INC-08, the incidence it asserts; R-02-12 is the endpoint's tenant and roles.
      */
-    @Test void R_02_12_everyOptionalPropertyGetClubSendsAsNullIsNullable() {
+    @Test void INC_08_everyOptionalPropertyGetClubSendsAsNullIsNullable() {
         var schemas = reached(SettingsContracts.ClubSettings.class);
         assertThat(schemas.values()).contains("ClubSettings", "ClubAddress", "ClubDomain", "Theme", "Colors", "ClubPwa", "PaymentProviderSummary",
                 "ClubLegal", "LastChange");

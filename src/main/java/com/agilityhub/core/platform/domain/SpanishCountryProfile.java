@@ -36,6 +36,10 @@ public class SpanishCountryProfile extends GenericCountryProfile {
         if (id == null) { return false; }
         return checkCif(id) || validateIdDocument("DNI", id) || validateIdDocument("NIE", id);
     }
+    /** A 7-digit DNI is stored padded, as {@link #validateIdDocument} reads it (`1234567L` → `01234567L`). */
+    @Override public String canonicalTaxId(String normalized) {
+        return normalized != null && normalized.matches("[0-9]{7}[A-Z]") ? "0" + normalized : normalized;
+    }
     /**
      * The CIF control: the digits in even positions are added, those in odd positions doubled and their digits added; the
      * control is the complement to 10 of the total's last digit, written as a digit or as the letter of "JABCDEFGHI". K, L,

@@ -14,8 +14,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoException;
 import java.time.Clock;
 import java.util.*;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -34,15 +36,25 @@ public class CatalogService {
     private final ObjectProvider<RingTrainingBookings> trainings;
     private final ObjectProvider<CatalogService> self;
     private final TransactionRetries retries;
+    private final LongSupplier jitter;
+    private final TransactionRetries.Backoff backoff;
     static final int RING_CHANGE_ATTEMPTS = 3;
     static final String CONTEXT = "catalogs";
 
+    @Autowired
     public CatalogService(CatalogRepository<Level> levels, CatalogRepository<Ring> rings, CatalogRepository<FaqEntry> faqs,
             ClubConfigService configs, UsageCounter usage, AuditActorProvider actors, EventPublisher events, ObjectMapper mapper, Clock clock,
             ObjectProvider<RingTrainingBookings> trainings, ObjectProvider<CatalogService> self, TransactionRetries retries) {
+        this(levels, rings, faqs, configs, usage, actors, events, mapper, clock, trainings, self, retries, TransactionRetries::jitter, Thread::sleep);
+    }
+    /** The ring-change backoff is injectable, like {@code SchedulingTransactions}', so a unit test does not sleep. */
+    CatalogService(CatalogRepository<Level> levels, CatalogRepository<Ring> rings, CatalogRepository<FaqEntry> faqs,
+            ClubConfigService configs, UsageCounter usage, AuditActorProvider actors, EventPublisher events, ObjectMapper mapper, Clock clock,
+            ObjectProvider<RingTrainingBookings> trainings, ObjectProvider<CatalogService> self, TransactionRetries retries,
+            LongSupplier jitter, TransactionRetries.Backoff backoff) {
         repositories = Map.of(CatalogKind.LEVEL, levels, CatalogKind.RING, rings, CatalogKind.FAQ, faqs);
         this.configs = configs; this.usage = usage; this.actors = actors; this.events = events; this.mapper = mapper; this.clock = clock;
-        this.trainings = trainings; this.self = self; this.retries = retries;
+        this.trainings = trainings; this.self = self; this.retries = retries; this.jitter = jitter; this.backoff = backoff;
     }
     public ClubConfig config() { return configs.get(TenantContext.require()); }
     @SuppressWarnings("unchecked")
@@ -113,7 +125,7 @@ public class CatalogService {
                 if (!conflict(failure)) { throw failure; }
                 if (number >= RING_CHANGE_ATTEMPTS) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
                 retries.retried(CONTEXT, failure);
-                try { Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151)); }
+                try { backoff.pause(jitter.getAsLong()); }
                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
             }
         }
@@ -180,7 +192,9 @@ public class CatalogService {
      * R-09-13 wins): turning `allowsFreeTraining` off or deactivating a ring with live training bookings answers
      * `RING_HAS_BOOKINGS{bookings[]}` unless the ADMIN sends `cancelBookings: true`, which cancels them in this transaction.
      * The change first touches the ring-slot sequences of the booking window (S09 R-09-13), so a concurrent booking of the
-     * ring meets it as a Mongo write conflict: this side answers `409 STALE_VERSION`, or the retried booking sees the ring.
+     * ring meets it as a Mongo write conflict. {@link #update} retries this side whole: the retried change sees the
+     * committed booking (`422 RING_HAS_BOOKINGS`), or the retried booking sees the ring (`RING_NOT_RESERVABLE`); it is
+     * `409 STALE_VERSION` only once the retry budget runs out (or inside an outer transaction, whose owner retries).
      */
     private void stopsBeingReservable(Ring before, Ring after, boolean cancelBookings) {
         boolean deactivating = before.active() && !after.active();
@@ -273,12 +287,6 @@ public class CatalogService {
             throw failure;
         }
     }
-    /** A write conflict (112), a duplicate key (11000, the first upsert of a ring slot) or a `TransientTransactionError`. */
-    static boolean conflict(Throwable failure) {
-        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
-            if (cause instanceof DuplicateKeyException) { return true; }
-            if (cause instanceof MongoException mongo && (mongo.getCode() == 112 || mongo.getCode() == 11000 || mongo.hasErrorLabel("TransientTransactionError"))) { return true; }
-        }
-        return false;
-    }
+    /** A write conflict (112), a duplicate key (11000, the first upsert of a ring slot) or a `TransientTransactionError`: {@link TransactionRetries#conflict}. */
+    static boolean conflict(Throwable failure) { return TransactionRetries.conflict(failure); }
 }

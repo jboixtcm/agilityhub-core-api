@@ -552,8 +552,9 @@ class ActivityIT extends ActivityFixtures {
     /**
      * E5-T15 (E4-T06 question 2, R-07-13; review E4-T06 #2): the app rows (`ActivityRow`, `RegisteredActivity`) carry the
      * activity's own hours, `null` when absent, so a date-only activity never reads «0:00»; `endsAt` is described as derived.
+     * Renamed in E5-T17 (review E5-T15 #5): it asserts R-07-13's row hours, not T-07-18 (`finishEnded`).
      */
-    @Test void T_07_16_T_07_18_theAppRowsCarryStartAndEndTimesNullWhenAbsent() throws Exception {
+    @Test void T_07_16_R_07_13_theAppRowsCarryStartAndEndTimesNullWhenAbsent() throws Exception {
         String lliga=startOnly().path("id").asText(), ended=published(5,false).path("id").asText(); // 19-09 from 09:00 · 15-09 18:00–20:00
         var fair=create(); String fairId=fair.path("id").asText(); var patch=new LinkedHashMap<String,Object>(); patch.put("version",fair.path("version").asLong());
         patch.put("date","2026-09-20"); patch.put("location",Map.of("atClub",false,"name","Example park"));

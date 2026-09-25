@@ -43,7 +43,10 @@ format accepts provider names only, so credential values cannot enter a seed.
 `club.legalName`, `club.taxId` and `club.address` (the registered office) are the club's
 public legal identity: `/branding` shows them in the public footer (S02 R-02-02, LSSI
 art. 10). The country profile checks `taxId` (`ES`: a CIF, NIF or NIE with its check
-character). `club.displayCity` is the town shown with the club's name; without it,
+character). `taxId` is stored normalized: upper case, without spaces or separators, so `g-6318 9617` is
+stored as `G63189617` and the same id written another way is no change (S02 §3). Under `ES` a 7-digit DNI is
+stored padded, as its check reads it (`1234567L` → `01234567L`). A value made only of separators (`"-"`) is
+refused; `""` clears the stored one. `club.displayCity` is the town shown with the club's name; without it,
 `/branding` shows `address.city`. The Cànic's are its real public identifiers (product owner, 25-09).
 
 Diffs show added/changed/unchanged sections and the before/after fields. A dry run

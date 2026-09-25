@@ -1,0 +1,49 @@
+surefire totals: tests=565 failures=0 errors=0 skipped=0 (125 classes)
+  com.agilityhub.core.clubs.scheduling.application.RiskReviewQueryTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.scheduling.persistence.SchedulingPersistenceTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.domain.CountryProfileTest: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.catalogs.application.CatalogServiceRetryTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.TransactionRetriesTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.scheduling.application.SchedulingTransactionsTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.training.application.TrainingApplicationTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3GateFixesContractTest: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiNullableEnumContractTest: tests=3 failures=0 errors=0 skipped=0
+failsafe totals: tests=979 failures=0 errors=0 skipped=0 (84 classes)
+  com.agilityhub.core.clubs.bookings.api.RiskReviewJobIT: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E5PersistenceIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.SettingsIT: tests=20 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=15 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.activities.application.ActivityIT: tests=30 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+E5-T17 test methods:
+  PASS surefire RiskReviewQueryTest#T_15_15_willCancelOrWillReviewOnlyWhileTheRiskReviewWillStillRunForTheClass
+  PASS failsafe RiskReviewJobIT#T_15_15_E37_willCancelOnlyWhenTheRiskReviewWillReallyRunForTheClass
+  PASS failsafe RiskReviewJobIT#T_15_15_T_14_05_theDashboardRiskCardIsTheRiskReviewFormA
+  PASS surefire CatalogServiceRetryTest#E5_T15_aRingChangeMetByAConflictIsRetriedAndThenCommits
+  PASS surefire CatalogServiceRetryTest#E5_T15_aRingChangeThatKeepsConflictingEndsInStaleVersionAfterItsBudget
+  PASS surefire CatalogServiceRetryTest#E5_T17_aRingChangeInterruptedDuringItsBackoffStopsRetrying
+  PASS surefire CatalogServiceRetryTest#E5_T15_businessAnswersAndOtherKindsAreNotRetried
+  PASS surefire TransactionRetriesTest#E5_T17_oneConflictCheckForTheRetriedWriters
+  PASS surefire TransactionRetriesTest#E5_T17_theSharedBackoffDrawsFiftyToOneHundredFiftyMilliseconds
+  PASS failsafe ActivityIT#T_07_16_R_07_13_theAppRowsCarryStartAndEndTimesNullWhenAbsent
+  PASS failsafe CleanupJobIT#T_15_27_aRunTheRunnerClosesFailedWhoseHookThrowsDoesNotKeepThePlatformCycle
+  PASS surefire SchedulingPersistenceTest#E5_T15_theStartupRunnerCreatesTheRingSlotCollectionOnceAndToleratesARace
+  PASS surefire SchedulingPersistenceTest#E5_T17_theStartupRunnerEnsuresTheRingSlotTtlIndexOnEveryStart
+  PASS failsafe E5PersistenceIT#T_15_27_R_15_19_ringSlotLocksExpireSevenDaysAfterTheirSlotThroughATtlIndex
+  PASS failsafe CleanupJobIT#T_15_27_cleanupDeletesOnlyExpiredTechnicalDataAndKeepsTheLastFiveRuns
+  PASS failsafe CleanupJobIT#T_15_27_cleanupIsBoundToItsClubAndKeepsTheLastFiveExecutionsNotDryRunsOrSkips
+  PASS failsafe SettingsIT#R_02_06_aTaxIdOfSeparatorsOnlyIsRefusedAndOnlyBlankOrNullClearsIt
+  PASS failsafe ClubDefinitionsIT#R_02_06_clubApplyRefusesATaxIdOfSeparatorsOnlyAndOnlyBlankClearsIt
+  PASS surefire E3GateFixesContractTest#INC_08_everyOptionalPropertyTheSignupViewsSendAsNullIsNullable
+  PASS surefire E3GateFixesContractTest#INC_08_everyOptionalPropertyGetClubSendsAsNullIsNullable
+  PASS failsafe SettingsIT#INC_08_getClubSendsEveryUnsetFieldAsANullTheSnapshotDeclares
+  PASS failsafe SignupPaymentMethodsIT#INC_08_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend
+  PASS surefire E3ResponseContractTest#E3_T01_signupResponseFixturesRoundTripWithTheirNestedFieldsEnumsMoneyAndUtcDates
+  PASS failsafe ClubDefinitionsIT#R_04_10_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt
+  PASS surefire CountryProfileTest#R_02_06_aProfileStoresATaxIdInTheFormItsCheckReads
+  PASS failsafe SettingsIT#R_02_06_anEsClubStoresASevenDigitDniPaddedAndBothWritingsAreTheSameId
+  PASS failsafe ClubDefinitionsIT#R_02_06_clubApplyStoresASevenDigitDniPaddedUnderEs
+  PASS surefire OpenApiNullableEnumContractTest#E3_T10_theDocumentWriterAddsNullToTheEnumOfNullableSchemasOnly

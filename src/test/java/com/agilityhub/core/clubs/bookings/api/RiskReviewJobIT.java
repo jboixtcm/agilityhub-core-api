@@ -221,6 +221,7 @@ class RiskReviewJobIT extends BookingFixtures {
         assertThat(card.path("items").get(2).path("reviewAt").asText()).isEqualTo("2026-10-08T05:30:00Z");
         assertParity(form, card);
         // With riskAutoCancelSameDay = false: c4 is WILL_REVIEW in form A and PENDING_DECISION on D1.
+        // Stays: the fixture writes the parameter straight into Mongo, so no ParameterChanged reaches D1's consumer.
         parameter("classes.riskAutoCancelSameDay", false); dashboards.invalidate(CLUB);
         form = call(GET, "/risk-review", null, as("admin"), 200);
         card = call(GET, "/dashboard", null, as("admin"), 200).path("riskReview");
@@ -233,31 +234,42 @@ class RiskReviewJobIT extends BookingFixtures {
      * E5-T15, ruling E37 (S15 §6, amended 24-09): D1 never says «s'anul·larà» about a review that will not run. A class
      * today at 17:40 with 0 registrants, read at 10:00 (today's 07:30 review is over) → AT_RISK; tomorrow's class before
      * its review → WILL_CANCEL; with the `risk-review` job switched off → AT_RISK. Form A and D1 agree.
+     * E5-T17 (review E5-T15 #1, S15 §6 amended 25-09): tomorrow's 07:00 and 07:30 classes start before or at their own
+     * 07:30 review, which skips them as started → AT_RISK.
      */
     @Test void T_15_15_E37_willCancelOnlyWhenTheRiskReviewWillReallyRunForTheClass() throws Exception {
-        session("late", "2026-10-06T17:40", 5, List.of()); session("next", "2026-10-07T18:00", 5, List.of());
+        session("late", "2026-10-06T17:40", 5, List.of()); session("early", "2026-10-07T07:00", 5, List.of());
+        session("edge", "2026-10-07T07:30", 5, List.of()); session("next", "2026-10-07T18:00", 5, List.of());
         clock.setInstant(local("2026-10-06T10:00"));
         var form = call(GET, "/risk-review", null, as("admin"), 200);
         assertThat(form.path("items")).extracting(i -> i.path("classId").asText() + ":" + i.path("status").asText() + ":" + i.path("bookedCount").asInt())
-                .containsExactly("s08-late:AT_RISK:0", "s08-next:WILL_CANCEL:0");
+                .containsExactly("s08-late:AT_RISK:0", "s08-early:AT_RISK:0", "s08-edge:AT_RISK:0", "s08-next:WILL_CANCEL:0");
         assertThat(form.path("items").get(0).path("notified")).isEmpty();
         assertThat(form.path("items").get(0).path("reviewAt").asText()).isEqualTo("2026-10-06T05:30:00Z");
+        assertThat(form.path("items").get(1).path("reviewAt").asText()).isEqualTo("2026-10-07T05:30:00Z");
+        // Stays: the classes above are written straight into Mongo (no event), so a D1 cached by an earlier test would hide them.
         dashboards.invalidate(CLUB);
         var card = call(GET, "/dashboard", null, as("admin"), 200).path("riskReview");
         assertThat(card.path("items")).extracting(i -> i.path("classSessionId").asText() + ":" + i.path("status").asText())
-                .containsExactly("s08-late:AT_RISK", "s08-next:WILL_CANCEL");
+                .containsExactly("s08-late:AT_RISK", "s08-early:AT_RISK", "s08-edge:AT_RISK", "s08-next:WILL_CANCEL");
         assertParity(form, card);
-        // Before today's review the same class is still WILL_CANCEL.
+        // Before today's review the 17:40 class is still WILL_CANCEL; tomorrow's 07:00 and 07:30 ones are not.
         clock.setInstant(local("2026-10-06T07:00"));
-        assertThat(call(GET, "/risk-review", null, as("admin"), 200).path("items").get(0).path("status").asText()).isEqualTo("WILL_CANCEL");
-        // The job switched off: nothing will cancel either class.
+        assertThat(call(GET, "/risk-review", null, as("admin"), 200).path("items")).extracting(i -> i.path("status").asText())
+                .containsExactly("WILL_CANCEL", "AT_RISK", "AT_RISK", "WILL_CANCEL");
+        // The job switched off: nothing will cancel any class.
         call(org.springframework.http.HttpMethod.PUT, "/jobs/risk-review/switch", Map.of("enabled", false), as("admin"), 200);
         form = call(GET, "/risk-review", null, as("admin"), 200);
         assertThat(form.path("items")).extracting(i -> i.path("classId").asText() + ":" + i.path("status").asText())
-                .containsExactly("s08-late:AT_RISK", "s08-next:AT_RISK");
-        dashboards.invalidate(CLUB);
+                .containsExactly("s08-late:AT_RISK", "s08-early:AT_RISK", "s08-edge:AT_RISK", "s08-next:AT_RISK");
+        // E5-T17 step 2 (review E5-T15 #2, S14 §7 amended 25-09): the switch is a `jobs.riskReview.enabled` write, whose
+        // ParameterChanged evicts D1 once the outbox delivers it. No manual invalidation: the card cached above (next =
+        // WILL_CANCEL) must go.
+        assertThat(eventsOf("ParameterChanged")).extracting(e -> e.getString("aggregateId")).contains("jobs.riskReview.enabled");
+        dispatch();
         card = call(GET, "/dashboard", null, as("admin"), 200).path("riskReview");
-        assertThat(card.path("items")).extracting(i -> i.path("status").asText()).containsExactly("AT_RISK", "AT_RISK");
+        assertThat(card.path("items")).extracting(i -> i.path("classSessionId").asText() + ":" + i.path("status").asText())
+                .containsExactly("s08-late:AT_RISK", "s08-early:AT_RISK", "s08-edge:AT_RISK", "s08-next:AT_RISK");
         assertParity(form, card);
     }
 
