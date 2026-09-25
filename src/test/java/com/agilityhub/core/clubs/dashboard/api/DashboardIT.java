@@ -130,6 +130,8 @@ class DashboardIT extends AbstractIntegrationTest {
         assertThat(first.at("/dogsByLevel/levels")).allSatisfy(row -> assertThat(row.path("withRecentBooking").asInt()).isZero());
         assertThat(first.at("/riskReview/items")).isEmpty();
         assertThat(first.at("/pendingSignups/items")).hasSize(3);
+        // E5-T16 step 1 (review E3-T16 #1): every block present, validated against the committed snapshot (JSON Schema 2020-12).
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(first, "Dashboard");
         clock.setInstant(clock.instant().plusSeconds(30)); assertThat(dashboard()).isEqualTo(first);
         assertThat(aggregateCommands).isEmpty();
         var spanish = result(admin(get("/api/v1/dashboard").header("Accept-Language", "es")), 200);
@@ -254,6 +256,8 @@ class DashboardIT extends AbstractIntegrationTest {
         // S14 §9 (E3-T10 step 10): with TASKS off the port is never asked, even when it would count something.
         when(unread.count(eq(club), anyString())).thenReturn(5);
         var first = dashboard(); assertThat(first.at("/kpis/trainingBookings").isNull()).isTrue(); assertThat(first.path("dogsByLevel").isNull()).isTrue();
+        // E5-T16 step 1 (review E3-T16 #1): the null blocks conform to the committed snapshot (JSON Schema 2020-12).
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(first, "Dashboard");
         // WAITLIST off: `waitingTotal` is null (not 0); `percent` is an integer.
         assertThat(first.at("/kpis/classOccupancy").has("waitingTotal")).isTrue(); assertThat(first.at("/kpis/classOccupancy/waitingTotal").isNull()).isTrue();
         assertThat(first.at("/kpis/classOccupancy/percent").isInt()).isTrue(); assertThat(first.at("/kpis/classOccupancy/percent").asInt()).isEqualTo(100);

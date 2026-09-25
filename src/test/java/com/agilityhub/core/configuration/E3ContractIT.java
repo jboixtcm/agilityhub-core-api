@@ -249,12 +249,14 @@ class E3ContractIT extends AbstractIntegrationTest {
                 Map.entry("DashboardLevel", "levelId,code,name,color,total,withRecentBooking"));
         fields.forEach((name, expected) -> properties(schemas, name, expected));
         assertThat(strings(schemas.at("/RiskItem/properties/status/enum"))).containsExactly("CANCELLED","AT_RISK","WILL_CANCEL","PENDING_DECISION");
+        // E5-T16 (review E3-T16 #1): a null block is the union `anyOf [$ref, null]`, still required.
         for (String block : List.of("riskReview","pendingSignups","dogsByLevel")) {
-            assertThat(strings(schemas.at("/Dashboard/properties/" + block + "/type"))).contains("null");
+            assertThat(schemas.at("/Dashboard/properties/" + block + "/anyOf/1/type").asText()).isEqualTo("null");
             assertThat(strings(schemas.at("/Dashboard/required"))).contains(block);
         }
         for (String block : List.of("activeMembers","classOccupancy","trainingBookings","pendingSignups")) {
-            assertThat(strings(schemas.at("/DashboardKpis/properties/" + block + "/type"))).contains("null");
+            assertThat(schemas.at("/DashboardKpis/properties/" + block + "/anyOf/1/type").asText()).isEqualTo("null");
+            assertThat(strings(schemas.at("/DashboardKpis/required"))).contains(block);
         }
         // R-14-03 (E3-T10 step 10): `percent` is an integer or null; `waitingTotal` is null without WAITLIST (§9).
         assertThat(strings(schemas.at("/ClassOccupancyKpi/properties/percent/type"))).containsExactlyInAnyOrder("integer", "null");

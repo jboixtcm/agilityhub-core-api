@@ -32,8 +32,8 @@ public class SpanishCountryProfile extends GenericCountryProfile {
     }
     /** S02 §3: an organisation's CIF (the Cànic's G63189617), or a person's NIF (DNI) or NIE, with its check character. */
     @Override public boolean validateTaxId(String value) {
-        if (value == null) { return false; }
-        String id = super.normalizeIdDocument("CIF", value);
+        String id = CountryProfile.normalizeTaxId(value);
+        if (id == null) { return false; }
         return checkCif(id) || validateIdDocument("DNI", id) || validateIdDocument("NIE", id);
     }
     /**

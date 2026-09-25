@@ -20,7 +20,8 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OpenApiRequiredContractTest {
-    private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClassOrigin", "EmptyRequest", "PublicationRequest", "RegistrationCancellationRequest", "ClubAddress", "ClubPwa",
+    /** E5-T16: `ClubPwa.iconUrls` is always sent (empty without icons), so `ClubPwa` left this list. */
+    private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClassOrigin", "EmptyRequest", "PublicationRequest", "RegistrationCancellationRequest", "ClubAddress",
             "BookingCancellationRequest", "TrainingCancellationRequest",
             "ConsentPatch", "ErasureInput", "ImpersonationRequest", "OnboardingFields",
             "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch");

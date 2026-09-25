@@ -369,6 +369,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T16: follow-ups of the E3-T16 round-2 review (contract nulls, the tax id, test names, one nullable helper).
+  - INC-08: `GET /club` declares every `null` it sends (`ClubSettings` and the records it reaches, `Theme` and
+    `LastChange.actorName` included); D1's null blocks (`Dashboard`, `DashboardKpis`) and the training booking's
+    `override` are the OpenAPI 3.1 union `anyOf [$ref, null]`. Real `GET /club` and `GET /dashboard` responses are
+    validated against the snapshot, and no `$ref` in it has a sibling `type`.
+  - S02 §3, R-02-06: the club's `taxId` is stored normalized (upper case, without spaces or separators) by `PUT /club`,
+    `club:apply` and every other writer (`Club`); the same id with other spacing is no change and is not re-checked.
+    `/branding` publishes the normalized form.
+  - One `NullableReferences` customizer replaces the four copies in the E3–E6 contract configurations; E2 uses it for
+    `ClubSettings`. The regenerated document was byte-identical before the contract changes.
+  - Tests named by rule instead of web or unrelated test ids (`R_02_02_…`, `R_02_06_…`, `R_04_10_…`,
+    `R_04_19_R_04_25_R_04_26_…`).
 - E5-T11: follow-ups of the E5-T08 review, and ruling E29.
   - R-08-13, N-46 gate: the N-15 consumer records the delivered offer on the waitlist entry (`offerNotifiedAt`) with
     a conditional update on `{state: NOTIFIED, notifiedAt}`, in the transaction of the N-15 rows. N-46 compares

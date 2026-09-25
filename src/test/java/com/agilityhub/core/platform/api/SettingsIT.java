@@ -271,10 +271,11 @@ class SettingsIT extends AbstractIntegrationTest {
     /**
      * E3-T16 step 3 (S02 §3, R-02-02, amended 25-09): the club's `displayCity` (the town shown with its name) is edited with the
      * club settings; `/branding` shows it as `city`, and falls back to the registered office's town without it. The `taxId`
-     * is checked by the club's country profile (`ES`: a CIF, NIF or NIE with its check character).
+     * is checked by the club's country profile (`ES`: a CIF, NIF or NIE with its check character, R-02-06). E5-T16 step 3:
+     * named by the rules it asserts.
      */
     @Test @AuditCovers(AuditAction.CLUB_UPDATED)
-    void T_02_11_R_02_02_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile() throws Exception {
+    void R_02_02_R_02_06_displayCityIsEditedWithTheClubAndTheTaxIdFollowsTheCountryProfile() throws Exception {
         var before = json(admin(get("/api/v1/club")));
         assertThat(before.path("displayCity").isMissingNode() || before.path("displayCity").isNull()).isTrue();
         assertThat(json(mvc.perform(get("/api/v1/branding").header("Host", HOST))).at("/club/city").asText()).isEqualTo("Cabrera de Mar");
@@ -300,24 +301,81 @@ class SettingsIT extends AbstractIntegrationTest {
      * E3-T16 round 2 (review #2 and #5; S02 R-02-06): the country profile checks a tax id only when `PUT /club` changes it.
      * An `ES` club whose stored tax id the check refuses (stored before the check existed) still saves its other settings,
      * and may send the same value again; a new tax id the profile refuses answers `VALIDATION_ERROR` naming the field.
+     * E5-T16: named by the rule it asserts (step 3); a stored value is read in its normalized form (step 2), so the
+     * `EXAMPLE-ORG` stored before the check existed reads, and is sent back, as `EXAMPLEORG`.
      */
-    @Test void T_02_11_R_02_06_theTaxIdIsCheckedOnlyWhenTheRequestChangesIt() throws Exception {
+    @Test void R_02_06_theTaxIdIsCheckedOnlyWhenTheRequestChangesIt() throws Exception {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("settings-a")), new Update().set("taxId", "EXAMPLE-ORG"), Club.class);
         configs.invalidate("settings-a");
         var before = json(admin(get("/api/v1/club")));
-        assertThat(before.path("countryProfile").asText()).isEqualTo("ES"); assertThat(before.path("taxId").asText()).isEqualTo("EXAMPLE-ORG");
+        assertThat(before.path("countryProfile").asText()).isEqualTo("ES"); assertThat(before.path("taxId").asText()).isEqualTo("EXAMPLEORG");
         var renamed = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "name", "Renamed Example Club"))));
         assertThat(renamed.path("name").asText()).isEqualTo("Renamed Example Club");
-        assertThat(renamed.path("taxId").asText()).as("the stored value is kept, not re-checked").isEqualTo("EXAMPLE-ORG");
-        var resent = json(admin(body(put("/api/v1/club"), Map.of("version", renamed.path("version").asLong(), "taxId", "EXAMPLE-ORG", "websiteUrl", "https://settings.example.test"))));
+        assertThat(renamed.path("taxId").asText()).as("the stored value is kept, not re-checked").isEqualTo("EXAMPLEORG");
+        var resent = json(admin(body(put("/api/v1/club"), Map.of("version", renamed.path("version").asLong(), "taxId", "EXAMPLEORG", "websiteUrl", "https://settings.example.test"))));
         assertThat(resent.path("websiteUrl").asText()).isEqualTo("https://settings.example.test");
         admin(body(put("/api/v1/club"), Map.of("version", resent.path("version").asLong(), "taxId", "B12345675")))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.details.field").value("taxId"))
                 .andExpect(jsonPath("$.details.fieldErrors[0].field").value("taxId")).andExpect(jsonPath("$.details.fieldErrors[0].code").value("INVALID_VALUE"));
-        assertThat(json(admin(get("/api/v1/club"))).path("taxId").asText()).isEqualTo("EXAMPLE-ORG");
+        assertThat(json(admin(get("/api/v1/club"))).path("taxId").asText()).isEqualTo("EXAMPLEORG");
         var corrected = json(admin(body(put("/api/v1/club"), Map.of("version", resent.path("version").asLong(), "taxId", "B12345674"))));
         assertThat(corrected.path("taxId").asText()).isEqualTo("B12345674");
+    }
+
+    /**
+     * E5-T16 step 2 (review E3-T16 #3; S02 §3, R-02-06): `PUT /club` stores the tax id normalized (upper case, without spaces
+     * or separators), and `/branding` publishes that form in the public footer. The same id with other spacing, case or
+     * separators is no change: the audit trail does not name it, and the country profile does not check it again, so a
+     * stored id the profile refuses (kept from a `GENERIC` profile) may be sent back in any spacing.
+     */
+    @Test void R_02_06_theTaxIdIsStoredNormalizedAndTheSameIdWithOtherSpacingIsNoChange() throws Exception {
+        var before = json(admin(get("/api/v1/club")));
+        var typed = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "taxId", "g-6318 9617"))));
+        assertThat(typed.path("taxId").asText()).isEqualTo("G63189617");
+        assertThat(mongo.getCollection("clubs").find(new Document("_id", "settings-a")).first().getString("taxId")).isEqualTo("G63189617");
+        assertThat(json(mvc.perform(get("/api/v1/branding").header("Host", HOST))).at("/club/taxId").asText()).isEqualTo("G63189617");
+        assertThat(audits()).singleElement().satisfies(entry -> assertThat(entry.changes()).containsExactly(new AuditChange("settings.taxId", null, "G63189617")));
+        var respaced = json(admin(body(put("/api/v1/club"), Map.of("version", typed.path("version").asLong(), "taxId", "G 6318.9617",
+                "websiteUrl", "https://respaced.example.test"))));
+        assertThat(respaced.path("taxId").asText()).isEqualTo("G63189617");
+        assertThat(audits()).hasSize(2).last().satisfies(entry -> assertThat(entry.changes()).extracting(AuditChange::path).containsExactly("settings.websiteUrl"));
+        // A raw write: the stored version stays the one `respaced` read.
+        mongo.getCollection("clubs").updateOne(new Document("_id", "settings-a"), new Document("$set", new Document("taxId", "PT501234567")));
+        var kept = json(admin(body(put("/api/v1/club"), Map.of("version", respaced.path("version").asLong(), "taxId", "pt 501.234.567"))));
+        assertThat(kept.path("taxId").asText()).as("the same id, not re-checked by ES").isEqualTo("PT501234567");
+    }
+
+    /**
+     * E5-T16 step 1 (review E3-T16 #1; S02 R-02-12, INC-08): `GET /club` sends every unset optional field as `null`, and the
+     * committed snapshot declares each of them: the real responses are validated against it (JSON Schema 2020-12), first
+     * with the optional fields unset (a stored club always has its `legal`; the Java-side check covers it), then with them
+     * set and nested nulls (an address without a street, a PWA without names, no image-consent text, a pending domain, a
+     * theme without its logos).
+     */
+    @Test void R_02_12_getClubSendsEveryUnsetFieldAsANullTheSnapshotDeclares() throws Exception {
+        var unset = new Update();
+        for (String field : List.of("legalName", "taxId", "address", "displayCity", "contactEmail", "contactPhone", "websiteUrl", "pwa",
+                "theme.logoUrl", "theme.logoDarkUrl", "theme.markUrl")) { unset.unset(field); }
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("settings-a")), unset, Club.class);
+        configs.invalidate("settings-a");
+        var bare = json(admin(get("/api/v1/club")));
+        for (String field : List.of("legalName", "taxId", "address", "displayCity", "contactEmail", "contactPhone", "websiteUrl", "pwa", "lastChange")) {
+            assertThat(bare.path(field).isNull()).as(field).isTrue();
+        }
+        assertThat(bare.at("/theme/logoUrl").isNull()).isTrue();
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(bare, "ClubSettings");
+        // A raw write: the stored version stays the one `bare` read.
+        mongo.getCollection("clubs").updateOne(new Document("_id", "settings-a"), new Document("$set", new Document("pwa", new Document("icons", List.of()))
+                .append("legal", new Document("privacyPolicyUrl", "https://settings.example.test/privacy").append("imageConsentText", new Document())
+                        .append("legalTextsVersion", "2030-01"))));
+        var full = json(admin(body(put("/api/v1/club"), Map.of("version", bare.path("version").asLong(), "legalName", "Example Association",
+                "taxId", "B12345674", "address", Map.of("city", "Example City"), "displayCity", "Example Display Town", "contactEmail", "settings@example.test",
+                "contactPhone", "+34930000000", "websiteUrl", "https://settings.example.test"))));
+        assertThat(full.path("lastChange").isObject()).isTrue(); assertThat(full.at("/address/street").isNull()).isTrue();
+        assertThat(full.at("/pwa/name").isNull()).isTrue(); assertThat(full.at("/legal/imageConsentText").isNull()).isTrue();
+        assertThat(full.at("/domains/1/verifiedAt").isNull()).isTrue();
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(full, "ClubSettings");
     }
 
     @Test void T_02_15_timezoneChangeBlockedByTenantClassesAndWeekOpeningStaysLocal() throws Exception {

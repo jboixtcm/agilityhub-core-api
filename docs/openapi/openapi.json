@@ -3238,19 +3238,19 @@
       "ClubAddress" : {
         "properties" : {
           "city" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "country" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "postalCode" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "region" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "street" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "required" : [ ],
@@ -3268,8 +3268,9 @@
             "type" : "boolean"
           },
           "verifiedAt" : {
+            "description" : "null while the domain is pending",
             "format" : "date-time",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
         "required" : [ "app", "host", "primary" ],
@@ -3278,12 +3279,14 @@
       "ClubLegal" : {
         "properties" : {
           "imageConsentText" : {
-            "type" : "string"
+            "description" : "In the club's default locale; null without one",
+            "type" : [ "string", "null" ]
           },
           "imageConsentTextI18n" : {
             "additionalProperties" : {
               "type" : "string"
             },
+            "description" : "Per locale; empty without texts",
             "type" : "object"
           },
           "legalTextsVersion" : {
@@ -3293,7 +3296,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "legalTextsVersion", "privacyPolicyUrl" ],
+        "required" : [ "imageConsentTextI18n", "legalTextsVersion", "privacyPolicyUrl" ],
         "type" : "object"
       },
       "ClubPage" : {
@@ -3437,28 +3440,33 @@
             "additionalProperties" : {
               "type" : "string"
             },
+            "description" : "Icon URL by size; empty without icons",
             "type" : "object"
           },
           "name" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "shortName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
-        "required" : [ ],
+        "required" : [ "iconUrls" ],
         "type" : "object"
       },
       "ClubSettings" : {
         "properties" : {
           "address" : {
-            "$ref" : "#/components/schemas/ClubAddress"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClubAddress"
+            }, {
+              "type" : "null"
+            } ]
           },
           "contactEmail" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "contactPhone" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "countryProfile" : {
             "type" : "string"
@@ -3484,13 +3492,22 @@
             "type" : "string"
           },
           "lastChange" : {
-            "$ref" : "#/components/schemas/LastChange"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LastChange"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "The club's last audit entry; null without one"
           },
           "legal" : {
-            "$ref" : "#/components/schemas/ClubLegal"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClubLegal"
+            }, {
+              "type" : "null"
+            } ]
           },
           "legalName" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "locales" : {
             "items" : {
@@ -3514,7 +3531,11 @@
             "type" : "object"
           },
           "pwa" : {
-            "$ref" : "#/components/schemas/ClubPwa"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClubPwa"
+            }, {
+              "type" : "null"
+            } ]
           },
           "slug" : {
             "type" : "string"
@@ -3523,7 +3544,8 @@
             "type" : "string"
           },
           "taxId" : {
-            "type" : "string"
+            "description" : "Normalized: upper case, without spaces or separators (S02 §3).",
+            "type" : [ "string", "null" ]
           },
           "theme" : {
             "$ref" : "#/components/schemas/Theme"
@@ -3536,10 +3558,10 @@
             "type" : "integer"
           },
           "websiteUrl" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "countryProfile", "currency", "defaultLocale", "domains", "id", "locales", "modules", "name", "slug", "status", "theme", "timeZone", "version" ],
+        "required" : [ "countryProfile", "currency", "defaultLocale", "domains", "id", "locales", "modules", "name", "paymentProviders", "slug", "status", "theme", "timeZone", "version" ],
         "type" : "object"
       },
       "ClubSummary" : {
@@ -3566,6 +3588,7 @@
             "type" : "string"
           },
           "taxId" : {
+            "description" : "Normalized: upper case, without spaces or separators (S02 §3).",
             "type" : [ "string", "null" ]
           }
         },
@@ -3596,7 +3619,7 @@
             "type" : "string"
           },
           "taxId" : {
-            "description" : "Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.",
+            "description" : "Stored normalized: upper case, without spaces or separators; the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.",
             "type" : "string"
           },
           "theme" : {
@@ -3872,8 +3895,11 @@
         "description" : "S14 §6: module/parameter-controlled blocks are explicitly null when disabled; cached for the club.",
         "properties" : {
           "dogsByLevel" : {
-            "$ref" : "#/components/schemas/DogsByLevel",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/DogsByLevel"
+            }, {
+              "type" : "null"
+            } ]
           },
           "generatedAt" : {
             "format" : "date-time",
@@ -3883,12 +3909,18 @@
             "$ref" : "#/components/schemas/DashboardKpis"
           },
           "pendingSignups" : {
-            "$ref" : "#/components/schemas/PendingSignups",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PendingSignups"
+            }, {
+              "type" : "null"
+            } ]
           },
           "riskReview" : {
-            "$ref" : "#/components/schemas/RiskReview",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RiskReview"
+            }, {
+              "type" : "null"
+            } ]
           },
           "today" : {
             "format" : "date",
@@ -3922,20 +3954,32 @@
       "DashboardKpis" : {
         "properties" : {
           "activeMembers" : {
-            "$ref" : "#/components/schemas/ActiveMembersKpi",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ActiveMembersKpi"
+            }, {
+              "type" : "null"
+            } ]
           },
           "classOccupancy" : {
-            "$ref" : "#/components/schemas/ClassOccupancyKpi",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClassOccupancyKpi"
+            }, {
+              "type" : "null"
+            } ]
           },
           "pendingSignups" : {
-            "$ref" : "#/components/schemas/PendingSignupsKpi",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/PendingSignupsKpi"
+            }, {
+              "type" : "null"
+            } ]
           },
           "trainingBookings" : {
-            "$ref" : "#/components/schemas/TrainingBookingsKpi",
-            "type" : [ "object", "null" ]
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TrainingBookingsKpi"
+            }, {
+              "type" : "null"
+            } ]
           }
         },
         "required" : [ "activeMembers", "classOccupancy", "pendingSignups", "trainingBookings" ],
@@ -6655,7 +6699,8 @@
             "type" : "string"
           },
           "actorName" : {
-            "type" : "string"
+            "description" : "null when the audit entry names no actor",
+            "type" : [ "string", "null" ]
           },
           "at" : {
             "format" : "date-time",
@@ -13608,13 +13653,13 @@
             "type" : "string"
           },
           "logoDarkUrl" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "logoUrl" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "markUrl" : {
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "mode" : {
             "enum" : [ "auto", "light", "dark" ],
@@ -13927,9 +13972,12 @@
             "type" : "string"
           },
           "override" : {
-            "$ref" : "#/components/schemas/TrainingOverride",
-            "description" : "Impersonation only (R-09-16); otherwise 403 OVERRIDE_NOT_ALLOWED",
-            "type" : "null"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TrainingOverride"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Impersonation only (R-09-16); otherwise 403 OVERRIDE_NOT_ALLOWED"
           },
           "ringId" : {
             "description" : "Absent = «Qualsevol»: first FREE ring by catalog order (R-09-07)",

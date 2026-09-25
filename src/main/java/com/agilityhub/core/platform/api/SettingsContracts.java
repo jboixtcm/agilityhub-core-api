@@ -59,37 +59,43 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) String scope,
             @Schema(requiredMode = REQUIRED) ParameterEditor editableBy,
             @Schema(requiredMode = REQUIRED) boolean restartRequired) { }
+    /** E5-T16 (review E3-T16 #1, INC-08): the records `GET /club` reaches send an unset optional field as `null`, and declare it. */
     public record ClubAddress(
-            @Schema(requiredMode = NOT_REQUIRED) String street,
-            @Schema(requiredMode = NOT_REQUIRED) String postalCode,
-            @Schema(requiredMode = NOT_REQUIRED) String city,
-            @Schema(requiredMode = NOT_REQUIRED) String region,
-            @Schema(requiredMode = NOT_REQUIRED) String country) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String street,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String postalCode,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String city,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String region,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String country) { }
     public record ClubDomain(
             @Schema(requiredMode = REQUIRED) String host,
             @Schema(requiredMode = REQUIRED) String app,
-            @Schema(requiredMode = NOT_REQUIRED) Instant verifiedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null while the domain is pending") Instant verifiedAt,
             @Schema(requiredMode = REQUIRED) boolean primary) { }
     public record ClubLegal(
             @Schema(requiredMode = REQUIRED) String privacyPolicyUrl,
-            @Schema(requiredMode = NOT_REQUIRED) String imageConsentText,
-            @Schema(requiredMode = NOT_REQUIRED) Map<String, String> imageConsentTextI18n,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "In the club's default locale; null without one") String imageConsentText,
+            @Schema(requiredMode = REQUIRED, description = "Per locale; empty without texts") Map<String, String> imageConsentTextI18n,
             @Schema(requiredMode = REQUIRED) String legalTextsVersion) { }
     @Schema(description = "Configuration status only; provider credentials and API key hashes are never exposed.")
     public record PaymentProviderSummary(
             @Schema(requiredMode = REQUIRED) boolean configured,
             @Schema(requiredMode = REQUIRED) boolean enabled) { }
+    /**
+     * `GET /club` (R-02-12). E5-T16 (review E3-T16 #1, INC-08): an unset optional field is sent as `null`, and declared
+     * nullable; a nullable object is the union `anyOf [$ref, null]` (E2ContractConfiguration). `paymentProviders` is always
+     * sent (empty without providers).
+     */
     public record ClubSettings(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String slug,
             @Schema(requiredMode = REQUIRED) String name,
-            @Schema(requiredMode = NOT_REQUIRED) String legalName,
-            @Schema(requiredMode = NOT_REQUIRED) String taxId,
-            @Schema(requiredMode = NOT_REQUIRED) ClubAddress address,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String legalName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Normalized: upper case, without spaces or separators (S02 §3).") String taxId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClubAddress address,
             @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "The town shown with the club's name (S02 §3); null without one, and /branding falls back to address.city.") String displayCity,
-            @Schema(requiredMode = NOT_REQUIRED) String contactEmail,
-            @Schema(requiredMode = NOT_REQUIRED) String contactPhone,
-            @Schema(requiredMode = NOT_REQUIRED) String websiteUrl,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String contactEmail,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String contactPhone,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String websiteUrl,
             @Schema(requiredMode = REQUIRED) List<String> locales,
             @Schema(requiredMode = REQUIRED) String defaultLocale,
             @Schema(requiredMode = REQUIRED) String timeZone,
@@ -97,16 +103,17 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) String countryProfile,
             @Schema(requiredMode = REQUIRED) List<ClubDomain> domains,
             @Schema(requiredMode = REQUIRED) com.agilityhub.core.platform.domain.Theme theme,
-            @Schema(requiredMode = NOT_REQUIRED) ClubPwa pwa,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClubPwa pwa,
             @Schema(requiredMode = REQUIRED) List<String> modules,
-            @Schema(requiredMode = NOT_REQUIRED) Map<String, PaymentProviderSummary> paymentProviders,
-            @Schema(requiredMode = NOT_REQUIRED) ClubLegal legal,
+            @Schema(requiredMode = REQUIRED) Map<String, PaymentProviderSummary> paymentProviders,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClubLegal legal,
             @Schema(requiredMode = REQUIRED) String status,
-            @Schema(requiredMode = NOT_REQUIRED) LastChange lastChange,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The club's last audit entry; null without one") LastChange lastChange,
             @Schema(requiredMode = REQUIRED) long version) { }
     public record ModuleSettings(
             @Schema(requiredMode = REQUIRED) List<String> modules) { }
-    public record ClubPwa(@Schema(requiredMode = NOT_REQUIRED) String name, @Schema(requiredMode = NOT_REQUIRED) String shortName, @Schema(requiredMode = NOT_REQUIRED) Map<String, String> iconUrls) { }
+    public record ClubPwa(@Schema(requiredMode = NOT_REQUIRED, nullable = true) String name, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String shortName,
+            @Schema(requiredMode = REQUIRED, description = "Icon URL by size; empty without icons") Map<String, String> iconUrls) { }
     public record PostalTown(
             @Schema(requiredMode = REQUIRED) String town,
             @Schema(requiredMode = REQUIRED) String region) { }
@@ -138,7 +145,7 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) @NotNull Long version,
             @Schema(requiredMode = NOT_REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED) String legalName,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.") String taxId,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Stored normalized: upper case, without spaces or separators; the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.") String taxId,
             @Schema(requiredMode = NOT_REQUIRED, description = "The registered office (S02 §3); /branding.legalAddress.") ClubAddress address,
             @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "The town shown with the club's name (S02 §3); null clears it, and /branding shows address.city.") String displayCity,
             @Schema(requiredMode = NOT_REQUIRED) String contactEmail,

@@ -14,6 +14,16 @@ public interface CountryProfile {
      * switch does not re-check a stored one (R-02-06).
      */
     boolean validateTaxId(String value);
+    /**
+     * E5-T16 (review E3-T16 #3; S02 §3, R-02-06): the stored form of a club's `taxId`, whatever its profile: upper case,
+     * without spaces or separators (every character that is not a letter or a digit), `null` when nothing is left. The
+     * club stores, compares and publishes this form, so the same id written with other spacing is no change.
+     */
+    static String normalizeTaxId(String value) {
+        if (value == null) { return null; }
+        String normalized = value.replaceAll("[^\\p{L}\\p{N}]", "").toUpperCase(java.util.Locale.ROOT);
+        return normalized.isEmpty() ? null : normalized;
+    }
     String normalizePhone(String raw);
     boolean validateIban(String value);
     List<Town> postalCodeLookup(String code);

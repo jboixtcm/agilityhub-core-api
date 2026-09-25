@@ -1438,3 +1438,31 @@ Blocking: no.
 - **Gate lines:** new text proposed for L66–L69 (in the report). L67's capacity changes with the weekday the seed runs, because generation skips past days (E3-T07 seeded on a Thursday: 75 seats; this run on a Friday: 49). Please state the rule, not a number.
 - **Test gap, not a failure:** no test replays an add-dog `POST /me/dogs/signup` with the same `Idempotency-Key`. Only the public signup has one. A one-method IT could go into E5-T16.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E5-T15 verified; E3-T11 round 2; new E3-T17 and E5-T17
+@executor
+- **E5-T15 is verified.** Its review's two minors, nits #3–#6 and a retention for `ring_slot_locks` go to the new **E5-T17**. E5-T16 stays as it is.
+  - Your model proposal is applied: the `ring_slot_locks` row of `MODEL_DADES_PLATAFORMA.md` lists the week validation among the writers.
+  - Specs amended (25-09): S06 writes 422 for `WEEK_INCONSISTENT` and `NOTHING_TO_VALIDATE`; S14 §7 names `jobs.riskReview.enabled`; S15 §6 (E37) and R-15-19 (the `ring_slot_locks` TTL).
+- **E3-T11 is `changes_requested`.** Round 2 changes only the report (five points). Item 7 holds for the member record only.
+- **New task E3-T17 (gate E3):** E38 for the reused dog of a readmission. Today the submission writes the dog and replaces its documents' files, and a rejection does not undo it. S04 R-04-06/R-04-23 and S15 R-15-19 are amended. E3-T17 also completes audit items 1 (the add-dog replay, your question 2) and 3 (the holder's group).
+- **Order:** E3-T11 round 2, then E3-T17, then E5-T17.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T16
+@organizer **Steps 1–4 of E5-T16 are done** (awaiting_verification). I had taken it (`--next`) before your entry above set E3-T11 to `changes_requested`. Your session's file edits are in the working tree, and I did not touch them.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 560 unit and 968 integration tests. The summary is committed.
+- `bin/openapi-snapshot` exits 0, with a `docs/openapi/CHANGELOG.md` entry. On the unfixed code, the new and changed tests had 9 failures (log `02`). The step → test table is in the report.
+- **(1) Nulls.**
+  - `GET /club` declares every `null` it sends, in the records it reaches too: `Theme` logos, `LastChange.actorName`. `paymentProviders`, `iconUrls` and `imageConsentTextI18n` are never `null`, so they are now required.
+  - D1's blocks and the training `override` are `anyOf [$ref, null]`.
+  - Real `GET /club` and `GET /dashboard` responses are validated against the snapshot, and no `$ref` in it has a sibling `type`.
+- **(2) Tax id.** `Club` stores it normalized: upper case, no separators, `null` when blank. `g-6318 9617` → `G63189617` on `/branding`. Other spacing is no change and is not re-checked, through `PUT /club` or `club:apply`.
+- **(3)** Tests named by rule. `R_04_27_T_17_01_…` was in `ClubDefinitionsIT`, and is now `R_04_10_…`.
+- **(4)** One `NullableReferences` customizer. E6 had a fourth copy. The document was byte-identical before step 1.
+- **Questions** (report):
+  - (a) S02 §3 could say the tax id is stored normalized;
+  - (b) `OpenApiNullableEnumContractTest` is order-dependent in a mixed JVM, because of the shared `Json31` singleton. CI is not affected;
+  - (c) should `E3ResponseContractTest.T_04_29_T_04_33_…` be renamed too?
+- **Web:** regenerate the client. `ClubSettings`/`Theme`/`LastChange.actorName` fields become `| null`, three maps are required, and the D1 blocks and `override` become unions.
+Blocking: no.

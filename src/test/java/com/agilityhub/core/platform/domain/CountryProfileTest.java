@@ -53,6 +53,21 @@ class CountryProfileTest {
             assertThat(generic.validateTaxId(any)).as(any).isTrue();
         }
     }
+    /**
+     * E5-T16 step 2 (review E3-T16 #3; S02 §3, R-02-06): the stored form of a tax id, for every profile: upper case, without
+     * spaces or separators; nothing left is no tax id. `ES` checks that form, so any separator is accepted before the check.
+     */
+    @Test void R_02_06_aTaxIdIsNormalizedToUpperCaseWithoutSpacesOrSeparators() {
+        assertThat(CountryProfile.normalizeTaxId("g-6318 9617")).isEqualTo("G63189617");
+        assertThat(CountryProfile.normalizeTaxId("G 6318.9617")).isEqualTo("G63189617");
+        assertThat(CountryProfile.normalizeTaxId(" pt 501.234.567/ ")).isEqualTo("PT501234567");
+        assertThat(CountryProfile.normalizeTaxId("àé-íò_ú")).isEqualTo("ÀÉÍÒÚ");
+        assertThat(CountryProfile.normalizeTaxId("G63189617")).isEqualTo("G63189617");
+        for (String nothing : new String[]{null, "", "   ", "-./ _"}) { assertThat(CountryProfile.normalizeTaxId(nothing)).as(String.valueOf(nothing)).isNull(); }
+        var es = registry.get("ES");
+        assertThat(es.validateTaxId("G.6318.9617")).isTrue(); assertThat(es.validateTaxId("x-1234567-l")).isTrue();
+        assertThat(es.validateTaxId("-./")).isFalse();
+    }
     @Test void T_02_04_genericIsFallbackWithNoNationalFormatValidation() {
         var generic = registry.get("GENERIC");
         assertThat(registry.get("PT")).isSameAs(generic);

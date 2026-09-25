@@ -17,6 +17,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration(proxyBeanMethods = false)
 public class E4ContractConfiguration implements WebMvcConfigurer {
+    static final List<String> NULLABLE_REFERENCES = List.of("Activity", "ActivityPatchRequest", "ActivityRegistration", "ActivityRegistrationSummary",
+            "ClassSession", "ClassSessionMemberView", "MemberActivityDetail");
     @Override public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new org.springframework.web.servlet.HandlerInterceptor() {
             @Override public boolean preHandle(jakarta.servlet.http.HttpServletRequest request,
@@ -47,12 +49,6 @@ public class E4ContractConfiguration implements WebMvcConfigurer {
             union.addAnyOfItem(new Schema<>().$ref("#/components/schemas/RingBlock"));
             union.addAnyOfItem(new Schema<>().$ref("#/components/schemas/RingBlockMemberView"));
             ((Schema<?>) wrapper.getProperties().get("items")).setItems(union);
-            // OpenAPI 3.1 uses a union, not a null-only sibling constraint on a $ref.
-            for (String name : List.of("Activity", "ActivityPatchRequest", "ActivityRegistration", "ActivityRegistrationSummary",
-                    "ClassSession", "ClassSessionMemberView", "MemberActivityDetail")) {
-                Schema<?> model = schemas.get(name);
-                model.getProperties().replaceAll((field, property) -> nullableReference(property));
-            }
             Schema<?> empty = schemas.get("EmptyRequest");
             empty.setProperties(new java.util.LinkedHashMap<>());
             empty.setRequired(new java.util.ArrayList<>());
@@ -63,14 +59,6 @@ public class E4ContractConfiguration implements WebMvcConfigurer {
             }
         };
     }
-    private static Schema<?> nullableReference(Schema<?> property) {
-        if (property.get$ref() == null || !("null".equals(property.getType())
-                || property.getTypes() != null && property.getTypes().contains("null"))) { return property; }
-        var union = new Schema<>();
-        union.setDescription(property.getDescription());
-        union.addAnyOfItem(new Schema<>().$ref(property.get$ref()));
-        union.addAnyOfItem(new Schema<>().types(java.util.Set.of("null")));
-        return union;
-    }
-
+    /** OpenAPI 3.1 uses a union, not a null-only sibling constraint on a $ref. */
+    @Bean OpenApiCustomizer e4NullableReferences() { return new NullableReferences(NULLABLE_REFERENCES); }
 }

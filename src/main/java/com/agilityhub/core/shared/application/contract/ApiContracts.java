@@ -28,7 +28,8 @@ public final class ApiContracts {
             @Schema(requiredMode = REQUIRED) String label, @Schema(requiredMode = REQUIRED) long count) { }
     @Schema(types = {"object", "null"})
     public record LastChange(@Schema(requiredMode = REQUIRED) Instant at,
-            @Schema(requiredMode = NOT_REQUIRED) String actorName, @Schema(requiredMode = REQUIRED) String action) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null when the audit entry names no actor") String actorName,
+            @Schema(requiredMode = REQUIRED) String action) { }
     public record ExportAccepted(@Schema(requiredMode = REQUIRED, format = "uuid") String jobId,
             @Schema(requiredMode = REQUIRED, format = "uri") String statusUrl) { }
 }

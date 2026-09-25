@@ -7,7 +7,6 @@ import com.agilityhub.core.shared.application.contract.AllowsImpersonation;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import io.swagger.v3.core.converter.ModelConverters;
-import io.swagger.v3.oas.models.media.Schema;
 import java.util.List;
 import java.util.Set;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -26,8 +25,9 @@ public class E5ContractConfiguration implements WebMvcConfigurer {
     static final Set<String> PACKAGES = Set.of("com.agilityhub.core.clubs.bookings.api", "com.agilityhub.core.clubs.training.api");
     static final Set<String> CONTROLLERS = Set.of("com.agilityhub.core.clubs.common.api.JobsController",
             "com.agilityhub.core.platform.api.PlatformJobsController");
+    /** E5-T16 (review E3-T16 #1): `TrainingBookingRequest.override` is a `TrainingOverride` or `null` (R-09-16). */
     static final List<String> NULLABLE_REFERENCES = List.of("MeHome", "BookableClasses", "BookableClass", "SeatHoldResponse", "Booking",
-            "TrainingRing", "SlotCell", "TrainingSummary", "TrainingBooking", "JobRun", "JobSummary", "PlatformJobCell");
+            "TrainingRing", "SlotCell", "TrainingSummary", "TrainingBooking", "JobRun", "JobSummary", "PlatformJobCell", "TrainingBookingRequest");
     static final List<Class<?>> DETAILS = List.of(BookingContracts.BookingLimitReachedDetails.class, BookingContracts.ClassFullDetails.class,
             BookingContracts.NotYetOpenDetails.class, BookingContracts.WaitlistLimitDetails.class, BookingContracts.InactivityPeriodDetails.class,
             TrainingContracts.TrainingLimitReachedDetails.class, TrainingContracts.SlotTakenDetails.class, TrainingContracts.SlotOutOfWindowDetails.class,
@@ -55,22 +55,11 @@ public class E5ContractConfiguration implements WebMvcConfigurer {
             var schemas = api.getComponents().getSchemas();
             // Error details (CATALEG_ERRORS §3 rule 2) are published for the generated client even though no operation returns them as a body.
             for (Class<?> type : DETAILS) { ModelConverters.getInstance(true).readAll(type).forEach(schemas::putIfAbsent); }
-            for (String name : NULLABLE_REFERENCES) {
-                Schema<?> model = schemas.get(name);
-                if (model != null && model.getProperties() != null) { model.getProperties().replaceAll((field, property) -> nullableReference(property)); }
-            }
             // The .ics link authenticates with its signed token; the club comes from the host.
             api.getPaths().get("/api/v1/bookings/{id}/calendar.ics").getGet().setSecurity(List.of());
         };
     }
 
-    private static Schema<?> nullableReference(Schema<?> property) {
-        if (property.get$ref() == null || !("null".equals(property.getType())
-                || property.getTypes() != null && property.getTypes().contains("null"))) { return property; }
-        var union = new Schema<>();
-        union.setDescription(property.getDescription());
-        union.addAnyOfItem(new Schema<>().$ref(property.get$ref()));
-        union.addAnyOfItem(new Schema<>().types(Set.of("null")));
-        return union;
-    }
+    /** OpenAPI 3.1 uses a union, not a null-only sibling constraint on a $ref. */
+    @Bean OpenApiCustomizer e5NullableReferences() { return new NullableReferences(NULLABLE_REFERENCES); }
 }

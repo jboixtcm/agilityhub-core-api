@@ -2,6 +2,30 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T16 · the nulls of GET /club, the dashboard and the training override; a normalized tax id
+
+**0 operations added or changed; 0 schemas added**, 12 changed (`ClubSettings`, `ClubAddress`, `ClubDomain`, `ClubLegal`,
+`ClubPwa`, `Theme`, `LastChange`, `Dashboard`, `DashboardKpis`, `TrainingBookingRequest`; descriptions only in
+`ClubSummary` and `ClubUpdate`). Additive: types widen to accept the `null` the api already sends, and three maps that
+are always sent become required. No value on the wire changes, apart from the normalized `taxId`.
+
+- `GET /club`, `PUT /club` (`ClubSettings`, R-02-12; review E3-T16 #1, INC-08): `legalName`, `taxId`, `contactEmail`,
+  `contactPhone` and `websiteUrl` are `string | null`; `address`, `pwa`, `legal` and `lastChange` are the union
+  `anyOf [$ref, null]`. `paymentProviders` is required (always sent, `{}` without providers).
+  - The records they reach: every `ClubAddress` field, `ClubDomain.verifiedAt` (pending domain), `ClubLegal.imageConsentText`,
+    `ClubPwa.name`/`shortName` and `Theme.logoUrl`/`logoDarkUrl`/`markUrl` are `… | null`. `ClubLegal.imageConsentTextI18n`
+    and `ClubPwa.iconUrls` are required (always sent, `{}` when empty). `Theme` is also `/branding.theme`.
+  - `LastChange.actorName` is `string | null` (an audit entry without an actor), wherever `LastChange` appears.
+- `GET /dashboard` (`Dashboard.riskReview`, `pendingSignups`, `dogsByLevel`; the four `DashboardKpis` blocks; S14 §6):
+  still required, and now the union `anyOf [$ref, null]` instead of the `$ref` beside `type: [object, null]`, which a
+  JSON Schema 2020-12 validator refused for `null`.
+- `POST /training-bookings` (`TrainingBookingRequest.override`, R-09-16): the union `anyOf [TrainingOverride, null]`
+  instead of the `$ref` beside `type: "null"`, which accepted neither value.
+- `taxId` (S02 §3, R-02-06; review E3-T16 #3): stored normalized, upper case, without spaces or separators;
+  `ClubSettings.taxId`, `/branding.club.taxId` and the `ClubUpdate.taxId` description say so. `PUT /club` with
+  `"g-6318 9617"` stores and publishes `G63189617`; the same id with other spacing is no change.
+- The snapshot has no `$ref` with a sibling `type` any more (`E3GateFixesContractTest`).
+
 ## 2026-09-25 · E5-T15 · staff class detail, app row hours, descriptions
 
 **0 operations added, 1 changed (`GET /class-sessions/{id}` description); 0 schemas added**, 6 changed (`ClassSession`,

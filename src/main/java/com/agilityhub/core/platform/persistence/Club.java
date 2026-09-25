@@ -1,6 +1,7 @@
 package com.agilityhub.core.platform.persistence;
 
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.platform.domain.CountryProfile;
 import com.agilityhub.core.platform.domain.ImmutableValues;
 import com.agilityhub.core.platform.domain.Pwa;
 import com.agilityhub.core.platform.domain.Theme;
@@ -43,6 +44,9 @@ public record Club(@Id String id, String slug, String name, String legalName, St
     }
     public Club {
         template = Boolean.TRUE.equals(template);
+        // S02 §3, R-02-06 (E5-T16): the tax id is kept normalized, so every writer stores it, and every reader compares and
+        // publishes it, in one form; a value stored before the rule is read in that form too.
+        taxId = CountryProfile.normalizeTaxId(taxId);
         if (slug == null || !slug.matches("[a-z0-9-]{3,40}") || name == null || name.isBlank()) {
             throw new IllegalArgumentException("Invalid club identity");
         }

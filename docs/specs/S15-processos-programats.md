@@ -193,8 +193,8 @@ Dry run: `WOULD_EXPIRE_PACK`, `WOULD_WARN_PACK`, `WOULD_START_INACTIVITY`, `WOUL
 
 | Objectiu | Regla | Comptador |
 |---|---|---|
-| `seat_holds`, `magic_link_tokens`, `idempotency_records`, `job_locks`, `signup_notification_admissions` | res a fer: els esborra l'índex TTL (`expiresAt`); el procés només **informa** dels documents caducats que el TTL encara no ha tret (retard de fins a 60 s) | `ttlPending.*` |
-| fitxers d'alta orfes | claus `signup/{clubId}/…` a S3 amb `LastModified` de fa `> jobs.retention.orphanUploadsHours` (48) no referenciades per cap `DogDocument.files[].fileKey` → esborrades (S04 R-04-08) | `orphanUploadsDeleted` |
+| `seat_holds`, `magic_link_tokens`, `idempotency_records`, `job_locks`, `signup_notification_admissions`, `ring_slot_locks` | res a fer: els esborra l'índex TTL (`expiresAt`; a `ring_slot_locks`, `startsAt` + 7 dies: un slot passat ja no es reserva, i una escriptura posterior el recrea); el procés només **informa** dels documents caducats que el TTL encara no ha tret (retard de fins a 60 s) | `ttlPending.*` |
+| fitxers d'alta orfes | claus `signup/{clubId}/…` a S3 amb `LastModified` de fa `> jobs.retention.orphanUploadsHours` (48) no referenciades per cap `DogDocument.files[].fileKey` ni per una readmissió pendent (S04 R-04-06) → esborrades (S04 R-04-08) | `orphanUploadsDeleted` |
 | exports | `export_jobs` acabats fa `> jobs.retention.exportFilesDays` (7) → fitxer esborrat de S3, registre com a làpida `EXPIRED` amb `purgeAt` immediat (`ExportStatus` no té `PURGED`; organitzador 24-09) | `exportsPurged` |
 | `domain_events` | `processedAt < now − jobs.retention.domainEventsDays` (90) → esborrats (l'auditoria funcional viu a `audit_entries`); els **no processats** no es toquen mai | `domainEventsDeleted` |
 | `stripe_events` | `receivedAt < now − jobs.retention.stripeEventsDays` (400) → esborrats | `stripeEventsDeleted` |
@@ -257,7 +257,7 @@ Rutes de club (tenant del JWT); `{name}` = id de ruta de R-15-01 (`404 JOB_UNKNO
     {"classId":"c3","date":"2026-08-11","dayLabel":"TOMORROW","startTime":"20:00","displayDescription":"F i G","ringName":"Carretera","bookedCount":1,"status":"AT_RISK","reviewAt":"2026-08-11T05:30:00Z","notified":[{"memberName":"Pau","dogName":"Blat"}]},
     {"classId":"c4","date":"2026-08-12","dayLabel":"OTHER","startTime":"09:30","displayDescription":"Cadells","ringName":"Cadells","bookedCount":0,"status":"WILL_CANCEL","reviewAt":"2026-08-12T05:30:00Z","notified":[]} ] }
 ```
-`status` ∈ `AUTO_CANCELLED` · `AT_RISK` (avisada) · `WILL_CANCEL` (0 inscrits o encara sense avís; amb `autoCancelSameDay=false` → `WILL_REVIEW`). `WILL_CANCEL`/`WILL_REVIEW` només quan P2 de debò revisarà la classe: el procés `risk-review` està engegat i el seu `reviewAt` encara és futur. Passada l'hora de revisió del dia, o amb el procés apagat, una classe en risc és `AT_RISK` (amb `notified` si hi va haver avís) — organitzador 24-09, E37. `notified` es resol de `risk.notifiedBookingIds` (o de `cancellation.affectedBookings` si anul·lada).
+`status` ∈ `AUTO_CANCELLED` · `AT_RISK` (avisada) · `WILL_CANCEL` (0 inscrits o encara sense avís; amb `autoCancelSameDay=false` → `WILL_REVIEW`). `WILL_CANCEL`/`WILL_REVIEW` només quan P2 de debò revisarà la classe: el procés `risk-review` està engegat, el seu `reviewAt` encara és futur i la classe comença després del `reviewAt` (P2 salta les classes ja començades, `skippedStarted`). Passada l'hora de revisió del dia, o amb el procés apagat, una classe en risc és `AT_RISK` (amb `notified` si hi va haver avís) — organitzador 24-09, E37. `notified` es resol de `risk.notifiedBookingIds` (o de `cancellation.affectedBookings` si anul·lada).
 
 Codis d'error propis: `JOB_UNKNOWN` (404) · `JOB_ALREADY_RUNNING` (409) · reutilitzats `MODULE_DISABLED` (404), `VALIDATION_ERROR` (400), `INVALID_FILTER` (400).
 
@@ -397,3 +397,5 @@ Ordre: A → B ∥ C ∥ D → E. Tres fils en paral·lel després d'A: B (contr
 - 24-09-2026 · verificació d'E6-T01: la marca de P3 és `Attendance.noShowNotice.queuedAt` (subdocument `noShowNotice {queuedAt, eventId, sentAt}` d'S10 §3), amb l'índex `{clubId, state, "noShowNotice.queuedAt", classDate}`. Abans era `noticeSentAt`.
 - 24-09-2026 · §6: `WILL_CANCEL`/`WILL_REVIEW` només si P2 encara revisarà la classe; si no, `AT_RISK` (E37, revisió de la porta E3).
 - 25-09-2026 · verificació d'E3-T15: R-15-19 inclou `signup_notification_admissions` entre les col·leccions TTL de què P9 informa.
+- 25-09-2026 · verificació d'E5-T15: §6 (E37) també demana que la classe comenci després del seu `reviewAt`, perquè P2 salta les classes començades; R-15-19 afegeix `ring_slot_locks` a les col·leccions TTL (`expiresAt` = `startsAt` + 7 dies; E5-T17).
+- 25-09-2026 · re-execució de la porta E3: els fitxers d'una readmissió pendent compten com a referenciats per a P9 (R-15-19, S04 R-04-06; E3-T17).

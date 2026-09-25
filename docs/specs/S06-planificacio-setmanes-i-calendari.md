@@ -109,7 +109,7 @@ Lectures d'altres verticals: `Ring` (`shortName`, `color`, `active`, `activeSetu
 - Les classes soltes ja existents a la setmana es respecten (no es dedupliquen). Abans de cridar, la UI confirma «Es generaran com a esborrany les classes de la setmana del {dd/mm/aaaa}».
 - *Exemple:* l'última generada és 2026-W34 → la proposta és 2026-W35 (24–30/08) encara que W36 tampoc estigui generada; sense cap setmana generada, la proposta és la setmana en curs. Plantilla A amb 40 classes dl–dv + dissabtes 6 = 46; el 26/08 és festiu (5 classes) → 41 creades, `skipped: [{date: 2026-08-26, reason: HOLIDAY, count: 5}]`; canviar `club.holidays` després no toca les classes ja generades (l'admin les anul·la des de D4).
 
-**R-06-08 · Validació de la setmana.** [VALIDAR LA SETMANA] passa **totes** les classes `DRAFT` de la setmana a `ACTIVE` alhora (una transacció; `Week.state=VALIDATED`, `validatedAt`; `WeekValidated{classIds}`). Cal ≥ 1 esborrany (409 `NOTHING_TO_VALIDATE`) i cap incoherència entre esborranys i bloquejos (409 `WEEK_INCONSISTENT`). No existeix validació classe a classe. Els esborranys són **invisibles** per als alumnes (quadres, llistes i endpoints d'abonat els exclouen). Que la setmana sigui **reservable** depèn de `bookings.weekOpensAt` (S08): validar la setmana vinent el dijous no l'obre abans de diumenge 20:00.
+**R-06-08 · Validació de la setmana.** [VALIDAR LA SETMANA] passa **totes** les classes `DRAFT` de la setmana a `ACTIVE` alhora (una transacció; `Week.state=VALIDATED`, `validatedAt`; `WeekValidated{classIds}`). Cal ≥ 1 esborrany (422 `NOTHING_TO_VALIDATE`) i cap incoherència entre esborranys i bloquejos (422 `WEEK_INCONSISTENT`). No existeix validació classe a classe. Els esborranys són **invisibles** per als alumnes (quadres, llistes i endpoints d'abonat els exclouen). Que la setmana sigui **reservable** depèn de `bookings.weekOpensAt` (S08): validar la setmana vinent el dijous no l'obre abans de diumenge 20:00.
 
 **R-06-09 · Cicle i edició d'una classe.**
 - Estat en crear-la solta ([Crear classe]): `ACTIVE` si la seva `Week` és `VALIDATED` (la UI avisa «Els alumnes la veuran de seguida»), si no `DRAFT`. La data pot ser festiva (decisió explícita de l'admin; la UI ho avisa).
@@ -212,7 +212,7 @@ Base `CONVENCIONS_API.md`; totes les rutes són de club (tenant del JWT). `I` = 
 | POST | `/weeks` | ADMIN | — | sí | get-or-create | `{startDate}` (dilluns) | 200 existent / 201 creada; 400 si no és dilluns |
 | GET | `/weeks/{id}` | ADMIN, INSTRUCTOR | — | sí | fitxa | — | 200; 404 |
 | POST | `/weeks/{id}/generation` | ADMIN | — | per estat + `Idempotency-Key` | [GENERAR CLASSES] | `{weekdayTemplateId, saturdayTemplateId?}` | 200 `{weekId, classCount, skipped[{date,reason:HOLIDAY·PAST,count}]}`; 409 `WEEK_ALREADY_GENERATED`/`TEMPLATE_INCONSISTENT`; 422 `TEMPLATE_KIND_MISMATCH`/`WEEK_IN_PAST` |
-| POST | `/weeks/{id}/validation` | ADMIN | — | per estat | [VALIDAR LA SETMANA] | `{}` | 200 `{validatedClassIds[]}`; 409 `WEEK_INCONSISTENT`/`NOTHING_TO_VALIDATE` |
+| POST | `/weeks/{id}/validation` | ADMIN | — | per estat | [VALIDAR LA SETMANA] | `{}` | 200 `{validatedClassIds[]}`; 422 `WEEK_INCONSISTENT`/`NOTHING_TO_VALIDATE` |
 | GET | `/weeks/{id}/calendar` | ADMIN, INSTRUCTOR | — | sí | agregat de D4/D4b (forma B) | `?filter=ACTIVE\|DRAFT\|CANCELLED` | 200; 404 |
 | GET | `/class-sessions` | ADMIN, INSTRUCTOR | — | sí | llistat universal | `filter=date:between:…`, `state`, `ringId`, `instructorId`, `levelId` | 200 llistat; MEMBER → 403 (usa `/day-grid` i S08) |
 | POST | `/class-sessions` | ADMIN | — | no | [Crear classe] al calendari | `{date, startTime, endTime, ringId?, levelIds[], instructorIds[], capacity?, description?, cancelBookings?}` | 201 classe (estat per R-06-09); 422 idem plantilla; 409 `RING_HAS_BOOKINGS` (R-06-05) |
@@ -395,3 +395,4 @@ Ordre: P1 → (P2 ‖ P3 ‖ P4 ‖ P6) → P5 → P7.
 - 24-09-2026 · E29: R-06-03 compta «i sup.» només sobre els nivells de la progressió (`Level.progression`, S05); exemple i T-06-02 amb Teràpia (pregunta de l'executora a E4-W01).
 - 24-09-2026 · E29 (bis): la cobertura per nivell (R-06-06) només llista els nivells de la progressió.
 - 24-09-2026 · verificació d'E4-W03: la ruta de la pantalla 23 és `/instructor/avui`, la del registre de rutes de `PLA_FRONTEND.md` §2 (abans `/instructor/visio-global`).
+- 25-09-2026 · verificació d'E5-T15: R-06-08 i la fila de `POST /weeks/{id}/validation` de §6 diuen 422 per a `WEEK_INCONSISTENT` i `NOTHING_TO_VALIDATE`, com ja deia l'entrada del 16-09 (mana `CATALEG_ERRORS.md`; el codi ja respon 422).

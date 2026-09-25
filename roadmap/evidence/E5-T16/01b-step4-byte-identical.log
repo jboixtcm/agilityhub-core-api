@@ -1,0 +1,14 @@
+Step 4 (one shared NullableReferences customizer used by E3, E4, E5 and E6), before any step-1 contract change.
+
+$ bin/openapi-snapshot > roadmap/evidence/E5-T16/01-step4-snapshot.log 2>&1
+(exit 0; last line of the log: "Updated docs/openapi/openapi.json")
+
+$ git diff --stat docs/openapi/
+(no output: the regenerated document is identical to HEAD)
+
+$ shasum -a 256 docs/openapi/openapi.json
+2055718ea54d0350db98ae135a049dc271ea9f7afa5061c3518a3ed348833513  docs/openapi/openapi.json
+$ git show HEAD:docs/openapi/openapi.json | shasum -a 256
+2055718ea54d0350db98ae135a049dc271ea9f7afa5061c3518a3ed348833513  -
+$ git status --short docs/openapi/
+(no output)

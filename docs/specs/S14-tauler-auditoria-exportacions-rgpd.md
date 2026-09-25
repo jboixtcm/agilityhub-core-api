@@ -203,7 +203,7 @@ Tots amb `Authorization`; tenant del JWT; `403` rol no permès o token d'imperso
 | **Tots** els esdeveniments de mutació del catàleg | cap escriptura: l'auditoria s'escriu al servei amb `@Audited`/`AuditWriter` dins la transacció (R-14-10), no des del dispatcher |
 | `ImpersonationStarted` (S01) | verifica per contracte que S01 ha escrit `IMPERSONATION_STARTED` (test T-14-12); cap acció |
 | `AccountErased` | consumidor `ErasureFilesCleanup`: esborra `filesPending[]` d'S3 amb reintents i tanca la sol·licitud a `ERASED`; S11 elimina `PushSubscription`; S12 crida `forgetCustomer` |
-| `ClubModulesChanged`, `ParameterChanged{levels.enabled, coverage.*, classes.risk*, dashboard.*}` | invalida la cache del tauler |
+| `ClubModulesChanged`, `ParameterChanged{levels.enabled, coverage.*, classes.risk*, dashboard.*, jobs.riskReview.enabled}` | invalida la cache del tauler |
 
 ## 8. Notificacions
 
@@ -318,3 +318,4 @@ Dos fils: **fil 1 (transversal back)** = A → B → C → D (l'auditoria és bl
 - 24-09-2026 · verificació d'E3-T09: `AuditAction.SIGNUP_SUBMITTED` (enviament d'una readmissió, E38) i `origin = PUBLIC` a §3.
 - 24-09-2026 · R-14-06: la targeta de risc de D1 és el formulari A de `GET /risk-review` (S15 §6) amb els estats mapejats; si difereixen, mana S15 (verificació d'E5-T05).
 - 24-09-2026 · revisió de la porta E3: R-14-02 resta les baixes per `leftAt`; `dashboard.pendingSignupAgeWarnDays` = 2 (el catàleg; §13-1 resolt); R-14-07 només amb els nivells de la progressió (E35); els exemples «avisat Pau + Blat» segueixen l'ICU (un sol avisat).
+- 25-09-2026 · verificació d'E5-T15: §7 afegeix `jobs.riskReview.enabled` a les claus de `ParameterChanged` que invaliden el tauler (l'interruptor del procés `risk-review` canvia els estats de risc de D1, E37). El codi ja invalida amb qualsevol `ParameterChanged`; E5-T17 ho fixa amb un test.

@@ -1,6 +1,7 @@
 package com.agilityhub.core.platform.application;
 
 import com.agilityhub.core.platform.application.audit.*;
+import com.agilityhub.core.platform.domain.CountryProfile;
 import com.agilityhub.core.platform.domain.events.ClubModulesChanged;
 import com.agilityhub.core.platform.persistence.Club;
 import com.agilityhub.core.platform.persistence.ClubRepository;
@@ -67,9 +68,10 @@ public class ClubSettingsService {
         }
         if (!(request.get("version") instanceof Number version) || version.longValue() != before.version()
                 || version.doubleValue() != version.longValue()) { throw new ApiException(ErrorCode.STALE_VERSION); }
-        // S02 §3, R-02-06: the country profile checks a tax id the request changes; a stored one is never re-checked.
-        if (request.get("taxId") instanceof String taxId && !taxId.equals(before.taxId()) && !taxId.isBlank()
-                && !countries.get(before.countryProfile()).validateTaxId(taxId)) {
+        // S02 §3, R-02-06: the country profile checks a tax id the request changes; a stored one is never re-checked. Both are
+        // compared normalized (E5-T16), as the club stores it, so the same id with other spacing or case is no change.
+        String taxId = request.get("taxId") instanceof String typed ? CountryProfile.normalizeTaxId(typed) : null;
+        if (taxId != null && !taxId.equals(before.taxId()) && !countries.get(before.countryProfile()).validateTaxId(taxId)) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "taxId",
                     "fieldErrors", List.of(Map.of("field", "taxId", "code", "INVALID_VALUE"))));
         }

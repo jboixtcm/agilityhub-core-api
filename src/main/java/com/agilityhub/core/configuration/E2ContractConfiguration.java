@@ -10,9 +10,14 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** Registers the role-specific projections used by the same list operation. */
+/** Registers the role-specific projections used by the same list operation; the E2 schemas' nullable references. */
 @Configuration(proxyBeanMethods = false)
 public class E2ContractConfiguration {
+    /** E5-T16 (review E3-T16 #1): `GET /club` sends an unset `address`, `pwa`, `legal` or `lastChange` as `null`. */
+    static final List<String> NULLABLE_REFERENCES = List.of("ClubSettings");
+
+    @Bean OpenApiCustomizer e2NullableReferences() { return new NullableReferences(NULLABLE_REFERENCES); }
+
     @Bean OpenApiCustomizer e2ReaderProjections() {
         return api -> {
             var schemas = api.getComponents().getSchemas();

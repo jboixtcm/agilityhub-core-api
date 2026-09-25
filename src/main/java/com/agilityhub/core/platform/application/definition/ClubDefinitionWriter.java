@@ -107,8 +107,9 @@ public class ClubDefinitionWriter {
         }
         Club next = definitions.merge(definition, old, id, clock.instant(), trustedDomains);
         // S02 §3: the club's country profile checks a tax id the definition changes (the Cànic's CIF under `ES`). R-02-06: a
-        // profile switch does not re-check the stored one.
-        if (next.taxId() != null && !next.taxId().isBlank() && !next.taxId().equals(old == null ? null : old.taxId())
+        // profile switch does not re-check the stored one. `Club` keeps both normalized (E5-T16), so the same id with other
+        // spacing is no change here nor in the diff below.
+        if (next.taxId() != null && !next.taxId().equals(old == null ? null : old.taxId())
                 && !countries.get(next.countryProfile()).validateTaxId(next.taxId())) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "club.taxId"));
         }

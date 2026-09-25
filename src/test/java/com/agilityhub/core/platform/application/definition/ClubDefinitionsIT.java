@@ -170,9 +170,9 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     /**
      * E3-T16 round 2 (review #2; S02 R-02-06): switching a club's country profile does not re-check its stored data. A
      * `GENERIC` club keeps its unvalidated tax id when a definition moves it to `ES`; a tax id the definition changes is
-     * checked by the new profile.
+     * checked by the new profile. (E5-T16 step 3: named by the rule it asserts.)
      */
-    @Test void T_02_04_T_17_01_aProfileSwitchKeepsTheStoredTaxIdAndOnlyAChangedOneIsChecked() {
+    @Test void R_02_06_aProfileSwitchKeepsTheStoredTaxIdAndOnlyAChangedOneIsChecked() {
         var generic = seed("minim"); generic.withObject("club").put("taxId", "PT501234567");
         definitions.apply(generic, false);
         var spanish = generic.deepCopy(); spanish.withObject("club").put("countryProfile", "ES");
@@ -190,6 +190,24 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(definitions.apply(corrected, false).changes()).isEqualTo(1);
         assertThat(clubs.findBySlug("minim").orElseThrow().taxId()).isEqualTo("B12345674");
         assertThat(TenantContext.current()).isNull();
+    }
+    /**
+     * E5-T16 step 2 (review E3-T16 #3; S02 §3, R-02-06): a definition's tax id is stored normalized (upper case, without
+     * spaces or separators), so `/branding` publishes that form in the public footer. The same id written with other
+     * spacing, case or separators is no change.
+     */
+    @Test void R_02_06_clubApplyStoresTheTaxIdNormalizedAndOtherSpacingIsNoChange() throws Exception {
+        var typed = seed("canic"); typed.withObject("club").put("taxId", "g-6318 9617");
+        var id = definitions.apply(typed, false).id();
+        assertThat(mongo.getCollection("clubs").find(new org.bson.Document("_id", id)).first().getString("taxId")).isEqualTo("G63189617");
+        var club = mapper.readTree(mvc.perform(get("/api/v1/branding").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).path("club");
+        assertThat(club.path("taxId").asText()).isEqualTo("G63189617");
+        assertThat(definitions.apply(seed("canic"), true).changes()).isZero();
+        var respaced = seed("canic"); respaced.withObject("club").put("taxId", "G 6318.9617");
+        var again = definitions.apply(respaced, false);
+        assertThat(again.changes()).isZero(); assertThat(again.render(false)).contains("= club unchanged");
+        assertThat(definitions.export("canic").at("/club/taxId").asText()).isEqualTo("G63189617");
     }
     /**
      * E3-T14: a club applied before (provider names only, so no `enabled` flag) gets one change from the new seed, then none.
@@ -224,10 +242,11 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     /** The Cànic seed, opened (`ACTIVE`) so that its public form answers; the activation goes through `club:apply` too. */
     ObjectNode activeCanic() { var definition = seed("canic"); definition.withObject("club").put("status", "ACTIVE"); return definition; }
     /**
-     * Round 2 (review #3, R-04-27): `club:apply` publishes `ClubConfigChanged` (catalog type `ClubUpdated`), and the
+     * Round 2 (review #3, R-04-10): `club:apply` publishes `ClubConfigChanged` (catalog type `ClubUpdated`), and the
      * `GET /signup` configuration cache is evicted right after its commit. This test never evicts that cache by hand.
+     * (E5-T16 step 3: R-04-10, the organizer's E3-T14 note.)
      */
-    @Test void R_04_27_T_17_01_clubApplyRefreshesTheSignupFormsPaymentMethods() throws Exception {
+    @Test void R_04_10_clubApplyRefreshesTheSignupFormsPaymentMethods() throws Exception {
         var definition = activeCanic();
         definitions.apply(definition, false);
         assertThat(offered()).containsExactly("SEPA_DD", "MANUAL");

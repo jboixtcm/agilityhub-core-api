@@ -214,9 +214,10 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
      * `PaymentMethodView`, `Address`…). Real responses are validated against the committed snapshot with a JSON Schema
      * 2020-12 validator, so a `null` the snapshot does not declare fails (and so does any other shape it does not publish):
      * public submissions by cash and by direct debit without an IBAN and their D2 views, an add-dog and its view, a pending
-     * readmission and its view, and a view without BILLING.
+     * readmission and its view, and a view without BILLING. E5-T16 step 3: named by the rules of the D2 view (R-04-19) and of
+     * the two submission results (R-04-25, R-04-26), as T-04-29 and T-04-33 are web UI tests.
      */
-    @Test void T_04_29_T_04_33_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend() throws Exception {
+    @Test void R_04_19_R_04_25_R_04_26_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend() throws Exception {
         var problems=new ArrayList<String>();
         java.util.function.BiConsumer<JsonNode,String> conforms=(value,schema) -> {
             assertThat(value.isObject()).as(schema).isTrue();
