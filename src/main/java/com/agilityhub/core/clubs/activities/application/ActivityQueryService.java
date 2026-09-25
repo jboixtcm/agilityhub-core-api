@@ -30,7 +30,7 @@ public class ActivityQueryService implements ActivityTitlePort {
         try { ActivityEligibility.check(a.state(),context.times(a),a.date(),member,a.levelIds(),context.levels(),context.enabled(Module.INACTIVITY),false,dogId,context.clock.instant()); }
         catch(ApiException error) { state="NOT_BOOKABLE"; reason=error.code().name(); }
         return object("id",a.id(),"title",projection.title(a),"typeLabel",projection.type(a),"startsAtLocal",projection.local(context.times(a).startsAt()),
-                "endsAtLocal",projection.local(context.times(a).endsAt()),"placeLabel",projection.place(a),"rowState",state,"notBookableReason",reason,
+                "endsAtLocal",projection.endsAtLocal(a),"placeLabel",projection.place(a),"rowState",state,"notBookableReason",reason,
                 "freeSeats",projection.free(a),"waiting",a.counters().waiting(),"waitlistEnabled",projection.waitlist(a));
     }
     public List<Map<String,Object>> liveRegistrationsFor(String memberId) {
@@ -40,7 +40,7 @@ public class ActivityQueryService implements ActivityTitlePort {
             var a=activities.require(r.activityId());
             if(r.state()==RegistrationState.CANCELLED || !context.times(a).endsAt().isAfter(context.clock.instant())) continue;
             var times=context.times(a); result.add(object("type","ACTIVITY","id",r.id(),"activityId",a.id(),"state",r.state()==RegistrationState.ACTIVE?"REGISTERED":"WAITLISTED",
-                    "title",projection.title(a),"startsAt",times.startsAt(),"startsAtLocal",projection.local(times.startsAt()),"endsAtLocal",projection.local(times.endsAt()),"ringName",projection.place(a),"dogId",null));
+                    "title",projection.title(a),"startsAt",times.startsAt(),"startsAtLocal",projection.local(times.startsAt()),"endsAtLocal",projection.endsAtLocal(a),"ringName",projection.place(a),"dogId",null));
         }
         result.sort(Comparator.comparing(r -> r.get("startsAtLocal").toString())); return result;
     }

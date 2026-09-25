@@ -1,0 +1,14 @@
+Command: /Users/jordib/Dropbox/Documents/SOFTWARE_CANIC/05-desenvolupament/roadmap-kit/mac/heavy.sh ./mvnw -q clean verify  (log 09-clean-verify.log)
+Exit code: 0
+Read from target/surefire-reports/TEST-*.xml and target/failsafe-reports/TEST-*.xml right after that run.
+
+surefire: tests=542 failures=0 errors=0 skipped=0 (120 classes)
+  E4ResponseContractTest: tests=4 failures=0 errors=0 skipped=0        (changed: fixtures ActivityListItem, ActivityRegistrationListItem)
+  ApiExceptionHandlerTest: tests=8 failures=0 errors=0 skipped=0       (changed: flaky "abc" input -> "xyz")
+  OpenApiNullableEnumContractTest: tests=3 failures=0 errors=0 skipped=0
+  OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+failsafe: tests=954 failures=0 errors=0 skipped=0 (84 classes)
+  ActivityIT: tests=29 failures=0 errors=0 skipped=0                   (changed: +3 E4-T06 tests)
+  DemoPlanningSeedIT: tests=8 failures=0 errors=0 skipped=0            (changed: +1 E4-T06 test)
+  MemberAggregatesIT: tests=6 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0

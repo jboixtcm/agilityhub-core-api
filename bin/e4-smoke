@@ -213,6 +213,22 @@ class Smoke:
         instructor = self.login("instructor@example.test", "clubs-app")
         rings = {r["shortName"]: r["id"] for r in self.call("GET", "/api/v1/rings", access=admin)["items"]}
 
+        # D7 (E4-T06): the columns of the four seeded activities come from the list row and equal each activity's own view.
+        d7 = {a["title"]: a for a in self.call("GET", "/api/v1/activities", access=admin)["items"]}
+        expected = {"Torneig d'Estiu 2026": ("competició", "18:30", "20:30", True, None, 40),
+                    "Seminari de handling": ("seminari", "09:00", "13:00", False, None, 12),
+                    "Lliga social — 3a jornada": ("lliga social", "09:00", "14:00", True, None, None),
+                    "Demostració Festa Major": ("demostració", None, None, False, "Plaça Major de Poble Fictici", None)}
+        require(set(d7) == set(expected), "D7 must list the four seeded activities")
+        for title, values in expected.items():
+            row = d7[title]
+            require((row["typeDisplay"], row["startTime"], row["endTime"], row["allRings"], row["location"], row["maxPlaces"]) == values,
+                    "D7 columns mismatch: " + title)
+            view = self.call("GET", f"/api/v1/activities/{row['id']}", access=admin, quiet=True)
+            require(all(row[k] == view[k] for k in ("typeDisplay", "startTime", "endTime", "allRings", "maxPlaces"))
+                    and row["location"] == (None if view["location"]["atClub"] else view["location"]["name"]), "D7 row differs from its view: " + title)
+        self.record("admin GET /activities (D7)", "200", "4 seeded rows; typeDisplay, hours, allRings, location, maxPlaces = each activity's view")
+
         # D3: three seeded templates, B inconsistent; generation from B is blocked.
         templates = {t["name"]: t for t in self.call("GET", "/api/v1/week-templates", access=admin)["items"]}
         require(len(templates) == 3 and templates["Setmana B"]["inconsistencyCount"] == 1
@@ -334,6 +350,22 @@ class Smoke:
         registration = self.call("POST", "/api/v1/activity-registrations", 201, access=member, idempotent=True, body=dict(activityId=activity["id"]))
         require(registration["state"] == "ACTIVE", "Registration must be ACTIVE")
         self.record("member POST /activity-registrations", "201 ACTIVE")
+        # E4-T06: an activity without an end reaches every read model with a null end (the model keeps next-day 00:00 inside).
+        league_day = self.date(3, "SUNDAY")
+        league = self.call("POST", "/api/v1/activities", 201, access=admin, body=dict(title=dict(ca="Lliga smoke E4 " + self.suffix), type="SOCIAL_LEAGUE"))
+        league = self.call("PATCH", f"/api/v1/activities/{league['id']}", access=admin,
+                           body=dict(version=league["version"], date=str(league_day), startTime="09:00", location=dict(atClub=False, name="Parc fictici E4"),
+                                     registrationFrom=str(today), registrationTo=str(league_day - datetime.timedelta(days=1))))
+        league = self.call("POST", f"/api/v1/activities/{league['id']}/publication", access=admin, idempotent=True, body={})
+        bookable = next(r for r in self.call("GET", "/api/v1/me/activities", access=member)["bookable"] if r["id"] == league["id"])
+        joined = self.call("POST", "/api/v1/activity-registrations", 201, access=member, idempotent=True, body=dict(activityId=league["id"]))
+        home = next(r for r in self.call("GET", "/api/v1/me/home", access=member)["reservations"] if r["id"] == joined["id"])
+        listed = next(a for a in self.call("GET", "/api/v1/activities", access=admin)["items"] if a["id"] == league["id"])
+        require(league["endTime"] is None and bookable["startsAtLocal"] == f"{league_day}T09:00"
+                and all("endsAtLocal" in r and r["endsAtLocal"] is None for r in (bookable, joined["activity"], home))
+                and listed["startTime"] == "09:00" and "endTime" in listed and listed["endTime"] is None, "A start-only activity got a made-up end")
+        self.record("start-only activity (Sun 09:00, no end)", "PUBLISHED",
+                    "endTime null on D7; endsAtLocal null on /me/activities, the registration and /me/home")
         self.call("GET", "/api/v1/public/canic/activities?scope=upcoming", 403, error="INVALID_API_KEY")
         public = self.call("GET", "/api/v1/public/canic/activities?scope=upcoming", api_key=self.public_key)
         item = next(a for a in public["items"] if a["slug"] == published["slug"])

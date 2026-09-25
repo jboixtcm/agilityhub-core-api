@@ -31,7 +31,8 @@ class ApiExceptionHandlerTest {
         logger.addAppender(appender);
         try {
             var requests = java.util.List.of(
-                    post("/page"), get("/page").param("page", "abc"),
+                    // Not hex, so the random traceId can never contain it (E4-T06: "abc" did, in one clean verify).
+                    post("/page"), get("/page").param("page", "xyz"),
                     post("/validation").contentType("text/plain").content("fictional input"),
                     get("/json").accept("text/plain"), get("/page"), get("/missing"), get("/upload-too-large"));
             var statuses = java.util.List.of(405, 400, 415, 406, 400, 404, 400);
@@ -54,7 +55,7 @@ class ApiExceptionHandlerTest {
                 if (index == 1) {
                     assertThat(body.at("/details/fieldErrors/0/field").asText()).isEqualTo("page");
                     assertThat(body.at("/details/fieldErrors/0/code").asText()).isEqualTo("TYPE_MISMATCH");
-                    assertThat(result.getResponse().getContentAsString()).doesNotContain("abc", "NumberFormatException");
+                    assertThat(result.getResponse().getContentAsString()).doesNotContain("xyz", "NumberFormatException");
                 }
             }
         } finally { logger.detachAppender(appender); appender.stop(); }

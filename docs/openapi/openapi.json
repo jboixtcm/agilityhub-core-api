@@ -478,6 +478,10 @@
       },
       "ActivityListItem" : {
         "properties" : {
+          "allRings" : {
+            "description" : "The rings are every active ring of the catalog (R-07-11: «totes — bloquejades»)",
+            "type" : "boolean"
+          },
           "createdAt" : {
             "format" : "date-time",
             "type" : "string"
@@ -486,8 +490,21 @@
             "format" : "date",
             "type" : [ "string", "null" ]
           },
+          "endTime" : {
+            "description" : "Club-local HH:mm (R-07-13); null when the activity has no end (never the model's next-day 00:00)",
+            "type" : [ "string", "null" ]
+          },
           "id" : {
             "type" : "string"
+          },
+          "location" : {
+            "description" : "The free text of an activity away from the club («— (fora del club)»); null at the club",
+            "type" : [ "string", "null" ]
+          },
+          "maxPlaces" : {
+            "description" : "null = no maximum («obertes · socis»)",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           },
           "registrationTo" : {
             "format" : "date",
@@ -505,6 +522,10 @@
           "slug" : {
             "type" : "string"
           },
+          "startTime" : {
+            "description" : "Club-local HH:mm (R-07-13); null without hours",
+            "type" : [ "string", "null" ]
+          },
           "state" : {
             "enum" : [ "DRAFT", "PUBLISHED", "FINISHED", "CANCELLED" ],
             "type" : "string"
@@ -515,9 +536,13 @@
           "type" : {
             "enum" : [ "SEMINAR", "SOCIAL_LEAGUE", "COMPETITION", "DEMONSTRATION", "COURSE", "OTHER" ],
             "type" : "string"
+          },
+          "typeDisplay" : {
+            "description" : "The label of `type` in the reader's locale, or the club's free label (R-07-01): «{title} · {typeDisplay}»",
+            "type" : "string"
           }
         },
-        "required" : [ "createdAt", "id", "registrations", "rings", "slug", "state", "title", "type" ],
+        "required" : [ "allRings", "createdAt", "endTime", "id", "location", "maxPlaces", "registrations", "rings", "slug", "startTime", "state", "title", "type", "typeDisplay" ],
         "type" : "object"
       },
       "ActivityLocation" : {
@@ -787,10 +812,12 @@
       "ActivityRegistrationListItem" : {
         "properties" : {
           "cancelReason" : {
+            "description" : "null until the registration is cancelled",
             "enum" : [ "MEMBER", "ACTIVITY_CANCELLED", "INACTIVITY", "MEMBER_LEFT", "ADMIN", null ],
             "type" : [ "string", "null" ]
           },
           "cancelledAt" : {
+            "description" : "null until the registration is cancelled",
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
@@ -802,6 +829,7 @@
             "type" : "string"
           },
           "position" : {
+            "description" : "WAITLISTED only; null otherwise",
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
@@ -817,7 +845,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "member", "origin", "registeredAt", "registrationId", "state" ],
+        "required" : [ "cancelReason", "cancelledAt", "member", "origin", "position", "registeredAt", "registrationId", "state" ],
         "type" : "object"
       },
       "ActivityRegistrationMember" : {
@@ -964,7 +992,8 @@
       "ActivityRow" : {
         "properties" : {
           "endsAtLocal" : {
-            "type" : "string"
+            "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13); null when the activity has no end (S07 «Canvis» 24-09)",
+            "type" : [ "string", "null" ]
           },
           "freeSeats" : {
             "format" : "int32",
@@ -984,6 +1013,7 @@
             "type" : "string"
           },
           "startsAtLocal" : {
+            "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13)",
             "type" : "string"
           },
           "title" : {
@@ -10677,7 +10707,8 @@
       "RegisteredActivity" : {
         "properties" : {
           "endsAtLocal" : {
-            "type" : "string"
+            "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13); null when the activity has no end (S07 «Canvis» 24-09)",
+            "type" : [ "string", "null" ]
           },
           "id" : {
             "type" : "string"
@@ -10686,6 +10717,7 @@
             "type" : "string"
           },
           "startsAtLocal" : {
+            "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13)",
             "type" : "string"
           },
           "title" : {

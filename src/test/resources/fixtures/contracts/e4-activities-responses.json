@@ -335,5 +335,49 @@
         "dogName": "Example dog"
       }
     ]
+  },
+  "ActivityListItem": {
+    "id": "activity-b",
+    "title": "Example league",
+    "typeDisplay": "social league",
+    "date": "2026-09-19",
+    "startTime": "09:00",
+    "endTime": null,
+    "rings": [],
+    "allRings": false,
+    "location": "Example park",
+    "registrations": {
+      "active": 10,
+      "waiting": 0
+    },
+    "maxPlaces": null,
+    "state": "PUBLISHED",
+    "type": "SOCIAL_LEAGUE",
+    "slug": "example-league",
+    "registrationTo": "2026-09-18",
+    "createdAt": "2026-09-01T08:00:00Z"
+  },
+  "ActivityRegistrationListItem": {
+    "registrationId": "registration-b",
+    "member": {
+      "id": "member-a",
+      "fullName": "Example member",
+      "memberNumber": "7",
+      "phones": [
+        {
+          "prefix": "+34",
+          "number": "600000001"
+        }
+      ],
+      "emails": [
+        "member.a@example.test"
+      ]
+    },
+    "state": "ACTIVE",
+    "position": null,
+    "origin": "APP",
+    "registeredAt": "2026-09-14T16:00:00Z",
+    "cancelledAt": null,
+    "cancelReason": null
   }
 }

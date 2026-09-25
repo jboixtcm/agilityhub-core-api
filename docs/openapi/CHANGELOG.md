@@ -2,6 +2,31 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E4-T06 · activity read models for D7 and the app
+
+**0 operations added, 7 changed; 0 schemas added**, 4 changed (`ActivityListItem`, `ActivityRegistrationListItem`,
+`RegisteredActivity`, `ActivityRow`). Additive: new properties, and properties that are now always sent. Two
+`endsAtLocal` fields widen to `string | null`.
+
+- `GET /activities` (S07 §2 D7, R-07-01, R-07-11, R-07-13): `ActivityListItem` gains the D7 columns, all required:
+  - `typeDisplay`: the label of `type` in the reader's locale, or the club's free label;
+  - `startTime` and `endTime`: club-local `HH:mm` or `null`. `endTime` is `null` when the activity has no end;
+  - `allRings`: the rings are every active ring of the catalog;
+  - `location`: `string | null`, the free text of an activity away from the club;
+  - `maxPlaces`: `integer | null`, `null` without a maximum.
+
+  The values are those of `GET /activities/{id}`. `fields=` can select them.
+- `GET /activities/{id}/registrations`: `ActivityRegistrationListItem.cancelReason`, `cancelledAt` and `position` are
+  now required, and `null` until they apply. `cancelReason` keeps `null` in its `enum`. The serializer always sends
+  them, and never omits them.
+- `POST /activity-registrations`, `GET /activity-registrations/{id}`, `POST /activity-registrations/{id}/cancellation`,
+  `GET /me/activities` (`mine[].activity`) and `GET /me/activities/{activityId}` (`myRegistration.activity`):
+  `RegisteredActivity.endsAtLocal` is `string | null` (was `string`). It is `null` for an activity without an end
+  time (S07 «Canvis» 24-09, point 3).
+- `GET /me/activities` (`bookable[]`): `ActivityRow.endsAtLocal` is `string | null` (was `string`), with the same rule.
+- `GET /me/home`: the schema is unchanged (`ReservationRow.endsAtLocal` was already nullable). An `ACTIVITY` row of an
+  activity without an end now sends `null` instead of the next day at 00:00.
+
 ## 2026-09-25 · E3-T16 · the member's document types, the public footer, the list page sizes
 
 **0 operations added, 30 changed; 2 schemas added** (`DogDocumentType`, `LegalAddress`), 4 changed (`MeDogs`,

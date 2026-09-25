@@ -21,9 +21,14 @@ public class ActivityProjection {
     }
     public String text(LocalizedText value) { return value==null?null:value.withDefaultLocale(context.config().club().defaultLocale()).resolve(LocaleContext.current()).value(); }
     public String title(Activity a) { return text(a.title()); }
-    public String type(Activity a) { return a.typeLabel()==null?context.messages.format("activities.typeLabel."+a.type(),Map.of(),LocaleContext.current()):text(a.typeLabel()); }
+    public String type(Activity a) { return type(a.type(),a.typeLabel()); }
+    /** `typeDisplay`: the club's free label in the reader's locale, otherwise the product label of the enum (R-07-01). Shared with the D7 list. */
+    public String type(ActivityType type,LocalizedText label) { return label==null?context.messages.format("activities.typeLabel."+type,Map.of(),LocaleContext.current()):text(label); }
     private List<PlanningCatalogAccess.RingView> rings(Activity a) { return context.catalogs.rings().stream().filter(r -> a.ringIds().contains(r.id())).toList(); }
-    public boolean allRings(Activity a) { return !a.ringIds().isEmpty() && new HashSet<>(a.ringIds()).equals(context.catalogs.rings().stream().filter(PlanningCatalogAccess.RingView::active).map(PlanningCatalogAccess.RingView::id).collect(java.util.stream.Collectors.toSet())); }
+    public boolean allRings(Activity a) { return allRings(a.ringIds(),activeRingIds()); }
+    public Set<String> activeRingIds() { return context.catalogs.rings().stream().filter(PlanningCatalogAccess.RingView::active).map(PlanningCatalogAccess.RingView::id).collect(java.util.stream.Collectors.toSet()); }
+    /** Every active ring of the catalog (R-07-11 «totes les pistes»); the D7 list reads the catalog once per page. */
+    public static boolean allRings(Collection<String> ringIds,Set<String> activeRingIds) { return !ringIds.isEmpty() && new HashSet<>(ringIds).equals(activeRingIds); }
     public String place(Activity a) {
         var all=new LinkedHashMap<String,String>(); var active=new LinkedHashMap<String,String>();
         context.catalogs.rings().forEach(r -> { all.put(r.id(),r.name()); if(r.active()) active.put(r.id(),r.name()); });
@@ -56,9 +61,14 @@ public class ActivityProjection {
         return result;
     }
     public Map<String,Object> registeredActivity(Activity a) {
-        var times=context.times(a); return object("id",a.id(),"title",title(a),"startsAtLocal",local(times.startsAt()),"endsAtLocal",local(times.endsAt()),"placeLabel",place(a));
+        return object("id",a.id(),"title",title(a),"startsAtLocal",local(context.times(a).startsAt()),"endsAtLocal",endsAtLocal(a),"placeLabel",place(a));
     }
     public String local(Instant instant) { return instant==null?null:instant.atZone(context.zone()).toLocalDateTime().toString(); }
+    /**
+     * S07 «Canvis» 24-09 (3): `null` for an activity without an end time. `endsAt` keeps the model's convention (the next day at
+     * 00:00 local, for ordering, deadlines and the schedulers); the read models never show that made-up end.
+     */
+    public String endsAtLocal(Activity a) { return a.endTime()==null?null:local(context.times(a).endsAt()); }
     public Map<String,Object> registration(ActivityRegistration r,Activity a) {
         return object("id",r.id(),"activityId",a.id(),"memberId",r.memberId(),"state",r.state(),"origin",r.origin(),"position",r.position(),"activity",registeredActivity(a),
                 "registeredAt",r.registeredAt(),"registeredBy",object("displayName",r.registeredBy().displayName(),"viaClub",r.registeredBy().impersonatedMemberId()!=null),

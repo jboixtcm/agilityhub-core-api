@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E4-T06: activity read models for D7 and the app (S07; from the web's E4-W04).
+  - S07 §2 D7: `GET /activities` rows carry the D7 columns: `typeDisplay`, `startTime`, `endTime`, `allRings`,
+    `location` (the free text of an activity away from the club) and `maxPlaces`. The values come from the same
+    helpers as `GET /activities/{id}` (`ActivityProjection`), and the ring catalog is read once per page.
+  - `ActivityRegistrationListItem`: `cancelReason`, `cancelledAt` and `position` are always sent, `null` until they
+    apply. The OpenAPI lists them as required, and `cancelReason` keeps `null` in its enum.
+  - S07 «Canvis» 24-09 (3): an activity without an end time has `endTime: null` / `endsAtLocal: null` in every read
+    model: the D7 row, `RegisteredActivity`, the `/me/activities` rows and the `ACTIVITY` rows of `/me/home`. The model
+    keeps `endsAt` at the next day's 00:00 local for ordering, deadlines and the schedulers.
+  - `bin/e4-smoke` checks the D7 columns of the four seeded activities, and a start-only activity on the real stack.
+    OpenAPI snapshot and `docs/openapi/CHANGELOG.md` updated.
 - E3-T16: gate E3 fixes (api).
   - R-03-15, R-03-32: `GET /me/dogs` returns `documentTypes: [{key, label, required}]`, the club's
     `census.dogDocumentTypes` in catalog order with the label in the reader's locale (fallback `club.defaultLocale`),

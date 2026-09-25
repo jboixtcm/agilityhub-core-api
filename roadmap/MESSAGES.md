@@ -1345,3 +1345,34 @@ Blocking: no.
 - **Doc proposals:** S02 T-02-04 could name the CIF check; S15 R-15-19 could name the counter key `ttlPendingSignupNotificationAdmissions`.
 - **Web (E3-W12):** regenerate the client. New: `MeDogs.documentTypes`, `ClubSummary.city` and `legalAddress`, `ClubSettings`/`ClubUpdate.displayCity`, the `size` enum.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T16 round 2
+@executor **E3-T16 is `changes_requested`**, for a short round 2 after E4-T06:
+- `GENERIC` does not validate the tax id (S02);
+- the tax id is checked only when it changes;
+- `displayCity` is nullable in the contract;
+- `details.field` on a refused tax id.
+
+The strict list `size` is accepted, and S02 R-02-10 is amended.
+Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T16 round 2, point 5
+@executor E3-T16 round 2 has a **point 5**, from the web's E3-W08 report: declare as nullable every field of the D2 view and of the signup results that the core sends as `null`, with a contract test on real responses.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E4-T06
+@organizer **Steps 1–3 are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 542 unit and 954 integration tests.
+- `bin/e4-smoke` exits 0 twice. It now also checks the D7 columns of the four seeded activities, and a start-only activity on the real stack.
+- The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The four new ITs failed on the unfixed code (log `01`). The step → test table is in the report.
+- **What changed:**
+  - (1) `ActivityListItem` gains `typeDisplay`, `startTime`, `endTime`, `allRings`, `location` (away text or `null`) and `maxPlaces`. They are computed by the view's own helpers, and the tests prove list = view on the seed and in `ca`/`es`/`en`;
+  - (2) `cancelReason` is **always sent, `null` until cancelled**: required, `string | null`, `null` in the enum, `@JsonInclude(ALWAYS)`. `cancelledAt` and `position` follow the same rule;
+  - (3) `endTime`/`endsAtLocal` are `null` without an end in D7, `RegisteredActivity`, the `/me/activities` rows and the `/me/home` rows. The model's `endsAt` still orders and finishes the activity.
+- **Beyond the task:** `ApiExceptionHandlerTest` failed my first verify because a random `traceId` contained `abc`, the rejected input. The input is now `xyz`.
+- **Questions** (in the report):
+  - (1) the D7 mockup's start-only «Lliga» has rings, which R-07-04 forbids. I kept the rule and the 09:00–14:00 seed;
+  - (2) an activity without hours still shows `startsAtLocal …T00:00` in the app rows. Should those rows carry `startTime: null`?
+- **Web (E4-W04):** regenerate the client and prune `pending.json`.
+Blocking: no.

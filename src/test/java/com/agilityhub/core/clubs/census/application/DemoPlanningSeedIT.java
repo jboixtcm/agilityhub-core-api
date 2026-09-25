@@ -136,6 +136,29 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         assertThat(mongo.count(Query.query(Criteria.where("phones.0.prefix").is("+34")), "members")).isEqualTo(194);
     }
 
+    @Test void T_07_29_T_07_32_theD7ListCarriesTheColumnsOfTheFourSeedActivities() throws Exception {
+        // E4-T06 step 1: every D7 column (S07 §2: «{títol} · {tipus}», date and hours, rings or «fora del club», «22/40») comes from the row.
+        seed();
+        var items = admin(get("/api/v1/activities")).path("items");
+        assertThat(items).extracting(com.agilityhub.core.clubs.activities.application.D7Columns::row).as("default sort date desc").containsExactly(
+                "Demostració Festa Major · demostració · " + MONDAY.plusWeeks(8).plusDays(6) + " · null-null · allRings=false · rings=[] · location=Plaça Major de Poble Fictici · 0+0/null · DRAFT",
+                "Lliga social — 3a jornada · lliga social · " + MONDAY.plusWeeks(6).plusDays(5) + " · 09:00-14:00 · allRings=true · rings=[Cadells, Carretera, Central, Muntanya, Petita] · location=null · 10+0/null · PUBLISHED",
+                "Seminari de handling · seminari · " + MONDAY.plusWeeks(5).plusDays(5) + " · 09:00-13:00 · allRings=false · rings=[Central] · location=null · 12+2/12 · PUBLISHED",
+                "Torneig d'Estiu 2026 · competició · " + MONDAY.plusWeeks(2).plusDays(5) + " · 18:30-20:30 · allRings=true · rings=[Cadells, Carretera, Central, Muntanya, Petita] · location=null · 22+0/40 · PUBLISHED");
+        for (String language : List.of("ca", "es")) {
+            var rows = call(get("/api/v1/activities").header("Accept-Language", language), "ADMIN", 200).path("items");
+            for (var item : rows) {
+                SnapshotSchemas.assertConforms(item, "ActivityListItem");
+                var view = call(get("/api/v1/activities/" + item.path("id").asText()).header("Accept-Language", language), "ADMIN", 200);
+                com.agilityhub.core.clubs.activities.application.D7Columns.assertSameAsView(item, view, language);
+            }
+            if (language.equals("es")) {
+                assertThat(rows).extracting(i -> i.path("title").asText() + " · " + i.path("typeDisplay").asText()).containsExactly("Demostración Fiesta Mayor · demostración",
+                        "Liga social — 3.ª jornada · liga social", "Seminario de handling · seminario", "Torneo de Verano 2026 · competición");
+            }
+        }
+    }
+
     @Test void T_06_28_demoPlanningIsDeterministicIdempotentAndGuarded() throws Exception {
         seed(); var first = registrants(); var saved = snapshot();
         seed(); seed("--week-start=2026-09-14"); assertThat(snapshot()).isEqualTo(saved);

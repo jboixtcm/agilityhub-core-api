@@ -425,4 +425,112 @@ class ActivityIT extends ActivityFixtures {
         assertThat(call("GET","/activities?filter=registrationOpen:eq:true",null,"admin","ADMIN",200).path("items")).hasSize(1);
         try(var tenant=TenantContext.open(CLUB)) { assertThat(lifecycle.finishEnded(clock.instant())).isZero(); }
     }
+
+    // ---- E4-T06: the read models of D7 and the app (S07 §2 D7, R-07-11, R-07-13 and the «Canvis» of 24-09)
+    JsonNode find(JsonNode rows,String field,String value) {
+        for(var row:rows) if(row.path(field).asText().equals(value)) return row;
+        throw new AssertionError(field+"="+value+" is not in "+rows);
+    }
+    JsonNode read(String path,String member,String role,String language) throws Exception {
+        return mapper.readTree(mvc.perform(auth(get("/api/v1"+path),member,role).header("Accept-Language",language)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+    }
+    static void assertNoEnd(JsonNode row,String field) {
+        assertThat(row.has(field)).as(field+" is sent: "+row).isTrue();
+        assertThat(row.path(field).isNull()).as("no made-up end: "+row).isTrue();
+    }
+    /** «Lliga exemple»: Saturday 19-09 from 9:00, no end, away from the club (a published activity with rings needs both hours, R-07-04). */
+    JsonNode startOnly() throws Exception {
+        var a=create(); var patch=new LinkedHashMap<String,Object>(); patch.put("version",a.path("version").asLong());
+        patch.put("title",Map.of("ca","Lliga exemple","es","Liga ejemplo","en","Example league")); patch.put("type","SOCIAL_LEAGUE");
+        patch.put("date","2026-09-19"); patch.put("startTime","09:00"); patch.put("location",Map.of("atClub",false,"name","Example park"));
+        patch.put("registrationFrom","2026-09-01"); patch.put("registrationTo","2026-09-18");
+        call("PATCH","/activities/"+a.path("id").asText(),patch,"admin","ADMIN",200);
+        return call("POST","/activities/"+a.path("id").asText()+"/publication",Map.of(),"admin","ADMIN",200);
+    }
+    @Test void T_07_16_T_07_18_aStartOnlyActivityHasANullEndInEveryReadModel() throws Exception {
+        var lliga=startOnly(); String id=lliga.path("id").asText(), ended=published(5,false).path("id").asText(); // 15-09 18:00–20:00
+        // The model keeps its convention (the next day at 00:00 local) for ordering and the schedulers; no read model shows it.
+        assertNoEnd(lliga,"endTime"); assertThat(lliga.path("endsAt").asText()).isEqualTo("2026-09-19T22:00:00Z");
+        var bookable=call("GET","/me/activities",null,"m0","MEMBER",200).path("bookable");
+        assertThat(find(bookable,"id",id).path("startsAtLocal").asText()).isEqualTo("2026-09-19T09:00"); assertNoEnd(find(bookable,"id",id),"endsAtLocal");
+        assertThat(find(bookable,"id",ended).path("endsAtLocal").asText()).isEqualTo("2026-09-15T20:00");
+        var registration=register(id,"m0",false,201); var other=register(ended,"m0",false,201);
+        assertNoEnd(registration.path("activity"),"endsAtLocal"); assertThat(other.at("/activity/endsAtLocal").asText()).isEqualTo("2026-09-15T20:00");
+        assertNoEnd(call("GET","/activity-registrations/"+registration.path("id").asText(),null,"m0","MEMBER",200).path("activity"),"endsAtLocal");
+        var mine=call("GET","/me/activities",null,"m0","MEMBER",200).path("mine");
+        assertNoEnd(find(mine,"activityId",id).path("activity"),"endsAtLocal");
+        assertThat(find(mine,"activityId",ended).at("/activity/endsAtLocal").asText()).isEqualTo("2026-09-15T20:00");
+        var detail=call("GET","/me/activities/"+id,null,"m0","MEMBER",200);
+        assertNoEnd(detail,"endTime"); assertNoEnd(detail.path("myRegistration").path("activity"),"endsAtLocal");
+        // 03: the ACTIVITY rows of GET /me/home.
+        var home=call("GET","/me/home",null,"m0","MEMBER",200).path("reservations");
+        assertNoEnd(find(home,"id",registration.path("id").asText()),"endsAtLocal");
+        assertThat(find(home,"id",other.path("id").asText()).path("endsAtLocal").asText()).isEqualTo("2026-09-15T20:00");
+        // D7: the list row.
+        var list=call("GET","/activities",null,"admin","ADMIN",200).path("items");
+        assertThat(find(list,"id",id).path("startTime").asText()).isEqualTo("09:00"); assertNoEnd(find(list,"id",id),"endTime");
+        assertThat(find(list,"id",ended).path("endTime").asText()).isEqualTo("20:00");
+        // The convention still decides: live on 03 until 00:00 local of the next day, then finished and on 25, whose row has no end.
+        clock.setInstant(Instant.parse("2026-09-19T21:59:00Z"));
+        assertThat(call("GET","/me/home",null,"m0","MEMBER",200).path("reservations")).extracting(r -> r.path("id").asText()).contains(registration.path("id").asText());
+        clock.setInstant(Instant.parse("2026-09-19T22:00:01Z"));
+        assertThat(call("GET","/me/home",null,"m0","MEMBER",200).path("reservations")).extracting(r -> r.path("id").asText()).doesNotContain(registration.path("id").asText());
+        try(var tenant=TenantContext.open(CLUB)) {
+            assertThat(lifecycle.finishEnded(clock.instant())).isEqualTo(2);
+            assertThat(queries.historyRowsFor("m0",Instant.EPOCH,clock.instant())).filteredOn(r -> r.get("activityId").equals(id)).singleElement()
+                    .satisfies(r -> assertThat(r).containsEntry("state","DONE").containsEntry("startsAtLocal","2026-09-19T09:00").doesNotContainKeys("endsAtLocal","endTime"));
+        }
+    }
+    @Test void T_07_21_T_07_29_theD7ColumnsOfTheListAreTheActivityViewsOwnValues() throws Exception {
+        // A free label per locale (OTHER) on an activity away from the club without hours or places; five rings; four rings.
+        var fair=create(); String fairId=fair.path("id").asText();
+        var patch=new LinkedHashMap<String,Object>(); patch.put("version",fair.path("version").asLong()); patch.put("type","OTHER"); patch.put("typeLabel",Map.of("ca","Fira","es","Feria"));
+        patch.put("date","2026-09-20"); patch.put("location",Map.of("atClub",false,"name","Example park"));
+        call("PATCH","/activities/"+fairId,patch,"admin","ADMIN",200);
+        String all=ready(40,true).path("id").asText(); var four=ready(12,false); String fourId=four.path("id").asText();
+        call("PATCH","/activities/"+fourId,Map.of("version",four.path("version").asLong(),"ringIds",List.of("s07-ring-0","s07-ring-1","s07-ring-2","s07-ring-3")),"admin","ADMIN",200);
+        for(String language:List.of("ca","es","en")) assertListMatchesViews(language);
+        var ca=read("/activities","admin","ADMIN","ca").path("items");
+        assertThat(D7Columns.row(find(ca,"id",fairId))).isEqualTo("Activitat exemple · Fira · 2026-09-20 · null-null · allRings=false · rings=[] · location=Example park · 0+0/null · DRAFT");
+        assertThat(D7Columns.row(find(ca,"id",all))).isEqualTo("Activitat exemple · seminari · 2026-09-15 · 18:00-20:00 · allRings=true · rings=[Ring 0, Ring 1, Ring 2, Ring 3, Ring 4] · location=null · 0+0/40 · DRAFT");
+        assertThat(find(ca,"id",fourId).path("allRings").asBoolean()).isFalse();
+        assertThat(find(read("/activities","admin","ADMIN","es").path("items"),"id",fairId).path("typeDisplay").asText()).isEqualTo("Feria");
+        assertThat(find(read("/activities","admin","ADMIN","es").path("items"),"id",all).path("typeDisplay").asText()).isEqualTo("seminario");
+        assertThat(find(read("/activities","admin","ADMIN","en").path("items"),"id",fairId).path("typeDisplay").asText()).as("the club's default locale").isEqualTo("Fira");
+        // A ring leaves the catalog: the four rings are now all of them (R-07-11), in the list as in the view; the instructor reads the same row.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s07-ring-4")),new Update().set("active",false),"rings");
+        assertListMatchesViews("ca");
+        assertThat(find(read("/activities","instructor","INSTRUCTOR","ca").path("items"),"id",fourId).path("allRings").asBoolean()).isTrue();
+        assertThat(find(read("/activities","instructor","INSTRUCTOR","ca").path("items"),"id",all).path("allRings").asBoolean()).isFalse();
+        // `fields` selects the new columns like any other; an unknown one is still INVALID_FILTER.
+        var selected=find(call("GET","/activities?fields=typeDisplay,allRings,location",null,"admin","ADMIN",200).path("items"),"id",fairId);
+        assertThat(selected.path("typeDisplay").asText()).isEqualTo("Fira"); assertThat(selected.path("location").asText()).isEqualTo("Example park");
+        call("GET","/activities?fields=ringIds",null,"admin","ADMIN",400);
+    }
+    void assertListMatchesViews(String language) throws Exception {
+        var items=read("/activities?size=200","admin","ADMIN",language).path("items"); assertThat(items).hasSize(3);
+        for(var item:items) {
+            SnapshotSchemas.assertConforms(item,"ActivityListItem");
+            D7Columns.assertSameAsView(item,read("/activities/"+item.path("id").asText(),"admin","ADMIN",language),language);
+        }
+    }
+    @Test void T_07_21_aRegistrationListItemAlwaysSendsCancelReasonNullUntilItIsCancelled() throws Exception {
+        // One choice for the OpenAPI and the serializer: always present, `null` until it applies (like `cancelledAt` and `position`).
+        String id=published(1,false).path("id").asText(); var active=register(id,"m0",false,201); var waiting=register(id,"m1",true,201); var gone=register(id,"m2",true,201);
+        call("POST","/activity-registrations/"+gone.path("id").asText()+"/cancellation",Map.of(),"m2","MEMBER",200);
+        var items=call("GET","/activities/"+id+"/registrations",null,"admin","ADMIN",200).path("items");
+        assertThat(items).hasSize(3); for(var item:items) SnapshotSchemas.assertConforms(item,"ActivityRegistrationListItem");
+        var first=find(items,"registrationId",active.path("id").asText());
+        assertNoEnd(first,"cancelReason"); assertNoEnd(first,"cancelledAt"); assertNoEnd(first,"position");
+        var second=find(items,"registrationId",waiting.path("id").asText());
+        assertNoEnd(second,"cancelReason"); assertThat(second.path("position").asInt()).isEqualTo(1);
+        var cancelled=find(items,"registrationId",gone.path("id").asText());
+        assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED"); assertThat(cancelled.path("cancelReason").asText()).isEqualTo("MEMBER");
+        assertThat(cancelled.path("cancelledAt").asText()).isEqualTo(clock.instant().toString());
+        assertThat(SnapshotSchemas.required("ActivityRegistrationListItem")).contains("cancelReason","cancelledAt","position");
+        assertThat(SnapshotSchemas.schema("ActivityRegistrationListItem").at("/properties/cancelReason/enum")).anySatisfy(value -> assertThat(value.isNull()).isTrue());
+        var omitted=(ObjectNode)first.deepCopy(); omitted.remove("cancelReason");
+        assertThat(SnapshotSchemas.violations(omitted,"ActivityRegistrationListItem")).as("never omitted").isNotEmpty();
+        assertThat(SnapshotSchemas.violations(((ObjectNode)first.deepCopy()).put("cancelReason","UNKNOWN"),"ActivityRegistrationListItem")).isNotEmpty();
+    }
 }

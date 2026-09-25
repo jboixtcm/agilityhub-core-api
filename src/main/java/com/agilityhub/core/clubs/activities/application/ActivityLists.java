@@ -10,8 +10,8 @@ import org.springframework.util.*;
 
 @Component
 public class ActivityLists implements ListProvider {
-    private final ActivityContext context;
-    public ActivityLists(ActivityContext context) { this.context=context; }
+    private final ActivityContext context; private final ActivityProjection projection;
+    public ActivityLists(ActivityContext context,ActivityProjection projection) { this.context=context; this.projection=projection; }
     public Set<String> keys() { return Set.of("activities","activity-registrations"); }
     public static MultiValueMap<String,String> params(MultiValueMap<String,String> original) {
         var result=new LinkedMultiValueMap<>(original);
@@ -20,7 +20,8 @@ public class ActivityLists implements ListProvider {
     }
     public ListDataset dataset(String key) {
         context.require(); boolean activity=key.equals("activities");
-        var fields=activity?List.of("id","title","date","rings","registrations","state","type","slug","registrationTo","createdAt")
+        var fields=activity?List.of("id","title","date","rings","registrations","state","type","slug","registrationTo","createdAt",
+                        "typeDisplay","startTime","endTime","allRings","location","maxPlaces")
                 :List.of("id","registrationId","member","state","position","origin","registeredAt","cancelledAt","cancelReason");
         var filters=new LinkedHashMap<String,ListDefinition.Field>(); filters.put("id",new ListDefinition.Field("_id",ListDefinition.Type.TEXT));
         if(activity) {
@@ -52,7 +53,35 @@ public class ActivityLists implements ListProvider {
                             .append("emails",new Document("$map",new Document("input",new Document("$ifNull",List.of("$person.contactEmails",List.of()))).append("as","email").append("in","$$email.email"))))));
         }
         var output=new LinkedHashMap<String,Object>(); fields.forEach(f -> output.put(f,1)); output.put("id","$_id"); output.put("_id",0);
-        return new ListDataset(definition,activity?"activities":"activity_registrations",stages,output,Set.of("date","registrationTo","position","cancelledAt","cancelReason"),(field,value) -> Objects.toString(value,""));
+        if(activity) {
+            // E4-T06: the inputs of the derived D7 columns, under the column's own name so `fields` selects them; columns() finishes them.
+            output.put("typeDisplay",new Document("type","$type").append("label","$typeLabel")); output.put("allRings","$ringIds"); output.put("location","$location");
+        }
+        return new ListDataset(definition,activity?"activities":"activity_registrations",stages,output,
+                Set.of("date","registrationTo","position","cancelledAt","cancelReason","startTime","endTime","maxPlaces"),(field,value) -> Objects.toString(value,""),
+                activity?columns():java.util.function.UnaryOperator.identity());
+    }
+    /**
+     * E4-T06 step 1 (S07 §2 D7): `typeDisplay`, `allRings` and `location` come from the helpers of the activity's own view
+     * ({@link ActivityProjection}), so a D7 row and `GET /activities/{id}` never disagree. The ring catalog is read once per list.
+     */
+    private java.util.function.UnaryOperator<Map<String,Object>> columns() {
+        var activeRings=new java.util.concurrent.atomic.AtomicReference<Set<String>>();
+        return row -> {
+            if(row.get("typeDisplay") instanceof Map<?,?> type) row.put("typeDisplay",type.get("type") instanceof String value
+                    ?projection.type(com.agilityhub.core.clubs.activities.domain.ActivityType.valueOf(value),localized(type.get("label"))):null);
+            if(row.get("allRings") instanceof List<?> ringIds) row.put("allRings",ActivityProjection.allRings(ringIds.stream().map(Object::toString).toList(),
+                    activeRings.updateAndGet(ids -> ids==null?projection.activeRingIds():ids)));
+            // The free text of an activity away from the club; at the club the rings say where (R-07-11 placeLabel).
+            if(row.get("location") instanceof Map<?,?> location) row.put("location",Boolean.FALSE.equals(location.get("atClub"))?location.get("name"):null);
+            return row;
+        };
+    }
+    /** A stored LocalizedText (`{values, defaultLocale}` or a plain map); the view applies the club's default locale. */
+    private static com.agilityhub.core.shared.domain.LocalizedText localized(Object stored) {
+        if(!(stored instanceof Map<?,?> map)) return null;
+        var values=new LinkedHashMap<String,String>(); (map.get("values") instanceof Map<?,?> nested?nested:map).forEach((key,value) -> { if(value instanceof String text) values.put(key.toString(),text); });
+        return values.isEmpty()?null:new com.agilityhub.core.shared.domain.LocalizedText(values,"und");
     }
     private Document localDate(String field,boolean nextDay) {
         Document date=new Document("$dateFromString",new Document("dateString",field).append("timezone",context.zone().getId()).append("onNull",null));
