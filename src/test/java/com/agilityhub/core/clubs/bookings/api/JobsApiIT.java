@@ -133,6 +133,39 @@ class JobsApiIT extends BookingFixtures {
         if (items != null) { assertThat(items).noneMatch(item -> item.path("entityType").asText().startsWith("Platform")); }
     }
 
+    /**
+     * E5-T15 (review E5-T13 #2, AGENTS rule 4): a dry run whose plan is longer than the trace's 500 items. With 500 tenant
+     * items and the platform pass after them, the platform items are not in the trace, yet the club's plan counter is 500,
+     * never 501: it is built from the totals recorded before the cut. The stored run keeps the whole count.
+     */
+    @Test void T_15_27_theClubsDryRunCounterLeavesThePlatformPassOutPastTheTracesFiveHundredItems() throws Exception {
+        for (String collection : List.of("attachment_uploads", "dog_documents", "export_jobs")) { mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), collection); }
+        var old = Date.from(clock.instant().minus(Duration.ofDays(91)));
+        mongo.save(new Document("_id", "s08-platform-event-e5t15").append("type", "AccountCreated").append("status", "PUBLISHED")
+                .append("occurredAt", old).append("publishedAt", old), "domain_events");
+        var uploads = new ArrayList<Document>();
+        for (int i = 0; i < 500; i++) {
+            uploads.add(new Document("_id", "signup/" + CLUB + "/202609/e5t15-" + i + "/card.pdf").append("clubId", CLUB).append("purpose", "SIGNUP_DOCUMENT")
+                    .append("createdAt", Date.from(clock.instant().minus(Duration.ofDays(3)))));
+        }
+        mongo.insert(uploads, "attachment_uploads");
+        var dry = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", true), as("admin"), 200);
+        assertClubOnly(dry.at("/effects/counters"), dry.at("/effects/items"));
+        assertThat(dry.at("/effects/items")).as("the trace kept the 500 tenant items only").hasSize(500);
+        assertThat(dry.at("/effects/counters/WOULD_DELETE").asLong()).isEqualTo(500);
+        assertThat(dry.at("/effects/counters/WOULD_DELETE_orphanUploads").asLong()).isEqualTo(500);
+        String runId = dry.path("runId").asText();
+        assertThat(call(GET, "/jobs/cleanup/runs/" + runId, null, as("admin"), 200).at("/effects/counters/WOULD_DELETE").asLong()).isEqualTo(500);
+        assertThat(call(GET, "/jobs/cleanup/runs", null, as("admin"), 200).path("items")).filteredOn(row -> row.path("runId").asText().equals(runId))
+                .singleElement().satisfies(row -> assertThat(row.at("/counters/WOULD_DELETE").asLong()).isEqualTo(500));
+        // The stored run and the console keep everything: 500 tenant items plus the platform ones, counted before the cut.
+        var stored = mongo.findById(runId, JobRun.class);
+        var counters = new HashMap<String, Long>(); stored.counters().forEach(e -> counters.put(e.key(), ((Number) e.value()).longValue()));
+        assertThat(counters.get("WOULD_DELETE_platformItems")).isPositive();
+        assertThat(counters.get("WOULD_DELETE") - counters.get("WOULD_DELETE_platformItems")).isEqualTo(500);
+        assertThat(stored.items()).hasSize(500).noneMatch(item -> item.entityType().startsWith("Platform"));
+    }
+
     /** E5-T13 (review E5-T10 #5, AGENTS rule 4): the P9 platform pass stays out of the club's views, not out of the stored run. */
     @Test void T_15_27_thePlatformPassStaysOutOfTheRunViewsOfTheClubThatClaimedIt() throws Exception {
         var old = Date.from(clock.instant().minus(Duration.ofDays(91)));

@@ -92,7 +92,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 ```json
 { "code": "BOOKING_LIMIT_REACHED", "message": "Ja tens 2 classes aquesta setmana", "details": { "limit": 2, "current": 2 }, "traceId": "…" }
 ```
-- `400` validació (`VALIDATION_ERROR` + `fieldErrors[{field, code, message}]`) · `401` no autenticat · `403` sense permís · `404` no trobat **o mòdul desactivat** · `409` conflicte de negoci (límits, plaça plena, estat invàlid) · `422` regla de negoci no complerta amb dades vàlides · `429` rate limit.
+- `400` validació (`VALIDATION_ERROR` + `details.fieldErrors[{field, code}]`, o `details.field` quan només hi ha un camp; el client tradueix el `code`, organitzador 25-09) · `401` no autenticat · `403` sense permís · `404` no trobat **o mòdul desactivat** · `409` conflicte de negoci (límits, plaça plena, estat invàlid) · `422` regla de negoci no complerta amb dades vàlides · `429` rate limit.
 - **Tots els codis** de negoci viuen a `ErrorCode` (enum) i tenen missatge localitzat al back (`messages_{locale}.properties`) — el front tradueix per `code` i cau al `message` del back.
 - Els errors de límits de reserva porten `details` suficients perquè la pantalla 06/29 mostri el cas (reserves vives anul·lables, etc.).
 

@@ -241,11 +241,11 @@ public class SchedulingController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ApiResponse(responseCode = "200", description = "ADMIN/INSTRUCTOR or MEMBER projection", content = @Content(schema = @Schema(anyOf = {ClassSession.class, ClassSessionMemberView.class})))
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "classSession", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. Tenant comes from the JWT.")
+    @Operation(summary = "classSession", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. ADMIN/INSTRUCTOR also get instructorNames[] and ring (null without a ring). Tenant comes from the JWT.")
     public Object classSession(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        return projections.session(sessions.require(id),projections.member(),java.util.List.of());
+        return projections.detail(sessions.require(id));
     }
 
     @PatchMapping("/api/v1/class-sessions/{id}")

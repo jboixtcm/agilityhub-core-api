@@ -28,6 +28,7 @@ public class SessionProjection {
         return attendance.status(c.date(),c.state().name(),summary.marked(),c.counters().booked(),summary.notified(),summary.notifiedAfterEnd());
     }
     public boolean enabled(Module module) { return context.config().modules().contains(module); }
+    /** The short column label of a class without a ring in `GET /day-grid` (ca «Sense», as on D3b). */
     public String noRing() { return messages.format("scheduling.noRing",Map.of(),LocaleContext.current()); }
     public ZoneId zone() { return ZoneId.of(context.config().club().timeZone()); }
     public RiskEvaluator.Result risk(ClassSession c) {
@@ -43,10 +44,13 @@ public class SessionProjection {
         var values=new LinkedHashMap<String,String>(); for(String tag:PRODUCT_LANGUAGES) values.put(tag,description(c,Locale.forLanguageTag(tag)));
         return new LocalizedText(values,context.config().club().defaultLocale());
     }
-    /** S14 D1: the ring's name (never translated), or `scheduling.noRing` in each product language when the class has none (E5-T10). */
+    /**
+     * S14 D1: the ring's name (never translated), or `dashboard.noRing` in each product language when the class has none
+     * (E5-T10). E5-T15: a D1 row reads «Sense pista», not the day grid's short column label «Sense».
+     */
     public LocalizedText ringNames(String ringName) {
         var values=new LinkedHashMap<String,String>();
-        for(String tag:PRODUCT_LANGUAGES) values.put(tag,ringName!=null?ringName:messages.format("scheduling.noRing",Map.of(),Locale.forLanguageTag(tag)));
+        for(String tag:PRODUCT_LANGUAGES) values.put(tag,ringName!=null?ringName:messages.format("dashboard.noRing",Map.of(),Locale.forLanguageTag(tag)));
         return new LocalizedText(values,context.config().club().defaultLocale());
     }
     public String instructorName(ClassSession c,boolean staff) {
@@ -60,7 +64,7 @@ public class SessionProjection {
         out.put("id",c.id()); out.put("date",c.date()); out.put("startTime",c.startTime()); out.put("endTime",c.endTime());
         out.put("levelIds",c.levelIds()); out.put("displayDescription",description(c,LocaleContext.current())); out.put("state",c.state()); out.put("capacity",c.capacity());
         if(member) {
-            out.put("ring",catalogs.rings().stream().filter(r -> r.id().equals(c.ringId())).map(r -> Map.of("id",r.id(),"name",r.name(),"color",r.color())).findFirst().orElse(null));
+            out.put("ring",ring(c));
             out.put("instructorName",instructorName(c,false)); out.put("freeSeats",Math.max(0,c.capacity()-c.counters().booked()));
             if(enabled(Module.WAITLIST)) out.put("waiting",c.counters().waiting());
         } else {
@@ -72,6 +76,22 @@ public class SessionProjection {
             out.put("version",c.version()); out.put("inconsistencyIds",inconsistencyIds);
         }
         return out;
+    }
+    /**
+     * `GET /class-sessions/{id}`: the member projection, or the staff one plus `instructorNames[]` (in `instructorIds`
+     * order) and `ring {id, name, color}` (`null` without a ring), which the drawer on 23 and screen 21 show (E5-T15).
+     * Only the detail pays the catalog read; the calendar and list rows keep the ids.
+     */
+    public Map<String,Object> detail(ClassSession c) {
+        if(member()) return session(c,true,List.of());
+        var out=session(c,false,List.of());
+        var names=new HashMap<String,String>(); context.catalog().instructors().forEach(i -> names.put(i.id(),i.name()));
+        out.put("instructorNames",c.instructorIds().stream().map(id -> names.getOrDefault(id,"")).toList());
+        out.put("ring",ring(c));
+        return out;
+    }
+    private Map<String,Object> ring(ClassSession c) {
+        return catalogs.rings().stream().filter(r -> r.id().equals(c.ringId())).map(r -> Map.<String,Object>of("id",r.id(),"name",r.name(),"color",r.color())).findFirst().orElse(null);
     }
     public boolean member() { return !RingBlockService.role("ADMIN") && !RingBlockService.role("INSTRUCTOR"); }
     public boolean visible(RingBlock b) { return b.reason()!=RingBlockReason.ACTIVITY || enabled(Module.ACTIVITIES); }

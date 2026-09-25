@@ -505,6 +505,12 @@ class ActivityIT extends ActivityFixtures {
         // `fields` selects the new columns like any other; an unknown one is still INVALID_FILTER.
         var selected=find(call("GET","/activities?fields=typeDisplay,allRings,location",null,"admin","ADMIN",200).path("items"),"id",fairId);
         assertThat(selected.path("typeDisplay").asText()).isEqualTo("Fira"); assertThat(selected.path("location").asText()).isEqualTo("Example park");
+        assertThat(selected.path("allRings").isBoolean()).isTrue();
+        // E5-T15 (review E4-T06 #3): a property that was not selected is null (or omitted), never a primitive default such as allRings: false.
+        var titleOnly=find(call("GET","/activities?fields=title",null,"admin","ADMIN",200).path("items"),"id",fourId);
+        assertThat(titleOnly.path("title").asText()).isEqualTo("Activitat exemple");
+        assertThat(titleOnly.path("allRings").isBoolean()).as("not selected: "+titleOnly).isFalse();
+        assertThat(titleOnly.path("allRings").isNull() || titleOnly.path("allRings").isMissingNode()).isTrue();
         call("GET","/activities?fields=ringIds",null,"admin","ADMIN",400);
     }
     void assertListMatchesViews(String language) throws Exception {
@@ -532,5 +538,42 @@ class ActivityIT extends ActivityFixtures {
         var omitted=(ObjectNode)first.deepCopy(); omitted.remove("cancelReason");
         assertThat(SnapshotSchemas.violations(omitted,"ActivityRegistrationListItem")).as("never omitted").isNotEmpty();
         assertThat(SnapshotSchemas.violations(((ObjectNode)first.deepCopy()).put("cancelReason","UNKNOWN"),"ActivityRegistrationListItem")).isNotEmpty();
+        // E5-T15 (review E4-T06 #1): a waitlisted registration keeps its position once cancelled; a promoted one has none.
+        assertThat(cancelled.path("position").asInt()).as("kept after a waitlisted registration is cancelled").isEqualTo(2);
+        call("POST","/activity-registrations/"+active.path("id").asText()+"/cancellation",Map.of(),"m0","MEMBER",200);
+        items=call("GET","/activities/"+id+"/registrations",null,"admin","ADMIN",200).path("items");
+        var promoted=find(items,"registrationId",waiting.path("id").asText());
+        assertThat(promoted.path("state").asText()).isEqualTo("ACTIVE"); assertNoEnd(promoted,"position");
+        var left=find(items,"registrationId",active.path("id").asText());
+        assertThat(left.path("state").asText()).isEqualTo("CANCELLED"); assertNoEnd(left,"position");
+        assertThat(find(items,"registrationId",gone.path("id").asText()).path("position").asInt()).isEqualTo(2);
+        assertThat(SnapshotSchemas.schema("ActivityRegistrationListItem").at("/properties/position/description").asText()).contains("kept","promoted","never waitlisted");
+    }
+    /**
+     * E5-T15 (E4-T06 question 2, R-07-13; review E4-T06 #2): the app rows (`ActivityRow`, `RegisteredActivity`) carry the
+     * activity's own hours, `null` when absent, so a date-only activity never reads «0:00»; `endsAt` is described as derived.
+     */
+    @Test void T_07_16_T_07_18_theAppRowsCarryStartAndEndTimesNullWhenAbsent() throws Exception {
+        String lliga=startOnly().path("id").asText(), ended=published(5,false).path("id").asText(); // 19-09 from 09:00 · 15-09 18:00–20:00
+        var fair=create(); String fairId=fair.path("id").asText(); var patch=new LinkedHashMap<String,Object>(); patch.put("version",fair.path("version").asLong());
+        patch.put("date","2026-09-20"); patch.put("location",Map.of("atClub",false,"name","Example park"));
+        patch.put("registrationFrom","2026-09-01"); patch.put("registrationTo","2026-09-18");
+        call("PATCH","/activities/"+fairId,patch,"admin","ADMIN",200); call("POST","/activities/"+fairId+"/publication",Map.of(),"admin","ADMIN",200);
+        var bookable=call("GET","/me/activities",null,"m0","MEMBER",200).path("bookable");
+        assertThat(find(bookable,"id",fairId).path("startsAtLocal").asText()).isEqualTo("2026-09-20T00:00");
+        assertNoEnd(find(bookable,"id",fairId),"startTime"); assertNoEnd(find(bookable,"id",fairId),"endTime");
+        assertThat(find(bookable,"id",lliga).path("startTime").asText()).isEqualTo("09:00"); assertNoEnd(find(bookable,"id",lliga),"endTime");
+        assertThat(find(bookable,"id",ended).path("startTime").asText()).isEqualTo("18:00"); assertThat(find(bookable,"id",ended).path("endTime").asText()).isEqualTo("20:00");
+        for(var row:bookable) SnapshotSchemas.assertConforms(row,"ActivityRow");
+        var dateOnly=register(fairId,"m0",false,201).path("activity"); var startOnly=register(lliga,"m0",false,201).path("activity");
+        assertNoEnd(dateOnly,"startTime"); assertNoEnd(dateOnly,"endTime");
+        assertThat(startOnly.path("startTime").asText()).isEqualTo("09:00"); assertNoEnd(startOnly,"endTime");
+        SnapshotSchemas.assertConforms(dateOnly,"RegisteredActivity"); SnapshotSchemas.assertConforms(startOnly,"RegisteredActivity");
+        var mine=call("GET","/me/activities",null,"m0","MEMBER",200).path("mine");
+        assertNoEnd(find(mine,"activityId",fairId).path("activity"),"startTime");
+        assertThat(find(mine,"activityId",lliga).at("/activity/startTime").asText()).isEqualTo("09:00");
+        assertNoEnd(call("GET","/me/activities/"+fairId,null,"m0","MEMBER",200).path("myRegistration").path("activity"),"startTime");
+        for(String schema:List.of("Activity","MemberActivityDetail"))
+            assertThat(SnapshotSchemas.schema(schema).at("/properties/endsAt").toString()).as(schema).contains("next local 00:00","startTime/endTime");
     }
 }

@@ -109,6 +109,8 @@
       "title": "Example event",
       "startsAtLocal": "2026-09-14T18:00",
       "endsAtLocal": "2026-09-14T19:00",
+      "startTime": "18:00",
+      "endTime": "19:00",
       "placeLabel": "Example ring"
     },
     "registeredAt": "2026-09-14T16:00:00Z",
@@ -183,6 +185,8 @@
         "typeLabel": "Example type",
         "startsAtLocal": "2026-09-14T18:00",
         "endsAtLocal": "2026-09-14T19:00",
+        "startTime": "18:00",
+        "endTime": "19:00",
         "placeLabel": "Example ring",
         "rowState": "OPEN",
         "notBookableReason": "Example",
@@ -203,6 +207,8 @@
           "title": "Example event",
           "startsAtLocal": "2026-09-14T18:00",
           "endsAtLocal": "2026-09-14T19:00",
+          "startTime": "18:00",
+          "endTime": "19:00",
           "placeLabel": "Example ring"
         },
         "registeredAt": "2026-09-14T16:00:00Z",
@@ -277,6 +283,8 @@
         "title": "Example event",
         "startsAtLocal": "2026-09-14T18:00",
         "endsAtLocal": "2026-09-14T19:00",
+        "startTime": "18:00",
+        "endTime": "19:00",
         "placeLabel": "Example ring"
       },
       "registeredAt": "2026-09-14T16:00:00Z",

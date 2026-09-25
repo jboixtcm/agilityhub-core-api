@@ -30,7 +30,7 @@ public class ActivityQueryService implements ActivityTitlePort {
         try { ActivityEligibility.check(a.state(),context.times(a),a.date(),member,a.levelIds(),context.levels(),context.enabled(Module.INACTIVITY),false,dogId,context.clock.instant()); }
         catch(ApiException error) { state="NOT_BOOKABLE"; reason=error.code().name(); }
         return object("id",a.id(),"title",projection.title(a),"typeLabel",projection.type(a),"startsAtLocal",projection.local(context.times(a).startsAt()),
-                "endsAtLocal",projection.endsAtLocal(a),"placeLabel",projection.place(a),"rowState",state,"notBookableReason",reason,
+                "endsAtLocal",projection.endsAtLocal(a),"startTime",a.startTime(),"endTime",a.endTime(),"placeLabel",projection.place(a),"rowState",state,"notBookableReason",reason,
                 "freeSeats",projection.free(a),"waiting",a.counters().waiting(),"waitlistEnabled",projection.waitlist(a));
     }
     public List<Map<String,Object>> liveRegistrationsFor(String memberId) {

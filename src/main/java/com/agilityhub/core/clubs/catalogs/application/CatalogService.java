@@ -7,6 +7,7 @@ import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.audit.*;
 import com.agilityhub.core.shared.application.EventPublisher;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class CatalogService {
@@ -30,13 +32,17 @@ public class CatalogService {
     private final ObjectMapper mapper;
     private final Clock clock;
     private final ObjectProvider<RingTrainingBookings> trainings;
+    private final ObjectProvider<CatalogService> self;
+    private final TransactionRetries retries;
+    static final int RING_CHANGE_ATTEMPTS = 3;
+    static final String CONTEXT = "catalogs";
 
     public CatalogService(CatalogRepository<Level> levels, CatalogRepository<Ring> rings, CatalogRepository<FaqEntry> faqs,
             ClubConfigService configs, UsageCounter usage, AuditActorProvider actors, EventPublisher events, ObjectMapper mapper, Clock clock,
-            ObjectProvider<RingTrainingBookings> trainings) {
+            ObjectProvider<RingTrainingBookings> trainings, ObjectProvider<CatalogService> self, TransactionRetries retries) {
         repositories = Map.of(CatalogKind.LEVEL, levels, CatalogKind.RING, rings, CatalogKind.FAQ, faqs);
         this.configs = configs; this.usage = usage; this.actors = actors; this.events = events; this.mapper = mapper; this.clock = clock;
-        this.trainings = trainings;
+        this.trainings = trainings; this.self = self; this.retries = retries;
     }
     public ClubConfig config() { return configs.get(TenantContext.require()); }
     @SuppressWarnings("unchecked")
@@ -87,25 +93,50 @@ public class CatalogService {
         });
     }
 
+    /**
+     * S05 `PATCH` of a catalog item. A ring change (the ring branch: deactivating it, or turning `allowsFreeTraining`
+     * off, touches the ring-slot sequences of R-09-13) is retried whole on a Mongo write conflict or duplicate key, like
+     * the S06/S08/S09 writers it races with: at most {@value #RING_CHANGE_ATTEMPTS} attempts (the R1 budget of E26),
+     * 50–150 ms randomised backoff, never after a commit. So a concurrent booking of the ring no longer turns the admin's
+     * change into `409 STALE_VERSION`: the retried change sees the committed booking (`RING_HAS_BOOKINGS`), or the
+     * retried booking sees the ring (`RING_NOT_RESERVABLE`). Inside an outer transaction (club:apply) the change joins it
+     * and a conflict stays `STALE_VERSION`. Each attempt is {@link #change}: its own transaction and audit entry.
+     */
+    public Map<String, Object> update(CatalogKind kind, String id, Map<String, Object> patch) {
+        var attempt = self.getObject();
+        if (kind != CatalogKind.RING || TransactionSynchronizationManager.isActualTransactionActive()) {
+            return write(() -> attempt.change(kind, id, patch));
+        }
+        for (int number = 1; ; number++) {
+            try { return attempt.change(kind, id, patch); }
+            catch (RuntimeException failure) {
+                if (!conflict(failure)) { throw failure; }
+                if (number >= RING_CHANGE_ATTEMPTS) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
+                retries.retried(CONTEXT, failure);
+                try { Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151)); }
+                catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
+            }
+        }
+    }
+
+    /** One attempt of {@link #update} in its own transaction (or the caller's); callers use {@link #update}. */
     @Transactional
     @Audited(action = AuditAction.CATALOG_CHANGED, entityType = "#kind.entityType()", entity = "#id", before = "snapshot(#kind, #id)")
-    public Map<String, Object> update(CatalogKind kind, String id, Map<String, Object> patch) {
-        return write(() -> {
-            repository(kind).lock();
-            var before = get(kind, id);
-            if (!(patch.get("version") instanceof Number version) || version.longValue() != before.version()) {
-                throw new ApiException(ErrorCode.STALE_VERSION);
-            }
-            var values = new LinkedHashMap<>(fields(before)); values.putAll(patch);
-            boolean cancelBookings = Boolean.TRUE.equals(values.remove("cancelBookings"));
-            var next = build(kind, id, values, before);
-            unique(kind, next, list(kind, true));
-            if (before instanceof Ring oldRing && next instanceof Ring ring) { stopsBeingReservable(oldRing, ring, cancelBookings); }
-            repository(kind).update(next, before.version());
-            String action = before.active() == next.active() ? "UPDATED" : next.active() ? "REACTIVATED" : "DEACTIVATED";
-            publish(kind, before, next, action);
-            return fields(next);
-        });
+    public Map<String, Object> change(CatalogKind kind, String id, Map<String, Object> patch) {
+        repository(kind).lock();
+        var before = get(kind, id);
+        if (!(patch.get("version") instanceof Number version) || version.longValue() != before.version()) {
+            throw new ApiException(ErrorCode.STALE_VERSION);
+        }
+        var values = new LinkedHashMap<>(fields(before)); values.putAll(patch);
+        boolean cancelBookings = Boolean.TRUE.equals(values.remove("cancelBookings"));
+        var next = build(kind, id, values, before);
+        unique(kind, next, list(kind, true));
+        if (before instanceof Ring oldRing && next instanceof Ring ring) { stopsBeingReservable(oldRing, ring, cancelBookings); }
+        repository(kind).update(next, before.version());
+        String action = before.active() == next.active() ? "UPDATED" : next.active() ? "REACTIVATED" : "DEACTIVATED";
+        publish(kind, before, next, action);
+        return fields(next);
     }
 
     @Transactional
@@ -241,5 +272,13 @@ public class CatalogService {
             if (failure instanceof DuplicateKeyException) { throw new ApiException(ErrorCode.STALE_VERSION); }
             throw failure;
         }
+    }
+    /** A write conflict (112), a duplicate key (11000, the first upsert of a ring slot) or a `TransientTransactionError`. */
+    static boolean conflict(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DuplicateKeyException) { return true; }
+            if (cause instanceof MongoException mongo && (mongo.getCode() == 112 || mongo.getCode() == 11000 || mongo.hasErrorLabel("TransientTransactionError"))) { return true; }
+        }
+        return false;
     }
 }

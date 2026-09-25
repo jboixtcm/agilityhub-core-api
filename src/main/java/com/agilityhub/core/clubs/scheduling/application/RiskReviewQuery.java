@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
  * S15 §6 form A `GET /risk-review` (the D1 card, also embedded by S14 in `GET /dashboard` through the S06 dashboard
  * adapters): the ACTIVE classes at risk and the ones already CANCELLED{RISK_REVIEW} of `[date, date + lookaheadDays]`,
  * by `startsAt`. `notified` comes from `risk.notifiedBookingIds`, or from the affected bookings once cancelled.
+ * `WILL_CANCEL`/`WILL_REVIEW` are promises about P2, so they are given only while P2 will still review the class (E37).
  */
 @Service
 public class RiskReviewQuery {
@@ -53,6 +54,7 @@ public class RiskReviewQuery {
         int lookahead = config.get("classes.riskLookaheadDays", Integer.class); int minDogs = config.get("classes.minDogs", Integer.class);
         boolean autoCancel = config.get("classes.riskAutoCancelSameDay", Boolean.class);
         var reviewTime = LocalTime.parse(config.get("classes.riskReviewTime", String.class));
+        boolean reviewOn = Boolean.TRUE.equals(config.get("jobs.riskReview.enabled", Boolean.class));
         var catalog = context.catalog();
         var window = classes.startingBetween(date.atStartOfDay(zone).toInstant(), date.plusDays(lookahead + 1L).atStartOfDay(zone).toInstant());
         // E5-T10: every read below is one batch over the window's classes, never one read per class or per registrant.
@@ -89,9 +91,13 @@ public class RiskReviewQuery {
             // The registrants the review has warned (N-16), in the order of the mark.
             var notified = names.apply(notifiedIds(c).stream().distinct().map(warned::get).filter(Objects::nonNull).toList());
             boolean wasWarned = !notified.isEmpty() || c.risk() != null && c.risk().adminNotifiedAt() != null;
+            var reviewAt = WeekCalendarRules.resolve(c.date(), reviewTime, zone).instant();
+            // E37 (S15 §6, 24-09): WILL_CANCEL / WILL_REVIEW only when P2 will really review the class: the `risk-review` job is on
+            // and the class's reviewAt is still ahead. After today's review, or with the job off, an at-risk class is AT_RISK.
+            boolean reviewWillRun = reviewOn && reviewAt.isAfter(now);
             // AT_RISK = warned registrants; otherwise the review will act (WILL_CANCEL), or the club decides (WILL_REVIEW).
-            String status = wasWarned && booked > 0 ? "AT_RISK" : autoCancel ? "WILL_CANCEL" : "WILL_REVIEW";
-            rows.add(new Row(c, label, ring, booked, status, null, WeekCalendarRules.resolve(c.date(), reviewTime, zone).instant(), notified));
+            String status = !reviewWillRun || wasWarned && booked > 0 ? "AT_RISK" : autoCancel ? "WILL_CANCEL" : "WILL_REVIEW";
+            rows.add(new Row(c, label, ring, booked, status, null, reviewAt, notified));
         }
         return new Rows(date, reviewTime.toString(), lookahead, minDogs, autoCancel, List.copyOf(rows));
     }

@@ -141,8 +141,8 @@ final class ArchitectureRules {
      * calling thread. Only the demo seed books «as of» a scenario instant; no request path may move the time it is judged at.
      */
     static final ArchRule BOOKING_TIME_OVERRIDE = noClasses()
-            .that(new DescribedPredicate<>("are not Demo* seed classes") {
-                @Override public boolean test(JavaClass type) { return !topLevel(type).getSimpleName().startsWith("Demo"); }
+            .that(new DescribedPredicate<>("are not demo seed classes (Demo*Seeder, DemoMembers, DemoSeed*) outside ..api..") {
+                @Override public boolean test(JavaClass type) { return !seedClass(type); }
             })
             .should().callMethod(BASE_PACKAGE + "clubs.bookings.application.BookingContext", "asOf", "java.time.Instant", "java.util.function.Supplier")
             .because("E5-T06: the «as of» business time is a demo-seed device; the API and the jobs always judge at the injected Clock");
@@ -169,6 +169,16 @@ final class ArchitectureRules {
             .that().resideInAPackage(BASE_PACKAGE + "platform..")
             .should().dependOnClassesThat().resideInAPackage(BASE_PACKAGE + "clubs..")
             .because("E6-T01: owning contexts register their Job beans; the platform never imports them");
+
+    /**
+     * E5-T15 (review E5-T06 #4): a demo seed class is a top-level `Demo*Seeder`, `DemoMembers` or `DemoSeed*` (or a class
+     * nested in one), never in an `..api..` package: not any `Demo*` name (`DemoIdentityService`, a `Demo*Controller`).
+     */
+    static boolean seedClass(JavaClass type) {
+        var top = topLevel(type); String name = top.getSimpleName();
+        boolean seed = name.startsWith("Demo") && name.endsWith("Seeder") || name.equals("DemoMembers") || name.startsWith("DemoSeed");
+        return seed && !com.tngtech.archunit.core.domain.PackageMatcher.of("..api..").matches(top.getPackageName());
+    }
 
     private static JavaClass topLevel(JavaClass type) {
         var current = type;

@@ -2,6 +2,24 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E5-T15 · staff class detail, app row hours, descriptions
+
+**0 operations added, 1 changed (`GET /class-sessions/{id}` description); 0 schemas added**, 6 changed (`ClassSession`,
+`RegisteredActivity`, `ActivityRow`, `ActivityRegistrationListItem`, `Activity`, `MemberActivityDetail`). Additive.
+
+- `GET /class-sessions/{id}` for ADMIN/INSTRUCTOR (web E4-W03 question 3): `ClassSession` gains two optional properties,
+  sent only by this detail: `instructorNames` (`string[]`, in `instructorIds` order) and `ring` (`ClassRing | null`,
+  `null` for a class without a ring; always sent in the detail). The create/patch answers and the calendar rows do not
+  carry them. The member projection is unchanged (it already had `ring`).
+- `RegisteredActivity` (the `activity` of a registration) and `ActivityRow` (`GET /me/activities` `bookable[]`) gain
+  `startTime` and `endTime`: required, club-local `HH:mm` or `null` (R-07-13). A date-only activity has both `null`, so
+  its row never reads «0:00»; `startsAtLocal` keeps the day's 00:00.
+- Descriptions only: `ActivityRegistrationListItem.position` (kept after a waitlisted registration is cancelled; `null`
+  once promoted, or if it was never waitlisted), and `Activity.endsAt` / `MemberActivityDetail.endsAt` (a derived
+  instant, the next local 00:00 for an activity without `endTime`; clients display `startTime`/`endTime`).
+- `GET /activities?fields=…`: a property that is not selected is `null`, never a primitive default (`allRings` was
+  `false`). The schema is unchanged.
+
 ## 2026-09-25 · E4-T06 · activity read models for D7 and the app
 
 **0 operations added, 7 changed; 0 schemas added**, 4 changed (`ActivityListItem`, `ActivityRegistrationListItem`,

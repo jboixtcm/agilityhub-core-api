@@ -61,7 +61,8 @@ public class ActivityProjection {
         return result;
     }
     public Map<String,Object> registeredActivity(Activity a) {
-        return object("id",a.id(),"title",title(a),"startsAtLocal",local(context.times(a).startsAt()),"endsAtLocal",endsAtLocal(a),"placeLabel",place(a));
+        return object("id",a.id(),"title",title(a),"startsAtLocal",local(context.times(a).startsAt()),"endsAtLocal",endsAtLocal(a),
+                "startTime",a.startTime(),"endTime",a.endTime(),"placeLabel",place(a));
     }
     public String local(Instant instant) { return instant==null?null:instant.atZone(context.zone()).toLocalDateTime().toString(); }
     /**

@@ -145,6 +145,37 @@ class CleanupJobIT extends BookingFixtures {
         assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("runId", retake.id());
     }
 
+    /**
+     * E5-T15 (review E5-T13 #3): the FAILED row of the run that claimed the cycle is committed, but its release never happens
+     * (the process dies before the hook, or the hook fails and is only logged). The next run of the same day still starts
+     * the platform pass: the claim of a FAILED run is free. A claim of a run that has not failed, or of another day, is not.
+     */
+    @Test void T_15_27_aFailedRunWhoseReleaseNeverHappenedDoesNotKeepThePlatformCycle() {
+        mongo.remove(Query.query(Criteria.where("_id").is("platform:CLEANUP")), "job_locks");
+        mongo.insert(new JobRun("s08-failed-cleanup", CLUB, JobName.CLEANUP, RUN, "2026-10-06T06:00", "Europe/Madrid", JobTrigger.SCHEDULE, false,
+                JobStatus.RUNNING, null, RUN, null, null, List.of(), List.of(), List.of(), null, List.of(), true, "gone-holder", false));
+        try (var tenant = TenantContext.open(CLUB)) { assertThat(cleanup.claimPlatformCycle(CLUB, RUN, "s08-failed-cleanup")).isTrue(); }
+        // While that run is RUNNING the claim holds: another club's run of the day does its own pass only, and so does its dry run.
+        var running = runner.scheduled(OTHER, true, job, RUN).orElseThrow();
+        assertThat(counters(running)).containsEntry("platformPass", 0L);
+        // The run ends FAILED (committed); the release hook never runs.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-failed-cleanup")), new org.springframework.data.mongodb.core.query.Update()
+                .set("status", "FAILED").set("finishedAt", Date.from(RUN.plusSeconds(30))), "job_runs");
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("runId", "s08-failed-cleanup");
+        clock.setInstant(RUN.plus(Duration.ofMinutes(10)));
+        assertThat(counters(runner.manual(OTHER, JobName.CLEANUP, true, "s08-admin"))).as("the dry run sees the cycle open").containsEntry("platformPass", 1L);
+        // A late catch-up of the previous day's occurrence never takes today's claim.
+        try (var tenant = TenantContext.open(OTHER)) { assertThat(cleanup.claimPlatformCycle(OTHER, RUN.minus(Duration.ofDays(1)), "s08-yesterday")).isFalse(); }
+        // The next real run of the day takes the pass over.
+        var next = runner.manual(OTHER, JobName.CLEANUP, false, "s08-admin");
+        assertThat(next.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(counters(next)).containsEntry("platformPass", 1L);
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("holder", OTHER).containsEntry("runId", next.id());
+        // The stale release of the failed run can no longer remove it.
+        try (var tenant = TenantContext.open(CLUB)) { job.failed(CLUB, "s08-failed-cleanup"); }
+        assertThat(mongo.findById("platform:CLEANUP", Document.class, "job_locks")).containsEntry("runId", next.id());
+    }
+
     /** Unique per test run: the local attachment store keeps its files between runs. */
     private final String batch = UUID.randomUUID().toString();
     String key(String name) { return "signup/" + CLUB + "/202610/" + batch + "-" + name + "/card.pdf"; }

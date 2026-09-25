@@ -45,7 +45,7 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     static final String MUN = "s09-r-mun", CEN = "s09-r-cen", CAR = "s09-r-car", CAD = "s09-r-cad", PET = "s09-r-pet";
     static final List<String> DATA = List.of("training_bookings", "bookings", "ring_blocks", "class_sessions", "weeks", "members", "dogs", "family_groups", "memberships",
             "levels", "rings", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records", "impersonation_sessions",
-            "export_jobs", "catalog_write_locks", "census_write_locks", "ring_slot_locks");
+            "export_jobs", "catalog_write_locks", "census_write_locks", "ring_slot_locks", "week_templates");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher;
     @Autowired InMemoryInactivity inactivity; @Autowired TransactionTemplate tx; @Autowired EventPublisher events; @Autowired TestRingSetups setups;
@@ -169,6 +169,22 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     JsonNode book(RequestPostProcessor auth, String dogId, String localStart, String ringId, int expected) throws Exception {
         var body = new LinkedHashMap<String, Object>(); body.put("dogId", dogId); body.put("startsAt", local(localStart).toString()); if (ringId != null) { body.put("ringId", ringId); }
         return call(HttpMethod.POST, "/training-bookings", body, auth, expected, UUID.randomUUID().toString());
+    }
+    /** E5-T15 (R-09-13 on the week paths): the week of {@code monday} and a WEEKDAYS template, both through the S06 API. */
+    record PlannedWeek(String weekId, String templateId) { }
+    /** The template has one class on {@code ringId} every {@code day} [start, end) (level D, instructor Estel); the week is created, not generated. */
+    PlannedWeek plannedWeek(String monday, String ringId, String day, String start, String end) throws Exception {
+        var admin = as("admin");
+        String template = call(HttpMethod.POST, "/week-templates", Map.of("name", "S09 weekdays", "kind", "WEEKDAYS"), admin, 201).path("id").asText();
+        String band = call(HttpMethod.POST, "/week-templates/" + template + "/bands", Map.of("startTime", start, "endTime", end), admin, 201).at("/bands/0/id").asText();
+        var body = new LinkedHashMap<String, Object>(); body.put("bandId", band); body.put("dayOfWeek", day); body.put("ringId", ringId);
+        body.put("instructorIds", List.of("s09-instructor")); body.put("levelIds", List.of("s09-lv-D"));
+        call(HttpMethod.POST, "/week-templates/" + template + "/classes", body, admin, 201);
+        return new PlannedWeek(call(HttpMethod.POST, "/weeks", Map.of("startDate", monday), admin, 201).path("id").asText(), template);
+    }
+    /** S06 `POST /weeks/{id}/generation`: the template's classes become DRAFT classes of the week. */
+    JsonNode generate(PlannedWeek week) throws Exception {
+        return call(HttpMethod.POST, "/weeks/" + week.weekId() + "/generation", Map.of("weekdayTemplateId", week.templateId()), as("admin"), 200, UUID.randomUUID().toString());
     }
     JsonNode cancel(RequestPostProcessor auth, String bookingId, String reason, int expected) throws Exception {
         return call(HttpMethod.POST, "/training-bookings/" + bookingId + "/cancellation", reason == null ? Map.of() : Map.of("reason", reason), auth, expected);

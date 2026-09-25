@@ -66,15 +66,26 @@ public final class JobViews {
     /**
      * AGENTS rule 4 (E5-T13, review E5-T10 #5): the club-scoped views of a run (D11 rows and history, the run sheet, the
      * club's manual trigger and its audit) leave out what the run did outside the tenant, the P9 platform pass: the
-     * `platform…` counters (`WOULD_…_platform…` in a dry run) and the `Platform…` items. In a dry run the plan counter of
-     * each hidden item (`WOULD_<action>`) is lowered too. The stored JobRun and the platform console keep everything.
+     * `platform…` counters (`WOULD_…_platform…` in a dry run) and the `Platform…` items. In a dry run each plan counter
+     * (`WOULD_<action>`) is lowered by the platform items of that action: their total `WOULD_<action>_platformItems`,
+     * recorded before the trace's 500-item cut (E5-T15, review E5-T13 #2); for a run stored before that counter existed,
+     * the platform items the trace kept. The stored JobRun and the platform console keep everything.
      */
     public static JobRunView forClub(JobRunView view) {
-        var counters = clubCounters(view.effects().counters());
+        var all = view.effects().counters();
+        var counters = clubCounters(all);
         var items = new java.util.ArrayList<JobEffectItem>();
+        var traced = new java.util.HashMap<String, Long>();
         for (JobEffectItem item : view.effects().items()) {
-            if (!item.entityType().startsWith("Platform")) { items.add(item); }
-            else if (view.dryRun()) { counters.computeIfPresent(item.action(), (key, value) -> value - 1); }
+            if (!platformItem(item.entityType())) { items.add(item); }
+            else { traced.merge(item.action(), 1L, Long::sum); }
+        }
+        if (view.dryRun()) {
+            counters.replaceAll((key, value) -> {
+                if (!key.startsWith("WOULD_")) { return value; }
+                Long platform = all.get(platformPlanCounter(key.substring("WOULD_".length())));
+                return value - (platform != null ? platform : traced.getOrDefault(key, 0L));
+            });
         }
         return new JobRunView(view.runId(), view.job(), view.scheduledFor(), view.scheduledForLocal(), view.timeZone(), view.trigger(), view.dryRun(),
                 view.status(), view.skipReason(), view.startedAt(), view.finishedAt(), view.durationMs(), new JobEffects(counters, List.copyOf(items)),
@@ -88,6 +99,10 @@ public final class JobViews {
         return result;
     }
     static boolean platformCounter(String key) { return key.startsWith("platform") || key.startsWith("WOULD_") && key.contains("_platform"); }
+    /** An item of the P9 platform pass (outside every tenant). */
+    static boolean platformItem(String entityType) { return entityType.startsWith("Platform"); }
+    /** The dry-run counter of the platform items planned with `action` (hidden from the club like every `WOULD_…_platform…`). */
+    static String platformPlanCounter(String action) { return "WOULD_" + action + "_platformItems"; }
 
     public static JobRunView view(com.agilityhub.core.platform.persistence.jobs.JobRun run) {
         var counters = new java.util.LinkedHashMap<String, Long>();

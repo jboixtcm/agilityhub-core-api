@@ -32,6 +32,7 @@ class RiskReviewQueryTest {
         when(context.config()).thenReturn(config); when(projection.zone()).thenReturn(ZONE);
         when(config.get("classes.riskLookaheadDays", Integer.class)).thenReturn(2); when(config.get("classes.minDogs", Integer.class)).thenReturn(3);
         when(config.get("classes.riskAutoCancelSameDay", Boolean.class)).thenReturn(true); when(config.get("classes.riskReviewTime", String.class)).thenReturn("07:30");
+        when(config.get("jobs.riskReview.enabled", Boolean.class)).thenReturn(true);
         when(context.catalog()).thenReturn(new SchedulingCatalog(List.of(), List.of(new SchedulingCatalog.Resource("ring-a", "Ring A", true)), List.of()));
         // Six classes at risk (two warned registrants each), one already cancelled by the review, one full and one exempt.
         var window = new ArrayList<ClassSession>();
@@ -79,5 +80,38 @@ class RiskReviewQueryTest {
         verify(census, times(1)).people(argThat(ids -> ids.size() == 7)); verify(census, times(1)).dogs(argThat(ids -> ids.size() == 14));
         verify(port, never()).activeBookings(anyString()); verify(port, never()).clubCancelled(anyString());
         verify(census, never()).person(any()); verify(census, never()).dog(any());
+    }
+
+    /** Statuses of today's 17:40 and tomorrow's 18:00 class, both at risk with 0 registrants and no notice, read at {@code localNow}. */
+    private static Map<String, String> statuses(String localNow, boolean jobOn, boolean autoCancel) {
+        var classes = mock(ClassSessionRepository.class); var context = mock(PlanningContext.class); var projection = mock(SessionProjection.class);
+        var config = mock(ClubConfig.class);
+        when(context.config()).thenReturn(config); when(projection.zone()).thenReturn(ZONE);
+        when(config.get("classes.riskLookaheadDays", Integer.class)).thenReturn(2); when(config.get("classes.minDogs", Integer.class)).thenReturn(2);
+        when(config.get("classes.riskAutoCancelSameDay", Boolean.class)).thenReturn(autoCancel); when(config.get("classes.riskReviewTime", String.class)).thenReturn("07:30");
+        when(config.get("jobs.riskReview.enabled", Boolean.class)).thenReturn(jobOn);
+        when(context.catalog()).thenReturn(new SchedulingCatalog(List.of(), List.of(new SchedulingCatalog.Resource("ring-a", "Ring A", true)), List.of()));
+        var today = session("today", TODAY, ClassState.ACTIVE, new ClassSession.Risk(false, List.of(), null, null), null);
+        when(today.startsAt()).thenReturn(TODAY.atTime(17, 40).atZone(ZONE).toInstant());
+        var tomorrow = session("tomorrow", TODAY.plusDays(1), ClassState.ACTIVE, new ClassSession.Risk(false, List.of(), null, null), null);
+        when(classes.startingBetween(any(), any())).thenReturn(List.of(today, tomorrow));
+        var now = LocalDateTime.parse(localNow).atZone(ZONE).toInstant();
+        var rows = new RiskReviewQuery(classes, mock(ClassBookingsPort.class), mock(SchedulingRecipients.class), context, projection, Clock.fixed(now, ZoneOffset.UTC)).rows(TODAY);
+        var result = new LinkedHashMap<String, String>(); rows.rows().forEach(r -> result.put(r.session().id(), r.status()));
+        return result;
+    }
+
+    /**
+     * E5-T15, ruling E37 (S15 §6, amended 24-09): `WILL_CANCEL`/`WILL_REVIEW` only while P2 will really review the class
+     * (the job is on and the class's `reviewAt` is ahead); after today's review, or with the job off, the class is `AT_RISK`.
+     */
+    @Test void T_15_15_willCancelOrWillReviewOnlyWhileTheRiskReviewWillStillRunForTheClass() {
+        assertThat(statuses("2026-10-05T10:00", true, true)).as("after today's 07:30 review").containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "WILL_CANCEL"));
+        assertThat(statuses("2026-10-05T07:00", true, true)).as("before today's review").containsExactly(entry("today", "WILL_CANCEL"), entry("tomorrow", "WILL_CANCEL"));
+        assertThat(statuses("2026-10-05T07:30", true, true)).as("at the review instant it is running, not ahead").containsEntry("today", "AT_RISK");
+        assertThat(statuses("2026-10-05T07:00", false, true)).as("the job switched off").containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "AT_RISK"));
+        assertThat(statuses("2026-10-05T07:00", true, false)).containsExactly(entry("today", "WILL_REVIEW"), entry("tomorrow", "WILL_REVIEW"));
+        assertThat(statuses("2026-10-05T10:00", true, false)).containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "WILL_REVIEW"));
+        assertThat(statuses("2026-10-05T10:00", false, false)).containsExactly(entry("today", "AT_RISK"), entry("tomorrow", "AT_RISK"));
     }
 }

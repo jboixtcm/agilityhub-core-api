@@ -5,7 +5,8 @@ Starts the stack like bin/e5-smoke but seeds only the fictional load-test club (
 twice: the second run must change nothing): 330 members with one dog each and, in the two weeks after the anchor week,
 eleven empty 5-seat classes per week. It moves the test clock to just before the Sunday-20:00 opening that closes the
 anchor week, mints one impersonation token per member (the demo members have no password; the booking code path is the
-member's), waits for P1 week-opening (the N-33 fan-out, T-15-30) and runs perf/e5-seat-holds.js three times:
+member's), waits for P1 week-opening to finish (the N-33 fan-out) and runs perf/e5-seat-holds.js three times. P1 runs
+before the peak, not during it: T-15-30 «the same peak while P1 fans out» stays open for the release performance pass:
   peak       300 DISTINCT members (--vus) arrive evenly over the first 5 s (--arrival-seconds) on the 10 empty classes of
              the week that opens (W1): p95 < 500 ms on POST /seat-holds, < 800 ms on the flow, every answer expected,
              all 50 seats booked (gated);
@@ -170,7 +171,8 @@ class Perf:
         listed = s.call("GET", f"/api/v1/me/bookable-classes?dogId={probe['dogId']}", access=probe["token"], quiet=True)
         print(f"PASS preflight (host curl, impersonation token): /me/bookable-classes 200 with {len(listed['classes'])} rows", flush=True)
 
-        # Peak (gated, ruling E28): 300 distinct members within 5 s of the opening, while P1 fans N-33 out (T-15-30).
+        # Peak (gated, ruling E28): 300 distinct members within 5 s of the opening. P1 before the peak: run_after waits for the
+        # WEEK_OPENING run to succeed, so the N-33 fan-out is over when k6 starts (T-15-30 «while P1 fans out» stays open).
         seats = sum(c["capacity"] for c in peak_targets)
         peak_pool = [dict(e, classIds=[c["id"] for c in peak_targets]) for e in pool[:self.vus]]
         s.set_clock(opening - datetime.timedelta(seconds=20), "20 s before the opening")

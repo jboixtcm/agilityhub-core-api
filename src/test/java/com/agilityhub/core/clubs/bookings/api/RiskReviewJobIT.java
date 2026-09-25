@@ -229,6 +229,38 @@ class RiskReviewJobIT extends BookingFixtures {
         assertParity(form, card);
     }
 
+    /**
+     * E5-T15, ruling E37 (S15 §6, amended 24-09): D1 never says «s'anul·larà» about a review that will not run. A class
+     * today at 17:40 with 0 registrants, read at 10:00 (today's 07:30 review is over) → AT_RISK; tomorrow's class before
+     * its review → WILL_CANCEL; with the `risk-review` job switched off → AT_RISK. Form A and D1 agree.
+     */
+    @Test void T_15_15_E37_willCancelOnlyWhenTheRiskReviewWillReallyRunForTheClass() throws Exception {
+        session("late", "2026-10-06T17:40", 5, List.of()); session("next", "2026-10-07T18:00", 5, List.of());
+        clock.setInstant(local("2026-10-06T10:00"));
+        var form = call(GET, "/risk-review", null, as("admin"), 200);
+        assertThat(form.path("items")).extracting(i -> i.path("classId").asText() + ":" + i.path("status").asText() + ":" + i.path("bookedCount").asInt())
+                .containsExactly("s08-late:AT_RISK:0", "s08-next:WILL_CANCEL:0");
+        assertThat(form.path("items").get(0).path("notified")).isEmpty();
+        assertThat(form.path("items").get(0).path("reviewAt").asText()).isEqualTo("2026-10-06T05:30:00Z");
+        dashboards.invalidate(CLUB);
+        var card = call(GET, "/dashboard", null, as("admin"), 200).path("riskReview");
+        assertThat(card.path("items")).extracting(i -> i.path("classSessionId").asText() + ":" + i.path("status").asText())
+                .containsExactly("s08-late:AT_RISK", "s08-next:WILL_CANCEL");
+        assertParity(form, card);
+        // Before today's review the same class is still WILL_CANCEL.
+        clock.setInstant(local("2026-10-06T07:00"));
+        assertThat(call(GET, "/risk-review", null, as("admin"), 200).path("items").get(0).path("status").asText()).isEqualTo("WILL_CANCEL");
+        // The job switched off: nothing will cancel either class.
+        call(org.springframework.http.HttpMethod.PUT, "/jobs/risk-review/switch", Map.of("enabled", false), as("admin"), 200);
+        form = call(GET, "/risk-review", null, as("admin"), 200);
+        assertThat(form.path("items")).extracting(i -> i.path("classId").asText() + ":" + i.path("status").asText())
+                .containsExactly("s08-late:AT_RISK", "s08-next:AT_RISK");
+        dashboards.invalidate(CLUB);
+        card = call(GET, "/dashboard", null, as("admin"), 200).path("riskReview");
+        assertThat(card.path("items")).extracting(i -> i.path("status").asText()).containsExactly("AT_RISK", "AT_RISK");
+        assertParity(form, card);
+    }
+
     @Test void T_15_14_exemptSameDayOffMinimumStartedPendingDraftAndStaleCounters() throws Exception {
         session("exempt", "2026-10-06T09:00", 5, List.of());
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-exempt")), new Update().set("risk.exempt", true), "class_sessions");

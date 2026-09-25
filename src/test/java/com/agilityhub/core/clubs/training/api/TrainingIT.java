@@ -506,6 +506,31 @@ class TrainingIT extends TrainingFixtures {
         assertThat(training(other.path("id").asText())).containsEntry("state", "CANCELLED_BY_CLUB").containsEntry("cancelReason", "CLASS_CONFLICT");
     }
 
+    /**
+     * E5-T15 (R-09-13 on the week paths; review E5-T07 «Not checked»): the week generation places its classes without
+     * asking S09, so a generated class over a live training booking is a `RING_TRAINING_CONFLICT` (R-06-05) that blocks
+     * the validation (R-06-08) until the booking goes; the DRAFT class already refuses new bookings of its slot (R-09-03).
+     */
+    @Test void T_06_12_R_09_13_aGeneratedClassOverALiveTrainingBookingMakesTheWeekInconsistentAndBlocksItsValidation() throws Exception {
+        String booking = book(as("pau"), "s09-d-blat", "2026-10-06T10:00", MUN, 201).path("id").asText();
+        var week = plannedWeek("2026-10-05", MUN, "TUESDAY", "10:00", "11:00");
+        assertThat(generate(week).path("classCount").asInt()).isEqualTo(1);
+        var calendar = call(GET, "/weeks/" + week.weekId() + "/calendar?filter=DRAFT", null, as("admin"), 200);
+        assertThat(calendar.path("inconsistencies")).singleElement().satisfies(i -> assertThat(i.path("type").asText()).isEqualTo("RING_TRAINING_CONFLICT"));
+        assertThat(calendar.path("canValidate").asBoolean()).isFalse();
+        var refused = call(POST, "/weeks/" + week.weekId() + "/validation", Map.of(), as("admin"), 422); // CATALEG_ERRORS rule 0
+        assertThat(code(refused)).isEqualTo("WEEK_INCONSISTENT");
+        assertThat(refused.at("/details/inconsistencies/0/type").asText()).isEqualTo("RING_TRAINING_CONFLICT");
+        assertThat(count("class_sessions", Criteria.where("weekId").is(week.weekId()).and("state").is("DRAFT"))).as("no class changes").isEqualTo(1);
+        assertThat(training(booking)).containsEntry("state", "ACTIVE");
+        // The DRAFT class holds its slot: nobody else can book it.
+        assertThat(book(as("julia"), "s09-d-lluna", "2026-10-06T10:00", MUN, 409).at("/details/reason").asText()).isEqualTo("CLASS");
+        // Once the booking is cancelled, the week validates.
+        cancel(as("pau"), booking, null, 200);
+        assertThat(call(POST, "/weeks/" + week.weekId() + "/validation", Map.of(), as("admin"), 200).path("validatedClassIds")).hasSize(1);
+        assertThat(count("class_sessions", Criteria.where("weekId").is(week.weekId()).and("state").is("ACTIVE"))).isEqualTo(1);
+    }
+
     @Test void T_09_29_aNewClassInvalidatesTheWarmGridCacheOfItsDay() throws Exception {
         assertThat(cell(slots(as("maria"), "2026-10-05", "2026-10-05", null), "2026-10-05T18:00", MUN).path("state").asText()).isEqualTo("FREE");
         classSession("s09-late-class", MUN, "2026-10-05T18:00", "2026-10-05T19:00", "ACTIVE");

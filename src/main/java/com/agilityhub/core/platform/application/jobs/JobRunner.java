@@ -182,6 +182,9 @@ public class JobRunner {
             if (request.dryRun()) {
                 for (JobItem item : plan) {
                     recorder.count("WOULD_" + item.action(), 1);
+                    // E5-T15 (review E5-T13 #2): the platform part of the plan counter, counted before the trace keeps only
+                    // MAX_ITEMS items, so a club's view can leave the whole platform pass out (JobViews.forClub).
+                    if (JobViews.platformItem(item.entityType())) { recorder.count(JobViews.platformPlanCounter(item.action()), 1); }
                     trace(items, item.entityType(), item.entityId(), "WOULD_" + item.action(), item.detail());
                 }
             } else {

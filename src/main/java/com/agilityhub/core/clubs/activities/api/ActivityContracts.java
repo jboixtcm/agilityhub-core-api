@@ -25,7 +25,7 @@ public final class ActivityContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String startTime,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String endTime,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant startsAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant endsAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = ENDS_AT) Instant endsAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityRingBlockWindow ringBlockWindow,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate registrationFrom,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate registrationTo, boolean registrationOpen,
@@ -40,7 +40,10 @@ public final class ActivityContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityCancellation cancellation,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String internalNotes,
             long version) { }
-    /** D7 row (S07 §2). E4-T06: the columns are the values of the activity's own view; every property is sent, `null` where allowed. */
+    /**
+     * D7 row (S07 §2). E4-T06: the columns are the values of the activity's own view; every property is sent, `null` where
+     * allowed. With `fields=`, a property that was not selected is `null`, never a primitive default (E5-T15: `allRings`).
+     */
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record ActivityListItem(String id, String title,
             @Schema(description = "The label of `type` in the reader's locale, or the club's free label (R-07-01): «{title} · {typeDisplay}»") String typeDisplay,
@@ -48,13 +51,15 @@ public final class ActivityContracts {
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null without hours") String startTime,
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null when the activity has no end (never the model's next-day 00:00)") String endTime,
             List<ActivityRing> rings,
-            @Schema(description = "The rings are every active ring of the catalog (R-07-11: «totes — bloquejades»)") boolean allRings,
+            @Schema(description = "The rings are every active ring of the catalog (R-07-11: «totes — bloquejades»)") Boolean allRings,
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = "The free text of an activity away from the club («— (fora del club)»); null at the club") String location,
             ActivityCounters registrations,
             @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", description = "null = no maximum («obertes · socis»)") Integer maxPlaces,
             ActivityState state, ActivityType type, String slug,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate registrationTo, Instant createdAt) { }
     static final String HHMM = "Club-local HH:mm (R-07-13)";
+    static final String ENDS_AT = "Derived instant (E5-T15): for an activity without endTime it is the next local 00:00, which orders and finishes it. "
+            + "Clients display startTime/endTime, never this instant";
     static final String LOCAL = "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13)";
     public enum ActivityVisibility { MEMBERS }
     public record ActivityImage(String fileId, String name, String url) { }
@@ -75,10 +80,11 @@ public final class ActivityContracts {
     public record ActivityCancellationPreview(List<ActivityCancellationRecipient> registrations, int activeCount, int waitingCount) { }
     public record ActivityCancellationRecipient(String registrationId, String memberName, RegistrationState state,
             List<String> channels, int phoneCount) { }
-    /** E4-T06 step 2: `position`, `cancelledAt` and `cancelReason` are always sent, `null` until they apply (never omitted). */
+    /** E4-T06 step 2: `position`, `cancelledAt` and `cancelReason` are always sent (never omitted), `null` when they do not apply. */
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record ActivityRegistrationListItem(String registrationId, ActivityRegistrationMember member, RegistrationState state,
-            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", description = "WAITLISTED only; null otherwise") Integer position,
+            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", description = "The waitlist position: set while WAITLISTED and kept "
+                    + "after a waitlisted registration is cancelled; null once promoted, or if it was never waitlisted (E5-T15)") Integer position,
             RegistrationOrigin origin, Instant registeredAt,
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, format = "date-time", description = "null until the registration is cancelled") Instant cancelledAt,
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = "null until the registration is cancelled") RegistrationCancelReason cancelReason) { }
@@ -92,6 +98,8 @@ public final class ActivityContracts {
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record RegisteredActivity(String id, String title, @Schema(description = LOCAL) String startsAtLocal,
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = LOCAL + "; null when the activity has no end (S07 «Canvis» 24-09)") String endsAtLocal,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null without hours (E5-T15), so a date-only activity never reads 0:00") String startTime,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null when the activity has no end (E5-T15)") String endTime,
             String placeLabel) { }
     public record ActivityRegisteredBy(String displayName, boolean viaClub) { }
     public record ActivityImpersonation(String actorAccountId, String memberId) { }
@@ -105,6 +113,10 @@ public final class ActivityContracts {
     public record ActivityRow(String id, String title, String typeLabel, @Schema(description = LOCAL) String startsAtLocal,
             @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = LOCAL + "; null when the activity has no end (S07 «Canvis» 24-09)")
             @JsonInclude(JsonInclude.Include.ALWAYS) String endsAtLocal,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null without hours (E5-T15), so a date-only activity never reads 0:00")
+            @JsonInclude(JsonInclude.Include.ALWAYS) String startTime,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null when the activity has no end (E5-T15)")
+            @JsonInclude(JsonInclude.Include.ALWAYS) String endTime,
             String placeLabel, ActivityRowState rowState, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String notBookableReason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer freeSeats, int waiting, boolean waitlistEnabled) { }
     public record MemberActivityDetail(String id, String slug, ActivityState state, ActivityType type, String typeDisplay,
@@ -113,7 +125,7 @@ public final class ActivityContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityImage image, List<ActivityDocument> documents,
             ActivityLocation location, List<ActivityRing> rings, boolean allRings, LocalDate date,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String startTime,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String endTime, Instant startsAt, Instant endsAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String endTime, Instant startsAt, @Schema(description = ENDS_AT) Instant endsAt,
             LocalDate registrationFrom, LocalDate registrationTo, boolean registrationOpen,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer minPlaces,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer maxPlaces, List<String> levelNames, boolean waitlistEnabled,

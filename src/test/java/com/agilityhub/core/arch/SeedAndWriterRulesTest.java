@@ -75,12 +75,35 @@ class SeedAndWriterRulesTest {
                 DemoRuleFixtureSeeder.Nested.class, RunsAsTheSeedActor.class))).doesNotThrowAnyException();
     }
 
+    /** E5-T15 (review E5-T06 #4): only the `Demo*Seeder`, `DemoMembers` and `DemoSeed*` names, and never in an `..api..` package. */
+    @Test void E5_T15_theBookingTimeOverrideAllowsOnlyTheSeedNamesOutsideTheApi() {
+        var service = ArchitectureRules.BOOKING_TIME_OVERRIDE.evaluate(new ClassFileImporter().importClasses(DemoRuleFixtureService.class));
+        assertThat(service.hasViolation()).as("a Demo* name that is not a seed class").isTrue();
+        assertThat(service.getFailureReport().getDetails()).anyMatch(line -> line.contains("DemoRuleFixtureService") && line.contains("BookingContext.asOf"));
+        var api = ArchitectureRules.BOOKING_TIME_OVERRIDE.evaluate(new ClassFileImporter().importClasses(com.agilityhub.core.arch.api.DemoRuleApiSeeder.class));
+        assertThat(api.hasViolation()).as("a seeder name in an ..api.. package").isTrue();
+        // The three real seed classes and a `DemoSeed*` fixture move it; a class that does not call it is no violation either.
+        assertThatCode(() -> ArchitectureRules.BOOKING_TIME_OVERRIDE.check(new ClassFileImporter().importClasses(DemoSeedRuleFixture.class,
+                com.agilityhub.core.clubs.bookings.application.DemoScenarioSeeder.class, com.agilityhub.core.clubs.bookings.application.DemoMembers.class,
+                com.agilityhub.core.clubs.training.application.DemoTrainingSeeder.class, WritesTheClassCounters.class))).doesNotThrowAnyException();
+    }
+
     @Test void E5_T09_aConsumerEnvelopeThatIsADomainEventIsAViolation() {
         assertThat(ArchitectureRules.CONSUMER_ENVELOPES.evaluate(new ClassFileImporter().importClasses(SneakyForeignEvent.class)).hasViolation()).isTrue();
         assertThatCode(() -> ArchitectureRules.CONSUMER_ENVELOPES.check(new ClassFileImporter().importClasses(
                 com.agilityhub.core.clubs.common.domain.ForeignEvent.class, com.agilityhub.core.clubs.bookings.domain.ForeignEvent.class,
                 com.agilityhub.core.clubs.training.domain.TrainingForeignEvent.class))).doesNotThrowAnyException();
     }
+}
+
+/** E5-T15: a `Demo*` name that is not a seed class may not move the booking time. */
+final class DemoRuleFixtureService {
+    Object asOf(BookingContext context) { return context.asOf(Instant.EPOCH, () -> "work"); }
+}
+
+/** E5-T15: a `DemoSeed*` class may move the booking time. */
+final class DemoSeedRuleFixture {
+    Object asOf(BookingContext context) { return context.asOf(Instant.EPOCH, () -> "work"); }
 }
 
 /** A top-level `Demo*` class (and its nested classes) may run as the seed actor. */

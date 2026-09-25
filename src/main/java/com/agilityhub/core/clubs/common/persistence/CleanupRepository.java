@@ -83,20 +83,42 @@ public class CleanupRepository {
      * The P9 cycle is the UTC day of the occurrence: the first real P9 run of that day (any club) claims the platform
      * pass until the day ends; every other run of the same day, and a late catch-up of an older day, gets false. The
      * claim is a `job_locks` lease (`holder` = the club whose run does the pass, `runId` = that run), so Mongo's TTL
-     * removes it afterwards.
+     * removes it afterwards. A claim whose run is FAILED is free for the next run of the same day, even when the FAILED
+     * run's release ({@link #releasePlatformCycle}) never ran (E5-T15).
      */
     public boolean claimPlatformCycle(String clubId, Instant occurrence, String runId) {
         String holder = tenant(clubId);
-        var cycleEnd = occurrence.atZone(java.time.ZoneOffset.UTC).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        var cycleEnd = cycleEnd(occurrence);
+        var update = new org.springframework.data.mongodb.core.query.Update().set("holder", holder).set("runId", runId).set("acquiredAt", occurrence)
+                .set("expiresAt", cycleEnd);
         try {
             var query = Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").lte(occurrence));
-            var update = new org.springframework.data.mongodb.core.query.Update().set("holder", holder).set("runId", runId).set("acquiredAt", occurrence)
-                    .set("expiresAt", cycleEnd);
             return mongo.findAndModify(query, update, org.springframework.data.mongodb.core.FindAndModifyOptions.options().upsert(true).returnNew(true),
                     Document.class, "job_locks") != null;
         } catch (org.springframework.dao.DuplicateKeyException claimed) {
-            return false;
+            // E5-T15 (review E5-T13 #3): held, but perhaps by a run of this cycle that ended FAILED and never gave it back (a
+            // crash between its FAILED commit and the release hook, or a failed hook). Take over exactly that claim.
+            var held = failedClaim(cycleEnd);
+            if (held == null) { return false; }
+            var takeover = Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("holder").is(held.getString("holder"))
+                    .and("runId").is(held.getString("runId")).and("expiresAt").is(cycleEnd));
+            return mongo.findAndModify(takeover, update, org.springframework.data.mongodb.core.FindAndModifyOptions.options().returnNew(true),
+                    Document.class, "job_locks") != null;
         }
+    }
+    private static Instant cycleEnd(Instant occurrence) {
+        return occurrence.atZone(java.time.ZoneOffset.UTC).toLocalDate().plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+    }
+    /**
+     * The claim of this cycle (`expiresAt = cycleEnd`) when the run that holds it is FAILED, else null. That run belongs to
+     * the holder club, which may be another one: the platform pass is shared by every club, and only its status is read.
+     */
+    private Document failedClaim(Instant cycleEnd) {
+        var held = mongo.findOne(Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").is(cycleEnd)), Document.class, "job_locks");
+        if (held == null || held.getString("holder") == null || held.getString("runId") == null) { return null; }
+        boolean failed = mongo.exists(Query.query(Criteria.where("_id").is(held.getString("runId")).and("clubId").is(held.getString("holder"))
+                .and("status").is("FAILED")), JOB_RUNS);
+        return failed ? held : null;
     }
     /**
      * E5-T13 (review E5-T10 #4): the run that claimed the cycle ended FAILED, so the claim is given back and another run of
@@ -108,7 +130,8 @@ public class CleanupRepository {
     }
     /** For a dry run: would a real run of this occurrence still get the platform pass? (claims nothing) */
     public boolean platformCycleOpen(Instant occurrence) {
-        return !mongo.exists(Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").gt(occurrence)), "job_locks");
+        return !mongo.exists(Query.query(Criteria.where("_id").is(PLATFORM_CYCLE).and("expiresAt").gt(occurrence)), "job_locks")
+                || failedClaim(cycleEnd(occurrence)) != null;
     }
     public long processedPlatformEvents(Instant before) { return mongo.count(processed(platform(), before), DOMAIN_EVENTS); }
     public long deleteProcessedPlatformEvents(Instant before) { return mongo.remove(processed(platform(), before), DOMAIN_EVENTS).getDeletedCount(); }

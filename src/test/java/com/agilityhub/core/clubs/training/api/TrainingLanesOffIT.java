@@ -1,5 +1,7 @@
 package com.agilityhub.core.clubs.training.api;
 
+import com.agilityhub.core.clubs.catalogs.application.CatalogService;
+import com.agilityhub.core.clubs.catalogs.domain.CatalogKind;
 import com.agilityhub.core.clubs.training.application.TrainingActor;
 import com.agilityhub.core.clubs.training.application.TrainingBookingService;
 import com.agilityhub.core.clubs.training.application.TrainingSlotLocks;
@@ -32,8 +34,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @TestPropertySource(properties = "core.concurrency.local-lanes=false")
 class TrainingLanesOffIT extends TrainingFixtures {
-    static final String CONTEXT = "training";
+    static final String CONTEXT = "training", CATALOGS = "catalogs", SCHEDULING = "scheduling";
     @Autowired LocalLanes lanes; @Autowired TransactionRetries retries; @Autowired TrainingBookingService service; @Autowired TrainingSlotLocks slotLocks;
+    @Autowired CatalogService catalogs;
     record Reply(int status, JsonNode body) { String code() { return body.path("code").asText(); } String outcome() { return status + (status >= 400 ? " " + code() : ""); } }
 
     Reply send(String path, Object body, RequestPostProcessor auth) throws Exception {
@@ -71,12 +74,14 @@ class TrainingLanesOffIT extends TrainingFixtures {
         return new TrainingBooking(UUID.randomUUID().toString(), CLUB, memberId, dogId, ringId, starts, starts.plus(Duration.ofMinutes(30)), ringId + "_" + starts, seat,
                 local("2026-10-04T20:00"), TrainingBookingState.ACTIVE, TrainingOrigin.APP, "s09-" + memberId, null, null, null, null, null, null, null, null, now, now, null);
     }
-    <T> T whileHeld(HeldTransaction held, Callable<T> request) throws Exception {
+    <T> T whileHeld(HeldTransaction held, Callable<T> request) throws Exception { return whileHeld(held, CONTEXT, request); }
+    /** Runs {@code request}, commits {@code held} once {@code context} has retried (the request met the held write), returns the answer. */
+    <T> T whileHeld(HeldTransaction held, String context, Callable<T> request) throws Exception {
         var pool = Executors.newSingleThreadExecutor();
         try {
-            double base = retries.retries(CONTEXT);
+            double base = retries.retries(context);
             var future = pool.submit(request);
-            ConcurrencySupport.awaitRetry(retries, CONTEXT, base);
+            ConcurrencySupport.awaitRetry(retries, context, base);
             held.commit();
             return future.get();
         } finally { pool.shutdownNow(); }
@@ -232,29 +237,77 @@ class TrainingLanesOffIT extends TrainingFixtures {
     // S05 side of R-09-13 (review E5-T07 #3): a ring deactivated or no longer open to free training touches every slot
     // of the booking window, so it meets a concurrent booking of the ring in Mongo.
     @Test void T_09_28_aRingMadeNotReservableDuringAnUncommittedBookingConflictsInsteadOfSkippingIt() throws Exception {
+        double exhausted = retries.exhaustions(CATALOGS);
         Reply change;
         try (var held = new HeldTransaction(tx, CLUB, serviceBooking("pau", "s09-m-pau", "s09-d-blat", "2026-10-07T18:00", CAD))) {
             change = ringChange(CAD, Map.of("allowsFreeTraining", false));
             held.commit();
         }
-        System.out.println("E5-T07 R-09-13 S05 ring change while a booking of the ring is uncommitted: " + change.outcome());
+        System.out.println("E5-T07 R-09-13 S05 ring change while a booking of the ring stays uncommitted for its whole retry budget: " + change.outcome());
         assertThat(change.outcome()).as("the S05 side meets the ring-slot write conflict (never 200 over the booking)").isEqualTo("409 STALE_VERSION");
+        assertThat(retries.exhaustions(CATALOGS) - exhausted).as("E5-T15: the change was retried until its budget ran out").isEqualTo(1);
         assertThat(ringChange(CAD, Map.of("allowsFreeTraining", false)).outcome()).isEqualTo("422 RING_HAS_BOOKINGS");
         assertThat(mongo.findById(CAD, Document.class, "rings").getBoolean("allowsFreeTraining")).isTrue();
         assertThat(active(Criteria.where("ringId").is(CAD))).isEqualTo(1);
     }
 
-    @Test void T_09_28_aBookingDuringAnUncommittedRingChangeIsRetriedAndSeesTheRingNotReservable() throws Exception {
+    /** E5-T15 (review E5-T07 #1): the S05 ring change is retried like the S06/S08/S09 writers, so it sees the booking that won. */
+    @Test void T_09_28_aRingChangeDuringAnUncommittedBookingIsRetriedAndThenSeesTheBooking() throws Exception {
+        double before = retries.retries(CATALOGS);
+        Reply change;
+        try (var held = new HeldTransaction(tx, CLUB, serviceBooking("pau", "s09-m-pau", "s09-d-blat", "2026-10-07T18:00", CAD))) {
+            change = whileHeld(held, CATALOGS, () -> ringChange(CAD, Map.of("allowsFreeTraining", false)));
+        }
+        System.out.println("E5-T15 R-09-13 S05 ring change retried after an uncommitted booking of the ring: " + change.outcome()
+                + " · catalogs retries " + (retries.retries(CATALOGS) - before));
+        assertThat(change.outcome()).as("the retried change sees the committed booking, never 409 and never 200 over it").isEqualTo("422 RING_HAS_BOOKINGS");
+        assertThat(change.body().at("/details/bookings")).singleElement().satisfies(b -> assertThat(b.path("dogName").asText()).isEqualTo("Blat"));
+        assertThat(retries.retries(CATALOGS)).isGreaterThan(before);
+        assertThat(mongo.findById(CAD, Document.class, "rings").getBoolean("allowsFreeTraining")).isTrue();
+        assertThat(active(Criteria.where("ringId").is(CAD))).isEqualTo(1);
+    }
+
+    /** E5-T15 (review E5-T07 #1): the other order through the real `CatalogService.update`: the ring change commits first. */
+    @Test void T_09_28_aBookingDuringAnUncommittedRealRingChangeIsRetriedAndSeesTheRingNotReservable() throws Exception {
+        long version = ((Number) mongo.findById(CAD, Document.class, "rings").get("version")).longValue();
         Reply reply;
-        try (var held = new HeldTransaction(tx, CLUB, () -> {
-            slotLocks.bookable(CAD);
-            mongo.updateFirst(Query.query(Criteria.where("_id").is(CAD)), new Update().set("allowsFreeTraining", false).inc("version", 1), "rings");
-        })) {
+        try (var held = new HeldTransaction(tx, CLUB, () -> catalogs.update(CatalogKind.RING, CAD, Map.of("allowsFreeTraining", false, "version", version)))) {
             reply = whileHeld(held, () -> booking("pau", "s09-d-blat", "2026-10-07T18:00", CAD));
         }
+        System.out.println("E5-T15 R-09-13 booking retried after an uncommitted CatalogService.update of the ring: " + reply.outcome());
         assertThat(reply.outcome()).isEqualTo("422 RING_NOT_RESERVABLE");
         assertThat(retries.retries(CONTEXT, "write_conflict")).isPositive();
+        assertThat(mongo.findById(CAD, Document.class, "rings").getBoolean("allowsFreeTraining")).isFalse();
         assertThat(active(Criteria.where("ringId").is(CAD))).isZero();
+    }
+
+    /** S06 `POST /weeks/{id}/validation` by the admin, without an Idempotency-Key (the route takes none), so it retries on its own. */
+    Reply validation(String weekId) throws Exception {
+        var response = mvc.perform(post("/api/v1/weeks/" + weekId + "/validation").header("Host", HOST).with(as("admin")).contentType("application/json")
+                .content("{}")).andReturn().getResponse();
+        return new Reply(response.getStatus(), response.getContentAsByteArray().length == 0 ? mapper.nullNode() : mapper.readTree(response.getContentAsString()));
+    }
+
+    /**
+     * E5-T15 (R-09-13 on the week paths): a booking that began before its slot's class was generated is still uncommitted
+     * when the admin validates the week. The validation touches the ring slots of its DRAFT classes, meets the booking, is
+     * retried, and then sees it: `WEEK_INCONSISTENT`, never an ACTIVE class over a live booking.
+     */
+    @Test void T_06_12_R_09_13_aValidationDuringAnUncommittedBookingOfAGeneratedClassSlotIsRetriedAndSeesTheConflict() throws Exception {
+        assertThat(lanes.enabled()).isFalse();
+        var week = plannedWeek("2026-10-05", MUN, "TUESDAY", "10:00", "11:00");
+        double before = retries.retries(SCHEDULING);
+        Reply reply;
+        try (var held = new HeldTransaction(tx, CLUB, serviceBooking("pau", "s09-m-pau", "s09-d-blat", "2026-10-06T10:00", MUN))) {
+            generate(week); // the generation neither sees nor waits for the uncommitted booking
+            reply = whileHeld(held, SCHEDULING, () -> validation(week.weekId()));
+        }
+        System.out.println("E5-T15 R-09-13 lanes off, week validation while a booking of a generated class's slot is uncommitted: " + reply.outcome()
+                + " " + reply.body().at("/details/inconsistencies/0/type").asText() + " · scheduling retries " + (retries.retries(SCHEDULING) - before));
+        assertThat(reply.outcome()).isEqualTo("422 WEEK_INCONSISTENT");
+        assertThat(reply.body().at("/details/inconsistencies/0/type").asText()).isEqualTo("RING_TRAINING_CONFLICT");
+        assertThat(active(Criteria.where("ringId").is(MUN))).isEqualTo(1);
+        assertThat(count("class_sessions", Criteria.where("weekId").is(week.weekId()).and("state").is("ACTIVE"))).as("never an ACTIVE class over the booking").isZero();
     }
 
     @Test void T_09_28_lanesOffAConcurrentRingChangeAndBookingNeverLeaveALiveBookingOnANonReservableRing() throws Exception {

@@ -55,6 +55,8 @@ class CacheInvalidationRaceIT extends AbstractIntegrationTest {
     @MockitoSpyBean ParameterRepository parameters;
     @MockitoSpyBean com.agilityhub.core.clubs.signup.application.SignupPolicy signupPolicy;
     @Autowired com.agilityhub.core.clubs.census.application.SignupService signups;
+    @Autowired com.agilityhub.core.platform.application.definition.ClubDefinitions definitions;
+    @Autowired com.agilityhub.core.platform.application.definition.ClubDefinitionCodec codec;
 
     /** Holds the read of one loader thread until the test releases it. */
     static final class Gate {
@@ -95,7 +97,7 @@ class CacheInvalidationRaceIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    @Test void T_02_01_moduleToggleDuringAnInFlightConfigLoadLeavesNoStaleValue() throws Exception {
+    @Test void T_02_09_moduleToggleDuringAnInFlightConfigLoadLeavesNoStaleValue() throws Exception {
         boolean before = configs.get(CLUB).modules().contains(Module.PUSH);
         configs.invalidate(CLUB);
         var gate = new Gate();
@@ -139,20 +141,27 @@ class CacheInvalidationRaceIT extends AbstractIntegrationTest {
         return mapper.readTree(body).path("enabled").asBoolean();
     }
 
-    @Test void T_02_11_domainAddedDuringAnInFlightNegativeHostLookupIsResolvedAfterwards() throws Exception {
+    /**
+     * E5-T15 (review E5-T06 #3): the domain change goes through the production path, `club:apply`'s service
+     * ({@link com.agilityhub.core.platform.application.definition.ClubDefinitions}), which commits and then invalidates.
+     */
+    @Test void T_02_06_domainAddedByClubApplyDuringAnInFlightNegativeHostLookupIsResolvedAfterwards() throws Exception {
+        var definition = codec.read(java.nio.file.Path.of("seeds/club-minim.yaml")); definition.remove("accounts");
+        String slug = "race-apply-" + java.util.UUID.randomUUID().toString().substring(0, 8), host = slug + ".example.test", added = "new-" + host;
+        ((com.fasterxml.jackson.databind.node.ObjectNode) definition.get("club")).put("slug", slug).put("status", "ACTIVE");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) definition.at("/domains/0")).put("host", host);
+        String club = definitions.apply(definition.deepCopy(), false).id();
         var gate = new Gate();
         doAnswer(call -> gate.pass(call.callRealMethod())).when(clubs).findByHost(anyString());
-        var load = gate.start(() -> hosts.resolve(NEW_HOST));
-        // What a domain change does: the club document changes, then ClubConfigChanged / club:apply call hosts.invalidate().
-        var domain = Map.of("host", NEW_HOST, "app", "clubs", "status", "VERIFIED", "primary", false);
-        mongo.updateFirst(Query.query(Criteria.where("_id").is(CLUB)), new Update().push("domains", domain), Club.class);
-        hosts.invalidate();
+        var load = gate.start(() -> hosts.resolve(added));
+        ((com.fasterxml.jackson.databind.node.ArrayNode) definition.get("domains")).addObject().put("host", added).put("app", "clubs").put("primary", false);
+        assertThat(definitions.apply(definition, false).changes()).isPositive();
         gate.release.countDown();
         assertThat(load.get(30, TimeUnit.SECONDS)).as("the in-flight lookup read the old domains").isEmpty();
-        assertThat(hosts.resolve(NEW_HOST)).isEqualTo(Optional.of(CLUB));
+        assertThat(hosts.resolve(added)).isEqualTo(Optional.of(club));
     }
 
-    @Test void T_02_11_domainRemovedDuringAnInFlightHostLookupIsNotResolvedAfterwards() throws Exception {
+    @Test void T_02_06_domainRemovedDuringAnInFlightHostLookupIsNotResolvedAfterwards() throws Exception {
         var gate = new Gate();
         doAnswer(call -> gate.pass(call.callRealMethod())).when(clubs).findByHost(anyString());
         var load = gate.start(() -> hosts.resolve(HOST));

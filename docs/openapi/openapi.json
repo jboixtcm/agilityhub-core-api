@@ -109,6 +109,7 @@
             "type" : [ "string", "null" ]
           },
           "endsAt" : {
+            "description" : "Derived instant (E5-T15): for an activity without endTime it is the next local 00:00, which orders and finishes it. Clients display startTime/endTime, never this instant",
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
@@ -829,7 +830,7 @@
             "type" : "string"
           },
           "position" : {
-            "description" : "WAITLISTED only; null otherwise",
+            "description" : "The waitlist position: set while WAITLISTED and kept after a waitlisted registration is cancelled; null once promoted, or if it was never waitlisted (E5-T15)",
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
@@ -991,6 +992,10 @@
       },
       "ActivityRow" : {
         "properties" : {
+          "endTime" : {
+            "description" : "Club-local HH:mm (R-07-13); null when the activity has no end (E5-T15)",
+            "type" : [ "string", "null" ]
+          },
           "endsAtLocal" : {
             "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13); null when the activity has no end (S07 «Canvis» 24-09)",
             "type" : [ "string", "null" ]
@@ -1012,6 +1017,10 @@
             "enum" : [ "OPEN", "FULL_WAITLIST", "FULL", "NOT_BOOKABLE" ],
             "type" : "string"
           },
+          "startTime" : {
+            "description" : "Club-local HH:mm (R-07-13); null without hours (E5-T15), so a date-only activity never reads 0:00",
+            "type" : [ "string", "null" ]
+          },
           "startsAtLocal" : {
             "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13)",
             "type" : "string"
@@ -1030,7 +1039,7 @@
             "type" : "boolean"
           }
         },
-        "required" : [ "endsAtLocal", "id", "placeLabel", "rowState", "startsAtLocal", "title", "typeLabel", "waiting", "waitlistEnabled" ],
+        "required" : [ "endTime", "endsAtLocal", "id", "placeLabel", "rowState", "startTime", "startsAtLocal", "title", "typeLabel", "waiting", "waitlistEnabled" ],
         "type" : "object"
       },
       "ActivityTrainingBooking" : {
@@ -2993,6 +3002,13 @@
             },
             "type" : "array"
           },
+          "instructorNames" : {
+            "description" : "Only in GET /class-sessions/{id} (E5-T15): the instructors' names, in instructorIds order",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
           "levelIds" : {
             "items" : {
               "type" : "string"
@@ -3013,6 +3029,14 @@
           "placementId" : {
             "description" : "Only with COURSES",
             "type" : "string"
+          },
+          "ring" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClassRing"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Only in GET /class-sessions/{id} (E5-T15), where it is always sent: the ring, null for a class without a ring"
           },
           "ringId" : {
             "type" : [ "string", "null" ]
@@ -8147,6 +8171,7 @@
             "type" : [ "string", "null" ]
           },
           "endsAt" : {
+            "description" : "Derived instant (E5-T15): for an activity without endTime it is the next local 00:00, which orders and finishes it. Clients display startTime/endTime, never this instant",
             "format" : "date-time",
             "type" : "string"
           },
@@ -10725,6 +10750,10 @@
       },
       "RegisteredActivity" : {
         "properties" : {
+          "endTime" : {
+            "description" : "Club-local HH:mm (R-07-13); null when the activity has no end (E5-T15)",
+            "type" : [ "string", "null" ]
+          },
           "endsAtLocal" : {
             "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13); null when the activity has no end (S07 «Canvis» 24-09)",
             "type" : [ "string", "null" ]
@@ -10735,6 +10764,10 @@
           "placeLabel" : {
             "type" : "string"
           },
+          "startTime" : {
+            "description" : "Club-local HH:mm (R-07-13); null without hours (E5-T15), so a date-only activity never reads 0:00",
+            "type" : [ "string", "null" ]
+          },
           "startsAtLocal" : {
             "description" : "Club-local date-time YYYY-MM-DDTHH:mm (R-07-13)",
             "type" : "string"
@@ -10743,7 +10776,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "endsAtLocal", "id", "placeLabel", "startsAtLocal", "title" ],
+        "required" : [ "endTime", "endsAtLocal", "id", "placeLabel", "startTime", "startsAtLocal", "title" ],
         "type" : "object"
       },
       "RegistrationCancellationRequest" : {
@@ -23432,7 +23465,7 @@
     },
     "/api/v1/class-sessions/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER including impersonation sees only ACTIVE/FINISHED; no notes or instructor counts. Instructor visibility follows R-06-12. ADMIN/INSTRUCTOR also get instructorNames[] and ring (null without a ring). Tenant comes from the JWT.",
         "operationId" : "classSession",
         "parameters" : [ {
           "in" : "path",

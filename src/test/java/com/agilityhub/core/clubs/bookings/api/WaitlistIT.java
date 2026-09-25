@@ -422,8 +422,11 @@ class WaitlistIT extends BookingFixtures {
         }
     }
 
-    /** E5-T14 (review E5-T11 #3): the mark means «the N-15 rows of this offer were written»; no row, no mark, no N-46. */
-    @Test void R_08_13_anOfferWithNoN15RecipientIsNotMarkedAndGetsNoN46() throws Exception {
+    /**
+     * E5-T14 (review E5-T11 #3), R-08-13 (ALL_AT_ONCE, N-15): the mark means «the N-15 rows of this offer were written»;
+     * no row, no mark, no N-46. Renamed after its spec test in E5-T15 (review E5-T14 #1).
+     */
+    @Test void T_08_20_anOfferWithNoN15RecipientIsNotMarkedAndGetsNoN46() throws Exception {
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), c0 = id(join(as("c0"), "last", "s08-d-c0", 201));
         // C0's member has lost its account link and its phones: the N-15 consumer finds nobody to write to.
@@ -440,10 +443,11 @@ class WaitlistIT extends BookingFixtures {
     }
 
     /**
-     * E5-T14 (review E5-T11 #8): a FIFO offer that expired is EXPIRED (not live) and loses its N-15 mark, so a later
-     * seat-taken event never tells it «La plaça ja s'ha ocupat», even after the club switches to ALL_AT_ONCE.
+     * E5-T14 (review E5-T11 #8), R-08-13/R-08-14 (FIFO expiry): a FIFO offer that expired is EXPIRED (not live) and loses
+     * its N-15 mark, so a later seat-taken event never tells it «La plaça ja s'ha ocupat», even after the club switches to
+     * ALL_AT_ONCE. Renamed after its spec test in E5-T15 (review E5-T14 #1).
      */
-    @Test void R_08_13_R_08_14_anExpiredFifoOfferNeverGetsN46() throws Exception {
+    @Test void T_08_21_anExpiredFifoOfferNeverGetsN46() throws Exception {
         parameter("waitlist.mode", "FIFO");
         var pere = book(as("pere"), "last", "s08-d-nit");
         String duna = id(join(as("laura"), "last", "s08-d-duna", 201)), toby = id(join(as("joan"), "last", "s08-d-toby", 201));

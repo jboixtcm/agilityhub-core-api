@@ -1,7 +1,9 @@
 # Load and concurrency tests (k6)
 
 `perf/e5-seat-holds.js` is the E5 gate's load test for the booking flow: S08 T-08-41 (the opening peak, no
-overbooking) and S15 T-15-30 (the same peak while P1 `week-opening` fans N-33 out). The load model is the organizer's
+overbooking). The harness runs P1 `week-opening` **before the peak**: it waits for the run to succeed (the N-33 fan-out
+is over) and only then starts k6. S15 T-15-30 («the same peak while P1 fans N-33 out») is therefore not proven here; it
+stays open for the release performance pass. The load model is the organizer's
 ruling **E28** (`docs/DECISIONS_PENDENTS.md`): **300 distinct fictional members** arrive within the first **5 s** of the
 Sunday-20:00 opening, on **10 empty classes of 5 seats**; `p(95) < 500 ms` on the seat hold and `< 800 ms` on the whole
 flow, zero overbooking. The all-at-once burst stays a correctness stress run whose latencies are reported, not gated.
@@ -42,6 +44,15 @@ expected HTTP failure status, so `http_req_failed` must stay at 0. The answers a
 k6 does not see the database. The harness asserts in Mongo after each run that the target classes are full and that
 no class holds more `ACTIVE` + `PAYMENT_PENDING` bookings than its capacity.
 
+**The seat gates rely on an even spread.** Each member holds `targets[index % targets.length]` among the rows the list
+shows `BOOKABLE`. Those row states and `freeSeats` come from the 30 s base cache of `/me/bookable-classes` (S15
+R-15-11), so a full class stays `BOOKABLE` for the whole peak and the member who picks it gets `409 CLASS_FULL` without
+trying another class. `holds_created == SEATS` and «50/50 seats filled» therefore hold only because the arrivals divide
+evenly over the classes and every class gets at least as many members as it has seats: 300 over 10 classes is 30 per
+class, 6 per seat. Keep `VUS` a multiple of the class count and at least `SEATS`. With another pool size or class count
+a class can get fewer members than seats, and a seat gate then fails with free seats left. Read that as a change of the
+load model, not as overbooking or a throughput regression: the overbooking check and the answer histogram tell them apart.
+
 ## One command: `bin/e5-perf`
 
 ```sh
@@ -61,9 +72,11 @@ seeded). Then:
    week +2 becomes W1 (the week that opens, 1 booking per dog) and week +1 is W0 (2 per dog).
 2. Mints one impersonation token per member (`POST /members/{id}/impersonation-token`, 60 min): 329 distinct members
    (the admin cannot be impersonated). Demo members are passwordless, and the booking code path is the member's.
-3. Sets the clock 20 s before 20:00, waits for the scheduler's P1 run and starts `peak`: 300 distinct members on the
-   10 classes of W1, while N-33 fans out. It asserts 50/50 seats booked by 50 distinct members, zero overbooking, and
-   that the last N-33 row lands less than 10 s after `WeekOpened` (T-15-30).
+3. Sets the clock 20 s before 20:00, waits until the scheduler's P1 run has **finished** and then starts `peak`
+   (P1 before the peak): 300 distinct members on the 10 classes of W1. It asserts 50/50 seats booked by 50 distinct
+   members, zero overbooking, and that the last N-33 row lands less than 10 s after `WeekOpened`. The fan-out is over
+   before k6 starts, so this is not T-15-30's «peak while P1 fans out»; that scenario stays open for the release
+   performance pass.
 4. Fills the eleventh W0 class to capacity − 1 with 4 members and runs `last_seat` with 50 others; asserts 5/5.
 5. Runs `burst`: the same 300 members all at once on the 10 other W0 classes; asserts 50/50 and zero overbooking.
 

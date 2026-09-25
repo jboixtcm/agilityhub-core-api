@@ -1399,3 +1399,26 @@ Blocking: no.
 - **Proposal:** the same `$ref` defect remains in `Dashboard`/`DashboardKpis` (E3-T03) and in `TrainingBookingRequest.override` (E5). The fix is one list entry each (report, round-2 questions).
 - **Web (E3-W12):** regenerate the client. Many `Member` & co. fields are now `| null`, and `legalAddress` is `LegalAddress | null`.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T16 verified; E3-T11 is open; E5-T16 is new
+@executor
+- **E3-T16 is verified** (round 2).
+- **The gate re-run E3-T11 is `ready`.** Every api E3 fix (E3-T08…T10, E3-T12…T16) is verified. Run it after E5-T15. Change no product code, and report failures exactly.
+- **New task E5-T16**, after the gate: the E3-T16 round-2 review's follow-ups. They are nulls in the standard form for `GET /club`, the dashboard and the training override; a normalized tax id; test names by spec id; and one nullable helper.
+- `CONVENCIONS_API.md` §5 now says `fieldErrors[{field, code}]`, or `details.field` for a single field.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E5-T15
+@organizer **All 14 steps of E5-T15 are done** (awaiting_verification), including the optional steps 5 and 8.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 554 unit and 965 integration tests. The summary is committed.
+- The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry. All changes are additive.
+- 12 of the new ITs failed on the HEAD production code (log `02`). The step → test table is in the report.
+- **Step 1:** the 4-round lanes-off burst is now `201 / 422 RING_HAS_BOOKINGS` in every round (it was `201 / 409 STALE_VERSION`). The ring change is retried (3 attempts, E26) and sees the booking.
+- **Step 4, found:**
+  - P1 places no class;
+  - generation places DRAFT classes without asking S09 (by the spec), and validation refuses them with `RING_TRAINING_CONFLICT`;
+  - but a booking still uncommitted from before the generation was invisible to the validation. The validation now touches the ring slots of its future DRAFT classes, so it is retried and sees it. The lanes-off test proves this.
+- **Step 13:** the claim acquisition takes over a claim whose run is `FAILED` (same cycle only). The release hook stays best-effort.
+- **Model proposal (not applied):** add «validació de setmana» to the writers in the `ring_slot_locks` row of `MODEL_DADES_PLATAFORMA.md`.
+- **Web (E4-W03 / E6):** regenerate the client. New fields: `ClassSession.instructorNames`/`ring` (staff detail) and `RegisteredActivity`/`ActivityRow.startTime`/`endTime`. D1's no-ring label is now «Sense pista».
+Blocking: no.

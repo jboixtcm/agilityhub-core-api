@@ -68,7 +68,11 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") String notes,
             long version, List<String> inconsistencyIds,
             @Schema(requiredMode = NOT_REQUIRED, description = "Only in GET /weeks/{id}/calendar: S10 attendance status from attendanceSummary (NONE before T0, PENDING inside the window with marked < total, DONE, CLOSED after T1)")
-            com.agilityhub.core.clubs.scheduling.application.ports.AttendanceStatusPort.AttendanceStatus attendanceStatus) { }
+            com.agilityhub.core.clubs.scheduling.application.ports.AttendanceStatusPort.AttendanceStatus attendanceStatus,
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only in GET /class-sessions/{id} (E5-T15): the instructors' names, in instructorIds order")
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> instructorNames,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only in GET /class-sessions/{id} (E5-T15), where it is always sent: the ring, null for a class without a ring")
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ClassRing ring) { }
     public record ClassCounters(int booked, int waiting) { }
     public record ClassCancellation(ClassCancellationReason reason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String adminText, String byAccountId, Instant at,

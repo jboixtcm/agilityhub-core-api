@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T15: follow-ups of the E5-T06/E5-T07 round-2 reviews, ruling E37 and the E5-T13/E4-T06 review minors.
+  - S05 R-05-08 / S09 R-09-13: a ring change (deactivation, `allowsFreeTraining` off) is retried whole on a write
+    conflict or duplicate key (3 attempts, 50–150 ms, E26), so a concurrent booking no longer turns it into
+    `409 STALE_VERSION`: the retried change answers `422 RING_HAS_BOOKINGS`, or the retried booking
+    `422 RING_NOT_RESERVABLE`. Metrics under the `catalogs` context.
+  - S06: `SchedulingTransactions` also retries a `DuplicateKey`, counts its retries (`scheduling`), and its backoff is
+    injectable. `ring_slot_locks` is created by the `schedulingCollections` startup runner, not by the repository.
+  - R-06-08 / R-09-13: the week validation touches the ring-slot sequences of its future DRAFT classes, so a booking
+    still uncommitted from before the generation is met, retried and seen (`422 WEEK_INCONSISTENT`).
+  - Ruling E37 (S15 §6): `GET /risk-review` and D1 say `WILL_CANCEL`/`WILL_REVIEW` only while the `risk-review` job is
+    on and the class's `reviewAt` is ahead; otherwise an at-risk class is `AT_RISK`.
+  - D1 rows of a class without a ring read `dashboard.noRing` («Sense pista» / «Sin pista» / «No ring»); the day grid
+    column keeps `scheduling.noRing` («Sense»).
+  - `GET /class-sessions/{id}` (staff) adds `instructorNames[]` and `ring {id, name, color}` (`null` without a ring).
+  - S15 P9: a dry run's club counters leave out the whole platform pass even past the trace's 500 items
+    (`WOULD_<action>_platformItems`, counted before the cut); the platform cycle held by a FAILED run is taken over by
+    the next run of the day, even when that run's release never happened.
+  - S07: `RegisteredActivity` and `ActivityRow` carry `startTime`/`endTime` (`null` when absent); `allRings` is `null`
+    when `fields=` does not select it; the `position` and `endsAt` descriptions match the code.
+  - ArchUnit: only `Demo*Seeder`, `DemoMembers` and `DemoSeed*` classes outside `..api..` may move the booking time.
+  - Tests renamed after their spec ids (`T_02_06`, `T_02_09`, `T_08_20`, `T_08_21`, `E5_T07_…`); one host race test
+    goes through `club:apply`'s service. `perf/README.md` and `bin/e5-perf`: P1 runs before the peak (T-15-30 stays
+    open), and the seat gates rely on an even spread. OpenAPI snapshot and `docs/openapi/CHANGELOG.md` updated.
 - E4-T06: activity read models for D7 and the app (S07; from the web's E4-W04).
   - S07 §2 D7: `GET /activities` rows carry the D7 columns: `typeDisplay`, `startTime`, `endTime`, `allRings`,
     `location` (the free text of an activity away from the club) and `maxPlaces`. The values come from the same

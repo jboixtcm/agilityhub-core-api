@@ -8,18 +8,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
-/** R-09-13: the ring-slot sequence (see {@link RingSlotLock}); always called inside the caller's Mongo transaction. */
+/**
+ * R-09-13: the ring-slot sequence (see {@link RingSlotLock}); always called inside the caller's Mongo transaction. The
+ * collection is created at startup by {@link SchedulingPersistence#schedulingCollections}.
+ */
 @Repository
 public class RingSlotLockRepository extends TenantRepository<RingSlotLock> {
-    public RingSlotLockRepository(MongoTemplate mongo) {
-        super(mongo, RingSlotLock.class);
-        // The collection must exist before the first transactional upsert: two transactions that both create it implicitly
-        // abort each other at commit («namespace already in use»), whatever documents they touch.
-        if (!mongo.collectionExists(RingSlotLock.class)) {
-            try { mongo.createCollection(RingSlotLock.class); }
-            catch (org.springframework.dao.DataAccessException raced) { if (!mongo.collectionExists(RingSlotLock.class)) { throw raced; } }
-        }
-    }
+    public RingSlotLockRepository(MongoTemplate mongo) { super(mongo, RingSlotLock.class); }
     /** `$inc sequence` (upsert) — a concurrent transaction that touches the same ring slot gets a WriteConflict. */
     public void touch(String ringId, Instant startsAt) {
         String id = TenantContext.require() + ":" + ringId + ":" + startsAt;

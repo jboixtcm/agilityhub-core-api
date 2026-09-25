@@ -568,9 +568,12 @@ burst on one last seat queues instead of exhausting its retries. The guarantees 
 - S09 free training: the partial unique index `training_active_seat` and the `$inc` of `Dog.trainingSeq` (always) and
   `Member.trainingSeq` (unit `MEMBER`), at most 3 attempts (R-09-06). The ring-slot sequences in `ring_slot_locks`
   (one document per ring and training grid slot) are written by a training booking (its own slot) and by every write
-  that checks the ring's bookings (R-09-13): a ring block, a class moved onto the ring or an activity block touches
-  each grid slot its range overlaps, and a ring deactivated or no longer open to free training touches every slot
-  of the booking window. Bookings of different slots never share a document.
+  that checks the ring's bookings (R-09-13): a ring block, a class moved onto the ring, a week validation (the slots of
+  its future DRAFT classes) or an activity block touches each grid slot its range overlaps, and a ring deactivated or
+  no longer open to free training touches every slot of the booking window. Bookings of different slots never share
+  a document. The collection is created at startup (`schedulingCollections`). The S05 ring change (at most 3
+  attempts) and the S06 writers (at most 6) retry a `WriteConflict` or a `DuplicateKey` with a 50–150 ms backoff
+  (E5-T15), counted under the `catalogs` and `scheduling` contexts.
 
 With the lanes off, a burst on one aggregate ends partly in `409 STALE_VERSION` (see the E5-T07 report for the
 measured numbers). `core.transactions.retries{context,cause}` and `core.transactions.exhausted{context}` in the

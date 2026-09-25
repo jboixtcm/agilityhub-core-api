@@ -1,0 +1,22 @@
+surefire totals: tests=554 failures=0 errors=0 skipped=0 (123 classes)
+  com.agilityhub.core.clubs.scheduling.application.SchedulingTransactionsTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.scheduling.persistence.SchedulingPersistenceTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.SeedAndWriterRulesTest: tests=7 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=12 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.ArchitectureRulesTest: tests=20 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.scheduling.application.RiskReviewQueryTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.jobs.JobViewsTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.catalogs.application.CatalogServiceRetryTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E4ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+failsafe totals: tests=965 failures=0 errors=0 skipped=0 (84 classes)
+  com.agilityhub.core.clubs.training.api.TrainingLanesOffIT: tests=15 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.training.api.TrainingIT: tests=23 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.scheduling.application.CalendarIT: tests=15 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.RiskReviewJobIT: tests=8 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.JobsApiIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.activities.application.ActivityIT: tests=30 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.CacheInvalidationRaceIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.WaitlistIT: tests=18 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E4ContractIT: tests=63 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0

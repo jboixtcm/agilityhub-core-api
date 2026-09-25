@@ -331,6 +331,13 @@ class CalendarIT extends AbstractIntegrationTest {
         clock.setInstant(Instant.parse("2026-08-24T17:00:00Z"));assertThat(memberGrid("2026-08-25",false).at("/rows/0/cells/0/instructorName").asText()).isEqualTo("plan-instructor");
         clock.setInstant(Instant.parse("2026-08-24T04:00:00Z"));parameter("bookings.showInstructorHoursBefore",0,"int");assertThat(memberGrid("2026-08-25",false).at("/rows/0/cells/0/instructorName").asText()).isEqualTo("plan-instructor");
         assertThat(memberGrid("2026-08-25",true).path("columns")).hasSize(2);assertThat(memberGrid("2026-08-26",true).path("rows")).isEmpty();assertThat(memberGrid("2026-08-26",true).path("columns")).hasSize(1);
+        // E5-T15: the column of the classes without a ring keeps the short label «Sense» (D3b); the D1 rows say «Sense pista».
+        assertThat(memberGrid("2026-08-25",true).at("/columns/1/shortName").asText()).isEqualTo("Sense");
+        assertThat(memberGrid("2026-08-25",true).at("/columns/1/name").asText()).isEqualTo("Sense");
+        try(var tenant=TenantContext.open(CLUB)) {
+            assertThat(dashboardRisk.rows(CLUB,LocalDate.of(2026,8,24))).filteredOn(r -> r.id().equals(id)).singleElement()
+                    .satisfies(r -> assertThat(r.ringName().values()).containsExactly(Map.entry("ca","Sense pista"),Map.entry("es","Sin pista"),Map.entry("en","No ring")));
+        }
         var from=Instant.parse("2026-08-25T08:00:00Z");doubles.training.add(new TrainingConflictPort.Booking("training","plan-ring",from,from.plusSeconds(1800),"Private guide","Private dog"));
         var member=memberGrid("2026-08-25",false);assertThat(member.toString()).contains("OCCUPIED","TRAINING").doesNotContain("Private","occupancy","who","trainingBookingIds");
         assertThat(memberGrid("2026-08-25",true).toString()).contains("Private guide","trainingBookingIds","waiting");
@@ -341,6 +348,34 @@ class CalendarIT extends AbstractIntegrationTest {
         modules();var noModules=memberGrid("2026-08-25",true);assertThat(noModules.toString()).doesNotContain("waiting","TRAINING","placementId","activeSetupId");
         var body=blockBody("2026-08-26T14:00:00Z","2026-08-26T15:00:00Z");body.put("kind","RESERVATION");body.put("reason","PRIVATE_CLASS");error("POST","/ring-blocks",body,ErrorCode.MODULE_DISABLED);
         var foreign=mvc.perform(call("GET","/day-grid?date=2026-08-25",null).with(r -> {r.removeHeader("Host");r.addHeader("Host","other.planning.example.test");return r;}).with(jwt().jwt(j -> j.claim("clubId",OTHER)).authorities(() -> "ROLE_MEMBER"))).andExpect(status().isOk()).andReturn().getResponse();assertThat(foreign.getContentAsString()).doesNotContain(id,"Private");
+    }
+    /**
+     * E5-T15 (web E4-W03 question 3): the staff detail of `GET /class-sessions/{id}` names the instructors (in
+     * `instructorIds` order) and carries the ring, `null` without one; the write answers and the member view are unchanged.
+     */
+    @Test void T_06_20_theStaffDetailOfAClassNamesItsInstructorsAndCarriesItsRing() throws Exception {
+        parameter("classes.maxInstructorsPerClass",2,"int");
+        var body=new LinkedHashMap<String,Object>(); body.put("date","2026-08-25"); body.put("startTime","18:00"); body.put("endTime","19:00"); body.put("ringId","plan-ring");
+        body.put("instructorIds",List.of("plan-instructor-2","plan-instructor")); body.put("levelIds",List.of("plan-level-D"));
+        var created=ok("POST","/class-sessions",body); String id=created.path("id").asText();
+        assertThat(created.has("instructorNames")).as("only the detail").isFalse(); assertThat(created.has("ring")).isFalse();
+        var detail=session(id);
+        assertThat(detail.path("instructorNames")).extracting(JsonNode::asText).containsExactly("plan-instructor-2","plan-instructor");
+        assertThat(detail.path("ring").path("id").asText()).isEqualTo("plan-ring");
+        assertThat(detail.path("ring").path("name").asText()).isEqualTo("Example"); assertThat(detail.path("ring").path("color").asText()).isEqualTo("#112233");
+        // ClassSession is shared with the calendar (attendanceStatus) and COURSES (placementId): the schema, not every property.
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(detail,"ClassSession")).as(detail.toString()).isEmpty();
+        body.put("ringId",null); body.put("startTime","20:00"); body.put("endTime","21:00"); body.put("instructorIds",List.of("plan-instructor"));
+        var ringless=session(ok("POST","/class-sessions",body).path("id").asText());
+        assertThat(ringless.has("ring")).as("always sent in the detail").isTrue(); assertThat(ringless.path("ring").isNull()).isTrue();
+        assertThat(ringless.path("instructorNames")).extracting(JsonNode::asText).containsExactly("plan-instructor");
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(ringless,"ClassSession")).as(ringless.toString()).isEmpty();
+        var patched=ok("PATCH","/class-sessions/"+id,Map.of("version",detail.path("version").asLong(),"notes","Example note"));
+        assertThat(patched.has("instructorNames")).isFalse(); assertThat(patched.has("ring")).isFalse();
+        validate(id);
+        var member=mapper.readTree(mvc.perform(call("GET","/class-sessions/"+id,null).with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_MEMBER")))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(member.has("instructorNames")).isFalse(); assertThat(member.path("ring").path("name").asText()).isEqualTo("Example");
     }
     @Test void T_06_23_T_06_24_validationPatchAndCancellationRacesSerializeWithoutDrafts() throws Exception {
         String id=session("2026-08-25","18:00","plan-ring"),week=session(id).path("weekId").asText();long version=session(id).path("version").asLong();
