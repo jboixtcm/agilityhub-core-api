@@ -207,4 +207,65 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
         assertThat(review(id,"ca").path("paymentMethods")).containsExactly(option("SEPA_DD","Domiciliació",false,true),option("MANUAL","Efectiu",true,true));
         assertThat(((Document)member(id).get("paymentMethod")).getString("type")).isEqualTo("SEPA_DD");
     }
+
+    // ---- E3-T16 round 2, point 5 (web E3-W08 round 2): the snapshot declares every null these responses send ----
+    /**
+     * The core sends an absent optional field as `null` wherever the schema serializes every property (`Member`,
+     * `PaymentMethodView`, `Address`…). Real responses are validated against the committed snapshot with a JSON Schema
+     * 2020-12 validator, so a `null` the snapshot does not declare fails (and so does any other shape it does not publish):
+     * public submissions by cash and by direct debit without an IBAN and their D2 views, an add-dog and its view, a pending
+     * readmission and its view, and a view without BILLING.
+     */
+    @Test void T_04_29_T_04_33_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend() throws Exception {
+        var problems=new ArrayList<String>();
+        java.util.function.BiConsumer<JsonNode,String> conforms=(value,schema) -> {
+            assertThat(value.isObject()).as(schema).isTrue();
+            com.agilityhub.core.support.SnapshotSchemas.violations(value,schema).forEach(violation -> problems.add(schema+" "+violation));
+        };
+        var cashRequest=request("MANUAL");var cash=submit(cashRequest,201);conforms.accept(cash,"SignupResult");
+        String cashId=cash.path("memberId").asText();
+        var applicant=review(cashId,"ca");conforms.accept(applicant,"MemberSignupView");
+        // A found family-group claim: D2 names the holder, a pending applicant with no number and no active dog yet.
+        var claimed=request("MANUAL");claimed.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName","Example "+cashRequest.at("/person/lastName1").asText(),
+                "dogName",cashRequest.at("/dog/name").asText(),"leavePending",false)));
+        var family=review(submit(claimed,201).path("memberId").asText(),"ca");conforms.accept(family,"MemberSignupView");
+        assertThat(family.at("/familyGroupClaim/status").asText()).isEqualTo("FOUND");
+        assertThat(family.at("/familyGroupClaim/holder/id").asText()).isEqualTo(cashId);
+        assertThat(family.at("/familyGroupClaim/holder/memberNumber").isNull()).isTrue();
+        assertThat(family.at("/familyGroupClaim/holder/dogs").isArray()).as("a required array, never null").isTrue();
+        assertThat(family.at("/familyGroupClaim/holder/dogs")).isEmpty();
+        var debit=submit(request("SEPA_DD"),201);conforms.accept(debit,"SignupResult");
+        String debitId=debit.path("memberId").asText();
+        var noAccount=review(debitId,"es");conforms.accept(noAccount,"MemberSignupView");
+        // The web's examples: an applicant has no plan or account yet, and these are sent as null.
+        for(var view:List.of(applicant,noAccount)) for(String pointer:List.of("/member/plan","/member/planId","/member/maskedAccount")) {
+            assertThat(view.at(pointer).isNull()).as(pointer).isTrue();
+        }
+        // An add-dog: the member is ACTIVE, with a number and a plan.
+        validate(cashId);
+        var added=result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name","Added Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000008"+String.format("%06d",++sequence)),"documents",List.of()))
+                .header("Idempotency-Key",UUID.randomUUID()),cashId),201);
+        conforms.accept(added,"AddDogSignupResult");
+        var addDog=review(cashId,"en");conforms.accept(addDog,"MemberSignupView");
+        assertThat(addDog.at("/member/status").asText()).isEqualTo("ACTIVE");
+        assertThat(addDog.at("/member/memberNumber").isInt()).isTrue();
+        assertThat(addDog.at("/member/planId").asText()).isEqualTo(plan);assertThat(addDog.at("/member/plan/id").asText()).isEqualTo(plan);
+        // A pending readmission by cash: the submitted method has no account and no channel.
+        var original=request("SEPA_DD");String leftId=submit(original,201).path("memberId").asText();validate(leftId);
+        mongo.getCollection("members").updateOne(new Document("_id",leftId),new Document("$set",new Document("status","LEFT").append("leftAt",Date.from(Instant.parse("2025-06-30T10:00:00Z")))
+                .append("leftReason","LEAVE_REQUEST").append("leaveDate","2025-06-30")));
+        mongo.getCollection("dogs").updateMany(new Document("memberId",leftId),new Document("$set",new Document("status","INACTIVE").append("deactivationReason","MEMBER_LEFT")));
+        var readmission=original.deepCopy();readmission.set("payment",mapper.valueToTree(Map.of("type","MANUAL","firstMonthOption","TODAY")));
+        var readmitted=submit(readmission,201);conforms.accept(readmitted,"SignupResult");
+        var returning=review(leftId,"ca");conforms.accept(returning,"MemberSignupView");
+        for(String pointer:List.of("/readmission/submitted/paymentMethod/maskedAccount","/readmission/submitted/paymentMethod/channel")) {
+            assertThat(returning.at(pointer).isNull()).as(pointer).isTrue();
+        }
+        // Without BILLING: no upfront block and no methods.
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("modules",List.of())));
+        configs.invalidate(club);
+        var withoutBilling=review(debitId,"ca");conforms.accept(withoutBilling,"MemberSignupView");
+        assertThat(withoutBilling.has("upfront")).isFalse();assertThat(withoutBilling.path("paymentMethods")).isEmpty();
+        assertThat(problems).as(String.join("\n",problems)).isEmpty();
+    }
 }

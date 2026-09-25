@@ -138,7 +138,8 @@ public class CensusQuery {
                 "contactEmails", contacts(member), "phones", phones(member), "address", address(member), "version", member.version());
         if (access.enabled(Module.BILLING)) { result.putAll(object("paymentMethod", payment(member))); } return result;
     }
-    private Map<String,Object> familyMember(String id) {
+    /** A `FamilyMember`: its number (null while pending) and its ACTIVE dogs; also the D2 claim's holder ({@link SignupService}). */
+    Map<String,Object> familyMember(String id) {
         var member = access.members.require(id);
         return object("id", id, "fullName", fullName(member), "memberNumber", member.memberNumber, "dogs", ownerDogs(id).stream()
                 .filter(dog -> "ACTIVE".equals(dog.status)).map(dog -> object("id", dog.id, "name", dog.name, "levelCode", map(level(dog.levelId)).get("code"))).toList());

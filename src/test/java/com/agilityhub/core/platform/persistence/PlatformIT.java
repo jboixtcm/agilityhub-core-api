@@ -163,6 +163,7 @@ class PlatformIT extends AbstractIntegrationTest {
         assertThat(club.path("city").asText()).as("no displayCity: the office's town").isEqualTo("Cabrera de Mar");
         assertThat(club.path("legalAddress")).isEqualTo(new com.fasterxml.jackson.databind.ObjectMapper().readTree(
                 "{\"street\":\"1 Example Street\",\"postalCode\":\"08349\",\"city\":\"Cabrera de Mar\"}"));
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(club, "ClubSummary");
         clubField("displayCity", "Example Display Town");
         club = brandingClub();
         assertThat(club.path("city").asText()).isEqualTo("Example Display Town");
@@ -179,6 +180,8 @@ class PlatformIT extends AbstractIntegrationTest {
         club = brandingClub();
         assertThat(club.path("legalAddress").isNull()).isTrue();
         assertThat(club.path("city").isNull()).as("neither a displayCity nor an office").isTrue();
+        // E3-T16 round 2: the snapshot's union accepts the `null` office; `null` among the types beside the `$ref` did not.
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(club, "ClubSummary");
     }
     @Test void T_02_01_outboxParameterAndClubEventsInvalidateCaches() throws Exception {
         assertThat(configs.get("club-a").get("signup.enabled", Boolean.class)).isTrue();

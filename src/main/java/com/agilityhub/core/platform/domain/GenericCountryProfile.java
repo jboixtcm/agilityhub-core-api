@@ -10,10 +10,8 @@ public class GenericCountryProfile implements CountryProfile {
     @Override public boolean validateIdDocument(String type, String value) {
         return type != null && idDocumentTypes().contains(type) && normalizeIdDocument(type, value).length() >= 4;
     }
-    /** Without a national format: 4 to 40 letters and digits once spaces, dots, hyphens and slashes are removed. */
-    @Override public boolean validateTaxId(String value) {
-        return value != null && value.toUpperCase(java.util.Locale.ROOT).replaceAll("[\\s./-]", "").matches("[A-Z0-9]{4,40}");
-    }
+    /** S02 §2, R-02-06: `GENERIC` does not validate the tax id («cap validació de NIF»), so any value is accepted. */
+    @Override public boolean validateTaxId(String value) { return true; }
     /**
      * R-04-10 (E3-T10): without a country table, an IBAN still has the ISO 13616 shape (country letters, two check digits,
      * 11–30 alphanumerics) and must pass the mod-97 check.

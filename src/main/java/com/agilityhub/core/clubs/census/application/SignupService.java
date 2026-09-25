@@ -597,7 +597,8 @@ public class SignupService implements SignupPaymentAccess {
         var plan=proposedPlan(member,Map.of(),dogs);var quote=validationQuote(member,plan,dogs);var signup=submission(member,dogs);var first=firstMonth(member,plan,dogs,quote);
         var submission=new LinkedHashMap<>(signup);submission.put("pendingDays",Math.max(0,ChronoUnit.DAYS.between(instant(signup.get("submittedAt")).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate(),policy.today())));
         var claim=new LinkedHashMap<>(map(member.familyGroupClaim));String holderId=string(claim.remove("holderMemberId"));
-        if(holderId!=null) { var holder=access.members.require(holderId);claim.put("holder",object("id",holder.id,"fullName",fullName(holder),"isHolder",true)); }
+        // E3-T16 round 2: the whole FamilyMember (number, ACTIVE dogs), never a partial one whose required `dogs` is null.
+        if(holderId!=null) claim.put("holder",queries.familyMember(holderId));
         return object("member",queries.member(id,true),"dogs",dogs.stream().map(this::dogView).toList(),"signup",select(submission,"submittedAt","pendingDays","readmission","source","locale","planIdRequested"),
                 "familyGroupClaim",access.enabled(Module.FAMILY_GROUP)?claim:null,"upfront",billing()?reviewUpfront(member,dogs):null,
                 "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,

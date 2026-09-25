@@ -1,0 +1,646 @@
+22:06:36.649 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT]: SignupPaymentMethodsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+22:06:36.771 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT
+22:06:36.820 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:06:36.821 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:06:36.824 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+22:06:36.899 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:06:37.009 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:06:37.010 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:06:37.023 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:06:37.159 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+22:06:37.239 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:06:37.297 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: da2025e0b3edddc35a6893ebcda7b70c7a0346626235bfa826020a9927122b5a
+22:06:37.431 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.272188S
+22:06:37.434 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:06:37.434 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:06:37.434 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:06:37.434 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:06:37.461 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: bdc12ecb10a576013668c517ec23d26ecb9b74fef92a61abe252562559387da7
+22:06:37.914 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.479752S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T22:06:38.457+02:00  INFO 72242 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : Starting SignupPaymentMethodsIT using Java 21.0.12.1 with PID 72242 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T22:06:38.457+02:00  INFO 72242 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : The following 1 profile is active: "test"
+2026-09-25T22:06:39.008+02:00  INFO 72242 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T22:06:39.040+02:00  INFO 72242 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T22:06:39.310+02:00  INFO 72242 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@41e76252], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16602333, com.mongodb.Jep395RecordCodecProvider@67376bae, com.mongodb.KotlinCodecProvider@6d6d81c]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52138], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7c59cf66], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T22:06:39.316+02:00  INFO 72242 --- [agilityhub-core-api] [localhost:52138] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52138, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8625583, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=bdc12ecb10a5:27017, hosts=[bdc12ecb10a5:27017], passives=[], arbiters=[], primary='bdc12ecb10a5:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab6d44d5380006664741ca2, counter=6}, lastWriteDate=Fri Sep 25 22:06:38 CEST 2026, lastUpdateTimeNanos=170604723531916}
+2026-09-25T22:06:41.278+02:00  INFO 72242 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T22:06:41.279+02:00  INFO 72242 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T22:06:41.279+02:00  INFO 72242 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-25T22:06:41.300+02:00  INFO 72242 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : Started SignupPaymentMethodsIT in 2.952 seconds (process running for 4.898)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-25T22:06:42.184+02:00  WARN 72242 --- [agilityhub-core-api] [           main] c.n.schema.UnknownKeywordFactory         : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 6.279 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.T_04_29_T_04_33_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend -- Time elapsed: 1.351 s <<< FAILURE!
+java.lang.AssertionError: 
+[MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.holderName: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.familyGroupClaim.holder.dogs: null found, array expected
+MemberSignupView $.familyGroupClaim.holder.memberNumber: null found, integer expected
+MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.holderName: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.holderName: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.readmission.current.address.province: null found, string expected
+MemberSignupView $.readmission.current.paymentMethod.channel: null found, string expected
+MemberSignupView $.readmission.current.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.readmission.current.phones[0].label: null found, string expected
+MemberSignupView $.readmission.submitted.address.province: null found, string expected
+MemberSignupView $.readmission.submitted.paymentMethod.channel: null found, string expected
+MemberSignupView $.readmission.submitted.paymentMethod.holderName: null found, string expected
+MemberSignupView $.readmission.submitted.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.readmission.submitted.phones[0].label: null found, string expected
+MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.billedViaMemberId: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod: null found, object expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected] 
+Expecting empty but was: ["MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.familyGroupClaim.holder.dogs: null found, array expected",
+    "MemberSignupView $.familyGroupClaim.holder.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.readmission.current.address.province: null found, string expected",
+    "MemberSignupView $.readmission.current.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.readmission.current.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.readmission.current.phones[0].label: null found, string expected",
+    "MemberSignupView $.readmission.submitted.address.province: null found, string expected",
+    "MemberSignupView $.readmission.submitted.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.readmission.submitted.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.readmission.submitted.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.readmission.submitted.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.billedViaMemberId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod: null found, object expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected"]
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.T_04_29_T_04_33_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend(SignupPaymentMethodsIT.java:264)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SignupPaymentMethodsIT.T_04_29_T_04_33_theD2ViewAndTheSubmissionResultsDeclareEveryNullTheySend:264 [MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.holderName: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.familyGroupClaim.holder.dogs: null found, array expected
+MemberSignupView $.familyGroupClaim.holder.memberNumber: null found, integer expected
+MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.holderName: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.holderName: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.paymentMethod.channel: null found, string expected
+MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected
+MemberSignupView $.readmission.current.address.province: null found, string expected
+MemberSignupView $.readmission.current.paymentMethod.channel: null found, string expected
+MemberSignupView $.readmission.current.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.readmission.current.phones[0].label: null found, string expected
+MemberSignupView $.readmission.submitted.address.province: null found, string expected
+MemberSignupView $.readmission.submitted.paymentMethod.channel: null found, string expected
+MemberSignupView $.readmission.submitted.paymentMethod.holderName: null found, string expected
+MemberSignupView $.readmission.submitted.paymentMethod.maskedAccount: null found, string expected
+MemberSignupView $.readmission.submitted.phones[0].label: null found, string expected
+MemberSignupView $.member.accountId: null found, string expected
+MemberSignupView $.member.address.province: null found, string expected
+MemberSignupView $.member.billedViaMemberId: null found, string expected
+MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected
+MemberSignupView $.member.bookingBlock.reason: null found, string expected
+MemberSignupView $.member.bookingBlock.since: null found, string expected
+MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected
+MemberSignupView $.member.displayStatus.date: null found, string expected
+MemberSignupView $.member.erasedAt: null found, string expected
+MemberSignupView $.member.erasureRequestId: null found, string expected
+MemberSignupView $.member.familyGroupId: null found, string expected
+MemberSignupView $.member.internalNotes: null found, string expected
+MemberSignupView $.member.joinedAt: null found, string expected
+MemberSignupView $.member.lastName2: null found, string expected
+MemberSignupView $.member.leaveDate: null found, string expected
+MemberSignupView $.member.maskedAccount: null found, string expected
+MemberSignupView $.member.memberNumber: null found, integer expected
+MemberSignupView $.member.nextInvoiceDate: null found, string expected
+MemberSignupView $.member.paymentMethod: null found, object expected
+MemberSignupView $.member.phones[0].label: null found, string expected
+MemberSignupView $.member.plan: null found, object expected
+MemberSignupView $.member.planId: null found, string expected
+MemberSignupView $.member.priceId: null found, string expected
+MemberSignupView $.member.remarks: null found, string expected] 
+Expecting empty but was: ["MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.familyGroupClaim.holder.dogs: null found, array expected",
+    "MemberSignupView $.familyGroupClaim.holder.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.member.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected",
+    "MemberSignupView $.readmission.current.address.province: null found, string expected",
+    "MemberSignupView $.readmission.current.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.readmission.current.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.readmission.current.phones[0].label: null found, string expected",
+    "MemberSignupView $.readmission.submitted.address.province: null found, string expected",
+    "MemberSignupView $.readmission.submitted.paymentMethod.channel: null found, string expected",
+    "MemberSignupView $.readmission.submitted.paymentMethod.holderName: null found, string expected",
+    "MemberSignupView $.readmission.submitted.paymentMethod.maskedAccount: null found, string expected",
+    "MemberSignupView $.readmission.submitted.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.accountId: null found, string expected",
+    "MemberSignupView $.member.address.province: null found, string expected",
+    "MemberSignupView $.member.billedViaMemberId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.byAccountId: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.reason: null found, string expected",
+    "MemberSignupView $.member.bookingBlock.since: null found, string expected",
+    "MemberSignupView $.member.consents.imageRights.byAccountId: null found, string expected",
+    "MemberSignupView $.member.displayStatus.date: null found, string expected",
+    "MemberSignupView $.member.erasedAt: null found, string expected",
+    "MemberSignupView $.member.erasureRequestId: null found, string expected",
+    "MemberSignupView $.member.familyGroupId: null found, string expected",
+    "MemberSignupView $.member.internalNotes: null found, string expected",
+    "MemberSignupView $.member.joinedAt: null found, string expected",
+    "MemberSignupView $.member.lastName2: null found, string expected",
+    "MemberSignupView $.member.leaveDate: null found, string expected",
+    "MemberSignupView $.member.maskedAccount: null found, string expected",
+    "MemberSignupView $.member.memberNumber: null found, integer expected",
+    "MemberSignupView $.member.nextInvoiceDate: null found, string expected",
+    "MemberSignupView $.member.paymentMethod: null found, object expected",
+    "MemberSignupView $.member.phones[0].label: null found, string expected",
+    "MemberSignupView $.member.plan: null found, object expected",
+    "MemberSignupView $.member.planId: null found, string expected",
+    "MemberSignupView $.member.priceId: null found, string expected",
+    "MemberSignupView $.member.remarks: null found, string expected"]
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

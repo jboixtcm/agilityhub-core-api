@@ -67,6 +67,12 @@ public class ClubSettingsService {
         }
         if (!(request.get("version") instanceof Number version) || version.longValue() != before.version()
                 || version.doubleValue() != version.longValue()) { throw new ApiException(ErrorCode.STALE_VERSION); }
+        // S02 §3, R-02-06: the country profile checks a tax id the request changes; a stored one is never re-checked.
+        if (request.get("taxId") instanceof String taxId && !taxId.equals(before.taxId()) && !taxId.isBlank()
+                && !countries.get(before.countryProfile()).validateTaxId(taxId)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "taxId",
+                    "fieldErrors", List.of(Map.of("field", "taxId", "code", "INVALID_VALUE"))));
+        }
         ObjectNode tree = mapper.valueToTree(before);
         request.forEach((key, value) -> { if (EDITABLE.contains(key)) { tree.set(key, mapper.valueToTree(value)); } });
         Club next;
@@ -114,11 +120,6 @@ public class ClubSettingsService {
         for (String key : List.of("name", "legalName", "taxId", "displayCity", "contactEmail", "contactPhone", "websiteUrl")) {
             var value = club.path(key);
             if (!value.isNull() && !value.isTextual()) { throw new IllegalArgumentException("Expected text"); }
-        }
-        // S02 §3: the club's country profile checks its tax id (ES: a CIF, NIF or NIE with its check character).
-        var taxId = club.path("taxId");
-        if (taxId.isTextual() && !taxId.asText().isBlank() && !countries.get(club.path("countryProfile").asText()).validateTaxId(taxId.asText())) {
-            throw new IllegalArgumentException("Invalid tax id");
         }
         var email = club.path("contactEmail");
         if (email.isTextual() && !email.asText().matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) { throw new IllegalArgumentException("Invalid email"); }

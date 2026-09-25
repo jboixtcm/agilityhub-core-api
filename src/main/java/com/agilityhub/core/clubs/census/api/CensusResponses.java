@@ -30,8 +30,8 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) String street,
             @Schema(requiredMode = REQUIRED) String postalCode,
             @Schema(requiredMode = REQUIRED) String city,
-            @Schema(requiredMode = NOT_REQUIRED) String province,
-            @Schema(requiredMode = NOT_REQUIRED) String country) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String province,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String country) { }
     public record IdDocument(
             @Schema(requiredMode = REQUIRED) String type,
             @Schema(requiredMode = REQUIRED) String number) { }
@@ -41,75 +41,79 @@ public final class CensusResponses {
     public record Phone(
             @Schema(requiredMode = REQUIRED) String prefix,
             @Schema(requiredMode = REQUIRED) String number,
-            @Schema(requiredMode = NOT_REQUIRED) String label) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String label) { }
     @Schema(description = "No full IBAN, card credentials or setup intent IDs.")
     public record PaymentMethodView(
             @Schema(requiredMode = REQUIRED) PaymentMethodType type,
-            @Schema(requiredMode = NOT_REQUIRED) String maskedAccount,
-            @Schema(requiredMode = NOT_REQUIRED) String holderName,
-            @Schema(requiredMode = NOT_REQUIRED) String channel) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String maskedAccount,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String holderName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String channel) { }
     @Schema(description = "Derived presentation status; includes ERASED under S14.")
     public record DisplayStatus(
             @Schema(requiredMode = REQUIRED) String kind,
             @Schema(requiredMode = REQUIRED) String label,
-            @Schema(requiredMode = NOT_REQUIRED) LocalDate date) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate date) { }
     public record BookingBlock(
             @Schema(requiredMode = REQUIRED) boolean active,
-            @Schema(requiredMode = NOT_REQUIRED) String reason,
-            @Schema(requiredMode = NOT_REQUIRED) Instant since,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String byAccountId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String reason,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant since,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String byAccountId) { }
     public record ImageRights(
             @Schema(requiredMode = REQUIRED) boolean granted,
-            @Schema(requiredMode = NOT_REQUIRED) Instant at,
-            @Schema(requiredMode = NOT_REQUIRED) String version,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String byAccountId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant at,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String version,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String byAccountId) { }
     public record PrivacyPolicyConsent(
             @Schema(requiredMode = REQUIRED) Instant acceptedAt,
             @Schema(requiredMode = REQUIRED) String version) { }
     public record MemberConsents(
             @Schema(requiredMode = REQUIRED) PrivacyPolicyConsent privacyPolicy,
             @Schema(requiredMode = REQUIRED) ImageRights imageRights) { }
-    @Schema(description = "ADMIN projection. Payment details are masked. accountMissing means SEPA_DD without an IBAN.")
+    /**
+     * E3-T16 round 2 (web E3-W08 round 2): this record serializes every property, so an optional one without a value is
+     * sent as `null` and declares it (`nullable = true`), like the other records the D2 view and the signup results reach.
+     */
+    @Schema(description = "ADMIN projection. Payment details are masked. accountMissing means SEPA_DD without an IBAN. An optional property without a value is sent as null.")
     public record Member(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String accountId,
-            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
-            @Schema(requiredMode = NOT_REQUIRED) IdDocument idDocument,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String accountId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) IdDocument idDocument,
             @Schema(requiredMode = REQUIRED) String firstName,
             @Schema(requiredMode = REQUIRED) String lastName1,
-            @Schema(requiredMode = NOT_REQUIRED) String lastName2,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String lastName2,
             @Schema(requiredMode = REQUIRED) String fullName,
             @Schema(requiredMode = REQUIRED) Gender gender,
             @Schema(requiredMode = REQUIRED) LocalDate birthDate,
             @Schema(requiredMode = REQUIRED) List<ContactEmail> contactEmails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones,
             @Schema(requiredMode = REQUIRED) Address address,
-            @Schema(requiredMode = NOT_REQUIRED) PaymentMethodView paymentMethod,
-            @Schema(requiredMode = NOT_REQUIRED) String maskedAccount,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String planId,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String priceId,
-            @Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
-            @Schema(requiredMode = NOT_REQUIRED) MemberConsents consents,
-            @Schema(requiredMode = NOT_REQUIRED) String remarks,
-            @Schema(requiredMode = NOT_REQUIRED) String internalNotes,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) PaymentMethodView paymentMethod,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String maskedAccount,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String planId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String priceId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate nextInvoiceDate,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) MemberConsents consents,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String remarks,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String internalNotes,
             @Schema(requiredMode = REQUIRED) MemberStatus status,
             @Schema(requiredMode = REQUIRED) DisplayStatus displayStatus,
-            @Schema(requiredMode = NOT_REQUIRED) Instant joinedAt,
-            @Schema(requiredMode = NOT_REQUIRED) LocalDate leaveDate,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant joinedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate leaveDate,
             @Schema(requiredMode = REQUIRED) BookingBlock bookingBlock,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String familyGroupId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String familyGroupId,
             @Schema(requiredMode = REQUIRED) List<MemberRole> roles,
             @Schema(requiredMode = REQUIRED) long version,
             @Schema(requiredMode = NOT_REQUIRED) boolean accountMissing,
-            @Schema(requiredMode = NOT_REQUIRED) Instant erasedAt,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String erasureRequestId,
-            @Schema(requiredMode = NOT_REQUIRED) PlanReference plan,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String billedViaMemberId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant erasedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String erasureRequestId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) PlanReference plan,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uuid") String billedViaMemberId) { }
     public record LevelSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String code,
             @Schema(requiredMode = REQUIRED) String name,
-            @Schema(requiredMode = NOT_REQUIRED) String color) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String color) { }
     public record DogSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
@@ -250,7 +254,7 @@ public final class CensusResponses {
     public record PlanReference(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
             @Schema(requiredMode = REQUIRED, allowableValues = {"MONTHLY", "PACK", "SINGLE_CLASS"}) String type,
-            @Schema(requiredMode = NOT_REQUIRED, allowableValues = {"MONTHLY_FEE", "MAINTENANCE"}) String billingMode) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, allowableValues = {"MONTHLY_FEE", "MAINTENANCE"}) String billingMode) { }
 
     public record DogDetail(
             @Schema(requiredMode = REQUIRED) Dog dog,
@@ -285,11 +289,11 @@ public final class CensusResponses {
     public record FamilyDog(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,
-            @Schema(requiredMode = NOT_REQUIRED) String levelCode) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelCode) { }
     public record FamilyMember(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String fullName,
-            @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer memberNumber,
             @Schema(requiredMode = REQUIRED) List<FamilyDog> dogs) { }
     public enum FamilyGroupStatus { ACTIVE, DISSOLVED }
     public record FamilyGroup(

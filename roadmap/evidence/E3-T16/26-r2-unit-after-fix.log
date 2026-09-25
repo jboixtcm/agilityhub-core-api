@@ -1,0 +1,1 @@
+22:10:10.080 [main] WARN com.networknt.schema.UnknownKeywordFactory -- Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword

@@ -35,8 +35,11 @@ class CountryProfileTest {
         assertThat(es.validateIban(null)).isFalse(); assertThat(es.validateIban("XX1234")).isFalse();
         assertThat(es.dateFormat()).isEqualTo("dd/MM/yyyy"); assertThat(es.timeFormat()).isEqualTo("HH:mm");
     }
-    /** E3-T16 step 3 (S02 §3): the club's tax id; the Cànic's CIF G63189617 (Jordi, 25-09) passes the Spanish profile. */
-    @Test void T_02_04_spanishTaxIdsAreACifNifOrNieWithTheirCheckCharacter() {
+    /**
+     * E3-T16 step 3 (S02 §3): the club's tax id; the Cànic's CIF G63189617 (Jordi, 25-09) passes the Spanish profile. Round 2
+     * (S02 §2, R-02-06, T-02-04): `GENERIC` has no tax id validation, so it accepts any value.
+     */
+    @Test void T_02_04_spanishTaxIdsAreACifNifOrNieWithTheirCheckCharacterAndGenericOnesAreNotValidated() {
         var es = registry.get("ES");
         for (String valid : new String[]{"G63189617", "g-6318 9617", "B12345674", "Q0000000J", "P0800000B", "S2800000H", "G0000000J", "12345678Z", "X1234567L"}) {
             assertThat(es.validateTaxId(valid)).as(valid).isTrue();
@@ -46,8 +49,9 @@ class CountryProfileTest {
             assertThat(es.validateTaxId(invalid)).as(String.valueOf(invalid)).isFalse();
         }
         var generic = registry.get("GENERIC");
-        assertThat(generic.validateTaxId("PT 501.234.567")).isTrue(); assertThat(generic.validateTaxId("EXAMPLE-ORG")).isTrue();
-        for (String invalid : new String[]{"AB1", "", null, "x".repeat(41), "ÀÉÍ-ÒÚ"}) { assertThat(generic.validateTaxId(invalid)).as(String.valueOf(invalid)).isFalse(); }
+        for (String any : new String[]{"AB1", "ÀÉÍ-ÒÚ", "PT 501.234.567", "EXAMPLE-ORG", "G63189618", "x".repeat(41), ""}) {
+            assertThat(generic.validateTaxId(any)).as(any).isTrue();
+        }
     }
     @Test void T_02_04_genericIsFallbackWithNoNationalFormatValidation() {
         var generic = registry.get("GENERIC");

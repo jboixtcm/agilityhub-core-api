@@ -296,6 +296,30 @@ class SettingsIT extends AbstractIntegrationTest {
         assertThat(json(mvc.perform(get("/api/v1/branding").header("Host", HOST))).at("/club/city").asText()).isEqualTo("Cabrera de Mar");
     }
 
+    /**
+     * E3-T16 round 2 (review #2 and #5; S02 R-02-06): the country profile checks a tax id only when `PUT /club` changes it.
+     * An `ES` club whose stored tax id the check refuses (stored before the check existed) still saves its other settings,
+     * and may send the same value again; a new tax id the profile refuses answers `VALIDATION_ERROR` naming the field.
+     */
+    @Test void T_02_11_R_02_06_theTaxIdIsCheckedOnlyWhenTheRequestChangesIt() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("settings-a")), new Update().set("taxId", "EXAMPLE-ORG"), Club.class);
+        configs.invalidate("settings-a");
+        var before = json(admin(get("/api/v1/club")));
+        assertThat(before.path("countryProfile").asText()).isEqualTo("ES"); assertThat(before.path("taxId").asText()).isEqualTo("EXAMPLE-ORG");
+        var renamed = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "name", "Renamed Example Club"))));
+        assertThat(renamed.path("name").asText()).isEqualTo("Renamed Example Club");
+        assertThat(renamed.path("taxId").asText()).as("the stored value is kept, not re-checked").isEqualTo("EXAMPLE-ORG");
+        var resent = json(admin(body(put("/api/v1/club"), Map.of("version", renamed.path("version").asLong(), "taxId", "EXAMPLE-ORG", "websiteUrl", "https://settings.example.test"))));
+        assertThat(resent.path("websiteUrl").asText()).isEqualTo("https://settings.example.test");
+        admin(body(put("/api/v1/club"), Map.of("version", resent.path("version").asLong(), "taxId", "B12345675")))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.details.field").value("taxId"))
+                .andExpect(jsonPath("$.details.fieldErrors[0].field").value("taxId")).andExpect(jsonPath("$.details.fieldErrors[0].code").value("INVALID_VALUE"));
+        assertThat(json(admin(get("/api/v1/club"))).path("taxId").asText()).isEqualTo("EXAMPLE-ORG");
+        var corrected = json(admin(body(put("/api/v1/club"), Map.of("version", resent.path("version").asLong(), "taxId", "B12345674"))));
+        assertThat(corrected.path("taxId").asText()).isEqualTo("B12345674");
+    }
+
     @Test void T_02_15_timezoneChangeBlockedByTenantClassesAndWeekOpeningStaysLocal() throws Exception {
         mongo.insert(new Document("_id", "class-b").append("clubId", "settings-b"), "class_sessions");
         admin(body(put("/api/v1/club"), Map.of("version", 0, "timeZone", "UTC")))

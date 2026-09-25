@@ -1,0 +1,300 @@
+22:09:24.053 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.persistence.PlatformIT
+22:09:24.101 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+22:09:24.102 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+22:09:24.105 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+22:09:24.168 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+22:09:24.262 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+22:09:24.262 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+22:09:24.272 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+22:09:24.405 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+22:09:24.513 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+22:09:24.560 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: c959db2da42ac13045d2a6b9a7a0be9aa4ecced0a191b7b3f3816672386ea372
+22:09:24.698 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.292774S
+22:09:24.701 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+22:09:24.701 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+22:09:24.701 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+22:09:24.702 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+22:09:24.730 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 9fc0f3616166b603fafa55b4821efdec26e00aaaf7957c79baa3c2cd16754af5
+22:09:25.154 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.452082S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T22:09:25.698+02:00  INFO 72856 --- [agilityhub-core-api] [           main] c.a.c.platform.persistence.PlatformIT    : Starting PlatformIT using Java 21.0.12.1 with PID 72856 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T22:09:25.699+02:00  INFO 72856 --- [agilityhub-core-api] [           main] c.a.c.platform.persistence.PlatformIT    : The following 1 profile is active: "test"
+2026-09-25T22:09:26.261+02:00  INFO 72856 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T22:09:26.295+02:00  INFO 72856 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 31 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T22:09:26.541+02:00  INFO 72856 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@75312c94], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@140cfc5f, com.mongodb.Jep395RecordCodecProvider@6b063695, com.mongodb.KotlinCodecProvider@43edd2ea]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52222], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3fc4038f], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T22:09:26.546+02:00  INFO 72856 --- [agilityhub-core-api] [localhost:52222] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52222, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8186625, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=9fc0f3616166:27017, hosts=[9fc0f3616166:27017], passives=[], arbiters=[], primary='9fc0f3616166:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab6d4f4f48a3700e57683d3, counter=6}, lastWriteDate=Fri Sep 25 22:09:25 CEST 2026, lastUpdateTimeNanos=170771954100291}
+2026-09-25T22:09:28.590+02:00  INFO 72856 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T22:09:28.590+02:00  INFO 72856 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T22:09:28.591+02:00  INFO 72856 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-25T22:09:28.611+02:00  INFO 72856 --- [agilityhub-core-api] [           main] c.a.c.platform.persistence.PlatformIT    : Started PlatformIT in 3.021 seconds (process running for 4.862)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-25T22:09:29.289+02:00  WARN 72856 --- [agilityhub-core-api] [           main] c.n.schema.UnknownKeywordFactory         : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/branding
+       Parameters = {}
+          Headers = [Host:"app.example.test"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.platform.api.BrandingController
+           Method = com.agilityhub.core.platform.api.BrandingController#branding(WebRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Host, X-Club-Host, Authorization", Content-Language:"ca", ETag:""ffa4d8606a493fcb7f1d5d186e50899243d8bc2c0af2dba5617682e6fb2121ad"", Cache-Control:"max-age=60, public", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"club":{"slug":"club-a","name":"Example Agility Club","city":"Cabrera de Mar","legalName":"Example Club Association","taxId":null,"legalAddress":{"street":"1 Example Street","postalCode":"08349","city":"Cabrera de Mar"}},"theme":{"logoUrl":"https://assets.example.test/logo.svg","logoDarkUrl":"https://assets.example.test/logo-dark.svg","markUrl":"https://assets.example.test/mark.svg","colors":{"primary":"#3155A4","onPrimary":"#FFFFFF","background":"#FFFFFF","surface":"#F4F5F7","surfaceAlt":"#E5E7EB","text":"#111827","textMuted":"#4B5563","border":"#D1D5DB","success":"#047857","warning":"#92400E","danger":"#B91C1C","info":"#1D4ED8"},"fontFamily":"system-ui","radius":"4px","ringPalette":["#3155A4"],"mode":"auto"},"locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"phonePrefix":"+34"},"modules":["BILLING","FAQ","FREE_TRAINING","PUSH","WAITLIST"],"signup":{"enabled":true},"status":"ACTIVE","legal":{"privacyPolicyUrl":"https://www.example.test/privacy"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/branding
+       Parameters = {}
+          Headers = [Host:"app.example.test"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.platform.api.BrandingController
+           Method = com.agilityhub.core.platform.api.BrandingController#branding(WebRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Host, X-Club-Host, Authorization", Content-Language:"ca", ETag:""bfab2a9d97a418587edbd7d0fbb4d1746d75c5581553e88866e7e85d3825be18"", Cache-Control:"max-age=60, public", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"club":{"slug":"club-a","name":"Example Agility Club","city":"Example Display Town","legalName":"Example Club Association","taxId":null,"legalAddress":{"street":"1 Example Street","postalCode":"08349","city":"Cabrera de Mar"}},"theme":{"logoUrl":"https://assets.example.test/logo.svg","logoDarkUrl":"https://assets.example.test/logo-dark.svg","markUrl":"https://assets.example.test/mark.svg","colors":{"primary":"#3155A4","onPrimary":"#FFFFFF","background":"#FFFFFF","surface":"#F4F5F7","surfaceAlt":"#E5E7EB","text":"#111827","textMuted":"#4B5563","border":"#D1D5DB","success":"#047857","warning":"#92400E","danger":"#B91C1C","info":"#1D4ED8"},"fontFamily":"system-ui","radius":"4px","ringPalette":["#3155A4"],"mode":"auto"},"locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"phonePrefix":"+34"},"modules":["BILLING","FAQ","FREE_TRAINING","PUSH","WAITLIST"],"signup":{"enabled":true},"status":"ACTIVE","legal":{"privacyPolicyUrl":"https://www.example.test/privacy"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/branding
+       Parameters = {}
+          Headers = [Host:"app.example.test"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.platform.api.BrandingController
+           Method = com.agilityhub.core.platform.api.BrandingController#branding(WebRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Host, X-Club-Host, Authorization", Content-Language:"ca", ETag:""ffa4d8606a493fcb7f1d5d186e50899243d8bc2c0af2dba5617682e6fb2121ad"", Cache-Control:"max-age=60, public", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"club":{"slug":"club-a","name":"Example Agility Club","city":"Cabrera de Mar","legalName":"Example Club Association","taxId":null,"legalAddress":{"street":"1 Example Street","postalCode":"08349","city":"Cabrera de Mar"}},"theme":{"logoUrl":"https://assets.example.test/logo.svg","logoDarkUrl":"https://assets.example.test/logo-dark.svg","markUrl":"https://assets.example.test/mark.svg","colors":{"primary":"#3155A4","onPrimary":"#FFFFFF","background":"#FFFFFF","surface":"#F4F5F7","surfaceAlt":"#E5E7EB","text":"#111827","textMuted":"#4B5563","border":"#D1D5DB","success":"#047857","warning":"#92400E","danger":"#B91C1C","info":"#1D4ED8"},"fontFamily":"system-ui","radius":"4px","ringPalette":["#3155A4"],"mode":"auto"},"locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"phonePrefix":"+34"},"modules":["BILLING","FAQ","FREE_TRAINING","PUSH","WAITLIST"],"signup":{"enabled":true},"status":"ACTIVE","legal":{"privacyPolicyUrl":"https://www.example.test/privacy"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/branding
+       Parameters = {}
+          Headers = [Host:"app.example.test"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.platform.api.BrandingController
+           Method = com.agilityhub.core.platform.api.BrandingController#branding(WebRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Host, X-Club-Host, Authorization", Content-Language:"ca", ETag:""0131cb3f6ff630d1d71a3c67dfefafeef46c46ed7ae0977e9b8e9c3a7324ebf1"", Cache-Control:"max-age=60, public", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"club":{"slug":"club-a","name":"Example Agility Club","city":"Cabrera de Mar","legalName":"Example Club Association","taxId":null,"legalAddress":null},"theme":{"logoUrl":"https://assets.example.test/logo.svg","logoDarkUrl":"https://assets.example.test/logo-dark.svg","markUrl":"https://assets.example.test/mark.svg","colors":{"primary":"#3155A4","onPrimary":"#FFFFFF","background":"#FFFFFF","surface":"#F4F5F7","surfaceAlt":"#E5E7EB","text":"#111827","textMuted":"#4B5563","border":"#D1D5DB","success":"#047857","warning":"#92400E","danger":"#B91C1C","info":"#1D4ED8"},"fontFamily":"system-ui","radius":"4px","ringPalette":["#3155A4"],"mode":"auto"},"locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"phonePrefix":"+34"},"modules":["BILLING","FAQ","FREE_TRAINING","PUSH","WAITLIST"],"signup":{"enabled":true},"status":"ACTIVE","legal":{"privacyPolicyUrl":"https://www.example.test/privacy"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/branding
+       Parameters = {}
+          Headers = [Host:"app.example.test"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.platform.api.BrandingController
+           Method = com.agilityhub.core.platform.api.BrandingController#branding(WebRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Host, X-Club-Host, Authorization", Content-Language:"ca", ETag:""0131cb3f6ff630d1d71a3c67dfefafeef46c46ed7ae0977e9b8e9c3a7324ebf1"", Cache-Control:"max-age=60, public", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"club":{"slug":"club-a","name":"Example Agility Club","city":"Cabrera de Mar","legalName":"Example Club Association","taxId":null,"legalAddress":null},"theme":{"logoUrl":"https://assets.example.test/logo.svg","logoDarkUrl":"https://assets.example.test/logo-dark.svg","markUrl":"https://assets.example.test/mark.svg","colors":{"primary":"#3155A4","onPrimary":"#FFFFFF","background":"#FFFFFF","surface":"#F4F5F7","surfaceAlt":"#E5E7EB","text":"#111827","textMuted":"#4B5563","border":"#D1D5DB","success":"#047857","warning":"#92400E","danger":"#B91C1C","info":"#1D4ED8"},"fontFamily":"system-ui","radius":"4px","ringPalette":["#3155A4"],"mode":"auto"},"locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"phonePrefix":"+34"},"modules":["BILLING","FAQ","FREE_TRAINING","PUSH","WAITLIST"],"signup":{"enabled":true},"status":"ACTIVE","legal":{"privacyPolicyUrl":"https://www.example.test/privacy"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/branding
+       Parameters = {}
+          Headers = [Host:"app.example.test"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.platform.api.BrandingController
+           Method = com.agilityhub.core.platform.api.BrandingController#branding(WebRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Host, X-Club-Host, Authorization", Content-Language:"ca", ETag:""c5ded65c3ba241edc6e8cf77cd395213c91b7b888e49f010a58e34e76da7263d"", Cache-Control:"max-age=60, public", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"club":{"slug":"club-a","name":"Example Agility Club","city":null,"legalName":"Example Club Association","taxId":null,"legalAddress":null},"theme":{"logoUrl":"https://assets.example.test/logo.svg","logoDarkUrl":"https://assets.example.test/logo-dark.svg","markUrl":"https://assets.example.test/mark.svg","colors":{"primary":"#3155A4","onPrimary":"#FFFFFF","background":"#FFFFFF","surface":"#F4F5F7","surfaceAlt":"#E5E7EB","text":"#111827","textMuted":"#4B5563","border":"#D1D5DB","success":"#047857","warning":"#92400E","danger":"#B91C1C","info":"#1D4ED8"},"fontFamily":"system-ui","radius":"4px","ringPalette":["#3155A4"],"mode":"auto"},"locales":["ca","es","en"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"phonePrefix":"+34"},"modules":["BILLING","FAQ","FREE_TRAINING","PUSH","WAITLIST"],"signup":{"enabled":true},"status":"ACTIVE","legal":{"privacyPolicyUrl":"https://www.example.test/privacy"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 5.382 s <<< FAILURE! -- in com.agilityhub.core.platform.persistence.PlatformIT
+[ERROR] com.agilityhub.core.platform.persistence.PlatformIT.T_02_07_R_02_02_cityFallsBackToTheRegisteredOfficeAndTheLegalAddressNeedsStreetAndPostalCode -- Time elapsed: 0.496 s <<< FAILURE!
+java.lang.AssertionError: 
+[ClubSummary {"slug":"club-a","name":"Example Agility Club","city":null,"legalName":"Example Club Association","taxId":null,"legalAddress":null}] 
+Expecting empty but was: ["$.legalAddress: null found, object expected"]
+	at com.agilityhub.core.support.SnapshotSchemas.assertConforms(SnapshotSchemas.java:43)
+	at com.agilityhub.core.platform.persistence.PlatformIT.T_02_07_R_02_02_cityFallsBackToTheRegisteredOfficeAndTheLegalAddressNeedsStreetAndPostalCode(PlatformIT.java:184)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   PlatformIT.T_02_07_R_02_02_cityFallsBackToTheRegisteredOfficeAndTheLegalAddressNeedsStreetAndPostalCode:184 [ClubSummary {"slug":"club-a","name":"Example Agility Club","city":null,"legalName":"Example Club Association","taxId":null,"legalAddress":null}] 
+Expecting empty but was: ["$.legalAddress: null found, object expected"]
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

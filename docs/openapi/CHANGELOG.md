@@ -27,6 +27,31 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - `GET /me/home`: the schema is unchanged (`ReservationRow.endsAtLocal` was already nullable). An `ACTIVITY` row of an
   activity without an end now sends `null` instead of the next day at 00:00.
 
+## 2026-09-25 · E3-T16 round 2 · the nulls the api sends, the tax id check
+
+**0 operations added, 21 changed; 0 schemas added**, 14 changed (`Member`, `PaymentMethodView`, `Address`, `Phone`,
+`BookingBlock`, `ImageRights`, `DisplayStatus`, `PlanReference`, `LevelSummary`, `FamilyMember`, `FamilyDog`,
+`ClubSummary`, `ClubSettings`, `ClubUpdate`). Only widenings to `null` and descriptions: nothing becomes required or
+optional.
+
+- `GET /members/{id}/signup` (the D2 view), and every operation that returns the same schemas (`GET /members`,
+  `/members/{id}`, `/members/{id}/overview`, `PATCH /members/{id}`, `/members/{id}/payment-method`,
+  `POST /members/{id}/booking-block`, `GET /dogs`, `/dogs/{id}`, `PATCH /dogs/{id}/level`, `GET /me/dogs`,
+  `GET|PATCH /me/profile`, `GET /me/family-group`, `GET|POST|PUT /family-groups…`, `GET /signup`): these records send
+  every property, so an optional one without a value arrives as `null`. It is now declared: `type: [x, "null"]`, or
+  `anyOf: [{$ref}, {type: "null"}]` for an object (`Member.idDocument`, `paymentMethod`, `consents`, `plan`).
+  `PlanReference.billingMode` lists `null` in its `enum`. The web's E3-W08 examples: `member.plan`, `planId`,
+  `maskedAccount`, and `readmission.submitted.paymentMethod.maskedAccount` / `channel`. `MemberPatch` and
+  `MeProfilePatch` reuse `Address` and `Phone`, and already accepted `null` for `province`, `country` and `label`.
+- `GET /members/{id}/signup`: a found family claim's `familyGroupClaim.holder` is the whole `FamilyMember`, with its
+  `memberNumber` (`null` while pending) and its ACTIVE `dogs`. The required `dogs` used to be `null`.
+- `GET /branding`: `ClubSummary.legalAddress` stays required, as `anyOf: [{$ref: LegalAddress}, {type: "null"}]`.
+  The round-1 form (`null` among the types beside the `$ref`) still had to match the `$ref`, so a JSON Schema
+  2020-12 validator refused the `null` the api sends.
+- `GET /club`, `PUT /club`: `displayCity` is `string | null`. `ClubUpdate.taxId`: checked by the club's country
+  profile only when it changes (`GENERIC` does not validate it; S02 R-02-06); a refused one answers
+  `400 VALIDATION_ERROR` with `details.field: "taxId"` and `details.fieldErrors`.
+
 ## 2026-09-25 · E3-T16 · the member's document types, the public footer, the list page sizes
 
 **0 operations added, 30 changed; 2 schemas added** (`DogDocumentType`, `LegalAddress`), 4 changed (`MeDogs`,

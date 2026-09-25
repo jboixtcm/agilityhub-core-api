@@ -25,8 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     for every member and under impersonation. Screen 13 no longer needs `/parameters`, which stays ADMIN only.
   - R-02-02, S02 §3 (Jordi, 25-09): the club gets `displayCity` (club definition, club settings API, `club:apply`
     diff). `/branding` gives `club.city` = `displayCity ?? address.city` and `club.legalAddress {street, postalCode,
-    city}`, the registered office, or `null` without a street or a postal code. The club's `taxId` is checked by its
-    country profile (`ES`: CIF, NIF or NIE with its check character) in `PUT /club` and `club:apply`.
+    city}`, the registered office, or `null` without a street or a postal code. A `taxId` that `PUT /club` or
+    `club:apply` changes is checked by the club's country profile (`ES`: CIF, NIF or NIE with its check character;
+    `GENERIC`: not validated). A stored one is never re-checked, so a profile switch keeps it (R-02-06).
   - Seeds: the Cànic seed (and its consumer variant) carries its legal identity: `legalName` «Club Agility Cànic»,
     `taxId` G63189617, the registered office in Sant Andreu de Llavaneres, and `displayCity` «Cabrera de Mar». A club
     applied before gets 1 change, then 0.
@@ -36,6 +37,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - CONVENCIONS_API §4 (amended 25-09): the list `size` is one of 20, 50, 200, 1000 in the OpenAPI document (`enum`,
     default 50), and a value above 1000 is `400 INVALID_FILTER` instead of being cut to 1000. OpenAPI snapshot and
     `docs/openapi/CHANGELOG.md` updated.
+  - Round 2: `GENERIC` accepts any tax id (S02 §2); the tax id is checked only when it changes; a refused one in
+    `PUT /club` answers `VALIDATION_ERROR` with `details.field: taxId` and `fieldErrors`. `displayCity` is
+    `string | null` in the contract. Every optional field the D2 view and the signup results send as `null` is
+    declared nullable (`Member`, `PaymentMethodView`, `Address`, `Phone`…), and a nullable object is the OpenAPI 3.1
+    union `anyOf [$ref, null]`, `/branding`'s `legalAddress` included. A found family claim's D2 `holder` is the whole
+    `FamilyMember` (its number and active dogs); its required `dogs` was `null`.
 - E3-T15: gate E3 audit fixes (api), a failure-safe recipient-cap admission (R-04-20, review of E3-T12 round 2).
   - The decision is stored before the allowance is charged: the per-recipient bucket is probed, the decision is written
     to `signup_notification_admissions`, and only a stored admission takes its token (`RateLimits.available` /

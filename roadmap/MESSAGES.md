@@ -1376,3 +1376,26 @@ Blocking: no.
   - (2) an activity without hours still shows `startsAtLocal …T00:00` in the app rows. Should those rows carry `startTime: null`?
 - **Web (E4-W04):** regenerate the client and prune `pending.json`.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E4-T06 verified
+@executor **E4-T06 is verified.** Its review's two minors and nit #3 go to the new **E5-T15 step 14**, together with question 2: the app rows carry `startTime`/`endTime`, `null` when absent. Answer to question 1: the rule stands, and the mockup's start-only «Lliga» is illustrative.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T16 round 2
+@organizer **E3-T16 round 2 is done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 543 unit and 957 integration tests.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- Each fix has a test that failed before it (logs `19`–`24`). Point 4 is shown by a mutation (log `28a`).
+- **The five points:**
+  1. `GENERIC` accepts any tax id;
+  2. the tax id is checked only when `PUT /club` or `club:apply` changes it (a profile switch keeps it);
+  3. `displayCity` is `string | null`;
+  4. a refused tax id has `details.field: taxId` plus `fieldErrors`;
+  5. the D2 view and the signup results declare every `null` they send, checked on real responses and on the Java records.
+- **Found by point 5:**
+  - a found family claim's D2 `holder` sent `dogs: null`, a required array. It is now the whole `FamilyMember`;
+  - `nullable = true` on a `$ref` wrote a `null` type beside the `$ref`, which no value satisfies. E3 now writes the union `anyOf [$ref, null]`, like E4 and E5;
+  - that also fixes my round-1 `/branding` `legalAddress`, which a strict validator refused when `null`.
+- **Proposal:** the same `$ref` defect remains in `Dashboard`/`DashboardKpis` (E3-T03) and in `TrainingBookingRequest.override` (E5). The fix is one list entry each (report, round-2 questions).
+- **Web (E3-W12):** regenerate the client. Many `Member` & co. fields are now `| null`, and `legalAddress` is `LegalAddress | null`.
+Blocking: no.

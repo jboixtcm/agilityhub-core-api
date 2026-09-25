@@ -168,6 +168,30 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(blank.at("/club/displayCity").asText()).isEmpty(); assertThat(definitions.apply(blank, false).changes()).isZero();
     }
     /**
+     * E3-T16 round 2 (review #2; S02 R-02-06): switching a club's country profile does not re-check its stored data. A
+     * `GENERIC` club keeps its unvalidated tax id when a definition moves it to `ES`; a tax id the definition changes is
+     * checked by the new profile.
+     */
+    @Test void T_02_04_T_17_01_aProfileSwitchKeepsTheStoredTaxIdAndOnlyAChangedOneIsChecked() {
+        var generic = seed("minim"); generic.withObject("club").put("taxId", "PT501234567");
+        definitions.apply(generic, false);
+        var spanish = generic.deepCopy(); spanish.withObject("club").put("countryProfile", "ES");
+        var switched = definitions.apply(spanish, false);
+        assertThat(switched.changes()).isEqualTo(1); assertThat(switched.render(false)).contains("club.countryProfile: \"GENERIC\" -> \"ES\"");
+        var club = clubs.findBySlug("minim").orElseThrow();
+        assertThat(club.countryProfile()).isEqualTo("ES"); assertThat(club.taxId()).isEqualTo("PT501234567");
+        assertThat(definitions.apply(spanish, false).changes()).isZero();
+        var wrong = spanish.deepCopy(); wrong.withObject("club").put("taxId", "G63189618");
+        assertThatThrownBy(() -> definitions.apply(wrong, false)).isInstanceOfSatisfying(ApiException.class, error -> {
+            assertThat(error.code()).isEqualTo(ErrorCode.VALIDATION_ERROR); assertThat(error.details()).containsEntry("field", "club.taxId");
+        });
+        assertThat(clubs.findBySlug("minim").orElseThrow().taxId()).isEqualTo("PT501234567");
+        var corrected = spanish.deepCopy(); corrected.withObject("club").put("taxId", "B12345674");
+        assertThat(definitions.apply(corrected, false).changes()).isEqualTo(1);
+        assertThat(clubs.findBySlug("minim").orElseThrow().taxId()).isEqualTo("B12345674");
+        assertThat(TenantContext.current()).isNull();
+    }
+    /**
      * E3-T14: a club applied before (provider names only, so no `enabled` flag) gets one change from the new seed, then none.
      * The seed only switches the providers on: configuration stored outside it stays, and the names-only form keeps the flags.
      */
