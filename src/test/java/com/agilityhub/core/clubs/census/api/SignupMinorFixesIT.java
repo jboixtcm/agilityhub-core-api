@@ -432,4 +432,80 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         assertThat(applicant.stream().filter(m -> m.text().contains(nameA)).findFirst().orElseThrow().locale().getLanguage()).isEqualTo("es");
         assertThat(applicant.stream().filter(m -> m.text().contains(nameB)).findFirst().orElseThrow().locale().getLanguage()).isEqualTo("ca");
     }
+
+    // ---- E3-T13 (review of E3-T10 round 2): the checkout ----
+    /** `signup:payment.concept.*` as the three bundles word them: what the provider must receive for each submission's locale. */
+    static final Map<String,Map<String,String>> CONCEPTS=Map.of(
+            "ca",Map.of("ENTRY_FEE","Entrada","FIRST_MONTH","Primer mes","ADDITIONAL_DOG_FEE","Quota del gos addicional"),
+            "es",Map.of("ENTRY_FEE","Entrada","FIRST_MONTH","Primer mes","ADDITIONAL_DOG_FEE","Cuota del perro adicional"),
+            "en",Map.of("ENTRY_FEE","Entry fee","FIRST_MONTH","First month","ADDITIONAL_DOG_FEE","Additional dog fee"));
+    /** The description the provider received for each charged row, by row id. */
+    Map<String,String> descriptions(String session) {
+        var result=new HashMap<String,String>();for(var line:fake.request(session).lines()) result.put(line.paymentId(),line.description());return result;
+    }
+    /** The `DUE` rows of the given dogs (read before a checkout moves them to `CHECKOUT_PENDING`). */
+    List<String> due(String memberId,List<String> dogIds) { var result=new ArrayList<String>();for(var dog:dogIds) result.addAll(due(memberId,dog));return result; }
+    /** The code before E3-T10 overwrote `Member.signup` with each add-dog's block; the last dog's block is what such a record keeps. */
+    void overwrittenByTheOldAddDog(String memberId,String dogId) {
+        var block=dogDocument(dogId).get("signup",Document.class);assertThat(block.getString("source")).isEqualTo("APP_ADD_DOG");
+        mongo.getCollection("members").updateOne(new Document("_id",memberId),new Document("$set",new Document("signup",block)));
+    }
+    /** The member leaves (S13 writes this LEFT record; no route in this stage): its dogs go INACTIVE and the rows it owed stay DUE. */
+    void leave(String memberId) {
+        var at=Date.from(clock.instant());
+        mongo.getCollection("members").updateOne(new Document("_id",memberId),new Document("$set",new Document("status","LEFT").append("leftAt",at).append("leftReason","LEAVE_REQUEST")));
+        mongo.getCollection("dogs").updateMany(new Document("memberId",memberId).append("clubId",club),new Document("$set",new Document("status","INACTIVE").append("deactivationReason","MEMBER_LEFT").append("deactivatedAt",at)));
+    }
+    String anonymousCheckout(String memberId,String signupToken) throws Exception {
+        return result(postJson("/checkout-sessions",Map.of("memberId",memberId,"signupToken",signupToken,"successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel"))
+                .header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr("198.51.100."+(++sequence%250+1));return r;}),201).path("checkoutSessionId").asText();
+    }
+    /** Step 1 (review #1, R-04-26): an `APP_ADD_DOG` block left in `Member.signup` is no boundary: A's rows stay payable. */
+    @Test void R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary() throws Exception {
+        stripe();String id=activeMember();
+        String a=addDog(id,"941000011000001",null,"ca");clock.setInstant(clock.instant().plusSeconds(60));String b=addDog(id,"941000011000002",null,"ca");
+        assertThat(due(id,a)).isNotEmpty();assertThat(due(id,b)).isNotEmpty();
+        assertThat(dogDocument(b).get("signup",Document.class).get("submittedAt",Date.class)).isAfter(dogDocument(a).get("signup",Document.class).get("submittedAt",Date.class));
+        overwrittenByTheOldAddDog(id,b);var payable=due(id,List.of(a,b));
+        assertThat(charged(checkout(id))).containsExactlyInAnyOrderElementsOf(payable);
+    }
+    /**
+     * Step 1: a real readmission (R-04-06) still leaves out the rows it superseded, also on a record where a later add-dog of
+     * the old code overwrote `Member.signup`: the public signup's own block survives on its dog. Step 2 on the way: the
+     * readmission's lines speak the applicant's language, whatever the LEFT record's or a later add-dog's.
+     */
+    @Test void R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded() throws Exception {
+        stripe();var original=request();String id=submit(original).path("memberId").asText();
+        validate(id,List.of(),0L);var superseded=rows(id).stream().map(p -> p.getString("_id")).toList();
+        assertThat(rows(id)).isNotEmpty().allMatch(p -> "DUE".equals(p.getString("status")));
+        leave(id);clock.setInstant(clock.instant().plusSeconds(60));
+        original.put("locale","en");var readmitted=submit(original);assertThat(readmitted.path("memberId").asText()).isEqualTo(id);
+        var readmission=rows(id).stream().map(p -> p.getString("_id")).filter(p -> !superseded.contains(p)).toList();assertThat(readmission).isNotEmpty();
+        String pending=anonymousCheckout(id,readmitted.path("signupToken").asText());
+        assertThat(charged(pending)).containsExactlyInAnyOrderElementsOf(readmission);
+        assertThat(descriptions(pending).values()).containsExactlyInAnyOrder("Entry fee","First month");
+        fake.expire(pending);validate(id,List.of(),0L);
+        clock.setInstant(clock.instant().plusSeconds(60));String added=addDog(id,"941000011000003",null,"es");overwrittenByTheOldAddDog(id,added);
+        var payable=new ArrayList<>(readmission);payable.addAll(due(id,added));
+        String legacy=checkout(id);
+        assertThat(charged(legacy)).containsExactlyInAnyOrderElementsOf(payable).doesNotContainAnyElementsOf(superseded);
+        var described=descriptions(legacy);
+        for(var row:rows(id)) if(described.containsKey(row.getString("_id"))) {
+            String locale=added.equals(row.getString("dogId"))?"es":"en";
+            assertThat(described.get(row.getString("_id"))).as("%s of %s",row.getString("signupConcept"),row.getString("dogId")).isEqualTo(CONCEPTS.get(locale).get(row.getString("signupConcept")));
+        }
+    }
+    /** Step 2 (review #2, R-04-26): every line the provider receives is described in the locale of the submission it belongs to. */
+    @Test void R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission() throws Exception {
+        stripe();String id=submit(request()).path("memberId").asText();validate(id,List.of(),0L);
+        assertThat(member(id).get("signup",Document.class).getString("locale")).isEqualTo("ca");
+        String spanish=addDog(id,"941000011000004",null,"es");String english=addDog(id,"941000011000005",null,"en");
+        var locales=Map.of(spanish,"es",english,"en");
+        var described=descriptions(checkout(id));assertThat(described).hasSize(rows(id).size());
+        for(var row:rows(id)) {
+            String locale=locales.getOrDefault(row.getString("dogId"),"ca");
+            assertThat(described.get(row.getString("_id"))).as("%s of the %s submission",row.getString("signupConcept"),locale).isEqualTo(CONCEPTS.get(locale).get(row.getString("signupConcept")));
+        }
+        assertThat(described.values()).contains("Cuota del perro adicional","Additional dog fee","Entry fee","Primer mes");
+    }
 }

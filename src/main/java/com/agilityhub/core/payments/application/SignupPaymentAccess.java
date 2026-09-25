@@ -9,8 +9,10 @@ public interface SignupPaymentAccess {
     void card(String memberId, Map<String,Object> card);
     void lock();
     /**
-     * The dogs of the member's current submission (whatever their status) and every pending dog, each with its own
-     * submission: the only rows a checkout may charge (E3-T08).
+     * The submissions whose rows the member owes (`UpfrontPayment.memberId`), whatever their dogs' status or owner, less
+     * those a later public signup superseded (a readmission, R-04-06): the only rows a checkout may charge.
      */
     java.util.List<UpfrontPayments.Submission> submissions(String memberId);
+    /** R-04-26 (E3-T13): the language each submission of the scope describes its payment lines in. */
+    Map<UpfrontPayments.Submission,String> locales(String memberId, java.util.List<UpfrontPayments.Submission> scope);
 }

@@ -1,0 +1,137 @@
+10:31:48.548 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupMinorFixesIT]: SignupMinorFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:31:48.828 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupMinorFixesIT
+10:31:48.950 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+10:31:48.953 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+10:31:48.959 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+10:31:49.138 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+10:31:49.371 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+10:31:49.372 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+10:31:49.392 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+10:31:49.661 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+10:31:49.807 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+10:31:49.951 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: f608d89aad509ea034c696e170b33f7c744f3474484d75955f7fe8d348a167f2
+10:31:50.279 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.617174S
+10:31:50.287 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+10:31:50.287 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+10:31:50.288 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+10:31:50.288 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+10:31:50.361 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 24f8e70d9612eeab608a5b7cb34deb5656b2661bc5085be4a077d5c8b8437aab
+10:31:51.073 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.785192S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T10:31:52.344+02:00  INFO 84253 --- [agilityhub-core-api] [           main] c.a.c.c.census.api.SignupMinorFixesIT    : Starting SignupMinorFixesIT using Java 21.0.12.1 with PID 84253 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T10:31:52.345+02:00  INFO 84253 --- [agilityhub-core-api] [           main] c.a.c.c.census.api.SignupMinorFixesIT    : The following 1 profile is active: "test"
+2026-09-25T10:31:53.627+02:00  INFO 84253 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T10:31:53.692+02:00  INFO 84253 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 59 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T10:31:54.249+02:00  INFO 84253 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@abe7d36], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7da1ef46, com.mongodb.Jep395RecordCodecProvider@740fccd2, com.mongodb.KotlinCodecProvider@1ae23815]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:49202], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@63ccb1b2], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T10:31:54.258+02:00  INFO 84253 --- [agilityhub-core-api] [localhost:49202] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:49202, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=15057000, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=24f8e70d9612:27017, hosts=[24f8e70d9612:27017], passives=[], arbiters=[], primary='24f8e70d9612:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab63176fc2c07c3ae7b5571, counter=6}, lastWriteDate=Fri Sep 25 10:31:51 CEST 2026, lastUpdateTimeNanos=151986613634791}
+2026-09-25T10:31:58.720+02:00  INFO 84253 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T10:31:58.720+02:00  INFO 84253 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T10:31:58.721+02:00  INFO 84253 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-25T10:31:58.774+02:00  INFO 84253 --- [agilityhub-core-api] [           main] c.a.c.c.census.api.SignupMinorFixesIT    : Started SignupMinorFixesIT in 6.655 seconds (process running for 11.073)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 18, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 23.25 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupMinorFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupMinorFixesIT.R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission -- Time elapsed: 2.107 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[ADDITIONAL_DOG_FEE of the es submission] 
+expected: "Cuota del perro adicional"
+ but was: "Quota del gos addicional"
+	at com.agilityhub.core.clubs.census.api.SignupMinorFixesIT.R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission(SignupMinorFixesIT.java:507)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupMinorFixesIT.R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded -- Time elapsed: 0.991 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["ce28c8df-0af0-469e-b716-ee7d6639a1c1", "9a0f817d-a8bf-4ebe-8af9-712a8196922e"]
+to contain exactly in any order:
+  ["f0e534c5-4d4f-4364-9771-f8a6e4727840",
+    "5fcd174c-9254-4dbc-969f-68243a7569f4",
+    "ce28c8df-0af0-469e-b716-ee7d6639a1c1",
+    "9a0f817d-a8bf-4ebe-8af9-712a8196922e"]
+but could not find the following elements:
+  ["f0e534c5-4d4f-4364-9771-f8a6e4727840", "5fcd174c-9254-4dbc-969f-68243a7569f4"]
+
+	at com.agilityhub.core.clubs.census.api.SignupMinorFixesIT.R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded(SignupMinorFixesIT.java:491)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupMinorFixesIT.R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary -- Time elapsed: 0.234 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["54ead274-9b03-4c86-97a1-b7e43d5d7b05", "21194e8d-8889-44ca-9ded-5f7e7e215fe9"]
+to contain exactly in any order:
+  ["5b9c64ac-fdfa-43ea-b2f6-5efc80e4b572",
+    "3b6376c4-093a-4f9d-90f4-c6398c9b89bf",
+    "54ead274-9b03-4c86-97a1-b7e43d5d7b05",
+    "21194e8d-8889-44ca-9ded-5f7e7e215fe9"]
+but could not find the following elements:
+  ["5b9c64ac-fdfa-43ea-b2f6-5efc80e4b572", "3b6376c4-093a-4f9d-90f4-c6398c9b89bf"]
+
+	at com.agilityhub.core.clubs.census.api.SignupMinorFixesIT.R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary(SignupMinorFixesIT.java:470)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SignupMinorFixesIT.R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded:491 
+Expecting actual:
+  ["ce28c8df-0af0-469e-b716-ee7d6639a1c1", "9a0f817d-a8bf-4ebe-8af9-712a8196922e"]
+to contain exactly in any order:
+  ["f0e534c5-4d4f-4364-9771-f8a6e4727840",
+    "5fcd174c-9254-4dbc-969f-68243a7569f4",
+    "ce28c8df-0af0-469e-b716-ee7d6639a1c1",
+    "9a0f817d-a8bf-4ebe-8af9-712a8196922e"]
+but could not find the following elements:
+  ["f0e534c5-4d4f-4364-9771-f8a6e4727840", "5fcd174c-9254-4dbc-969f-68243a7569f4"]
+
+[ERROR]   SignupMinorFixesIT.R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary:470 
+Expecting actual:
+  ["54ead274-9b03-4c86-97a1-b7e43d5d7b05", "21194e8d-8889-44ca-9ded-5f7e7e215fe9"]
+to contain exactly in any order:
+  ["5b9c64ac-fdfa-43ea-b2f6-5efc80e4b572",
+    "3b6376c4-093a-4f9d-90f4-c6398c9b89bf",
+    "54ead274-9b03-4c86-97a1-b7e43d5d7b05",
+    "21194e8d-8889-44ca-9ded-5f7e7e215fe9"]
+but could not find the following elements:
+  ["5b9c64ac-fdfa-43ea-b2f6-5efc80e4b572", "3b6376c4-093a-4f9d-90f4-c6398c9b89bf"]
+
+[ERROR]   SignupMinorFixesIT.R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission:507 [ADDITIONAL_DOG_FEE of the es submission] 
+expected: "Cuota del perro adicional"
+ but was: "Quota del gos addicional"
+[ERROR] Tests run: 18, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

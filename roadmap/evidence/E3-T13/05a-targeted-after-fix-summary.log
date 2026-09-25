@@ -1,0 +1,22 @@
+surefire: 0 classes, tests=0 failures=0 errors=0 skipped=0
+
+failsafe: 1 classes, tests=18 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0
+    PASS R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission
+    PASS R_04_19_T_04_20_paymentPatchKeepsTheHolderTaxIdIbanAndMandateDateUnlessChanged
+    PASS S04_7_withLevelsDisabledTheEventsCarryThePersistedNullLevelNotTheRequest
+    PASS R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback
+    PASS T_04_21_theAdminN01OfEachQueuedAddDogDescribesItsOwnSubmission
+    PASS R_04_23_theRejectionConsumerLeavesTheDogsOfALaterReadmissionPending
+    PASS R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded
+    PASS R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor
+    PASS R_04_12_T_04_16_aFoundClaimNoLongerUniqueAtSubmissionFallsBackToNotFoundPending
+    PASS R_04_23_T_04_21_anAddDogRejectionRendersN03InTheLocaleOfItsOwnSubmission
+    PASS S04_7_validationEventsCarryTheActorRolesMemberTriggerAndThePersistedDogs
+    PASS S04_3_addDogSubmissionsKeepOneBlockPerDogAndNeverOverwriteThePublicSignup
+    PASS T_04_22_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaid
+    PASS S04_3_publicSignupSnapshotKeepsTheSubmissionAndDecisionMetadata
+    PASS R_04_18_T_04_14_migratedSepaMembersWithIbanLast4AreNotAccountNotProvided
+    PASS T_04_26_theMinimalClubSeedSignsUpAndValidatesWithoutMoneyFamilyOrLevels
+    PASS T_04_18_nextInvoiceDateIsCheckedAgainstTheFrozenStartWhileTheQuoteIsUnchanged
+    PASS R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary

@@ -72,11 +72,49 @@ public class SignupService implements SignupPaymentAccess {
      * it. Round 2: the scope follows the debtor (`UpfrontPayment.memberId`), not the dogs' current owner, so a dog
      * transferred after an unpaid validation (S03 R-03-14) leaves its rows with the member who owes them. Only the rows
      * that a later public signup superseded (a readmission, R-04-06) are left out: those written before the member's
-     * current `Member.signup`.
+     * latest public signup ({@link #lastPublicSignup}).
      */
     @Override public List<UpfrontPayments.Submission> submissions(String memberId) {
-        var member=access.mutableMember(memberId);Instant since=instant(map(member.signup).get("submittedAt"));
-        return payments.owed(memberId).entrySet().stream().filter(e -> since==null||e.getValue().map(at -> !at.isBefore(since)).orElse(true)).map(Map.Entry::getKey).toList();
+        var member=access.mutableMember(memberId);var owed=payments.owed(memberId);Instant since=lastPublicSignup(member,blocks(member,owed.keySet()).values());
+        return owed.entrySet().stream().filter(e -> since==null||e.getValue().map(at -> !at.isBefore(since)).orElse(true)).map(Map.Entry::getKey).toList();
+    }
+    /**
+     * E3-T13 (review of E3-T10 round 2): the cut of {@link #submissions} is the latest `PUBLIC` block (a public signup or a
+     * readmission), never an `APP_ADD_DOG` one. The code before E3-T10 overwrote `Member.signup` with each add-dog's block;
+     * on such a record the public signup's own block survives on the dog it created, so the blocks of the owed submissions
+     * count too. Null when there is none: nothing is cut.
+     */
+    private static Instant lastPublicSignup(Member member,Collection<Map<String,Object>> blocks) {
+        var candidates=new ArrayList<>(blocks);candidates.add(map(member.signup));
+        return candidates.stream().filter(b -> "PUBLIC".equals(b.get("source"))).map(b -> instant(b.get("submittedAt"))).filter(Objects::nonNull).max(Comparator.naturalOrder()).orElse(null);
+    }
+    /**
+     * The block of each submission (E3-T13): its dog's own block or `Member.signup`, whichever carries its `submissionId`.
+     * The dog is read whoever owns it now (a transfer never moves a debt). A submission no block keeps any more (a row
+     * written before submissions existed, a dog whose block a later submission replaced) is absent.
+     */
+    private Map<UpfrontPayments.Submission,Map<String,Object>> blocks(Member member,Collection<UpfrontPayments.Submission> submissions) {
+        var dogs=new HashMap<String,Map<String,Object>>();
+        for(var dog:access.dogs.matching(Criteria.where("_id").in(submissions.stream().map(UpfrontPayments.Submission::dogId).distinct().toList()))) dogs.put(dog.id,map(dog.signup));
+        var result=new LinkedHashMap<UpfrontPayments.Submission,Map<String,Object>>();
+        for(var submission:submissions) {
+            if(submission.submissionId()==null) continue;
+            java.util.stream.Stream.of(dogs.getOrDefault(submission.dogId(),Map.of()),map(member.signup)).filter(b -> submission.submissionId().equals(b.get("submissionId"))).findFirst()
+                    .ifPresent(block -> result.put(submission,block));
+        }
+        return result;
+    }
+    /**
+     * R-04-26 (E3-T13): each payment line is described in the language of the submission it belongs to: an add-dog's own
+     * block, the public signup (for a pending readmission, the applicant's, R-04-06 c). A submission no block describes
+     * falls back to `Member.signup`'s language, as before, then to the club's default.
+     */
+    @Override public Map<UpfrontPayments.Submission,String> locales(String memberId,List<UpfrontPayments.Submission> scope) {
+        var member=access.mutableMember(memberId);var blocks=blocks(member,scope);
+        String fallback=string(map(member.signup).getOrDefault("locale",access.config().club().defaultLocale()));
+        var result=new LinkedHashMap<UpfrontPayments.Submission,String>();
+        for(var submission:scope) result.put(submission,Objects.requireNonNullElse(string(map(blocks.get(submission)).get("locale")),fallback));
+        return result;
     }
     private static final int USER_AGENT_LENGTH=256;
     /** `Member.signup.userAgent` (§3): the request's, cut to a bounded length. */
@@ -93,11 +131,11 @@ public class SignupService implements SignupPaymentAccess {
     /**
      * The checkout's view of the member (R-04-26). E3-T12: while a readmission waits, the provider's customer is the
      * applicant's submitted primary address (R-04-06 c), never the LEFT record's; the record and the account's login
-     * email are untouched.
+     * email are untouched. The lines' language is each submission's ({@link #locales}, E3-T13), not the member's.
      */
     public Map<String,Object> member(String memberId) {
         var m=access.mutableMember(memberId);Object email=readmissionPending(m)?primaryEmail(submitted(m).get("contactEmails")):email(m);
-        return object("id",m.id,"email",email,"locale",map(m.signup).getOrDefault("locale",access.config().club().defaultLocale()),"paymentMethod",effectivePayment(m),"status",m.status);
+        return object("id",m.id,"email",email,"paymentMethod",effectivePayment(m),"status",m.status);
     }
     public void authorize(String id,String token) {
         if(CurrentUser.current()==null) { capabilities.require(id,token); }
@@ -638,7 +676,7 @@ public class SignupService implements SignupPaymentAccess {
                 exceeds=replacement.paidExceedsQuote();if(exceeds!=null) warnings.add("PAID_EXCEEDS_QUOTE");
             } else { lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency()); }
             upfront=object("lines",lineViews(lines.stream().map(l -> l.id()!=null?l:new UpfrontPayments.Line(UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),
-                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds,
+                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider(),l.submissionId())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds,
                     // The first month the validation will charge: the frozen one, or the recalculated one after a plan change.
                     "firstMonth",firstMonthView(first));
         }

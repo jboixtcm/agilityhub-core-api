@@ -1,0 +1,4 @@
+surefire: 118 classes, tests=533 failures=0 errors=0 skipped=0
+
+failsafe: 83 classes, tests=915 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0

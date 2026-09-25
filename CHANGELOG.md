@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T13: gate E3 audit fixes (api, 5/5), the checkout follow-ups of the E3-T10 round-2 review.
+  - R-04-06 / R-04-26: the checkout leaves out only the rows a readmission superseded, cut at the member's latest `PUBLIC`
+    signup block. An `APP_ADD_DOG` block that the code before E3-T10 left in `Member.signup` is no longer a boundary, so
+    an earlier add-dog's unpaid rows stay payable; on such a record the public signup's block is read from its dog.
+  - R-04-26: every line sent to the payment provider is described in the locale of the submission it belongs to (an
+    add-dog's own block, the public signup, a pending readmission's applicant), not in the member's public-signup locale.
+  - No contract change (`UpfrontPayments.Line` carries its `submissionId` internally only).
+
 - E3-T12: gate E3 audit fixes (api, 4/4), the follow-ups of the E3-T09 round-2 review and the D2 first month.
   - R-04-06 c / R-04-26: the checkout of a pending readmission sends the applicant's submitted primary address to the
     payment provider as the customer email; the LEFT record and the account's login email are untouched.

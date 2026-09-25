@@ -40,7 +40,9 @@ public class CheckoutService {
             if(lines.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
             String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24));
             var ids=lines.stream().map(UpfrontPayments.Line::id).toList();String mode=due.amountMinor()==0?"setup":"payment";
-            var request=new PaymentProvider.Request(id,TenantContext.require(),memberId,mode,lines.stream().map(l -> new PaymentProvider.Item(l.id(),messages.format("signup:payment.concept."+l.concept(),Map.of(),Locale.forLanguageTag((String)member.get("locale"))),l.amount().minus(l.paidAmount()))).toList(),
+            // R-04-26 (E3-T13): each line in the language of the submission it belongs to, never one language for the member.
+            var locales=members.locales(memberId,scope);
+            var request=new PaymentProvider.Request(id,TenantContext.require(),memberId,mode,lines.stream().map(l -> new PaymentProvider.Item(l.id(),messages.format("signup:payment.concept."+l.concept(),Map.of(),Locale.forLanguageTag(locales.get(l.submission()))),l.amount().minus(l.paidAmount()))).toList(),
                     (String)member.get("email"),memberId,Map.of("clubId",TenantContext.require(),"memberId",memberId,"upfrontPaymentIds",ids),card?"off_session":null,success,cancel,expires);
             String url=gateway.createCheckoutSession(request);
             sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires,null));payments.pending(memberId,ids,id);

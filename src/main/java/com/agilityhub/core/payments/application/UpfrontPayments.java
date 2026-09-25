@@ -10,7 +10,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UpfrontPayments {
-    public record Line(String id,String concept,String dogId,Money amount,Money paidAmount,String status,String provider) { }
+    /**
+     * A row as the signup flows see it; `submissionId` ties it to the submission that wrote it (null for a row written before
+     * submissions existed, or not written yet: a dry run's new row).
+     */
+    public record Line(String id,String concept,String dogId,Money amount,Money paidAmount,String status,String provider,String submissionId) {
+        public Submission submission() { return new Submission(dogId,submissionId); }
+    }
     public record Charge(String concept,String dogId,Money amount) { }
     /**
      * One pending dog of a signup and the submission that created it (S04 §5, E3-T08). The rows of a signup are the rows of
@@ -31,7 +37,7 @@ public class UpfrontPayments {
         return repository.member(memberId).stream().filter(p -> p.bookingId()==null && (scope==null || scope.contains(new Submission(p.dogId(),p.submissionId()))))
                 .sorted(Comparator.comparing(UpfrontPayment::createdAt).thenComparing(p -> "ENTRY_FEE".equals(p.concept()) ? 0 : 1).thenComparing(UpfrontPayment::id)).toList();
     }
-    private Line line(UpfrontPayment p) { return new Line(p.id(),p.signupConcept()==null?p.concept():p.signupConcept(),p.dogId(),p.amountDue(),p.amountPaid(),p.status(),p.provider()); }
+    private Line line(UpfrontPayment p) { return new Line(p.id(),p.signupConcept()==null?p.concept():p.signupConcept(),p.dogId(),p.amountDue(),p.amountPaid(),p.status(),p.provider(),p.submissionId()); }
     /**
      * The signup submissions this member owes (E3-T10 round 2): those of the rows whose debtor it is (`memberId`), whoever
      * owns the dog now (a transfer, S03 R-03-14, never moves a debt). Each comes with the instant of its first row, which
@@ -89,7 +95,7 @@ public class UpfrontPayments {
     public record Replacement(List<Line> kept,List<Line> cancelled,List<Line> corrections,List<Charge> created,boolean checkoutPending,Money paidExceedsQuote) {
         public List<Line> lines() {
             var result=new ArrayList<>(kept);result.addAll(corrections);
-            for (var charge:created) { result.add(new Line(null,charge.concept(),charge.dogId(),charge.amount(),new Money(0,charge.amount().currency()),"DUE",null)); }
+            for (var charge:created) { result.add(new Line(null,charge.concept(),charge.dogId(),charge.amount(),new Money(0,charge.amount().currency()),"DUE",null,null)); }
             return result;
         }
         public Money due(String currency) { return UpfrontPayments.due(lines(),currency); }

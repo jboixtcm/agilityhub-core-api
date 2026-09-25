@@ -1,0 +1,13 @@
+surefire: 0 classes, tests=0 failures=0 errors=0 skipped=0
+
+failsafe: 1 classes, tests=9 failures=1 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=9 failures=1 errors=0 skipped=0
+    PASS R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission
+    PASS R_04_19_T_04_20_paymentPatchKeepsTheHolderTaxIdIbanAndMandateDateUnlessChanged
+    PASS R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback
+    PASS R_04_23_theRejectionConsumerLeavesTheDogsOfALaterReadmissionPending
+    FAIL R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded ::  Expecting actual:   ["a4d04c66-fa69-4054-8ff1-f69831114131",     "be06b363-40e8-412d-8b14-5becaab7ac1d",     "42f66e23-9ccc-4b19-acf1-07e942b96700",     "c1dacc5f-8d50-4b41-934f-e9b2949ec78f",     "b68ad7c0-852b-48c2-8e37-1cba6a896928",     "98b3d3a9-657f-43cb-a471-0cd9126122b0"] to contain exactly
+    PASS R_04_12_T_04_16_aFoundClaimNoLongerUniqueAtSubmissionFallsBackToNotFoundPending
+    PASS R_04_23_T_04_21_anAddDogRejectionRendersN03InTheLocaleOfItsOwnSubmission
+    PASS R_04_18_T_04_14_migratedSepaMembersWithIbanLast4AreNotAccountNotProvided
+    PASS R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary

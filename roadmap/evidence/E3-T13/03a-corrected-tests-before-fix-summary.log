@@ -1,0 +1,22 @@
+surefire: 0 classes, tests=0 failures=0 errors=0 skipped=0
+
+failsafe: 1 classes, tests=18 failures=3 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=3 errors=0 skipped=0
+    FAIL R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission :: [ADDITIONAL_DOG_FEE of the es submission]  expected: "Cuota del perro adicional"  but was: "Quota del gos addicional"
+    PASS R_04_19_T_04_20_paymentPatchKeepsTheHolderTaxIdIbanAndMandateDateUnlessChanged
+    PASS S04_7_withLevelsDisabledTheEventsCarryThePersistedNullLevelNotTheRequest
+    PASS R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback
+    PASS T_04_21_theAdminN01OfEachQueuedAddDogDescribesItsOwnSubmission
+    PASS R_04_23_theRejectionConsumerLeavesTheDogsOfALaterReadmissionPending
+    FAIL R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded ::  Expecting actual:   ["ce28c8df-0af0-469e-b716-ee7d6639a1c1", "9a0f817d-a8bf-4ebe-8af9-712a8196922e"] to contain exactly in any order:   ["f0e534c5-4d4f-4364-9771-f8a6e4727840",     "5fcd174c-9254-4dbc-969f-68243a7569f4",     "ce28c8df-0af0-469e-b716-ee7d6639a1c1",     "9a0f817d-a8bf-4ebe-8af9-712a8
+    PASS R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor
+    PASS R_04_12_T_04_16_aFoundClaimNoLongerUniqueAtSubmissionFallsBackToNotFoundPending
+    PASS R_04_23_T_04_21_anAddDogRejectionRendersN03InTheLocaleOfItsOwnSubmission
+    PASS S04_7_validationEventsCarryTheActorRolesMemberTriggerAndThePersistedDogs
+    PASS S04_3_addDogSubmissionsKeepOneBlockPerDogAndNeverOverwriteThePublicSignup
+    PASS T_04_22_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaid
+    PASS S04_3_publicSignupSnapshotKeepsTheSubmissionAndDecisionMetadata
+    PASS R_04_18_T_04_14_migratedSepaMembersWithIbanLast4AreNotAccountNotProvided
+    PASS T_04_26_theMinimalClubSeedSignsUpAndValidatesWithoutMoneyFamilyOrLevels
+    PASS T_04_18_nextInvoiceDateIsCheckedAgainstTheFrozenStartWhileTheQuoteIsUnchanged
+    FAIL R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary ::  Expecting actual:   ["54ead274-9b03-4c86-97a1-b7e43d5d7b05", "21194e8d-8889-44ca-9ded-5f7e7e215fe9"] to contain exactly in any order:   ["5b9c64ac-fdfa-43ea-b2f6-5efc80e4b572",     "3b6376c4-093a-4f9d-90f4-c6398c9b89bf",     "54ead274-9b03-4c86-97a1-b7e43d5d7b05",     "21194e8d-8889-44ca-9ded-5f7e7
