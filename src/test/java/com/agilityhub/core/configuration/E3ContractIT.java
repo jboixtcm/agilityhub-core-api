@@ -201,7 +201,13 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema,"SignupUpfront","lines,totalDue,additionalDog");
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("additionalDogOptions")).isTrue();
         properties(schema, "SignupConfig", "enabled,closedText,steps,plans,paymentMethods,texts,legal,countryProfile,upfront,member,allowFamilyGroupPending,requireDogDocumentAtSignup");
-        properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,planOptions,warnDays,version,readmission");
+        properties(schema, "MemberSignupView", "member,dogs,signup,familyGroupClaim,upfront,proposals,warnings,planOptions,paymentMethods,warnDays,version,readmission");
+        // E3-T14 (web E3-W07 round 2, R-04-10): the methods D2 may assign, shaped like planOptions, plus the applicant's current one.
+        assertThat(strings(schema.at("/MemberSignupView/required"))).contains("planOptions", "paymentMethods");
+        assertThat(schema.at("/MemberSignupView/properties/paymentMethods/items/$ref").asText()).isEqualTo("#/components/schemas/SignupPaymentMethodOption");
+        properties(schema, "SignupPaymentMethodOption", "type,label,current,assignable");
+        assertThat(strings(schema.at("/SignupPaymentMethodOption/required"))).containsExactlyInAnyOrder("type", "label", "current", "assignable");
+        assertThat(strings(schema.at("/SignupPaymentMethodOption/properties/type/enum"))).containsExactly("SEPA_DD", "CARD", "MANUAL");
         // E3-T09: the readmission blocks (E38) are optional; the signup upload returns the signed headers (M16).
         assertThat(schema.at("/MemberSignupView/required").toString()).doesNotContain("readmission");
         properties(schema, "SignupReadmission", "current,submitted,changedFields,consents,previousLeftAt,previousLeftReason");

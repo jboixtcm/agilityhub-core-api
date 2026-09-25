@@ -100,6 +100,60 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(definitions.apply(exported, false).changes()).isZero();
         assertThat(TenantContext.current()).isNull();
     }
+    /**
+     * E3-T14 (S04 R-04-10): the Cànic collects by direct debit and cash, so its seed enables `SEPA_XML` and `MANUAL`. It has
+     * no creditor data, so neither is `configured`. `GET /club` and `GET /signup` show the same methods.
+     */
+    @Test void T_02_12_canicSeedEnablesDirectDebitAndCashWithoutConfiguringThem() throws Exception {
+        var first = definitions.apply(seed("canic"), false);
+        var stored = clubs.findById(first.id()).orElseThrow().paymentProviders();
+        assertThat(stored.keySet()).containsExactly("SEPA_XML", "MANUAL");
+        assertThat(stored).isEqualTo(Map.of("SEPA_XML", Map.of("enabled", true), "MANUAL", Map.of("enabled", true)));
+        var admin = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(token -> token.subject("seed-admin").claim("clubId", first.id()))
+                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"));
+        var flags = mapper.readTree(mvc.perform(get("/api/v1/club").header("Host", "admin.agilitycanic.cat").with(admin))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("paymentProviders");
+        assertThat(flags).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"configured\":false,\"enabled\":true},\"MANUAL\":{\"configured\":false,\"enabled\":true}}"));
+        // Activation is fixture setup (the seed opens the club in ONBOARDING); the offer then follows the same flags.
+        mongo.updateFirst(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(first.id())),
+                new org.springframework.data.mongodb.core.query.Update().set("status", "ACTIVE"), Club.class);
+        configs.invalidate(first.id()); hosts.invalidate();
+        var signup = mapper.readTree(mvc.perform(get("/api/v1/signup").header("Host", "app.agilitycanic.cat"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(signup.path("paymentMethods").findValuesAsText("type")).containsExactly("SEPA_DD", "MANUAL");
+        mongo.updateFirst(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(first.id())),
+                new org.springframework.data.mongodb.core.query.Update().set("status", "ONBOARDING"), Club.class);
+        assertThat(definitions.apply(seed("canic"), false).changes()).isZero();
+        var exported = definitions.export("canic");
+        assertThat(exported.path("paymentProviders")).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"enabled\":true},\"MANUAL\":{\"enabled\":true}}"));
+        codec.validate(exported); assertThat(definitions.apply(exported, false).changes()).isZero();
+    }
+    /**
+     * E3-T14: a club applied before (provider names only, so no `enabled` flag) gets one change from the new seed, then none.
+     * The seed only switches the providers on: configuration stored outside it stays, and the names-only form keeps the flags.
+     */
+    @Test void T_17_01_enablingSeededProvidersIsOneChangeAndKeepsTheirStoredConfiguration() {
+        var legacy = seed("canic"); legacy.putArray("paymentProviders").add("SEPA_XML").add("MANUAL");
+        var id = definitions.apply(legacy, false).id();
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders()).isEqualTo(Map.of("SEPA_XML", Map.of(), "MANUAL", Map.of()));
+        mongo.updateFirst(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(id)),
+                new org.springframework.data.mongodb.core.query.Update().set("paymentProviders.SEPA_XML.creditorName", "Fictional Creditor"), Club.class);
+        var preview = definitions.apply(Path.of("seeds/club-canic.yaml"), true);
+        assertThat(preview.changes()).isEqualTo(1);
+        assertThat(preview.render(true)).contains("~ paymentProviders changed", "paymentProviders.SEPA_XML: {\"enabled\":false} -> {\"enabled\":true}",
+                "paymentProviders.MANUAL: {\"enabled\":false} -> {\"enabled\":true}");
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders()).isEqualTo(Map.of("SEPA_XML", Map.of("creditorName", "Fictional Creditor"), "MANUAL", Map.of()));
+        assertThat(definitions.apply(seed("canic"), false).changes()).isEqualTo(1);
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders())
+                .isEqualTo(Map.of("SEPA_XML", Map.of("creditorName", "Fictional Creditor", "enabled", true), "MANUAL", Map.of("enabled", true)));
+        assertThat(definitions.apply(seed("canic"), false).changes()).isZero();
+        assertThat(definitions.apply(legacy, false).changes()).isZero();
+        var disabled = seed("canic"); disabled.withObject("paymentProviders").withObject("MANUAL").put("enabled", false);
+        var off = definitions.apply(disabled, false);
+        assertThat(off.changes()).isEqualTo(1);
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", false));
+    }
     @Test void T_17_01_parameterUpdatesPreserveUnlistedAndScopedOverridesAndRecordEventsHistory() {
         var definition = seed("canic"); definition.withObject("parameters").put("bookings.maxCurrentWeek", 3).put("signup.enabled", false);
         var first = definitions.apply(definition, false);

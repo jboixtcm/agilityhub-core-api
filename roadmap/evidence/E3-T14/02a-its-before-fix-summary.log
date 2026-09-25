@@ -1,0 +1,36 @@
+surefire: 119 classes, tests=543 failures=1 errors=0 skipped=0
+
+failsafe: 84 classes, tests=925 failures=8 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=5 failures=5 errors=0 skipped=0
+    FAIL R_04_10_T_04_14_aMethodWhoseProviderIsNotEnabledIsRefusedAtSubmission :: [HTTP code= details=]  expected: 422  but was: 201
+    FAIL R_04_10_withoutBillingTheD2ViewHasNoPaymentMethods ::  Expecting value to be true but was false
+    FAIL R_04_19_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne ::  Expecting actual:    to contain exactly (and in same order):   [{"current":false,"type":"SEPA_DD","assignable":true,"label":"Domiciliació"},     {"current":true,"type":"MANUAL","assignable":true,"label":"Efectiu"}] but could not find the following elements:   [{"current":false,"type":"SEPA_DD","ass
+    FAIL R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags ::  Expecting actual:   ["SEPA_DD", "CARD", "MANUAL"] to contain exactly (and in same order):   ["SEPA_DD"] but some elements were not expected:   ["CARD", "MANUAL"] 
+    FAIL R_04_19_T_04_20_theD2EditRefusesAMethodWhoseProviderIsNotEnabled :: [MANUAL]  expected: "PAYMENT_METHOD_NOT_AVAILABLE"  but was: ""
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=1 errors=0 skipped=0
+    PASS T_04_25_errorRowHasExactlyTheCanonicalCodesStatusesAndThreeTranslations
+    PASS T_04_21_T_04_25_validImpersonationCanUseMemberRoutesButNeverD2
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[1]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[2]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[3]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[4]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[5]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[6]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[7]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[8]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[9]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[10]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[11]
+    PASS T_04_18_T_04_23_invalidRequestsAndForeignDryRunDoNotWriteSignupEntities
+    FAIL T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors :: [MemberSignupView]  Expecting actual:   ["member",     "dogs",     "signup",     "familyGroupClaim",     "upfront",     "proposals",     "warnings",     "planOptions",     "warnDays",     "version",     "readmission"] to contain exactly in any order:   ["member",     "dogs",     "signup",     "famil
+    PASS T_04_26_moduleGuardsApplyToAnonymousAndAuthenticatedCheckoutAndFamilyLookups
+    PASS T_14_01_dashboardSchemasMatchEveryFieldAndNullableBlockInS14
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=8 failures=2 errors=0 skipped=0
+    FAIL T_17_01_enablingSeededProvidersIsOneChangeAndKeepsTheirStoredConfiguration ::  expected: 1  but was: 0
+    PASS T_17_01_cliExportsYamlAndExitsWithoutOpeningTheConfiguredHttpPort(Path)
+    FAIL T_02_12_canicSeedEnablesDirectDebitAndCashWithoutConfiguringThem ::  expected: {"MANUAL"={"enabled"=true}, "SEPA_XML"={"enabled"=true}}  but was: {"MANUAL"={}, "SEPA_XML"={}}
+    PASS T_17_01_parameterUpdatesPreserveUnlistedAndScopedOverridesAndRecordEventsHistory
+    PASS T_17_01_auditFailureRollsBackClubParametersAdminsAndOutboxTogether
+    PASS T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite
+    PASS T_17_01_templatePartialDefinitionAndExistingAdminPreserveIdentity
+    PASS T_17_02_hostConflictIsRejectedForVerifiedAndPendingHostsAndTenantsHaveDifferentThemes

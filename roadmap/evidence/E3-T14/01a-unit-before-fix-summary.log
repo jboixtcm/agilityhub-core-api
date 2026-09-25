@@ -1,0 +1,10 @@
+surefire: 119 classes, tests=543 failures=1 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionCodecTest: tests=6 failures=1 errors=0 skipped=0
+    PASS T_17_01_invalidShapeUnknownPropertiesAndModuleDependenciesAreRejected
+    FAIL T_17_01_paymentProvidersAreNamesOrEnabledFlagsAndNeverCredentials ::  expected: {"SEPA_XML":{"enabled":true},"MANUAL":{"enabled":true}}  but was: ["SEPA_XML","MANUAL"]
+    PASS T_17_02_normalizesHostsRejectsDuplicatesAndReservedHosts
+    PASS T_17_01_allThreeSeedsValidateAndRoundTripAsYaml(Path)
+    PASS T_17_01_accountsRequireClosedRolesAndUniqueNormalizedEmails
+    PASS T_17_01_duplicateAdminsAndMalformedYamlAreRejected(Path)
+failsafe: 83 classes, tests=918 failures=0 errors=0 skipped=0
+

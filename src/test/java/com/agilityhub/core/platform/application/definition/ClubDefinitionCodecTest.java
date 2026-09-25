@@ -39,6 +39,19 @@ class ClubDefinitionCodecTest {
             fails(definition, ErrorCode.VALIDATION_ERROR);
         }
     }
+    /** E3-T14 (R-04-10): a seed names its providers, or names them with their `enabled` flag; never a credential. */
+    @Test void T_17_01_paymentProvidersAreNamesOrEnabledFlagsAndNeverCredentials() throws Exception {
+        assertThat(seed().path("paymentProviders")).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"enabled\":true},\"MANUAL\":{\"enabled\":true}}"));
+        for (String seed : new String[]{"canic-consumer", "minim", "fifo", "perf"}) {
+            assertThat(codec.read(Path.of("seeds/club-" + seed + ".yaml")).path("paymentProviders").isObject()).as(seed).isTrue();
+        }
+        var definition = seed(); definition.putArray("paymentProviders").add("STRIPE").add("MANUAL");
+        assertThat(codec.validate(definition).path("paymentProviders")).hasSize(2);
+        for (String invalid : new String[]{"{\"SEPA_XML\":{\"enabled\":true,\"iban\":\"fictional\"}}", "{\"STRIPE\":{\"enabled\":true,\"secretKey\":{\"env\":\"FICTIONAL\"}}}",
+                "{\"SEPA_XML\":{}}", "{\"MANUAL\":{\"enabled\":\"yes\"}}", "{\"PAYPAL\":{\"enabled\":true}}", "[\"PAYPAL\"]", "[\"MANUAL\",\"MANUAL\"]"}) {
+            definition = seed(); definition.set("paymentProviders", mapper.readTree(invalid)); fails(definition, ErrorCode.VALIDATION_ERROR);
+        }
+    }
     @Test void T_17_02_normalizesHostsRejectsDuplicatesAndReservedHosts() {
         var definition = seed(); ((ObjectNode) definition.path("domains").get(0)).put("host", "APP.AGILITYCANIC.CAT.").remove("app");
         assertThat(codec.validate(definition).path("domains").get(0).path("host").asText()).isEqualTo("app.agilitycanic.cat");

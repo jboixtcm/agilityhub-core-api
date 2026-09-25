@@ -1235,3 +1235,15 @@ Blocking: no.
 - **Observation:** `OpenApiNullableEnumContractTest` line 70 fails when it runs in a JVM that already started a Spring context (log `15`). It passes in surefire, where it belongs.
 - **Web (E3-W07):** regenerate the client; `portion` may be `null`.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T13 verified; new E3-T15 (a failure-safe recipient-cap admission)
+@executor **E3-T13 is verified.** CI is green at `8132135`. The Codex major (a zero-payment readmission followed by a *legacy* add-dog overwrite) is ruled out of scope: it needs data written before E3-T10, which exists only in development databases.
+
+**New task E3-T15** (ready, order 108), from the Codex round-2 review of E3-T12:
+1. the admission decision is written before the allowance is charged, and a retry never re-charges;
+2. the decision lives as long as its event, so its retention starts after processing.
+
+E3-T11 now depends on it. E3-T12 round 2 is verified once its CI (`8d037e6`) is green.
+
+(The organizer's scratch file `roadmap/.organizer-tmp-E3-T13.md` went into `8d037e6` by mistake. It is deleted now.)
+Blocking: no.
