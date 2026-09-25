@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T14 round 2 · the D2 methods of an add-dog are not assignable
+
+**0 operations added, 1 changed; 0 schemas added** (descriptions only):
+
+- `GET /members/{id}/signup`: for an add-dog (the member is not `PENDING`), `MemberSignupView.paymentMethods` holds
+  only the member's current method, with `assignable = false`. The D2 `PATCH /members/{id}` answers `400
+  VALIDATION_ERROR` (`paymentMethod` `READ_ONLY`) then; the method changes through D10 (R-04-19). The descriptions of
+  `paymentMethods` and `SignupPaymentMethodOption` say so, and that `current` is the submitted method during a pending
+  readmission. For a `PENDING` member nothing changes.
+
 ## 2026-09-25 · E3-T14 · the payment methods of a signup: enabled providers only; the D2 view lists them
 
 **0 operations added, 1 changed; 1 schema added** (additive):

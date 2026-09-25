@@ -35,10 +35,10 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;@Autowired ObjectMapper mapper;@Autowired MongoTemplate mongo;@Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs;@Autowired HostTenantResolver hosts;
     @Autowired com.agilityhub.core.clubs.census.application.SignupService signupService;
-    String club,host,plan;
+    String club,host,plan,level;
     int sequence;
     @BeforeEach void fixtureClub() {
-        club="pm-"+UUID.randomUUID();host=club+".example.test";plan=UUID.randomUUID().toString();
+        club="pm-"+UUID.randomUUID();host=club+".example.test";plan=UUID.randomUUID().toString();level=UUID.randomUUID().toString();
         ObjectNode tree=mapper.valueToTree(PlatformFixtures.club(club,host));tree.set("modules",mapper.valueToTree(Module.values()));
         // The offer follows the configured order (R-04-10), so the fixture keeps one: direct debit, then cash.
         var providers=tree.putObject("paymentProviders");providers.putObject("SEPA_XML").put("enabled",true);providers.putObject("MANUAL").put("enabled",true);
@@ -46,6 +46,7 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
         var name=new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en");
         mongo.insert(new Plan(plan,club,"MONTHLY",name,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,name,null,true,true,0,true,0,clock.instant(),clock.instant(),null,null));
         mongo.insert(new Price(UUID.randomUUID().toString(),club,plan,PriceConcept.MONTHLY_FEE,new Money(6000,"EUR"),java.math.BigDecimal.ZERO,LocalDate.of(2020,1,1),null,0,clock.instant(),clock.instant(),null,null));
+        mongo.insert(new Level(level,club,"A",new LocalizedText(Map.of("ca","Iniciació","es","Iniciación","en","Beginner"),"en"),0,"#000000",8,false,true,true,0,clock.instant(),clock.instant(),null,null));
         signupService.invalidateConfiguration(club);
     }
     /** Replaces the club's `paymentProviders` as stored, in this order. */
@@ -86,6 +87,22 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
         return mvc.perform(admin(patchJson("/members/"+id,Map.of("version",member(id).get("version"),"paymentMethod",payment)))).andReturn().getResponse().getStatus();
     }
     String code(MockHttpServletRequestBuilder request) throws Exception { return mapper.readTree(mvc.perform(request).andReturn().getResponse().getContentAsString()).path("code").asText(); }
+    MockHttpServletRequestBuilder postJson(String path,Object body) throws Exception {return post("/api/v1"+path).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body));}
+    MockHttpServletRequestBuilder asMember(MockHttpServletRequestBuilder request,String id) {
+        String account=member(id).getString("accountId");return request.header("Host",host).with(jwt().jwt(j->j.subject(account).claim("clubId",club)).authorities(new SimpleGrantedAuthority("ROLE_MEMBER")));
+    }
+    String pendingDog(String id) {
+        return mongo.getCollection("dogs").find(new Document("clubId",club).append("memberId",id).append("status","PENDING")).first().getString("_id");
+    }
+    /** D2 validation of the pending signup, with the dry run's next invoice date and upfront total (as in {@code SignupFollowUpFixesIT}). */
+    void validate(String id) throws Exception {
+        var body=new LinkedHashMap<String,Object>();body.put("version",review(id,"ca").path("version").asLong());
+        body.put("dogs",List.of(Map.of("dogId",pendingDog(id),"levelId",level)));
+        var dry=result(admin(postJson("/members/"+id+"/validation",body).param("dryRun","true")),200);
+        if("PENDING".equals(member(id).getString("status"))) body.put("nextInvoiceDate",dry.path("nextInvoiceDate").asText());
+        body.put("upfrontAmountPaid",mapper.convertValue(dry.at("/upfront/totalDue"),Map.class));
+        result(admin(postJson("/members/"+id+"/validation",body)),200);
+    }
 
     // ---- Step 1 (R-04-10): one rule for the offer — enabled providers only ----
     @Test void R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags() throws Exception {
@@ -130,7 +147,7 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 3 (web E3-W07 round 2): the D2 view publishes the assignable methods ----
-    @Test void R_04_19_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne() throws Exception {
+    @Test void R_04_19_T_04_20_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne() throws Exception {
         String id=submit(request("MANUAL"),201).path("memberId").asText();
         assertThat(review(id,"ca").path("paymentMethods")).containsExactly(option("SEPA_DD","Domiciliació",false,true),option("MANUAL","Efectiu",true,true));
         assertThat(review(id,"es").path("paymentMethods")).containsExactly(option("SEPA_DD","Domiciliación",false,true),option("MANUAL","Efectivo",true,true));
@@ -144,11 +161,50 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
         // The same rule as GET /signup: what D2 may assign is what the public form offers.
         assertThat(review(id,"ca").path("paymentMethods").findValuesAsText("type")).isEqualTo(offered("ca"));
     }
-    @Test void R_04_10_withoutBillingTheD2ViewHasNoPaymentMethods() throws Exception {
+    @Test void R_04_10_T_04_26_withoutBillingTheD2ViewHasNoPaymentMethods() throws Exception {
         String id=submit(request("MANUAL"),201).path("memberId").asText();
         mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("modules",List.of())));
         configs.invalidate(club);
         var view=review(id,"ca");
         assertThat(view.path("paymentMethods").isArray()).isTrue();assertThat(view.path("paymentMethods")).isEmpty();
+    }
+    /**
+     * Round 2 (review #1, R-04-19): an add-dog leaves the member ACTIVE, and D2 then edits only the pending dogs; the method
+     * changes through D10. The view lists only the member's current method, not assignable, and the PATCH refuses it.
+     */
+    @Test void R_04_19_T_04_20_anAddDogViewListsOnlyTheCurrentMethodAndItIsNotAssignable() throws Exception {
+        String id=submit(request("MANUAL"),201).path("memberId").asText();validate(id);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");
+        result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name","Added Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000008"+String.format("%06d",++sequence)),"documents",List.of()))
+                .header("Idempotency-Key",UUID.randomUUID()),id),201);
+        // Both providers stay enabled: the view still offers nothing D2 could assign.
+        assertThat(offered("ca")).containsExactly("SEPA_DD","MANUAL");
+        assertThat(review(id,"ca").path("paymentMethods")).containsExactly(option("MANUAL","Efectiu",true,false));
+        var refused=result(admin(patchJson("/members/"+id,Map.of("version",member(id).get("version"),"paymentMethod",Map.of("type","SEPA_DD")))),400);
+        assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(refused.at("/details/fieldErrors/0")).isEqualTo(mapper.valueToTree(Map.of("field","paymentMethod","code","READ_ONLY")));
+        assertThat(((Document)member(id).get("paymentMethod")).getString("type")).isEqualTo("MANUAL");
+    }
+    /**
+     * Round 2 (review #2, R-04-06): during a pending readmission the D2 PATCH edits the submitted method, so `current` marks
+     * the submitted one, never the method the LEFT record keeps until validation.
+     */
+    @Test void R_04_06_T_04_20_aPendingReadmissionMarksTheSubmittedMethodAsCurrent() throws Exception {
+        var original=request("SEPA_DD");String id=submit(original,201).path("memberId").asText();validate(id);
+        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("status","LEFT").append("leftAt",Date.from(Instant.parse("2025-06-30T10:00:00Z")))
+                .append("leftReason","LEAVE_REQUEST").append("leaveDate","2025-06-30")));
+        mongo.getCollection("dogs").updateMany(new Document("memberId",id),new Document("$set",new Document("status","INACTIVE").append("deactivationReason","MEMBER_LEFT")));
+        var readmission=original.deepCopy();readmission.set("payment",mapper.valueToTree(Map.of("type","MANUAL","firstMonthOption","TODAY")));
+        assertThat(submit(readmission,201).path("memberId").asText()).isEqualTo(id);
+        assertThat(((Document)member(id).get("paymentMethod")).getString("type")).as("the LEFT record keeps its method").isEqualTo("SEPA_DD");
+        var view=review(id,"ca");
+        assertThat(view.at("/signup/readmission").asBoolean()).isTrue();
+        assertThat(view.path("paymentMethods")).containsExactly(option("SEPA_DD","Domiciliació",false,true),option("MANUAL","Efectiu",true,true));
+        // The D2 PATCH edits the submitted method, and `current` follows it; the record is still untouched.
+        assertThat(patchPayment(id,Map.of("type","SEPA_DD"))).isEqualTo(200);
+        assertThat(review(id,"ca").path("paymentMethods")).containsExactly(option("SEPA_DD","Domiciliació",true,true),option("MANUAL","Efectiu",false,true));
+        assertThat(patchPayment(id,Map.of("type","MANUAL"))).isEqualTo(200);
+        assertThat(review(id,"ca").path("paymentMethods")).containsExactly(option("SEPA_DD","Domiciliació",false,true),option("MANUAL","Efectiu",true,true));
+        assertThat(((Document)member(id).get("paymentMethod")).getString("type")).isEqualTo("SEPA_DD");
     }
 }

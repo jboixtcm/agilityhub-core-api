@@ -147,7 +147,7 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) SignupUpfrontReview upfront,
             SignupProposals proposals, List<SignupWarning> warnings,
             @Schema(description = "The assignable plans (active, module enabled, showOnSignup or not) for the D2 plan selector") List<SignupPlanOption> planOptions,
-            @Schema(description = "R-04-10/R-04-19 (E3-T14): the D2 method selector. The methods of the club's enabled providers, as GET /signup offers them (assignable), plus the applicant's current method when its provider is off since (assignable = false, listed last). Empty without BILLING") List<SignupPaymentMethodOption> paymentMethods,
+            @Schema(description = "R-04-10/R-04-19 (E3-T14): the D2 method selector. For a PENDING member: the methods of the club's enabled providers, as GET /signup offers them (assignable), plus the applicant's current method when its provider is off since (assignable = false, listed last); during a readmission, current is the submitted method. For an add-dog (member not PENDING) D2 cannot change the method: only the current one, assignable = false. Empty without BILLING") List<SignupPaymentMethodOption> paymentMethods,
             @Schema(description = "dashboard.pendingSignupAgeWarnDays: the age warning shows when signup.pendingDays > warnDays") int warnDays,
             long version,
             @Schema(requiredMode = NOT_REQUIRED, description = "R-04-06 (E38): only for a pending readmission. The LEFT record keeps its values until validation, which applies the submitted ones") SignupReadmission readmission) { }
@@ -172,7 +172,7 @@ public final class SignupResponses {
     public record SignupPlanOption(@Schema(format = "uuid") String planId, String name,
             @Schema(allowableValues = {"MONTHLY", "PACK", "SINGLE_CLASS"}) String type,
             @Schema(description = "The current price the plan bills (its billing mode: MAINTENANCE_FEE for a MAINTENANCE plan); the priceId validation accepts. Empty without BILLING or without a current price") List<SignupPlanOptionPrice> prices) { }
-    @Schema(description = "A D2 payment method option (E3-T14): `current` marks the applicant's method; `assignable = false` only for a current method whose provider is no longer enabled (PATCH answers 422 PAYMENT_METHOD_NOT_AVAILABLE)")
+    @Schema(description = "A D2 payment method option (E3-T14): `current` marks the applicant's method; `assignable = false` for a current method whose provider is no longer enabled (PATCH answers 422 PAYMENT_METHOD_NOT_AVAILABLE) and for the method of a member who is not PENDING (PATCH answers 400 VALIDATION_ERROR, paymentMethod READ_ONLY)")
     public record SignupPaymentMethodOption(@Schema(requiredMode = Schema.RequiredMode.REQUIRED) PaymentMethodType type,
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Resolved in the response locale, as GET /signup") String label,
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) boolean current, @Schema(requiredMode = Schema.RequiredMode.REQUIRED) boolean assignable) { }

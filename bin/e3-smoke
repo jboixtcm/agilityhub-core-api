@@ -357,6 +357,10 @@ class Smoke:
         row = next(row for row in dashboard["pendingSignups"]["items"] if row["memberId"] == member_id)
         require(row["dogs"][0]["isAddDog"], "D1 add-dog flag missing")
         review = self.call("GET", f"/api/v1/members/{member_id}/signup", access=admin)
+        # E3-T14 round 2 (R-04-19): the member is ACTIVE, so D2 cannot change the method; only the current one, not assignable.
+        require([(m["type"], m["current"], m["assignable"]) for m in review["paymentMethods"]] == [("SEPA_DD", True, False)],
+                f"D2 add-dog payment methods mismatch: {review['paymentMethods']}")
+        print("PASS add-dog D2: only the member's current payment method, not assignable", flush=True)
         more = self.call("POST", f"/api/v1/members/{member_id}/validation", access=admin,
                          body=dict(version=review["version"], dogs=[dict(dogId=added["dogId"], levelId=review["proposals"]["levels"][0]["id"])],
                                    upfrontAmountPaid=review["upfront"]["totalDue"]))

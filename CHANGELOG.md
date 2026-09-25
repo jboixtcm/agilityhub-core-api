@@ -30,6 +30,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `assignable = false` when its provider has been disabled since. OpenAPI snapshot and `docs/openapi/CHANGELOG.md`
     updated.
   - `bin/e3-smoke` checks that `GET /club`, `GET /signup` and D2 show the same methods.
+  - Round 2 (review of 25-09):
+    - R-04-19: for an add-dog (member not `PENDING`) the D2 view lists only the member's current method, with
+      `assignable = false`, because the D2 `PATCH` answers `400 VALIDATION_ERROR` (`paymentMethod` `READ_ONLY`) then
+      (the method changes through D10). During a pending readmission `current` is the submitted method (now tested).
+    - R-04-10: reordering `paymentProviders` in a club definition is a change. `club:apply` reports it
+      (`paymentProviders order: [...] -> [...]`), stores the new order, and `GET /signup` follows it. The refresh of
+      `GET /signup` after `club:apply` (`ClubConfigChanged`, type `ClubUpdated`) is now tested; it already worked.
+    - One provider ↔ method mapping, `PaymentProviderFlags.method` / `provider`, used by the offer, the signup and D2
+      checks and the D10 method change.
+    - OpenAPI: descriptions of `MemberSignupView.paymentMethods` and `SignupPaymentMethodOption` only.
 
 - E3-T13: gate E3 audit fixes (api, 5/5), the checkout follow-ups of the E3-T10 round-2 review.
   - R-04-06 / R-04-26: the checkout leaves out only the rows a readmission superseded, cut at the member's latest `PUBLIC`

@@ -8525,7 +8525,7 @@
             "$ref" : "#/components/schemas/Member"
           },
           "paymentMethods" : {
-            "description" : "R-04-10/R-04-19 (E3-T14): the D2 method selector. The methods of the club's enabled providers, as GET /signup offers them (assignable), plus the applicant's current method when its provider is off since (assignable = false, listed last). Empty without BILLING",
+            "description" : "R-04-10/R-04-19 (E3-T14): the D2 method selector. For a PENDING member: the methods of the club's enabled providers, as GET /signup offers them (assignable), plus the applicant's current method when its provider is off since (assignable = false, listed last); during a readmission, current is the submitted method. For an add-dog (member not PENDING) D2 cannot change the method: only the current one, assignable = false. Empty without BILLING",
             "items" : {
               "$ref" : "#/components/schemas/SignupPaymentMethodOption"
             },
@@ -12393,7 +12393,7 @@
         "type" : "object"
       },
       "SignupPaymentMethodOption" : {
-        "description" : "A D2 payment method option (E3-T14): `current` marks the applicant's method; `assignable = false` only for a current method whose provider is no longer enabled (PATCH answers 422 PAYMENT_METHOD_NOT_AVAILABLE)",
+        "description" : "A D2 payment method option (E3-T14): `current` marks the applicant's method; `assignable = false` for a current method whose provider is no longer enabled (PATCH answers 422 PAYMENT_METHOD_NOT_AVAILABLE) and for the method of a member who is not PENDING (PATCH answers 400 VALIDATION_ERROR, paymentMethod READ_ONLY)",
         "properties" : {
           "assignable" : {
             "type" : "boolean"

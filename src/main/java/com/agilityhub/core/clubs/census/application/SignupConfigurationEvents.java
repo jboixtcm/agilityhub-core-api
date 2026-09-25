@@ -7,7 +7,8 @@ import org.springframework.context.annotation.*;
 /**
  * The `GET /signup` configuration cache follows its sources: plans, prices, parameters, the club's own data and modules.
  * E3-T09 step 5: each eviction runs right after the writer's commit on this instance, so `GET /signup` just after
- * `PUT /parameters/signup.enabled` answers the new value; the outbox delivery stays the backstop.
+ * `PUT /parameters/signup.enabled` answers the new value; the outbox delivery stays the backstop. `club:apply` publishes
+ * `ClubConfigChanged`, whose catalog type is `ClubUpdated`, so a provider switched in a club definition arrives here too.
  */
 @Configuration(proxyBeanMethods=false)
 public class SignupConfigurationEvents {

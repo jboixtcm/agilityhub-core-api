@@ -1,0 +1,22 @@
+surefire: 0 classes, tests=0 failures=0 errors=0 skipped=0
+
+failsafe: 2 classes, tests=17 failures=2 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=7 failures=1 errors=0 skipped=0
+    PASS R_04_10_T_04_14_aMethodWhoseProviderIsNotEnabledIsRefusedAtSubmission
+    PASS R_04_06_T_04_20_aPendingReadmissionMarksTheSubmittedMethodAsCurrent
+    PASS R_04_19_T_04_20_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne
+    FAIL R_04_19_T_04_20_anAddDogViewListsOnlyTheCurrentMethodAndItIsNotAssignable ::  Expecting actual:   [{"type":"SEPA_DD","label":"Domiciliació","current":false,"assignable":true},{"type":"MANUAL","label":"Efectiu","current":true,"assignable":true}] to contain exactly (and in same order):   [{"current":true,"type":"MANUAL","assignable":false,"label":"Efectiu"}] but some elements 
+    PASS R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags
+    PASS R_04_19_T_04_20_theD2EditRefusesAMethodWhoseProviderIsNotEnabled
+    PASS R_04_10_T_04_26_withoutBillingTheD2ViewHasNoPaymentMethods
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=10 failures=1 errors=0 skipped=0
+    FAIL R_04_10_T_17_01_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt ::  expected: 1  but was: 0
+    PASS T_17_01_enablingSeededProvidersIsOneChangeAndKeepsTheirStoredConfiguration
+    PASS T_17_01_cliExportsYamlAndExitsWithoutOpeningTheConfiguredHttpPort(Path)
+    PASS T_02_12_canicSeedEnablesDirectDebitAndCashWithoutConfiguringThem
+    PASS T_17_01_parameterUpdatesPreserveUnlistedAndScopedOverridesAndRecordEventsHistory
+    PASS T_17_01_auditFailureRollsBackClubParametersAdminsAndOutboxTogether
+    PASS T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite
+    PASS R_04_27_T_17_01_clubApplyRefreshesTheSignupFormsPaymentMethods
+    PASS T_17_01_templatePartialDefinitionAndExistingAdminPreserveIdentity
+    PASS T_17_02_hostConflictIsRejectedForVerifiedAndPendingHostsAndTenantsHaveDifferentThemes

@@ -1305,3 +1305,18 @@ Blocking: no.
 - **Step 2 reading:** after a day the hourly bucket has refilled, so the first competing event takes the new hour's allowance; the next one is refused while the cap is full; the admitted event's retry still sends.
 - **Doc proposal:** list `signup_notification_admissions` in MODEL_DADES_PLATAFORMA / PLA_BACKEND, with this retention.
 Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T14 round 2
+@organizer **E3-T14 round 2 is done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 536 unit and 932 integration tests.
+- `bin/e3-smoke` exits 0 twice, and now also checks the add-dog D2 view.
+- `bin/openapi-snapshot` went through the host lock; only two descriptions changed.
+- **The five points:**
+  1. an add-dog view lists only the member's current method, with `assignable: false` (IT failed before the fix);
+  2. the readmission IT: `current` is the submitted method;
+  3. `club:apply` refreshes `GET /signup`: your reading holds, `ClubUpdated` reaches the signup handler, so there is no wiring change;
+  4. reordering `paymentProviders` is a change, which is stored and followed by the offer (IT failed before the fix);
+  5. the nits: test ids, one provider ↔ method mapping in `PaymentProviderFlags`, the lock, clean report directories.
+- Points 2 and 3 only pin existing behaviour; a mutation check shows both tests catch the regression (log `14a`).
+- **Web (E3-W11):** an add-dog D2 view has one non-assignable method; show it read-only.
+Blocking: no.

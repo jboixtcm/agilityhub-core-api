@@ -169,7 +169,9 @@ public class ClubDefinitionWriter {
         return List.copyOf(changed);
     }
     private void diff(String path, JsonNode before, JsonNode after, List<String> lines, Map<String, Object> summary) {
-        if (Objects.equals(before, after)) { lines.add("= " + path + " unchanged"); return; }
+        // S04 R-04-10: the signup offers the payment providers in the configured order, so their order is part of the value.
+        boolean reordered = ORDERED.contains(path) && before != null && after != null && !names(before).equals(names(after));
+        if (Objects.equals(before, after) && !reordered) { lines.add("= " + path + " unchanged"); return; }
         summary.put(path.replace('.', '/'), before == null ? "added" : "changed");
         lines.add((before == null ? "+ " : "~ ") + path + " " + (before == null ? "added" : "changed"));
         if (before != null && before.isObject() && after.isObject()) {
@@ -177,6 +179,9 @@ public class ClubDefinitionWriter {
             for (String key : keys) {
                 if (!Objects.equals(before.get(key), after.get(key))) { lines.add("  " + path + "." + key + ": " + before.get(key) + " -> " + after.get(key)); }
             }
+            if (reordered) { lines.add("  " + path + " order: " + names(before) + " -> " + names(after)); }
         } else { lines.add("  " + before + " -> " + after); }
     }
+    private static final java.util.Set<String> ORDERED = java.util.Set.of("paymentProviders");
+    private static List<String> names(JsonNode node) { var names = new ArrayList<String>(); node.fieldNames().forEachRemaining(names::add); return names; }
 }

@@ -310,8 +310,8 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> payment(Map<String,Object> raw,Member member,String defaultHolder) {
         if(!billing()) { if(raw.get("iban")!=null) throw invalid("payment.iban","MODULE_DISABLED");return null; }
         String type=string(raw.get("type"));
-        String provider=switch(String.valueOf(type)) { case "SEPA_DD" -> "SEPA_XML";case "CARD" -> "STRIPE";case "MANUAL" -> "MANUAL";default -> ""; };
-        if(!settings.providerEnabled(provider)) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
+        String provider=PaymentProviderFlags.provider(type);
+        if(provider==null||!settings.providerEnabled(provider)) throw new ApiException(ErrorCode.PAYMENT_METHOD_NOT_AVAILABLE);
         var result=object("type",type);
         if(type.equals("SEPA_DD")) {
             String iban=string(raw.get("iban"));if(iban!=null) iban=iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT);
@@ -513,17 +513,18 @@ public class SignupService implements SignupPaymentAccess {
     }
     /** R-04-10 (E3-T14): the methods of the club's enabled providers, in the configured order; `payment(...)` accepts only these. */
     private List<String> offeredMethods() {
-        return settings.providers().stream().map(provider -> switch(provider) {case "SEPA_XML" -> "SEPA_DD";case "STRIPE" -> "CARD";case "MANUAL" -> "MANUAL";default -> null;}).filter(Objects::nonNull).toList();
+        return settings.providers().stream().map(PaymentProviderFlags::method).filter(Objects::nonNull).toList();
     }
     /**
      * The D2 method selector (R-04-19, web E3-W07 round 2): what D2 may assign is what `GET /signup` offers. The applicant's
-     * current method is always listed, at the end and with `assignable = false` when its provider is off since.
+     * current method is always listed, at the end and with `assignable = false` when its provider is off since. An add-dog
+     * leaves the member ACTIVE: D2 then edits only the dogs (the method changes through D10), so only the current one is listed.
      */
     private List<Map<String,Object>> paymentOptions(Member member) {
         if(!billing()) return List.of();
         String language=locale();String current=string(map(effectivePayment(member)).get("type"));
         var options=new ArrayList<Map<String,Object>>();
-        offeredMethods().forEach(type -> options.add(object("type",type,"label",paymentLabel(type,language),"current",type.equals(current),"assignable",true)));
+        if("PENDING".equals(member.status)) offeredMethods().forEach(type -> options.add(object("type",type,"label",paymentLabel(type,language),"current",type.equals(current),"assignable",true)));
         if(current!=null&&options.stream().noneMatch(option -> current.equals(option.get("type")))) options.add(object("type",current,"label",paymentLabel(current,language),"current",true,"assignable",false));
         return options;
     }

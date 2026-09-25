@@ -123,7 +123,8 @@ public class MemberService {
         var member = access.mutableMember(id); access.require(Module.BILLING);
         allow(request, Set.of("type", "sepa", "card", "manual"));
         String type = string(request.get("type"));
-        String provider = switch (String.valueOf(type)) { case "SEPA_DD" -> "SEPA_XML"; case "CARD" -> "STRIPE"; case "MANUAL" -> "MANUAL"; default -> throw invalid("type", "INVALID_VALUE"); };
+        String provider = PaymentProviderFlags.provider(type);
+        if (provider == null) { throw invalid("type", "INVALID_VALUE"); }
         if (!settings.providerEnabled(provider)) { throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED); }
         if ("CARD".equals(type)) {
             // S12 supplies setup-intent confirmation; never accept an unverified Stripe reference.

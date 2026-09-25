@@ -1,0 +1,7 @@
+surefire: 1 classes, tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.PaymentProviderFlagsTest: tests=2 failures=0 errors=0 skipped=0
+failsafe: 4 classes, tests=87 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=38 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=32 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=7 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=10 failures=0 errors=0 skipped=0

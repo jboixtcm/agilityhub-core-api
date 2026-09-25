@@ -154,6 +154,56 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(off.changes()).isEqualTo(1);
         assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", false));
     }
+    /** The methods the anonymous `GET /signup` of the Cànic offers, read as a fresh request would (no cache eviction here). */
+    List<String> offered() throws Exception {
+        return mapper.readTree(mvc.perform(get("/api/v1/signup").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).path("paymentMethods").findValuesAsText("type");
+    }
+    /** The Cànic seed, opened (`ACTIVE`) so that its public form answers; the activation goes through `club:apply` too. */
+    ObjectNode activeCanic() { var definition = seed("canic"); definition.withObject("club").put("status", "ACTIVE"); return definition; }
+    /**
+     * Round 2 (review #3, R-04-27): `club:apply` publishes `ClubConfigChanged` (catalog type `ClubUpdated`), and the
+     * `GET /signup` configuration cache is evicted right after its commit. This test never evicts that cache by hand.
+     */
+    @Test void R_04_27_T_17_01_clubApplyRefreshesTheSignupFormsPaymentMethods() throws Exception {
+        var definition = activeCanic();
+        definitions.apply(definition, false);
+        assertThat(offered()).containsExactly("SEPA_DD", "MANUAL");
+        definition.withObject("paymentProviders").withObject("MANUAL").put("enabled", false);
+        assertThat(definitions.apply(definition, false).changes()).isEqualTo(1);
+        assertThat(offered()).containsExactly("SEPA_DD");
+        definition.withObject("paymentProviders").withObject("MANUAL").put("enabled", true);
+        definition.withObject("paymentProviders").putObject("STRIPE").put("enabled", true);
+        assertThat(definitions.apply(definition, false).changes()).isEqualTo(1);
+        assertThat(offered()).containsExactly("SEPA_DD", "MANUAL", "CARD");
+    }
+    /**
+     * Round 2 (review #4, R-04-10): the offer follows the configured order, so reordering `paymentProviders` in a definition
+     * is a change. `club:apply` reports it (the dry run writes nothing), stores the new order, and the offer follows it.
+     */
+    @Test void R_04_10_T_17_01_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt() throws Exception {
+        var definition = activeCanic();
+        var id = definitions.apply(definition, false).id();
+        var reordered = definition.deepCopy(); var providers = reordered.putObject("paymentProviders");
+        providers.putObject("MANUAL").put("enabled", true); providers.putObject("SEPA_XML").put("enabled", true);
+        var preview = definitions.apply(reordered, true);
+        assertThat(preview.changes()).isEqualTo(1);
+        assertThat(preview.render(true)).contains("~ paymentProviders changed", "paymentProviders order: [SEPA_XML, MANUAL] -> [MANUAL, SEPA_XML]");
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().keySet()).containsExactly("SEPA_XML", "MANUAL");
+        assertThat(offered()).containsExactly("SEPA_DD", "MANUAL");
+        assertThat(definitions.apply(reordered, false).changes()).isEqualTo(1);
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().keySet()).containsExactly("MANUAL", "SEPA_XML");
+        assertThat(offered()).containsExactly("MANUAL", "SEPA_DD");
+        assertThat(definitions.apply(reordered, false).changes()).isZero();
+        var exported = definitions.export("canic");
+        assertThat(exported.path("paymentProviders").fieldNames()).toIterable().containsExactly("MANUAL", "SEPA_XML");
+        assertThat(definitions.apply(exported, false).changes()).isZero();
+        // The list of names orders them too.
+        var names = definition.deepCopy(); names.putArray("paymentProviders").add("SEPA_XML").add("MANUAL");
+        assertThat(definitions.apply(names, false).changes()).isEqualTo(1);
+        assertThat(offered()).containsExactly("SEPA_DD", "MANUAL");
+        assertThat(definitions.apply(names, false).changes()).isZero();
+    }
     @Test void T_17_01_parameterUpdatesPreserveUnlistedAndScopedOverridesAndRecordEventsHistory() {
         var definition = seed("canic"); definition.withObject("parameters").put("bookings.maxCurrentWeek", 3).put("signup.enabled", false);
         var first = definitions.apply(definition, false);

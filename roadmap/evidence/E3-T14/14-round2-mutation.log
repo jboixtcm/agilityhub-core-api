@@ -1,0 +1,318 @@
+19:24:35.700 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT]: SignupPaymentMethodsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+19:24:35.802 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT
+19:24:35.852 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+19:24:35.853 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+19:24:35.855 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+19:24:35.920 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+19:24:36.021 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+19:24:36.021 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+19:24:36.030 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+19:24:36.163 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+19:24:36.248 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+19:24:36.299 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 2f7f77d2dabd7cb40edf5b178e9a33263f2683bcbed9d240eb82b70d95a35134
+19:24:36.436 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.272587S
+19:24:36.439 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+19:24:36.439 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+19:24:36.439 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+19:24:36.439 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+19:24:36.466 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 04959f5453f294eff0f2f04ccf073a98df30b14e9ff8d386def821a9828a14fa
+19:24:36.954 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.514481S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T19:24:37.523+02:00  INFO 31848 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : Starting SignupPaymentMethodsIT using Java 21.0.12.1 with PID 31848 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T19:24:37.523+02:00  INFO 31848 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : The following 1 profile is active: "test"
+2026-09-25T19:24:38.045+02:00  INFO 31848 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T19:24:38.075+02:00  INFO 31848 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T19:24:38.327+02:00  INFO 31848 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@41e76252], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16602333, com.mongodb.Jep395RecordCodecProvider@67376bae, com.mongodb.KotlinCodecProvider@6d6d81c]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:61873], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@7c59cf66], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T19:24:38.333+02:00  INFO 31848 --- [agilityhub-core-api] [localhost:61873] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:61873, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=8434583, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=04959f5453f2:27017, hosts=[04959f5453f2:27017], passives=[], arbiters=[], primary='04959f5453f2:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab6ae5413a66a74b7324087, counter=6}, lastWriteDate=Fri Sep 25 19:24:37 CEST 2026, lastUpdateTimeNanos=163012259244541}
+2026-09-25T19:24:40.328+02:00  INFO 31848 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T19:24:40.328+02:00  INFO 31848 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T19:24:40.328+02:00  INFO 31848 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-25T19:24:40.348+02:00  INFO 31848 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : Started SignupPaymentMethodsIT in 2.936 seconds (process running for 4.892)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 7, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 6.533 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_06_T_04_20_aPendingReadmissionMarksTheSubmittedMethodAsCurrent -- Time elapsed: 0.304 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [{"type":"SEPA_DD","label":"Domiciliació","current":true,"assignable":true},{"type":"MANUAL","label":"Efectiu","current":false,"assignable":true}]
+to contain exactly (and in same order):
+  [{"current":false,"type":"SEPA_DD","assignable":true,"label":"Domiciliació"},
+    {"current":true,"type":"MANUAL","assignable":true,"label":"Efectiu"}]
+but some elements were not found:
+  [{"current":false,"type":"SEPA_DD","assignable":true,"label":"Domiciliació"},
+    {"current":true,"type":"MANUAL","assignable":true,"label":"Efectiu"}]
+and others were not expected:
+  [{"type":"SEPA_DD","label":"Domiciliació","current":true,"assignable":true},
+    {"type":"MANUAL","label":"Efectiu","current":false,"assignable":true}]
+
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_06_T_04_20_aPendingReadmissionMarksTheSubmittedMethodAsCurrent(SignupPaymentMethodsIT.java:202)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-09-25T19:24:42.208+02:00  INFO 31848 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.platform.application.definition.ClubDefinitionsIT]: ClubDefinitionsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-25T19:24:42.227+02:00  INFO 31848 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.definition.ClubDefinitionsIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T19:24:42.238+02:00  INFO 31848 --- [agilityhub-core-api] [           main] c.a.c.p.a.definition.ClubDefinitionsIT   : Starting ClubDefinitionsIT using Java 21.0.12.1 with PID 31848 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T19:24:42.238+02:00  INFO 31848 --- [agilityhub-core-api] [           main] c.a.c.p.a.definition.ClubDefinitionsIT   : The following 1 profile is active: "test"
+2026-09-25T19:24:42.418+02:00  INFO 31848 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T19:24:42.437+02:00  INFO 31848 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 18 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T19:24:42.476+02:00  INFO 31848 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@44c164e5], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@16602333, com.mongodb.Jep395RecordCodecProvider@67376bae, com.mongodb.KotlinCodecProvider@6d6d81c]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:61873], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@346a8a46], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T19:24:42.477+02:00  INFO 31848 --- [agilityhub-core-api] [localhost:61873] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:61873, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1276083, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=04959f5453f2:27017, hosts=[04959f5453f2:27017], passives=[], arbiters=[], primary='04959f5453f2:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab6ae5413a66a74b7324087, counter=6}, lastWriteDate=Fri Sep 25 19:24:42 CEST 2026, lastUpdateTimeNanos=163016404430791}
+2026-09-25T19:24:43.512+02:00  INFO 31848 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T19:24:43.512+02:00  INFO 31848 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T19:24:43.513+02:00  INFO 31848 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-25T19:24:43.527+02:00  INFO 31848 --- [agilityhub-core-api] [           main] c.a.c.p.a.definition.ClubDefinitionsIT   : Started ClubDefinitionsIT in 1.297 seconds (process running for 8.07)
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/signup
+       Parameters = {}
+          Headers = [Host:"app.agilitycanic.cat"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.clubs.census.api.SignupController
+           Method = com.agilityhub.core.clubs.census.api.SignupController#config()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Language:"ca", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"enabled":true,"steps":["PERSON","DOG","FAMILY_GROUP","PAYMENT"],"plans":[{"id":"eb964b77-3a1c-4602-88f0-6c0ae11c06a8","type":"MONTHLY","billingMode":"MONTHLY_FEE","name":"Abonat","description":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","conditions":"fins a dues classes per setmana","offerLabel":"Ofertes si es porta més d'un gos per família","price":{"id":"878d0147-6214-4213-8ca2-033d9b0184d9","amount":{"amountMinor":6000,"currency":"EUR"},"periodicity":"MONTHLY"},"entryFee":{"amountMinor":10000,"currency":"EUR"}},{"id":"8496eb62-9496-49f7-a92f-a3b10cb04438","type":"PACK","name":"Pack 6","description":"","conditions":"Només un cop","price":{"id":"ec9e191f-5826-4c65-80c0-576199a65129","amount":{"amountMinor":13500,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":6,"validityMonths":3}},{"id":"c03895e8-d47c-499b-a48e-f05cca51f5e2","type":"PACK","name":"Pack 10","description":"","conditions":"Només un cop · després 40% dte. en matrícula","price":{"id":"e0722676-5a0d-4482-8230-dc35aa1c2ea6","amount":{"amountMinor":18000,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":10,"validityMonths":5}},{"id":"acf630a0-5609-4159-9b8d-533a1b69d19d","type":"MONTHLY","billingMode":"MAINTENANCE","name":"Teràpia","description":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","conditions":"pagament inicial a compte del 50% de l'entrada i quota manteniment en tant no es faci classe en grup","entryFee":{"amountMinor":5000,"currency":"EUR"},"maintenanceFee":{"amountMinor":1000,"currency":"EUR"}}],"paymentMethods":[{"type":"SEPA_DD","label":"Domiciliació","mandateText":"Autoritzo Club Agility Cànic a presentar els rebuts al compte indicat, d’acord amb la Llei 16/2009 de serveis de pagament."},{"type":"MANUAL","label":"Efectiu"}],"texts":{"freeTrainingConditions":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","therapyIntro":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","familyGroupIntro":"Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de 90,00 €. L'entrada sí que és per cada gos.","monthlyPaymentIntro":"La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.","paymentDay":"Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia 25 per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.","cashConditions":"Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.","imageConsent":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"legal":{"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","legalTextsVersion":"1","imageConsentText":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"postalCodeLookup":true,"phonePrefix":"+34","dateFormat":"dd/MM/yyyy","timeFormat":"HH:mm"},"upfront":{"firstMonthSplitDay":16,"today":"2026-01-01","firstMonthOptions":[{"option":"TODAY","startDate":"2026-01-01","amount":{"amountMinor":6000,"currency":"EUR"}},{"option":"ALTERNATIVE","startDate":"2026-01-16","amount":{"amountMinor":3000,"currency":"EUR"}}],"planQuotes":[{"planId":"eb964b77-3a1c-4602-88f0-6c0ae11c06a8","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":10000,"currency":"EUR"}}],"totalDue":{"amountMinor":10000,"currency":"EUR"},"options":[{"option":"TODAY","portion":"FULL","startDate":"2026-01-01","amountDue":{"amountMinor":6000,"currency":"EUR"},"totalDue":{"amountMinor":16000,"currency":"EUR"}},{"option":"ALTERNATIVE","portion":"HALF","startDate":"2026-01-16","amountDue":{"amountMinor":3000,"currency":"EUR"},"totalDue":{"amountMinor":13000,"currency":"EUR"}}]},{"planId":"8496eb62-9496-49f7-a92f-a3b10cb04438","lines":[{"concept":"PACK","amount":{"amountMinor":13500,"currency":"EUR"}}],"totalDue":{"amountMinor":13500,"currency":"EUR"},"options":[]},{"planId":"c03895e8-d47c-499b-a48e-f05cca51f5e2","lines":[{"concept":"PACK","amount":{"amountMinor":18000,"currency":"EUR"}}],"totalDue":{"amountMinor":18000,"currency":"EUR"},"options":[]},{"planId":"acf630a0-5609-4159-9b8d-533a1b69d19d","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":5000,"currency":"EUR"}}],"totalDue":{"amountMinor":5000,"currency":"EUR"},"options":[]}]},"allowFamilyGroupPending":true,"requireDogDocumentAtSignup":false}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/signup
+       Parameters = {}
+          Headers = [Host:"app.agilitycanic.cat"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.clubs.census.api.SignupController
+           Method = com.agilityhub.core.clubs.census.api.SignupController#config()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Language:"ca", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"enabled":true,"steps":["PERSON","DOG","FAMILY_GROUP","PAYMENT"],"plans":[{"id":"eb964b77-3a1c-4602-88f0-6c0ae11c06a8","type":"MONTHLY","billingMode":"MONTHLY_FEE","name":"Abonat","description":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","conditions":"fins a dues classes per setmana","offerLabel":"Ofertes si es porta més d'un gos per família","price":{"id":"878d0147-6214-4213-8ca2-033d9b0184d9","amount":{"amountMinor":6000,"currency":"EUR"},"periodicity":"MONTHLY"},"entryFee":{"amountMinor":10000,"currency":"EUR"}},{"id":"8496eb62-9496-49f7-a92f-a3b10cb04438","type":"PACK","name":"Pack 6","description":"","conditions":"Només un cop","price":{"id":"ec9e191f-5826-4c65-80c0-576199a65129","amount":{"amountMinor":13500,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":6,"validityMonths":3}},{"id":"c03895e8-d47c-499b-a48e-f05cca51f5e2","type":"PACK","name":"Pack 10","description":"","conditions":"Només un cop · després 40% dte. en matrícula","price":{"id":"e0722676-5a0d-4482-8230-dc35aa1c2ea6","amount":{"amountMinor":18000,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":10,"validityMonths":5}},{"id":"acf630a0-5609-4159-9b8d-533a1b69d19d","type":"MONTHLY","billingMode":"MAINTENANCE","name":"Teràpia","description":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","conditions":"pagament inicial a compte del 50% de l'entrada i quota manteniment en tant no es faci classe en grup","entryFee":{"amountMinor":5000,"currency":"EUR"},"maintenanceFee":{"amountMinor":1000,"currency":"EUR"}}],"paymentMethods":[{"type":"SEPA_DD","label":"Domiciliació","mandateText":"Autoritzo Club Agility Cànic a presentar els rebuts al compte indicat, d’acord amb la Llei 16/2009 de serveis de pagament."},{"type":"MANUAL","label":"Efectiu"}],"texts":{"freeTrainingConditions":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","therapyIntro":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","familyGroupIntro":"Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de 90,00 €. L'entrada sí que és per cada gos.","monthlyPaymentIntro":"La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.","paymentDay":"Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia 25 per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.","cashConditions":"Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.","imageConsent":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"legal":{"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","legalTextsVersion":"1","imageConsentText":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"postalCodeLookup":true,"phonePrefix":"+34","dateFormat":"dd/MM/yyyy","timeFormat":"HH:mm"},"upfront":{"firstMonthSplitDay":16,"today":"2026-01-01","firstMonthOptions":[{"option":"TODAY","startDate":"2026-01-01","amount":{"amountMinor":6000,"currency":"EUR"}},{"option":"ALTERNATIVE","startDate":"2026-01-16","amount":{"amountMinor":3000,"currency":"EUR"}}],"planQuotes":[{"planId":"eb964b77-3a1c-4602-88f0-6c0ae11c06a8","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":10000,"currency":"EUR"}}],"totalDue":{"amountMinor":10000,"currency":"EUR"},"options":[{"option":"TODAY","portion":"FULL","startDate":"2026-01-01","amountDue":{"amountMinor":6000,"currency":"EUR"},"totalDue":{"amountMinor":16000,"currency":"EUR"}},{"option":"ALTERNATIVE","portion":"HALF","startDate":"2026-01-16","amountDue":{"amountMinor":3000,"currency":"EUR"},"totalDue":{"amountMinor":13000,"currency":"EUR"}}]},{"planId":"8496eb62-9496-49f7-a92f-a3b10cb04438","lines":[{"concept":"PACK","amount":{"amountMinor":13500,"currency":"EUR"}}],"totalDue":{"amountMinor":13500,"currency":"EUR"},"options":[]},{"planId":"c03895e8-d47c-499b-a48e-f05cca51f5e2","lines":[{"concept":"PACK","amount":{"amountMinor":18000,"currency":"EUR"}}],"totalDue":{"amountMinor":18000,"currency":"EUR"},"options":[]},{"planId":"acf630a0-5609-4159-9b8d-533a1b69d19d","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":5000,"currency":"EUR"}}],"totalDue":{"amountMinor":5000,"currency":"EUR"},"options":[]}]},"allowFamilyGroupPending":true,"requireDogDocumentAtSignup":false}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/signup
+       Parameters = {}
+          Headers = [Host:"app.agilitycanic.cat"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.clubs.census.api.SignupController
+           Method = com.agilityhub.core.clubs.census.api.SignupController#config()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Language:"ca", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"enabled":true,"steps":["PERSON","DOG","FAMILY_GROUP","PAYMENT"],"plans":[{"id":"87e3d971-f465-48ec-9a70-a5322a08cb57","type":"MONTHLY","billingMode":"MONTHLY_FEE","name":"Abonat","description":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","conditions":"fins a dues classes per setmana","offerLabel":"Ofertes si es porta més d'un gos per família","price":{"id":"82454e0b-a459-4292-8023-6eeb67ebcf29","amount":{"amountMinor":6000,"currency":"EUR"},"periodicity":"MONTHLY"},"entryFee":{"amountMinor":10000,"currency":"EUR"}},{"id":"a2e50d7c-9702-4f7c-97e0-5e45c0606e77","type":"PACK","name":"Pack 6","description":"","conditions":"Només un cop","price":{"id":"3897e7bc-2cda-4409-8beb-eebbebda5030","amount":{"amountMinor":13500,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":6,"validityMonths":3}},{"id":"0db4312a-cd28-472c-9147-3f2ee3562478","type":"PACK","name":"Pack 10","description":"","conditions":"Només un cop · després 40% dte. en matrícula","price":{"id":"7ed5e8dd-f632-47c2-9ec3-f590ab20b14f","amount":{"amountMinor":18000,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":10,"validityMonths":5}},{"id":"4e127c58-37fc-453b-a817-589a3c12cecf","type":"MONTHLY","billingMode":"MAINTENANCE","name":"Teràpia","description":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","conditions":"pagament inicial a compte del 50% de l'entrada i quota manteniment en tant no es faci classe en grup","entryFee":{"amountMinor":5000,"currency":"EUR"},"maintenanceFee":{"amountMinor":1000,"currency":"EUR"}}],"paymentMethods":[{"type":"SEPA_DD","label":"Domiciliació","mandateText":"Autoritzo Club Agility Cànic a presentar els rebuts al compte indicat, d’acord amb la Llei 16/2009 de serveis de pagament."},{"type":"MANUAL","label":"Efectiu"}],"texts":{"freeTrainingConditions":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","therapyIntro":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","familyGroupIntro":"Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de 90,00 €. L'entrada sí que és per cada gos.","monthlyPaymentIntro":"La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.","paymentDay":"Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia 25 per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.","cashConditions":"Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.","imageConsent":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"legal":{"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","legalTextsVersion":"1","imageConsentText":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"postalCodeLookup":true,"phonePrefix":"+34","dateFormat":"dd/MM/yyyy","timeFormat":"HH:mm"},"upfront":{"firstMonthSplitDay":16,"today":"2026-01-01","firstMonthOptions":[{"option":"TODAY","startDate":"2026-01-01","amount":{"amountMinor":6000,"currency":"EUR"}},{"option":"ALTERNATIVE","startDate":"2026-01-16","amount":{"amountMinor":3000,"currency":"EUR"}}],"planQuotes":[{"planId":"87e3d971-f465-48ec-9a70-a5322a08cb57","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":10000,"currency":"EUR"}}],"totalDue":{"amountMinor":10000,"currency":"EUR"},"options":[{"option":"TODAY","portion":"FULL","startDate":"2026-01-01","amountDue":{"amountMinor":6000,"currency":"EUR"},"totalDue":{"amountMinor":16000,"currency":"EUR"}},{"option":"ALTERNATIVE","portion":"HALF","startDate":"2026-01-16","amountDue":{"amountMinor":3000,"currency":"EUR"},"totalDue":{"amountMinor":13000,"currency":"EUR"}}]},{"planId":"a2e50d7c-9702-4f7c-97e0-5e45c0606e77","lines":[{"concept":"PACK","amount":{"amountMinor":13500,"currency":"EUR"}}],"totalDue":{"amountMinor":13500,"currency":"EUR"},"options":[]},{"planId":"0db4312a-cd28-472c-9147-3f2ee3562478","lines":[{"concept":"PACK","amount":{"amountMinor":18000,"currency":"EUR"}}],"totalDue":{"amountMinor":18000,"currency":"EUR"},"options":[]},{"planId":"4e127c58-37fc-453b-a817-589a3c12cecf","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":5000,"currency":"EUR"}}],"totalDue":{"amountMinor":5000,"currency":"EUR"},"options":[]}]},"allowFamilyGroupPending":true,"requireDogDocumentAtSignup":false}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/signup
+       Parameters = {}
+          Headers = [Host:"app.agilitycanic.cat"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.agilityhub.core.clubs.census.api.SignupController
+           Method = com.agilityhub.core.clubs.census.api.SignupController#config()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Language:"ca", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"strict-origin-when-cross-origin"]
+     Content type = application/json
+             Body = {"enabled":true,"steps":["PERSON","DOG","FAMILY_GROUP","PAYMENT"],"plans":[{"id":"87e3d971-f465-48ec-9a70-a5322a08cb57","type":"MONTHLY","billingMode":"MONTHLY_FEE","name":"Abonat","description":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","conditions":"fins a dues classes per setmana","offerLabel":"Ofertes si es porta més d'un gos per família","price":{"id":"82454e0b-a459-4292-8023-6eeb67ebcf29","amount":{"amountMinor":6000,"currency":"EUR"},"periodicity":"MONTHLY"},"entryFee":{"amountMinor":10000,"currency":"EUR"}},{"id":"a2e50d7c-9702-4f7c-97e0-5e45c0606e77","type":"PACK","name":"Pack 6","description":"","conditions":"Només un cop","price":{"id":"3897e7bc-2cda-4409-8beb-eebbebda5030","amount":{"amountMinor":13500,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":6,"validityMonths":3}},{"id":"0db4312a-cd28-472c-9147-3f2ee3562478","type":"PACK","name":"Pack 10","description":"","conditions":"Només un cop · després 40% dte. en matrícula","price":{"id":"7ed5e8dd-f632-47c2-9ec3-f590ab20b14f","amount":{"amountMinor":18000,"currency":"EUR"},"periodicity":"ONE_OFF"},"entryFee":{"amountMinor":0,"currency":"EUR"},"pack":{"sessions":10,"validityMonths":5}},{"id":"4e127c58-37fc-453b-a817-589a3c12cecf","type":"MONTHLY","billingMode":"MAINTENANCE","name":"Teràpia","description":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","conditions":"pagament inicial a compte del 50% de l'entrada i quota manteniment en tant no es faci classe en grup","entryFee":{"amountMinor":5000,"currency":"EUR"},"maintenanceFee":{"amountMinor":1000,"currency":"EUR"}}],"paymentMethods":[{"type":"SEPA_DD","label":"Domiciliació","mandateText":"Autoritzo Club Agility Cànic a presentar els rebuts al compte indicat, d’acord amb la Llei 16/2009 de serveis de pagament."},{"type":"MANUAL","label":"Efectiu"}],"texts":{"freeTrainingConditions":"Les classes són sempre amb instructor i se'n poden fer fins a dues per setmana. A més hi ha la possibilitat d'entrenament lliure fora d'hores de classe a partir de nivell D amb llicència esportiva.","therapyIntro":"Es poden fer també classes de teràpia individual, combinades amb les classes en grup o com a pas previ. Si la teràpia es combina amb classes en grup, selecciona l'opció d'Abonat o Pack; si d'entrada no faràs classes en grup, selecciona l'opció Teràpia.","familyGroupIntro":"Si a casa ja hi ha algú abonat, podeu formar un grup familiar amb un únic responsable del pagament: la quota mensual es redueix a partir del segon gos. Així, per dos gossos la quota mensual seria de 90,00 €. L'entrada sí que és per cada gos.","monthlyPaymentIntro":"La quota mensual per abonats es cobrarà normalment el dia 1. En el cas de packs no es genera cap càrrec.","paymentDay":"Quan ja no vulguis seguir fent activitats al club o vulguis estar un temps sense venir, indica'ns-ho abans del dia 25 per modificar l'emissió de rebuts del mes següent. Ho pots fer des de la teva fitxa o bé contactant-nos directament.","cashConditions":"Pagament en efectiu: la quota es paga per semestres naturals complets al club. Posa't en contacte amb el club per coordinar-ho.","imageConsent":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"legal":{"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","legalTextsVersion":"1","imageConsentText":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"countryProfile":{"code":"ES","idDocumentTypes":["DNI","NIE","PASSPORT"],"postalCodeLookup":true,"phonePrefix":"+34","dateFormat":"dd/MM/yyyy","timeFormat":"HH:mm"},"upfront":{"firstMonthSplitDay":16,"today":"2026-01-01","firstMonthOptions":[{"option":"TODAY","startDate":"2026-01-01","amount":{"amountMinor":6000,"currency":"EUR"}},{"option":"ALTERNATIVE","startDate":"2026-01-16","amount":{"amountMinor":3000,"currency":"EUR"}}],"planQuotes":[{"planId":"87e3d971-f465-48ec-9a70-a5322a08cb57","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":10000,"currency":"EUR"}}],"totalDue":{"amountMinor":10000,"currency":"EUR"},"options":[{"option":"TODAY","portion":"FULL","startDate":"2026-01-01","amountDue":{"amountMinor":6000,"currency":"EUR"},"totalDue":{"amountMinor":16000,"currency":"EUR"}},{"option":"ALTERNATIVE","portion":"HALF","startDate":"2026-01-16","amountDue":{"amountMinor":3000,"currency":"EUR"},"totalDue":{"amountMinor":13000,"currency":"EUR"}}]},{"planId":"a2e50d7c-9702-4f7c-97e0-5e45c0606e77","lines":[{"concept":"PACK","amount":{"amountMinor":13500,"currency":"EUR"}}],"totalDue":{"amountMinor":13500,"currency":"EUR"},"options":[]},{"planId":"0db4312a-cd28-472c-9147-3f2ee3562478","lines":[{"concept":"PACK","amount":{"amountMinor":18000,"currency":"EUR"}}],"totalDue":{"amountMinor":18000,"currency":"EUR"},"options":[]},{"planId":"4e127c58-37fc-453b-a817-589a3c12cecf","lines":[{"concept":"ENTRY_FEE","amount":{"amountMinor":5000,"currency":"EUR"}}],"totalDue":{"amountMinor":5000,"currency":"EUR"},"options":[]}]},"allowFamilyGroupPending":true,"requireDogDocumentAtSignup":false}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 10, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 11.25 s <<< FAILURE! -- in com.agilityhub.core.platform.application.definition.ClubDefinitionsIT
+[ERROR] com.agilityhub.core.platform.application.definition.ClubDefinitionsIT.R_04_10_T_17_01_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt -- Time elapsed: 1.465 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["SEPA_DD", "MANUAL"]
+to contain exactly (and in same order):
+  ["MANUAL", "SEPA_DD"]
+but there were differences at these indexes:
+  - element at index 0: expected "MANUAL" but was "SEPA_DD"
+  - element at index 1: expected "SEPA_DD" but was "MANUAL"
+
+	at com.agilityhub.core.platform.application.definition.ClubDefinitionsIT.R_04_10_T_17_01_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt(ClubDefinitionsIT.java:196)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.platform.application.definition.ClubDefinitionsIT.R_04_27_T_17_01_clubApplyRefreshesTheSignupFormsPaymentMethods -- Time elapsed: 0.539 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["SEPA_DD", "MANUAL"]
+to contain exactly (and in same order):
+  ["SEPA_DD"]
+but some elements were not expected:
+  ["MANUAL"]
+
+	at com.agilityhub.core.platform.application.definition.ClubDefinitionsIT.R_04_27_T_17_01_clubApplyRefreshesTheSignupFormsPaymentMethods(ClubDefinitionsIT.java:174)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SignupPaymentMethodsIT.R_04_06_T_04_20_aPendingReadmissionMarksTheSubmittedMethodAsCurrent:202 
+Expecting actual:
+  [{"type":"SEPA_DD","label":"Domiciliació","current":true,"assignable":true},{"type":"MANUAL","label":"Efectiu","current":false,"assignable":true}]
+to contain exactly (and in same order):
+  [{"current":false,"type":"SEPA_DD","assignable":true,"label":"Domiciliació"},
+    {"current":true,"type":"MANUAL","assignable":true,"label":"Efectiu"}]
+but some elements were not found:
+  [{"current":false,"type":"SEPA_DD","assignable":true,"label":"Domiciliació"},
+    {"current":true,"type":"MANUAL","assignable":true,"label":"Efectiu"}]
+and others were not expected:
+  [{"type":"SEPA_DD","label":"Domiciliació","current":true,"assignable":true},
+    {"type":"MANUAL","label":"Efectiu","current":false,"assignable":true}]
+
+[ERROR]   ClubDefinitionsIT.R_04_10_T_17_01_reorderingThePaymentProvidersIsAChangeAndTheOfferFollowsIt:196 
+Expecting actual:
+  ["SEPA_DD", "MANUAL"]
+to contain exactly (and in same order):
+  ["MANUAL", "SEPA_DD"]
+but there were differences at these indexes:
+  - element at index 0: expected "MANUAL" but was "SEPA_DD"
+  - element at index 1: expected "SEPA_DD" but was "MANUAL"
+
+[ERROR]   ClubDefinitionsIT.R_04_27_T_17_01_clubApplyRefreshesTheSignupFormsPaymentMethods:174 
+Expecting actual:
+  ["SEPA_DD", "MANUAL"]
+to contain exactly (and in same order):
+  ["SEPA_DD"]
+but some elements were not expected:
+  ["MANUAL"]
+
+[ERROR] Tests run: 17, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
