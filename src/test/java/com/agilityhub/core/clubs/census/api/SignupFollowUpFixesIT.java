@@ -38,6 +38,8 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.shared.application.OutboxDispatcher dispatcher;
     @Autowired com.agilityhub.core.clubs.messaging.application.EmailSender sender;
     @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway fake;
+    @Autowired com.agilityhub.core.clubs.census.application.SignupNotifications notifications;
+    @Autowired com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository admissions;
     String club,host,plan,level;
     int sequence;
     @BeforeEach void fixtureClub() {
@@ -165,6 +167,72 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         assertThat(collection("domain_events").stream().filter(e -> !"PUBLISHED".equals(e.getString("status")))).isEmpty();
     }
 
+    // ---- Round 2, point 1 (review #1 of E3-T12, R-04-20): the admission survives a restart ----
+    Map<String,Object> cap(int perRecipient) {
+        return Map.of("identityChecksPerHour",10,"familyGroupLookupsPerHour",20,"uploadUrlsPerHour",30,"signupPerHour",5,"signupPerDay",20,
+                "checkoutSessionsAnonymousPerHour",10,"townsPerHour",60,"notificationsPerRecipientPerHour",perRecipient);
+    }
+    /** The id of the only {@code SignupSubmitted} event of a member that is not among {@code known}. */
+    String newSubmitted(String memberId,String... known) {
+        var ids=events("SignupSubmitted").stream().filter(e -> memberId.equals(e.get("payload",Document.class).getString("memberId")))
+                .map(e -> e.getString("_id")).filter(e -> !List.of(known).contains(e)).toList();
+        assertThat(ids).hasSize(1);return ids.getFirst();
+    }
+    Document byId(String collection,String id) { return mongo.getCollection(collection).find(new Document("_id",id)).first(); }
+    String addDog(String memberId,String name) throws Exception {
+        return result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name",name,"sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000007"+String.format("%06d",++sequence)),"documents",List.of()))
+                .header("Idempotency-Key",UUID.randomUUID()),memberId),201).path("dogId").asText();
+    }
+    @Test void R_04_20_anAdmittedEventKeepsItsAdmissionAcrossARestartAndNewEventsAreStillCounted() throws Exception {
+        parameter("signup.rateLimit",cap(1));
+        String email=unique("restart");mailbox().failNextTo(email);
+        String id=submit(withEmail(request(),email)).path("memberId").asText();
+        dispatch();
+        // A is admitted, then its delivery fails: nothing sent, a retry pending.
+        String a=newSubmitted(id);Instant decided=clock.instant();
+        assertThat(mailsTo(email)).isEmpty();assertThat(byId("domain_events",a).getString("status")).isEqualTo("PENDING");
+        // The application restarts: the per-instance buckets start empty.
+        Object target=org.springframework.test.util.AopTestUtils.getUltimateTargetObject(notifications);
+        Object before=org.springframework.test.util.ReflectionTestUtils.getField(target,"limits");
+        org.springframework.test.util.ReflectionTestUtils.setField(target,"limits",new com.agilityhub.core.shared.application.RateLimits(true,Map.of(),clock));
+        String b,c;
+        try {
+            // B, a new event to the same address, takes the only allowance of the fresh bucket before A's retry is due.
+            validate(id);addDog(id,"Second Dog");dispatch();
+            b=newSubmitted(id,a);
+            assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(byId("notifications",a+":applicant").getString("status")).as("A not retried yet").isEqualTo("QUEUED");
+            // A's retry keeps its stored admission and sends; only then is its consumer processed.
+            clock.advance(Duration.ofSeconds(2));dispatch();
+            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
+            assertThat(byId("domain_events",a).get("processedAt",Document.class)).containsKey(consumer("signupSubmittedMail"));
+            // A third event is still counted: capped on the fresh bucket.
+            addDog(id,"Third Dog");dispatch();
+            c=newSubmitted(id,a,b);
+            assertThat(byId("notifications",c+":applicant")).as("C capped").isNull();
+            assertThat(mailsTo(email).stream().filter(m -> m.text().contains("Second Dog")||m.text().contains("Third Dog"))).as("B's N-01 only").hasSize(1);
+            assertThat(collection("domain_events").stream().filter(e -> !"PUBLISHED".equals(e.getString("status")))).isEmpty();
+        } finally { org.springframework.test.util.ReflectionTestUtils.setField(target,"limits",before); }
+        // The decisions are stored per event and notification, the refusal too, with the club and without the address.
+        var stored=byId("signup_notification_admissions",a+":N-01");
+        assertThat(stored).containsEntry("clubId",club).containsEntry("eventId",a).containsEntry("notificationCode","N-01").containsEntry("admitted",true);
+        assertThat(stored.getDate("expiresAt").toInstant()).isEqualTo(decided.plus(Duration.ofDays(1)));
+        assertThat(stored.toJson()).doesNotContain(email);
+        assertThat(collection("signup_notification_admissions").stream().map(d -> d.getString("_id")+"="+d.getBoolean("admitted")))
+                .containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
+        var ttl=mongo.getCollection("signup_notification_admissions").listIndexes().into(new ArrayList<>()).stream().filter(i -> "signup_admission_ttl".equals(i.getString("name"))).findFirst().orElseThrow();
+        assertThat(ttl.get("key",Document.class)).isEqualTo(new Document("expiresAt",1));assertThat(ttl.get("expireAfterSeconds",Number.class).intValue()).isZero();
+        // Two deliveries of one event racing for the first decision: the first stored one wins.
+        String race=UUID.randomUUID().toString();
+        try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) {
+            var first=admissions.decide(new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission(race+":N-01",club,race,"N-01",true,clock.instant(),clock.instant()));
+            var second=admissions.decide(new com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission(race+":N-01",club,race,"N-01",false,clock.instant(),clock.instant()));
+            assertThat(first.admitted()).isTrue();assertThat(second.admitted()).isTrue();
+            assertThat(admissions.decision(race,"N-01")).hasValueSatisfying(d -> assertThat(d.admitted()).isTrue());
+        }
+    }
+
     // ---- Step 3 (review #3, R-04-06 c, S04 §8): N-01 and N-03 take their values from the event ----
     @Test void R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal() throws Exception {
         String recorded=unique("recorded"),first=unique("first"),second=unique("second");
@@ -252,12 +320,62 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         String other=UUID.randomUUID().toString();plan("OTHER",other,8000);
         firstMonth(dryRun(late,other).at("/upfront/firstMonth"),"TODAY","HALF","2026-01-17",4000);
         firstMonth(review(late).at("/upfront/firstMonth"),"TODAY","HALF","2026-01-17",3000);
-        // A block frozen before the portion was stored gets it from its option and start date.
-        for(String collection:List.of("members","dogs")) mongo.getCollection(collection).updateMany(new Document(collection.equals("members")?"_id":"memberId",late),new Document("$unset",new Document("signup.upfront.firstMonth.portion","")));
+        // A block frozen before the portion was stored gets it from its frozen amount (round 2: see below).
+        olderSnapshot(late);
         firstMonth(review(late).at("/upfront/firstMonth"),"TODAY","HALF","2026-01-17",3000);
         // No FIRST_MONTH line, no first month: an added dog pays an additional-dog fee instead.
         validate(early);
         result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name","Added Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000006"+String.format("%06d",++sequence)),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),early),201);
         assertThat(review(early).at("/upfront").has("firstMonth")).isFalse();assertThat(dryRun(early,null).at("/upfront").has("firstMonth")).isFalse();
+    }
+    /** The submission's blocks as frozen before E3-T12: `signup.upfront.firstMonth` without its `portion`. */
+    void olderSnapshot(String memberId) { frozen(memberId,new Document("$unset",new Document("signup.upfront.firstMonth.portion",""))); }
+    void frozen(String memberId,Document update) {
+        mongo.getCollection("members").updateMany(new Document("_id",memberId),update);mongo.getCollection("dogs").updateMany(new Document("memberId",memberId),update);
+    }
+
+    // ---- Round 2, point 2 (review #2 of E3-T12, R-04-15): an older snapshot keeps its historical portion ----
+    @Test void R_04_15_T_04_18_anOlderSnapshotKeepsTheHalfMonthItChargedWhenTheSplitDayAndThePriceChange() throws Exception {
+        // 17 January with the split day 16: TODAY is half a month, 30 € of the 60 € plan.
+        clock.setInstant(Instant.parse("2026-01-17T08:00:00Z"));String id=submit(request()).path("memberId").asText();
+        olderSnapshot(id);
+        // A later split day (20), under which the 17th would be a full month, changes nothing.
+        parameter("signup.firstMonthSplitDay",20);
+        firstMonth(review(id).at("/upfront/firstMonth"),"TODAY","HALF","2026-01-17",3000);
+        firstMonth(dryRun(id,null).at("/upfront/firstMonth"),"TODAY","HALF","2026-01-17",3000);
+        // Nor does a later price: the monthly price in force on the submission day tells the portion, not today's (70 € from February).
+        mongo.getCollection("prices").updateMany(new Document("clubId",club).append("planId",plan),new Document("$set",new Document("validTo","2026-01-31")));
+        mongo.insert(new Price(UUID.randomUUID().toString(),club,plan,PriceConcept.MONTHLY_FEE,new Money(7000,"EUR"),java.math.BigDecimal.ZERO,LocalDate.of(2026,2,1),null,0,clock.instant(),clock.instant(),null,null));
+        signupService.invalidateConfiguration(club);clock.setInstant(Instant.parse("2026-02-10T08:00:00Z"));
+        firstMonth(review(id).at("/upfront/firstMonth"),"TODAY","HALF","2026-01-17",3000);
+        // An amount that is neither the full price nor its half cannot tell: the portion is null, never guessed.
+        frozen(id,new Document("$set",new Document("signup.upfront.firstMonth.amountDue.amountMinor",4200)));
+        var unknown=review(id).at("/upfront/firstMonth");
+        assertThat(unknown.has("portion")).isTrue();assertThat(unknown.path("portion").isNull()).isTrue();
+        assertThat(unknown.path("option").asText()).isEqualTo("TODAY");assertThat(unknown.at("/amountDue/amountMinor").asLong()).isEqualTo(4200);
+    }
+
+    // ---- Round 2, point 3 (review #3 of E3-T12, step 5): `firstMonth` only with a FIRST_MONTH line ----
+    void billing(boolean enabled) {
+        var modules=Arrays.stream(Module.values()).filter(m -> enabled||m!=Module.BILLING).map(Enum::name).toList();
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("modules",modules)));
+        configs.invalidate(club);signupService.invalidateConfiguration(club);
+    }
+    @Test void R_04_15_T_04_18_anAnswerNamesAFirstMonthOnlyWhenItsOwnLinesChargeOne() throws Exception {
+        // A monthly plan submitted on 5 January while BILLING is off: no rows, no frozen quote. Then BILLING is enabled.
+        clock.setInstant(Instant.parse("2026-01-05T08:00:00Z"));billing(false);
+        String id=submit(request()).path("memberId").asText();
+        billing(true);
+        var view=review(id).path("upfront");
+        assertThat(view.path("lines")).isEmpty();assertThat(view.has("firstMonth")).as("the view").isFalse();
+        // The unchanged-plan dry run keeps those empty rows: it names no first month.
+        var unchanged=dryRun(id,null).path("upfront");
+        assertThat(unchanged.path("lines")).isEmpty();assertThat(unchanged.at("/totalDue/amountMinor").asLong()).isZero();
+        assertThat(unchanged.has("firstMonth")).as("the unchanged-plan dry run").isFalse();
+        // A plan change writes new rows, a FIRST_MONTH one among them: that answer names the month it charges (80 € from the 5th).
+        String other=UUID.randomUUID().toString();plan("OTHER",other,8000);
+        var changed=dryRun(id,other).path("upfront");
+        assertThat(changed.path("lines").findValuesAsText("concept")).contains("FIRST_MONTH");
+        firstMonth(changed.path("firstMonth"),"TODAY","FULL","2026-01-05",8000);
     }
 }

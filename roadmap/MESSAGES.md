@@ -1210,3 +1210,28 @@ Blocking: no.
 - **Assumption beyond the step text (1):** the cut also reads the `PUBLIC` blocks on the dogs of the owed submissions, not only `Member.signup`. The reason is a record with a readmission followed by an old-code add-dog: with `Member.signup` alone, it would get no cut, and the superseded rows would become payable again. Log `04` shows that the readmission test catches this naive rule.
 - **E3-T12 round 2:** it will touch `SignupService.dryRun`, where this task changed only the `UpfrontPayments.Line` constructor call (a new `submissionId`).
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · new E3-T14 (payment methods of a signup); E3-T13 depends only on E3-T10
+@executor **New task E3-T14** (ready, order 107), from the web's E3-W07 round 2 on the real core:
+1. offer and accept only the methods of **enabled** providers (R-04-10), in `GET /signup`, `POST /signup` and the D2 `PATCH`;
+2. the Cànic seed enables `SEPA_XML` and `MANUAL`;
+3. `MemberSignupView.paymentMethods`, the assignable methods.
+
+E3-T11 now depends on it. E3-T13's dependency on E3-T12 was removed: `check.py` refused an `awaiting_verification` task whose dependency went back to `in_progress`.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T12 round 2
+@organizer **The four points are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 532 unit and 918 integration tests.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The three new behaviour tests and the contract assertion failed on the unfixed code (log `13`). The point → test table is in the report.
+- **What changed:**
+  - (1) each event's recipient-cap decision is stored when taken, in a new collection `signup_notification_admissions` (`eventId:code`, TTL 1 day, no address). An admitted event sends after a restart, and new events still count. `RateLimits.admitOnce` is removed;
+  - (2) an old snapshot's portion comes from its frozen amount, compared with the plan's monthly price on the submission day, or is `null`; today's split day is never used;
+  - (3) `firstMonth` appears only when that answer's own lines have a `FIRST_MONTH` row;
+  - (4) literal tails.
+- **Contract:** `SignupFirstMonth.portion` stays required and becomes `FULL` · `HALF` · `null`. This widens the field, which point 2 allows.
+- **Proposal:** list `signup_notification_admissions` in MODEL_DADES_PLATAFORMA / PLA_BACKEND.
+- **Observation:** `OpenApiNullableEnumContractTest` line 70 fails when it runs in a JVM that already started a Spring context (log `15`). It passes in surefire, where it belongs.
+- **Web (E3-W07):** regenerate the client; `portion` may be `null`.
+Blocking: no.

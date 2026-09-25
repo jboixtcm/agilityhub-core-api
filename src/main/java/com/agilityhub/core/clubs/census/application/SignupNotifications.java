@@ -1,6 +1,8 @@
 package com.agilityhub.core.clubs.census.application;
 
 import com.agilityhub.core.clubs.census.domain.CensusEvent;
+import com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmission;
+import com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository;
 import com.agilityhub.core.clubs.messaging.application.SystemNotificationService;
 import com.agilityhub.core.identity.application.*;
 import com.agilityhub.core.shared.application.*;
@@ -16,21 +18,36 @@ public class SignupNotifications {
     private final CensusAccess access;private final SignupIdentityService identities;private final SignupLinks links;private final SystemNotificationService notifications;
     private final com.agilityhub.core.platform.application.CensusClubSettings settings;
     private final RateLimits limits;private final SignupCapabilities capabilities;
+    private final SignupNotificationAdmissionRepository admissions;private final java.time.Clock clock;
+    /**
+     * How long an admission is kept: beyond the outbox's whole retry horizon (10 attempts at most 300 s apart, plus the
+     * five-minute claim leases), so no retry of an event outlives its decision.
+     */
+    static final java.time.Duration ADMISSION_RETENTION=java.time.Duration.ofDays(1);
     private static final org.slf4j.Logger LOG=org.slf4j.LoggerFactory.getLogger(SignupNotifications.class);
     public SignupNotifications(CensusAccess access,SignupIdentityService identities,SignupLinks links,SystemNotificationService notifications,
-            com.agilityhub.core.platform.application.CensusClubSettings settings,RateLimits limits,SignupCapabilities capabilities) {
+            com.agilityhub.core.platform.application.CensusClubSettings settings,RateLimits limits,SignupCapabilities capabilities,
+            SignupNotificationAdmissionRepository admissions,java.time.Clock clock) {
         this.access=access;this.identities=identities;this.links=links;this.notifications=notifications;this.settings=settings;this.limits=limits;this.capabilities=capabilities;
+        this.admissions=admissions;this.clock=clock;
     }
     /**
      * R-04-20 (E3-T09): the anonymous routes cannot flood one address. At most the club's
      * `signup.rateLimit.notificationsPerRecipientPerHour` (3 by default) N-39 per account and applicant's N-01 per address,
-     * per club; the rest are skipped and logged with a hash, never the address. E3-T12: each event is admitted once per
+     * per club; the rest are skipped and logged with a hash, never the address. E3-T12: each event is decided once per
      * notification, so a delivery retried after its admission (a provider failure) still sends; only new events count.
+     * Round 2: the decision is persisted when taken ({@link SignupNotificationAdmission}), so it also survives a restart,
+     * which empties the per-instance buckets.
      */
     private boolean capped(String clubId,String eventId,String code,String recipient) {
         String hash=capabilities.fingerprint(recipient.toLowerCase(Locale.ROOT));
-        var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
-        if(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash,eventId+":"+code,limit)) return false;
+        var admission=admissions.decision(eventId,code).orElseGet(() -> {
+            var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
+            boolean admitted=limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash,limit)==0;
+            var now=clock.instant();
+            return admissions.decide(new SignupNotificationAdmission(SignupNotificationAdmission.id(eventId,code),clubId,eventId,code,admitted,now,now.plus(ADMISSION_RETENTION)));
+        });
+        if(admission.admitted()) return false;
         LOG.info("Signup notification capped per recipient code={} clubId={} recipientHash={}",code,clubId,hash);
         return true;
     }

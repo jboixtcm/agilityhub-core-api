@@ -30,12 +30,10 @@ public final class RateLimits {
             "signupPerDay", Route.SIGNUP_DAILY, "checkoutSessionsAnonymousPerHour", Route.SIGNUP_CHECKOUT, "townsPerHour", Route.SIGNUP_TOWNS,
             "notificationsPerRecipientPerHour", Route.SIGNUP_RECIPIENT);
     private record Key(Route route, String subject, Limit limit) { }
-    private record Admission(Route route, String subject, String operation) { }
     private final boolean enabled;
     private final Map<Route, Limit> limits;
     private final TimeMeter time;
     private final Cache<Key, Bucket> buckets;
-    private final Cache<Admission, Boolean> admissions;
 
     public RateLimits(boolean enabled, Map<Route, Limit> limits, Clock clock) {
         this.enabled = enabled;
@@ -56,8 +54,6 @@ public final class RateLimits {
         Duration longest = this.limits.values().stream().map(Limit::period).max(Duration::compareTo).orElseThrow();
         this.buckets = Caffeine.newBuilder().maximumSize(100_000).expireAfterAccess(longest)
                 .ticker(time::currentTimeNanos).build();
-        this.admissions = Caffeine.newBuilder().maximumSize(100_000).expireAfterWrite(longest)
-                .ticker(time::currentTimeNanos).build();
     }
 
     /** Zero means allowed; otherwise return a rounded-up Retry-After in seconds. */
@@ -73,17 +69,6 @@ public final class RateLimits {
                 .addLimit(bandwidth -> bandwidth.capacity(key.limit().capacity()).refillIntervally(key.limit().capacity(), key.limit().period())).build());
         var probe = bucket.tryConsumeAndReturnRemaining(1);
         return probe.isConsumed() ? 0 : Math.max(1, (probe.getNanosToWaitForRefill() + 999_999_999L) / 1_000_000_000L);
-    }
-
-    /**
-     * {@link #retryAfter(Route, String, Limit)} charged once per {@code operation} (R-04-20, E3-T12): the first call
-     * decides and every later call with the same operation gets that decision without charging the bucket again. An
-     * outbox delivery retried after its admission therefore still sends, and only new operations count against the cap.
-     * Decisions are kept for the longest limit period, on this instance like the buckets.
-     */
-    public boolean admitOnce(Route route, String subject, String operation, Limit limit) {
-        if (!enabled) { return true; }
-        return admissions.get(new Admission(route, subject, operation), key -> retryAfter(route, subject, limit) == 0);
     }
 
     /** The limit of {@code route} for a club whose `signup.rateLimit` is {@code parameter} (null: the defaults). */

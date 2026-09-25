@@ -151,9 +151,16 @@ public class SignupPolicy {
     }
     private Period period(UpfrontLines.Period value) { return value == null ? null : new Period(value.option().name(), value.startDate(), value.amountDue(), portion(value.portion())); }
     private static String portion(FirstMonthCalculator.Portion value) { return value == null ? null : value == FirstMonthCalculator.Portion.FULL_MONTH ? "FULL" : "HALF"; }
-    /** The portion of a first month frozen without one (before E3-T12), from its option and start date (R-04-15). */
-    public String portion(String option, LocalDate startDate) {
-        return portion(FirstMonthCalculator.portion(FirstMonthCalculator.Option.valueOf(option), startDate, parameters().firstMonthSplitDay()));
+    /**
+     * The portion of a first month frozen without one (before E3-T12), R-04-15: its frozen amount against the monthly
+     * price {@code planId} had on the day it was submitted, never today's split day (E3-T12 round 2). Null when they
+     * cannot tell ({@link FirstMonthCalculator#portion(Money, Money)}) or the plan is gone.
+     */
+    public String frozenPortion(String planId, LocalDate submitted, Money amountDue) {
+        if (planId == null || submitted == null) { return null; }
+        var plan = catalogs.at(submitted).stream().filter(p -> p.id().equals(planId) && p.clubId().equals(TenantContext.require())).findFirst().orElse(null);
+        var price = plan == null ? null : plan.currentPrice(com.agilityhub.core.clubs.catalogs.application.SignupPlanData.Concept.MONTHLY_FEE);
+        return portion(FirstMonthCalculator.portion(amountDue, price == null ? null : price.amount()));
     }
     public List<Period> firstOptions(Money monthly) {
         return FirstMonthCalculator.options(today(), parameters().firstMonthSplitDay(), parameters().nextInvoiceDayOfMonth(), monthly)

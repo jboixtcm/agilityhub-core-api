@@ -56,24 +56,4 @@ class RateLimitsTest {
         // A changed parameter opens a bucket with the new capacity.
         assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", new RateLimits.Limit(3, Duration.ofHours(1)))).isZero();
     }
-
-    /** E3-T12 (R-04-20): an operation (an event's notification) is charged once; its retries reuse the first decision. */
-    @Test void R_04_20_eachOperationIsAdmittedOnceAndItsRetriesReuseTheDecision() {
-        var clock = new MockClock(Instant.parse("2026-01-01T00:00:00Z"));
-        var limits = new RateLimits(true, Map.of(), clock);
-        var one = new RateLimits.Limit(1, Duration.ofHours(1));
-        String subject = "club:N-01:recipient";
-        assertThat(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, subject, "event-a:N-01", one)).isTrue();
-        // The retry of event A is admitted again without charging: the cap of 1 is still A's.
-        assertThat(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, subject, "event-a:N-01", one)).isTrue();
-        assertThat(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, subject, "event-b:N-01", one)).isFalse();
-        // A refused event stays refused on its retries, even once the bucket refills.
-        clock.advance(Duration.ofMinutes(61));
-        assertThat(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, subject, "event-b:N-01", one)).isFalse();
-        assertThat(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, subject, "event-c:N-01", one)).isTrue();
-        // Another recipient has its own allowance, and disabled limits admit everything.
-        assertThat(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, "club:N-01:other", "event-b:N-01", one)).isTrue();
-        var disabled = new RateLimits(false, Map.of(), clock);
-        for (int index = 0; index < 3; index++) { assertThat(disabled.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT, subject, "event-" + index, one)).isTrue(); }
-    }
 }

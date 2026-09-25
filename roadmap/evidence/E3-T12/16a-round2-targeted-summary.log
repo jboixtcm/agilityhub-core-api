@@ -1,0 +1,171 @@
+surefire: 118 classes, tests=532 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.signup.domain.SignupPaymentsTest: tests=17 failures=0 errors=0 skipped=0
+    PASS T_04_09_catalogFiltersTypesVisibilityTenantAndSuppressesAmounts
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[1]
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[2]
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[3]
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[4]
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[5]
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[6]
+    PASS T_04_05_firstMonthTableUsesHalfUpAndStartMonthForNextInvoice(LocalDate, long, long, LocalDate, LocalDate, long, LocalDate, LocalDate)[7]
+    PASS T_04_06_publicUpfrontLinesFollowPlanTypesAndBilling
+    PASS T_04_05_clockUsesClubZoneAndCatalogOverrides
+    PASS T_04_06_addDogUsesCurrentMonthDeltaAndInclusiveCutoff
+    PASS T_04_07_allocationCascadesEntryBeforeFirstMonth(long, long, UpfrontPaymentStatus, long, UpfrontPaymentStatus)[1]
+    PASS T_04_07_allocationCascadesEntryBeforeFirstMonth(long, long, UpfrontPaymentStatus, long, UpfrontPaymentStatus)[2]
+    PASS T_04_07_allocationCascadesEntryBeforeFirstMonth(long, long, UpfrontPaymentStatus, long, UpfrontPaymentStatus)[3]
+    PASS T_04_07_allocationCascadesEntryBeforeFirstMonth(long, long, UpfrontPaymentStatus, long, UpfrontPaymentStatus)[4]
+    PASS T_04_07_allocationRejectsExcessNegativeAndMixedCurrency
+    PASS R_04_15_T_04_05_theFirstMonthCarriesItsPortionAndAnOlderOneIsDerived
+  com.agilityhub.core.clubs.signup.domain.SignupPolicyTest: tests=6 failures=0 errors=0 skipped=0
+    PASS T_04_08_holderMatchingNormalizesNamesAndRequiresUniqueEligibleHolder
+    PASS T_04_17_signupStateCoversPublicReadmissionAndAddDogWithoutReprovisioning
+    PASS T_04_22_paymentStateTransitionMatrixMatchesS04AndRejectionRetainsPaid
+    PASS T_04_10_genderSnapshotsUseProductionIcuBundlesInThreeLocales
+    PASS T_04_08_familyFareUsesEligibleCatalogPlanOrDiscountHint
+    PASS T_04_15_consentRequiresAcceptanceAndCurrentVersionAndProducesAppendOnlyEntries
+  com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+    PASS T_14_01_disabledDashboardBlocksSerializeAsExplicitNull
+    PASS T_04_29_T_04_33_responseFixturesRetainNestedFieldsEnumsMoneyAndUtcDates
+    PASS T_04_15_T_04_22_requestBindingsKeepS04NamesAndNeverSerializeBankOrCheckoutCapabilities
+    PASS T_04_11_T_04_17_T_04_21_notificationFixturesUseApprovedEventsAndVariables
+  com.agilityhub.core.configuration.OpenApiNullableEnumContractTest: tests=3 failures=0 errors=0 skipped=0
+    PASS E3_T10_theDocumentWriterAddsNullToTheEnumOfNullableSchemasOnly
+    PASS E3_T10_everyNullableEnumOfTheSnapshotListsNull
+    PASS T_14_01_aRiskNotifiedRowWithoutGenderValidatesAgainstTheGeneratedSchema
+  com.agilityhub.core.shared.application.RateLimitsTest: tests=3 failures=0 errors=0 skipped=0
+    PASS T_01_15_configuredCapacityIsAtomicUnderConcurrentRequestsAndRefillsUsingInjectedClock
+    PASS R_04_20_signupRateLimitParameterSetsTheClubsCapacityAndKeepsThePeriod
+    PASS T_01_15_invalidLimitsFailFastAndDisabledLimitsNeverConsume
+failsafe: 83 classes, tests=918 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=9 failures=0 errors=0 skipped=0
+    PASS R_04_20_aDeliveryRetriedAfterItsAdmissionReusesItAndSends
+    PASS R_04_15_T_04_18_anAnswerNamesAFirstMonthOnlyWhenItsOwnLinesChargeOne
+    PASS R_04_20_anAdmittedEventKeepsItsAdmissionAcrossARestartAndNewEventsAreStillCounted
+    PASS R_04_06_R_04_26_T_04_22_aPendingReadmissionsCheckoutGoesToTheApplicantsSubmittedAddress
+    PASS R_04_23_T_04_21_eventsQueuedBeforeThePayloadCarriedTheValuesReadTheSubmissionBlock
+    PASS R_04_15_T_04_18_d2NamesTheFirstMonthFrozenAtSubmissionAndTheDryRunRecalculatesIt
+    PASS R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal
+    PASS R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch
+    PASS R_04_15_T_04_18_anOlderSnapshotKeepsTheHalfMonthItChargedWhenTheSplitDayAndThePriceChange
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+    PASS T_04_23_E39b_rejectionWithAPartialRowWarnsAboutTheRefund
+    PASS T_04_18_nextInvoiceDateBeforeTheFirstMonthStartIsRejected
+    PASS R_04_08_R_04_12_signupFlagsAreExposedAndStillEnforced
+    PASS T_04_18_D2LoadsAfterTheRequestedPlanIsHidden
+    PASS T_04_18_E39b_closingAPartialRowRecordsWhatWasPaidInDryRunAndValidation
+    PASS T_04_07_chipIsNormalisedAndCheckedPerCountryProfile
+    PASS T_04_05_T_04_06_eachPlanGetsItsOwnQuoteLikeTheSubmission
+    PASS T_04_18_therapyIsOfferedAndValidatedOnItsMaintenancePrice
+    PASS T_04_21_R_04_25_myDogsListsTheOwnPendingDogUntilValidationOrRejection
+    PASS T_04_12_readmissionSeesOnlyTheRowsOfItsOwnSubmission
+    PASS T_04_09_publicSignupWithAHiddenPlanIsNotAvailable
+    PASS R_04_19_reviewDogCarriesTheVersionThatTheDogPatchCompares
+    PASS T_04_16_foundFamilyClaimProposesAndValidatesTheHiddenFamilyFare
+    PASS T_04_24_reviewCarriesWarnDaysAndNothingPendingIsNotPending
+    PASS T_04_02_birthDateMustBeInThePastAndNotBefore1900
+    PASS T_04_22_checkoutAfterAValidationWithNothingPaidChargesTheSubmissionRows
+    PASS T_04_18_legacyRowsWithoutASubmissionIdSurviveAPlanChange
+    PASS T_04_14_manualInstructionsComeFromTheClubProviderAndN01CarriesTotalAndInstructions
+    PASS T_04_06_signupTextsHaveNoRawPlaceholdersForTheCanicAndTheMinimalClub
+    PASS T_04_22_planChangeWithACheckoutInProgressIsRefused
+    PASS T_04_21_familyFareMemberAddsADogAndReadsTheSignupConfiguration
+    PASS T_04_06_addDogQuoteKeepsTodayAfterTheCutoffDay
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=32 failures=0 errors=0 skipped=0
+    PASS T_04_28_honeypotAndBodySizeHaveNoPersistenceEffects
+    PASS T_04_14_optionalIbanProducesWarningsAndInvalidMethodsFail
+    PASS T_04_23_hostScopedKeysRejectChangedBodiesAndCapabilitiesExpire
+    PASS T_04_26_modulesOffAllowSignupWithoutMoneyFamilyOrLevels
+    PASS T_04_23_idempotencyReplaysEncryptedResponseAndClosesSignup
+    PASS T_04_19_rejectionCancelsDuePaymentsAndCannotRepeat
+    PASS T_04_22_zeroDueCardUsesSetupAndCheckoutRejectsUnsafeRedirectsAndUnpayableMembers
+    PASS T_04_24_pendingAgeDoesNotExpireOrDeleteTheSignup
+    PASS T_04_18_dryRunNeverWritesAndValidationRequiresLevelAndInvoiceDate
+    PASS T_04_16_partialManualAllocationPaysEntryBeforeMonthlyFeeAndRejectsExcess
+    PASS T_04_13_missingAndInvalidDocumentsRollbackTheEntireSubmission
+    PASS T_04_17_T_04_11_notificationsUseOutboxApplicantAndAdminLocalesWithoutPersistingLinks
+    PASS T_04_21_impersonatedAddDogRecordsBothActorsAndKeepsMemberActiveOnRejection
+    PASS T_04_22_checkoutCapabilitiesCompletionExpiryAndRefundWarning
+    PASS T_04_26_catalogAndCountryVariantsKeepModuleGatesAndEmptyPlanSignup
+    PASS T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities
+    PASS T_04_28_dailyLimitAndElevenFilesRejectWithoutCensusWrites
+    PASS T_04_28_sixthHourlySubmissionIsRateLimitedWithRetryAfter
+    PASS T_04_16_aFoundClaimProposesTheFamilyFareInD2AndTheDryRun
+    PASS T_04_17_newAccountWelcomeLinkExchangesForAnAuthenticatedMemberSession
+    PASS T_04_18_planChangesRecalculateDueAndPreservePartialPayments
+    PASS T_04_27_validationAndRejectionRaceHasExactlyOneWinner
+    PASS T_04_13_signedUploadClaimsOnlyExistingTenantFilesAndEnforcesLimits
+    PASS T_04_15_versionedConsentIsMandatoryAndImmutable
+    PASS T_04_25_crossTenantAndRoleBoundariesRemainClosed
+    PASS T_04_27_twentyConcurrentValidationsAllocateConsecutiveNumbers
+    PASS T_04_20_pendingEditsEmitSignupEditedAndRejectStaleVersion
+    PASS T_04_12_readmissionReusesTheMemberNumberAndOwnInactiveDog
+    PASS T_04_21_addDogKeepsMemberIdentityAndUsesDogRegistered
+    PASS T_04_16_familyClaimResolvesAgainAndValidationCreatesTheGroup
+    PASS T_04_20_pendingPaymentAndDocumentEditsPreserveTheConsentLedger
+    PASS T_04_11_identityRecognitionUsesPrimaryEmailAndDocumentPrecedence
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0
+    PASS R_04_26_T_04_22_eachPaymentLineIsDescribedInTheLocaleOfItsOwnSubmission
+    PASS R_04_19_T_04_20_paymentPatchKeepsTheHolderTaxIdIbanAndMandateDateUnlessChanged
+    PASS S04_7_withLevelsDisabledTheEventsCarryThePersistedNullLevelNotTheRequest
+    PASS R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback
+    PASS T_04_21_theAdminN01OfEachQueuedAddDogDescribesItsOwnSubmission
+    PASS R_04_23_theRejectionConsumerLeavesTheDogsOfALaterReadmissionPending
+    PASS R_04_06_R_04_26_T_04_22_aReadmissionStillLeavesOutTheRowsItSuperseded
+    PASS R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor
+    PASS R_04_12_T_04_16_aFoundClaimNoLongerUniqueAtSubmissionFallsBackToNotFoundPending
+    PASS R_04_23_T_04_21_anAddDogRejectionRendersN03InTheLocaleOfItsOwnSubmission
+    PASS S04_7_validationEventsCarryTheActorRolesMemberTriggerAndThePersistedDogs
+    PASS S04_3_addDogSubmissionsKeepOneBlockPerDogAndNeverOverwriteThePublicSignup
+    PASS T_04_22_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaid
+    PASS S04_3_publicSignupSnapshotKeepsTheSubmissionAndDecisionMetadata
+    PASS R_04_18_T_04_14_migratedSepaMembersWithIbanLast4AreNotAccountNotProvided
+    PASS T_04_26_theMinimalClubSeedSignsUpAndValidatesWithoutMoneyFamilyOrLevels
+    PASS T_04_18_nextInvoiceDateIsCheckedAgainstTheFrozenStartWhileTheQuoteIsUnchanged
+    PASS R_04_26_T_04_22_anAddDogBlockTheOldCodeLeftInMemberSignupIsNoCheckoutBoundary
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=21 failures=0 errors=0 skipped=0
+    PASS R_04_20_signupRateLimitParameterIsReadPerClub
+    PASS R_04_20_T_04_28_percentEncodedAndDoubleSlashRoutesShareTheLimitOfThePlainRoute
+    PASS R_04_12_familyLookupFindsAStoredDogNameWithRepeatedSpaces
+    PASS R_04_08_T_04_13_signupUploadUrlReturnsTheHeadersTheStorageSigned
+    PASS R_04_05_R_04_20_theRecipientCapIsTheClubsParameter
+    PASS R_04_05_R_04_20_n39AndTheApplicantsN01AreCappedPerRecipient
+    PASS T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas
+    PASS T_04_12_readmissionKeepsTheLeftRecordUntilValidationWhichAppliesTheSubmittedValues
+    PASS R_04_27_T_04_23_anonymousSignupRoutesAreClosedWithTheForm
+    PASS R_04_06_T_04_12_aReadmissionsN01AndN03GoToTheSubmittedApplicantOnly
+    PASS R_14_09_signupEditedDiffIsMaskedLikeTheAudit
+    PASS R_04_20_lookupInputsAreBounded
+    PASS R_04_27_T_04_23_concurrentSubmissionsWithDifferentKeysGiveOneCreatedAndOnePending
+    PASS T_04_12_T_04_20_aD2EditOfAPendingReadmissionEditsTheSubmittedValuesNotTheRecord
+    PASS R_04_05_R_04_12_identityAndFamilyLookupsUseIndexedQueries
+    PASS R_04_22_T_04_12_aValidatedReadmissionKeepsTheMembersAccountAndMembership
+    PASS R_04_05_R_04_06_aPendingReadmissionsSubmittedAddressIsMatchedLikeAnyPendingMember
+    PASS R_04_27_signupConfigurationIsFreshRightAfterItsOwnWrite
+    PASS R_04_05_maskedEmailHasTheSpecShapeAndN39GoesToTheMaskedAddress
+    PASS R_04_17_T_04_21_consentsAcceptedUnderImpersonationRecordTheActor
+    PASS R_04_27_aWriteConflictOnTheCensusLockIsRetriedAndTheSubmissionSucceeds
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+    PASS T_04_25_errorRowHasExactlyTheCanonicalCodesStatusesAndThreeTranslations
+    PASS T_04_21_T_04_25_validImpersonationCanUseMemberRoutesButNeverD2
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[1]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[2]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[3]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[4]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[5]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[6]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[7]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[8]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[9]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[10]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[11]
+    PASS T_04_18_T_04_23_invalidRequestsAndForeignDryRunDoNotWriteSignupEntities
+    PASS T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors
+    PASS T_04_26_moduleGuardsApplyToAnonymousAndAuthenticatedCheckoutAndFamilyLookups
+    PASS T_14_01_dashboardSchemasMatchEveryFieldAndNullableBlockInS14
+  com.agilityhub.core.platform.application.CacheInvalidationRaceIT: tests=5 failures=0 errors=0 skipped=0
+    PASS T_02_11_domainAddedDuringAnInFlightNegativeHostLookupIsResolvedAfterwards
+    PASS R_04_27_T_04_23_signupConfigurationLoadPausedAcrossAParameterWriteLeavesNoStaleValue
+    PASS T_02_01_moduleToggleDuringAnInFlightConfigLoadLeavesNoStaleValue
+    PASS T_02_08_parameterChangeDuringAnInFlightConfigLoadLeavesNoStaleValue
+    PASS T_02_11_domainRemovedDuringAnInFlightHostLookupIsNotResolvedAfterwards

@@ -177,7 +177,9 @@ class E3ContractIT extends AbstractIntegrationTest {
         properties(schema, "SignupFirstMonth", "option,portion,startDate,amountDue");
         assertThat(strings(schema.at("/SignupUpfrontReview/required"))).doesNotContain("firstMonth");
         assertThat(strings(schema.at("/SignupFirstMonth/required"))).containsExactlyInAnyOrder("option","portion","startDate","amountDue");
-        assertThat(strings(schema.at("/SignupFirstMonth/properties/portion/enum"))).containsExactly("FULL","HALF");
+        // E3-T12 round 2 (R-04-15): always present; null only for an older snapshot whose frozen amount cannot tell it.
+        assertThat(schema.at("/SignupFirstMonth/properties/portion/enum").toString()).isEqualTo("[\"FULL\",\"HALF\",null]");
+        assertThat(schema.at("/SignupFirstMonth/properties/portion/type").toString()).isEqualTo("[\"string\",\"null\"]");
         properties(schema, "ValidationResult", "memberId,number,accountId,dogIds,warnings,paidExceedsQuote");
         // E3-T08: the per-plan quote (M5), the D2 plan selector and age warning (M8, M11), the dog version (M12) and the signup flags.
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("planQuotes")).isTrue();

@@ -564,9 +564,9 @@ public class SignupService implements SignupPaymentAccess {
         return new SignupPolicy.Quote(lines,total,first,additional);
     }
     private Map<String,Object> reviewUpfront(Member member,List<Dog> dogs) {
-        var scope=scope(member,dogs);
-        return object("lines",paymentLines(member.id,scope),"totalDue",payments.due(member.id,scope,currency()),"totalPaid",payments.paid(member.id,scope,currency()),
-                "firstMonth",firstMonthView(frozenFirstMonth(member,dogs)));
+        var scope=scope(member,dogs);var lines=payments.lines(member.id,scope);
+        return object("lines",lineViews(lines),"totalDue",payments.due(member.id,scope,currency()),"totalPaid",payments.paid(member.id,scope,currency()),
+                "firstMonth",chargesFirstMonth(lines)?firstMonthView(frozenFirstMonth(member,dogs)):null);
     }
     /**
      * `upfront.firstMonth` of D2 and of its dry run (web E3-W07, R-04-15): the month the FIRST_MONTH line pays, so D2 names
@@ -643,18 +643,24 @@ public class SignupService implements SignupPaymentAccess {
         return frozen!=null?frozen:quote.firstMonth();
     }
     /**
-     * `signup.upfront.firstMonth` as frozen by the submission of these dogs, or null. E3-T12: with its `portion`; a block
-     * frozen before the portion was stored gets it from its option and start date ({@link SignupPolicy#portion}).
+     * `signup.upfront.firstMonth` as frozen by the submission of these dogs, or null. E3-T12: with its `portion`. A block
+     * frozen before the portion was stored gets the one its frozen amount charged against the plan's monthly price on the
+     * submission day, or null ({@link SignupPolicy#frozenPortion}); never one from today's split day (round 2).
      */
     private SignupPolicy.Period frozenFirstMonth(Member member,List<Dog> dogs) {
         for(var dog:dogs) {
-            var frozen=map(map(block(member,dog).get("upfront")).get("firstMonth"));
+            var block=block(member,dog);var frozen=map(map(block.get("upfront")).get("firstMonth"));
             if(frozen.get("startDate")==null) continue;
             String option=string(frozen.get("option"));LocalDate start=LocalDate.parse(string(frozen.get("startDate")));
-            return new SignupPolicy.Period(option,start,mapper.convertValue(frozen.get("amountDue"),Money.class),frozen.get("portion")!=null?string(frozen.get("portion")):policy.portion(option,start));
+            var amount=mapper.convertValue(frozen.get("amountDue"),Money.class);
+            String portion=frozen.get("portion")!=null?string(frozen.get("portion")):policy.frozenPortion(string(block.get("planIdRequested")),
+                    block.get("submittedAt")==null?null:instant(block.get("submittedAt")).atZone(ZoneId.of(access.config().club().timeZone())).toLocalDate(),amount);
+            return new SignupPolicy.Period(option,start,amount,portion);
         }
         return null;
     }
+    /** Step 5 / round 2: an answer names a first month only when its own payment lines charge one. */
+    private static boolean chargesFirstMonth(List<UpfrontPayments.Line> lines) { return lines.stream().anyMatch(l -> "FIRST_MONTH".equals(l.concept())); }
     /** §3 `Member.nextInvoiceDate` ≥ the first-month start in force (M21); only with BILLING and a first month. */
     private void nextInvoiceDate(Map<String,Object> request,SignupPolicy.Period first) {
         if(!billing()||request.get("nextInvoiceDate")==null||first==null) return;
@@ -677,8 +683,9 @@ public class SignupService implements SignupPaymentAccess {
             } else { lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency()); }
             upfront=object("lines",lineViews(lines.stream().map(l -> l.id()!=null?l:new UpfrontPayments.Line(UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),
                     l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider(),l.submissionId())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds,
-                    // The first month the validation will charge: the frozen one, or the recalculated one after a plan change.
-                    "firstMonth",firstMonthView(first));
+                    // The first month the validation will charge: the frozen one, or the recalculated one after a plan change;
+                    // only when these lines charge one (round 2: BILLING enabled after a submission left no rows).
+                    "firstMonth",chargesFirstMonth(lines)?firstMonthView(first):null);
         }
         return object("upfront",upfront,"price",billing()&&plan!=null?plan.billedPrice():null,"nextInvoiceDate",request.get("nextInvoiceDate")!=null?request.get("nextInvoiceDate"):first==null?member.nextInvoiceDate:policy.nextInvoice(first),"warnings",warnings);
     }

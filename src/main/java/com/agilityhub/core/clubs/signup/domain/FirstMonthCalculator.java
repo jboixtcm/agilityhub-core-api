@@ -20,8 +20,7 @@ public final class FirstMonthCalculator {
     }
     public static List<Choice> options(LocalDate today, int splitDay, int invoiceDay, Money monthlyPrice) {
         SignupValidation.day(splitDay); SignupValidation.day(invoiceDay); SignupValidation.nonnegative(monthlyPrice);
-        Money half = new Money(BigDecimal.valueOf(monthlyPrice.amountMinor()).divide(BigDecimal.valueOf(2), 0,
-                RoundingMode.HALF_UP).longValueExact(), monthlyPrice.currency());
+        Money half = half(monthlyPrice);
         LocalDate split = day(YearMonth.from(today), splitDay);
         boolean early = today.isBefore(split);
         LocalDate alternative = early ? split : today.plusMonths(1).withDayOfMonth(1);
@@ -31,13 +30,20 @@ public final class FirstMonthCalculator {
                         early ? Portion.HALF_MONTH : Portion.FULL_MONTH, nextInvoice(alternative, invoiceDay)));
     }
     /**
-     * The portion of a first month frozen before its portion was stored (E3-T12), from its option and start date:
-     * ALTERNATIVE is a full month only when it starts on the 1st (d ≥ D); TODAY is a full month only before the split day.
+     * The portion a frozen first month charged, for one frozen before its portion was stored (E3-T12 round 2): its frozen
+     * amount against the plan's monthly price when it was frozen, the full price or its half (rounded as in
+     * {@link #options}). Never the split day in force today. Null when the amounts cannot tell: no price, another
+     * currency, an amount that is neither, or a price whose half equals it (0 or 1 minor unit).
      */
-    public static Portion portion(Option option, LocalDate startDate, int splitDay) {
-        SignupValidation.day(splitDay);
-        if (option == Option.ALTERNATIVE) { return startDate.getDayOfMonth() == 1 ? Portion.FULL_MONTH : Portion.HALF_MONTH; }
-        return startDate.isBefore(day(YearMonth.from(startDate), splitDay)) ? Portion.FULL_MONTH : Portion.HALF_MONTH;
+    public static Portion portion(Money amountDue, Money monthlyPrice) {
+        if (amountDue == null || monthlyPrice == null || !amountDue.currency().equals(monthlyPrice.currency())) { return null; }
+        boolean isFull = amountDue.amountMinor() == monthlyPrice.amountMinor();
+        boolean isHalf = amountDue.amountMinor() == half(monthlyPrice).amountMinor();
+        return isFull == isHalf ? null : isFull ? Portion.FULL_MONTH : Portion.HALF_MONTH;
+    }
+    private static Money half(Money monthlyPrice) {
+        return new Money(BigDecimal.valueOf(monthlyPrice.amountMinor()).divide(BigDecimal.valueOf(2), 0,
+                RoundingMode.HALF_UP).longValueExact(), monthlyPrice.currency());
     }
     public static LocalDate nextInvoice(LocalDate startDate, int invoiceDay) {
         SignupValidation.day(invoiceDay);

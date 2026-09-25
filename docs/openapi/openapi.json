@@ -12237,8 +12237,9 @@
             "type" : "string"
           },
           "portion" : {
-            "enum" : [ "FULL", "HALF" ],
-            "type" : "string"
+            "description" : "Frozen at submission. null only for a first month frozen before the portion was stored whose amount does not tell it against the plan's monthly price on the submission day",
+            "enum" : [ "FULL", "HALF", null ],
+            "type" : [ "string", "null" ]
           },
           "startDate" : {
             "format" : "date",

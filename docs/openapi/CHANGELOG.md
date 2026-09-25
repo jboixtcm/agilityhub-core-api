@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T12 round 2 · `SignupFirstMonth.portion` may be `null`; `firstMonth` follows the answer's lines
+
+**0 operations added, 2 changed; 1 schema changed** (`SignupFirstMonth`):
+
+- `GET /members/{id}/signup` and `POST /members/{id}/validation?dryRun=true`: `SignupFirstMonth.portion` is still
+  always present, and now `FULL` · `HALF` · `null` (`type: [string, null]`). `null` only for a first month frozen before
+  the portion was stored (E3-T12) whose frozen amount is neither the plan's monthly price on the submission day nor its
+  half. Such a snapshot is never read with today's `signup.firstMonthSplitDay` (R-04-15). A generated client must accept
+  `null` there and then show no «(mitja quota)».
+- Behaviour behind unchanged schemas: `SignupUpfrontReview.firstMonth` is present only when the answer's own `lines`
+  have a `FIRST_MONTH` row. An unchanged-plan dry run of a submission made while BILLING was off has none, so it has no
+  `firstMonth` either.
+
 ## 2026-09-25 · E3-T12 · the first month in the D2 view; the checkout of a pending readmission
 
 **0 operations added, 2 changed; 1 schema added** (additive):

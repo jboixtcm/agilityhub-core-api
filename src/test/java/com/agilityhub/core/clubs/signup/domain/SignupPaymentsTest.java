@@ -59,17 +59,24 @@ class SignupPaymentsTest {
                 .isEqualTo(new UpfrontLines.Period(ALTERNATIVE, LocalDate.of(2026, 8, 16), eur(3000), FirstMonthCalculator.Portion.HALF_MONTH));
         assertThat(UpfrontLines.publicSignup(monthly(), "dog", true, today, defaults, TODAY).firstMonth().portion()).isEqualTo(FirstMonthCalculator.Portion.HALF_MONTH);
         assertThat(UpfrontLines.publicSignup(monthly(), "dog", true, today, defaults, ALTERNATIVE).firstMonth().portion()).isEqualTo(FirstMonthCalculator.Portion.FULL_MONTH);
-        // Derived exactly as the calculator decides, for each branch of R-04-15.
-        for (var date : List.of(LocalDate.of(2026, 8, 5), LocalDate.of(2026, 8, 16), today, LocalDate.of(2026, 12, 31), LocalDate.of(2026, 8, 1))) {
-            for (var choice : FirstMonthCalculator.options(date, 16, 1, eur(6000))) {
-                assertThat(FirstMonthCalculator.portion(choice.option(), choice.startDate(), 16)).as("%s %s", date, choice.option()).isEqualTo(choice.portion());
+        // E3-T12 round 2: an older snapshot's portion is told by its frozen amount against the monthly price it was frozen
+        // with, never by a split day: each branch of R-04-15, with the split days 1, 16 and 20 and an odd price.
+        for (int split : List.of(1, 16, 20)) {
+            for (var date : List.of(LocalDate.of(2026, 8, 5), LocalDate.of(2026, 8, 16), today, LocalDate.of(2026, 12, 31), LocalDate.of(2026, 8, 1))) {
+                for (var price : List.of(eur(6000), eur(4501))) {
+                    for (var choice : FirstMonthCalculator.options(date, split, 1, price)) {
+                        assertThat(FirstMonthCalculator.portion(choice.amountDue(), price)).as("split %s, %s %s, %s", split, date, choice.option(), price).isEqualTo(choice.portion());
+                    }
+                }
             }
         }
-        // Split day 1: every day is on or after it; the alternative is the full next month.
-        for (var choice : FirstMonthCalculator.options(LocalDate.of(2026, 8, 1), 1, 1, eur(6000))) {
-            assertThat(FirstMonthCalculator.portion(choice.option(), choice.startDate(), 1)).isEqualTo(choice.portion());
-        }
-        error(() -> FirstMonthCalculator.portion(TODAY, today, 0), ErrorCode.PARAMETER_INVALID);
+        // The amounts cannot tell: no price, another currency, neither amount, or a price whose half is itself.
+        assertThat(FirstMonthCalculator.portion(eur(3000), null)).isNull();
+        assertThat(FirstMonthCalculator.portion(null, eur(6000))).isNull();
+        assertThat(FirstMonthCalculator.portion(new Money(3000, "USD"), eur(6000))).isNull();
+        assertThat(FirstMonthCalculator.portion(eur(4200), eur(6000))).isNull();
+        assertThat(FirstMonthCalculator.portion(eur(0), eur(0))).isNull();
+        assertThat(FirstMonthCalculator.portion(eur(1), eur(1))).isNull();
     }
     @Test void T_04_05_clockUsesClubZoneAndCatalogOverrides() {
         var clock = Clock.fixed(Instant.parse("2026-08-15T22:30:00Z"), ZoneOffset.UTC);
