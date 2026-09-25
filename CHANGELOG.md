@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T17: E38 for the reused dog of a readmission (S04 R-04-06, R-04-23; S15 R-15-19), the last api task of gate E3.
+  - The submission no longer writes the member's INACTIVE dog: it becomes `PENDING`, and the submitted name, sex,
+    breed, birth month, notes and documents wait in `Dog.readmissionRequest.submitted`, with `previous {status,
+    deactivatedAt, deactivationReason, signup}`. Its documents keep their files and states; no `DogDocumentPending`.
+  - D2 shows the submitted values and documents and adds `readmission {current, changedFields, …}`; its dog PATCH edits
+    the submitted values, and the chip of the reused dog is locked (`409 INVALID_STATE`, `READMISSION_PENDING`).
+  - Validation applies the values and documents as a submission does; a rejection restores the dog exactly as it was,
+    and the submitted files become orphans. P9 counts a pending readmission's files as referenced.
+  - Audit items 1 and 3: an add-dog replay with the same `Idempotency-Key` (T-04-23) and the holder's family group
+    (T-04-16) have their tests.
+
 - E3-T11: gate E3 audit re-run on `d791361`, after the fixes E3-T08…T10 and E3-T12…T16; evidence only, with no product change.
   - `clean verify` passes (554 unit + 965 IT). The S04/S14 traceability is unchanged in shape: 40 of the 44 ids in
     scope have passing tests, and the 4 missing are front-layer ids. The 9 api tests the audit required all pass.

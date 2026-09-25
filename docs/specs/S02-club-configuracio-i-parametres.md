@@ -27,7 +27,7 @@ Resol **què és un club dins la plataforma** i com es configura sense codi: la 
 | Bloc | Camp | Tipus | Obl. | Notes |
 |---|---|---|---|---|
 | Identitat | `slug` | string | sí | `^[a-z0-9-]{3,40}$`, únic, immutable (usat a `/public/{clubSlug}` i als ids de mandat) |
-| | `name`, `legalName`, `taxId`, `address {street, postalCode, city, region, country}` (el domicili), `displayCity` (la població que es mostra amb el nom del club, per exemple on entrena; per defecte `address.city`), `contactEmail`, `contactPhone`, `websiteUrl` | | `name` sí | `taxId` validat pel perfil de país |
+| | `name`, `legalName`, `taxId`, `address {street, postalCode, city, region, country}` (el domicili), `displayCity` (la població que es mostra amb el nom del club, per exemple on entrena; per defecte `address.city`), `contactEmail`, `contactPhone`, `websiteUrl` | | `name` sí | `taxId` validat pel perfil de país quan canvia, i desat normalitzat (majúscules, sense espais ni separadors): el mateix identificador escrit d'una altra manera no és cap canvi. Un valor que només té separadors (`"-"`) es refusa (`400 VALIDATION_ERROR`, `taxId`); `""` o `null` l'esborren |
 | Localització | `locales[]`, `defaultLocale`, `timeZone`, `currency`, `countryProfile` | | sí | `locales ⊆` idiomes de producte; `defaultLocale ∈ locales`; `timeZone` IANA vàlid; `currency` ISO 4217; `countryProfile ∈ {ES, GENERIC}` |
 | Dominis | `domains[] {host, app: clubs · clubs-admin, verifiedAt, primary}` | | ≥ 1 per app (S17) | `host` únic **global** entre clubs |
 | Tema | `theme {logoUrl, logoDarkUrl, markUrl, colors {primary, onPrimary, background, surface, surfaceAlt, text, textMuted, success, warning, danger}, fontFamily, radius, ringPalette[], mode: dark · light · auto}`, `pwa {name, shortName, iconUrls{}}` | | sí (defaults de producte) | tokens → CSS variables; contrast mínim WCAG AA validat en desar (S17) |
@@ -178,3 +178,4 @@ Ordre: A ∥ C → B ∥ E → D. Fils: (1) A+B, (2) C+D, (3) E.
 - 24-09-2026 · R-02-02: `/branding` inclou `legalName` i `taxId` per al peu públic (LSSI art. 10), a proposta de l'auditoria del web (E3-W05).
 - 25-09-2026 · Jordi: raó social, CIF i domicili del Cànic, i el peu públic en dues línies: «Club Agility Cànic · G63189617 · Cabrera de Mar» i, a sota, el domicili (Carrer Sant Pere, 10 · 08392 Sant Andreu de Llavaneres). §3 afegeix `displayCity`; R-02-02 afegeix `city` i `legalAddress` a `/branding` (tasques E3-T16 i E3-W12).
 - 25-09-2026 · verificació d'E3-T16: R-02-10 diu que el seed del Cànic porta la seva identitat legal real (raó social, CIF i domicili).
+- 26-09-2026 · verificació d'E5-T16: §3 diu que `taxId` es desa normalitzat (proposta de l'executora), que un valor només de separadors es refusa i que `""` o `null` l'esborren (E5-T17).

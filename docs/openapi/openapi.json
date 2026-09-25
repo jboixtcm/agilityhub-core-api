@@ -12314,6 +12314,60 @@
         "required" : [ "birthMonth", "breed", "chip", "name", "sex" ],
         "type" : "object"
       },
+      "SignupDogReadmission" : {
+        "description" : "R-04-06 (E38): the reused dog's own values beside the submitted ones shown on SignupDogView",
+        "properties" : {
+          "changedFields" : {
+            "description" : "The fields whose submitted value differs from the dog record (name, sex, breed, birthMonth, notesToInstructors, documents)",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "current" : {
+            "$ref" : "#/components/schemas/SignupDogValues"
+          },
+          "previousDeactivatedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "previousDeactivationReason" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "changedFields", "current" ],
+        "type" : "object"
+      },
+      "SignupDogValues" : {
+        "description" : "The values and documents of the dog record",
+        "properties" : {
+          "birthMonth" : {
+            "pattern" : "\\d{4}-(0[1-9]|1[0-2])",
+            "type" : "string"
+          },
+          "breed" : {
+            "type" : "string"
+          },
+          "documents" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SignupDocumentView"
+            },
+            "type" : "array"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "notesToInstructors" : {
+            "type" : "string"
+          },
+          "sex" : {
+            "enum" : [ "MALE", "FEMALE" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "documents", "name" ],
+        "type" : "object"
+      },
       "SignupDogView" : {
         "properties" : {
           "birthMonth" : {
@@ -12345,6 +12399,10 @@
           },
           "notesToInstructors" : {
             "type" : "string"
+          },
+          "readmission" : {
+            "$ref" : "#/components/schemas/SignupDogReadmission",
+            "description" : "R-04-06 (E38): only for the reused dog of a pending readmission (the chip of the member's own INACTIVE dog). The fields above show the submitted values and the documents the validation will write; the dog record keeps its own until then, and a rejection leaves it as it was"
           },
           "sex" : {
             "enum" : [ "MALE", "FEMALE" ],
@@ -28580,7 +28638,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record; the chip cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updateDog",
         "parameters" : [ {
           "in" : "path",
@@ -28659,7 +28717,7 @@
                 }
               }
             },
-            "description" : "CHIP_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED"
+            "description" : "CHIP_ALREADY_EXISTS, STALE_VERSION, INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {

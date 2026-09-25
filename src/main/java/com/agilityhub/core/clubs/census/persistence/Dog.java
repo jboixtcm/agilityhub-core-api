@@ -8,6 +8,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Dog extends CensusEntity {
     public Map<String,Object> sourceIds;
     public Map<String,Object> signup;
+    /**
+     * R-04-06 (E38, E3-T17): the reused dog of a pending readmission, like `Member.readmissionRequest`. `submitted {name, sex,
+     * breed, birthDate, instructorNote, documents[{type, files[]}]}` waits for the validation; `previous {status,
+     * deactivatedAt, deactivationReason, signup}` is what a rejection restores. Null otherwise.
+     */
+    public Map<String,Object> readmissionRequest;
     public Map<String,Object> externalIds;
     public String memberId;
     public String name;

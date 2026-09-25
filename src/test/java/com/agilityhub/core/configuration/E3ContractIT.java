@@ -212,6 +212,14 @@ class E3ContractIT extends AbstractIntegrationTest {
         assertThat(schema.at("/MemberSignupView/required").toString()).doesNotContain("readmission");
         properties(schema, "SignupReadmission", "current,submitted,changedFields,consents,previousLeftAt,previousLeftReason");
         properties(schema, "ReadmissionValues", "firstName,lastName1,lastName2,gender,birthDate,contactEmails,phones,address,paymentMethod");
+        // E3-T17: the reused dog of a readmission (E38) adds an optional block to its D2 dog; the rest of the dog is unchanged.
+        properties(schema, "SignupDogView", "id,name,sex,breed,birthMonth,chip,notesToInstructors,status,levelId,documents,version,readmission");
+        assertThat(strings(schema.at("/SignupDogView/required"))).doesNotContain("readmission");
+        assertThat(schema.at("/SignupDogView/properties/readmission/$ref").asText()).isEqualTo("#/components/schemas/SignupDogReadmission");
+        properties(schema, "SignupDogReadmission", "current,changedFields,previousDeactivatedAt,previousDeactivationReason");
+        assertThat(strings(schema.at("/SignupDogReadmission/required"))).containsExactlyInAnyOrder("current", "changedFields");
+        properties(schema, "SignupDogValues", "name,sex,breed,birthMonth,notesToInstructors,documents");
+        assertThat(strings(schema.at("/SignupDogValues/required"))).containsExactlyInAnyOrder("name", "documents");
         properties(schema, "UploadUrl", "uploadUrl,fileKey,expiresAt,headers");
         assertThat(schema.at("/UploadUrl/required").toString()).contains("headers");
         properties(schema, "ValidationRequest", "version,dogs,planId,priceId,nextInvoiceDate,familyGroupId,upfrontAmountPaid");

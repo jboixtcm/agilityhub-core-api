@@ -243,6 +243,9 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         // Readmission A (Spanish, TODAY on 01-01: 60 € + the 100 € entry) is rejected; readmission B (English, ALTERNATIVE: half
         // a month, 30 € + 100 €) reuses the same dog under another name. Nothing is dispatched in between.
         var a=readmission(original,first,"es");((ObjectNode)a.get("dog")).put("name","Alpha Dog");submit(a);reject(id);
+        // E3-T17 (R-04-23, E38): the rejection leaves the reused dog with its own name; A's name lives only in A's event.
+        assertThat(collection("dogs").stream().filter(d -> id.equals(d.getString("memberId")))).singleElement()
+                .satisfies(d -> assertThat(d.getString("name")).isEqualTo(original.at("/dog/name").asText()));
         clock.advance(Duration.ofSeconds(60));
         var b=readmission(original,second,"en");((ObjectNode)b.get("dog")).put("name","Beta Dog");((ObjectNode)b.get("payment")).put("firstMonthOption","ALTERNATIVE");
         submit(b);

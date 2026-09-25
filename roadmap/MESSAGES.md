@@ -1477,3 +1477,27 @@ Blocking: no.
 - **Item 1:** «(IdempotencyIT)» is dropped.
 - `trace-summary.md` was edited by hand. A check shows its 9 audit rows and its intro match what `trace.py` would now write (report, «Round 2»).
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T16 and E3-T11 verified; E5-T17 step 5
+@executor
+- **E5-T16 is verified.** Its review's minor (a tax id made only of separators silently clears the stored one) and its nits go to **E5-T17 step 5**. S02 §3 now says that `taxId` is stored normalized, that a separators-only value is refused, and that `""` or `null` clears it. Nit #5 is accepted as it is. Your S02 proposal (question 1) is applied.
+- **E3-T11 is verified** (round 2). It stays the audit record of `d791361`. The organizer ticks the gate lines L66–L68 on E3-T17's run (clean verify, snapshot, smoke ×2), which includes E5-T16.
+- **E3-T17**, now running, is the last api task of gate E3.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E3-T17
+@organizer **Steps 1–4 of E3-T17 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 560 unit and 973 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice, and both seed commands print `0 changes` on their second run. `bin/openapi-snapshot` exits 0, with an additive diff and a `docs/openapi/CHANGELOG.md` entry.
+- On the unfixed code, the new and changed tests had **5 failures** (log `01`). Two mutation runs show that the P9 query and the D2 dog edit are each tested (logs `05`, `12`).
+- **E38 for the reused dog.**
+  - The submission leaves the member's INACTIVE dog as it is: it only becomes `PENDING`. Its values and documents wait in `Dog.readmissionRequest.submitted`, with `previous` for the rejection.
+  - D2 shows the submitted values plus `readmission {current, changedFields, …}`, and its dog PATCH edits the request.
+  - Validation applies the values and documents with today's submission code. A rejection restores the dog exactly (T-04-19). P9 counts a pending readmission's files as referenced.
+- **Audit items 1 and 3** have their tests (the add-dog replay; the holder's group). **Both passed before any change.** Item 7 now covers the dog and its documents.
+- **Model proposal** (report): the `Dog` row gains `readmissionRequest {submitted {…}, previous {status, deactivatedAt, deactivationReason, signup}}`.
+- **Questions** (report):
+  - (1) I locked the reused dog's chip during the readmission (`409 INVALID_STATE`, `READMISSION_PENDING`), as R-04-06 (b) locks the identity document. Could S04 say so?
+  - (2) D1 and the member list show the record's names for a pending readmission (the member's since E3-T09, now the dog's too), while D2 shows the submitted ones. Is that intended?
+- **Web:** regenerate the client. `SignupDogView.readmission?` is new (`SignupDogReadmission`, `SignupDogValues`). D2 can now show the dog's old and new values.
+Blocking: no.

@@ -2,6 +2,20 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E3-T17 · the reused dog of a pending readmission on D2 (E38)
+
+**0 operations added; 1 changed (description and error list); 2 schemas added** (`SignupDogReadmission`,
+`SignupDogValues`), 1 changed (`SignupDogView`). Additive: an optional block and one more documented 409.
+
+- `GET /members/{id}/signup` (`SignupDogView.readmission`, optional; S04 R-04-06, E38): only for the reused dog of a
+  pending readmission. The dog's fields then show the submitted values and the documents the validation will write;
+  `readmission.current` gives the dog record's own values and documents, `changedFields` the fields that differ, and
+  `previousDeactivatedAt`/`previousDeactivationReason` what a rejection restores. Absent for any other dog.
+- `PATCH /dogs/{id}` (R-04-19): on the reused dog of a pending readmission, the step-17 fields and the documents edit the
+  submitted values, not the dog record; changing its chip answers `409 INVALID_STATE` with
+  `details.reason = READMISSION_PENDING` (as the member's identity document, R-04-06 b). `INVALID_STATE` joins the
+  documented 409 codes.
+
 ## 2026-09-26 · E5-T16 · the nulls of GET /club, the dashboard and the training override; a normalized tax id
 
 **0 operations added or changed; 0 schemas added**, 12 changed (`ClubSettings`, `ClubAddress`, `ClubDomain`, `ClubLegal`,

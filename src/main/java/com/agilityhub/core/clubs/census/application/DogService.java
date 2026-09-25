@@ -31,40 +31,50 @@ public class DogService {
         var allowed=new HashSet<>(Set.of("name", "breed", "sex", "birthDate", "chip", "handlerName", "licenses", "version"));
         if("PENDING".equals(dog.status)) allowed.addAll(Set.of("birthMonth","notesToInstructors","documents"));
         allow(request,allowed);
-        version(dog.version(), request.get("version")); var before = fields(dog);
-        if (request.containsKey("name")) { dog.name = text(request.get("name"), "name", 40, true); }
-        if (request.containsKey("breed")) { dog.breed = text(request.get("breed"), "breed", 60, true); }
+        version(dog.version(), request.get("version"));
+        // R-04-06 (E38, E3-T17): during a pending readmission, a D2 edit of the reused dog's step-17 fields and documents edits
+        // the submitted values; the record keeps its own until validation applies them.
+        boolean readmission = "PENDING".equals(dog.status) && signups.getObject().readmissionPending(dog);
+        var target = readmission ? signups.getObject().submittedView(dog) : dog; var before = fields(target, dog);
+        if (request.containsKey("name")) { target.name = text(request.get("name"), "name", 40, true); }
+        if (request.containsKey("breed")) { target.breed = text(request.get("breed"), "breed", 60, true); }
         if (request.containsKey("sex")) {
             if (!Set.of("MALE", "FEMALE").contains(String.valueOf(request.get("sex")))) { throw invalid("sex", "INVALID_VALUE"); }
-            dog.sex = string(request.get("sex"));
+            target.sex = string(request.get("sex"));
         }
         if (request.containsKey("birthDate")) {
-            try { dog.birthDate = LocalDate.parse(string(request.get("birthDate"))); }
+            try { target.birthDate = LocalDate.parse(string(request.get("birthDate"))); }
             catch (RuntimeException badDate) { throw invalid("birthDate", "INVALID_VALUE"); }
-            if (dog.birthDate.isAfter(clubClock.today(TenantContext.require()))) { throw invalid("birthDate", "INVALID_VALUE"); }
+            if (target.birthDate.isAfter(clubClock.today(TenantContext.require()))) { throw invalid("birthDate", "INVALID_VALUE"); }
         }
         if (request.containsKey("chip") && "PENDING".equals(dog.status)) {
             // D2 (S04 §3, M21): a pending dog's chip is required, normalised and checked per country profile; the `dog_chip`
             // index keeps it unique (CHIP_ALREADY_EXISTS, as for any dog PATCH).
-            dog.chip = signups.getObject().chip(text(request.get("chip"), "chip", 40, true), "chip");
+            String chip = signups.getObject().chip(text(request.get("chip"), "chip", 40, true), "chip");
+            // E3-T17 (R-04-06 b, as the identity document): the readmission matched the reused dog on its chip, so the chip
+            // cannot change while it is pending; a wrong one is resolved by rejecting it. Sending the chip it has is no edit.
+            if (readmission && !chip.equals(dog.chip)) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "READMISSION_PENDING")); }
+            dog.chip = chip;
         } else if (request.containsKey("chip")) { dog.chip = text(request.get("chip"), "chip", 20, false); if (dog.chip != null && dog.chip.isEmpty()) { dog.chip = null; } }
         if (request.containsKey("birthMonth")) {
-            try { dog.birthDate=YearMonth.parse(string(request.get("birthMonth"))).atDay(1); }
+            try { target.birthDate=YearMonth.parse(string(request.get("birthMonth"))).atDay(1); }
             catch(RuntimeException invalidMonth) { throw invalid("birthMonth","INVALID_VALUE"); }
-            if(dog.birthDate.isAfter(clubClock.today(TenantContext.require()))) throw invalid("birthMonth","INVALID_VALUE");
+            if(target.birthDate.isAfter(clubClock.today(TenantContext.require()))) throw invalid("birthMonth","INVALID_VALUE");
         }
-        if (request.containsKey("notesToInstructors")) dog.instructorNote=object("text",text(request.get("notesToInstructors"),"notesToInstructors",1000,false),"updatedAt",clock.instant());
+        if (request.containsKey("notesToInstructors")) target.instructorNote=object("text",text(request.get("notesToInstructors"),"notesToInstructors",1000,false),"updatedAt",clock.instant());
         if (request.containsKey("documents")) signups.getObject().saveDocuments(dog,rows(request.get("documents")));
+        if (readmission) { signups.getObject().storeSubmitted(dog, target); }
         if (request.containsKey("handlerName")) { dog.handlerName = text(request.get("handlerName"), "handlerName", 80, false); if ("".equals(dog.handlerName)) { dog.handlerName = null; } }
         if (request.containsKey("licenses")) { dog.licenses = validation.licenses(request.get("licenses")); }
-        var diff = events.diff(before, fields(dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
+        var diff = events.diff(before, fields(target, dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
         if (diff.isEmpty()) { return; }
         access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
         if ("PENDING".equals(dog.status)) { signups.getObject().refreshDashboard(); } // R-14-01 (M11): the D1 row shows the dog
     }
-    private Map<String,Object> fields(Dog dog) {
-        return object("name", dog.name, "breed", dog.breed, "sex", dog.sex, "birthDate", dog.birthDate, "chip", dog.chip,
-                "handlerName", dog.handlerName, "licenses", dog.licenses, "instructorNote", dog.instructorNote);
+    /** The edited fields: the step-17 values from `values` (the submitted ones of a pending readmission), the rest from the record. */
+    private Map<String,Object> fields(Dog values, Dog dog) {
+        return object("name", values.name, "breed", values.breed, "sex", values.sex, "birthDate", values.birthDate, "chip", dog.chip,
+                "handlerName", dog.handlerName, "licenses", dog.licenses, "instructorNote", values.instructorNote);
     }
     @Transactional
     @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")

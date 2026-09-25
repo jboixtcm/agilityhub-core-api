@@ -1,0 +1,270 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] argLine set to -javaagent:/Users/jordib/.m2/repository/org/jacoco/org.jacoco.agent/0.8.14/org.jacoco.agent-0.8.14-runtime.jar=destfile=/Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 9 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 37 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 227 source files with javac [debug parameters release 21] to target/test-classes
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+00:40:37.433 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+00:40:37.641 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+00:40:37.762 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+00:40:37.764 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+00:40:37.771 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+00:40:37.997 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+00:40:38.218 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+00:40:38.219 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+00:40:38.232 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+00:40:38.436 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+00:40:38.537 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+00:40:38.610 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: bc68cc9b02dbec67cfd9bdd3c621a81eac1de4f93c31e17d532d110559da3ae7
+00:40:38.797 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.361684S
+00:40:38.802 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+00:40:38.802 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+00:40:38.803 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+00:40:38.803 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+00:40:38.844 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 9e33803ab5db06b7a42b62b383b9712b03f79a86bb55424c46473205285a79b6
+00:40:39.271 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.468262S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-26T00:40:40.123+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : Starting SignupSecurityFixesIT using Java 21.0.12.1 with PID 20611 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-26T00:40:40.124+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : The following 1 profile is active: "test"
+2026-09-26T00:40:41.375+02:00  INFO 20611 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-26T00:40:41.419+02:00  INFO 20611 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 40 ms. Found 0 MongoDB repository interfaces.
+2026-09-26T00:40:41.967+02:00  INFO 20611 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@5ed1438a], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@3f29d13d, com.mongodb.Jep395RecordCodecProvider@7e15d4ff, com.mongodb.KotlinCodecProvider@3b1df73b]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:58764], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6f842ec1], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-26T00:40:41.982+02:00  INFO 20611 --- [agilityhub-core-api] [localhost:58764] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:58764, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=20880708, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=9e33803ab5db:27017, hosts=[9e33803ab5db:27017], passives=[], arbiters=[], primary='9e33803ab5db:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab6f8665c2d4f4bff6f082a, counter=6}, lastWriteDate=Sat Sep 26 00:40:39 CEST 2026, lastUpdateTimeNanos=179847328401541}
+2026-09-26T00:40:45.151+02:00  INFO 20611 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-26T00:40:45.151+02:00  INFO 20611 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-26T00:40:45.152+02:00  INFO 20611 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-26T00:40:45.178+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : Started SignupSecurityFixesIT in 5.284 seconds (process running for 8.344)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-26T00:40:46.868+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 1 dogs
+2026-09-26T00:40:48.486+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-06dcbeed-fbb2-41ac-8435-7b8ec8892977 recipientHash=mOzqAfgGRcrHCd8rpWx4MIZjxO36UXDI-i8nyrrhy24
+2026-09-26T00:40:48.503+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-06dcbeed-fbb2-41ac-8435-7b8ec8892977 recipientHash=mOzqAfgGRcrHCd8rpWx4MIZjxO36UXDI-i8nyrrhy24
+2026-09-26T00:40:49.010+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-3b95d47f-ab4b-4296-8099-814dd9d1c698 recipientHash=MDlIYMpouvLT-HyVQiW7BSWbP_T6TtqcpntSxrBn8h0
+2026-09-26T00:40:49.030+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-3b95d47f-ab4b-4296-8099-814dd9d1c698 recipientHash=MDlIYMpouvLT-HyVQiW7BSWbP_T6TtqcpntSxrBn8h0
+2026-09-26T00:40:49.445+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-3b95d47f-ab4b-4296-8099-814dd9d1c698 recipientHash=rLs1Nnqj269iAPO6BwLbfo_O4HJTSgi2tSX0J3UZSNY
+2026-09-26T00:40:49.468+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-3b95d47f-ab4b-4296-8099-814dd9d1c698 recipientHash=rLs1Nnqj269iAPO6BwLbfo_O4HJTSgi2tSX0J3UZSNY
+2026-09-26T00:40:49.497+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-3b95d47f-ab4b-4296-8099-814dd9d1c698 recipientHash=rLs1Nnqj269iAPO6BwLbfo_O4HJTSgi2tSX0J3UZSNY
+2026-09-26T00:40:51.314+02:00  WARN 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=071074d2-a080-487b-82cb-4be7aa2e972c
+2026-09-26T00:40:51.318+02:00  WARN 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=cd078f68-d099-4daa-9836-74a758a6a8e2
+2026-09-26T00:40:51.321+02:00  WARN 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=b57c0d23-b233-4b0e-b60e-3ab1be7a944a
+2026-09-26T00:40:51.324+02:00  WARN 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=513f1430-4ff8-4ed5-8263-7b8ee10f29d8
+2026-09-26T00:40:51.330+02:00  WARN 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=cdbae2d1-1e03-4ee8-bef8-0dbfba877ba6
+[ERROR] Tests run: 25, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 16.86 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_aReadmissionWithoutACardEmitsDogDocumentPendingOnlyAtValidation -- Time elapsed: 0.352 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 
+  [{"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="30949e5f-ce81-424f-a059-604f00d5f8db", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[{"fileKey"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "id"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "mimeType"="application/pdf", "name"="insurance.pdf", "sizeBytes"=23L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="INSURANCE", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L},
+      {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="280b4162-a589-42cd-a8de-2dd8e3140048", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[{"fileKey"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/ab500710-9be5-4b2c-9ec3-228f4c20cd21/card.pdf", "id"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/ab500710-9be5-4b2c-9ec3-228f4c20cd21/card.pdf", "mimeType"="application/pdf", "name"="card.pdf", "sizeBytes"=18L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L}]
+ but was: 
+  [{"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="30949e5f-ce81-424f-a059-604f00d5f8db", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[{"fileKey"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "id"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "mimeType"="application/pdf", "name"="insurance.pdf", "sizeBytes"=23L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="INSURANCE", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L},
+      {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="280b4162-a589-42cd-a8de-2dd8e3140048", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[], "state"="PENDING", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=1L}]
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_aReadmissionWithoutACardEmitsDogDocumentPendingOnlyAtValidation(SignupSecurityFixesIT.java:323)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas -- Time elapsed: 0.223 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: 
+  {"_class"="com.agilityhub.core.clubs.census.persistence.Dog", "_id"="0a74016a-0fb1-492b-a3e0-a577e5c955c5", "birthDate"="2024-04-01", "breed"="Example breed", "chip"="941000002000001", "clubId"="sec-7af3d245-9c3e-4744-88b0-395a5f467d1e", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "deactivatedAt"=2025-06-30T12:00:00.000 (java.util.Date), "deactivationReason"="MEMBER_LEFT", "freeTrainingAllowed"=false, "instructorNote"={"updatedAt"=2026-01-01T01:00:00.000 (java.util.Date)}, "levelAssignedAt"=2026-01-01T01:00:00.000 (java.util.Date), "levelHistory"=[{"byAccountId"="security-admin", "from"=2026-01-01T01:00:00.000 (java.util.Date), "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a"}], "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a", "memberId"="16e32ba1-cd40-4284-be1e-b4d54ea8d172", "name"="Example Dog 1", "nameKey"="Example Dog 1", "registeredAt"=2026-01-01T01:00:00.000 (java.util.Date), "sex"="FEMALE", "signup"={"firstMonthOption"="TODAY", "ipHash"="FzQF-cdPbIztOJrKXak2MFYq16q0nl0_SZOivSSpHKI", "locale"="ca", "paymentMethodTypeRequested"="MANUAL", "planIdRequested"="428176bc-3a5b-443e-b4b4-aea8579de21c", "readmission"=false, "source"="PUBLIC", "submissionId"="77362a47-c86e-476f-899d-2ccc3fd6c46a", "submittedAt"=2026-01-01T01:00:00.000 (java.util.Date), "upfront"={"firstMonth"={"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "option"="TODAY", "portion"="FULL", "startDate"="2026-01-01"}, "lines"=[{"amountDue"={"amountMinor"=10000L, "currency"="EUR"}, "concept"="ENTRY_FEE", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"},
+      {"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "concept"="FIRST_MONTH", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"}], "totalDue"={"amountMinor"=16000L, "currency"="EUR"}}, "validatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "validatedByAccountId"="security-admin"}, "status"="INACTIVE"}
+ but was: 
+  {"_class"="com.agilityhub.core.clubs.census.persistence.Dog", "_id"="0a74016a-0fb1-492b-a3e0-a577e5c955c5", "birthDate"="2023-09-01", "breed"="Other breed", "chip"="941000002000001", "clubId"="sec-7af3d245-9c3e-4744-88b0-395a5f467d1e", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "deactivatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "deactivationReason"="SIGNUP_REJECTED", "freeTrainingAllowed"=false, "instructorNote"={"text"="Fictional new notes", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date)}, "levelAssignedAt"=2026-01-01T01:00:00.000 (java.util.Date), "levelHistory"=[{"byAccountId"="security-admin", "from"=2026-01-01T01:00:00.000 (java.util.Date), "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a"}], "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a", "memberId"="16e32ba1-cd40-4284-be1e-b4d54ea8d172", "name"="Renamed Dog", "nameKey"="Renamed Dog", "registeredAt"=2026-01-01T01:00:00.000 (java.util.Date), "sex"="FEMALE", "signup"={"firstMonthOption"="TODAY", "ipHash"="4FZz9jAYoLaC7LHv13sLcbntPt4QvC-Wp7Fl-aWA9L0", "locale"="ca", "paymentMethodTypeRequested"="SEPA_DD", "planIdRequested"="428176bc-3a5b-443e-b4b4-aea8579de21c", "readmission"=true, "rejectedAt"=2026-01-01T01:00:00.000 (java.util.Date), "rejectedByAccountId"="security-admin", "rejectionReason"="Fictional rejection reason", "source"="PUBLIC", "submissionId"="c4b0b28c-959a-4f5f-a803-587f92f71cc5", "submittedAt"=2026-01-01T01:00:00.000 (java.util.Date), "upfront"={"firstMonth"={"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "option"="TODAY", "portion"="FULL", "startDate"="2026-01-01"}, "lines"=[{"amountDue"={"amountMinor"=10000L, "currency"="EUR"}, "concept"="ENTRY_FEE", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"},
+      {"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "concept"="FIRST_MONTH", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"}], "totalDue"={"amountMinor"=16000L, "currency"="EUR"}}}, "status"="INACTIVE"}
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas(SignupSecurityFixesIT.java:247)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_theReusedDogWaitsInTheRequestUntilTheValidationAppliesItsValuesAndDocuments -- Time elapsed: 0.346 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[name] 
+expected: "Example Dog 1"
+ but was: "Renamed Dog"
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_theReusedDogWaitsInTheRequestUntilTheValidationAppliesItsValuesAndDocuments(SignupSecurityFixesIT.java:275)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_15_19_T_04_19_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection -- Time elapsed: 0.171 s <<< FAILURE!
+java.lang.AssertionError: 
+[a pending readmission's file and the dog's own files are referenced] 
+Expecting all elements of:
+  ["signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/6cfdd8e9-4234-471f-bede-97a6a20e7b0a/new-card.pdf",
+    "signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/cb551bea-ec85-4597-9205-9bb65a97f584/card.pdf",
+    "signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/c0fe8ada-448d-4913-b9f5-03b6a8c87ddf/insurance.pdf"]
+to match given predicate but this element did not:
+  "signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/cb551bea-ec85-4597-9205-9bb65a97f584/card.pdf"
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_15_19_T_04_19_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection(SignupSecurityFixesIT.java:360)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+2026-09-26T00:40:54.232+02:00  INFO 20611 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT]: SignupFollowUpFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T00:40:54.234+02:00  INFO 20611 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+2026-09-26T00:40:54.590+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-3a70f4a2-0be3-4400-8745-37f7a3eab473 recipientHash=yDhfqD0Aj1hCTYxjJBjl8mZ6vXFn0XpnLDE38mEyJqM
+2026-09-26T00:40:54.896+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-ef59de68-d97d-485a-a391-2f98e5845ff5 recipientHash=SipScMMsN79fO8prRi1azfdAHNqCSrlWuYX2fpui-bE
+2026-09-26T00:40:55.177+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-8985f97a-9678-40f3-8c84-9092119db492 recipientHash=VHTU--0afVnY9h4tcH7uiJz6Xjhzawlbj4nGfS90ImA
+2026-09-26T00:40:55.492+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-e7529443-d270-4989-b5f5-fdfb7cb7307d recipientHash=3HeEDxQ5fIuxSmc2IlB1t3f8mNzvuBtgzw9zyr_9YLk
+2026-09-26T00:40:57.245+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-d8446a4f-9a58-49f2-bd3e-274135c5dc52 recipientHash=dop940gbdCgndiYcEHhoHPwvWetN3WbhhxDiQRCLj0E
+[ERROR] Tests run: 14, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 3.031 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal -- Time elapsed: 0.225 s <<< FAILURE!
+org.assertj.core.error.AssertJMultipleFailuresError: 
+
+[List check single element] (1 failure)
+-- failure 1 --
+expected: "Example Dog 1"
+ but was: "Alpha Dog"
+at SignupFollowUpFixesIT.lambda$R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal$23(SignupFollowUpFixesIT.java:248)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal(SignupFollowUpFixesIT.java:248)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupIT
+2026-09-26T00:40:57.265+02:00  INFO 20611 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupIT]: SignupIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T00:40:57.266+02:00  INFO 20611 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupIT
+2026-09-26T00:40:57.281+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=8833ba6b-f72a-4821-ab8f-748607507fbb clubId=sgn-39f4a428-6031-4f36-9467-8289ce0a832b ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.007+02:00  WARN 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=79649ea0-19d2-4edd-94aa-8f38619e3e95
+2026-09-26T00:40:59.011+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=46960af6-8bea-4040-92b7-4cbaa91fd7e9 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.012+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=e3233d24-25d2-4857-a2ac-04c8ada072a1 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.012+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=f0309f1f-228f-4a52-94e8-13e576102800 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.013+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=93a4d9f0-745b-4c89-bcd3-e1459eed9009 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.014+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=53cb738d-8c9b-49c7-a8a7-3a8dc52868d9 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.015+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=eb08873e-c685-43e0-8ebd-0534e54d42ee clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.015+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=9e9c177b-6721-41aa-b7ee-af3311640dd9 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.016+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=d360ed52-8d28-4e80-aeaa-bd54268a488a clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.017+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=40cc9dfc-bd51-4af9-bd7f-8b9d3f035171 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.017+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=22359b84-cf09-4ca2-bcba-079742297b07 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.018+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=025e59b5-8528-4d4f-85a4-2da39cae7860 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.019+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=d957a116-938f-4d3c-8097-dd3a6a102a6a clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.020+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=a8ba4f39-6aa9-4c46-9766-3e8a42be8a5b clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.020+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=cef85b4d-3c05-489f-8708-6f107e5ef435 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.022+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=f06a0175-73c6-4036-b0a7-c720fbe6104b clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.023+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=b9d4bbe3-e165-494d-8e96-d5f8182c01cd clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.024+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=962d93a4-4732-4b05-a76a-26e9b75ad844 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.025+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=cefb83a5-186d-4b8f-9163-df7bf021604e clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.026+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=e01bc256-e2e6-4543-a49d-03acd387adb3 clubId=sgn-cf2d7a4c-4e55-4976-8dd7-e8778708ccde ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.040+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=7e7f2a8d-3283-469d-a8e8-ee7b90423547 clubId=sgn-4c2846a0-35d4-4bd3-aad5-2bc141a6b7ac ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.040+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=b33ba814-28df-4915-b9cd-fbb91aac163f clubId=sgn-4c2846a0-35d4-4bd3-aad5-2bc141a6b7ac ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.041+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=082f2e31-4ed7-4f7d-a789-266c431711dc clubId=sgn-4c2846a0-35d4-4bd3-aad5-2bc141a6b7ac ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.042+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=a6ec453f-eef1-49bc-afde-403aa93d5d1a clubId=sgn-4c2846a0-35d4-4bd3-aad5-2bc141a6b7ac ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+2026-09-26T00:40:59.042+02:00  INFO 20611 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=7cedae26-9c28-4aab-a19c-2463fff33f74 clubId=sgn-4c2846a0-35d4-4bd3-aad5-2bc141a6b7ac ipHash=qF-KbIlUlsXTAS18sYABzt9Mk-EGZrDdFWfDMYf9VlE
+E5-T07 outbox backlog discarded before SignupIT: 137 PENDING records (more than one dispatch() batch)
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.500 s -- in com.agilityhub.core.clubs.census.api.SignupIT
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+2026-09-26T00:41:03.765+02:00  INFO 20611 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupGateFixesIT]: SignupGateFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T00:41:03.766+02:00  INFO 20611 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.106 s -- in com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal:248 
+[List check single element] (1 failure)
+-- failure 1 --
+expected: "Example Dog 1"
+ but was: "Alpha Dog"
+at SignupFollowUpFixesIT.lambda$R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal$23(SignupFollowUpFixesIT.java:248)
+[ERROR]   SignupSecurityFixesIT.R_15_19_T_04_19_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection:360 [a pending readmission's file and the dog's own files are referenced] 
+Expecting all elements of:
+  ["signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/6cfdd8e9-4234-471f-bede-97a6a20e7b0a/new-card.pdf",
+    "signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/cb551bea-ec85-4597-9205-9bb65a97f584/card.pdf",
+    "signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/c0fe8ada-448d-4913-b9f5-03b6a8c87ddf/insurance.pdf"]
+to match given predicate but this element did not:
+  "signup/sec-f7557633-ee63-478e-a55d-7bd66d9b9d5b/202601/cb551bea-ec85-4597-9205-9bb65a97f584/card.pdf"
+[ERROR]   SignupSecurityFixesIT.T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas:247 
+expected: 
+  {"_class"="com.agilityhub.core.clubs.census.persistence.Dog", "_id"="0a74016a-0fb1-492b-a3e0-a577e5c955c5", "birthDate"="2024-04-01", "breed"="Example breed", "chip"="941000002000001", "clubId"="sec-7af3d245-9c3e-4744-88b0-395a5f467d1e", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "deactivatedAt"=2025-06-30T12:00:00.000 (java.util.Date), "deactivationReason"="MEMBER_LEFT", "freeTrainingAllowed"=false, "instructorNote"={"updatedAt"=2026-01-01T01:00:00.000 (java.util.Date)}, "levelAssignedAt"=2026-01-01T01:00:00.000 (java.util.Date), "levelHistory"=[{"byAccountId"="security-admin", "from"=2026-01-01T01:00:00.000 (java.util.Date), "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a"}], "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a", "memberId"="16e32ba1-cd40-4284-be1e-b4d54ea8d172", "name"="Example Dog 1", "nameKey"="Example Dog 1", "registeredAt"=2026-01-01T01:00:00.000 (java.util.Date), "sex"="FEMALE", "signup"={"firstMonthOption"="TODAY", "ipHash"="FzQF-cdPbIztOJrKXak2MFYq16q0nl0_SZOivSSpHKI", "locale"="ca", "paymentMethodTypeRequested"="MANUAL", "planIdRequested"="428176bc-3a5b-443e-b4b4-aea8579de21c", "readmission"=false, "source"="PUBLIC", "submissionId"="77362a47-c86e-476f-899d-2ccc3fd6c46a", "submittedAt"=2026-01-01T01:00:00.000 (java.util.Date), "upfront"={"firstMonth"={"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "option"="TODAY", "portion"="FULL", "startDate"="2026-01-01"}, "lines"=[{"amountDue"={"amountMinor"=10000L, "currency"="EUR"}, "concept"="ENTRY_FEE", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"},
+      {"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "concept"="FIRST_MONTH", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"}], "totalDue"={"amountMinor"=16000L, "currency"="EUR"}}, "validatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "validatedByAccountId"="security-admin"}, "status"="INACTIVE"}
+ but was: 
+  {"_class"="com.agilityhub.core.clubs.census.persistence.Dog", "_id"="0a74016a-0fb1-492b-a3e0-a577e5c955c5", "birthDate"="2023-09-01", "breed"="Other breed", "chip"="941000002000001", "clubId"="sec-7af3d245-9c3e-4744-88b0-395a5f467d1e", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "deactivatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "deactivationReason"="SIGNUP_REJECTED", "freeTrainingAllowed"=false, "instructorNote"={"text"="Fictional new notes", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date)}, "levelAssignedAt"=2026-01-01T01:00:00.000 (java.util.Date), "levelHistory"=[{"byAccountId"="security-admin", "from"=2026-01-01T01:00:00.000 (java.util.Date), "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a"}], "levelId"="ef8ad885-aeb5-434b-942c-19dddb749a4a", "memberId"="16e32ba1-cd40-4284-be1e-b4d54ea8d172", "name"="Renamed Dog", "nameKey"="Renamed Dog", "registeredAt"=2026-01-01T01:00:00.000 (java.util.Date), "sex"="FEMALE", "signup"={"firstMonthOption"="TODAY", "ipHash"="4FZz9jAYoLaC7LHv13sLcbntPt4QvC-Wp7Fl-aWA9L0", "locale"="ca", "paymentMethodTypeRequested"="SEPA_DD", "planIdRequested"="428176bc-3a5b-443e-b4b4-aea8579de21c", "readmission"=true, "rejectedAt"=2026-01-01T01:00:00.000 (java.util.Date), "rejectedByAccountId"="security-admin", "rejectionReason"="Fictional rejection reason", "source"="PUBLIC", "submissionId"="c4b0b28c-959a-4f5f-a803-587f92f71cc5", "submittedAt"=2026-01-01T01:00:00.000 (java.util.Date), "upfront"={"firstMonth"={"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "option"="TODAY", "portion"="FULL", "startDate"="2026-01-01"}, "lines"=[{"amountDue"={"amountMinor"=10000L, "currency"="EUR"}, "concept"="ENTRY_FEE", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"},
+      {"amountDue"={"amountMinor"=6000L, "currency"="EUR"}, "concept"="FIRST_MONTH", "dogId"="0a74016a-0fb1-492b-a3e0-a577e5c955c5"}], "totalDue"={"amountMinor"=16000L, "currency"="EUR"}}}, "status"="INACTIVE"}
+[ERROR]   SignupSecurityFixesIT.T_04_12_aReadmissionWithoutACardEmitsDogDocumentPendingOnlyAtValidation:323 
+expected: 
+  [{"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="30949e5f-ce81-424f-a059-604f00d5f8db", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[{"fileKey"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "id"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "mimeType"="application/pdf", "name"="insurance.pdf", "sizeBytes"=23L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="INSURANCE", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L},
+      {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="280b4162-a589-42cd-a8de-2dd8e3140048", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[{"fileKey"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/ab500710-9be5-4b2c-9ec3-228f4c20cd21/card.pdf", "id"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/ab500710-9be5-4b2c-9ec3-228f4c20cd21/card.pdf", "mimeType"="application/pdf", "name"="card.pdf", "sizeBytes"=18L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L}]
+ but was: 
+  [{"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="30949e5f-ce81-424f-a059-604f00d5f8db", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[{"fileKey"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "id"="signup/sec-55d20630-91da-4d59-bb0b-9845fc078817/202601/dfa07ecf-a5a2-4fe5-b32e-1ffb402619e7/insurance.pdf", "mimeType"="application/pdf", "name"="insurance.pdf", "sizeBytes"=23L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="INSURANCE", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L},
+      {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="280b4162-a589-42cd-a8de-2dd8e3140048", "clubId"="sec-55d20630-91da-4d59-bb0b-9845fc078817", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="6e5fba98-20f1-414f-b722-c58a615c645f", "files"=[], "state"="PENDING", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=1L}]
+[ERROR]   SignupSecurityFixesIT.T_04_12_theReusedDogWaitsInTheRequestUntilTheValidationAppliesItsValuesAndDocuments:275 [name] 
+expected: "Example Dog 1"
+ but was: "Renamed Dog"
+[INFO] 
+[ERROR] Tests run: 94, Failures: 5, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  39.990 s
+[INFO] Finished at: 2026-09-26T00:41:10+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

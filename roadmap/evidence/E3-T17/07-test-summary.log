@@ -1,0 +1,21 @@
+surefire totals: tests=560 failures=0 errors=0 skipped=0 (124 classes)
+failsafe totals: tests=973 failures=0 errors=0 skipped=0 (84 classes)
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=25 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=14 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=33 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=8 failures=0 errors=0 skipped=0
+E3-T17 test methods:
+  PASS SignupSecurityFixesIT#T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas
+  PASS SignupSecurityFixesIT#T_04_12_theReusedDogWaitsInTheRequestUntilTheValidationAppliesItsValuesAndDocuments
+  PASS SignupSecurityFixesIT#T_04_12_aReadmissionWithoutACardEmitsDogDocumentPendingOnlyAtValidation
+  PASS SignupSecurityFixesIT#T_04_19_aNewDogOfARejectedReadmissionIsStampedAndTheMembersOldDogIsUntouched
+  PASS SignupSecurityFixesIT#R_15_19_T_04_19_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection
+  PASS SignupFollowUpFixesIT#R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal
+  PASS SignupGateFixesIT#T_04_16_foundFamilyClaimProposesAndValidatesTheHiddenFamilyFare
+  PASS SignupIT#T_04_23_addDogReplaysTheSameCreatedResponseForTheSameIdempotencyKey
+  PASS E3ContractIT#T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors

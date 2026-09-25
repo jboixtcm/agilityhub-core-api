@@ -107,6 +107,20 @@ class SignupIT extends AbstractIntegrationTest {
         var duplicate=result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),422);
         assertThat(duplicate.path("code").asText()).isEqualTo("SIGNUP_ALREADY_PENDING");
     }
+    /** E3-T17 step 4 (audit item 1): a retried add-dog with the same `Idempotency-Key` gets the same 201 and body, and one new dog. */
+    @Test void T_04_23_addDogReplaysTheSameCreatedResponseForTheSameIdempotencyKey() throws Exception {
+        String id=submit(request()).path("memberId").asText();validate(id,16000);String key=UUID.randomUUID().toString();
+        var body=Map.of("dog",request().get("dog"),"documents",List.of(),"additionalDogOption","TODAY");
+        var first=result(asMember(postJson("/me/dogs/signup",body).header("Idempotency-Key",key),id),201);
+        var second=result(asMember(postJson("/me/dogs/signup",body).header("Idempotency-Key",key),id),201);
+        assertThat(second).isEqualTo(first);assertThat(first.path("dogId").asText()).isNotBlank();
+        var dogs=collection("dogs").stream().filter(d->id.equals(d.getString("memberId"))).toList();
+        assertThat(dogs).hasSize(2);assertThat(dogs.stream().filter(d->"PENDING".equals(d.getString("status")))).singleElement()
+                .satisfies(d->assertThat(d.getString("_id")).isEqualTo(first.path("dogId").asText()));
+        assertThat(collection("domain_events").stream().filter(e->"SignupSubmitted".equals(e.getString("type"))&&"APP_ADD_DOG".equals(e.get("payload",Document.class).getString("source")))).hasSize(1);
+        assertThat(collection("upfront_payments").stream().filter(p->first.path("dogId").asText().equals(p.getString("dogId")))).isNotEmpty()
+                .hasSize((int)collection("upfront_payments").stream().filter(p->first.path("dogId").asText().equals(p.getString("dogId"))).map(p->p.getString("signupConcept")).distinct().count());
+    }
     @Test void T_04_13_missingAndInvalidDocumentsRollbackTheEntireSubmission() throws Exception {
         var body=request();((ObjectNode)body.get("dog")).set("documents",mapper.valueToTree(List.of(Map.of("type","VACCINATION_CARD","files",List.of(Map.of("fileKey","signup/foreign/file.pdf","name","file.pdf"))))));
         assertThat(result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),400).path("code").asText()).isEqualTo("FILE_NOT_FOUND");

@@ -43,19 +43,31 @@ public class CleanupRepository {
         return mongo.count(Query.query(criteria.and(field).lt(before)), collection);
     }
 
-    /** SIGNUP_DOCUMENT grants of the club older than `before` whose key no `DogDocument.files[].fileKey` references. */
+    /** The documents a pending readmission sent for its reused dog (S04 R-04-06, E38): `Dog.readmissionRequest.submitted`. */
+    static final String READMISSION_DOCUMENTS = "readmissionRequest.submitted.documents";
+    /**
+     * SIGNUP_DOCUMENT grants of the club older than `before` whose key no `DogDocument.files[].fileKey` references, nor the
+     * documents of a pending readmission (a PENDING dog's {@link #READMISSION_DOCUMENTS}, R-15-19 amended 25-09, E3-T17).
+     */
     public List<String> orphanUploads(String clubId, Instant before) {
         var candidates = mongo.find(Query.query(scope(clubId).and("purpose").is("SIGNUP_DOCUMENT")
                 .and("_id").regex("^" + Pattern.quote("signup/" + clubId + "/")).and("createdAt").lt(before)).with(Sort.by("createdAt", "_id")), Document.class, UPLOADS)
                 .stream().map(d -> d.getString("_id")).toList();
         if (candidates.isEmpty()) { return List.of(); }
         var referenced = new HashSet<String>();
-        for (Document document : mongo.find(Query.query(scope(clubId).and("files.fileKey").in(candidates)), Document.class, "dog_documents")) {
-            for (Object file : document.getList("files", Object.class, List.of())) {
-                if (file instanceof Document f && f.getString("fileKey") != null) { referenced.add(f.getString("fileKey")); }
-            }
+        for (Document document : mongo.find(Query.query(scope(clubId).and("files.fileKey").in(candidates)), Document.class, "dog_documents")) { referenced.addAll(fileKeys(document)); }
+        for (Document dog : mongo.find(Query.query(scope(clubId).and("status").is("PENDING").and(READMISSION_DOCUMENTS + ".files.fileKey").in(candidates)), Document.class, "dogs")) {
+            var submitted = dog.get("readmissionRequest", Document.class).get("submitted", Document.class);
+            for (Document document : submitted.getList("documents", Document.class, List.of())) { referenced.addAll(fileKeys(document)); }
         }
         return candidates.stream().filter(key -> !referenced.contains(key)).toList();
+    }
+    private static List<String> fileKeys(Document document) {
+        var keys = new ArrayList<String>();
+        for (Object file : document.getList("files", Object.class, List.of())) {
+            if (file instanceof Document f && f.getString("fileKey") != null) { keys.add(f.getString("fileKey")); }
+        }
+        return keys;
     }
     public boolean deleteUpload(String clubId, String key) {
         return mongo.remove(Query.query(scope(clubId).and("_id").is(key)), UPLOADS).getDeletedCount() == 1;

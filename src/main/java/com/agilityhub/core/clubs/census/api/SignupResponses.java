@@ -118,7 +118,19 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) String notesToInstructors,
             DogStatus status, @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String levelId,
             List<SignupDocumentView> documents,
-            @Schema(description = "The dog's own optimistic version, compared by PATCH /dogs/{id}") long version) { }
+            @Schema(description = "The dog's own optimistic version, compared by PATCH /dogs/{id}") long version,
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-06 (E38): only for the reused dog of a pending readmission (the chip of the member's own INACTIVE dog). "
+                    + "The fields above show the submitted values and the documents the validation will write; the dog record keeps its own until then, and a rejection leaves it as it was") SignupDogReadmission readmission) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    @Schema(description = "R-04-06 (E38): the reused dog's own values beside the submitted ones shown on SignupDogView")
+    public record SignupDogReadmission(SignupDogValues current,
+            @Schema(description = "The fields whose submitted value differs from the dog record (name, sex, breed, birthMonth, notesToInstructors, documents)") List<String> changedFields,
+            @Schema(requiredMode = NOT_REQUIRED) Instant previousDeactivatedAt, @Schema(requiredMode = NOT_REQUIRED) String previousDeactivationReason) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    @Schema(description = "The values and documents of the dog record")
+    public record SignupDogValues(String name, @Schema(requiredMode = NOT_REQUIRED) Sex sex, @Schema(requiredMode = NOT_REQUIRED) String breed,
+            @Schema(requiredMode = NOT_REQUIRED, pattern = "\\d{4}-(0[1-9]|1[0-2])") String birthMonth,
+            @Schema(requiredMode = NOT_REQUIRED) String notesToInstructors, List<SignupDocumentView> documents) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupSubmission(Instant submittedAt, int pendingDays, boolean readmission, SignupSource source,
             String locale, @Schema(requiredMode = NOT_REQUIRED,format = "uuid") String planIdRequested) { }

@@ -249,6 +249,12 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         assertThat(family.at("/prices/0/periodicity").asText()).isEqualTo("MONTHLY");
         validate(id);
         assertThat(member(id).getString("planId")).isEqualTo(planId("ABONAT_FAMILIAR"));assertThat(member(id).getString("familyGroupId")).isNotNull();
+        // E3-T17 step 3 (audit item 3): the validated member joins the holder's group, and that group lists both of them.
+        String group=member(id).getString("familyGroupId");
+        assertThat(group).isEqualTo(member(holder).getString("familyGroupId"));
+        var stored=mongo.getCollection("family_groups").find(new Document("_id",group).append("clubId",club)).first();
+        assertThat(stored.getString("holderMemberId")).isEqualTo(holder);assertThat(stored.getString("status")).isEqualTo("ACTIVE");
+        assertThat(stored.getList("memberIds",String.class)).containsExactlyInAnyOrder(holder,id);
         // A holder with two dogs: the group reaches 3 dogs and no plan includes 3, so the proposal is the largest family fare.
         mongo.insert(new Document("_id",UUID.randomUUID().toString()).append("clubId",club).append("memberId",holder).append("name","Second Holder Dog")
                 .append("status","ACTIVE").append("sex","MALE").append("breed","Example breed").append("chip","941000007000001").append("version",0L),"dogs");

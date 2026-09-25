@@ -1,0 +1,60 @@
+heavy.sh: 00:54 waiting for the host lock, held by: 00:54 agilityhub-core-web: pnpm e2e:docker E4-W05
+heavy.sh: 00:55 got the host lock after 0 min 45 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+PASS GET /signup: texts resolved, one quote per offered plan
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+PASS D1 dogs by level: 8 progression columns, others=0
+PASS D1 class occupancy follows R-14-03 for the seeded week: 6 classes, booked=0, capacity=29, percent=0
+curl GET /api/v1/members/a1ddc2de-036b-3c8f-ab6f-36dd435aa74f/signup -> 200
+curl GET /api/v1/members/f4a15ac2-e3ce-3ec3-83f9-0f822c91236f/signup -> 200
+curl GET /api/v1/members/3016535b-02d0-3469-ae18-1505e243dcb7/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/10ad8d95-21a4-467e-914c-34e91c438c37/signup -> 200
+curl GET /api/v1/club -> 200
+PASS payment methods: GET /club, GET /signup and D2 offer SEPA_DD and MANUAL
+PASS mailbox N-01 correlated by notificationId; locale=ca
+curl POST /api/v1/members/10ad8d95-21a4-467e-914c-34e91c438c37/validation -> 200
+curl POST /api/v1/members/10ad8d95-21a4-467e-914c-34e91c438c37/validation -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS mailbox N-02 correlated by notificationId; locale=ca; token=[truncated]
+curl POST /oauth2/token -> 200
+curl GET /api/v1/me -> 200
+PASS public family signup -> dry run -> validation/number increment -> N-02 -> welcome session
+curl POST /api/v1/me/dogs/signup -> 201
+PASS N-01 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/10ad8d95-21a4-467e-914c-34e91c438c37/signup -> 200
+PASS add-dog D2: only the member's current payment method, not assignable
+curl POST /api/v1/members/10ad8d95-21a4-467e-914c-34e91c438c37/validation -> 200
+PASS N-37 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/bc3907a4-5d82-4b54-a77d-3c4ddf4ecdd8/signup -> 200
+curl POST /api/v1/members/bc3907a4-5d82-4b54-a77d-3c4ddf4ecdd8/rejection -> 200
+PASS mailbox N-03 correlated by notificationId; locale=ca
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS signup without family -> rejection -> N-03; D1 counters restored
+curl GET /api/v1/parameters/signup.enabled -> 200
+curl PUT /api/v1/parameters/signup.enabled -> 200
+curl POST /api/v1/signup -> 422 SIGNUP_CLOSED
+PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED
+PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

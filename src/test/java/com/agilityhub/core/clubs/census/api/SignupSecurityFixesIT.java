@@ -57,7 +57,8 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         var text=new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en");
         mongo.insert(new Plan(plan,id,"MONTHLY",text,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,text,null,true,true,0,true,0,clock.instant(),clock.instant(),null,null));
         mongo.insert(new Price(UUID.randomUUID().toString(),id,plan,PriceConcept.MONTHLY_FEE,new Money(6000,"EUR"),java.math.BigDecimal.ZERO,LocalDate.of(2020,1,1),null,0,clock.instant(),clock.instant(),null,null));
-        mongo.insert(new Document("_id",level).append("clubId",id).append("active",true).append("name",Map.of("en","Beginner")).append("order",0),"levels");
+        // E3-T17: with its `code`, as a real level (the D2 view is checked against the snapshot schema).
+        mongo.insert(new Document("_id",level).append("clubId",id).append("code","A").append("active",true).append("name",Map.of("en","Beginner")).append("order",0),"levels");
         return id;
     }
     String national() { int value=14000000+(++sequence);return String.format("%08d",value)+"TRWAGMYFPDXBNJZSQVHLCKE".charAt(value%23); }
@@ -133,14 +134,49 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 3 (M18, E38): a readmission does not overwrite the LEFT record ----
+    static final Instant LEFT_AT=Instant.parse("2025-06-30T10:00:00Z");
     /** An active member who left in June 2025 (reason LEAVE_REQUEST), with the dog made inactive when leaving. */
     String leftMember(ObjectNode original) throws Exception {
         String id=activeMember(original);
-        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("status","LEFT").append("leftAt",Date.from(Instant.parse("2025-06-30T10:00:00Z")))
+        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("status","LEFT").append("leftAt",Date.from(LEFT_AT))
                 .append("leftReason","LEAVE_REQUEST").append("leaveDate","2025-06-30").append("memberNumber",214)));
-        mongo.getCollection("dogs").updateMany(new Document("memberId",id),new Document("$set",new Document("status","INACTIVE").append("deactivationReason","MEMBER_LEFT")));
+        mongo.getCollection("dogs").updateMany(new Document("memberId",id),new Document("$set",new Document("status","INACTIVE").append("deactivationReason","MEMBER_LEFT").append("deactivatedAt",Date.from(LEFT_AT))));
         return id;
     }
+    // E3-T17 (R-04-06, R-04-23, E38 for the reused dog): real signed uploads, the dog and its documents as stored.
+    @Autowired com.agilityhub.core.platform.application.jobs.JobRunner runner;
+    @Autowired com.agilityhub.core.clubs.common.persistence.CleanupRepository cleanup;
+    @Autowired com.agilityhub.core.clubs.followup.application.AttachmentStorage storage;
+    /** A fictional PDF uploaded through the signed signup route, as the web does; returns its file key. */
+    String upload(String name) throws Exception {
+        byte[] bytes=("fictional "+name).getBytes(java.nio.charset.StandardCharsets.UTF_8);String ip="198.51.100.250";
+        var upload=result(from(postJson("/signup/upload-urls",Map.of("fileName",name,"contentType","application/pdf","sizeBytes",bytes.length)),ip),200);
+        var put=from(put(java.net.URI.create(upload.path("uploadUrl").asText())).header("Host",host).contentType("application/pdf").content(bytes),ip);
+        assertThat(mvc.perform(put).andReturn().getResponse().getStatus()).isEqualTo(204);
+        return upload.path("fileKey").asText();
+    }
+    /** The original signup sends a vaccination card and an insurance. */
+    ObjectNode withDocuments(ObjectNode body,String card,String insurance) {
+        ((ObjectNode)body.get("dog")).set("documents",mapper.valueToTree(List.of(Map.of("type","VACCINATION_CARD","files",List.of(Map.of("fileKey",card,"name","card.pdf"))),
+                Map.of("type","INSURANCE","files",List.of(Map.of("fileKey",insurance,"name","insurance.pdf"))))));
+        return body;
+    }
+    /** T-04-19's readmission: the dog renamed, with another breed, birth month and notes, a new vaccination card (or none) and no insurance. */
+    ObjectNode changedDog(ObjectNode body,String card) {
+        var dog=(ObjectNode)body.get("dog");dog.put("name","Renamed Dog").put("breed","Other breed").put("birthMonth","2023-09").put("notesToInstructors","Fictional new notes");
+        dog.set("documents",mapper.valueToTree(card==null?List.of():List.of(Map.of("type","VACCINATION_CARD","files",List.of(Map.of("fileKey",card,"name","new-card.pdf"))))));
+        return body;
+    }
+    Document dog(String memberId) { return mongo.getCollection("dogs").find(new Document("memberId",memberId).append("clubId",club)).first(); }
+    List<Document> dogDocuments(String dogId) { return mongo.getCollection("dog_documents").find(new Document("dogId",dogId).append("clubId",club)).sort(new Document("type",1)).into(new ArrayList<>()); }
+    static Document unversioned(Document document) { var copy=new Document(document);copy.remove("version");copy.remove("updatedAt");return copy; }
+    static JsonNode document(JsonNode dog,String type) { for(var document:dog.path("documents")) if(type.equals(document.path("type").asText())) return document;return com.fasterxml.jackson.databind.node.MissingNode.getInstance(); }
+    List<String> fileKeys(Document document) { return document.getList("files",Document.class).stream().map(f->f.getString("fileKey")).toList(); }
+    /** The signup uploads P9 would delete now if they were older than 48 h (S15 R-15-19). */
+    List<String> orphans() { try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(club)) { return cleanup.orphanUploads(club,clock.instant().plus(Duration.ofDays(3))); } }
+    boolean stored(String key) { try { storage.metadata(key);return true; } catch(ApiException missing) { return false; } }
+    List<Document> dogEvents(String type,String dogId) { return collection("domain_events").stream().filter(e->type.equals(e.getString("type"))&&dogId.equals(e.get("payload",Document.class).getString("dogId"))).toList(); }
+    static final List<String> DOG=List.of("name","nameKey","sex","breed","birthDate","chip","instructorNote","levelId","registeredAt","deactivatedAt","deactivationReason");
     ObjectNode readmission(ObjectNode original) {
         var body=original.deepCopy();var person=(ObjectNode)body.get("person");
         person.set("emails",mapper.valueToTree(List.of("readmitted"+sequence+"@example.test")));
@@ -185,8 +221,12 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(audit.toJson()).contains("600000099","···· ···· ···· ···· 0001").doesNotContain(IBAN);
     }
     @Test void T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas() throws Exception {
-        var original=request();String id=leftMember(original);var before=member(id);
-        submit(readmission(original));
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);var before=member(id);
+        // E3-T17 (T-04-19): the reused dog and its documents are read the same way.
+        var dogBefore=dog(id);String dogId=dogBefore.getString("_id");var documentsBefore=dogDocuments(dogId);assertThat(documentsBefore).hasSize(2);
+        String newCard=upload("new-card.pdf");
+        submit(changedDog(readmission(original),newCard));
         // Round 2 (R-04-06 b): the readmission matched on the document, so D2 cannot change it while it is pending.
         long version=((Number)member(id).get("version")).longValue();
         var locked=result(admin(patch("/api/v1/members/"+id).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",version,
@@ -201,9 +241,132 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         var actual=new Document(after);actual.remove("version");actual.remove("updatedAt");
         assertThat(actual).isEqualTo(expected);
         assertThat(after.getString("status")).isEqualTo("LEFT");assertThat(after.getString("leftReason")).isEqualTo("LEAVE_REQUEST");
-        assertThat(after.getDate("leftAt").toInstant()).isEqualTo(Instant.parse("2025-06-30T10:00:00Z"));
+        assertThat(after.getDate("leftAt").toInstant()).isEqualTo(LEFT_AT);
+        // E3-T17 (R-04-23, E38): the reused dog is back as it was: its own values, INACTIVE with its reason and date, its signup
+        // block without the decision, and its documents with their files and states.
+        var dogAfter=dog(id);
+        assertThat(unversioned(dogAfter)).isEqualTo(unversioned(dogBefore));
+        assertThat(dogAfter.getString("name")).isEqualTo(original.at("/dog/name").asText());assertThat(dogAfter.getString("breed")).isEqualTo("Example breed");
+        assertThat(dogAfter.getString("status")).isEqualTo("INACTIVE");assertThat(dogAfter.getString("deactivationReason")).isEqualTo("MEMBER_LEFT");
+        assertThat(dogAfter.getDate("deactivatedAt").toInstant()).isEqualTo(LEFT_AT);
+        assertThat(dogDocuments(dogId).stream().map(SignupSecurityFixesIT::unversioned).toList()).isEqualTo(documentsBefore.stream().map(SignupSecurityFixesIT::unversioned).toList());
+        // The rejection is recorded as the member's: the audit entry and SignupRejected, which names the dog.
+        assertThat(collection("audit_entries").stream().filter(e->"SIGNUP_REJECTED".equals(e.getString("action"))&&id.equals(e.getString("entityId")))).hasSize(1);
+        assertThat(collection("domain_events").stream().filter(e->"SignupRejected".equals(e.getString("type")))).singleElement()
+                .satisfies(e->assertThat(e.get("payload",Document.class).getList("dogIds",String.class)).containsExactly(dogId));
+        // P9 still sees the old files as referenced; the rejected card is an orphan (R-04-06: a rejection erases the submitted data).
+        assertThat(orphans()).contains(newCard).doesNotContain(oldCard,oldInsurance);
         // The next attempt is a readmission again (R-04-23).
         submit(readmission(original));assertThat(member(id).get("signup",Document.class).getBoolean("readmission")).isTrue();
+    }
+
+    /**
+     * E3-T17 (T-04-12, R-04-06, E38): while the readmission waits, the reused dog keeps its own values and documents, and no
+     * DogDocumentPending is emitted; D2 shows the submitted ones with the record's beside them, and its dog edits go to the
+     * request. The validation applies them as a submission does.
+     */
+    @Test void T_04_12_theReusedDogWaitsInTheRequestUntilTheValidationAppliesItsValuesAndDocuments() throws Exception {
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);String oldName=original.at("/dog/name").asText();
+        var dogBefore=dog(id);String dogId=dogBefore.getString("_id");var documentsBefore=dogDocuments(dogId);
+        String newCard=upload("new-card.pdf");
+        submit(changedDog(readmission(original),newCard));
+        var pending=dog(id);
+        assertThat(pending.getString("status")).isEqualTo("PENDING");
+        for(String field:DOG) assertThat(pending.get(field)).as(field).isEqualTo(dogBefore.get(field));
+        assertThat(dogDocuments(dogId)).as("the dog's own documents keep their files and states").isEqualTo(documentsBefore);
+        assertThat(dogEvents("DogDocumentPending",dogId)).as("no DogDocumentPending for the reused dog").isEmpty();
+        // N-01 names the submitted dog: its event carries the name.
+        assertThat(collection("domain_events").stream().filter(e->"SignupSubmitted".equals(e.getString("type"))&&e.get("payload",Document.class).getBoolean("readmission")))
+                .singleElement().satisfies(e->assertThat(e.get("payload",Document.class).getList("dogNames",String.class)).containsExactly("Renamed Dog"));
+        // D2: the submitted values and documents, plus the record's own values of each field.
+        var review=review(id);var view=review.at("/dogs/0");
+        assertThat(view.path("id").asText()).isEqualTo(dogId);assertThat(view.path("status").asText()).isEqualTo("PENDING");
+        assertThat(view.path("name").asText()).isEqualTo("Renamed Dog");assertThat(view.path("breed").asText()).isEqualTo("Other breed");
+        assertThat(view.path("birthMonth").asText()).isEqualTo("2023-09");assertThat(view.path("notesToInstructors").asText()).isEqualTo("Fictional new notes");
+        assertThat(document(view,"VACCINATION_CARD").path("state").asText()).isEqualTo("RECEIVED");assertThat(document(view,"VACCINATION_CARD").at("/files/0/name").asText()).isEqualTo("new-card.pdf");
+        assertThat(document(view,"INSURANCE").at("/files/0/name").asText()).as("the insurance it did not send stays").isEqualTo("insurance.pdf");
+        var current=view.at("/readmission/current");
+        assertThat(current.path("name").asText()).isEqualTo(oldName);assertThat(current.path("breed").asText()).isEqualTo("Example breed");assertThat(current.path("birthMonth").asText()).isEqualTo("2024-04");
+        assertThat(document(current,"VACCINATION_CARD").at("/files/0/name").asText()).isEqualTo("card.pdf");
+        assertThat(mapper.convertValue(view.at("/readmission/changedFields"),List.class)).containsExactlyInAnyOrder("name","breed","birthMonth","notesToInstructors","documents");
+        assertThat(view.at("/readmission/previousDeactivationReason").asText()).isEqualTo("MEMBER_LEFT");
+        assertThat(Instant.parse(view.at("/readmission/previousDeactivatedAt").asText())).isEqualTo(LEFT_AT);
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(review,"MemberSignupView")).isEmpty();
+        // A D2 edit of the reused dog edits the submitted values; the chip that matched it cannot change (as the document, R-04-06 b).
+        var edit=patch("/api/v1/dogs/"+dogId).header("Host",host).contentType("application/json");
+        result(admin(edit.content(mapper.writeValueAsBytes(Map.of("version",dog(id).get("version"),"name","Edited Dog")))),200);
+        assertThat(dog(id).getString("name")).isEqualTo(oldName);assertThat(review(id).at("/dogs/0/name").asText()).isEqualTo("Edited Dog");
+        var locked=result(admin(patch("/api/v1/dogs/"+dogId).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",dog(id).get("version"),"chip","941000009999999")))),409);
+        assertThat(locked.path("code").asText()).isEqualTo("INVALID_STATE");assertThat(locked.at("/details/reason").asText()).isEqualTo("READMISSION_PENDING");
+        result(admin(patch("/api/v1/dogs/"+dogId).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",dog(id).get("version"),"chip",dogBefore.getString("chip"))))),200);
+        // The validation applies the values and the new card; the insurance it did not send stays.
+        validate(id);var validated=dog(id);
+        assertThat(validated.getString("status")).isEqualTo("ACTIVE");assertThat(validated.getString("name")).isEqualTo("Edited Dog");
+        assertThat(validated.getString("breed")).isEqualTo("Other breed");assertThat(validated.get("birthDate").toString()).isEqualTo("2023-09-01");
+        assertThat(validated.get("instructorNote",Document.class).getString("text")).isEqualTo("Fictional new notes");
+        assertThat(validated.get("deactivatedAt")).isNull();assertThat(validated.get("deactivationReason")).isNull();assertThat(validated.get("readmissionRequest")).isNull();
+        var documents=dogDocuments(dogId);
+        assertThat(documents.stream().filter(d->"VACCINATION_CARD".equals(d.getString("type")))).singleElement()
+                .satisfies(d->{assertThat(fileKeys(d)).containsExactly(newCard);assertThat(d.getString("state")).isEqualTo("RECEIVED");});
+        assertThat(documents.stream().filter(d->"INSURANCE".equals(d.getString("type")))).singleElement().satisfies(d->assertThat(fileKeys(d)).containsExactly(oldInsurance));
+        assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+        // P9: the replaced card is now an orphan; the new card and the insurance are referenced.
+        assertThat(orphans()).contains(oldCard).doesNotContain(newCard,oldInsurance);
+    }
+
+    /** E3-T17: a readmission that sends no card changes no document until validation, which marks it PENDING as a submission does. */
+    @Test void T_04_12_aReadmissionWithoutACardEmitsDogDocumentPendingOnlyAtValidation() throws Exception {
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);
+        String dogId=dog(id).getString("_id");var documentsBefore=dogDocuments(dogId);
+        submit(changedDog(readmission(original),null));
+        assertThat(dogDocuments(dogId)).isEqualTo(documentsBefore);assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+        var review=review(id);
+        assertThat(document(review.at("/dogs/0"),"VACCINATION_CARD").path("state").asText()).isEqualTo("PENDING");
+        assertThat(document(review.at("/dogs/0/readmission/current"),"VACCINATION_CARD").path("state").asText()).isEqualTo("RECEIVED");
+        assertThat(review.path("warnings").toString()).contains("DOCUMENT_PENDING");
+        validate(id);
+        assertThat(dogDocuments(dogId).stream().filter(d->"VACCINATION_CARD".equals(d.getString("type")))).singleElement()
+                .satisfies(d->{assertThat(fileKeys(d)).isEmpty();assertThat(d.getString("state")).isEqualTo("PENDING");});
+        assertThat(dogEvents("DogDocumentPending",dogId)).singleElement().satisfies(e->assertThat(e.get("payload",Document.class))
+                .containsEntry("type","VACCINATION_CARD").containsEntry("state","PENDING").containsEntry("trigger","FILE_REMOVED"));
+    }
+
+    /** E3-T17 (R-04-23): a dog that is new in a rejected readmission is INACTIVE{SIGNUP_REJECTED} with the decision; the old one is untouched. */
+    @Test void T_04_19_aNewDogOfARejectedReadmissionIsStampedAndTheMembersOldDogIsUntouched() throws Exception {
+        var original=request();String id=leftMember(original);var old=dog(id);
+        var readmit=readmission(original);((ObjectNode)readmit.get("dog")).put("chip","941000008"+String.format("%06d",++sequence)).put("name","New Dog");
+        submit(readmit);reject(id);
+        var dogs=collection("dogs").stream().filter(d->id.equals(d.getString("memberId"))).toList();assertThat(dogs).hasSize(2);
+        var fresh=dogs.stream().filter(d->!old.getString("_id").equals(d.getString("_id"))).findFirst().orElseThrow();
+        assertThat(fresh.getString("status")).isEqualTo("INACTIVE");assertThat(fresh.getString("deactivationReason")).isEqualTo("SIGNUP_REJECTED");
+        assertThat(fresh.get("signup",Document.class).getString("rejectionReason")).isEqualTo("Fictional rejection reason");
+        assertThat(unversioned(collection("dogs").stream().filter(d->old.getString("_id").equals(d.getString("_id"))).findFirst().orElseThrow())).isEqualTo(unversioned(old));
+    }
+
+    /** E3-T17 (S15 R-15-19, R-04-06): P9 keeps a pending readmission's files past 48 h; after the rejection they are orphans. */
+    @Test void R_15_19_T_04_19_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection() throws Exception {
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);
+        String newCard=upload("new-card.pdf");submit(changedDog(readmission(original),newCard));
+        clock.advance(Duration.ofHours(49));
+        // The platform pass of this cycle is not this test's (R-15-19): only the club's own data is looked at.
+        var platform=new Document("_id","platform:CLEANUP").append("holder","signup-security-test").append("acquiredAt",Date.from(clock.instant()))
+                .append("expiresAt",Date.from(clock.instant().plus(Duration.ofDays(2))));
+        mongo.getCollection("job_locks").replaceOne(new Document("_id","platform:CLEANUP"),platform,new com.mongodb.client.model.ReplaceOptions().upsert(true));
+        try {
+            var first=runner.manual(club,com.agilityhub.core.platform.application.jobs.JobName.CLEANUP,false,"security-admin");
+            assertThat(first.status()).isEqualTo(com.agilityhub.core.platform.application.jobs.JobStatus.SUCCEEDED);
+            assertThat(List.of(newCard,oldCard,oldInsurance)).as("a pending readmission's file and the dog's own files are referenced").allMatch(this::stored);
+            assertThat(mongo.findById(newCard,Document.class,"attachment_uploads")).isNotNull();
+            reject(id);clock.advance(Duration.ofMinutes(1));
+            var second=runner.manual(club,com.agilityhub.core.platform.application.jobs.JobName.CLEANUP,false,"security-admin");
+            assertThat(second.items()).extracting(com.agilityhub.core.platform.persistence.jobs.JobRun.Item::entityId).contains(newCard);
+            assertThat(stored(newCard)).as("the rejected readmission's file is deleted").isFalse();
+            assertThat(mongo.findById(newCard,Document.class,"attachment_uploads")).isNull();
+            assertThat(List.of(oldCard,oldInsurance)).as("the dog's own files stay").allMatch(this::stored);
+        } finally { mongo.getCollection("job_locks").deleteOne(new Document("_id","platform:CLEANUP").append("holder","signup-security-test")); }
     }
 
     @Test void T_04_12_T_04_20_aD2EditOfAPendingReadmissionEditsTheSubmittedValuesNotTheRecord() throws Exception {
