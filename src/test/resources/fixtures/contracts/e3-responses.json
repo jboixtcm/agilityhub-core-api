@@ -374,6 +374,15 @@
       "totalPaid": {
         "amountMinor": 0,
         "currency": "EUR"
+      },
+      "firstMonth": {
+        "option": "TODAY",
+        "portion": "FULL",
+        "startDate": "2026-09-09",
+        "amountDue": {
+          "amountMinor": 6000,
+          "currency": "EUR"
+        }
       }
     },
     "proposals": {
@@ -444,6 +453,15 @@
       "totalPaid": {
         "amountMinor": 0,
         "currency": "EUR"
+      },
+      "firstMonth": {
+        "option": "TODAY",
+        "portion": "FULL",
+        "startDate": "2026-09-09",
+        "amountDue": {
+          "amountMinor": 6000,
+          "currency": "EUR"
+        }
       }
     },
     "price": {

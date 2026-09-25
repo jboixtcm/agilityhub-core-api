@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,6 +53,8 @@ class CacheInvalidationRaceIT extends AbstractIntegrationTest {
     @Autowired HostTenantResolver hosts;
     @MockitoSpyBean ClubRepository clubs;
     @MockitoSpyBean ParameterRepository parameters;
+    @MockitoSpyBean com.agilityhub.core.clubs.signup.application.SignupPolicy signupPolicy;
+    @Autowired com.agilityhub.core.clubs.census.application.SignupService signups;
 
     /** Holds the read of one loader thread until the test releases it. */
     static final class Gate {
@@ -84,7 +87,7 @@ class CacheInvalidationRaceIT extends AbstractIntegrationTest {
         clubs.save(PlatformFixtures.club(CLUB, HOST));
         configs.invalidate(CLUB); hosts.invalidate();
     }
-    @AfterEach void resetSpies() { reset(clubs, parameters); }
+    @AfterEach void resetSpies() { reset(clubs, parameters, signupPolicy); }
 
     void admin(String path, Object body) throws Exception {
         mvc.perform(put(path).header("Host", HOST).contentType("application/json").content(mapper.writeValueAsString(body))
@@ -114,6 +117,26 @@ class CacheInvalidationRaceIT extends AbstractIntegrationTest {
         gate.release.countDown();
         assertThat(load.get(30, TimeUnit.SECONDS).get(KEY, Integer.class)).as("the in-flight load read the old value").isEqualTo(240);
         assertThat(configs.get(CLUB).get(KEY, Integer.class)).as("the cache after the change").isEqualTo(120);
+    }
+
+    /**
+     * E3-T12 (review #4 of E3-T09, R-04-27): an anonymous `GET /signup` has read `signup.enabled = true` and is building its
+     * configuration when `PUT /parameters/signup.enabled` commits and evicts. The load must not store what it read.
+     */
+    @Test void R_04_27_T_04_23_signupConfigurationLoadPausedAcrossAParameterWriteLeavesNoStaleValue() throws Exception {
+        assertThat(signupEnabled()).isTrue();
+        signups.invalidateConfiguration(CLUB);
+        var gate = new Gate();
+        doAnswer(call -> gate.pass(call.callRealMethod())).when(signupPolicy).plans();
+        var load = gate.start(() -> { try { return signupEnabled(); } catch (Exception failure) { throw new IllegalStateException(failure); } });
+        admin("/api/v1/parameters/signup.enabled", Map.of("value", false, "version", 0));
+        gate.release.countDown();
+        assertThat(load.get(30, TimeUnit.SECONDS)).as("the in-flight GET read the old value").isTrue();
+        assertThat(signupEnabled()).as("the next GET /signup after the write").isFalse();
+    }
+    boolean signupEnabled() throws Exception {
+        var body = mvc.perform(get("/api/v1/signup").header("Host", HOST)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return mapper.readTree(body).path("enabled").asBoolean();
     }
 
     @Test void T_02_11_domainAddedDuringAnInFlightNegativeHostLookupIsResolvedAfterwards() throws Exception {

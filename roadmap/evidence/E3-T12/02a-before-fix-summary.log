@@ -1,0 +1,33 @@
+surefire: 119 classes, tests=541 failures=0 errors=0 skipped=0
+
+failsafe: 83 classes, tests=911 failures=7 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=5 failures=5 errors=0 skipped=0
+    FAIL R_04_20_aDeliveryRetriedAfterItsAdmissionReusesItAndSends ::  Expected size: 1 but was: 0 in: []
+    FAIL R_04_06_R_04_26_T_04_22_aPendingReadmissionsCheckoutGoesToTheApplicantsSubmittedAddress :: [the provider's customer is the applicant]  expected: "applicant-bb471f1e-3752-495e-a889-b017552d0939@example.test"  but was: "recorded-d38d7bef-fa8d-481f-bfa4-6ce5e9b3abe8@example.test"
+    FAIL R_04_15_T_04_18_d2NamesTheFirstMonthFrozenAtSubmissionAndTheDryRunRecalculatesIt ::  expected: "TODAY"  but was: ""
+    FAIL R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal :: [A's N-01 and N-03]  Expecting all elements of:   [EmailMessage[redacted], EmailMessage[redacted]] to satisfy given requirements, but these elements did not:  EmailMessage[redacted] error: org.opentest4j.AssertionFailedError:  expected: "es"  but was: "en"  at com.agilityhub.core.clubs.census.api.Si
+    FAIL R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch ::  Expecting all elements of:   [EmailMessage[redacted], EmailMessage[redacted]] to satisfy given requirements, but these elements did not:  EmailMessage[redacted] error: org.opentest4j.AssertionFailedError:  expected: "es"  but was: "en"  at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=1 errors=0 skipped=0
+    PASS T_04_25_errorRowHasExactlyTheCanonicalCodesStatusesAndThreeTranslations
+    PASS T_04_21_T_04_25_validImpersonationCanUseMemberRoutesButNeverD2
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[1]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[2]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[3]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[4]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[5]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[6]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[7]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[8]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[9]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[10]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[11]
+    PASS T_04_18_T_04_23_invalidRequestsAndForeignDryRunDoNotWriteSignupEntities
+    FAIL T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors :: [SignupUpfrontReview]  Expecting actual:   ["lines", "totalDue", "totalPaid", "paidExceedsQuote"] to contain exactly in any order:   ["lines", "totalDue", "totalPaid", "paidExceedsQuote", "firstMonth"] but could not find the following elements:   ["firstMonth"] 
+    PASS T_04_26_moduleGuardsApplyToAnonymousAndAuthenticatedCheckoutAndFamilyLookups
+    PASS T_14_01_dashboardSchemasMatchEveryFieldAndNullableBlockInS14
+  com.agilityhub.core.platform.application.CacheInvalidationRaceIT: tests=5 failures=1 errors=0 skipped=0
+    PASS T_02_11_domainAddedDuringAnInFlightNegativeHostLookupIsResolvedAfterwards
+    FAIL R_04_27_T_04_23_signupConfigurationLoadPausedAcrossAParameterWriteLeavesNoStaleValue :: [the next GET /signup after the write]  Expecting value to be false but was true
+    PASS T_02_01_moduleToggleDuringAnInFlightConfigLoadLeavesNoStaleValue
+    PASS T_02_08_parameterChangeDuringAnInFlightConfigLoadLeavesNoStaleValue
+    PASS T_02_11_domainRemovedDuringAnInFlightHostLookupIsNotResolvedAfterwards

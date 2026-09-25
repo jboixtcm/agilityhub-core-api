@@ -1,0 +1,9 @@
+surefire: 118 classes, tests=533 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.signup.domain.SignupPaymentsTest: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.RateLimitsTest: tests=4 failures=0 errors=0 skipped=0
+failsafe: 83 classes, tests=912 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.CacheInvalidationRaceIT: tests=5 failures=0 errors=0 skipped=0
+exit 0 (./mvnw -q clean verify, log 11-clean-verify.log)

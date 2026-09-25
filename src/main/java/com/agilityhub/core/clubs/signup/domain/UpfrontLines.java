@@ -14,7 +14,10 @@ public final class UpfrontLines {
     public record Line(Concept concept, String dogId, Money amountDue) {
         public Line { SignupValidation.nonnegative(amountDue); }
     }
-    public record Period(Option option, LocalDate startDate, Money amountDue) { }
+    /** A first-month or additional-dog choice; `portion` (R-04-15, full or half month) only for the first month. */
+    public record Period(Option option, LocalDate startDate, Money amountDue, FirstMonthCalculator.Portion portion) {
+        public Period(Option option, LocalDate startDate, Money amountDue) { this(option, startDate, amountDue, null); }
+    }
     public record Quote(List<Line> lines, Money totalDue, Period firstMonth, Period additionalDog) {
         public Quote { lines = List.copyOf(lines); }
     }
@@ -27,7 +30,7 @@ public final class UpfrontLines {
                 var choice = FirstMonthCalculator.options(today, parameters.firstMonthSplitDay(),
                         parameters.nextInvoiceDayOfMonth(), plan.price().amount()).stream()
                         .filter(c -> c.option() == option).findFirst().orElseThrow(() -> SignupValidation.field("firstMonthOption"));
-                firstMonth = new Period(choice.option(), choice.startDate(), choice.amountDue());
+                firstMonth = new Period(choice.option(), choice.startDate(), choice.amountDue(), choice.portion());
                 lines.add(new Line(Concept.FIRST_MONTH, dogId, choice.amountDue()));
             } else if (plan.type() == Type.PACK && plan.price() != null) {
                 lines.add(new Line(Concept.PACK, dogId, plan.price().amount()));

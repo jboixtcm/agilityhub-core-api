@@ -1,0 +1,275 @@
+09:47:11.029 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+09:47:11.030 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+09:47:11.035 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+09:47:11.130 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+09:47:11.280 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+09:47:11.281 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+09:47:11.292 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+09:47:11.471 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+09:47:11.583 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+09:47:11.665 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: eb9fd4029f917df222920f1366498a02aa5eaedfdb2ef0ead7e8a98d8b8bafb4
+09:47:11.911 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.439324S
+09:47:11.915 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+09:47:11.915 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+09:47:11.915 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+09:47:11.915 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+09:47:11.978 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: fa75d40c983218a0c9bbad8e49b09b2f0559ac595093ff38aa604d348bd4774f
+09:47:12.683 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.767453S
+Integration JVM availableProcessors=18
+09:47:13.476 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.E3ContractIT]: E3ContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+09:47:13.572 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.E3ContractIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T09:47:13.791+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.core.configuration.E3ContractIT      : Starting E3ContractIT using Java 21.0.12.1 with PID 71391 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T09:47:13.792+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.core.configuration.E3ContractIT      : The following 1 profile is active: "test"
+2026-09-25T09:47:14.767+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T09:47:14.807+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 35 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T09:47:15.161+02:00  INFO 71391 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@b53ce18], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2a666c8e, com.mongodb.Jep395RecordCodecProvider@18adc20a, com.mongodb.KotlinCodecProvider@7e7987b8]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60286], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6bcfb561], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T09:47:15.167+02:00  INFO 71391 --- [agilityhub-core-api] [localhost:60286] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60286, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=9495167, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=fa75d40c9832:27017, hosts=[fa75d40c9832:27017], passives=[], arbiters=[], primary='fa75d40c9832:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab62700d5406efecbedd159, counter=6}, lastWriteDate=Fri Sep 25 09:47:13 CEST 2026, lastUpdateTimeNanos=149307576717000}
+2026-09-25T09:47:18.311+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T09:47:18.311+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T09:47:18.312+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-25T09:47:18.354+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.core.configuration.E3ContractIT      : Started E3ContractIT in 4.728 seconds (process running for 7.696)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-25T09:47:20.682+02:00  WARN 71391 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected status=400 code=VALIDATION_ERROR traceId=09676264-f8b4-4ce2-9716-2230e457e642
+2026-09-25T09:47:20.704+02:00  WARN 71391 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected status=400 code=VALIDATION_ERROR traceId=54ef766d-7940-405f-b06a-85444d62c8c8
+2026-09-25T09:47:22.885+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 2130 ms
+[ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 12.08 s <<< FAILURE! -- in com.agilityhub.core.configuration.E3ContractIT
+[ERROR] com.agilityhub.core.configuration.E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors -- Time elapsed: 2.254 s <<< FAILURE!
+java.lang.AssertionError: 
+[SignupUpfrontReview] 
+Expecting actual:
+  ["lines", "totalDue", "totalPaid", "paidExceedsQuote"]
+to contain exactly in any order:
+  ["lines", "totalDue", "totalPaid", "paidExceedsQuote", "firstMonth"]
+but could not find the following elements:
+  ["firstMonth"]
+
+	at com.agilityhub.core.configuration.E3ContractIT.properties(E3ContractIT.java:282)
+	at com.agilityhub.core.configuration.E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors(E3ContractIT.java:175)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-09-25T09:47:23.087+02:00  INFO 71391 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT]: SignupFollowUpFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-25T09:47:23.151+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T09:47:23.173+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupFollowUpFixesIT      : Starting SignupFollowUpFixesIT using Java 21.0.12.1 with PID 71391 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T09:47:23.173+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupFollowUpFixesIT      : The following 1 profile is active: "test"
+2026-09-25T09:47:23.515+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T09:47:23.540+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T09:47:23.602+02:00  INFO 71391 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@e21149e], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2a666c8e, com.mongodb.Jep395RecordCodecProvider@18adc20a, com.mongodb.KotlinCodecProvider@7e7987b8]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60286], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@29ab4fa0], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T09:47:23.604+02:00  INFO 71391 --- [agilityhub-core-api] [localhost:60286] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60286, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1815500, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=fa75d40c9832:27017, hosts=[fa75d40c9832:27017], passives=[], arbiters=[], primary='fa75d40c9832:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab62700d5406efecbedd159, counter=6}, lastWriteDate=Fri Sep 25 09:47:20 CEST 2026, lastUpdateTimeNanos=149316015474416}
+2026-09-25T09:47:24.259+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T09:47:24.259+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T09:47:24.259+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-25T09:47:24.269+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupFollowUpFixesIT      : Started SignupFollowUpFixesIT in 1.115 seconds (process running for 13.611)
+2026-09-25T09:47:24.789+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-77bd7d81-36a7-43e2-9cf9-4c22493bec59 recipientHash=5ovZZVya9iz1BDdFexxKRC1HX2quOw18Fr_Re4DPe88
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 3.564 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_20_aDeliveryRetriedAfterItsAdmissionReusesItAndSends -- Time elapsed: 0.522 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_20_aDeliveryRetriedAfterItsAdmissionReusesItAndSends(SignupFollowUpFixesIT.java:156)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_R_04_26_T_04_22_aPendingReadmissionsCheckoutGoesToTheApplicantsSubmittedAddress -- Time elapsed: 0.466 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the provider's customer is the applicant] 
+expected: "applicant-bb471f1e-3752-495e-a889-b017552d0939@example.test"
+ but was: "recorded-d38d7bef-fa8d-481f-bfa4-6ce5e9b3abe8@example.test"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_R_04_26_T_04_22_aPendingReadmissionsCheckoutGoesToTheApplicantsSubmittedAddress(SignupFollowUpFixesIT.java:133)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_15_T_04_18_d2NamesTheFirstMonthFrozenAtSubmissionAndTheDryRunRecalculatesIt -- Time elapsed: 0.114 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "TODAY"
+ but was: ""
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.firstMonth(SignupFollowUpFixesIT.java:216)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_15_T_04_18_d2NamesTheFirstMonthFrozenAtSubmissionAndTheDryRunRecalculatesIt(SignupFollowUpFixesIT.java:223)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal -- Time elapsed: 0.670 s <<< FAILURE!
+java.lang.AssertionError: 
+[A's N-01 and N-03] 
+Expecting all elements of:
+  [EmailMessage[redacted], EmailMessage[redacted]]
+to satisfy given requirements, but these elements did not:
+
+EmailMessage[redacted]
+error: org.opentest4j.AssertionFailedError: 
+expected: "es"
+ but was: "en"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.lambda$R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal$15(SignupFollowUpFixesIT.java:181)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal(SignupFollowUpFixesIT.java:181)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal(SignupFollowUpFixesIT.java:181)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch -- Time elapsed: 0.575 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting all elements of:
+  [EmailMessage[redacted], EmailMessage[redacted]]
+to satisfy given requirements, but these elements did not:
+
+EmailMessage[redacted]
+error: org.opentest4j.AssertionFailedError: 
+expected: "es"
+ but was: "en"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.lambda$R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch$25(SignupFollowUpFixesIT.java:209)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch(SignupFollowUpFixesIT.java:209)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+EmailMessage[redacted]
+error: org.opentest4j.AssertionFailedError: 
+expected: "es"
+ but was: "en"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.lambda$R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch$25(SignupFollowUpFixesIT.java:209)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch(SignupFollowUpFixesIT.java:209)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch(SignupFollowUpFixesIT.java:209)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+2026-09-25T09:47:26.653+02:00  INFO 71391 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.platform.application.CacheInvalidationRaceIT]: CacheInvalidationRaceIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-25T09:47:26.678+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.platform.application.CacheInvalidationRaceIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T09:47:26.691+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.p.a.CacheInvalidationRaceIT        : Starting CacheInvalidationRaceIT using Java 21.0.12.1 with PID 71391 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T09:47:26.691+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.p.a.CacheInvalidationRaceIT        : The following 1 profile is active: "test"
+2026-09-25T09:47:26.959+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T09:47:26.989+02:00  INFO 71391 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T09:47:27.045+02:00  INFO 71391 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@8b9a4dc], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2a666c8e, com.mongodb.Jep395RecordCodecProvider@18adc20a, com.mongodb.KotlinCodecProvider@7e7987b8]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:60286], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@29ae8450], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T09:47:27.047+02:00  INFO 71391 --- [agilityhub-core-api] [localhost:60286] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:60286, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1841459, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=fa75d40c9832:27017, hosts=[fa75d40c9832:27017], passives=[], arbiters=[], primary='fa75d40c9832:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab62700d5406efecbedd159, counter=6}, lastWriteDate=Fri Sep 25 09:47:26 CEST 2026, lastUpdateTimeNanos=149319458258458}
+2026-09-25T09:47:31.300+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T09:47:31.301+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T09:47:31.307+02:00  INFO 71391 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 6 ms
+2026-09-25T09:47:31.347+02:00  INFO 71391 --- [agilityhub-core-api] [           main] c.a.c.p.a.CacheInvalidationRaceIT        : Started CacheInvalidationRaceIT in 4.668 seconds (process running for 20.689)
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 5.329 s <<< FAILURE! -- in com.agilityhub.core.platform.application.CacheInvalidationRaceIT
+[ERROR] com.agilityhub.core.platform.application.CacheInvalidationRaceIT.R_04_27_T_04_23_signupConfigurationLoadPausedAcrossAParameterWriteLeavesNoStaleValue -- Time elapsed: 0.246 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the next GET /signup after the write] 
+Expecting value to be false but was true
+	at com.agilityhub.core.platform.application.CacheInvalidationRaceIT.R_04_27_T_04_23_signupConfigurationLoadPausedAcrossAParameterWriteLeavesNoStaleValue(CacheInvalidationRaceIT.java:135)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SignupFollowUpFixesIT.R_04_06_R_04_26_T_04_22_aPendingReadmissionsCheckoutGoesToTheApplicantsSubmittedAddress:133 [the provider's customer is the applicant] 
+expected: "applicant-bb471f1e-3752-495e-a889-b017552d0939@example.test"
+ but was: "recorded-d38d7bef-fa8d-481f-bfa4-6ce5e9b3abe8@example.test"
+[ERROR]   SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal:181 [A's N-01 and N-03] 
+Expecting all elements of:
+  [EmailMessage[redacted], EmailMessage[redacted]]
+to satisfy given requirements, but these elements did not:
+
+EmailMessage[redacted]
+error: org.opentest4j.AssertionFailedError: 
+expected: "es"
+ but was: "en"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.lambda$R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal$15(SignupFollowUpFixesIT.java:181)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_06_T_04_12_T_04_19_queuedReadmissionsKeepTheirOwnLocaleDogPlanAndTotal(SignupFollowUpFixesIT.java:181)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   SignupFollowUpFixesIT.R_04_15_T_04_18_d2NamesTheFirstMonthFrozenAtSubmissionAndTheDryRunRecalculatesIt:223->firstMonth:216 
+expected: "TODAY"
+ but was: ""
+[ERROR]   SignupFollowUpFixesIT.R_04_20_aDeliveryRetriedAfterItsAdmissionReusesItAndSends:156 
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch:209 
+Expecting all elements of:
+  [EmailMessage[redacted], EmailMessage[redacted]]
+to satisfy given requirements, but these elements did not:
+
+EmailMessage[redacted]
+error: org.opentest4j.AssertionFailedError: 
+expected: "es"
+ but was: "en"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.lambda$R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch$25(SignupFollowUpFixesIT.java:209)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch(SignupFollowUpFixesIT.java:209)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+
+EmailMessage[redacted]
+error: org.opentest4j.AssertionFailedError: 
+expected: "es"
+ but was: "en"
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.lambda$R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch$25(SignupFollowUpFixesIT.java:209)
+	at com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT.R_04_23_T_04_21_anAddDogN01AndN03KeepTheirValuesWhenTheDogChangesBeforeDispatch(SignupFollowUpFixesIT.java:209)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+[ERROR]   E3ContractIT.T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors:175->properties:282 [SignupUpfrontReview] 
+Expecting actual:
+  ["lines", "totalDue", "totalPaid", "paidExceedsQuote"]
+to contain exactly in any order:
+  ["lines", "totalDue", "totalPaid", "paidExceedsQuote", "firstMonth"]
+but could not find the following elements:
+  ["firstMonth"]
+
+[ERROR]   CacheInvalidationRaceIT.R_04_27_T_04_23_signupConfigurationLoadPausedAcrossAParameterWriteLeavesNoStaleValue:135 [the next GET /signup after the write] 
+Expecting value to be false but was true
+[ERROR] Tests run: 27, Failures: 7, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

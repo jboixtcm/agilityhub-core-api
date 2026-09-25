@@ -24,12 +24,13 @@ public class SignupNotifications {
     /**
      * R-04-20 (E3-T09): the anonymous routes cannot flood one address. At most the club's
      * `signup.rateLimit.notificationsPerRecipientPerHour` (3 by default) N-39 per account and applicant's N-01 per address,
-     * per club; the rest are skipped and logged with a hash, never the address.
+     * per club; the rest are skipped and logged with a hash, never the address. E3-T12: each event is admitted once per
+     * notification, so a delivery retried after its admission (a provider failure) still sends; only new events count.
      */
-    private boolean capped(String clubId,String code,String recipient) {
+    private boolean capped(String clubId,String eventId,String code,String recipient) {
         String hash=capabilities.fingerprint(recipient.toLowerCase(Locale.ROOT));
         var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
-        if(limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash,limit)==0) return false;
+        if(limits.admitOnce(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash,eventId+":"+code,limit)) return false;
         LOG.info("Signup notification capped per recipient code={} clubId={} recipientHash={}",code,clubId,hash);
         return true;
     }
@@ -38,6 +39,7 @@ public class SignupNotifications {
         var ids=event.payload().get("dogIds") instanceof Collection<?> values?values:List.of();
         return ids.isEmpty()?List.of():access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in(ids));
     }
+    private static List<String> dogNames(Object raw) { return raw instanceof Collection<?> values?values.stream().map(String::valueOf).toList():List.of(); }
     /**
      * The block of the submission these dogs came from (S04 §3): the oldest one when several are decided together, the
      * member's signup for a dog written before the blocks existed.
@@ -60,28 +62,30 @@ public class SignupNotifications {
             variables.put("locale",locale);
             String email=submitted?string(person.get("email")):rows(member.contactEmails).isEmpty()?null:string(rows(member.contactEmails).getFirst().get("email"));
             switch(event.type()) {
-                case "SignupRecognitionRequested" -> { if(!capped(event.clubId(),"N-39",member.accountId)) links.send(eventId,member.accountId,false,variables); }
+                case "SignupRecognitionRequested" -> { if(!capped(event.clubId(),eventId,"N-39",member.accountId)) links.send(eventId,member.accountId,false,variables); }
                 case "MemberValidated" -> { links.send(eventId,member.accountId,true,variables);notifications.appOnce(eventId+":app","N-02",member.accountId,variables); }
                 case "SignupSubmitted" -> {
-                    var dogs=dogs(event);
-                    // E3-T10 (review of E3-T08 round 2): each copy describes its own submission, even when later ones are queued:
-                    // the event's plan, and the submission block's locale and frozen upfront, never the member's latest signup.
-                    var signup=submission(member,dogs);
-                    locale=string(signup.getOrDefault("locale",locale));variables.put("locale",locale);
-                    variables.put("dogs",String.join(", ",dogs.stream().map(d -> d.name).toList()));
-                    String planId=event.payload().containsKey("planId")?string(event.payload().get("planId")):string(signup.get("planIdRequested"));
+                    // E3-T10/E3-T12 (R-04-06 c, S04 §8): each copy describes its own submission, even when later ones are queued.
+                    // The locale, the dog names, the plan and the upfront total travel in the event: a later submission (a
+                    // readmission reusing the dog) rewrites the dogs and their blocks before this runs. An event written
+                    // before the payload carried them (no `locale`) reads the submission block, as before.
+                    var payload=event.payload();boolean carried=payload.containsKey("locale");
+                    var dogs=carried?List.<com.agilityhub.core.clubs.census.persistence.Dog>of():dogs(event);var signup=carried?Map.<String,Object>of():submission(member,dogs);
+                    locale=string(carried?payload.get("locale"):signup.getOrDefault("locale",locale));variables.put("locale",locale);
+                    variables.put("dogs",String.join(", ",carried?dogNames(payload.get("dogNames")):dogs.stream().map(d -> d.name).toList()));
+                    String planId=payload.containsKey("planId")?string(payload.get("planId")):string(signup.get("planIdRequested"));
                     var plan=access.references.plan(planId);var names=map(plan.get("name"));if(names.get("values") instanceof Map<?,?>) names=map(names.get("values"));
                     variables.put("plan_name",names.getOrDefault(locale,names.getOrDefault(access.config().club().defaultLocale(),"")));
                     // §8: the applicant's copy tells what to pay and how (the frozen upfront of this submission); it never opens D2.
                     var applicant=new LinkedHashMap<>(variables);String variant=null;
-                    var total=map(map(signup.get("upfront")).get("totalDue"));
+                    var total=map(carried?payload.get("upfrontTotal"):map(signup.get("upfront")).get("totalDue"));
                     if(number(total.get("amountMinor"))>0) {
                         variant="upfront";applicant.put("upfront_total",new Money(number(total.get("amountMinor")),string(total.get("currency"))).format(Locale.forLanguageTag(locale)));
                         // With a provider checkout the payment happens there (pay_link, E8-T04); otherwise the club's MANUAL instructions apply.
                         String instructions=Boolean.TRUE.equals(event.payload().get("checkoutRequired"))?null:settings.manualInstructions(locale);
                         applicant.put("payment_instructions",instructions==null?"":instructions);applicant.put("pay_link","");
                     }
-                    if(email!=null&&!capped(event.clubId(),"N-01",email)) notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
+                    if(email!=null&&!capped(event.clubId(),eventId,"N-01",email)) notifications.sendApplicantOnce(eventId+":applicant","N-01",variant,email,locale,applicant);
                     // The member's APP row (add-dog) is the applicant copy too: same variant, total and instructions (E3-T08 round 2).
                     if(member.accountId!=null&&"APP_ADD_DOG".equals(event.payload().get("source"))) notifications.appOnceVariant(eventId+":member-app","N-01",variant,member.accountId,applicant);
                     // M9: the admins get their own copy (who applied, which dogs, which plan) with the D2 action, on both channels.
@@ -89,9 +93,11 @@ public class SignupNotifications {
                     for(String admin:identities.admins()) { notifications.sendOnceVariant(eventId+":"+admin,"N-01","admin",admin,admins);notifications.appOnceVariant(eventId+":"+admin+":app","N-01","admin",admin,admins); }
                 }
                 case "SignupRejected" -> {
-                    // S04 §8 (E3-T10 round 2): an add-dog N-03 speaks the language of the rejected submission (its dogs' own block),
-                    // not the public signup's, which an add-dog never rewrites. A readmission's applicant already carries it.
-                    if(!submitted) { locale=string(submission(member,dogs(event)).getOrDefault("locale",locale));variables.put("locale",locale); }
+                    // S04 §8 (E3-T10 round 2, E3-T12): N-03 speaks the language of the rejected submission, which its event
+                    // carries (`locale`); an add-dog's is never the public signup's. An older event reads the dogs' blocks.
+                    if(event.payload().get("locale")!=null) locale=string(event.payload().get("locale"));
+                    else if(!submitted) locale=string(submission(member,dogs(event)).getOrDefault("locale",locale));
+                    variables.put("locale",locale);
                     variables.put("reason",event.payload().get("reason"));notifications.sendApplicantOnce(eventId,"N-03",email,locale,variables);if(Boolean.TRUE.equals(event.payload().get("memberWasActive"))) notifications.appOnce(eventId+":app","N-03",member.accountId,variables);
                 }
                 case "DogRegistered" -> { var dog=access.dogs.findById(string(event.payload().get("dogId"))).orElse(null);if(dog!=null&&member.accountId!=null) notifications.appOnce(eventId,"N-37",member.accountId,object("dog_name",dog.name,"action","OPEN_DOG","entityId",dog.id)); }

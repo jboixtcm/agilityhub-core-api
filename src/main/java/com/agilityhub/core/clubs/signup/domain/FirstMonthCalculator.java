@@ -30,6 +30,15 @@ public final class FirstMonthCalculator {
                 new Choice(Option.ALTERNATIVE, alternative, early ? half : monthlyPrice,
                         early ? Portion.HALF_MONTH : Portion.FULL_MONTH, nextInvoice(alternative, invoiceDay)));
     }
+    /**
+     * The portion of a first month frozen before its portion was stored (E3-T12), from its option and start date:
+     * ALTERNATIVE is a full month only when it starts on the 1st (d ≥ D); TODAY is a full month only before the split day.
+     */
+    public static Portion portion(Option option, LocalDate startDate, int splitDay) {
+        SignupValidation.day(splitDay);
+        if (option == Option.ALTERNATIVE) { return startDate.getDayOfMonth() == 1 ? Portion.FULL_MONTH : Portion.HALF_MONTH; }
+        return startDate.isBefore(day(YearMonth.from(startDate), splitDay)) ? Portion.FULL_MONTH : Portion.HALF_MONTH;
+    }
     public static LocalDate nextInvoice(LocalDate startDate, int invoiceDay) {
         SignupValidation.day(invoiceDay);
         return day(YearMonth.from(startDate).plusMonths(1), invoiceDay);

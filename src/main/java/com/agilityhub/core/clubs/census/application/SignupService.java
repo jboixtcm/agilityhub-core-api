@@ -31,9 +31,13 @@ public class SignupService implements SignupPaymentAccess {
     private final com.agilityhub.core.identity.application.CensusIdentityService accounts; private final AuditWriter audits;
     private static final LocalDate EARLIEST_BIRTH_DATE=LocalDate.of(1900,1,1); // S04 §3 `Member.birthDate`
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<DogService> dogService;
-    private record CachedConfig(Instant expires,Map<String,Object> value) { }
-    private final java.util.concurrent.ConcurrentHashMap<String,CachedConfig> cache=new java.util.concurrent.ConcurrentHashMap<>();
-    public void invalidateConfiguration(String clubId) { cache.keySet().removeIf(key -> key.startsWith(clubId+":")); }
+    /**
+     * The anonymous `GET /signup` configuration per club and locale, for 60 s (R-04-27). E3-T12: generation-aware
+     * ({@link CacheLoads}), so a load that overlapped an eviction (a parameter, plan or club write) never stores what it read.
+     */
+    private record ConfigKey(String clubId,String locale) { }
+    private final CacheLoads<ConfigKey,Map<String,Object>> cache;
+    public void invalidateConfiguration(String clubId) { cache.invalidateIf(key -> key.clubId().equals(clubId)); }
     public SignupService(CensusAccess access,SignupPolicy policy,CensusEvents events,CensusRepository<DogDocument> documents,
             AttachmentService attachments,UpfrontPayments payments,CensusClubSettings settings,SignupIdentityService identities,
             SignupCapabilities capabilities,CountryContacts countries,Clock clock,CensusQuery queries,ObjectMapper mapper,IcuMessageSource messages,
@@ -41,6 +45,8 @@ public class SignupService implements SignupPaymentAccess {
         this.access=access;this.policy=policy;this.events=events;this.documents=documents;this.attachments=attachments;this.payments=payments;
         this.settings=settings;this.identities=identities;this.capabilities=capabilities;this.countries=countries;this.clock=clock;this.queries=queries;this.mapper=mapper;this.messages=messages;
         this.dashboard=dashboard;this.accounts=accounts;this.audits=audits;
+        this.cache=CacheLoads.of(com.github.benmanes.caffeine.cache.Caffeine.newBuilder().maximumSize(2000).expireAfterWrite(Duration.ofSeconds(60))
+                .ticker(() -> java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(clock.millis())).build());
     }
     /** R-14-01 (M11): the commands that change D1's pending list or KPIs refresh it right after their commit, not only via the outbox. */
     void refreshDashboard() { dashboard.invalidateAfterCommit(TenantContext.require()); }
@@ -84,8 +90,14 @@ public class SignupService implements SignupPaymentAccess {
     private String legalVersion() { return string(settings.signupLegal(locale()).get("legalTextsVersion")); }
     private String fullName(Member m) { return String.join(" ",m.firstName,m.lastName1,m.lastName2==null?"":m.lastName2).strip(); }
     private String email(Member m) { return string(rows(m.contactEmails).getFirst().get("email")); }
+    /**
+     * The checkout's view of the member (R-04-26). E3-T12: while a readmission waits, the provider's customer is the
+     * applicant's submitted primary address (R-04-06 c), never the LEFT record's; the record and the account's login
+     * email are untouched.
+     */
     public Map<String,Object> member(String memberId) {
-        var m=access.mutableMember(memberId);return object("id",m.id,"email",email(m),"locale",map(m.signup).getOrDefault("locale",access.config().club().defaultLocale()),"paymentMethod",effectivePayment(m),"status",m.status);
+        var m=access.mutableMember(memberId);Object email=readmissionPending(m)?primaryEmail(submitted(m).get("contactEmails")):email(m);
+        return object("id",m.id,"email",email,"locale",map(m.signup).getOrDefault("locale",access.config().club().defaultLocale()),"paymentMethod",effectivePayment(m),"status",m.status);
     }
     public void authorize(String id,String token) {
         if(CurrentUser.current()==null) { capabilities.require(id,token); }
@@ -314,17 +326,22 @@ public class SignupService implements SignupPaymentAccess {
         var dog=storeDog(prepared,member.signup,rows(map(request.get("dog")).get("documents")));createPayments(member.id,submission,quote);
         boolean checkout=checkoutRequired(member,quote.totalDue());
         events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(effectivePayment(member)).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout,
-                "applicant",readmission?applicant(member):null));
+                "applicant",readmission?applicant(member):null,"locale",locale,"dogNames",List.of(dog.name),"upfrontTotal",upfrontTotal(quote)));
         // R-04-06 (E38): the readmission submission is audited with the masked diff; anonymous, so its origin is PUBLIC.
         if(readmission) audits.write(new AuditCommand(AuditAction.SIGNUP_SUBMITTED,"Member",member.id,member.id,before,CensusAudit.view(member,mapper),null),CurrentUser.current()==null?"PUBLIC":null);
         refreshDashboard();
         return object("memberId",member.id,"signupToken",capabilities.issue(member.id),"upfront",billing()?upfront(member,List.of(dog),quote):null,"checkout",object("required",checkout));
     }
+    /**
+     * E3-T12 (R-04-06 c, S04 §8): N-01 describes its own submission, so its event carries what a later submission could
+     * rewrite before delivery: `locale`, `dogNames` and `upfrontTotal` (the frozen `signup.upfront.totalDue`; null without BILLING).
+     */
+    private Map<String,Object> upfrontTotal(SignupPolicy.Quote quote) { return billing()?money(quote.totalDue()):null; }
     private boolean checkoutRequired(Member m,Money due) { return billing()&&settings.providerEnabled("STRIPE")&&(due.amountMinor()>0 || "CARD".equals(map(effectivePayment(m)).get("type"))); }
     private static List<UpfrontPayments.Charge> charges(SignupPolicy.Quote quote) { return quote.lines().stream().map(l -> new UpfrontPayments.Charge(l.concept(),l.dogId(),l.amountDue())).toList(); }
     private void createPayments(String member,String submission,SignupPolicy.Quote quote) { payments.create(member,submission,charges(quote)); }
     private static Map<String,Object> money(Money value) { return object("amountMinor",value.amountMinor(),"currency",value.currency()); }
-    private static Map<String,Object> period(SignupPolicy.Period value) { return value==null?null:object("option",value.option(),"startDate",value.startDate().toString(),"amountDue",money(value.amountDue())); }
+    private static Map<String,Object> period(SignupPolicy.Period value) { return value==null?null:object("option",value.option(),"portion",value.portion(),"startDate",value.startDate().toString(),"amountDue",money(value.amountDue())); }
     /** `signup.upfront` (§3): the quote frozen in the submission block; N-01 reads its `totalDue`, D2 its first month. Only with BILLING. */
     private void freeze(Map<String,Object> block,SignupPolicy.Quote quote) {
         if(!billing()) return;
@@ -396,15 +413,14 @@ public class SignupService implements SignupPaymentAccess {
         var quote=policy.quote(planId,prepared.dog().id,true,member.planId,option,policy.today());freeze(block,quote);
         access.members.save(member);var dog=storeDog(prepared,block,rows(request.get("documents")));createPayments(member.id,submission,quote);
         boolean checkout=checkoutRequired(member,quote.totalDue());
-        events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(member.paymentMethod).get("type"),"source","APP_ADD_DOG","readmission",false,"checkoutRequired",checkout));
+        events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(member.paymentMethod).get("type"),"source","APP_ADD_DOG","readmission",false,"checkoutRequired",checkout,
+                "locale",locale(),"dogNames",List.of(dog.name),"upfrontTotal",upfrontTotal(quote)));
         refreshDashboard();
         return object("dogId",dog.id,"memberId",member.id,"upfront",billing()?upfront(member,List.of(dog),quote):null,"checkout",object("required",checkout,"memberId",member.id));
     }
     public Map<String,Object> configuration() {
         if(CurrentUser.current()!=null) return configurationFor(access.me());
-        String key=TenantContext.require()+":"+locale();var cached=cache.get(key);
-        if(cached!=null&&cached.expires().isAfter(clock.instant())) return cached.value();
-        var value=configurationFor(null);cache.put(key,new CachedConfig(clock.instant().plusSeconds(60),value));return value;
+        return cache.get(new ConfigKey(TenantContext.require(),locale()),key -> configurationFor(null));
     }
     private Map<String,Object> configurationFor(Member me) {
         var config=access.config();String language=locale();
@@ -511,7 +527,15 @@ public class SignupService implements SignupPaymentAccess {
     }
     private Map<String,Object> reviewUpfront(Member member,List<Dog> dogs) {
         var scope=scope(member,dogs);
-        return object("lines",paymentLines(member.id,scope),"totalDue",payments.due(member.id,scope,currency()),"totalPaid",payments.paid(member.id,scope,currency()));
+        return object("lines",paymentLines(member.id,scope),"totalDue",payments.due(member.id,scope,currency()),"totalPaid",payments.paid(member.id,scope,currency()),
+                "firstMonth",firstMonthView(frozenFirstMonth(member,dogs)));
+    }
+    /**
+     * `upfront.firstMonth` of D2 and of its dry run (web E3-W07, R-04-15): the month the FIRST_MONTH line pays, so D2 names
+     * it and «(mitja quota)» without the rule. Absent without a FIRST_MONTH line.
+     */
+    private static Map<String,Object> firstMonthView(SignupPolicy.Period value) {
+        return value==null?null:object("option",value.option(),"portion",value.portion(),"startDate",value.startDate(),"amountDue",value.amountDue());
     }
     public Map<String,Object> review(String id) {
         var member=access.mutableMember(id);var dogs=pending(id);if(dogs.isEmpty()) throw notPending();
@@ -577,11 +601,21 @@ public class SignupService implements SignupPaymentAccess {
      */
     private SignupPolicy.Period firstMonth(Member member,SignupPolicy.Plan plan,List<Dog> dogs,SignupPolicy.Quote quote) {
         if(planChanged(member,plan,dogs)) return quote.firstMonth();
+        var frozen=frozenFirstMonth(member,dogs);
+        return frozen!=null?frozen:quote.firstMonth();
+    }
+    /**
+     * `signup.upfront.firstMonth` as frozen by the submission of these dogs, or null. E3-T12: with its `portion`; a block
+     * frozen before the portion was stored gets it from its option and start date ({@link SignupPolicy#portion}).
+     */
+    private SignupPolicy.Period frozenFirstMonth(Member member,List<Dog> dogs) {
         for(var dog:dogs) {
             var frozen=map(map(block(member,dog).get("upfront")).get("firstMonth"));
-            if(frozen.get("startDate")!=null) return new SignupPolicy.Period(string(frozen.get("option")),LocalDate.parse(string(frozen.get("startDate"))),mapper.convertValue(frozen.get("amountDue"),Money.class));
+            if(frozen.get("startDate")==null) continue;
+            String option=string(frozen.get("option"));LocalDate start=LocalDate.parse(string(frozen.get("startDate")));
+            return new SignupPolicy.Period(option,start,mapper.convertValue(frozen.get("amountDue"),Money.class),frozen.get("portion")!=null?string(frozen.get("portion")):policy.portion(option,start));
         }
-        return quote.firstMonth();
+        return null;
     }
     /** §3 `Member.nextInvoiceDate` ≥ the first-month start in force (M21); only with BILLING and a first month. */
     private void nextInvoiceDate(Map<String,Object> request,SignupPolicy.Period first) {
@@ -604,7 +638,9 @@ public class SignupService implements SignupPaymentAccess {
                 exceeds=replacement.paidExceedsQuote();if(exceeds!=null) warnings.add("PAID_EXCEEDS_QUOTE");
             } else { lines=payments.lines(id,scope);due=payments.due(id,scope,currency());paid=payments.paid(id,scope,currency()); }
             upfront=object("lines",lineViews(lines.stream().map(l -> l.id()!=null?l:new UpfrontPayments.Line(UUID.nameUUIDFromBytes((id+":"+l.dogId()+":"+l.concept()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),
-                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds);
+                    l.concept(),l.dogId(),l.amount(),l.paidAmount(),l.status(),l.provider())).toList()),"totalDue",due,"totalPaid",paid,"paidExceedsQuote",exceeds,
+                    // The first month the validation will charge: the frozen one, or the recalculated one after a plan change.
+                    "firstMonth",firstMonthView(first));
         }
         return object("upfront",upfront,"price",billing()&&plan!=null?plan.billedPrice():null,"nextInvoiceDate",request.get("nextInvoiceDate")!=null?request.get("nextInvoiceDate"):first==null?member.nextInvoiceDate:policy.nextInvoice(first),"warnings",warnings);
     }
@@ -690,6 +726,8 @@ public class SignupService implements SignupPaymentAccess {
         if(!Set.of("PENDING","ACTIVE").contains(member.status)||dogs.isEmpty()) throw notPending();
         version(member.version(),expected);reason=text(reason,"reason",500,true);if(reason.length()<3) throw invalid("reason","INVALID_VALUE");
         boolean active="ACTIVE".equals(member.status);var scope=scope(member,dogs);
+        // E3-T12: N-03 speaks the rejected submission's language, frozen in the event (a readmission restores the old signup).
+        String locale=string(submission(member,dogs).get("locale"));
         // S04 §3 (E3-T10): the decision is stamped on each rejected dog's submission block and, for a new member, on its signup.
         // A rejected readmission gets the LEFT record's own signup back (E38): its decision stays on the dogs' blocks.
         var decision=object("rejectedAt",clock.instant(),"rejectedByAccountId",CurrentUser.current()==null?null:CurrentUser.current().accountId(),"rejectionReason",reason);
@@ -700,7 +738,7 @@ public class SignupService implements SignupPaymentAccess {
         access.members.save(member);
         for(var dog:dogs) { dog.status="INACTIVE";dog.deactivationReason="SIGNUP_REJECTED";dog.deactivatedAt=clock.instant();access.dogs.save(dog); }
         boolean paid=payments.reject(id,scope);
-        events.emit("SignupRejected","Member",id,object("memberId",id,"dogIds",dogIds(dogs),"reason",reason,"memberWasActive",active,"applicant",applicant));
+        events.emit("SignupRejected","Member",id,object("memberId",id,"dogIds",dogIds(dogs),"reason",reason,"memberWasActive",active,"applicant",applicant,"locale",locale));
         refreshDashboard();
         return object("memberId",id,"status",member.status,"dogIds",dogIds(dogs),"paidPaymentRequiresRefund",paid);
     }

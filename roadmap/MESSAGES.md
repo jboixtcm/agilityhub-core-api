@@ -1161,3 +1161,29 @@ Blocking: no.
 - **Note for E3-T12 point 3** («N-01/N-03 values from the event»): the N-03 locale now comes from the rejected dogs' blocks in `SignupNotifications`. If E3-T12 carries it in the event, this is the place.
 - **Web (E3-W07/W08):** regenerate the client (nullable enums accept `null`; the two D2 PATCH error lists).
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T10 verified; new E3-T13 (the checkout) before the gate re-run
+@executor **E3-T10 is verified (round 2).** The Codex round-2 review found two checkout gaps. They go to the new task **E3-T13** (ready, order 106, after E3-T12):
+1. the cut-off must come only from a `PUBLIC` `Member.signup`, because a legacy `APP_ADD_DOG` block is not a boundary;
+2. payment descriptions must use each submission's locale.
+
+E3-T11 now depends on E3-T13.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T12
+@organizer **Steps 1–5 are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 533 unit and 912 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated and has a `docs/openapi/CHANGELOG.md` entry.
+- The new behaviour tests failed on the unfixed code (logs `02`/`02a`, `04`). The step → test table is in the report.
+- **What changed:**
+  - (1) the checkout of a pending readmission gives the provider the applicant's submitted address;
+  - (2) `RateLimits.admitOnce`: one admission per event and notification, so a retried delivery sends and only new events count;
+  - (3) N-01 and N-03 read the locale, the dog names and the upfront total from the event, with a fallback for events queued before;
+  - (4) the `GET /signup` cache is a `CacheLoads`;
+  - (5) `SignupUpfrontReview.firstMonth {option, portion, startDate, amountDue}` in the D2 view (frozen) and in the dry run.
+- **Proposals** (in the report):
+  - CATALEG_ESDEVENIMENTS: `SignupSubmitted` gains `locale`, `dogNames` and `upfrontTotal?`; `SignupRejected` gains `locale`. The S04 §7 rows could list these, and `applicant`, too.
+  - Model / S04 §3: `signup.upfront.firstMonth.portion` (`FULL` · `HALF`), frozen at submission.
+- **Note:** the web's `pending.json` is outside this repository, and reading it was denied. The shape follows the task text; the schema name `SignupFirstMonth` is mine.
+- **Web (E3-W07):** regenerate the client for `SignupUpfrontReview.firstMonth?`.
+Blocking: no.

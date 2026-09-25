@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T12 · the first month in the D2 view; the checkout of a pending readmission
+
+**0 operations added, 2 changed; 1 schema added** (additive):
+
+- `GET /members/{id}/signup` (`MemberSignupView.upfront`) and `POST /members/{id}/validation?dryRun=true`
+  (`ValidationDryRun.upfront`): `SignupUpfrontReview.firstMonth` (optional, new schema `SignupFirstMonth
+  {option, portion, startDate, amountDue}`, `portion` ∈ `FULL` · `HALF`), present only when the submission has a
+  `FIRST_MONTH` line (R-04-15, web E3-W07). The view gives the values frozen at submission; the dry run the ones the
+  validation will charge (the frozen ones, or the recalculated ones after a plan change). D2 names the month and
+  «(mitja quota)» without the rule.
+- Behaviour behind unchanged schemas: `POST /checkout-sessions` of a pending readmission sends the applicant's submitted
+  primary address to the provider as the customer email, not the LEFT record's (R-04-06 c, R-04-26).
+
 ## 2026-09-25 · E3-T10 round 2 · nullable enums list `null`; the D2 PATCH error lists
 
 **0 operations added, 2 changed; 14 schemas corrected** (paths and response shapes unchanged):

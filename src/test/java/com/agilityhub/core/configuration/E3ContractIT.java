@@ -172,7 +172,12 @@ class E3ContractIT extends AbstractIntegrationTest {
                 "ValidationDryRun", "ValidationResult", "RejectionRequest", "RejectionResult")) { assertThat(schema.path(name).path("properties").isEmpty()).as(name).isFalse(); }
         // CHECKOUT_PENDING: the D2 dryRun warning of S04 §5 / E39; PAID_EXCEEDS_QUOTE: E39b, in the dryRun and the validation (E3-T08).
         assertThat(strings(schema.at("/SignupWarning/enum"))).containsExactly("NO_IMAGE_CONSENT","ACCOUNT_NOT_PROVIDED","DOCUMENT_PENDING","FAMILY_HOLDER_NOT_FOUND","UPFRONT_UNPAID","READMISSION","CHECKOUT_PENDING","PAID_EXCEEDS_QUOTE");
-        properties(schema, "SignupUpfrontReview", "lines,totalDue,totalPaid,paidExceedsQuote");
+        properties(schema, "SignupUpfrontReview", "lines,totalDue,totalPaid,paidExceedsQuote,firstMonth");
+        // E3-T12 (web E3-W07, R-04-15): the first month D2 names, optional (only with a FIRST_MONTH line).
+        properties(schema, "SignupFirstMonth", "option,portion,startDate,amountDue");
+        assertThat(strings(schema.at("/SignupUpfrontReview/required"))).doesNotContain("firstMonth");
+        assertThat(strings(schema.at("/SignupFirstMonth/required"))).containsExactlyInAnyOrder("option","portion","startDate","amountDue");
+        assertThat(strings(schema.at("/SignupFirstMonth/properties/portion/enum"))).containsExactly("FULL","HALF");
         properties(schema, "ValidationResult", "memberId,number,accountId,dogIds,warnings,paidExceedsQuote");
         // E3-T08: the per-plan quote (M5), the D2 plan selector and age warning (M8, M11), the dog version (M12) and the signup flags.
         assertThat(schema.at("/SignupUpfrontConfig/properties").has("planQuotes")).isTrue();

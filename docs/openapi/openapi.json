@@ -12226,6 +12226,28 @@
         "required" : [ "fileKey", "name" ],
         "type" : "object"
       },
+      "SignupFirstMonth" : {
+        "description" : "The first month of a public signup (R-04-15): its option, full or half month, start date and amount",
+        "properties" : {
+          "amountDue" : {
+            "$ref" : "#/components/schemas/Money"
+          },
+          "option" : {
+            "enum" : [ "TODAY", "ALTERNATIVE" ],
+            "type" : "string"
+          },
+          "portion" : {
+            "enum" : [ "FULL", "HALF" ],
+            "type" : "string"
+          },
+          "startDate" : {
+            "format" : "date",
+            "type" : "string"
+          }
+        },
+        "required" : [ "amountDue", "option", "portion", "startDate" ],
+        "type" : "object"
+      },
       "SignupFirstMonthChoice" : {
         "properties" : {
           "amountDue" : {
@@ -12856,6 +12878,10 @@
       },
       "SignupUpfrontReview" : {
         "properties" : {
+          "firstMonth" : {
+            "$ref" : "#/components/schemas/SignupFirstMonth",
+            "description" : "R-04-15: the month the FIRST_MONTH line pays; absent without that line. The D2 view gives the values frozen at submission (signup.upfront.firstMonth); the dryRun the ones the validation will charge (recalculated after a plan change)"
+          },
           "lines" : {
             "items" : {
               "$ref" : "#/components/schemas/UpfrontLine"

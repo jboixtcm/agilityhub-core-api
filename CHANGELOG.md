@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T12: gate E3 audit fixes (api, 4/4), the follow-ups of the E3-T09 round-2 review and the D2 first month.
+  - R-04-06 c / R-04-26: the checkout of a pending readmission sends the applicant's submitted primary address to the
+    payment provider as the customer email; the LEFT record and the account's login email are untouched.
+  - R-04-20: the per-recipient cap is admitted once per event and notification (`RateLimits.admitOnce`), so an outbox
+    delivery retried after a provider failure still sends, and only new events count against the cap.
+  - R-04-06 c, S04 §8: `SignupSubmitted` carries `locale`, `dogNames` and `upfrontTotal`, and `SignupRejected` carries
+    `locale`; N-01 and N-03 read them from the event, so a later submission that reuses the dog (a readmission) no
+    longer changes a queued notification. Older events fall back to the submission block.
+  - R-04-27: the anonymous `GET /signup` configuration cache is generation-aware (`CacheLoads`): a load that overlapped
+    the eviction of a parameter, plan or club write never stores what it read.
+  - R-04-15 (web E3-W07): `SignupUpfrontReview.firstMonth {option, portion, startDate, amountDue}` in `GET
+    /members/{id}/signup` (frozen at submission) and in the D2 dry run (recalculated after a plan change). The frozen
+    `signup.upfront.firstMonth` now stores its `portion`; an older block derives it from its option and start date.
+
 - E3-T09 round 2: the pending readmission (S04 R-04-06 a–d, organizer 24-09) and the family lookup's name key.
   - R-04-05: the identity check and `POST /signup` also match a pending readmission on the primary address it submitted
     (index `{clubId, readmissionRequest.submitted.contactEmails.email}`), so no second pending application is created.

@@ -128,7 +128,11 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) FamilyMember holder) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupUpfrontReview(List<UpfrontLine> lines, Money totalDue, Money totalPaid,
-            @Schema(requiredMode = NOT_REQUIRED, description = "dryRun only (S04 §5, E39b): what was paid beyond the new plan's quote; warning PAID_EXCEEDS_QUOTE") Money paidExceedsQuote) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "dryRun only (S04 §5, E39b): what was paid beyond the new plan's quote; warning PAID_EXCEEDS_QUOTE") Money paidExceedsQuote,
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-15: the month the FIRST_MONTH line pays; absent without that line. The D2 view gives the values frozen at submission (signup.upfront.firstMonth); the dryRun the ones the validation will charge (recalculated after a plan change)") SignupFirstMonth firstMonth) { }
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    @Schema(description = "The first month of a public signup (R-04-15): its option, full or half month, start date and amount")
+    public record SignupFirstMonth(FirstMonthOption option, QuotePortion portion, LocalDate startDate, Money amountDue) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupProposals(@Schema(requiredMode = NOT_REQUIRED) LocalDate nextInvoiceDate,
             @Schema(requiredMode = NOT_REQUIRED,format = "uuid") String planId,

@@ -29,7 +29,10 @@ public class SignupPolicy {
         }
     }
     public record Line(String concept, String dogId, Money amountDue) { }
-    public record Period(String option, LocalDate startDate, Money amountDue) { }
+    /** A first-month or additional-dog choice; `portion` (`FULL` · `HALF`, R-04-15) only for a first month (E3-T12). */
+    public record Period(String option, LocalDate startDate, Money amountDue, String portion) {
+        public Period(String option, LocalDate startDate, Money amountDue) { this(option, startDate, amountDue, null); }
+    }
     public record Quote(List<Line> lines, Money totalDue, Period firstMonth, Period additionalDog) { }
     /** One payable choice of a plan quote: `totalDue` = the plan's lines + this option (R-04-14/15). */
     public record QuoteOption(String option, String portion, LocalDate startDate, Money amountDue, Money totalDue) { }
@@ -128,7 +131,7 @@ public class SignupPolicy {
         } else if (!addDog && base.firstMonth() != null) {
             for (var choice : FirstMonthCalculator.options(today, parameters().firstMonthSplitDay(), parameters().nextInvoiceDayOfMonth(), plan.price().amount())) {
                 var quote = quote(plan.id(), null, false, null, choice.option().name(), today);
-                options.add(new QuoteOption(choice.option().name(), choice.portion() == FirstMonthCalculator.Portion.FULL_MONTH ? "FULL" : "HALF",
+                options.add(new QuoteOption(choice.option().name(), portion(choice.portion()),
                         quote.firstMonth().startDate(), quote.firstMonth().amountDue(), quote.totalDue()));
             }
         }
@@ -146,7 +149,12 @@ public class SignupPolicy {
         return new Quote(quote.lines().stream().map(l -> new Line(l.concept().name(), l.dogId(), l.amountDue())).toList(),
                 quote.totalDue(), period(quote.firstMonth()), period(quote.additionalDog()));
     }
-    private Period period(UpfrontLines.Period value) { return value == null ? null : new Period(value.option().name(), value.startDate(), value.amountDue()); }
+    private Period period(UpfrontLines.Period value) { return value == null ? null : new Period(value.option().name(), value.startDate(), value.amountDue(), portion(value.portion())); }
+    private static String portion(FirstMonthCalculator.Portion value) { return value == null ? null : value == FirstMonthCalculator.Portion.FULL_MONTH ? "FULL" : "HALF"; }
+    /** The portion of a first month frozen without one (before E3-T12), from its option and start date (R-04-15). */
+    public String portion(String option, LocalDate startDate) {
+        return portion(FirstMonthCalculator.portion(FirstMonthCalculator.Option.valueOf(option), startDate, parameters().firstMonthSplitDay()));
+    }
     public List<Period> firstOptions(Money monthly) {
         return FirstMonthCalculator.options(today(), parameters().firstMonthSplitDay(), parameters().nextInvoiceDayOfMonth(), monthly)
                 .stream().map(c -> new Period(c.option().name(), c.startDate(), c.amountDue())).toList();

@@ -1,0 +1,44 @@
+[ERROR] Tests run: 4, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.390 s <<< FAILURE! -- in com.agilityhub.core.configuration.E3ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E3ResponseContractTest.T_04_29_T_04_33_responseFixturesRetainNestedFieldsEnumsMoneyAndUtcDates -- Time elapsed: 0.147 s <<< ERROR!
+com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: 
+Unrecognized field "firstMonth" (class com.agilityhub.core.clubs.census.api.SignupResponses$SignupUpfrontReview), not marked as ignorable (4 known properties: "totalDue", "paidExceedsQuote", "lines", "totalPaid")
+ at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: com.agilityhub.core.clubs.census.api.SignupResponses$MemberSignupView["upfront"]->com.agilityhub.core.clubs.census.api.SignupResponses$SignupUpfrontReview["firstMonth"])
+	at com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61)
+	at com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1200)
+	at com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2386)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperty(BeanDeserializerBase.java:1823)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperties(BeanDeserializerBase.java:1773)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeUsingPropertyBased(BeanDeserializer.java:584)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromObjectUsingNonDefault(BeanDeserializerBase.java:1499)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:340)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind.deser.SettableBeanProperty.deserialize(SettableBeanProperty.java:562)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeWithErrorWrapping(BeanDeserializer.java:608)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeUsingPropertyBased(BeanDeserializer.java:446)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromObjectUsingNonDefault(BeanDeserializerBase.java:1499)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:340)
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)
+	at com.fasterxml.jackson.databind.ObjectMapper._readValue(ObjectMapper.java:5023)
+	at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3104)
+	at com.fasterxml.jackson.databind.ObjectMapper.treeToValue(ObjectMapper.java:3572)
+	at com.agilityhub.core.configuration.E3ResponseContractTest.T_04_29_T_04_33_responseFixturesRetainNestedFieldsEnumsMoneyAndUtcDates(E3ResponseContractTest.java:27)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Errors: 
+[ERROR]   E3ResponseContractTest.T_04_29_T_04_33_responseFixturesRetainNestedFieldsEnumsMoneyAndUtcDates:27 » UnrecognizedProperty Unrecognized field "firstMonth" (class com.agilityhub.core.clubs.census.api.SignupResponses$SignupUpfrontReview), not marked as ignorable (4 known properties: "totalDue", "paidExceedsQuote", "lines", "totalPaid")
+ at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: com.agilityhub.core.clubs.census.api.SignupResponses$MemberSignupView["upfront"]->com.agilityhub.core.clubs.census.api.SignupResponses$SignupUpfrontReview["firstMonth"])
+[ERROR] Tests run: 4, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: 
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

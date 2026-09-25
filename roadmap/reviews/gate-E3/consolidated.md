@@ -200,14 +200,15 @@ The full lists, with file:line, are in the two source reports. The ones routed t
 ## Fix plan
 The E3 fix tasks run before the E4–E8 tasks of each queue, because the executors take the lowest stage first.
 
-| Task | Repo | Content | Depends on | Status 25-09 09:25 |
+| Task | Repo | Content | Depends on | Status 25-09 09:55 |
 |---|---|---|---|---|
 | **E3-T07** | api | Baseline audit run on `de0e17f` | — | verified |
 | **E3-T08** | api | The smoke (step 1); M5 api side (a quote per plan in `GET /signup`); M6, M7, M8 (+ `planOptions`), M9, M10 (E39), M11 server side (+ `warnDays` in the signup view), M20 api side (E36), M21; the dog `version`; the signup flags; E35 | E3-T07 | verified (2 rounds) |
 | **E3-T09** | api | M16 api side (+ a MinIO IT), M17, M18 (E38); the security minors | E3-T08 | verified (2 rounds) |
-| **E3-T10** | api | The other api minors, the event payloads, the `Member.signup` snapshot, the OpenAPI error lists, the D1 details (`leftAt`, `waitingTotal`, `TASKS` gating, `percent`), and the weak tests | E3-T09 | round 2 in progress |
-| **E3-T12** | api | Follow-ups of the E3-T09 round-2 review (the readmission checkout email, idempotent recipient caps, N-01/N-03 values from the event, a generation-aware configuration cache) and the D2 `firstMonth` field (added 25-09) | E3-T09, E3-T10 | ready |
-| **E3-T11** | api | Audit re-run after the fixes | E3-T07…T10, E3-T12 | not_open (the organizer opens it) |
+| **E3-T10** | api | The other api minors, the event payloads, the `Member.signup` snapshot, the OpenAPI error lists, the D1 details (`leftAt`, `waitingTotal`, `TASKS` gating, `percent`), and the weak tests | E3-T09 | verified (2 rounds) |
+| **E3-T12** | api | Follow-ups of the E3-T09 round-2 review (the readmission checkout email, idempotent recipient caps, N-01/N-03 values from the event, a generation-aware configuration cache) and the D2 `firstMonth` field (added 25-09) | E3-T09, E3-T10 | in progress |
+| **E3-T13** | api | Follow-ups of the E3-T10 round-2 review, the checkout: the cut-off only from a public signup, descriptions in each submission's locale (added 25-09) | E3-T10, E3-T12 | ready |
+| **E3-T11** | api | Audit re-run after the fixes | E3-T07…T10, E3-T12, E3-T13 | not_open (the organizer opens it) |
 | **E3-W05** | web | Baseline audit run | — | verified |
 | **E3-W06** | web | B1, M1, M2, M19, the payment texts under the right method; the signup minors (no api change needed) | E3-W04 | verified (2 rounds) |
 | **E3-W07** | web | Snapshot adoption; D2: M12–M15, M11 web side, the refund warning; the D2 and D1 minors (the E38 readmission moved to E3-W08) | E3-W06, api E3-T08 | changes_requested (round 1) |

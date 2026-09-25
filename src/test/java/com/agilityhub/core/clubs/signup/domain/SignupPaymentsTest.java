@@ -51,6 +51,26 @@ class SignupPaymentsTest {
         assertThat(options).extracting(FirstMonthCalculator.Choice::startDate).containsExactly(startA, startB);
         assertThat(options).extracting(FirstMonthCalculator.Choice::nextInvoiceDate).containsExactly(invoiceA, invoiceB);
     }
+    /** E3-T12 (R-04-15, web E3-W07): the frozen first month carries its portion; an older one gets it from option and start. */
+    @Test void R_04_15_T_04_05_theFirstMonthCarriesItsPortionAndAnOlderOneIsDerived() {
+        var early = UpfrontLines.publicSignup(monthly(), "dog", true, LocalDate.of(2026, 8, 5), defaults, TODAY).firstMonth();
+        assertThat(early.portion()).isEqualTo(FirstMonthCalculator.Portion.FULL_MONTH);
+        assertThat(UpfrontLines.publicSignup(monthly(), "dog", true, LocalDate.of(2026, 8, 5), defaults, ALTERNATIVE).firstMonth())
+                .isEqualTo(new UpfrontLines.Period(ALTERNATIVE, LocalDate.of(2026, 8, 16), eur(3000), FirstMonthCalculator.Portion.HALF_MONTH));
+        assertThat(UpfrontLines.publicSignup(monthly(), "dog", true, today, defaults, TODAY).firstMonth().portion()).isEqualTo(FirstMonthCalculator.Portion.HALF_MONTH);
+        assertThat(UpfrontLines.publicSignup(monthly(), "dog", true, today, defaults, ALTERNATIVE).firstMonth().portion()).isEqualTo(FirstMonthCalculator.Portion.FULL_MONTH);
+        // Derived exactly as the calculator decides, for each branch of R-04-15.
+        for (var date : List.of(LocalDate.of(2026, 8, 5), LocalDate.of(2026, 8, 16), today, LocalDate.of(2026, 12, 31), LocalDate.of(2026, 8, 1))) {
+            for (var choice : FirstMonthCalculator.options(date, 16, 1, eur(6000))) {
+                assertThat(FirstMonthCalculator.portion(choice.option(), choice.startDate(), 16)).as("%s %s", date, choice.option()).isEqualTo(choice.portion());
+            }
+        }
+        // Split day 1: every day is on or after it; the alternative is the full next month.
+        for (var choice : FirstMonthCalculator.options(LocalDate.of(2026, 8, 1), 1, 1, eur(6000))) {
+            assertThat(FirstMonthCalculator.portion(choice.option(), choice.startDate(), 1)).isEqualTo(choice.portion());
+        }
+        error(() -> FirstMonthCalculator.portion(TODAY, today, 0), ErrorCode.PARAMETER_INVALID);
+    }
     @Test void T_04_05_clockUsesClubZoneAndCatalogOverrides() {
         var clock = Clock.fixed(Instant.parse("2026-08-15T22:30:00Z"), ZoneOffset.UTC);
         var madrid = FirstMonthCalculator.options(clock, ZoneId.of("Europe/Madrid"), defaults, eur(6000)).getFirst();
