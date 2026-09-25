@@ -243,8 +243,13 @@ class E3ContractIT extends AbstractIntegrationTest {
         for (String block : List.of("activeMembers","classOccupancy","trainingBookings","pendingSignups")) {
             assertThat(strings(schemas.at("/DashboardKpis/properties/" + block + "/type"))).contains("null");
         }
-        assertThat(strings(schemas.at("/ClassOccupancyKpi/properties/percent/type"))).contains("null");
-        assertThat(strings(schemas.at("/ClassOccupancyKpi/required"))).contains("percent");
+        // R-14-03 (E3-T10 step 10): `percent` is an integer or null; `waitingTotal` is null without WAITLIST (§9).
+        assertThat(strings(schemas.at("/ClassOccupancyKpi/properties/percent/type"))).containsExactlyInAnyOrder("integer", "null");
+        assertThat(strings(schemas.at("/ClassOccupancyKpi/properties/waitingTotal/type"))).containsExactlyInAnyOrder("integer", "null");
+        assertThat(strings(schemas.at("/ClassOccupancyKpi/required"))).contains("percent", "waitingTotal");
+        // R-14-06: an avisat without a gender on file is published with `gender: null`.
+        assertThat(strings(schemas.at("/RiskNotified/properties/gender/type"))).containsExactlyInAnyOrder("string", "null");
+        assertThat(strings(schemas.at("/RiskNotified/required"))).contains("gender");
         assertThat(strings(schemas.at("/PendingSignup/required"))).doesNotContain("paymentMethodType", "warnings");
         assertThat(schemas.at("/PendingSignup/properties/warnings/items/$ref"))
                 .isEqualTo(schemas.at("/MemberSignupView/properties/warnings/items/$ref"));

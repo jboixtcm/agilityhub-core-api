@@ -1,0 +1,19 @@
+surefire: 117 classes, tests=528 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.dashboard.domain.DashboardBuildersTest: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.signup.domain.SignupPolicyTest: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.S04ErrorContractTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.ParameterCatalogContractTest: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.domain.CountryProfileTest: tests=3 failures=0 errors=0 skipped=0
+failsafe: 82 classes, tests=898 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=38 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=32 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=13 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=16 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.identity.api.IdentityCoreIT: tests=26 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=6 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.persistence.PlatformIT: tests=9 failures=0 errors=0 skipped=0

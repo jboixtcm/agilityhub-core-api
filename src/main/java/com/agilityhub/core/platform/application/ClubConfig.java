@@ -33,11 +33,17 @@ public record ClubConfig(ClubView club, Map<String, Object> parameters, Set<Modu
     }
     public List<String> ringPalette() { return club.theme().ringPalette(); }
     public String primaryColor() { return club.theme().colors().primary(); }
+    /** `legalName` and `taxId` are the club's public legal identity (S02 §3, R-02-02); both may be unset. */
     public record ClubView(String id, String slug, String name, List<String> locales, String defaultLocale,
-                           String timeZone, String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city) {
+                           String timeZone, String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city,
+                           String legalName, String taxId) {
         public ClubView(String id, String slug, String name, List<String> locales, String defaultLocale, String timeZone,
                         String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl) {
             this(id, slug, name, locales, defaultLocale, timeZone, currency, theme, pwa, status, privacyPolicyUrl, null);
+        }
+        public ClubView(String id, String slug, String name, List<String> locales, String defaultLocale, String timeZone,
+                        String currency, Theme theme, Pwa pwa, String status, String privacyPolicyUrl, String city) {
+            this(id, slug, name, locales, defaultLocale, timeZone, currency, theme, pwa, status, privacyPolicyUrl, city, null, null);
         }
         public ClubView { locales = List.copyOf(locales); }
     }

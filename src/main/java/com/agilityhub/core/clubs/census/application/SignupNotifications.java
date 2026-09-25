@@ -45,11 +45,17 @@ public class SignupNotifications {
                 case "SignupSubmitted" -> {
                     // The ids are a collection: `in(Object...)` would search for the list itself and find no dog (`{dogs}` was empty).
                     var dogs=access.dogs.matching(org.springframework.data.mongodb.core.query.Criteria.where("_id").in((Collection<?>)event.payload().get("dogIds")));
-                    variables.put("dogs",String.join(", ",dogs.stream().map(d -> d.name).toList()));var plan=access.references.plan(string(map(member.signup).get("planIdRequested")));var names=map(plan.get("name"));if(names.get("values") instanceof Map<?,?>) names=map(names.get("values"));
+                    // E3-T10 (review of E3-T08 round 2): each copy describes its own submission, even when later ones are queued:
+                    // the event's plan, and the submission block's locale and frozen upfront, never the member's latest signup.
+                    var signup=dogs.isEmpty()||dogs.getFirst().signup==null?map(member.signup):map(dogs.getFirst().signup);
+                    locale=string(signup.getOrDefault("locale",locale));variables.put("locale",locale);
+                    variables.put("dogs",String.join(", ",dogs.stream().map(d -> d.name).toList()));
+                    String planId=event.payload().containsKey("planId")?string(event.payload().get("planId")):string(signup.get("planIdRequested"));
+                    var plan=access.references.plan(planId);var names=map(plan.get("name"));if(names.get("values") instanceof Map<?,?>) names=map(names.get("values"));
                     variables.put("plan_name",names.getOrDefault(locale,names.getOrDefault(access.config().club().defaultLocale(),"")));
                     // §8: the applicant's copy tells what to pay and how (the frozen upfront of this submission); it never opens D2.
                     var applicant=new LinkedHashMap<>(variables);String variant=null;
-                    var signup=dogs.isEmpty()||dogs.getFirst().signup==null?map(member.signup):map(dogs.getFirst().signup);var total=map(map(signup.get("upfront")).get("totalDue"));
+                    var total=map(map(signup.get("upfront")).get("totalDue"));
                     if(number(total.get("amountMinor"))>0) {
                         variant="upfront";applicant.put("upfront_total",new Money(number(total.get("amountMinor")),string(total.get("currency"))).format(Locale.forLanguageTag(locale)));
                         // With a provider checkout the payment happens there (pay_link, E8-T04); otherwise the club's MANUAL instructions apply.

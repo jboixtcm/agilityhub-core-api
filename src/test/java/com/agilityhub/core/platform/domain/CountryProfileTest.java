@@ -41,10 +41,20 @@ class CountryProfileTest {
         assertThat(generic.code()).isEqualTo("GENERIC"); assertThat(generic.idDocumentTypes()).containsExactly("PASSPORT", "OTHER");
         assertThat(generic.defaultPhonePrefix()).isEmpty(); assertThat(generic.dateFormat()).isEqualTo("yyyy-MM-dd");
         assertThat(generic.validateIdDocument("OTHER", "free form")).isTrue();
-        assertThat(generic.validateIban("free form")).isTrue(); assertThat(generic.postalCodeLookup("08349")).isEmpty();
+        assertThat(generic.postalCodeLookup("08349")).isEmpty();
         assertThat(generic.normalizePhone("+351 912 345 678")).isEqualTo("+351912345678");
         for (String value : new String[]{null, "612345678", "+0123", "+1234567890123456", "+1e9"}) {
             assertThatThrownBy(() -> generic.normalizePhone(value)).isInstanceOf(ApiException.class);
+        }
+    }
+    /** E3-T10 step 8 (R-04-10): GENERIC used to accept any text; it runs the mod-97 check on the ISO 13616 shape. */
+    @Test void T_04_14_genericIbanRunsTheMod97Check() {
+        var generic = registry.get("GENERIC");
+        for (String valid : new String[]{"PT50 0002 0123 1234 5678 9015 4", "DE89370400440532013000", "gb82 west 1234 5698 7654 32", "ES9121000418450200051332"}) {
+            assertThat(generic.validateIban(valid)).as(valid).isTrue();
+        }
+        for (String invalid : new String[]{null, "", "free form", "PT51000201231234567890154", "DE88370400440532013000", "XX1234", "DE89 3704 0044 0532 0130 00 AB CD EF GH IJ KL MN"}) {
+            assertThat(generic.validateIban(invalid)).as(String.valueOf(invalid)).isFalse();
         }
     }
 }

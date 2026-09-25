@@ -20,12 +20,13 @@ public class SignupIdentityService {
             account=new Account(UUID.randomUUID().toString(),email,name,locale,null,Set.of(),Account.Status.ACTIVE,new Account.Security(0,null,null,0),Map.of(),false,clock.instant(),null,null,
                     Account.Source.SIGNUP,null,null,List.of(new Account.Consent(Account.ConsentPolicy.CLUB,TenantContext.require(),consentVersion,acceptedAt)),List.of());
             if (!accounts.createIfAbsent(account)) { throw new ApiException(ErrorCode.MEMBERSHIP_EXISTS); }
-            events.publish(new IdentityEvent(IdentityEvent.Kind.AccountCreated,TenantContext.require(),account.id(),clock.instant(),Map.of("accountId",account.id(),"source","SIGNUP")));
+            events.publish(IdentityEvents.of(IdentityEvent.Kind.AccountCreated,TenantContext.require(),account.id(),clock.instant(),Map.of("accountId",account.id(),"source","SIGNUP")));
         } else if(account.status()!=Account.Status.ACTIVE) { throw new ApiException(ErrorCode.INVALID_STATE); }
         var existing=memberships.findByAccountId(account.id()).orElse(null);
+        Set<Role> before=Set.of(),after=Set.of(Role.MEMBER);
         if(existing!=null) {
             if(!readmission || !memberId.equals(existing.memberId()) || existing.status()==Membership.Status.ERASED) { throw new ApiException(ErrorCode.MEMBERSHIP_EXISTS); }
-            var roles=new HashSet<>(existing.roles()); roles.add(Role.MEMBER);
+            var roles=new HashSet<>(existing.roles()); roles.add(Role.MEMBER);before=existing.roles();after=roles;
             memberships.saveTeam(new Membership(existing.id(),existing.accountId(),existing.clubId(),existing.memberId(),roles,Membership.Status.ACTIVE,
                     Role.MEMBER,false,existing.instructorId(),existing.createdAt(),existing.lastAccessAt(),existing.adminProfile(),existing.version()+1,clock.instant(),existing.createdByAccountId(),null));
         } else {
@@ -35,9 +36,11 @@ public class SignupIdentityService {
         if(account.consents().stream().noneMatch(c -> c.policy()==Account.ConsentPolicy.CLUB && TenantContext.require().equals(c.clubId()) && consentVersion.equals(c.version()))) {
             accounts.completeOnboarding(account.id(),new Account.Consent(Account.ConsentPolicy.CLUB,TenantContext.require(),consentVersion,acceptedAt));
         }
-        events.publish(new IdentityEvent(IdentityEvent.Kind.MembershipChanged,TenantContext.require(),existing.id(),clock.instant(),
-                Map.of("accountId",account.id(),"memberId",memberId,"roles",List.of("MEMBER"),"status","ACTIVE")));
+        // CATALEG_ESDEVENIMENTS (E3-T10): `MembershipChanged{accountId, clubId, roles before/after}`, like MembershipService.
+        events.publish(IdentityEvents.of(IdentityEvent.Kind.MembershipChanged,TenantContext.require(),existing.id(),clock.instant(),
+                Map.of("accountId",account.id(),"clubId",TenantContext.require(),"memberId",memberId,"before",names(before),"after",names(after),"status","ACTIVE")));
         return account.id();
     }
+    private static List<String> names(Set<Role> roles) { return roles.stream().map(Enum::name).sorted().toList(); }
     public List<String> admins() { return memberships.findAll().stream().filter(m -> m.status()==Membership.Status.ACTIVE && m.roles().contains(Role.ADMIN)).map(Membership::accountId).toList(); }
 }

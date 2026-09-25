@@ -94,7 +94,7 @@ public class LearnImportService {
         }
         var report = LearnImportReport.of(dryRun, results);
         if (!dryRun && report.created() + report.linked() > 0) {
-            events.publish(new IdentityEvent(IdentityEvent.Kind.LearnAccountsImported, null, UUID.randomUUID().toString(), clock.instant(),
+            events.publish(IdentityEvents.of(IdentityEvent.Kind.LearnAccountsImported, null, UUID.randomUUID().toString(), clock.instant(),
                     Map.of("created", report.created(), "merged", report.linked(), "errors", report.errors())));
         }
         return report;

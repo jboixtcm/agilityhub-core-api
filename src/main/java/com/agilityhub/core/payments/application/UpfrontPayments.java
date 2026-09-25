@@ -67,7 +67,8 @@ public class UpfrontPayments {
             long allocated=Math.min(remaining,p.amountDue().minus(p.amountPaid()).amountMinor()); remaining-=allocated;
             Money paid=p.amountPaid().plus(new Money(allocated,amount.currency()));
             repository.update(state(p,paid.equals(p.amountDue())?"PAID":"PARTIAL",paid,"MANUAL",null));
-            emit("UpfrontPaymentRecorded",p,Map.of("paymentId",p.id(),"concept",p.concept(),"provider","MANUAL","amountPaid",new Money(allocated,amount.currency())));
+            // CATALEG_ESDEVENIMENTS (E3-T10): the payload names the member, like Succeeded/Failed.
+            emit("UpfrontPaymentRecorded",p,Map.of("paymentId",p.id(),"memberId",p.memberId(),"concept",p.concept(),"provider","MANUAL","amountPaid",new Money(allocated,amount.currency())));
         }
         if (remaining>0) { throw new ApiException(ErrorCode.INVALID_STATE); }
     }

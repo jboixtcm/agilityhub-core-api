@@ -62,7 +62,9 @@ class SignupIT extends AbstractIntegrationTest {
     @com.agilityhub.core.support.AuditCovers({com.agilityhub.core.platform.application.audit.AuditAction.MEMBER_VALIDATED,com.agilityhub.core.platform.application.audit.AuditAction.DOG_LEVEL_CHANGED})
     @Test void T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities() throws Exception {
         var config=result(get("/api/v1/signup").header("Host",host),200);assertThat(config.path("steps").size()).isEqualTo(4);
-        var created=submit(request());String id=created.path("memberId").asText();String dog=collection("dogs").getFirst().getString("_id");
+        // Accounts are global: a unique address, so no account of another test is reused.
+        var body=request();((ObjectNode)body.get("person")).set("emails",mapper.valueToTree(List.of("t0417."+UUID.randomUUID()+"@example.test")));
+        var created=submit(body);String id=created.path("memberId").asText();String dog=collection("dogs").getFirst().getString("_id");
         assertThat(created.at("/upfront/totalDue/amountMinor").asLong()).isEqualTo(16000);
         assertThat(member(id).getString("status")).isEqualTo("PENDING");assertThat(member(id).get("consents")).isInstanceOf(List.class);
         var review=result(admin(get("/api/v1/members/"+id+"/signup").header("Host",host)),200);
@@ -72,6 +74,29 @@ class SignupIT extends AbstractIntegrationTest {
         assertThat(collection("dogs").getFirst().getString("levelId")).isEqualTo(level);
         assertThat(collection("upfront_payments")).allMatch(p->p.getString("status").equals("PAID"));
         assertThat(collection("audit_entries").stream().map(d->d.getString("action"))).contains("MEMBER_VALIDATED","DOG_LEVEL_CHANGED");
+        // E3-T10 step 11: the rest of the T-04-17 row. A new Account in `signup.locale` without a password, Membership [MEMBER],
+        // the dog's `levelAssignedAt`, `nextInvoiceDate`, the outbox events and the audited before/after.
+        String account=member(id).getString("accountId");
+        var stored=mongo.getCollection("accounts").find(new Document("_id",account)).first();
+        assertThat(stored.getString("email")).isEqualTo(body.at("/person/emails/0").asText());
+        assertThat(stored.getString("locale")).isEqualTo("ca");assertThat(stored.get("passwordHash")).isNull();
+        var membership=mongo.getCollection("memberships").find(new Document("accountId",account)).first();
+        assertThat(membership.getString("clubId")).isEqualTo(club);assertThat(membership.getString("memberId")).isEqualTo(id);assertThat(membership.getList("roles",String.class)).containsExactly("MEMBER");
+        assertThat(collection("dogs").getFirst().get("levelAssignedAt")).isNotNull();
+        assertThat(result(admin(get("/api/v1/members/"+id).header("Host",host)),200).findValuesAsText("nextInvoiceDate")).contains("2026-02-01");
+        var types=collection("domain_events").stream().map(e->e.getString("type")).toList();
+        assertThat(types).contains("MemberValidated","AccountCreated","MembershipChanged");
+        assertThat(types.stream().filter("UpfrontPaymentRecorded"::equals)).hasSize(2);
+        assertThat(collection("domain_events").stream().filter(e->"AccountCreated".equals(e.getString("type"))).findFirst().orElseThrow().get("payload",Document.class).getString("source")).isEqualTo("SIGNUP");
+        var audit=collection("audit_entries").stream().filter(e->"MEMBER_VALIDATED".equals(e.getString("action"))).findFirst().orElseThrow();
+        assertThat(audit.getList("changes",Document.class)).anySatisfy(change -> {assertThat(change.getString("path")).isEqualTo("status");assertThat(change.get("before")).isEqualTo("PENDING");assertThat(change.get("after")).isEqualTo("ACTIVE");});
+        // An email that already has an Account (a Learn user, another club) reuses it: no second AccountCreated.
+        var reuse=request();String email="t0417.reuse."+UUID.randomUUID()+"@example.test";((ObjectNode)reuse.get("person")).set("emails",mapper.valueToTree(List.of(email)));
+        mongo.insert(new com.agilityhub.core.identity.persistence.Account("existing-"+club,email,"Existing Example","es",null,Set.of(),com.agilityhub.core.identity.persistence.Account.Status.ACTIVE,null,Map.of(),false,clock.instant()));
+        String second=submit(reuse).path("memberId").asText();
+        result(admin(postJson("/members/"+second+"/validation",validation(second,dog(second),((Number)member(second).get("version")).longValue()))),200);
+        assertThat(member(second).getString("accountId")).isEqualTo("existing-"+club);
+        assertThat(collection("domain_events").stream().filter(e->"AccountCreated".equals(e.getString("type")))).hasSize(1);
     }
     @Test void T_04_23_idempotencyReplaysEncryptedResponseAndClosesSignup() throws Exception {
         var body=request();String key=UUID.randomUUID().toString();
@@ -110,11 +135,21 @@ class SignupIT extends AbstractIntegrationTest {
     @Test void T_04_11_identityRecognitionUsesPrimaryEmailAndDocumentPrecedence() throws Exception {
         var original=request();var created=submit(original);String id=created.path("memberId").asText();validate(id,16000);
         var identity=Map.of("idDocument",original.at("/person/idDocument"),"emails",List.of("another@example.test"));
-        assertThat(result(postJson("/signup/identity-checks",identity),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
+        // E3-T10 step 11: each case asserts its exact result, the masked address and the outbox (T-04-11 row).
+        var byDocument=result(postJson("/signup/identity-checks",identity),200);
+        assertThat(byDocument.path("result").asText()).isEqualTo("VERIFICATION_SENT");
+        assertThat(byDocument.path("maskedEmail").asText()).contains("•","@").doesNotContain("applicant","example.test","Example");
+        var recognitions=collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type"))).toList();
+        assertThat(recognitions).hasSize(1);
+        assertThat(recognitions.getFirst().get("payload",Document.class)).containsEntry("memberId",id).containsEntry("accountId",member(id).getString("accountId")).containsEntry("redirect","/gossos/nou");
         var newer=request();var emailMatch=Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of(original.at("/person/emails/0").asText()));
-        assertThat(result(postJson("/signup/identity-checks",emailMatch),200).path("maskedEmail").asText()).doesNotContain("applicant","example.test");
+        var byEmail=result(postJson("/signup/identity-checks",emailMatch),200);
+        assertThat(byEmail.path("result").asText()).isEqualTo("VERIFICATION_SENT");assertThat(byEmail.path("maskedEmail").asText()).isEqualTo(byDocument.path("maskedEmail").asText());
+        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).hasSize(2);
         mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$push",new Document("contactEmails",new Document("email","secondary@example.test"))));
-        assertThat(result(postJson("/signup/identity-checks",Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of("secondary@example.test"))),200).path("result").asText()).isEqualTo("NEW");
+        var secondary=result(postJson("/signup/identity-checks",Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of("secondary@example.test"))),200);
+        assertThat(secondary.path("result").asText()).isEqualTo("NEW");assertThat(secondary.has("maskedEmail")).isFalse();
+        assertThat(collection("domain_events").stream().filter(e->"SignupRecognitionRequested".equals(e.getString("type")))).hasSize(2);
         assertThat(result(postJson("/signup",original).header("Idempotency-Key",UUID.randomUUID()),409).path("code").asText()).isEqualTo("MEMBER_ALREADY_EXISTS");
         var pending=submit(newer);long events=collection("domain_events").size();
         assertThat(result(postJson("/signup/identity-checks",Map.of("idDocument",newer.at("/person/idDocument"),"emails",List.of("unknown@example.test"))),200).path("result").asText()).isEqualTo("SIGNUP_ALREADY_PENDING");
@@ -181,6 +216,29 @@ class SignupIT extends AbstractIntegrationTest {
         assertThat(collection("family_groups").getFirst().getList("memberIds",String.class)).containsExactlyInAnyOrder(holderId,id);
         body=request();body.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName","Missing Holder","dogName","Unknown","leavePending",true)));String pending=submit(body).path("memberId").asText();
         assertThat(member(pending).get("familyGroupClaim",Document.class).getString("status")).isEqualTo("NOT_FOUND_PENDING");
+        // E3-T10 step 11: the rest of the T-04-16 row. «Deixa-ho pendent» without signup.allowFamilyGroupPending → 400.
+        parameter("signup.allowFamilyGroupPending",false);
+        body=request();body.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName","Missing Holder","dogName","Unknown","leavePending",true)));
+        var refused=result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),400);
+        assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("familyGroupClaim.leavePending");
+    }
+    /** T-04-16: «el dryRun proposa la tarifa FAMILY» for a FOUND claim, and the validation creates the holder's group. */
+    @Test void T_04_16_aFoundClaimProposesTheFamilyFareInD2AndTheDryRun() throws Exception {
+        String family=offer(PlanType.MONTHLY,2,9000);
+        var holder=request();((ObjectNode)holder.get("person")).put("firstName","Family").put("lastName1","Holder");((ObjectNode)holder.get("dog")).put("name","Kiwi");
+        String holderId=submit(holder).path("memberId").asText();
+        var body=request();body.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName","Family Holder","dogName","Kiwi","leavePending",false)));String id=submit(body).path("memberId").asText();
+        var review=result(admin(get("/api/v1/members/"+id+"/signup").header("Host",host)),200);
+        assertThat(review.at("/proposals/planId").asText()).isEqualTo(family);
+        var dry=result(admin(postJson("/members/"+id+"/validation",Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",dog(id),"levelId",level)),"nextInvoiceDate","2026-02-01")).param("dryRun","true")),200);
+        assertThat(dry.at("/price/amount/amountMinor").asLong()).isEqualTo(9000);
+        assertThat(collection("family_groups")).isEmpty();
+        var request=new LinkedHashMap<String,Object>(Map.of("version",member(id).get("version"),"dogs",List.of(Map.of("dogId",dog(id),"levelId",level)),"nextInvoiceDate","2026-02-01",
+                "upfrontAmountPaid",dry.at("/upfront/totalDue").isMissingNode()?Map.of("amountMinor",0,"currency","EUR"):mapper.convertValue(dry.at("/upfront/totalDue"),Map.class)));
+        result(admin(postJson("/members/"+id+"/validation",request)),200);
+        assertThat(member(id).getString("planId")).isEqualTo(family);
+        var group=collection("family_groups").getFirst();
+        assertThat(group.getString("holderMemberId")).isEqualTo(holderId);assertThat(group.getList("memberIds",String.class)).containsExactlyInAnyOrder(holderId,id);
     }
     @Test void T_04_18_dryRunNeverWritesAndValidationRequiresLevelAndInvoiceDate() throws Exception {
         String id=submit(request()).path("memberId").asText();String dog=dog(id);
@@ -194,10 +252,28 @@ class SignupIT extends AbstractIntegrationTest {
     }
     @com.agilityhub.core.support.AuditCovers(com.agilityhub.core.platform.application.audit.AuditAction.SIGNUP_REJECTED)
     @Test void T_04_19_rejectionCancelsDuePaymentsAndCannotRepeat() throws Exception {
-        String id=submit(request()).path("memberId").asText();reject(id);
-        assertThat(member(id).getString("leftReason")).isEqualTo("SIGNUP_REJECTED");assertThat(collection("dogs").getFirst().getString("status")).isEqualTo("INACTIVE");
-        assertThat(collection("upfront_payments")).allMatch(p->"CANCELLED".equals(p.getString("status")));
-        assertThat(result(admin(postJson("/members/"+id+"/rejection",Map.of("version",1,"reason","Again"))),409).path("code").asText()).isEqualTo("INVALID_STATE");
+        var original=request();String id=submit(original).path("memberId").asText();String dog=dog(id);
+        // E3-T10 step 11: the whole T-04-19 row. A PAID row (the entry fee, paid by card) is kept and announced for the refund.
+        var entry=collection("upfront_payments").stream().filter(p->"ENTRY_FEE".equals(p.getString("concept"))).findFirst().orElseThrow();
+        mongo.getCollection("upfront_payments").updateOne(new Document("_id",entry.getString("_id")),new Document("$set",new Document("status","PAID").append("amountPaid",entry.get("amountDue")).append("provider","STRIPE")));
+        var rejected=reject(id);
+        assertThat(rejected.path("status").asText()).isEqualTo("LEFT");assertThat(rejected.path("paidPaymentRequiresRefund").asBoolean()).isTrue();
+        assertThat(member(id).getString("leftReason")).isEqualTo("SIGNUP_REJECTED");assertThat(member(id).get("leftAt")).isNotNull();
+        var inactive=collection("dogs").getFirst();
+        assertThat(inactive.getString("status")).isEqualTo("INACTIVE");assertThat(inactive.getString("deactivationReason")).isEqualTo("SIGNUP_REJECTED");
+        assertThat(collection("upfront_payments").stream().filter(p->p.getString("_id").equals(entry.getString("_id"))).findFirst().orElseThrow().getString("status")).isEqualTo("PAID");
+        assertThat(collection("upfront_payments").stream().filter(p->"FIRST_MONTH".equals(p.getString("concept")))).allMatch(p->"CANCELLED".equals(p.getString("status")));
+        var event=collection("domain_events").stream().filter(e->"SignupRejected".equals(e.getString("type"))).toList();
+        assertThat(event).hasSize(1);var payload=event.getFirst().get("payload",Document.class);
+        assertThat(payload.getString("memberId")).isEqualTo(id);assertThat(payload.getList("dogIds",String.class)).containsExactly(dog);
+        assertThat(payload.getString("reason")).isEqualTo("Fictional rejection reason");assertThat(payload.getBoolean("memberWasActive")).isFalse();
+        dispatch();
+        assertThat(collection("notifications").stream().filter(n->"N-03".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel")))).hasSize(1);
+        assertThat(result(admin(postJson("/members/"+id+"/rejection",Map.of("version",member(id).get("version"),"reason","Again"))),409).path("code").asText()).isEqualTo("INVALID_STATE");
+        // The same DNI signs up again: a readmission of the same member (R-04-06).
+        assertThat(submit(original).path("memberId").asText()).isEqualTo(id);
+        assertThat(member(id).getString("status")).isEqualTo("PENDING");assertThat(member(id).get("signup",Document.class).getBoolean("readmission")).isTrue();
+        assertThat(collection("members")).hasSize(1);
     }
     @com.agilityhub.core.support.AuditCovers(com.agilityhub.core.platform.application.audit.AuditAction.SIGNUP_EDITED)
     @Test void T_04_20_pendingEditsEmitSignupEditedAndRejectStaleVersion() throws Exception {
@@ -211,9 +287,26 @@ class SignupIT extends AbstractIntegrationTest {
         var body=Map.of("dog",request().get("dog"),"documents",List.of(),"additionalDogOption","ALTERNATIVE");
         var added=result(asMember(postJson("/me/dogs/signup",body).header("Idempotency-Key",UUID.randomUUID()),id),201);
         assertThat(added.at("/checkout/memberId").asText()).isEqualTo(id);assertThat(added.at("/upfront/totalDue/amountMinor").asLong()).isEqualTo(10000);
+        // E3-T10 step 11: the rest of the T-04-21 row. The dog waits PENDING and the event names the add-dog source.
+        String addedDog=added.path("dogId").asText();
+        assertThat(collection("dogs").stream().filter(d->addedDog.equals(d.getString("_id"))).findFirst().orElseThrow().getString("status")).isEqualTo("PENDING");
+        var submitted=collection("domain_events").stream().filter(e->"SignupSubmitted".equals(e.getString("type"))).map(e->e.get("payload",Document.class)).filter(p->"APP_ADD_DOG".equals(p.getString("source"))).toList();
+        assertThat(submitted).hasSize(1);assertThat(submitted.getFirst().getList("dogIds",String.class)).containsExactly(addedDog);
+        assertThat(submitted.getFirst().getString("memberId")).isEqualTo(id);assertThat(submitted.getFirst().getBoolean("readmission")).isFalse();
         validate(id,10000);assertThat(member(id).getString("accountId")).isEqualTo(account);assertThat(member(id).getInteger("memberNumber")).isEqualTo(number);
         assertThat(collection("domain_events").stream().filter(e->"MemberValidated".equals(e.getString("type")))).hasSize(1);
-        assertThat(collection("domain_events").stream().filter(e->"DogRegistered".equals(e.getString("type")))).hasSize(1);
+        var registered=collection("domain_events").stream().filter(e->"DogRegistered".equals(e.getString("type"))).toList();
+        assertThat(registered).hasSize(1);
+        assertThat(registered.getFirst().get("payload",Document.class)).containsEntry("dogId",addedDog).containsEntry("memberId",id).containsEntry("levelId",level);
+        // A rejected add-dog leaves only that dog INACTIVE; the member stays ACTIVE with its number and account.
+        var third=result(asMember(postJson("/me/dogs/signup",Map.of("dog",request().get("dog"),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),id),201).path("dogId").asText();
+        reject(id);
+        assertThat(member(id).getString("status")).isEqualTo("ACTIVE");assertThat(member(id).getInteger("memberNumber")).isEqualTo(number);
+        assertThat(collection("dogs").stream().filter(d->third.equals(d.getString("_id"))).findFirst().orElseThrow().getString("deactivationReason")).isEqualTo("SIGNUP_REJECTED");
+        assertThat(collection("dogs").stream().filter(d->"ACTIVE".equals(d.getString("status")))).hasSize(2);
+        // A LEFT member cannot add a dog.
+        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("status","LEFT")));
+        assertThat(result(asMember(postJson("/me/dogs/signup",Map.of("dog",request().get("dog"),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),id),422).path("code").asText()).isEqualTo("MEMBER_NOT_ACTIVE");
     }
     @Test void T_04_22_checkoutCapabilitiesCompletionExpiryAndRefundWarning() throws Exception {
         providers(true);var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));var submitted=submit(body);String id=submitted.path("memberId").asText();
@@ -242,12 +335,26 @@ class SignupIT extends AbstractIntegrationTest {
     @Test void T_04_26_modulesOffAllowSignupWithoutMoneyFamilyOrLevels() throws Exception {
         mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("modules",List.of())));configs.invalidate(club);signupService.invalidateConfiguration(club);parameter("levels.enabled",false);
         var config=result(get("/api/v1/signup").header("Host",host),200);assertThat(config.path("steps")).hasSize(3);assertThat(config.has("paymentMethods")).isFalse();
+        assertThat(config.has("upfront")).isFalse();assertThat(config.path("plans")).allSatisfy(p -> assertThat(p.path("price").isMissingNode()||p.path("price").isNull()).isTrue());
+        // E3-T10 step 11: the rest of the T-04-26 row. BILLING off: an IBAN is refused; FAMILY_GROUP off: lookups 404, claim 400.
+        var iban=request();iban.set("payment",mapper.valueToTree(Map.of("type","SEPA_DD","iban","ES9121000418450200051332")));
+        var refused=result(postJson("/signup",iban).header("Idempotency-Key",UUID.randomUUID()),400);
+        assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("payment.iban");
+        assertThat(result(postJson("/signup/family-group-lookups",Map.of("holderName","Example Holder","dogName","Example Dog")),404).path("code").asText()).isEqualTo("MODULE_DISABLED");
+        var claim=request();claim.remove("payment");claim.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName","Example Holder","dogName","Example Dog","leavePending",false)));
+        assertThat(result(postJson("/signup",claim).header("Idempotency-Key",UUID.randomUUID()),400).at("/details/fieldErrors/0/field").asText()).isEqualTo("familyGroupClaim");
+        assertThat(collection("members")).isEmpty();
         var body=request();body.remove("payment");String id=submit(body).path("memberId").asText();
         result(admin(postJson("/members/"+id+"/validation",Map.of("version",0,"dogs",List.of(Map.of("dogId",dog(id)))))),200);assertThat(collection("upfront_payments")).isEmpty();assertThat(collection("dogs").getFirst().get("levelId")).isNull();
     }
     @Test void T_04_28_honeypotAndBodySizeHaveNoPersistenceEffects() throws Exception {
-        mvc.perform(postJson("/signup",Map.of("website","spam")).header("Idempotency-Key",UUID.randomUUID())).andExpect(status().isAccepted());assertThat(collection("members")).isEmpty();
-        var body=request();body.put("website","x".repeat(65*1024));result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),400);assertThat(collection("members")).isEmpty();
+        // E3-T10 step 11: «website ple → 202 i cap document»: a complete, valid body with the trap filled stores nothing at all.
+        var trapped=request();trapped.put("website","spam");
+        mvc.perform(postJson("/signup",trapped).header("Idempotency-Key",UUID.randomUUID())).andExpect(status().isAccepted());
+        for(String name:List.of("members","dogs","dog_documents","upfront_payments","domain_events","audit_entries")) assertThat(collection(name)).as(name).isEmpty();
+        var body=request();body.put("website","x".repeat(65*1024));
+        assertThat(result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),400).path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(collection("members")).isEmpty();
     }
 
     @Test void T_04_27_twentyConcurrentValidationsAllocateConsecutiveNumbers() throws Exception {
@@ -289,7 +396,8 @@ class SignupIT extends AbstractIntegrationTest {
         assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code")))).hasSize(3);
         validate(id,16000);mongo.getCollection("accounts").updateOne(new Document("_id",member(id).getString("accountId")),new Document("$set",new Document("locale","en")));dispatch();
         var welcome=mailbox.lastTo("applicant1@example.test");
-        assertThat(welcome.subject()).isEqualTo("Benvinguda, Example!");
+        // S04 §8 (E3-T10 step 7): N-02 goes to the account, in `Account.locale` (changed to en before the dispatch).
+        assertThat(welcome.subject()).isEqualTo("Welcome, Example!");assertThat(welcome.locale().getLanguage()).isEqualTo("en");
         assertThat(welcome.text().contains("http")).isTrue();assertThat(welcome.text().contains("[[")).isFalse();
         var token=collection("magic_link_tokens").stream().filter(t->"WELCOME".equals(t.getString("purpose"))).findFirst().orElseThrow();
         assertThat(Duration.between(token.getDate("createdAt").toInstant(),token.getDate("expiresAt").toInstant())).isEqualTo(Duration.ofDays(7));
@@ -353,7 +461,10 @@ class SignupIT extends AbstractIntegrationTest {
     }
     @Test void T_04_28_dailyLimitAndElevenFilesRejectWithoutCensusWrites() throws Exception {
         var body=request();var files=java.util.stream.IntStream.range(0,11).mapToObj(i->Map.of("fileKey","signup/"+club+"/missing/"+i,"name","file.pdf")).toList();((ObjectNode)body.get("dog")).set("documents",mapper.valueToTree(List.of(Map.of("type","VACCINATION_CARD","files",files))));
-        result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),400);
+        var files11=result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),400);
+        assertThat(files11.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        // The request contract caps the files of a document at 10 (bean validation, before any census read or write).
+        assertThat(files11.at("/details/fieldErrors/0/field").asText()).isEqualTo("dog.documents[0].files");
         for(int hour=0;hour<4;hour++) {clock.setInstant(clock.instant().plusSeconds(3601));for(int i=0;i<(hour==3?4:5);i++) mvc.perform(postJson("/signup",Map.of("website","bot")).header("Idempotency-Key",UUID.randomUUID())).andExpect(status().isAccepted());}
         clock.setInstant(clock.instant().plusSeconds(3601));mvc.perform(postJson("/signup",Map.of("website","bot")).header("Idempotency-Key",UUID.randomUUID())).andExpect(status().isTooManyRequests());assertThat(collection("members")).isEmpty();
     }

@@ -97,7 +97,7 @@ public class MagicLinkService {
                     ip == null ? null : TokenService.digest(ip), TokenService.device(agent));
             tokens.insert(token);
             tokens.trim(account.id(), purpose, clock.instant(), token.id());
-            events.publish(new IdentityEvent(IdentityEvent.Kind.MagicLinkRequested, clubId, account.id(), clock.instant(),
+            events.publish(IdentityEvents.of(IdentityEvent.Kind.MagicLinkRequested, clubId, account.id(), clock.instant(),
                     Map.of("accountId", account.id(), "clientId", clientId, "purpose", purpose.name())));
             return account.id();
         });
@@ -109,7 +109,9 @@ public class MagicLinkService {
                 for(String field:java.util.List.of("member_first_name","gender","club_name")) if(signupVariables.get(field)!=null) variables.put(field,signupVariables.get(field));
                 variables.put("expires_minutes",purpose==MagicLinkToken.Purpose.WELCOME?settings.integer("auth.welcomeLinkDays")*1440:settings.integer("auth.magicLinkMinutes"));
                 String notification=purpose==MagicLinkToken.Purpose.WELCOME?"N-02":"N-39";
-                notifications.sendOnceLocalized(deliveryId==null?UUID.randomUUID().toString():deliveryId,notification,accountId,(String)signupVariables.get("locale"),variables);
+                // S04 §8 (E3-T10): N-02 and N-39 go to the account, so they render in `Account.locale`; the signup's is the fallback.
+                String locale=account.locale()!=null&&!account.locale().isBlank()?account.locale():(String)signupVariables.get("locale");
+                notifications.sendOnceLocalized(deliveryId==null?UUID.randomUUID().toString():deliveryId,notification,accountId,locale,variables);
                 return;
             }
             if (deliveryId == null) { notifications.send(purpose == MagicLinkToken.Purpose.ACCESS_RESEND ? "N-27" : "N-25", accountId, Map.of("link", base + "?t=" + value)); }

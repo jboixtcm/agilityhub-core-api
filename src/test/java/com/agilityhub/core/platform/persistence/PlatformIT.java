@@ -124,6 +124,15 @@ class PlatformIT extends AbstractIntegrationTest {
         assertThat(first.getContentAsString()).doesNotContain("paymentProviders", "secretKeyEnc", "PRIVATE_FIXTURE", "iban", "parameters", "lateCancel", "legalTextsVersion");
         var json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(first.getContentAsString());
         assertThat(json.size()).isEqualTo(11);
+        // R-02-02 (amended 24-09, E3-T10 step 12): the club's legal identity is public (LSSI art. 10) and always present, null when unset.
+        assertThat(json.path("club").fieldNames()).toIterable().containsExactlyInAnyOrder("slug", "name", "city", "legalName", "taxId");
+        assertThat(json.at("/club/legalName").asText()).isEqualTo("Example Club Association");
+        assertThat(json.at("/club/taxId").isNull()).isTrue();
+        mongo.getCollection("clubs").updateOne(new Document("_id", "club-a"), new Document("$set", new Document("taxId", "G00000000")));
+        configs.invalidate("club-a");
+        mvc.perform(get("/api/v1/branding").header("Host", "app.example.test")).andExpect(jsonPath("$.club.taxId").value("G00000000"));
+        mongo.getCollection("clubs").updateOne(new Document("_id", "club-a"), new Document("$set", new Document("taxId", null)));
+        configs.invalidate("club-a");
         mvc.perform(get("/api/v1/branding").header("Host", "app.example.test").header("If-None-Match", first.getHeader("ETag")))
                 .andExpect(status().isNotModified()).andExpect(content().string(""));
         mvc.perform(get("/api/v1/branding").header("Host", "app.example.test").header("If-None-Match", "W/" + first.getHeader("ETag")))

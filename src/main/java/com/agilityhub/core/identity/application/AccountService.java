@@ -40,7 +40,7 @@ public class AccountService implements com.agilityhub.core.shared.application.Ac
                     clock.instant(), null, null, source, null, null);
             boolean created = accounts.createIfAbsent(candidate);
             var account = accounts.findByEmail(normalized).orElseThrow();
-            if (created) { events.publish(new IdentityEvent(IdentityEvent.Kind.AccountCreated, null, account.id(), clock.instant(),
+            if (created) { events.publish(IdentityEvents.of(IdentityEvent.Kind.AccountCreated, null, account.id(), clock.instant(),
                     Map.of("accountId", account.id(), "emailHash", TokenService.digest(normalized), "source", source.name()))); }
             return account;
         });
@@ -51,7 +51,7 @@ public class AccountService implements com.agilityhub.core.shared.application.Ac
             var account = active(accountId);
             accounts.patch(accountId, locale, name == null ? null : name.strip());
             if (locale != null && !locale.equals(account.locale())) {
-                events.publish(new IdentityEvent(IdentityEvent.Kind.AccountLocaleChanged, null, accountId, clock.instant(),
+                events.publish(IdentityEvents.of(IdentityEvent.Kind.AccountLocaleChanged, null, accountId, clock.instant(),
                         Map.of("accountId", accountId, "locale", locale)));
             }
             return null;

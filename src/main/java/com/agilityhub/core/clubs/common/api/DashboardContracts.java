@@ -41,10 +41,10 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) int deltaThisMonth) { }
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record ClassOccupancyKpi(
-            @Schema(requiredMode = REQUIRED, types = {"number", "null"}) Double percent,
+            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, description = "R-14-03: round(100·booked/capacity) HALF_UP; null when capacity = 0.") Integer percent,
             @Schema(requiredMode = REQUIRED) int booked,
             @Schema(requiredMode = REQUIRED) int capacity,
-            @Schema(requiredMode = REQUIRED) int waitingTotal) { }
+            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, description = "Σ counters.waiting; null when WAITLIST is disabled (S14 §9).") Integer waitingTotal) { }
     public record TrainingBookingsKpi(
             @Schema(requiredMode = REQUIRED) int value,
             @Schema(requiredMode = REQUIRED) int distinctMembers) { }
@@ -71,7 +71,8 @@ public final class DashboardContracts {
             @Schema(requiredMode = REQUIRED) Instant reviewAt) { }
     public record RiskNotified(
             @Schema(requiredMode = REQUIRED) String memberFirstName,
-            @Schema(requiredMode = REQUIRED, allowableValues = {"MALE", "FEMALE", "OTHER"}) String gender,
+            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, allowableValues = {"MALE", "FEMALE", "OTHER"},
+                    description = "Member.gender; null when the member has none on file.") String gender,
             @Schema(requiredMode = REQUIRED) String dogName) { }
     public record PendingSignups(
             @Schema(requiredMode = REQUIRED) int count,

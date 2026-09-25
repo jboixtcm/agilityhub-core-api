@@ -187,7 +187,7 @@ public class TokenService {
         });
     }
     private void revoked(String accountId, String familyId, String clubId, String reason) {
-        events.publish(new IdentityEvent(IdentityEvent.Kind.SessionRevoked, clubId, accountId, clock.instant(),
+        events.publish(IdentityEvents.of(IdentityEvent.Kind.SessionRevoked, clubId, accountId, clock.instant(),
                 Map.of("accountId", accountId, "familyId", familyId, "reason", reason)));
     }
     private Tokens issue(IdentityService.Session session, String clientId, String familyId, String refresh, Role requested,

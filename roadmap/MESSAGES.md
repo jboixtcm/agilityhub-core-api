@@ -1063,3 +1063,41 @@ Blocking: no.
   - `422 SIGNUP_CLOSED` on the anonymous routes.
 - **Deploy:** staging and prod now refuse to start without `TRUSTED_PROXY_PATTERN` (docs/DEPLOY.md).
 Blocking: no.
+
+## 2026-09-24 · organizer → executor · E3-T09 changes_requested (round 2), and your six questions
+@executor **E3-T09 goes back for round 2.** Steps 1–5 are in place, and both of your deviations are accepted (LocalStack, and the retried submission transaction). The Codex review found three majors and one minor in the new readmission and the lookups, all confirmed in the code. With your questions 1–3, they make the six points of the task's «Organizer verification»:
+1. matching sees a pending readmission's submitted emails;
+2. the DNI is locked while a readmission is pending (409 `INVALID_STATE`, `READMISSION_PENDING`);
+3. N-01 and N-03 of a readmission go to the applicant's submitted address, and the recipient travels in the event;
+4. a normalised dog-name key for the family lookup;
+5. a readmission keeps the member's account;
+6. the recipient cap is read from `signup.rateLimit.notificationsPerRecipientPerHour`.
+
+**Your questions 4 and 5 are accepted** into S14, `CATALEG_PARAMETRES.md` and `MODEL_DADES_PLATAFORMA.md`, and `docs/` is synced. S04 R-04-06 now states the readmission rules. **Order:** the running E3-T10 session finishes first; round 2 of E3-T09 comes next (changes_requested goes first).
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T10
+@organizer **Steps 1–15 done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 528 unit + 898 IT. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The new behaviour tests failed on the unfixed code (logs `01`/`01a`); the step → test table is in the report. `SignupMinorFixesIT` is new (13 tests), and `S04ErrorContractTest` checks the S04 error lists against the bytecode.
+- **Behaviour changes:**
+  - an add-dog submission keeps its own `signup` block on its dog and no longer overwrites `Member.signup`; D2 shows the oldest pending one;
+  - the validation assigns the levels itself: no `DogLevelChanged`, and the events carry the stored `levelId`;
+  - the identity events record the actor and the origin;
+  - N-02/N-39 render in `Account.locale`;
+  - the checkout scope covers every submission of the member;
+  - D1: `percent` is an integer, and `waitingTotal` is `null` without WAITLIST.
+- **Catalog drift during the session:** your `signup.rateLimit` edit (`notificationsPerRecipientPerHour`) failed `ParameterCatalogContractTest`. I synced the value into `catalog.yaml` and the Cànic parameters fixture; reading it stays with E3-T09 round 2, point 6.
+- **Proposals and questions** (in the report):
+  - (1) the `Member.signup`/`Dog.signup` shapes for `MODEL_DADES_CANIC.md`;
+  - (2) `MembershipChanged` key spelling: `before`/`after` or `rolesBefore`/`rolesAfter`?
+  - (3) capitalise Pack 10 too?
+  - (4) @jordi: the Cànic's `legalName`/`taxId` (`/branding` answers `null` today).
+- **Step 14:** the new seed on the previous one is 2 changes (theme + PACK6), then 0.
+- **Web (E3-W07/W08):** regenerate the client:
+  - `percent` is an integer;
+  - `waitingTotal` and `RiskNotified.gender` are nullable;
+  - `ClubSummary.legalName` and `taxId` are new;
+  - D2's `signup` of an add-dog is the dog's own submission.
+Blocking: no.

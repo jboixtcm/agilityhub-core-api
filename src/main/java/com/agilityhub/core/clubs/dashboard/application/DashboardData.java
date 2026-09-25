@@ -14,7 +14,8 @@ public final class DashboardData {
     public record Counters(int pendingSignups, int pendingRequests, int followUpUnread) { }
     public record Kpis(ActiveMembers activeMembers, Occupancy classOccupancy, Training trainingBookings, PendingKpi pendingSignups) { }
     public record ActiveMembers(int value, int deltaThisMonth) { }
-    public record Occupancy(Double percent, int booked, int capacity, int waitingTotal) { }
+    /** R-14-03: `percent` is an integer (HALF_UP), null without capacity; `waitingTotal` is null without WAITLIST (S14 §9). */
+    public record Occupancy(Integer percent, int booked, int capacity, Integer waitingTotal) { }
     public record Training(int value, int distinctMembers) { }
     public record PendingKpi(int value, int olderThanWarn, int warnDays) { }
     public record PendingSignups(int count, List<PendingItem> items) { }

@@ -1,0 +1,68 @@
+  com.agilityhub.core.clubs.dashboard.domain.DashboardBuildersTest: tests=6 failures=1 errors=0 skipped=0
+    PASS T_14_06_dogsOfInactiveNonProgressionAndMissingLevelsBelongToOthersIncludingTotal
+    PASS T_14_02_isoWeekMonthAndActivityBoundariesUseClubLocalTimeIncludingDst
+    PASS T_14_03_trainingCountsActiveBookingsAndDistinctMembersInLocalWeek
+    PASS T_14_05_riskRowsMatchMockupWindowPolicyAndNotificationSnapshots
+    PASS T_14_04_pendingCalendarDaysWarningsAddDogAndOptionalBillingFields
+    FAIL T_14_01_classOccupancyExcludesDraftCancelledAndOutsideWeekAndRoundsHalfUp ::  expected: 70  but was: 70.0
+  com.agilityhub.core.configuration.OpenApiRequiredContractTest: tests=3 failures=1 errors=0 skipped=0
+    FAIL E1_T11_everySnapshotObjectDeclaresItsRequiredProperties ::  Expecting actual:   ["name", "slug"] to contain exactly in any order:   ["slug", "name", "legalName", "taxId"] but could not find the following elements:   ["legalName", "taxId"] 
+    PASS E1_T11_emptyRequiredArraysSurviveOpenApi31Serialization
+    PASS E1_T11_javaDefaultsPreserveOptOutsRenamedPropertiesAndSharedReferences
+  com.agilityhub.core.platform.domain.CountryProfileTest: tests=3 failures=1 errors=0 skipped=0
+    FAIL T_04_14_genericIbanRunsTheMod97Check :: [null]  Expecting value to be false but was true
+    PASS T_02_04_spanishIdChecksPostalLookupPhonesAndIban
+    PASS T_02_04_genericIsFallbackWithNoNationalFormatValidation
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=12 failures=12 errors=0 skipped=0
+    FAIL R_04_19_T_04_20_paymentPatchKeepsTheHolderTaxIdIbanAndMandateDateUnlessChanged ::  expected: "Custom Holder"  but was: "Example Applicant1"
+    FAIL S04_7_withLevelsDisabledTheEventsCarryThePersistedNullLevelNotTheRequest ::  expected: null  but was: "ignored-level"
+    FAIL R_04_22_T_04_17_welcomeAndRecognitionRenderInTheAccountLocaleWithTheSignupLocaleAsFallback ::  expected: "en"  but was: "ca"
+    FAIL T_04_21_theAdminN01OfEachQueuedAddDogDescribesItsOwnSubmission ::  Expecting actual:   "Nova sol·licitud d'alta  Example Applicant1 ha enviat una sol·licitud per a Added Dog 001 (Segona modalitat). Obre-la al tauler de Example Agility Club per validar-la.  Example Agility Club Aquest correu de seguretat està relacionat amb el teu compte d’AgilityHub." to contain: 
+    FAIL R_04_23_theRejectionConsumerLeavesTheDogsOfALaterReadmissionPending ::  expected: "PENDING"  but was: "INACTIVE"
+    FAIL R_04_12_T_04_16_aFoundClaimNoLongerUniqueAtSubmissionFallsBackToNotFoundPending :: [HTTP code=FAMILY_HOLDER_NOT_FOUND details={}]  expected: 201  but was: 422
+    FAIL S04_7_validationEventsCarryTheActorRolesMemberTriggerAndThePersistedDogs ::  expected: "REGISTRATION"  but was: null
+    FAIL S04_3_addDogSubmissionsKeepOneBlockPerDogAndNeverOverwriteThePublicSignup ::  expected:    {"firstMonthOption"="TODAY", "locale"="ca", "planIdRequested"="8ca7b95a-e520-4e48-b35d-9ffb35fcb245", "readmission"=false, "source"="PUBLIC", "submissionId"="ae5f2f7e-35f5-4f5a-acd0-84c952574a34", "submittedAt"=2026-01-01T01:00:00.000 (java.util.Date), "upfront"={"firstMonth"={"amountD
+    FAIL T_04_22_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaid ::  Expecting actual:   ["6928bc79-c44b-46dd-9520-6e8a40620713", "96c7c442-22f4-4221-949c-80c095685de3"] to contain exactly in any order:   ["5317e3f3-2719-4d8d-9d17-73b76efa59b9",     "48388aba-c1e3-4f50-a916-997417bcc9d8",     "6928bc79-c44b-46dd-9520-6e8a40620713",     "96c7c442-22f4-4221-949c-80c09
+    FAIL S04_3_publicSignupSnapshotKeepsTheSubmissionAndDecisionMetadata ::  Expecting not blank but was: null
+    FAIL R_04_18_T_04_14_migratedSepaMembersWithIbanLast4AreNotAccountNotProvided ::  Expecting actual:   "["NO_IMAGE_CONSENT","ACCOUNT_NOT_PROVIDED","DOCUMENT_PENDING","UPFRONT_UNPAID"]" not to contain:   "ACCOUNT_NOT_PROVIDED" 
+    FAIL T_04_18_nextInvoiceDateIsCheckedAgainstTheFrozenStartWhileTheQuoteIsUnchanged :: [HTTP code=VALIDATION_ERROR details={"fieldErrors":[{"field":"nextInvoiceDate","code":"INVALID_VALUE"}]}]  expected: 200  but was: 400
+  com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11 failures=4 errors=0 skipped=0
+    PASS T_14_11_R_14_01_submissionValidationAndRejectionRefreshD1WithoutTheOutbox
+    PASS T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants
+    FAIL T_14_22_crossTenantJoinsRolesAndRealImpersonationAreDenied ::  expected: 9  but was: 0
+    PASS T_14_11_impersonationTokenIsDeniedAndTheAdminStillReadsTheDashboard
+    PASS T_14_04_pendingAggregateUsesOldestPendingDogAllWarningsAndTenantScopedJoins
+    PASS T_14_11_concurrentReadersShareOneClubLoadAndUnauthenticatedCallsFail
+    FAIL T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner ::  Expecting value to be true but was false
+    FAIL T_14_02_aLeaveDatedOnTheLastDayAndAppliedTheNextMonthIsSubtractedThatMonth ::  expected: {"value":1,"deltaThisMonth":-1}  but was: {"value":1,"deltaThisMonth":0}
+    PASS T_14_06_sharedActivityCountsOnlyActiveDogsOfActiveTenantOwners
+    FAIL T_14_02_monthDeltaIncludesReadmissionsAndSubtractsLeaversByLeftAt ::  expected: {"value":4,"deltaThisMonth":1}  but was: {"value":4,"deltaThisMonth":2}
+    PASS T_14_11_allRegisteredInvalidationsCommitOnlyAndPreserveOtherClubs
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=1 errors=0 skipped=0
+    PASS T_04_25_errorRowHasExactlyTheCanonicalCodesStatusesAndThreeTranslations
+    PASS T_04_21_T_04_25_validImpersonationCanUseMemberRoutesButNeverD2
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[1]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[2]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[3]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[4]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[5]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[6]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[7]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[8]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[9]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[10]
+    PASS T_04_25_allElevenRoutesEnforceRolesAndTenantBoundaries(Route)[11]
+    PASS T_04_18_T_04_23_invalidRequestsAndForeignDryRunDoNotWriteSignupEntities
+    PASS T_04_25_T_04_28_snapshotPublishesSchemasSecurityLimitsHeadersAndErrors
+    PASS T_04_26_moduleGuardsApplyToAnonymousAndAuthenticatedCheckoutAndFamilyLookups
+    FAIL T_14_01_dashboardSchemasMatchEveryFieldAndNullableBlockInS14 ::  Expecting actual:   ["number", "null"] to contain exactly in any order:   ["integer", "null"] elements not found:   ["integer"] and elements not expected:   ["number"] 
+  com.agilityhub.core.platform.persistence.PlatformIT: tests=9 failures=1 errors=0 skipped=0
+    PASS T_02_01_outboxParameterAndClubEventsInvalidateCaches
+    PASS T_02_06_hostResolutionMismatchPlatformAndHealth
+    FAIL T_02_07_brandingHasOnlyPublicFieldsAndSupportsEtagAndManifest ::  Expecting actual:   ["slug", "name", "city"] to contain exactly in any order:   ["slug", "name", "city", "legalName", "taxId"] but could not find the following elements:   ["legalName", "taxId"] 
+    PASS T_02_06_uniqueClubIndexesAndVerifiedDomains
+    PASS T_02_07_publicBrandingAndManifestAcceptEveryRoleAndEnforceTenant(String)[1]
+    PASS T_02_07_publicBrandingAndManifestAcceptEveryRoleAndEnforceTenant(String)[2]
+    PASS T_02_07_publicBrandingAndManifestAcceptEveryRoleAndEnforceTenant(String)[3]
+    PASS T_02_07_publicBrandingAndManifestAcceptEveryRoleAndEnforceTenant(String)[4]
+    PASS T_02_06_tenantRepositoryCannotReadReplaceDeleteOrInsertAnotherClubsDocumentById

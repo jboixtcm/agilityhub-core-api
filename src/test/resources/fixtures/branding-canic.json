@@ -2,7 +2,9 @@
   "club": {
     "slug": "canic",
     "name": "Club Agility Cànic",
-    "city": "Cabrera de Mar"
+    "city": "Cabrera de Mar",
+    "legalName": null,
+    "taxId": null
   },
   "theme": {
     "logoUrl": null,
@@ -10,7 +12,7 @@
     "markUrl": null,
     "colors": {
       "primary": "#E26A2A",
-      "onPrimary": "#FFFFFF",
+      "onPrimary": "#0B0B0B",
       "background": "#0B0B0B",
       "surface": "#161616",
       "surfaceAlt": "#1E1E1E",

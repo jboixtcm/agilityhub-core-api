@@ -17,11 +17,14 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
     public record Projection(String id, String clubId) implements TenantEntity { }
     public DashboardRepository(MongoTemplate mongo) { super(mongo, Projection.class); }
 
+    /**
+     * R-14-02 (amended 24-09, E3-T10): the leavers of the month are those whose `leftAt` (the instant the member became
+     * `LEFT`) falls in the club-local month, like `joinedAt`. `leaveDate` is the requested date: a leave dated 31-08 and
+     * applied on 01-09 is a September leave.
+     */
     public ActiveMembers activeMembers(DashboardPeriod period) {
         Object joined = between(date("$joinedAt"), Date.from(period.monthFrom()), Date.from(period.monthUntil()));
-        Object left = expr("$and", expr("$eq", "$status", "LEFT"), between(date("$leaveDate"),
-                Date.from(period.today().withDayOfMonth(1).atStartOfDay(ZoneOffset.UTC).toInstant()),
-                Date.from(period.today().withDayOfMonth(1).plusMonths(1).atStartOfDay(ZoneOffset.UTC).toInstant())));
+        Object left = expr("$and", expr("$eq", "$status", "LEFT"), between(date("$leftAt"), Date.from(period.monthFrom()), Date.from(period.monthUntil())));
         var rows = aggregate("members", List.of(new Document("$group", new Document("_id", null)
                 .append("value", new Document("$sum", condition(expr("$eq", "$status", "ACTIVE"), 1, 0)))
                 .append("joined", new Document("$sum", condition(joined, 1, 0)))
@@ -66,7 +69,8 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
         stages.add(new Document("$project", new Document("firstName", 1).append("lastName1", 1).append("status", 1)
                 .append("pendingDogs.name", 1).append("pendingDogs.breed", 1).append("requestedPlan.name", 1)
                 .append("paymentMethodType", "$paymentMethod.type").append("imageConsent", 1)
-                .append("accountProvided", expr("$ne", fallback("$paymentMethod.iban", ""), ""))
+                // R-04-18 (E3-T10): a migrated SEPA member has only `ibanLast4` (the IBAN is encrypted): the account is provided.
+                .append("accountProvided", expr("$or", expr("$ne", fallback("$paymentMethod.iban", ""), ""), expr("$ne", fallback("$paymentMethod.ibanLast4", ""), "")))
                 .append("documentPending", expr("$gt", expr("$size", "$pendingDocuments"), 0))
                 .append("familyPending", expr("$eq", fallback("$familyGroupClaim.status", ""), "NOT_FOUND_PENDING"))
                 .append("upfrontUnpaid", expr("$gt", expr("$size", "$unpaid"), 0))

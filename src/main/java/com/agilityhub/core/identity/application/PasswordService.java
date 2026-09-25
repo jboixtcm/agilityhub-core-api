@@ -52,7 +52,7 @@ public class PasswordService {
             accounts.password(accountId, hash, clock.instant());
             sessions.revokeOthers(accountId, familyId, clock.instant());
             sessions.preserveFamily(accountId, familyId, fresh.familyVersion() + 1);
-            events.publish(new IdentityEvent(IdentityEvent.Kind.PasswordChanged, null, accountId, clock.instant(), Map.of("accountId", accountId)));
+            events.publish(IdentityEvents.of(IdentityEvent.Kind.PasswordChanged, null, accountId, clock.instant(), Map.of("accountId", accountId)));
             return null;
         });
         notifications.send("N-26", accountId, Map.of("changed_at", clock.instant().toString()));

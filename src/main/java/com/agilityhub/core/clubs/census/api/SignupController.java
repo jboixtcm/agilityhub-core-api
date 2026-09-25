@@ -22,18 +22,17 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class SignupController {
     private final com.agilityhub.core.clubs.census.application.SignupService service;
     private final com.agilityhub.core.clubs.census.application.CensusAccess access;
-    private final com.agilityhub.core.clubs.census.application.DogService dogs;
     private final com.agilityhub.core.clubs.signup.application.SignupPolicy policy;
     private final com.agilityhub.core.clubs.followup.application.AttachmentService attachments;
     private final com.agilityhub.core.identity.application.IdentityTransactions transactions;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final com.agilityhub.core.clubs.census.application.SignupTransactions submissions;
     public SignupController(com.agilityhub.core.clubs.census.application.SignupService service,
-            com.agilityhub.core.clubs.census.application.CensusAccess access, com.agilityhub.core.clubs.census.application.DogService dogs,
+            com.agilityhub.core.clubs.census.application.CensusAccess access,
             com.agilityhub.core.clubs.signup.application.SignupPolicy policy, com.agilityhub.core.clubs.followup.application.AttachmentService attachments,
             com.agilityhub.core.identity.application.IdentityTransactions transactions, com.fasterxml.jackson.databind.ObjectMapper mapper,
             com.agilityhub.core.clubs.census.application.SignupTransactions submissions) {
-        this.service=service;this.access=access;this.dogs=dogs;this.policy=policy;this.attachments=attachments;this.transactions=transactions;this.mapper=mapper;this.submissions=submissions;
+        this.service=service;this.access=access;this.policy=policy;this.attachments=attachments;this.transactions=transactions;this.mapper=mapper;this.submissions=submissions;
     }
     /** R-04-27 (E3-T09): a submission runs in one retried transaction that also stores the Idempotency-Key response. */
     private <T> T submission(java.util.function.Supplier<?> work,Class<T> type) {
@@ -50,10 +49,12 @@ public class SignupController {
         result.values().removeIf(java.util.Objects::isNull);return result;
     }
     private <T> T output(Object value,Class<T> type) { return mapper.convertValue(value,type); }
-    private String ip() {
-        var request=((org.springframework.web.context.request.ServletRequestAttributes)org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getRequest();
-        return request.getRemoteAddr();
+    private jakarta.servlet.http.HttpServletRequest request() {
+        return ((org.springframework.web.context.request.ServletRequestAttributes)org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getRequest();
     }
+    private String ip() { return request().getRemoteAddr(); }
+    /** `signup.userAgent` (S04 §3). */
+    private String userAgent() { return request().getHeader("User-Agent"); }
     private static final String SIGNUP_EXAMPLE = """
 {
   "locale": "en",
@@ -139,7 +140,7 @@ public class SignupController {
     @PostMapping("/api/v1/signup/identity-checks")
     @PreAuthorize("isAnonymous()")
     @SecurityRequirements
-    @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, ID_DOCUMENT_AMBIGUOUS, SIGNUP_CLOSED, RATE_LIMITED})
+    @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, SIGNUP_CLOSED, RATE_LIMITED})
     @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most 3 per recipient and hour. "
             + "idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED." + PUBLIC)
     public IdentityCheckResult identityCheck(@Valid @RequestBody IdentityCheckRequest request) { return output(transactions.run(() -> service.identityCheck(input(request))),IdentityCheckResult.class); }
@@ -173,9 +174,11 @@ public class SignupController {
     @PreAuthorize("isAnonymous()")
     @SecurityRequirements
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({SIGNUP_CLOSED, SIGNUP_ALREADY_PENDING, MEMBER_ALREADY_EXISTS, INVALID_ID_DOCUMENT, INVALID_PHONE,
-            PLAN_NOT_AVAILABLE, PAYMENT_METHOD_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, DOG_DOCUMENT_REQUIRED,
-            CONSENT_VERSION_OUTDATED, FAMILY_HOLDER_NOT_FOUND, FILE_NOT_FOUND, RATE_LIMITED})
+    // E3-T10: every code the handler can throw (S04ErrorContractTest); a concurrent twin submission meets the unique indexes.
+    @ContractErrors({VALIDATION_ERROR, SIGNUP_CLOSED, SIGNUP_ALREADY_PENDING, MEMBER_ALREADY_EXISTS, MEMBER_ERASED, ID_DOCUMENT_ALREADY_EXISTS,
+            INVALID_ID_DOCUMENT, INVALID_PHONE, INVALID_IBAN, PLAN_NOT_AVAILABLE, PAYMENT_METHOD_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED,
+            CHIP_ALREADY_EXISTS, DOG_DOCUMENT_REQUIRED, DOCUMENT_TYPE_UNKNOWN, CONSENT_VERSION_OUTDATED, FAMILY_HOLDER_NOT_FOUND,
+            FILE_NOT_FOUND, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION, RATE_LIMITED})
     @Operation(summary = "Submit signup", description = "S04 §6, R-04-01–24. ANON; 5/hour and 20/day. Idempotency-Key is a UUID; host-scoped encrypted replay protection lasts 24 hours. Body at most 64 KB and 10 files. Nonempty website honeypot will return 202 without saving. Client amounts are ignored." + PUBLIC,
             responses = {@ApiResponse(responseCode = "201", description = "Signup submitted", useReturnTypeSchema = true),
                     @ApiResponse(responseCode = "202", description = "Honeypot accepted without persistence", content = @Content)})
@@ -184,51 +187,51 @@ public class SignupController {
             @Valid @RequestBody SignupRequest request) {
         var values=input(request);
         if(request.payment()!=null && request.payment().iban()!=null) com.agilityhub.core.clubs.census.application.CensusValues.map(values.get("payment")).put("iban",request.payment().iban());
-        return submission(() -> service.submit(values,ip()),SignupResult.class);
+        return submission(() -> service.submit(values,ip(),userAgent()),SignupResult.class);
     }
 
     @PostMapping("/api/v1/me/dogs/signup")
     @PreAuthorize("hasRole('MEMBER')")
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({MEMBER_ERASED, MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, PAYMENT_METHOD_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED,
-            DOG_DOCUMENT_REQUIRED, CONSENT_VERSION_OUTDATED, FILE_NOT_FOUND})
+    @ContractErrors({VALIDATION_ERROR, MEMBER_ERASED, MEMBER_NOT_ACTIVE, PLAN_NOT_AVAILABLE, DOG_CHIP_ALREADY_REGISTERED, CHIP_ALREADY_EXISTS,
+            DOG_DOCUMENT_REQUIRED, DOCUMENT_TYPE_UNKNOWN, CONSENT_VERSION_OUTDATED, FILE_NOT_FOUND, FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE,
+            IDEMPOTENCY_KEY_REUSED, STALE_VERSION})
     @Operation(summary = "Submit an additional dog", description = "R-04-25. MEMBER; accepts valid impersonation with actor attribution. Idempotency-Key required. Verifies member ownership and ACTIVE status.",
             responses = @ApiResponse(responseCode = "201", description = "Dog submitted", useReturnTypeSchema = true))
     public AddDogSignupResult addDog(@io.swagger.v3.oas.annotations.Parameter(schema = @Schema(format = "uuid")) @RequestHeader("Idempotency-Key") String key,
             @Valid @RequestBody AddDogSignupRequest request) {
-        return submission(() -> service.addDog(access.me().id,input(request),ip()),AddDogSignupResult.class);
+        return submission(() -> service.addDog(access.me().id,input(request),ip(),userAgent()),AddDogSignupResult.class);
     }
 
     @GetMapping("/api/v1/members/{id}/signup")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({INVALID_STATE})
+    @ContractErrors({MEMBER_ERASED, INVALID_STATE, PLAN_NOT_AVAILABLE})
     @Operation(summary = "Review member signup", description = "S04 §6. ADMIN D2 aggregate with masked payment details and signed document downloads. Other-tenant resources return NOT_FOUND. "
-            + "A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING. "
+            + "A member with nothing pending answers 409 INVALID_STATE with details.reason = NOT_PENDING; a requested plan that is no longer assignable, 422 PLAN_NOT_AVAILABLE. "
+            + "For an ACTIVE member (add-dog), `signup` is the oldest pending dog's own submission. "
             + "A pending readmission (R-04-06, E38) adds `readmission`: the LEFT record's values and the submitted ones, with changedFields; validation applies the submitted ones.")
     public MemberSignupView review(@PathVariable String id) { return output(service.review(id),MemberSignupView.class); }
 
     @PostMapping("/api/v1/members/{id}/validation")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({MEMBER_ERASED, INVALID_STATE, STALE_VERSION, LEVEL_REQUIRED, NEXT_INVOICE_DATE_REQUIRED, UPFRONT_AMOUNT_EXCEEDS_DUE,
-            PLAN_NOT_AVAILABLE, MEMBERSHIP_EXISTS, FAMILY_HOLDER_NOT_FOUND})
+    @ContractErrors({VALIDATION_ERROR, MEMBER_ERASED, INVALID_STATE, STALE_VERSION, LEVEL_REQUIRED, LEVEL_NOT_ACTIVE, NEXT_INVOICE_DATE_REQUIRED,
+            UPFRONT_AMOUNT_EXCEEDS_DUE, PLAN_NOT_AVAILABLE, MEMBERSHIP_EXISTS, FAMILY_HOLDER_NOT_FOUND, FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP})
     @Operation(summary = "Validate member signup", description = "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. "
             + "409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change while a checkout of the submission is in progress, S04 §5 E39; dryRun warns CHECKOUT_PENDING). "
-            + "nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate.",
+            + "nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate; while the plan is the requested one, that start is the one frozen at submission. "
+            + "The levels are assigned by the validation itself: MemberValidated/DogRegistered carry the stored levelId, and no DogLevelChanged is emitted.",
             responses = @ApiResponse(responseCode = "200", description = "ValidationDryRun when dryRun=true; ValidationResult otherwise",
                     content = @Content(schema = @Schema(oneOf = {ValidationDryRun.class, ValidationResult.class}))))
     public Object validate(@PathVariable String id, @RequestParam(defaultValue = "false") boolean dryRun,
             @Valid @RequestBody ValidationRequest request) {
         if(dryRun) return output(service.dryRun(id,input(request)),ValidationDryRun.class);
-        return transactions.run(() -> {
-            var result="ACTIVE".equals(service.member(id).get("status"))?service.validateDogs(id,input(request)):service.validateNew(id,input(request));
-            if(access.levels()) for(var dog:request.dogs()) dogs.signupLevel(dog.dogId(),dog.levelId());
-            return output(result,ValidationResult.class);
-        });
+        // The service assigns the levels itself (E3-T10), so MemberValidated/DogRegistered carry the stored ones.
+        return transactions.run(() -> output("ACTIVE".equals(service.member(id).get("status"))?service.validateDogs(id,input(request)):service.validateNew(id,input(request)),ValidationResult.class));
     }
 
     @PostMapping("/api/v1/members/{id}/rejection")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({MEMBER_ERASED, INVALID_STATE, STALE_VERSION})
+    @ContractErrors({VALIDATION_ERROR, MEMBER_ERASED, INVALID_STATE, STALE_VERSION})
     @Operation(summary = "Reject member signup", description = "R-04-23. ADMIN; reason and optimistic version required. New member becomes LEFT; an existing member stays ACTIVE and only pending dogs become INACTIVE. "
             + "A rejected readmission (E38) returns to LEFT exactly as it was: original leftAt, leftReason and data.")
     public RejectionResult reject(@PathVariable String id, @Valid @RequestBody RejectionRequest request) { return output(transactions.run(() -> service.reject(id,request.version(),request.reason())),RejectionResult.class); }

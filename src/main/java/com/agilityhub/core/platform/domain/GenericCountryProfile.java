@@ -10,7 +10,16 @@ public class GenericCountryProfile implements CountryProfile {
     @Override public boolean validateIdDocument(String type, String value) {
         return type != null && idDocumentTypes().contains(type) && normalizeIdDocument(type, value).length() >= 4;
     }
-    @Override public boolean validateIban(String value) { return true; }
+    /**
+     * R-04-10 (E3-T10): without a country table, an IBAN still has the ISO 13616 shape (country letters, two check digits,
+     * 11–30 alphanumerics) and must pass the mod-97 check.
+     */
+    @Override public boolean validateIban(String value) {
+        if (value == null) { return false; }
+        String iban = value.replaceAll("\\s", "").toUpperCase(java.util.Locale.ROOT);
+        return iban.matches("[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
+                && org.apache.commons.validator.routines.checkdigit.IBANCheckDigit.IBAN_CHECK_DIGIT.isValid(iban);
+    }
     @Override public List<Town> postalCodeLookup(String code) { return List.of(); }
     @Override public String defaultPhonePrefix() { return ""; }
     @Override public String dateFormat() { return "yyyy-MM-dd"; }

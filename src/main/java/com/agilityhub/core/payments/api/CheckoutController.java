@@ -23,7 +23,8 @@ public class CheckoutController {
     @PreAuthorize("isAnonymous() or hasRole('MEMBER') or (hasRole('ADMIN') and principal.claims['imp'] != true)")
     @SecurityRequirements
     @ResponseStatus(HttpStatus.CREATED)
-    @ContractErrors({UNAUTHENTICATED, NOT_FOUND, INVALID_STATE, PAYMENT_PROVIDER_NOT_ENABLED, RATE_LIMITED})
+    @ContractErrors({VALIDATION_ERROR, UNAUTHENTICATED, NOT_FOUND, MEMBER_ERASED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, MODULE_DISABLED,
+            PAYMENT_PROVIDER_NOT_ENABLED, RATE_LIMITED})
     @Operation(summary = "Create signup checkout session", description = "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits.",
             responses = @ApiResponse(responseCode = "201", description = "Checkout session", useReturnTypeSchema = true))
     public CheckoutSession create(@io.swagger.v3.oas.annotations.Parameter(schema = @Schema(format = "uuid")) @RequestHeader("Idempotency-Key") String key,

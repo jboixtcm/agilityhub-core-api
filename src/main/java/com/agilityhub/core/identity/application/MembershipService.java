@@ -63,7 +63,7 @@ public class MembershipService {
                 old == null ? null : old.createdByAccountId(), old == null ? null : old.updatedByAccountId());
         memberships.replace(next);
         if (status == Membership.Status.SUSPENDED) { sessions.revokeClub(accountId, next.clubId(), clock.instant()); }
-        events.publish(new IdentityEvent(IdentityEvent.Kind.MembershipChanged, next.clubId(), next.id(), clock.instant(), Map.of(
+        events.publish(IdentityEvents.of(IdentityEvent.Kind.MembershipChanged, next.clubId(), next.id(), clock.instant(), Map.of(
                 "accountId", accountId, "clubId", next.clubId(), "before", old == null ? Set.of() : old.roles(), "after", next.roles(), "status", status.name())));
         return next;
     }

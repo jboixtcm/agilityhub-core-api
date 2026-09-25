@@ -38,7 +38,11 @@ class OpenApiRequiredContractTest {
         });
         assertThat(allOptional).containsExactlyInAnyOrderElementsOf(ALL_OPTIONAL);
         assertThat(required(schemas, "BrandingResponse")).contains("club", "theme", "locales", "defaultLocale");
-        assertThat(required(schemas, "ClubSummary")).containsExactlyInAnyOrder("slug", "name");
+        // R-02-02 (E3-T10 step 12): the legal identity is always present, null when the club has not set it.
+        assertThat(required(schemas, "ClubSummary")).containsExactlyInAnyOrder("slug", "name", "legalName", "taxId");
+        for (String field : List.of("legalName", "taxId")) {
+            assertThat(strings(schemas.at("/ClubSummary/properties/" + field + "/type"))).as(field).containsExactlyInAnyOrder("string", "null");
+        }
         assertThat(required(schemas, "Colors")).hasSize(12)
                 .containsExactlyInAnyOrderElementsOf(names(schemas.at("/Colors/properties")));
         assertThat(required(schemas, "Me")).containsExactlyInAnyOrder("account", "features");

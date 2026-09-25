@@ -170,6 +170,20 @@ class DashboardIT extends AbstractIntegrationTest {
         insert("dogs", new Document("_id", "dog-" + club).append("memberId", "owner-" + club).append("status", "ACTIVE").append("levelId", "unknown"));
         assertThat(dashboard().at("/dogsByLevel/totalActiveDogs").asInt()).isEqualTo(1);
         String other = club + "b", otherHost = other + ".example.test"; clubs.save(PlatformFixtures.club(other, otherHost)); hosts.invalidate();
+        // E3-T10 step 11: club B is not empty. Its own members, dogs, level, pending signup and classes give exact counts.
+        mongo.insert(member("b-owner-" + club, "ACTIVE").append("clubId", other), "members");
+        mongo.insert(member("b-pending-" + club, "PENDING").append("clubId", other), "members");
+        mongo.insert(new Document("_id", "b-level-" + club).append("clubId", other).append("code", "B1").append("name", Map.of("ca", "B1")).append("color", "#000000")
+                .append("order", 1).append("active", true), "levels");
+        for (int i = 0; i < 2; i++) {
+            mongo.insert(new Document("_id", "b-dog-" + i + club).append("clubId", other).append("memberId", "b-owner-" + club).append("status", "ACTIVE").append("levelId", "b-level-" + club), "dogs");
+        }
+        mongo.insert(new Document("_id", "b-pending-dog-" + club).append("clubId", other).append("memberId", "b-pending-" + club).append("name", "B Dog").append("status", "PENDING"), "dogs");
+        when(occupancy.sessions(eq(club), any(), any())).thenReturn(List.of(new ClassOccupancyQuery.Session(Instant.parse("2026-08-10T08:00:00Z"), "ACTIVE", 10, 9, 0)));
+        when(occupancy.sessions(eq(other), any(), any())).thenReturn(List.of(new ClassOccupancyQuery.Session(Instant.parse("2026-08-10T08:00:00Z"), "ACTIVE", 4, 2, 0)));
+        dashboard.invalidate(club); var a = dashboard();
+        assertThat(a.at("/kpis/classOccupancy/booked").asInt()).isEqualTo(9); assertThat(a.at("/pendingSignups/count").asInt()).isZero();
+        assertThat(a.toString()).doesNotContain("b-owner-", "b-pending-", "b-dog-", "b-level-");
         for (String path : List.of("/api/v1/dashboard", "/api/v1/dashboard/counters")) {
             for (String role : List.of("MEMBER", "INSTRUCTOR", "AGILITYHUB_ADMIN")) {
                 result(get(path).header("Host", host).with(jwt().jwt(j -> j.subject(role).claim("clubId", club)).authorities(() -> "ROLE_" + role)), 403);
@@ -179,9 +193,12 @@ class DashboardIT extends AbstractIntegrationTest {
             result(get(path).header("Host", otherHost).with(jwt().jwt(j -> j.subject("admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN")), 403);
             var b = result(get(path).header("Host", otherHost).with(jwt().jwt(j -> j.subject("admin").claim("clubId", other)).authorities(() -> "ROLE_ADMIN")), 200);
             if (path.endsWith("dashboard")) {
-                assertThat(b.at("/kpis/activeMembers/value").asInt()).isZero(); assertThat(b.at("/dogsByLevel/totalActiveDogs").asInt()).isZero();
-                assertThat(b.toString()).doesNotContain("owner-" + club, "dog-" + club);
-            }
+                assertThat(b.at("/kpis/activeMembers/value").asInt()).isEqualTo(1); assertThat(b.at("/dogsByLevel/totalActiveDogs").asInt()).isEqualTo(2);
+                assertThat(b.at("/dogsByLevel/levels/0/code").asText()).isEqualTo("B1"); assertThat(b.at("/dogsByLevel/levels/0/total").asInt()).isEqualTo(2);
+                assertThat(b.at("/pendingSignups/count").asInt()).isEqualTo(1); assertThat(b.at("/pendingSignups/items/0/memberId").asText()).isEqualTo("b-pending-" + club);
+                assertThat(b.at("/kpis/classOccupancy/booked").asInt()).isEqualTo(2); assertThat(b.at("/kpis/classOccupancy/capacity").asInt()).isEqualTo(4);
+                assertThat(b.toString()).doesNotContain("\"owner-" + club, "\"dog-" + club);
+            } else { assertThat(b.path("pendingSignups").asInt()).isEqualTo(1); }
         }
         for (String kind : List.of("admin", "member")) {
             String id = club + kind; var role = kind.equals("admin") ? com.agilityhub.core.identity.domain.Role.ADMIN : com.agilityhub.core.identity.domain.Role.MEMBER;
@@ -196,38 +213,80 @@ class DashboardIT extends AbstractIntegrationTest {
             assertThat(result(get(path).header("Host", host).with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER")), 403).path("code").asText()).isEqualTo("IMPERSONATION_DENIED");
         }
     }
+    /** T-14-11 (E3-T10 step 11): «token d'impersonació → 403» under its own id; the seeded values are the other T-14-11 tests. */
+    @Test void T_14_11_impersonationTokenIsDeniedAndTheAdminStillReadsTheDashboard() throws Exception {
+        for (String kind : List.of("admin", "member")) {
+            String id = club + kind; var role = kind.equals("admin") ? com.agilityhub.core.identity.domain.Role.ADMIN : com.agilityhub.core.identity.domain.Role.MEMBER;
+            mongo.save(new com.agilityhub.core.identity.persistence.Account(id, id + "@example.test", "Example " + kind, "en", null, Set.of(),
+                    com.agilityhub.core.identity.persistence.Account.Status.ACTIVE, null, Map.of(), false, clock.instant()));
+            mongo.save(new com.agilityhub.core.identity.persistence.Membership(id, id, club, id, Set.of(role), com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, role));
+            insert("members", member(id, "ACTIVE").append("accountId", id));
+        }
+        com.agilityhub.core.identity.application.ImpersonationService.Issued issued;
+        try (var tenant = TenantContext.open(club)) { issued = impersonations.create(club + "admin", club + "member", "Dashboard denial test"); }
+        for (String path : List.of("/api/v1/dashboard", "/api/v1/dashboard/counters")) {
+            var denied = result(get(path).header("Host", host).with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER")), 403);
+            assertThat(denied.path("code").asText()).isEqualTo("IMPERSONATION_DENIED");
+        }
+        assertThat(dashboard().at("/kpis/activeMembers/value").asInt()).isEqualTo(2);
+    }
     @Test void T_14_23_minimalClubOmitsDisabledBlocksAndCountersRespectModulesAndOwner() throws Exception {
         var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(club, host)); tree.set("modules", mapper.createArrayNode());
         mongo.getCollection("clubs").updateOne(new Document("_id", club), new Document("$set", new Document("modules", List.of()))); parameter("levels.enabled", false);
         insert("members", member("pending-" + club, "PENDING"));
+        when(occupancy.sessions(eq(club), any(), any())).thenReturn(List.of(new ClassOccupancyQuery.Session(Instant.parse("2026-08-10T08:00:00Z"), "ACTIVE", 5, 5, 3)));
         when(requests.counts(club)).thenReturn(new PendingRequestsQuery.Counts(3, 2));
-        when(unread.count(club, "dashboard-admin")).thenReturn(0);
+        // S14 §9 (E3-T10 step 10): with TASKS off the port is never asked, even when it would count something.
+        when(unread.count(eq(club), anyString())).thenReturn(5);
         var first = dashboard(); assertThat(first.at("/kpis/trainingBookings").isNull()).isTrue(); assertThat(first.path("dogsByLevel").isNull()).isTrue();
+        // WAITLIST off: `waitingTotal` is null (not 0); `percent` is an integer.
+        assertThat(first.at("/kpis/classOccupancy").has("waitingTotal")).isTrue(); assertThat(first.at("/kpis/classOccupancy/waitingTotal").isNull()).isTrue();
+        assertThat(first.at("/kpis/classOccupancy/percent").isInt()).isTrue(); assertThat(first.at("/kpis/classOccupancy/percent").asInt()).isEqualTo(100);
         assertThat(first.at("/pendingSignups/items/0").has("paymentMethodType")).isFalse();
         assertThat(first.at("/pendingSignups/items/0").has("warnings")).isFalse();
         assertThat(counters()).isEqualTo(mapper.valueToTree(new Counters(1, 2, 0)));
-        verifyNoInteractions(training, bookings);
+        verifyNoInteractions(training, bookings, unread);
         when(requests.counts(club)).thenReturn(new PendingRequestsQuery.Counts(3, 4));
         clock.setInstant(clock.instant().plusSeconds(29)); assertThat(counters().path("pendingRequests").asInt()).isEqualTo(2);
         clock.setInstant(clock.instant().plusSeconds(1)); assertThat(counters().path("pendingRequests").asInt()).isEqualTo(4);
-        when(unread.count(club, "second-admin")).thenReturn(5);
+        assertThat(result(get("/api/v1/dashboard/counters").header("Host", host).with(jwt().jwt(j -> j.subject("second-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN")), 200)
+                .path("followUpUnread").asInt()).isZero();
+        assertThat(result(admin(get("/api/v1/invoices/export").param("format", "xlsx")), 404).path("code").asText()).isEqualTo("MODULE_DISABLED");
+        // TASKS and WAITLIST on: the unread count is the account's own, and the waiting total is summed.
+        mongo.getCollection("clubs").updateOne(new Document("_id", club), new Document("$set", new Document("modules", List.of("TASKS", "WAITLIST"))));
+        configs.invalidate(club); dashboard.invalidate(club);
+        when(unread.count(club, "dashboard-admin")).thenReturn(0);
         assertThat(result(get("/api/v1/dashboard/counters").header("Host", host).with(jwt().jwt(j -> j.subject("second-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN")), 200)
                 .path("followUpUnread").asInt()).isEqualTo(5);
         assertThat(counters().path("followUpUnread").asInt()).isZero();
+        assertThat(dashboard().at("/kpis/classOccupancy/waitingTotal").asInt()).isEqualTo(3);
     }
-    @Test void T_14_02_monthDeltaIncludesReadmissionsAndEffectiveLocalLeaves() throws Exception {
+    @Test void T_14_02_monthDeltaIncludesReadmissionsAndSubtractsLeaversByLeftAt() throws Exception {
         clock.setInstant(Instant.parse("2026-08-10T00:30:00Z"));
         insert("members", member("first-" + club, "ACTIVE").append("joinedAt", Date.from(Instant.parse("2026-07-31T22:00:00Z"))));
         insert("members", member("readmission-" + club, "ACTIVE").append("signup", Map.of("readmission", true)));
         insert("members", member("old-" + club, "ACTIVE").append("joinedAt", Date.from(Instant.parse("2026-07-31T21:59:59Z"))));
-        insert("members", member("left-" + club, "LEFT").append("joinedAt", Date.from(Instant.parse("2026-06-01T10:00:00Z"))).append("leaveDate", "2026-08-01"));
+        // R-14-02 (amended 24-09): a leave dated 31-07 but applied (`leftAt`) at 00:30 local on 01-08 is an August leave.
+        insert("members", member("left-" + club, "LEFT").append("joinedAt", Date.from(Instant.parse("2026-06-01T10:00:00Z"))).append("leaveDate", "2026-07-31")
+                .append("leftAt", Date.from(Instant.parse("2026-07-31T22:30:00Z"))));
         insert("members", member("scheduled-" + club, "ACTIVE").append("joinedAt", null).append("leaveDate", "2026-08-31"));
         assertThat(dashboard().at("/kpis/activeMembers")).isEqualTo(mapper.valueToTree(new ActiveMembers(4, 1)));
         assertThat(dashboard().at("/week/start").asText()).isEqualTo("2026-08-10");
         mongo.getCollection("clubs").updateOne(new Document("_id", club), new Document("$set", new Document("timeZone", "America/Argentina/Buenos_Aires")));
         configs.invalidate(club); dashboard.invalidate(club);
+        // In Buenos Aires the join of 22:00Z and the leave of 22:30Z both fall on 31-07: only the readmission counts.
         var otherZone = dashboard(); assertThat(otherZone.at("/week/start").asText()).isEqualTo("2026-08-03");
-        assertThat(otherZone.at("/kpis/activeMembers/deltaThisMonth").asInt()).isZero();
+        assertThat(otherZone.at("/kpis/activeMembers/deltaThisMonth").asInt()).isEqualTo(1);
+    }
+    @Test void T_14_02_aLeaveDatedOnTheLastDayAndAppliedTheNextMonthIsSubtractedThatMonth() throws Exception {
+        // The S14 example of the 24-09 amendment: dated 31-08, applied on 01-09 → «−1 aquest mes» in September.
+        clock.setInstant(Instant.parse("2026-09-01T10:00:00Z"));
+        insert("members", member("leaver-" + club, "LEFT").append("joinedAt", Date.from(Instant.parse("2025-06-01T10:00:00Z"))).append("leaveDate", "2026-08-31")
+                .append("leftAt", Date.from(Instant.parse("2026-09-01T05:00:00Z"))));
+        insert("members", member("staying-" + club, "ACTIVE").append("joinedAt", Date.from(Instant.parse("2025-06-01T10:00:00Z"))));
+        assertThat(dashboard().at("/kpis/activeMembers")).isEqualTo(mapper.valueToTree(new ActiveMembers(1, -1)));
+        clock.setInstant(Instant.parse("2026-08-31T12:00:00Z")); dashboard.invalidate(club);
+        assertThat(dashboard().at("/kpis/activeMembers/deltaThisMonth").asInt()).isZero();
     }
     @Test void T_14_04_pendingAggregateUsesOldestPendingDogAllWarningsAndTenantScopedJoins() throws Exception {
         String owner = "add-" + club, dog = "old-dog-" + club, recentDog = "recent-dog-" + club, plan = "plan-" + club;

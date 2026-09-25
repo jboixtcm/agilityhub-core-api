@@ -287,7 +287,8 @@
     "signupPerHour": 5,
     "signupPerDay": 20,
     "checkoutSessionsAnonymousPerHour": 10,
-    "townsPerHour": 60
+    "townsPerHour": 60,
+    "notificationsPerRecipientPerHour": 3
   },
   "activities.cancelDeadline": "EVENT_START",
   "activities.publicUrlTemplate": "{websiteUrl}/activitat/{slug}",

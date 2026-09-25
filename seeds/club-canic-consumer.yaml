@@ -28,7 +28,7 @@ domains:
 theme:
   colors:
     primary: "#E26A2A"
-    onPrimary: "#FFFFFF"
+    onPrimary: "#0B0B0B"
     background: "#0B0B0B"
     surface: "#161616"
     surfaceAlt: "#1E1E1E"
@@ -398,8 +398,8 @@ catalogs: {
         "mode": "NONE"
       },
       "conditions": {
-        "ca": "només un cop",
-        "es": "solo una vez"
+        "ca": "Només un cop",
+        "es": "Solo una vez"
       },
       "showOnSignup": true,
       "showOnWeb": true,

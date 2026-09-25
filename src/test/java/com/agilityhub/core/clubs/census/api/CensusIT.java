@@ -624,7 +624,10 @@ class CensusIT extends AbstractIntegrationTest {
         }
         assertThat(dog("dog-one").status).isEqualTo("ACTIVE");
         field("members", "one", "status", "PENDING"); field("dogs", "dog-one", "status", "PENDING");
-        publish("SignupRejected", "Member", "one", Map.of("memberId", "one")); dispatcher.dispatch();
+        // R-04-23 (E3-T10): the consumer deactivates the dogs the event names (`dogIds`, S04 §7), never «the pending dogs now».
+        publish("SignupRejected", "Member", "one", Map.of("memberId", "one", "dogIds", List.of())); dispatcher.dispatch();
+        assertThat(dog("dog-one").status).isEqualTo("PENDING");
+        publish("SignupRejected", "Member", "one", Map.of("memberId", "one", "dogIds", List.of("dog-one"))); dispatcher.dispatch();
         assertThat(dog("dog-one").deactivationReason).isEqualTo("SIGNUP_REJECTED");
         for (var payload : List.of(Map.of("memberId", "one", "after", "ACTIVE"), Map.of("memberId", "one", "after", "LEFT", "effectiveDate", "2999-01-01"),
                 Map.of("memberId", "missing", "after", "LEFT"), Map.of("memberId", "one", "after", "LEFT"))) {

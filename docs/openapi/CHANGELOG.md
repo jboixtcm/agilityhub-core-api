@@ -2,6 +2,34 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T10 · gate E3 fixes (api 3/3): legal identity on /branding, D1 number types, S04 error lists
+
+**0 operations added, 11 changed** (paths unchanged). Not additive where marked:
+
+- `GET /branding` (`ClubSummary`): `legalName` and `taxId` (string or `null`, **required**): the club's public legal
+  identity for the public footer (R-02-02 amended 24-09, LSSI art. 10).
+- `GET /dashboard` (`ClassOccupancyKpi`), R-14-03 and S14 §9:
+  - `percent` is an **integer** (`int32`) or `null`, was a number (`87.0` → `87`); **type change**;
+  - `waitingTotal` is an integer or **`null`** (always present): `null` when `WAITLIST` is disabled, was `0`; **nullable now**.
+- `GET /dashboard` (`RiskNotified.gender`): string or `null` (a member without a gender on file); **nullable now**.
+- `GET /dashboard/counters`: `followUpUnread` is `0` when `TASKS` is disabled (value change, R-14-08).
+- S04 error responses (E3-T10 step 9; the per-status descriptions list the codes each handler can throw, checked by
+  `S04ErrorContractTest`):
+  - `POST /signup`: + `VALIDATION_ERROR`, `INVALID_IBAN`, `MEMBER_ERASED`, `ID_DOCUMENT_ALREADY_EXISTS` and
+    `CHIP_ALREADY_EXISTS` (a concurrent twin submission), `DOCUMENT_TYPE_UNKNOWN`, `FILE_TYPE_NOT_ALLOWED`,
+    `FILE_TOO_LARGE`, `IDEMPOTENCY_KEY_REUSED`, `STALE_VERSION` (retries exhausted);
+  - `POST /me/dogs/signup`: + `VALIDATION_ERROR`, `CHIP_ALREADY_EXISTS`, `DOCUMENT_TYPE_UNKNOWN`,
+    `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE`, `IDEMPOTENCY_KEY_REUSED`, `STALE_VERSION`; − `PAYMENT_METHOD_NOT_AVAILABLE`
+    (never thrown: the add-dog keeps the member's method);
+  - `POST /signup/identity-checks`: − `ID_DOCUMENT_AMBIGUOUS` (the contract has one `idDocument`, so it cannot happen);
+  - `GET /members/{id}/signup`: + `MEMBER_ERASED`, `PLAN_NOT_AVAILABLE` (a requested plan no longer assignable);
+    description: for an ACTIVE member (add-dog) `signup` is the oldest pending dog's own submission;
+  - `POST /members/{id}/validation`: + `VALIDATION_ERROR`, `LEVEL_NOT_ACTIVE`, `FAMILY_GROUP_MEMBER_ALREADY_IN_GROUP`;
+    description: the `nextInvoiceDate` check uses the first-month start frozen at submission while the plan is the
+    requested one, and the validation assigns the levels itself (no `DogLevelChanged`);
+  - `POST /members/{id}/rejection`: + `VALIDATION_ERROR`;
+  - `POST /checkout-sessions`: + `VALIDATION_ERROR`, `MEMBER_ERASED`, `IDEMPOTENCY_KEY_REUSED`, `MODULE_DISABLED` (BILLING).
+
 ## 2026-09-24 · E3-T09 · gate E3 fixes (api 2/3): signed upload headers, readmission blocks (E38), anonymous-route statuses
 
 **0 operations added, 6 changed** (paths unchanged). Additive except where marked:

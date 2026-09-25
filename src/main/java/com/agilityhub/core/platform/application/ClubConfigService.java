@@ -85,7 +85,8 @@ public class ClubConfigService implements TimeZoneProvider {
             }
         }
         var view = new ClubConfig.ClubView(club.id(), club.slug(), club.name(), club.locales(), club.defaultLocale(),
-                club.timeZone(), club.currency(), club.theme(), club.pwa(), club.status().name(), club.legal().privacyPolicyUrl(), club.address() == null ? null : club.address().city());
+                club.timeZone(), club.currency(), club.theme(), club.pwa(), club.status().name(), club.legal().privacyPolicyUrl(), club.address() == null ? null : club.address().city(),
+                club.legalName(), club.taxId());
         return new ClubConfig(view, values, club.modules(), countries.get(club.countryProfile()), scoped);
     }
 }

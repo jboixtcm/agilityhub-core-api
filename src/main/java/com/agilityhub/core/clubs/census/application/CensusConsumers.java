@@ -26,11 +26,22 @@ public class CensusConsumers {
             for (var dog : access.dogs.matching(Criteria.where("memberId").is(member.id).and("status").ne("INACTIVE"))) { dogs.automaticDeactivation(dog.id, "MEMBER_LEFT"); }
         });
     }
+    /**
+     * R-04-23 (E3-T10): the dogs of the rejection are `payload.dogIds`, never «the pending dogs now». The rejection already
+     * deactivated them in its transaction; one still PENDING here was submitted again after the rejection (a readmission
+     * reusing it, R-04-07) and belongs to the new submission, like any other dog pending now.
+     */
     @Bean DomainEventHandler<CensusEvent> censusSignupRejected(CensusAccess access, DogService dogs) {
         return handler("SignupRejected", event -> {
             var member = access.members.findById(string(event.payload().get("memberId"))).orElse(null);
-            if (member == null || member.erasedAt != null || "ACTIVE".equals(member.status)) { return; }
-            for (var dog : access.dogs.matching(Criteria.where("memberId").is(member.id).and("status").is("PENDING"))) { dogs.automaticDeactivation(dog.id, "SIGNUP_REJECTED"); }
+            if (member == null || member.erasedAt != null) { return; }
+            for (Object raw : event.payload().get("dogIds") instanceof Collection<?> ids ? ids : List.of()) {
+                var dog = access.dogs.findById(string(raw)).orElse(null);
+                if (dog == null || !member.id.equals(dog.memberId) || !"PENDING".equals(dog.status)) { continue; }
+                Instant submitted = instant(map(dog.signup).get("submittedAt"));
+                if (submitted != null && submitted.isAfter(event.occurredAt())) { continue; }
+                dogs.automaticDeactivation(dog.id, "SIGNUP_REJECTED");
+            }
         });
     }
     @Bean DomainEventHandler<CensusEvent> censusDogDocuments(DocumentService documents) {

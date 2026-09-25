@@ -8,6 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T10: gate E3 audit fixes (api, 3/3), the api minors (`roadmap/reviews/gate-E3/consolidated.md` «Minor», api).
+  - Signup: a claim FOUND at the lookup but no longer unique or eligible at submission falls back to
+    `NOT_FOUND_PENDING` when `signup.allowFamilyGroupPending` allows it (R-04-12); `ACCOUNT_NOT_PROVIDED` reads
+    `ibanLast4` in D2, the census list and D1 (migrated SEPA members, R-04-18); a D2 `paymentMethod` PATCH keeps the
+    IBAN, holder, holder tax id and `mandateSignedAt` it does not change (R-04-19); the rejection consumer deactivates
+    `payload.dogIds` only (R-04-23); GENERIC `validateIban` runs mod-97.
+  - `Member.signup` snapshot (§3): `ipHash`, `userAgent`, `paymentMethodTypeRequested`, the frozen `upfront.firstMonth`,
+    `validatedAt/By` and `rejectedAt/By/rejectionReason`. An add-dog submission keeps its own block on its dog and never
+    overwrites the public signup.
+  - Events: `MembershipChanged` of a validation carries `clubId` and the roles `before`/`after`; every identity event
+    records its actor and origin (`IdentityEvents`); `UpfrontPaymentRecorded.memberId`; `DogDocumentPending.trigger`
+    (`REGISTRATION`, `FILE_REMOVED`); `MemberValidated.dogs` and `DogRegistered.levelId` from the stored dogs; the
+    validation assigns the first level without `DogLevelChanged`.
+  - N-02 and N-39 render in `Account.locale` (the signup's as fallback).
+  - Review of E3-T08 round 2: the checkout charges the rows of every submission of the member (only superseded
+    readmission rows are left out); the `nextInvoiceDate` check uses the frozen first-month start while the plan is
+    unchanged; the N-01 copies use the event's `planId` and the submission's own locale and upfront.
+  - D1: `deltaThisMonth` subtracts leavers by `leftAt` (R-14-02 amended 24-09); `waitingTotal` is `null` without
+    `WAITLIST`; `followUpUnread` is `0` without `TASKS`; `percent` is an integer; `RiskNotified.gender` nullable.
+  - `GET /branding` adds `club.legalName` and `club.taxId` (R-02-02 amended 24-09).
+  - OpenAPI: the S04 error lists name every code their handler can throw; `S04ErrorContractTest` checks it from the
+    bytecode.
+  - Seed `club-canic`: Pack 6 «Només un cop» / «Solo una vez»; `theme.colors.onPrimary` `#0B0B0B` (A32, AA 5.9:1).
+  - Tests strengthened against their §11 rows: T-04-10, T-04-11, T-04-16, T-04-17, T-04-19, T-04-21, T-04-26, T-04-28,
+    T-14-02, T-14-11, T-14-22, T-14-23. The unused keys `signup.welcome` and `signup.imageWarning` are removed.
+
 - E3-T09: gate E3 audit fixes (api, 2/3), security and privacy (`roadmap/reviews/gate-E3/consolidated.md` M16–M18).
   - M16: `POST /signup/upload-urls` returns the signed `headers` (`Content-Type`, `If-None-Match: *`); an IT against an
     S3-compatible store (LocalStack S3, signature validation on) proves 403 without them and 412 on a second PUT.

@@ -84,7 +84,9 @@ public class DogService {
         history.add(object("levelId", levelId, "from", clock.instant(), "byAccountId", CurrentUser.current().accountId()));
         dog.levelHistory = history; dog.levelId = levelId; dog.levelAssignedAt = clock.instant();
         dog.freeTrainingAllowed = access.free(dog).allowed(); access.dogs.save(dog);
-        events.emit("DogLevelChanged", "Dog", id, object("dogId", id, "before", old, "after", levelId));
+        // S04 (E3-T10): the level given at validation is the first assignment, not a change: no DogLevelChanged, so N-09
+        // never fires for a validation. The history, the audit and the free-training recalculation stay.
+        if (!signup) { events.emit("DogLevelChanged", "Dog", id, object("dogId", id, "before", old, "after", levelId)); }
         freeEvent(dog, previous);
     }
     @Transactional

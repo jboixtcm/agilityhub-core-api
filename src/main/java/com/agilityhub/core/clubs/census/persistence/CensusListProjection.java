@@ -48,6 +48,11 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         Object latestImage=expr("$arrayElemAt",new Document("$filter",new Document("input","$consents").append("as","consent").append("cond",expr("$eq","$$consent.type","IMAGE_USE"))),-1);
         stages.add(new Document("$set",new Document("consents",new Document("$cond",List.of(ledger,new Document("imageRights",latestImage),fallback("$consents",new Document()))))
                 .append("pendingDogs",new Document("$filter",new Document("input","$dogs").append("as","dog").append("cond",expr("$eq","$$dog.status","PENDING"))))));
+        // S04 §3 (E3-T10): an add-dog submission keeps its block on its dog. For an ACTIVE member the signup of the list (its
+        // `submittedAt`, its READMISSION warning) is the oldest pending dog's block; the public signup otherwise.
+        Object oldestPending=expr("$arrayElemAt",new Document("$sortArray",new Document("input",fallback("$pendingDogs.signup",List.of())).append("sortBy",new Document("submittedAt",1))),0);
+        stages.add(new Document("$set",new Document("signup",new Document("$cond",List.of(expr("$and",expr("$eq","$status","ACTIVE"),expr("$gt",expr("$size","$pendingDogs"),0)),
+                fallback(oldestPending,"$signup"),"$signup")))));
         stages.add(join("upfront_payments","$_id","memberId","signupPayments",List.of()));
         stages.add(new Document("$set",new Document("signupPending",expr("$gt",expr("$size","$pendingDogs"),0))));
         var warnings=new ArrayList<Object>();
@@ -55,7 +60,9 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         warnings.add(new Document("$cond",List.of(expr("$in",true,"$pendingDogs.hasPendingDocuments"),List.of("DOCUMENT_PENDING"),List.of())));
         var config=configs.get(TenantContext.require());
         if(config.modules().contains(com.agilityhub.core.platform.application.Module.BILLING)) {
-            warnings.add(new Document("$cond",List.of(expr("$and",expr("$eq","$paymentMethod.type","SEPA_DD"),expr("$eq",fallback("$paymentMethod.iban",""),"")),List.of("ACCOUNT_NOT_PROVIDED"),List.of())));
+            // R-04-18 (E3-T10): a migrated SEPA member has only `ibanLast4` (the IBAN is encrypted); it is not «Compte no informat».
+            warnings.add(new Document("$cond",List.of(expr("$and",expr("$eq","$paymentMethod.type","SEPA_DD"),expr("$eq",fallback("$paymentMethod.iban",""),""),
+                    expr("$eq",fallback("$paymentMethod.ibanLast4",""),"")),List.of("ACCOUNT_NOT_PROVIDED"),List.of())));
             Object unpaid=new Document("$filter",new Document("input","$signupPayments").append("as","payment").append("cond",expr("$and",expr("$in","$$payment.status",List.of("DUE","PARTIAL","CHECKOUT_PENDING")),expr("$in","$$payment.dogId","$pendingDogs._id"))));
             warnings.add(new Document("$cond",List.of(expr("$gt",expr("$size",unpaid),0),List.of("UPFRONT_UNPAID"),List.of())));
         }

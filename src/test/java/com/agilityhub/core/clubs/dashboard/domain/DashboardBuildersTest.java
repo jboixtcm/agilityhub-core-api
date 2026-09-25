@@ -15,11 +15,17 @@ class DashboardBuildersTest {
         var rows = List.of(session("ACTIVE", 5, 3, 1), session("FINISHED", 5, 4, 3), session("CANCELLED", 4, 2, 0),
                 session("DRAFT", 5, 0, 0), new ClassOccupancyQuery.Session(period.until(), "ACTIVE", 10, 10, 10),
                 new ClassOccupancyQuery.Session(period.from().minusNanos(1), "ACTIVE", 10, 10, 10));
-        assertThat(KpiBuilder.occupancy(rows, period, true)).isEqualTo(new Occupancy(70.0, 7, 10, 4));
-        assertThat(KpiBuilder.occupancy(rows, period, false).waitingTotal()).isZero();
-        assertThat(KpiBuilder.occupancy(List.of(), period, true)).isEqualTo(new Occupancy(null, 0, 0, 0));
-        assertThat(KpiBuilder.occupancy(List.of(session("ACTIVE", 8, 1, 0)), period, true).percent()).isEqualTo(13.0);
-        assertThat(KpiBuilder.occupancy(List.of(session("ACTIVE", 163, 142, 0)), period, true).percent()).isEqualTo(87.0);
+        var week = KpiBuilder.occupancy(rows, period, true);
+        // R-14-03 (E3-T10 step 10): `percent` is an integer (HALF_UP); `waitingTotal` only exists with WAITLIST.
+        assertThat((Object) week.percent()).isEqualTo(70); assertThat(week.booked()).isEqualTo(7); assertThat(week.capacity()).isEqualTo(10);
+        assertThat((Object) week.waitingTotal()).isEqualTo(4);
+        assertThat((Object) KpiBuilder.occupancy(rows, period, false).waitingTotal()).isNull();
+        var empty = KpiBuilder.occupancy(List.of(), period, true);
+        assertThat((Object) empty.percent()).isNull(); assertThat((Object) empty.waitingTotal()).isEqualTo(0);
+        assertThat((Object) KpiBuilder.occupancy(List.of(session("ACTIVE", 8, 1, 0)), period, true).percent()).isEqualTo(13);
+        assertThat((Object) KpiBuilder.occupancy(List.of(session("ACTIVE", 163, 142, 0)), period, true).percent()).isEqualTo(87);
+        // 139/158 = 87.97… → 88 (the S14 example); 1/8 = 12.5 → 13 (HALF_UP).
+        assertThat((Object) KpiBuilder.occupancy(List.of(session("ACTIVE", 158, 139, 0)), period, true).percent()).isEqualTo(88);
     }
     ClassOccupancyQuery.Session session(String state, int capacity, int booked, int waiting) {
         return new ClassOccupancyQuery.Session(period.from(), state, capacity, booked, waiting);

@@ -62,23 +62,24 @@ class SignupPolicyTest {
                 "ca", List.of("Benvingut, Pau!", "Benvinguda, Marta!", "Benvingut, Pau!"),
                 "es", List.of("¡Bienvenido, Pau!", "¡Bienvenida, Marta!", "¡Bienvenido, Pau!"),
                 "en", List.of("Welcome, Pau!", "Welcome, Marta!", "Welcome, Pau!"));
-        Map<String,List<String>> warnings = Map.of(
-                "ca", List.of("No autoritza l’ús de la seva imatge: no publiqueu fotos on surti ell.",
-                        "No autoritza l’ús de la seva imatge: no publiqueu fotos on surti ella.",
-                        "No autoritza l’ús de la seva imatge: no publiqueu fotos on surti ell."),
-                "es", List.of("No autoriza el uso de su imagen: no publiquéis fotos donde salga él.",
-                        "No autoriza el uso de su imagen: no publiquéis fotos donde salga ella.",
-                        "No autoriza el uso de su imagen: no publiquéis fotos donde salga él."),
-                "en", List.of("Image use is not authorized: do not publish photos where he appears.",
-                        "Image use is not authorized: do not publish photos where she appears.",
-                        "Image use is not authorized: do not publish photos where they appear."));
+        Map<String,String> bodies = Map.of("ca", "La teva alta a Example Club està validada. Entra al teu compte amb aquest enllaç.",
+                "es", "Tu alta en Example Club está validada. Accede a tu cuenta con este enlace.",
+                "en", "Your membership at Example Club is active. Use the link to access your account.");
+        // E3-T10 step 11: the keys and variables the N-02 delivery really renders (SignupNotifications → MagicLinkService →
+        // `notif.N-02.*` with `member_first_name`, `gender`, `club_name`). The D2 image warning is rendered by the web
+        // (`admin-census:signup.imageConsentWarning`, T-04-33), so the api has no key for it.
         var genders = List.of("MALE", "FEMALE", "OTHER");
         for (String locale : welcomes.keySet()) {
             for (int i = 0; i < genders.size(); i++) {
-                var args = Map.of("gender", genders.get(i), "name", i == 1 ? "Marta" : "Pau");
-                assertThat(source.format("signup.welcome", args, Locale.forLanguageTag(locale))).isEqualTo(welcomes.get(locale).get(i));
-                assertThat(source.format("signup.imageWarning", args, Locale.forLanguageTag(locale))).isEqualTo(warnings.get(locale).get(i));
+                var args = Map.of("gender", genders.get(i), "member_first_name", i == 1 ? "Marta" : "Pau", "club_name", "Example Club");
+                assertThat(source.format("notif.N-02.title", args, Locale.forLanguageTag(locale))).as(locale + " " + genders.get(i)).isEqualTo(welcomes.get(locale).get(i));
+                assertThat(source.format("notif.N-02.body", args, Locale.forLanguageTag(locale))).isEqualTo(bodies.get(locale));
             }
+        }
+        for (String locale : welcomes.keySet()) {
+            var messages = new java.util.Properties();
+            try (var reader = java.nio.file.Files.newBufferedReader(java.nio.file.Path.of("src/main/resources/messages/messages_" + locale + ".properties"))) { messages.load(reader); }
+            assertThat(messages.stringPropertyNames()).as(locale).doesNotContain("signup.welcome", "signup.imageWarning");
         }
     }
     @Test void T_04_15_consentRequiresAcceptanceAndCurrentVersionAndProducesAppendOnlyEntries() {

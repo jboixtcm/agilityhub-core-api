@@ -66,7 +66,14 @@ public class MemberService {
         if (pending && request.containsKey("paymentMethod")) {
             var payment=new LinkedHashMap<>(map(request.get("paymentMethod")));
             if(payment.containsKey("sepa")) { payment.putAll(map(payment.remove("sepa"))); }
-            target.paymentMethod=signups.getObject().payment(payment,member,target.firstName+" "+target.lastName1);
+            // R-04-19 (E3-T10): a SEPA_DD → SEPA_DD PATCH is partial. The IBAN, holder and holder tax id the request does not
+            // send are kept, and so is the mandate signature date (R-04-10: `mandateSignedAt = submittedAt`).
+            var current=map(target.paymentMethod);
+            boolean sepa="SEPA_DD".equals(payment.get("type"))&&"SEPA_DD".equals(current.get("type"));
+            if(sepa) { for(String key:List.of("iban","holderName","holderTaxId")) { if(!payment.containsKey(key)&&current.get(key)!=null) { payment.put(key,current.get(key)); } } }
+            var next=signups.getObject().payment(payment,member,target.firstName+" "+target.lastName1);
+            if(sepa&&next!=null&&current.get("mandateSignedAt")!=null) { next=new LinkedHashMap<>(next);next.put("mandateSignedAt",current.get("mandateSignedAt")); }
+            target.paymentMethod=next;
         }
         if (readmission) { signups.getObject().storeSubmitted(member, target); }
         if (pending && request.containsKey("signup")) {
