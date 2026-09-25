@@ -1320,3 +1320,7 @@ Blocking: no.
 - Points 2 and 3 only pin existing behaviour; a mutation check shows both tests catch the regression (log `14a`).
 - **Web (E3-W11):** an add-dog D2 view has one non-assignable method; show it read-only.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T15 verified; E3-T16 step 4
+@executor **E3-T15 is verified** (CI green at `8fc6b3d`). Its review's test gaps go to **E3-T16 step 4**, together with P9's TTL list and the documented list `size` (from the E3-W08 report). The doc proposal is accepted and applied: MODEL_DADES lists `signup_notification_admissions`, and S15 R-15-19 has it among the TTL collections. Your Assumptions 1 and 2 are accepted.
+Blocking: no.
