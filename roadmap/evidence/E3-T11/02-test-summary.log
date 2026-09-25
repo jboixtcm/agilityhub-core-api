@@ -1,0 +1,48 @@
+surefire: suites=123 tests=554 failures=0 errors=0 skipped=0
+failsafe: suites=84 tests=965 failures=0 errors=0 skipped=0
+
+Test classes whose name or methods contain T_04_ or T_14_ (tests/failures/errors/skipped, time):
+  [failsafe] com.agilityhub.core.clubs.bookings.api.RiskReviewJobIT: tests=8 failures=0 errors=0 skipped=0 time=2.7s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=14 failures=0 errors=0 skipped=0 time=1.9s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0 time=3.8s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupIT: tests=32 failures=0 errors=0 skipped=0 time=4.8s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0 time=2.6s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=8 failures=0 errors=0 skipped=0 time=0.9s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupS3UploadIT: tests=1 failures=0 errors=0 skipped=0 time=0.2s
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=21 failures=0 errors=0 skipped=0 time=3.2s
+  [failsafe] com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=0 errors=0 skipped=0 time=7.9s
+  [surefire] com.agilityhub.core.clubs.census.domain.DemoDatasetTest: tests=3 failures=0 errors=0 skipped=0 time=0.0s
+  [failsafe] com.agilityhub.core.clubs.common.api.ExportEngineIT: tests=9 failures=0 errors=0 skipped=0 time=5.6s
+  [surefire] com.agilityhub.core.clubs.common.application.ExportLifecycleTest: tests=3 failures=0 errors=0 skipped=0 time=0.3s
+  [surefire] com.agilityhub.core.clubs.common.application.ExportStorageTest: tests=3 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.clubs.common.domain.ExportNamesTest: tests=1 failures=0 errors=0 skipped=0 time=0.1s
+  [failsafe] com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11 failures=0 errors=0 skipped=0 time=2.0s
+  [surefire] com.agilityhub.core.clubs.dashboard.application.ports.DashboardPortDefaultsTest: tests=2 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.clubs.dashboard.domain.DashboardBuildersTest: tests=6 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.clubs.scheduling.application.RiskReviewQueryTest: tests=2 failures=0 errors=0 skipped=0 time=0.1s
+  [surefire] com.agilityhub.core.clubs.signup.domain.DogChipsTest: tests=3 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.clubs.signup.domain.SignupCatalogAdapterTest: tests=2 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.clubs.signup.domain.SignupContactsTest: tests=12 failures=0 errors=0 skipped=0 time=0.1s
+  [surefire] com.agilityhub.core.clubs.signup.domain.SignupPaymentsTest: tests=17 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.clubs.signup.domain.SignupPolicyTest: tests=6 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.configuration.AuditConfigurationTest: tests=2 failures=0 errors=0 skipped=0 time=0.0s
+  [failsafe] com.agilityhub.core.configuration.E2ContractIT: tests=15 failures=0 errors=0 skipped=0 time=0.2s
+  [surefire] com.agilityhub.core.configuration.E2ResponseContractTest: tests=2 failures=0 errors=0 skipped=0 time=0.1s
+  [failsafe] com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0 time=2.4s
+  [surefire] com.agilityhub.core.configuration.E3GateFixesContractTest: tests=4 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0 time=0.2s
+  [surefire] com.agilityhub.core.configuration.OpenApiNullableEnumContractTest: tests=3 failures=0 errors=0 skipped=0 time=0.1s
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0 time=2.0s
+  [surefire] com.agilityhub.core.configuration.S04ErrorContractTest: tests=2 failures=0 errors=0 skipped=0 time=0.0s
+  [failsafe] com.agilityhub.core.platform.api.AuditQueriesIT: tests=7 failures=0 errors=0 skipped=0 time=1.4s
+  [failsafe] com.agilityhub.core.platform.application.CacheInvalidationRaceIT: tests=5 failures=0 errors=0 skipped=0 time=0.1s
+  [surefire] com.agilityhub.core.platform.application.PaymentProviderFlagsTest: tests=2 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.platform.application.audit.AuditContractTest: tests=1 failures=0 errors=0 skipped=0 time=0.4s
+  [failsafe] com.agilityhub.core.platform.application.audit.AuditedAspectIT: tests=14 failures=0 errors=0 skipped=0 time=0.3s
+  [surefire] com.agilityhub.core.platform.application.audit.AuditedAspectTest: tests=3 failures=0 errors=0 skipped=0 time=0.2s
+  [surefire] com.agilityhub.core.platform.domain.CountryProfileTest: tests=4 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.platform.domain.ParameterValidatorTest: tests=8 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.platform.domain.audit.AuditDiffTest: tests=7 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.platform.domain.audit.AuditReadMaskerTest: tests=2 failures=0 errors=0 skipped=0 time=0.0s
+  [surefire] com.agilityhub.core.shared.domain.EventCatalogContractTest: tests=2 failures=0 errors=0 skipped=0 time=0.9s
+Related classes: 43

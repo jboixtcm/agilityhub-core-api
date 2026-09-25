@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T11: gate E3 audit re-run on `d791361`, after the fixes E3-T08…T10 and E3-T12…T16; evidence only, with no product change.
+  - `clean verify` passes (554 unit + 965 IT). The S04/S14 traceability is unchanged in shape: 40 of the 44 ids in
+    scope have passing tests, and the 4 missing are front-layer ids. The 9 api tests the audit required all pass.
+  - `bin/e3-smoke` passes twice; both seed commands are idempotent; the snapshot shows no drift.
+  - `GET /dashboard` on the seed: 3 pending (1 older than 2 days), 184 active members, 242 active dogs over the 8
+    progression columns (others 0), and the class block follows R-14-03 over the seeded current week.
 - E5-T15: follow-ups of the E5-T06/E5-T07 round-2 reviews, ruling E37 and the E5-T13/E4-T06 review minors.
   - S05 R-05-08 / S09 R-09-13: a ring change (deactivation, `allowsFreeTraining` off) is retried whole on a write
     conflict or duplicate key (3 attempts, 50–150 ms, E26), so a concurrent booking no longer turns it into

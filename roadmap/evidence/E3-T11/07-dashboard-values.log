@@ -1,0 +1,34 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/dashboard -> 200
+curl GET /api/v1/dashboard/counters -> 200
+VALUE today = "2026-09-25"
+VALUE week = {"start": "2026-09-21", "end": "2026-09-27"}
+VALUE kpis.pendingSignups = {"value": 3, "olderThanWarn": 1, "warnDays": 2}
+VALUE pendingSignups.count = 3
+VALUE pendingSignups.items[].pendingDays = [3, 1, 0]
+VALUE counters = {"pendingSignups": 3, "pendingRequests": 0, "followUpUnread": 0}
+VALUE kpis.activeMembers = {"value": 184, "deltaThisMonth": 0}
+VALUE kpis.classOccupancy = {"percent": 0, "booked": 0, "capacity": 49, "waitingTotal": 0}
+VALUE kpis.trainingBookings = {"value": 0, "distinctMembers": 0}
+VALUE dogsByLevel.columns = 8
+VALUE dogsByLevel.levels[].code = ["CAD", "A", "B", "C", "D", "E", "F", "G"]
+VALUE dogsByLevel.levels[].total = [24, 43, 39, 42, 35, 31, 16, 12]
+VALUE dogsByLevel.others = 0
+VALUE dogsByLevel.totalActiveDogs = 242
+VALUE dogsByLevel.activeDogWeeks = 2
+VALUE riskReview.count = 6
+VALUE mongo: active levels (code, progression) by order = [["CAD", true], ["A", true], ["B", true], ["C", true], ["D", true], ["E", true], ["F", true], ["G", true], ["TER", false], ["PENDENT", false]]
+VALUE mongo: members by status = [{"_id": "ACTIVE", "n": 184}, {"_id": "INACTIVE", "n": 4}, {"_id": "LEFT", "n": 3}, {"_id": "PENDING", "n": 3}]
+VALUE mongo: ACTIVE dogs = 242
+VALUE mongo: class sessions of the dashboard week (ACTIVE/FINISHED) = {"classes": 11, "capacity": 49, "booked": 0, "waiting": 0}
+VALUE mongo: training bookings = 0
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+dashboard_values exit code 0

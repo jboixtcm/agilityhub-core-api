@@ -1,0 +1,102 @@
+$ docker compose (project e3-t11-seeds-83408c70) up -d --wait mongo -> exit 0
+
+=== run 1: $ bin/core club:apply seeds/club-canic.yaml -> exit 0
++ club added
+  null -> {"slug":"canic","name":"Club Agility Cànic","legalName":"Club Agility Cànic","taxId":"G63189617","address":{"street":"Carrer Sant Pere, 10","postalCode":"08392","city":"Sant Andreu de Llavaneres","region":"Barcelona","country":"ES"},"displayCity":"Cabrera de Mar","contactEmail":"canic@example.test","locales":["ca","es"],"defaultLocale":"ca","timeZone":"Europe/Madrid","currency":"EUR","countryProfile":"ES","status":"ONBOARDING","template":false}
++ domains added
+  null -> [{"host":"app.agilitycanic.cat","app":"clubs","primary":true},{"host":"admin.agilitycanic.cat","app":"clubs-admin","primary":false}]
++ theme added
+  null -> {"colors":{"primary":"#E26A2A","onPrimary":"#0B0B0B","background":"#0B0B0B","surface":"#161616","surfaceAlt":"#1E1E1E","text":"#FFFFFF","textMuted":"#B5B5B5","border":"#2B2B2B","success":"#4CAF7D","warning":"#E5B93C","danger":"#E05B5B","info":"#85B8E8"},"fontFamily":"Montserrat","radius":"4px","ringPalette":["#F2B58C","#8FCE8F","#C9CDD3","#F5D67A","#85B8E8"],"mode":"dark"}
++ modules added
+  null -> ["ACTIVITIES","BILLING","COURSES","FAMILY_GROUP","FAQ","FREE_TRAINING","INACTIVITY","LEARN_LINK","PACKS","PUSH","SMS","TASKS","WAITLIST"]
++ paymentProviders added
+  null -> {"SEPA_XML":{"enabled":true},"MANUAL":{"enabled":true}}
++ legal added
+  null -> {"privacyPolicyUrl":"https://agilitycanic.cat/ca/politica-de-privacidad/","imageConsentText":{"es":"Autorizo la publicación de fotos mías y de mi perro en el ámbito de las actividades del club","en":"I authorize publication of photos of me and my dog within club activities","ca":"Autoritzo la publicació de fotos meves i del meu gos dins l'àmbit de les activitats del club"},"legalTextsVersion":"1"}
++ pwa added
+  null -> {"name":"Club Agility Cànic","shortName":"Club Agility Cànic","icons":[]}
++ parameters.signup.enabled added
+  null -> true
++ parameters.signup.pendingExpiryDays added
+  null -> 30
++ parameters.signup.requireDogDocumentAtSignup added
+  null -> false
++ parameters.signup.firstMonthSplitDay added
+  null -> 16
++ parameters.signup.allowFamilyGroupPending added
+  null -> true
++ admins: 0 to provision
++ accounts: 15 to provision
++ catalogs.levels.CAD
++ catalogs.levels.A
++ catalogs.levels.B
++ catalogs.levels.C
++ catalogs.levels.D
++ catalogs.levels.E
++ catalogs.levels.F
++ catalogs.levels.G
++ catalogs.levels.TER
++ catalogs.levels.PENDENT
++ catalogs.rings.MUN
++ catalogs.rings.CEN
++ catalogs.rings.CAR
++ catalogs.rings.CAD
++ catalogs.rings.PET
++ catalogs.plans.ABONAT
++ catalogs.plans.ABONAT_FAMILIAR
++ catalogs.plans.PACK6
++ catalogs.plans.PACK10
++ catalogs.plans.TERAPIA
++ catalogs.plans.COMPETICIO_1
++ catalogs.prices.ABONAT:MONTHLY_FEE:2026-01-01
++ catalogs.prices.ABONAT_FAMILIAR:MONTHLY_FEE:2026-01-01
++ catalogs.prices.PACK6:PACK:2026-01-01
++ catalogs.prices.PACK10:PACK:2026-01-01
++ catalogs.prices.TERAPIA:MAINTENANCE_FEE:2026-01-01
++ catalogs.prices.COMPETICIO_1:MONTHLY_FEE:2026-01-01
++ catalogs.faq.FAQ_1
++ catalogs.faq.FAQ_2
++ catalogs.faq.FAQ_3
++ catalogs.faq.FAQ_4
++ catalogs.faq.FAQ_5
++ catalogs.faq.FAQ_6
++ catalogs.faq.FAQ_7
++ catalogs: 34 catalog changes
++ messageTemplates: schema accepted; application deferred to E7
++ pages: 3 page changes
+15 changes (applied)
+
+=== run 2: $ bin/core club:apply seeds/club-canic.yaml -> exit 0
+= club unchanged
+= domains unchanged
+= theme unchanged
+= modules unchanged
+= paymentProviders unchanged
+= legal unchanged
+= pwa unchanged
+= parameters.signup.enabled unchanged
+= parameters.signup.pendingExpiryDays unchanged
+= parameters.signup.requireDogDocumentAtSignup unchanged
+= parameters.signup.firstMonthSplitDay unchanged
+= parameters.signup.allowFamilyGroupPending unchanged
+= admins: 0 to provision
+= accounts: 0 to provision
+= catalogs: 0 catalog changes
+= messageTemplates: schema accepted; application deferred to E7
+= pages: 0 page changes
+0 changes (applied)
+
+=== run 3: $ bin/core seed:demo --club=canic --seed=42 -> exit 0
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+451 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=87, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+218 changes (demo planning, week start 2026-09-21)
+
+=== run 4: $ bin/core seed:demo --club=canic --seed=42 -> exit 0
+{activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=245, familyGroups=12, activeDogs=242, pendingDogs=3, instructors=3, administrators=2, receivedDocuments=6, pendingDocuments=239}
+0 changes (demo seed)
+{templateClasses=39, templates=3, weeks=3, generatedClasses=87, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=0, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=0, scenarioClassBookings=0, scenarioCancellations=0, scenarioWaitlist=0, scenarioOffers=0, scenarioRiskExempt=0, scenarioBookingBlocks=0, scenarioTrainingOverrides=0, scenarioTrainingBookings=0}
+0 changes (demo planning, week start 2026-09-21)
+
+$ docker compose (project e3-t11-seeds-83408c70) down --volumes -> exit 0
+seeds_twice exit code 0

@@ -1422,3 +1422,19 @@ Blocking: no.
 - **Model proposal (not applied):** add «validació de setmana» to the writers in the `ring_slot_locks` row of `MODEL_DADES_PLATAFORMA.md`.
 - **Web (E4-W03 / E6):** regenerate the client. New fields: `ClassSession.instructorNames`/`ring` (staff detail) and `RegisteredActivity`/`ActivityRow.startTime`/`endTime`. D1's no-ring label is now «Sense pista».
 Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T11
+@organizer **The gate E3 re-run (api) is green at `d791361`** (awaiting_verification). No product change.
+- `./mvnw -q clean verify` exits 0: 554 unit and 965 integration tests. CI run `36191167664` on `d791361` is a success.
+- Traceability: 40 of the 44 ids in scope pass. The 4 missing are the front ids, as in E3-T07.
+- **The audit's required api tests: 9 of 9 pass.** The table is in the report and in `trace-summary.md`.
+- `bin/e3-smoke` exits 0 twice, and the seeds are idempotent twice. The snapshot is byte-identical.
+- **`GET /dashboard` on the seed:**
+  - 3 pending, 1 older than 2 days;
+  - 184 active members;
+  - the class block follows R-14-03: 49 seats, 0 booked;
+  - training 0/0;
+  - 242 dogs over the 8 progression columns `CAD, A–G`, with `others` 0.
+- **Gate lines:** new text proposed for L66–L69 (in the report). L67's capacity changes with the weekday the seed runs, because generation skips past days (E3-T07 seeded on a Thursday: 75 seats; this run on a Friday: 49). Please state the rule, not a number.
+- **Test gap, not a failure:** no test replays an add-dog `POST /me/dogs/signup` with the same `Idempotency-Key`. Only the public signup has one. A one-method IT could go into E5-T16.
+Blocking: no.
