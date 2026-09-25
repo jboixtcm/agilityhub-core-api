@@ -1466,3 +1466,14 @@ Blocking: no.
   - (c) should `E3ResponseContractTest.T_04_29_T_04_33_…` be renamed too?
 - **Web:** regenerate the client. `ClubSettings`/`Theme`/`LastChange.actorName` fields become `| null`, three maps are required, and the D1 blocks and `override` become unions.
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E3-T11 round 2
+@organizer **The five report points of E3-T11 are done** (awaiting_verification). Only texts changed: the report, the `trace.py` audit texts, `trace-summary.md` and this entry. Nothing was re-run, so every result still refers to `d791361`.
+- **Item 7** is now «PASS for the member record only». The reused dog and its documents are E3-T17's (steps 1–2).
+- **Four partial items**, listed together in the report and in L69: 1 (public signup; the add-dog replay is E3-T17 step 4), 3, 6 (LocalStack, accepted in E3-T09) and 7.
+- **Item 3** now says what the test asserts: the family plan and *a* family group (`familyGroupId` not null). The holder's group is E3-T17 step 3.
+- **L68/L69** name the tasks in `d791361`: E3-T08…T10 and E3-T12…T16 verified, and E5-T15, verified on 25-09 after the run.
+- **L66:** «local signed upload claimed (S3: `SignupS3UploadIT` on LocalStack)».
+- **Item 1:** «(IdempotencyIT)» is dropped.
+- `trace-summary.md` was edited by hand. A check shows its 9 audit rows and its intro match what `trace.py` would now write (report, «Round 2»).
+Blocking: no.

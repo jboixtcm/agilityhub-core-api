@@ -15,6 +15,8 @@ A parameterized method (several <testcase> invocations) is one method; its resul
 is PASS only when every invocation passes. A method named T_04_12_T_04_13_... gives
 one row per id. Run from the repository root: python3 roadmap/evidence/E3-T11/trace.py
 Changes from E3-T07: the titles, and the «Audit tests» section (AUDIT below).
+Round 2 (E3-T11 review, 25-09): only the audit texts changed (the «partial» marks and the intro). The script was
+not re-run, because the JUnit reports of d791361 are gone; trace-summary.md was edited to the same texts.
 """
 import csv
 import re
@@ -41,14 +43,16 @@ CENSUS = "com.agilityhub.core.clubs.census.api."
 AUDIT = [
     ("a retry after a lost 201: the same Idempotency-Key gives the same 201",
      [(CENSUS + "SignupIT", "T_04_23_idempotencyReplaysEncryptedResponseAndClosesSignup")],
-     "public POST /signup replayed with the same key: identical 201 body, one member. No add-dog (POST /me/dogs/signup) "
-     "same-key replay test exists; that route relies on the shared IdempotencyFilter (IdempotencyIT)"),
+     "partial: public POST /signup replayed with the same key: identical 201 body, one member. No add-dog "
+     "(POST /me/dogs/signup) same-key replay test exists; that route relies on the shared IdempotencyFilter. "
+     "The add-dog replay is E3-T17 step 4"),
     ("family-plan add-dog",
      [(CENSUS + "SignupGateFixesIT", "T_04_21_familyFareMemberAddsADogAndReadsTheSignupConfiguration")],
      "an ABONAT_FAMILIAR member reads GET /signup on days 1, 17 and 25 and adds a dog (201)"),
     ("a validation with the family fare",
      [(CENSUS + "SignupGateFixesIT", "T_04_16_foundFamilyClaimProposesAndValidatesTheHiddenFamilyFare")],
-     "a FOUND claim proposes the hidden ABONAT_FAMILIAR (90 €/month) and the validation stores it with the group"),
+     "partial: a FOUND claim proposes the hidden ABONAT_FAMILIAR (90 €/month); the validation stores that plan and a "
+     "family group (familyGroupId not null). It does not check that it is the holder's group: E3-T17 step 3"),
     ("a dog edit after an add-dog",
      [(CENSUS + "SignupGateFixesIT", "R_04_19_reviewDogCarriesTheVersionThatTheDogPatchCompares")],
      "add-dog, then a member PATCH, then two dog PATCHes with the D2 dog's own version (200)"),
@@ -57,11 +61,13 @@ AUDIT = [
      "submission, validation and rejection each read D1 and the counters immediately; no sleep, no outbox dispatch"),
     ("an S3-signed upload against MinIO",
      [(CENSUS + "SignupS3UploadIT", "R_04_08_T_04_13_signedSignupUploadNeedsTheReturnedHeadersAndWritesOnce")],
-     "against LocalStack S3 with signature validation on, not MinIO (E3-T09 deviation, accepted by the organizer: "
-     "the MinIO images can no longer be pulled)"),
+     "partial: against LocalStack S3 with signature validation on, not MinIO (E3-T09 deviation, accepted by the "
+     "organizer: the MinIO images can no longer be pulled)"),
     ("a readmission that is rejected, with the original data intact",
      [(CENSUS + "SignupSecurityFixesIT", "T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas")],
-     "the LEFT record after the rejection equals the record before the readmission (version/updatedAt aside)"),
+     "partial, PASS for the member record only: the LEFT member after the rejection equals the member before the "
+     "readmission (version/updatedAt aside). The reused dog and its documents are not read; they are E3-T17's "
+     "(steps 1-2, organizer 25-09)"),
     ("a percent-encoded route that is still rate-limited",
      [(CENSUS + "SignupSecurityFixesIT", "R_04_20_T_04_28_percentEncodedAndDoubleSlashRoutesShareTheLimitOfThePlainRoute")],
      "/signup/identity-%63hecks gets 429 RATE_LIMITED after 10 plain calls; `//` is refused with 400 by the firewall"),
@@ -178,7 +184,8 @@ def main():
 
     lines += ["", "## Audit tests", "",
               "`roadmap/reviews/gate-E3/consolidated.md`, «Tests that must exist after the fixes»: the api items listed in "
-              "E3-T11 step 3. The result is read from the JUnit XML of the same build.", "",
+              "E3-T11 step 3. The result is read from the JUnit XML of the same build. «partial» in «What it proves» "
+              "marks a test that proves only part of its item (E3-T11 round 2): items 1, 3, 6 and 7.", "",
               "| # | Audit item | Test class#method | Report | Invocations | Result | What it proves |",
               "|---|---|---|---|---|---|---|"]
     audit_missing, audit_failing = [], []
