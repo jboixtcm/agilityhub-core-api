@@ -2,6 +2,21 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T14 · the payment methods of a signup: enabled providers only; the D2 view lists them
+
+**0 operations added, 1 changed; 1 schema added** (additive):
+
+- `GET /members/{id}/signup`: `MemberSignupView.paymentMethods` (required, new schema `SignupPaymentMethodOption
+  {type, label, current, assignable}`), the D2 method selector (web E3-W07 round 2). It lists the methods `GET /signup`
+  offers, in the same order, all `assignable`, and marks the applicant's method `current`. When the applicant's method
+  belongs to a provider that has been disabled since, it is listed last with `assignable = false`. The list is empty
+  without BILLING.
+- Behaviour behind unchanged schemas (R-04-10): `GET /signup.paymentMethods` offers only the providers whose
+  `CLUB.paymentProviders.{provider}.enabled` is `true`, the same flag `GET /club` shows. A provider listed without
+  `enabled: true` is off; `configured` does not gate the offer. `POST /signup` and the D2 `PATCH /members/{id}`
+  answer `422 PAYMENT_METHOD_NOT_AVAILABLE` for any other method. The Stripe checks that answer `422
+  PAYMENT_PROVIDER_NOT_ENABLED` read the same flag.
+
 ## 2026-09-25 · E3-T12 round 2 · `SignupFirstMonth.portion` may be `null`; `firstMonth` follows the answer's lines
 
 **0 operations added, 2 changed; 1 schema changed** (`SignupFirstMonth`):

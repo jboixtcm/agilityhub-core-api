@@ -66,7 +66,7 @@ class DashboardIT extends AbstractIntegrationTest {
         club = "dash-" + UUID.randomUUID().toString().substring(0, 8); host = club + ".example.test";
         var tree = (ObjectNode) mapper.valueToTree(PlatformFixtures.club(club, host));
         tree.set("modules", mapper.valueToTree(Module.values()));
-        tree.set("paymentProviders", mapper.valueToTree(Map.of("MANUAL", Map.of(), "SEPA_XML", Map.of()))); clubs.save(mapper.convertValue(tree, Club.class)); hosts.invalidate();
+        tree.set("paymentProviders", mapper.valueToTree(Map.of("MANUAL", Map.of("enabled", true), "SEPA_XML", Map.of("enabled", true)))); clubs.save(mapper.convertValue(tree, Club.class)); hosts.invalidate();
         when(training.bookings(anyString(), any(), any())).thenReturn(List.of());
         when(bookings.dogsWithBooking(anyString(), any(), any())).thenReturn(Set.of());
         when(requests.counts(anyString())).thenReturn(new PendingRequestsQuery.Counts(0, 0));

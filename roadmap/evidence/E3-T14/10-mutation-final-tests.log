@@ -1,0 +1,155 @@
+18:06:09.842 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT]: SignupPaymentMethodsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:06:09.961 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT
+18:06:10.014 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+18:06:10.015 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+18:06:10.018 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+18:06:10.116 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+18:06:10.243 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+18:06:10.244 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+18:06:10.254 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+18:06:10.389 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+18:06:10.477 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+18:06:10.541 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 2e903ddd7e8baa1a773d50e28257f01aa0b9c564ed4851eba98b1ddc420c9e79
+18:06:10.712 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.323219S
+18:06:10.715 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+18:06:10.715 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+18:06:10.716 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+18:06:10.716 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+18:06:10.750 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 0cb8976d77a398d87995364c0fcf6be5c8330022ed767ac453189fd8052456d3
+18:06:11.310 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.593819S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-25T18:06:12.043+02:00  INFO 13621 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : Starting SignupPaymentMethodsIT using Java 21.0.12.1 with PID 13621 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-25T18:06:12.044+02:00  INFO 13621 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : The following 1 profile is active: "test"
+2026-09-25T18:06:12.715+02:00  INFO 13621 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-25T18:06:12.751+02:00  INFO 13621 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 0 MongoDB repository interfaces.
+2026-09-25T18:06:13.043+02:00  INFO 13621 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@20923380], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@5b2c41f9, com.mongodb.Jep395RecordCodecProvider@6520625f, com.mongodb.KotlinCodecProvider@1ee52741]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:56277], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2f5a092e], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-25T18:06:13.050+02:00  INFO 13621 --- [agilityhub-core-api] [localhost:56277] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:56277, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11275917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=0cb8976d77a3:27017, hosts=[0cb8976d77a3:27017], passives=[], arbiters=[], primary='0cb8976d77a3:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab69bf27244123e8d4cbcaa, counter=6}, lastWriteDate=Fri Sep 25 18:06:11 CEST 2026, lastUpdateTimeNanos=158307015151750}
+2026-09-25T18:06:15.520+02:00  INFO 13621 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-25T18:06:15.520+02:00  INFO 13621 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-25T18:06:15.520+02:00  INFO 13621 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-25T18:06:15.545+02:00  INFO 13621 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupPaymentMethodsIT     : Started SignupPaymentMethodsIT in 3.623 seconds (process running for 6.016)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 7.226 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_10_T_04_14_aMethodWhoseProviderIsNotEnabledIsRefusedAtSubmission -- Time elapsed: 0.728 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[HTTP code= details=] 
+expected: 422
+ but was: 201
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.result(SignupPaymentMethodsIT.java:67)
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.submit(SignupPaymentMethodsIT.java:72)
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_10_T_04_14_aMethodWhoseProviderIsNotEnabledIsRefusedAtSubmission(SignupPaymentMethodsIT.java:109)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_10_withoutBillingTheD2ViewHasNoPaymentMethods -- Time elapsed: 0.164 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be true but was false
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_10_withoutBillingTheD2ViewHasNoPaymentMethods(SignupPaymentMethodsIT.java:152)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_19_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne -- Time elapsed: 0.115 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  
+to contain exactly (and in same order):
+  [{"type":"SEPA_DD","assignable":true,"label":"Domiciliació","current":false},
+    {"type":"MANUAL","assignable":true,"label":"Efectiu","current":true}]
+but could not find the following elements:
+  [{"type":"SEPA_DD","assignable":true,"label":"Domiciliació","current":false},
+    {"type":"MANUAL","assignable":true,"label":"Efectiu","current":true}]
+
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_19_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne(SignupPaymentMethodsIT.java:135)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags -- Time elapsed: 0.066 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["SEPA_DD", "CARD", "MANUAL"]
+to contain exactly (and in same order):
+  ["SEPA_DD"]
+but some elements were not expected:
+  ["CARD", "MANUAL"]
+
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags(SignupPaymentMethodsIT.java:94)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_19_T_04_20_theD2EditRefusesAMethodWhoseProviderIsNotEnabled -- Time elapsed: 0.127 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[MANUAL] 
+expected: "PAYMENT_METHOD_NOT_AVAILABLE"
+ but was: ""
+	at com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT.R_04_19_T_04_20_theD2EditRefusesAMethodWhoseProviderIsNotEnabled(SignupPaymentMethodsIT.java:121)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SignupPaymentMethodsIT.R_04_10_T_04_14_aMethodWhoseProviderIsNotEnabledIsRefusedAtSubmission:109->submit:72->result:67 [HTTP code= details=] 
+expected: 422
+ but was: 201
+[ERROR]   SignupPaymentMethodsIT.R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags:94 
+Expecting actual:
+  ["SEPA_DD", "CARD", "MANUAL"]
+to contain exactly (and in same order):
+  ["SEPA_DD"]
+but some elements were not expected:
+  ["CARD", "MANUAL"]
+
+[ERROR]   SignupPaymentMethodsIT.R_04_10_withoutBillingTheD2ViewHasNoPaymentMethods:152 
+Expecting value to be true but was false
+[ERROR]   SignupPaymentMethodsIT.R_04_19_T_04_20_theD2EditRefusesAMethodWhoseProviderIsNotEnabled:121 [MANUAL] 
+expected: "PAYMENT_METHOD_NOT_AVAILABLE"
+ but was: ""
+[ERROR]   SignupPaymentMethodsIT.R_04_19_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne:135 
+Expecting actual:
+  
+to contain exactly (and in same order):
+  [{"type":"SEPA_DD","assignable":true,"label":"Domiciliació","current":false},
+    {"type":"MANUAL","assignable":true,"label":"Efectiu","current":true}]
+but could not find the following elements:
+  [{"type":"SEPA_DD","assignable":true,"label":"Domiciliació","current":false},
+    {"type":"MANUAL","assignable":true,"label":"Efectiu","current":true}]
+
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

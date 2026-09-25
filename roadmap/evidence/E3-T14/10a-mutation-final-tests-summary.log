@@ -1,0 +1,9 @@
+surefire: 118 classes, tests=533 failures=0 errors=0 skipped=0
+
+failsafe: 84 classes, tests=925 failures=5 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=5 failures=5 errors=0 skipped=0
+    FAIL R_04_10_T_04_14_aMethodWhoseProviderIsNotEnabledIsRefusedAtSubmission :: [HTTP code= details=]  expected: 422  but was: 201
+    FAIL R_04_10_withoutBillingTheD2ViewHasNoPaymentMethods ::  Expecting value to be true but was false
+    FAIL R_04_19_theD2ViewPublishesTheAssignableMethodsAndAlwaysTheApplicantsCurrentOne ::  Expecting actual:    to contain exactly (and in same order):   [{"type":"SEPA_DD","assignable":true,"label":"Domiciliació","current":false},     {"type":"MANUAL","assignable":true,"label":"Efectiu","current":true}] but could not find the following elements:   [{"type":"SEPA_DD","assignable":true,"l
+    FAIL R_04_10_T_04_14_onlyEnabledProvidersAreOfferedAndGetClubShowsTheSameFlags ::  Expecting actual:   ["SEPA_DD", "CARD", "MANUAL"] to contain exactly (and in same order):   ["SEPA_DD"] but some elements were not expected:   ["CARD", "MANUAL"] 
+    FAIL R_04_19_T_04_20_theD2EditRefusesAMethodWhoseProviderIsNotEnabled :: [MANUAL]  expected: "PAYMENT_METHOD_NOT_AVAILABLE"  but was: ""

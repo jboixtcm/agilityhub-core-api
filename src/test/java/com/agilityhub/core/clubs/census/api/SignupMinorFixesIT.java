@@ -43,7 +43,7 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
     @BeforeEach void fixtureClub() {
         club="mf-"+UUID.randomUUID();host=club+".example.test";plan=UUID.randomUUID().toString();level=UUID.randomUUID().toString();
         ObjectNode tree=mapper.valueToTree(PlatformFixtures.club(club,host));tree.set("modules",mapper.valueToTree(Module.values()));
-        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of(),"SEPA_XML",Map.of())));
+        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of("enabled",true),"SEPA_XML",Map.of("enabled",true))));
         clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(club);hosts.invalidate();
         plan("MONTHLY",plan,new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en"));
         // A complete level: D1's risk card maps the club's levels to entities (a bare name map is not a LocalizedText).

@@ -48,9 +48,13 @@ theme:
     - "#85B8E8"
   mode: "dark"
 preset: "CANIC"
+# Direct debit and cash (S04 R-04-10: the signup offers the enabled providers, in this order). No creditor data here:
+# `configured` stays false until the club enters it (S12, S17 R-17-05).
 paymentProviders:
-  - "SEPA_XML"
-  - "MANUAL"
+  SEPA_XML:
+    enabled: true
+  MANUAL:
+    enabled: true
 parameters:
   signup.enabled: true
   signup.pendingExpiryDays: 30

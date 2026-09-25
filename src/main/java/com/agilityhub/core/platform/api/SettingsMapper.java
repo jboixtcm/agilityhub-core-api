@@ -36,11 +36,8 @@ public class SettingsMapper {
     public ClubSettings club(Club c) {
         var address = c.address();
         var providers = new LinkedHashMap<String, PaymentProviderSummary>();
-        c.paymentProviders().forEach((key, value) -> {
-            Map<?, ?> config = value instanceof Map<?, ?> map ? map : Map.of();
-            boolean configured = config.entrySet().stream().anyMatch(e -> !e.getKey().equals("enabled") && e.getValue() != null);
-            providers.put(key, new PaymentProviderSummary(configured, Boolean.TRUE.equals(config.get("enabled"))));
-        });
+        c.paymentProviders().forEach((key, value) -> providers.put(key,
+                new PaymentProviderSummary(PaymentProviderFlags.configured(value), PaymentProviderFlags.enabled(value))));
         var legal = c.legal();
         var pwa = c.pwa();
         var icons = new LinkedHashMap<String, String>();

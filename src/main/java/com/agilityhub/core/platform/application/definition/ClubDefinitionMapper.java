@@ -1,6 +1,7 @@
 package com.agilityhub.core.platform.application.definition;
 
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.platform.application.PaymentProviderFlags;
 import com.agilityhub.core.platform.domain.Pwa;
 import com.agilityhub.core.platform.domain.Theme;
 import com.agilityhub.core.platform.persistence.Club;
@@ -36,7 +37,9 @@ public class ClubDefinitionMapper {
         club.domains().forEach(domain -> domains.addObject().put("host", domain.host()).put("app", domain.app()).put("primary", domain.primary()));
         root.set("theme", mapper.valueToTree(club.theme())); root.set("pwa", mapper.valueToTree(club.pwa()));
         root.set("modules", mapper.valueToTree(club.modules().stream().map(Enum::name).sorted().toList()));
-        root.set("paymentProviders", mapper.valueToTree(club.paymentProviders().keySet().stream().sorted().toList()));
+        // E3-T14: each provider with its switch only, in the configured order; its configuration and secrets never leave.
+        var providers = root.putObject("paymentProviders");
+        club.paymentProviders().forEach((name, stored) -> providers.putObject(name).put("enabled", PaymentProviderFlags.enabled(stored)));
         root.set("legal", mapper.valueToTree(club.legal()));
         removeNulls(root);
         return root;
@@ -60,9 +63,7 @@ public class ClubDefinitionMapper {
             Instant verified = old.map(Club.Domain::verifiedAt).orElse(status == Club.DomainStatus.VERIFIED ? now : null);
             domains.add(new Club.Domain(host, domain.path("app").asText("clubs"), status, verified, domain.path("primary").asBoolean()));
         }
-        Map<String, Object> providers = new LinkedHashMap<>();
-        merged.path("paymentProviders").forEach(provider -> providers.put(provider.asText(), previous == null ? Map.of()
-                : previous.paymentProviders().getOrDefault(provider.asText(), Map.of())));
+        var providers = providers(definition, previous);
         Set<Module> modules = new java.util.HashSet<>(); merged.path("modules").forEach(module -> modules.add(Module.valueOf(module.asText())));
         List<String> locales = new ArrayList<>(); identity.path("locales").forEach(locale -> locales.add(locale.asText()));
         return new Club(id, identity.path("slug").asText(), identity.path("name").asText(), value(identity, "legalName"), value(identity, "taxId"),
@@ -75,6 +76,27 @@ public class ClubDefinitionMapper {
                 Club.Status.valueOf(identity.path("status").asText()), previous == null ? Map.of() : previous.onboardingChecklist(),
                 previous == null ? Map.of() : previous.usage(), previous == null ? null : previous.version(),
                 previous == null ? now : previous.createdAt(), now, identity.path("template").asBoolean(), previous == null ? null : previous.publicApiKeyHash());
+    }
+    /**
+     * The declared providers, in the declared order, each keeping the configuration stored outside the file (S17 R-17-05).
+     * A list of names keeps each stored `enabled` flag (a new one starts off); `{NAME: {enabled}}` sets it (E3-T14). A
+     * definition without the section keeps the providers as stored.
+     */
+    private Map<String, Object> providers(ObjectNode definition, Club previous) {
+        Map<String, Object> stored = previous == null ? Map.of() : previous.paymentProviders();
+        if (!definition.has("paymentProviders")) { return stored; }
+        Map<String, Object> providers = new LinkedHashMap<>();
+        var declared = definition.get("paymentProviders");
+        if (declared.isArray()) {
+            declared.forEach(provider -> providers.put(provider.asText(), stored.getOrDefault(provider.asText(), Map.of())));
+            return providers;
+        }
+        declared.fields().forEachRemaining(provider -> {
+            var settings = stored.get(provider.getKey()) instanceof Map<?, ?> kept ? new LinkedHashMap<Object, Object>(kept) : new LinkedHashMap<Object, Object>();
+            settings.put("enabled", provider.getValue().path("enabled").asBoolean());
+            providers.put(provider.getKey(), settings);
+        });
+        return providers;
     }
     private String value(ObjectNode object, String field) { return object.has(field) ? object.get(field).asText() : null; }
 }

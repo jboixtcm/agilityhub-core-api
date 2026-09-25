@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T14: gate E3 audit fixes (api), the payment methods of a signup.
+  - R-04-10: one rule for "enabled". A provider is enabled only with `CLUB.paymentProviders.{provider}.enabled: true`,
+    the flag `GET /club` already showed. `GET /signup` offers only those methods, in the configured order. `POST /signup`
+    and the D2 `PATCH /members/{id}` refuse any other method with `422 PAYMENT_METHOD_NOT_AVAILABLE`. `configured` does
+    not gate the offer. The Stripe checks (`PAYMENT_PROVIDER_NOT_ENABLED`) read the same flag.
+  - Seeds: the Cànic seed (and its consumer variant) enables `SEPA_XML` and `MANUAL` without creditor data. The other
+    seeds keep the providers they listed, now enabled explicitly. The club definition accepts `paymentProviders` as a
+    list of names (keeps the stored flags) or as `{NAME: {enabled}}` (sets them); never credentials. `club:apply` keeps
+    the configuration stored outside the file, and the export writes the flags.
+  - R-04-19 (web E3-W07 round 2): `GET /members/{id}/signup` returns `paymentMethods: [{type, label, current,
+    assignable}]`, the methods D2 may assign. The applicant's current method is always listed; it is marked
+    `assignable = false` when its provider has been disabled since. OpenAPI snapshot and `docs/openapi/CHANGELOG.md`
+    updated.
+  - `bin/e3-smoke` checks that `GET /club`, `GET /signup` and D2 show the same methods.
+
 - E3-T13: gate E3 audit fixes (api, 5/5), the checkout follow-ups of the E3-T10 round-2 review.
   - R-04-06 / R-04-26: the checkout leaves out only the rows a readmission superseded, cut at the member's latest `PUBLIC`
     signup block. An `APP_ADD_DOG` block that the code before E3-T10 left in `Member.signup` is no longer a boundary, so

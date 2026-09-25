@@ -45,7 +45,7 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
     @BeforeEach void fixtureClub() {
         club="gt-"+UUID.randomUUID();host=club+".example.test";plan=UUID.randomUUID().toString();level=UUID.randomUUID().toString();
         ObjectNode tree=mapper.valueToTree(PlatformFixtures.club(club,host));tree.set("modules",mapper.valueToTree(Module.values()));
-        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of(),"SEPA_XML",Map.of())));
+        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of("enabled",true),"SEPA_XML",Map.of("enabled",true))));
         clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(club);hosts.invalidate();
         var text=new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en");
         mongo.insert(new Plan(plan,club,"MONTHLY",text,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,text,null,true,true,0,true,0,clock.instant(),clock.instant(),null,null));
@@ -154,7 +154,7 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
     // ---- Steps 3 and 6 (M7, M9): payment instructions and N-01 ----
     @Test void T_04_14_manualInstructionsComeFromTheClubProviderAndN01CarriesTotalAndInstructions() throws Exception {
         var instructions=Map.of("ca","Paga a la recepció del club de proves.","es","Paga en la recepción del club de pruebas.","en","Pay at the test club desk.");
-        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders.MANUAL",new Document("instructions",new Document("values",instructions)))));configs.invalidate(club);
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders.MANUAL.instructions",new Document("values",instructions))));configs.invalidate(club);
         var config=signupConfig("ca");var manual=config.path("paymentMethods").findParents("type").stream().filter(m -> "MANUAL".equals(m.path("type").asText())).findFirst().orElseThrow();
         assertThat(manual.path("instructions").asText()).isEqualTo(instructions.get("ca"));
         assertThat(config.at("/texts/cashConditions").asText()).isNotEqualTo(instructions.get("ca"));

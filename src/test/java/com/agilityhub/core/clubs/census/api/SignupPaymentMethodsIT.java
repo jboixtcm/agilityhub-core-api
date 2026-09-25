@@ -40,7 +40,8 @@ class SignupPaymentMethodsIT extends AbstractIntegrationTest {
     @BeforeEach void fixtureClub() {
         club="pm-"+UUID.randomUUID();host=club+".example.test";plan=UUID.randomUUID().toString();
         ObjectNode tree=mapper.valueToTree(PlatformFixtures.club(club,host));tree.set("modules",mapper.valueToTree(Module.values()));
-        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of("enabled",true),"SEPA_XML",Map.of("enabled",true))));
+        // The offer follows the configured order (R-04-10), so the fixture keeps one: direct debit, then cash.
+        var providers=tree.putObject("paymentProviders");providers.putObject("SEPA_XML").put("enabled",true);providers.putObject("MANUAL").put("enabled",true);
         clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(club);hosts.invalidate();
         var name=new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en");
         mongo.insert(new Plan(plan,club,"MONTHLY",name,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,name,null,true,true,0,true,0,clock.instant(),clock.instant(),null,null));

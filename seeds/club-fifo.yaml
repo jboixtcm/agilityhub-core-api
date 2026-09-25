@@ -45,8 +45,10 @@ modules:
   - "FAQ"
   - "PUSH"
 paymentProviders:
-  - "STRIPE"
-  - "MANUAL"
+  STRIPE:
+    enabled: true
+  MANUAL:
+    enabled: true
 parameters:
   messaging.email.fromName: "Club Fictici Cua"
   levels.enabled: false

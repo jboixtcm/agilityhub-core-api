@@ -12,9 +12,9 @@ public class CensusClubSettings {
     private final ClubRepository clubs;
     public CensusClubSettings(ClubRepository clubs) { this.clubs = clubs; }
     public int nextMemberNumber(int minimum) { return clubs.nextMemberNumber(minimum); }
+    /** E3-T14: the same flag `GET /club` shows; a provider listed without `enabled: true` is off. */
     public boolean providerEnabled(String provider) {
-        var raw = clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).paymentProviders().get(provider);
-        return Boolean.TRUE.equals(raw) || (raw instanceof Map<?,?> settings && !Boolean.FALSE.equals(settings.get("enabled")));
+        return PaymentProviderFlags.enabled(clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).paymentProviders().get(provider));
     }
     public Map<String,Object> signupLegal(String locale) {
         var club = clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -38,9 +38,10 @@ public class CensusClubSettings {
         }
         return raw == null || raw.toString().isBlank() ? null : raw.toString();
     }
+    /** The enabled providers in the configured order (S04 R-04-10). */
     public java.util.List<String> providers() {
-        return clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).paymentProviders().keySet()
-                .stream().filter(this::providerEnabled).toList();
+        return clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).paymentProviders().entrySet()
+                .stream().filter(entry -> PaymentProviderFlags.enabled(entry.getValue())).map(Map.Entry::getKey).toList();
     }
     public String appHost() {
         return clubs.findById(TenantContext.require()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)).domains().stream().filter(domain -> "clubs".equals(domain.app())

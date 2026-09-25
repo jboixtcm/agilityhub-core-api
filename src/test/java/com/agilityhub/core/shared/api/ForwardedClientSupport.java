@@ -37,7 +37,7 @@ abstract class ForwardedClientSupport extends AbstractIntegrationTest {
     @BeforeEach void fixtureClub() {
         club="px-"+UUID.randomUUID();host=club+".example.test";plan=UUID.randomUUID().toString();
         ObjectNode tree=mapper.valueToTree(PlatformFixtures.club(club,host));tree.set("modules",mapper.valueToTree(Module.values()));
-        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of())));
+        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of("enabled",true))));
         clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(club);hosts.invalidate();
         var text=new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en");
         mongo.insert(new Plan(plan,club,"MONTHLY",text,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,text,null,true,true,0,true,0,clock.instant(),clock.instant(),null,null));

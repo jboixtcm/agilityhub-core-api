@@ -43,7 +43,8 @@ modules:
   - "WAITLIST"
   - "PUSH"
 paymentProviders:
-  - "MANUAL"
+  MANUAL:
+    enabled: true
 parameters:
   messaging.email.fromName: "Club Fictici Càrrega"
   levels.enabled: false

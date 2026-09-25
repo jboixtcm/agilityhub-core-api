@@ -37,8 +37,10 @@ theme:
   mode: "light"
 preset: "MINIM"
 paymentProviders:
-  - "STRIPE"
-  - "MANUAL"
+  STRIPE:
+    enabled: true
+  MANUAL:
+    enabled: true
 parameters:
   messaging.email.fromName: "Club Mínim"
   signup.enabled: true

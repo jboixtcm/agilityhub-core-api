@@ -52,7 +52,7 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     String newClub(String prefix) {
         String id=prefix+"-"+UUID.randomUUID();String clubHost=id+".example.test";plan=UUID.randomUUID().toString();level=UUID.randomUUID().toString();
         ObjectNode tree=mapper.valueToTree(PlatformFixtures.club(id,clubHost));tree.set("modules",mapper.valueToTree(Module.values()));
-        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of(),"SEPA_XML",Map.of())));
+        tree.set("paymentProviders",mapper.valueToTree(Map.of("MANUAL",Map.of("enabled",true),"SEPA_XML",Map.of("enabled",true))));
         clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(id);hosts.invalidate();
         var text=new LocalizedText(Map.of("ca","Example","es","Example","en","Example"),"en");
         mongo.insert(new Plan(plan,id,"MONTHLY",text,PlanType.MONTHLY,BillingMode.MONTHLY_FEE,1,new EntryFee(EntryFeeMode.STANDARD,null,null),null,null,text,null,true,true,0,true,0,clock.instant(),clock.instant(),null,null));

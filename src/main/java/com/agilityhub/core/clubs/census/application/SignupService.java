@@ -472,7 +472,7 @@ public class SignupService implements SignupPaymentAccess {
         if(access.enabled(Module.FAMILY_GROUP)) result.put("allowFamilyGroupPending",Boolean.TRUE.equals(config.get("signup.allowFamilyGroupPending",Boolean.class)));
         if(billing()) {
             // M7 (§2 row 19): the MANUAL method carries the club's own payment instructions; the cash conditions stay in `texts`.
-            result.put("paymentMethods",settings.providers().stream().map(provider -> switch(provider) {case "SEPA_XML" -> "SEPA_DD";case "STRIPE" -> "CARD";case "MANUAL" -> "MANUAL";default -> null;}).filter(Objects::nonNull).map(type -> object("type",type,"label",paymentLabel(type,language),
+            result.put("paymentMethods",offeredMethods().stream().map(type -> object("type",type,"label",paymentLabel(type,language),
                     "instructions",type.equals("MANUAL")?settings.manualInstructions(language):null,"mandateText",type.equals("SEPA_DD")?mandate(language):null)).toList());
             var monthly=plans.stream().filter(plan -> "MONTHLY_FEE".equals(plan.billingMode())&&plan.price()!=null).findFirst().orElse(null);
             var upfront=object("firstMonthSplitDay",config.get("signup.firstMonthSplitDay",Integer.class),"today",policy.today(),"firstMonthOptions",monthly==null?List.of():policy.firstOptions(monthly.price().amount()).stream().map(this::configChoice).toList());
@@ -510,6 +510,22 @@ public class SignupService implements SignupPaymentAccess {
         Object value=access.config().parameters().get(key);if(value==null) return "";
         if(value instanceof Map<?,?> values) return string(values.getOrDefault(locale(),null))==null?Objects.toString(values.get(access.config().club().defaultLocale()),""):string(values.get(locale()));
         return value.toString();
+    }
+    /** R-04-10 (E3-T14): the methods of the club's enabled providers, in the configured order; `payment(...)` accepts only these. */
+    private List<String> offeredMethods() {
+        return settings.providers().stream().map(provider -> switch(provider) {case "SEPA_XML" -> "SEPA_DD";case "STRIPE" -> "CARD";case "MANUAL" -> "MANUAL";default -> null;}).filter(Objects::nonNull).toList();
+    }
+    /**
+     * The D2 method selector (R-04-19, web E3-W07 round 2): what D2 may assign is what `GET /signup` offers. The applicant's
+     * current method is always listed, at the end and with `assignable = false` when its provider is off since.
+     */
+    private List<Map<String,Object>> paymentOptions(Member member) {
+        if(!billing()) return List.of();
+        String language=locale();String current=string(map(effectivePayment(member)).get("type"));
+        var options=new ArrayList<Map<String,Object>>();
+        offeredMethods().forEach(type -> options.add(object("type",type,"label",paymentLabel(type,language),"current",type.equals(current),"assignable",true)));
+        if(current!=null&&options.stream().noneMatch(option -> current.equals(option.get("type")))) options.add(object("type",current,"label",paymentLabel(current,language),"current",true,"assignable",false));
+        return options;
     }
     private String paymentLabel(String type,String language) {
         return messages.format("signup:payment.label."+type,Map.of(),Locale.forLanguageTag(language));
@@ -586,7 +602,7 @@ public class SignupService implements SignupPaymentAccess {
                 "proposals",object("planId",plan==null?null:plan.id(),"priceId",plan==null||plan.billedPrice()==null?null:plan.billedPrice().id(),"familyGroupId",member.familyGroupId,
                 "nextInvoiceDate",first==null?member.nextInvoiceDate:policy.nextInvoice(first),"levels",access.levels()?access.references.activeLevelIds().stream().map(queries::level).toList():List.of()),"warnings",warnings(member,dogs),
                 // M8: the D2 plan selector; M11: D2 shows the age warning without calling /dashboard.
-                "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version(),
+                "planOptions",policy.assignablePlans().stream().map(this::planOption).toList(),"paymentMethods",paymentOptions(member),"warnDays",access.config().get("dashboard.pendingSignupAgeWarnDays",Integer.class),"version",member.version(),
                 "readmission",readmissionPending(member)?readmissionView(member):null);
     }
     /** R-04-06 (E38): D2 shows the record and the request side by side, masked like the member view; never a full IBAN. */

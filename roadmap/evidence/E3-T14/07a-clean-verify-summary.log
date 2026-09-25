@@ -1,0 +1,14 @@
+surefire: 118 classes, tests=533 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionCodecTest: tests=6 failures=0 errors=0 skipped=0
+failsafe: 84 classes, tests=925 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=9 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=32 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=5 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupS3UploadIT: tests=1 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=21 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.dashboard.api.DashboardIT: tests=11 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=8 failures=0 errors=0 skipped=0

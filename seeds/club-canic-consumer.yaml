@@ -50,8 +50,10 @@ theme:
   mode: "dark"
 preset: "CANIC"
 paymentProviders:
-  - "SEPA_XML"
-  - "MANUAL"
+  SEPA_XML:
+    enabled: true
+  MANUAL:
+    enabled: true
 parameters:
   signup.enabled: true
   signup.pendingExpiryDays: 30

@@ -425,6 +425,20 @@
         ]
       }
     ],
+    "paymentMethods": [
+      {
+        "type": "SEPA_DD",
+        "label": "Domiciliació",
+        "current": false,
+        "assignable": true
+      },
+      {
+        "type": "MANUAL",
+        "label": "Efectiu",
+        "current": true,
+        "assignable": false
+      }
+    ],
     "warnDays": 2,
     "version": 1
   },

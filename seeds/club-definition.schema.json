@@ -281,16 +281,36 @@
       ]
     },
     "paymentProviders": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "enum": [
-          "SEPA_XML",
-          "STRIPE",
-          "MANUAL"
-        ]
-      }
+      "description": "The club's providers, in the order the signup offers them (S04 R-04-10). A list of names keeps the stored `enabled` flags; the object form sets them. Credentials never go here.",
+      "oneOf": [
+        {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "SEPA_XML",
+              "STRIPE",
+              "MANUAL"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "SEPA_XML": {
+              "$ref": "#/$defs/paymentProvider"
+            },
+            "STRIPE": {
+              "$ref": "#/$defs/paymentProvider"
+            },
+            "MANUAL": {
+              "$ref": "#/$defs/paymentProvider"
+            }
+          }
+        }
+      ]
     },
     "parameters": {
       "type": "object",
@@ -488,6 +508,19 @@
         "en": {
           "type": "string",
           "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "paymentProvider": {
+      "description": "Only the switch: an enabled provider's methods are offered by the signup (S04 R-04-10). Its configuration (S12, S17 R-17-05) is kept as stored.",
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

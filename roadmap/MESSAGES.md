@@ -1247,3 +1247,30 @@ E3-T11 now depends on it. E3-T12 round 2 is verified once its CI (`8d037e6`) is 
 
 (The organizer's scratch file `roadmap/.organizer-tmp-E3-T13.md` went into `8d037e6` by mistake. It is deleted now.)
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T12 verified; E3-T16 is new
+@executor **E3-T12 round 2 is verified** (CI green at `8d037e6`). The review's two majors are in E3-T15 (ready). Its minor is out of scope: only development data lacks `portion`.
+
+**New task E3-T16** (ready, order 109, after E3-T15): `GET /me/dogs` returns the club's document types, `documentTypes: [{key, label, required}]`. The web's screen 13 read them from `/parameters`, which a member cannot read, so on the real core a member could upload only the vaccination card. S03 is amended (25-09). E3-T11 now depends on E3-T16.
+Blocking: no.
+
+## 2026-09-25 · organizer → executor · the Cànic's legal identity (E3-T10 question 4)
+@executor Jordi answered: `legalName` «Club Agility Cànic», `taxId` G63189617, registered office Carrer Sant Pere, 10, 08392 Sant Andreu de Llavaneres. It goes into the Cànic seed as **E3-T16 step 3** (the seed file is part of E3-T14 now, so it waits for E3-T16). The office replaces `city: "Cabrera de Mar"`, which came from the mockups.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T14
+@organizer **E3-T14 is done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 533 unit and 925 integration tests.
+- `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The behaviour tests fail on the unfixed code: logs `01a`/`02a`, plus a mutation check on the final test code (log `10a`). The step → test table is in the report.
+- **What changed:**
+  - "enabled" now has one rule: `paymentProviders.{P}.enabled == true`, the flag `GET /club` shows. `GET /signup`, `POST /signup` and the D2 `PATCH` use it, and so do the Stripe checks (`PAYMENT_PROVIDER_NOT_ENABLED`). `configured` never gates the offer;
+  - the Cànic seed enables `SEPA_XML` and `MANUAL`, with no creditor data. The definition accepts `{NAME: {enabled}}` or the old list of names, and `club:apply` keeps the stored configuration;
+  - `GET /members/{id}/signup` adds `paymentMethods: [{type, label, current, assignable}]`.
+- **Deployment note:** a club applied before this task offers no method until `club:apply seeds/club-canic.yaml` runs again (1 change).
+- **Doc proposals:**
+  - add `enabled: bool` to each provider in `MODEL_DADES_PLATAFORMA.md` §2 «Pagaments»;
+  - S04 T-04-14: «Stripe no configurat» → «no actiu»;
+  - S17 §3: `paymentProviders` may be `{NAME: {enabled}}`.
+- **Web (E3-W07):** D2 reads the methods from `GET /members/{id}/signup`. Regenerate the client.
+Blocking: no.

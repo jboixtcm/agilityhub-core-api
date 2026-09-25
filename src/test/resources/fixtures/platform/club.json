@@ -85,10 +85,12 @@
   ],
   "paymentProviders": {
     "STRIPE": {
+      "enabled": true,
       "secretKeyEnc": "PRIVATE_FIXTURE",
       "webhookSecretEnc": "PRIVATE_FIXTURE"
     },
     "SEPA_XML": {
+      "enabled": true,
       "iban": "PRIVATE_FIXTURE"
     }
   },
