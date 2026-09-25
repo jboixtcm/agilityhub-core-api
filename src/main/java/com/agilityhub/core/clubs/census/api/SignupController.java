@@ -141,7 +141,8 @@ public class SignupController {
     @PreAuthorize("isAnonymous()")
     @SecurityRequirements
     @ContractErrors({VALIDATION_ERROR, INVALID_ID_DOCUMENT, SIGNUP_CLOSED, RATE_LIMITED})
-    @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most 3 per recipient and hour. "
+    @Operation(summary = "Check signup identity", description = "R-04-05. ANON; 10/hour (signup.rateLimit). Reveals only result and maskedEmail («m•••a@e•••.cat», the account's access address, where N-39 goes); recognition queues a verification link through the outbox, at most signup.rateLimit.notificationsPerRecipientPerHour (3) per recipient and hour. "
+            + "A pending readmission is also matched on the primary address it submitted (R-04-06): SIGNUP_ALREADY_PENDING. "
             + "idDocument.value ≤ 30 and emails ≤ 254 characters → 400 VALIDATION_ERROR. signup.enabled = false or a club not ACTIVE → 422 SIGNUP_CLOSED." + PUBLIC)
     public IdentityCheckResult identityCheck(@Valid @RequestBody IdentityCheckRequest request) { return output(transactions.run(() -> service.identityCheck(input(request))),IdentityCheckResult.class); }
 
@@ -219,7 +220,9 @@ public class SignupController {
     @Operation(summary = "Validate member signup", description = "R-04-13–16, R-04-21/22/25. ADMIN; rejects impersonation. dryRun=true returns proposals without writes; false validates using optimistic version. "
             + "409 INVALID_STATE details.reason: NOT_PENDING (nothing pending) or CHECKOUT_PENDING (a plan change while a checkout of the submission is in progress, S04 §5 E39; dryRun warns CHECKOUT_PENDING). "
             + "nextInvoiceDate before the first-month start → 400 VALIDATION_ERROR on nextInvoiceDate; while the plan is the requested one, that start is the one frozen at submission. "
-            + "The levels are assigned by the validation itself: MemberValidated/DogRegistered carry the stored levelId, and no DogLevelChanged is emitted.",
+            + "The levels are assigned by the validation itself: MemberValidated/DogRegistered carry the stored levelId, and no DogLevelChanged is emitted. "
+            + "A member who has an account (a readmission, R-04-06/R-04-22) keeps it: no second Account, and the account's login email never changes; "
+            + "only a member without one is matched, or given a new one, by its primary email.",
             responses = @ApiResponse(responseCode = "200", description = "ValidationDryRun when dryRun=true; ValidationResult otherwise",
                     content = @Content(schema = @Schema(oneOf = {ValidationDryRun.class, ValidationResult.class}))))
     public Object validate(@PathVariable String id, @RequestParam(defaultValue = "false") boolean dryRun,

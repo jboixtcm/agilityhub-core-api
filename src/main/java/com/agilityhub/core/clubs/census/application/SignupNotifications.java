@@ -22,12 +22,14 @@ public class SignupNotifications {
         this.access=access;this.identities=identities;this.links=links;this.notifications=notifications;this.settings=settings;this.limits=limits;this.capabilities=capabilities;
     }
     /**
-     * R-04-20 (E3-T09): the anonymous routes cannot flood one address. At most `SIGNUP_RECIPIENT` (3 an hour) N-39 per
-     * account and applicant's N-01 per address, per club; the rest are skipped and logged with a hash, never the address.
+     * R-04-20 (E3-T09): the anonymous routes cannot flood one address. At most the club's
+     * `signup.rateLimit.notificationsPerRecipientPerHour` (3 by default) N-39 per account and applicant's N-01 per address,
+     * per club; the rest are skipped and logged with a hash, never the address.
      */
     private boolean capped(String clubId,String code,String recipient) {
         String hash=capabilities.fingerprint(recipient.toLowerCase(Locale.ROOT));
-        if(limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash)==0) return false;
+        var limit=limits.limit(RateLimits.Route.SIGNUP_RECIPIENT,access.config().get("signup.rateLimit",Map.class));
+        if(limits.retryAfter(RateLimits.Route.SIGNUP_RECIPIENT,clubId+":"+code+":"+hash,limit)==0) return false;
         LOG.info("Signup notification capped per recipient code={} clubId={} recipientHash={}",code,clubId,hash);
         return true;
     }
@@ -35,10 +37,15 @@ public class SignupNotifications {
     public void deliver(String eventId,CensusEvent event) {
         try(var tenant=TenantContext.open(event.clubId())) {
             String id=string(event.payload().get("memberId"));var member=access.members.findById(id).orElse(null);if(member==null||member.erasedAt!=null) return;
-            var variables=object("member_name",String.join(" ",Objects.toString(member.firstName,""),Objects.toString(member.lastName1,"")),"member_first_name",member.firstName,"gender",member.gender,"club_name",access.config().club().name());
-            String locale=string(map(member.signup).getOrDefault("locale",access.config().club().defaultLocale()));
+            // R-04-06 (c): a readmission's N-01 and N-03 go to the applicant its event carries (the submitted primary address,
+            // name and `signup.locale`), never to the LEFT record, which a rejection restores before this runs.
+            var person=map(event.payload().get("applicant"));boolean submitted=!person.isEmpty();
+            String firstName=submitted?string(person.get("firstName")):member.firstName,lastName=submitted?string(person.get("lastName1")):member.lastName1;
+            var variables=object("member_name",String.join(" ",Objects.toString(firstName,""),Objects.toString(lastName,"")),"member_first_name",firstName,
+                    "gender",submitted?person.get("gender"):member.gender,"club_name",access.config().club().name());
+            String locale=string((submitted?person:map(member.signup)).getOrDefault("locale",access.config().club().defaultLocale()));
             variables.put("locale",locale);
-            String email=rows(member.contactEmails).isEmpty()?null:string(rows(member.contactEmails).getFirst().get("email"));
+            String email=submitted?string(person.get("email")):rows(member.contactEmails).isEmpty()?null:string(rows(member.contactEmails).getFirst().get("email"));
             switch(event.type()) {
                 case "SignupRecognitionRequested" -> { if(!capped(event.clubId(),"N-39",member.accountId)) links.send(eventId,member.accountId,false,variables); }
                 case "MemberValidated" -> { links.send(eventId,member.accountId,true,variables);notifications.appOnce(eventId+":app","N-02",member.accountId,variables); }

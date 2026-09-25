@@ -1,0 +1,25 @@
+surefire: 118 classes, tests=538 failures=1 errors=0 skipped=0
+
+failsafe: 82 classes, tests=903 failures=6 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=21 failures=6 errors=0 skipped=0
+    PASS R_04_20_signupRateLimitParameterIsReadPerClub
+    PASS R_04_20_T_04_28_percentEncodedAndDoubleSlashRoutesShareTheLimitOfThePlainRoute
+    FAIL R_04_12_familyLookupFindsAStoredDogNameWithRepeatedSpaces ::  expected: "FOUND"  but was: "NOT_FOUND"
+    PASS R_04_08_T_04_13_signupUploadUrlReturnsTheHeadersTheStorageSigned
+    FAIL R_04_05_R_04_20_theRecipientCapIsTheClubsParameter :: [one N-39 an hour for this club]  Expected size: 1 but was: 3 in: [{"_class"="com.agilityhub.core.clubs.messaging.persistence.Notification", "_id"="2cdbba16-dd0e-4bf0-addb-28e66be9bcc9", "accountId"="9bbd6ddb-3d33-45b5-aaba-83fc193a58af", "channel"="EMAIL", "clubId"="sec-7f4d51ca-b31b-4ed7-a4ff-e039
+    PASS R_04_05_R_04_20_n39AndTheApplicantsN01AreCappedPerRecipient
+    FAIL T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas :: [HTTP code= details=]  expected: 409  but was: 200
+    PASS T_04_12_readmissionKeepsTheLeftRecordUntilValidationWhichAppliesTheSubmittedValues
+    PASS R_04_27_T_04_23_anonymousSignupRoutesAreClosedWithTheForm
+    FAIL R_04_06_T_04_12_aReadmissionsN01AndN03GoToTheSubmittedApplicantOnly :: [N-01 to the submitted address]  Expected size: 1 but was: 0 in: []
+    PASS R_14_09_signupEditedDiffIsMaskedLikeTheAudit
+    PASS R_04_20_lookupInputsAreBounded
+    PASS R_04_27_T_04_23_concurrentSubmissionsWithDifferentKeysGiveOneCreatedAndOnePending
+    PASS T_04_12_T_04_20_aD2EditOfAPendingReadmissionEditsTheSubmittedValuesNotTheRecord
+    PASS R_04_05_R_04_12_identityAndFamilyLookupsUseIndexedQueries
+    FAIL R_04_22_T_04_12_aValidatedReadmissionKeepsTheMembersAccountAndMembership ::  expected: "e158e6ee-4b55-4bd9-b872-5a126f9bc423"  but was: "98c113e0-22f8-49c4-aca9-53b44b9d2170"
+    FAIL R_04_05_R_04_06_aPendingReadmissionsSubmittedAddressIsMatchedLikeAnyPendingMember ::  expected: "SIGNUP_ALREADY_PENDING"  but was: "NEW"
+    PASS R_04_27_signupConfigurationIsFreshRightAfterItsOwnWrite
+    PASS R_04_05_maskedEmailHasTheSpecShapeAndN39GoesToTheMaskedAddress
+    PASS R_04_17_T_04_21_consentsAcceptedUnderImpersonationRecordTheActor
+    PASS R_04_27_aWriteConflictOnTheCensusLockIsRetriedAndTheSubmissionSucceeds

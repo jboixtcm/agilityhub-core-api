@@ -22,10 +22,28 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     public List<T> matching(Criteria criteria) { return mongo.find(tenantQuery().addCriteria(criteria), type); }
     /** Case- and accent-insensitive comparison (primary strength), the collation of {@link #ensureNameIndex}. */
     public static final Collation NAME_COLLATION = Collation.of("en").strength(Collation.ComparisonLevel.primary());
-    /** {@link #matching} compared with {@link #NAME_COLLATION}, so the `{clubId, name}` index of that collation serves it. */
+    /** {@link #matching} compared with {@link #NAME_COLLATION}, so the `{clubId, nameKey}` index of that collation serves it. */
     public List<T> matchingIgnoringCase(Criteria criteria) { return mongo.find(tenantQuery().addCriteria(criteria).collation(NAME_COLLATION), type); }
+    /** R-04-12 (E3-T09 round 2): the family lookup's `{clubId, nameKey}` index; it replaces the first round's `name_ci` on `name`. */
     public void ensureNameIndex() {
-        mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("name", Sort.Direction.ASC).collation(NAME_COLLATION).named("name_ci"));
+        var indexes = mongo.indexOps(type);
+        if (indexes.getIndexInfo().stream().anyMatch(index -> "name_ci".equals(index.getName()))) { indexes.dropIndex("name_ci"); }
+        indexes.ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on("nameKey", Sort.Direction.ASC).collation(NAME_COLLATION).named("dog_name_key"));
+    }
+    /**
+     * R-04-12 (E3-T09 round 2): the idempotent migration of `Dog.nameKey` for the dogs of every club stored before the key
+     * existed. A dog that has its key is not touched (every census write keeps it current), so a second run changes nothing.
+     * Like {@link #setField}, a derived technical field: no version bump.
+     */
+    public long backfillNameKeys() {
+        String collection = mongo.getCollectionName(type); long updated = 0;
+        var missing = Query.query(Criteria.where("name").type(org.springframework.data.mongodb.core.schema.JsonSchemaObject.Type.STRING).and("nameKey").exists(false));
+        missing.fields().include("name");
+        for (var dog : mongo.find(missing, Document.class, collection)) {
+            updated += mongo.updateFirst(Query.query(Criteria.where("_id").is(dog.get("_id")).and("nameKey").exists(false)),
+                    new Update().set("nameKey", Dog.nameKey(dog.getString("name"))), collection).getModifiedCount();
+        }
+        return updated;
     }
     public void ensureIndexes(String field, String bsonType, String name) {
         mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)
@@ -33,7 +51,7 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     }
     public void ensureLookup(String field) { mongo.indexOps(type).ensureIndex(new Index().on("clubId", Sort.Direction.ASC).on(field, Sort.Direction.ASC)); }
     @Override public T insert(T item) {
-        item.version = 0L; item.createdAt = clock.instant(); item.updatedAt = item.createdAt;
+        item.beforeWrite(); item.version = 0L; item.createdAt = clock.instant(); item.updatedAt = item.createdAt;
         try { return super.insert(item); } catch (DuplicateKeyException duplicate) { throw duplicate(duplicate); }
     }
     /**
@@ -43,7 +61,7 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
      * field changed in Mongo by {@link #setField} after the read is not a difference: the save just keeps the new value.
      */
     public T save(T item) {
-        requireForeignUnchanged(item);
+        requireForeignUnchanged(item); item.beforeWrite();
         long expected = item.version();
         var query = tenantQuery(item.clubId).addCriteria(Criteria.where("_id").is(item.id));
         query.addCriteria(new Criteria().orOperator(Criteria.where("version").is(expected),

@@ -1,0 +1,14 @@
+surefire: 117 classes, tests=528 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=12 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.S04ErrorContractTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.RateLimitsTest: tests=3 failures=0 errors=0 skipped=0
+failsafe: 82 classes, tests=903 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.CensusIT: tests=38 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupIT: tests=32 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=13 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=21 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.migration.PlayoffMigrationIT: tests=21 failures=0 errors=0 skipped=0

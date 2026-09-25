@@ -47,6 +47,8 @@ class RateLimitsTest {
         assertThat(limits.limit(RateLimits.Route.SIGNUP_UPLOAD, parameter)).isEqualTo(new RateLimits.Limit(30, Duration.ofHours(1)));
         assertThat(limits.limit(RateLimits.Route.SIGNUP_FAMILY, null)).isEqualTo(new RateLimits.Limit(20, Duration.ofHours(1)));
         assertThat(limits.limit(RateLimits.Route.SIGNUP_RECIPIENT, parameter)).isEqualTo(new RateLimits.Limit(3, Duration.ofHours(1)));
+        // E3-T09 round 2: the per-recipient mail cap is the `notificationsPerRecipientPerHour` key.
+        assertThat(limits.limit(RateLimits.Route.SIGNUP_RECIPIENT, Map.of("notificationsPerRecipientPerHour", 5))).isEqualTo(new RateLimits.Limit(5, Duration.ofHours(1)));
         var two = limits.limit(RateLimits.Route.SIGNUP_IDENTITY, parameter);
         assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", two)).isZero();
         assertThat(limits.retryAfter(RateLimits.Route.SIGNUP_IDENTITY, "club:203.0.113.5", two)).isZero();

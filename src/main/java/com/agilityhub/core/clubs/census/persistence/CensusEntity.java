@@ -17,4 +17,6 @@ public abstract class CensusEntity implements TenantEntity {
     @Override public String id() { return id; }
     @Override public String clubId() { return clubId; }
     public long version() { return version == null ? 0 : version; }
+    /** Derived stored fields, refreshed by {@link CensusRepository} right before every insert and save (e.g. `Dog.nameKey`). */
+    void beforeWrite() { }
 }

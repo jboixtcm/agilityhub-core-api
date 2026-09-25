@@ -45,7 +45,14 @@ public class MemberService {
         var target = readmission ? signups.getObject().submittedView(member) : member;
         var before = snapshot(member, target);
         var paymentBefore=target.paymentMethod;
-        if (request.containsKey("idDocument")) { member.idDocument = validation.idDocument(request.get("idDocument")); }
+        if (request.containsKey("idDocument")) {
+            var document = validation.idDocument(request.get("idDocument"));
+            // R-04-06 (b): the readmission matched on this document, so it cannot change while the readmission is pending; a
+            // wrong one is resolved by rejecting the readmission. Sending the document it already has is no edit.
+            if (readmission) {
+                if (!document.equals(select(map(member.idDocument), "type", "number"))) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "READMISSION_PENDING")); }
+            } else { member.idDocument = document; }
+        }
         if (request.containsKey("firstName")) { target.firstName = text(request.get("firstName"), "firstName", 60, true); }
         if (request.containsKey("lastName1")) { target.lastName1 = text(request.get("lastName1"), "lastName1", 60, true); }
         if (request.containsKey("lastName2")) { target.lastName2 = text(request.get("lastName2"), "lastName2", 60, false); }

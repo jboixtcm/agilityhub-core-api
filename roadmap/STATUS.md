@@ -2,11 +2,7 @@
 
 Rendered: 2026-09-25 · Tasks: 86 · — 2 not_open · ☐ 15 ready · ▶ 0 in_progress · 🔎 1 awaiting_verification · 🔁 1 changes_requested · ⛔ 1 blocked · ✅ 66 verified
 
-**Next task for the executor**: `E3-T09` — Gate E3 audit fixes (api, 2/3) — signed S3 uploads in signup, rate limits and ipHash behind the proxy, readmission without overwriting the LEFT record (E38), the signup configuration fresh right after a change, and the security minors
-
-**Warnings**:
-
-- E3-T10: dependency E3-T09 is changes_requested — rebase may be needed
+**Next task for the executor**: `E3-T10` — Gate E3 audit fixes (api, 3/3) — the api minors — family claim fallback, ACCOUNT_NOT_PROVIDED, the D2 payment PATCH, the Member.signup snapshot, event payloads, notification locale, OpenAPI error lists, D1 details (leftAt, waitingTotal, TASKS gating, percent) — and the tests the audit found weak
 
 ## E0
 
@@ -75,8 +71,8 @@ Rendered: 2026-09-25 · Tasks: 86 · — 2 not_open · ☐ 15 ready · ▶ 0 in_
 | [E3-T05](tasks/E3-T05.md) | E3 integration (back): signup end to end on the local stack with the mailbox (bin/e3-smoke), seed values for D1, gate E3 checklist | A | ✅ `verified` | E3-T03, E3-T04 | — | 2026-09-16 | — |
 | [E3-T07](tasks/E3-T07.md) | Gate E3 audit run (api) — re-run the E3 evidence on the current main and extract the spec-test traceability; no product changes | A | ✅ `verified` | E3-T05 | — | 2026-09-24 | — |
 | [E3-T08](tasks/E3-T08.md) | Gate E3 audit fixes (api, 1/3) — resolved signup texts and payment instructions, a quote per plan, assignable plans (family fare, add-dog, D2), upfront rows per submission, the admins' N-01, D1 fresh after each command, server-side §3 constraints, pending dogs on 13, and bin/e3-smoke green | A | ✅ `verified` | E3-T07 | — | 2026-09-24 | — |
-| [E3-T09](tasks/E3-T09.md) | Gate E3 audit fixes (api, 2/3) — signed S3 uploads in signup, rate limits and ipHash behind the proxy, readmission without overwriting the LEFT record (E38), the signup configuration fresh right after a change, and the security minors | A | 🔁 `changes_requested` | E3-T08 | — | 2026-09-24 | executor: apply corrections |
-| [E3-T10](tasks/E3-T10.md) | Gate E3 audit fixes (api, 3/3) — the api minors — family claim fallback, ACCOUNT_NOT_PROVIDED, the D2 payment PATCH, the Member.signup snapshot, event payloads, notification locale, OpenAPI error lists, D1 details (leftAt, waitingTotal, TASKS gating, percent) — and the tests the audit found weak | A | 🔎 `awaiting_verification` | E3-T09 | — | 2026-09-25 | organizer: verify |
+| [E3-T09](tasks/E3-T09.md) | Gate E3 audit fixes (api, 2/3) — signed S3 uploads in signup, rate limits and ipHash behind the proxy, readmission without overwriting the LEFT record (E38), the signup configuration fresh right after a change, and the security minors | A | 🔎 `awaiting_verification` | E3-T08 | — | 2026-09-25 | organizer: verify |
+| [E3-T10](tasks/E3-T10.md) | Gate E3 audit fixes (api, 3/3) — the api minors — family claim fallback, ACCOUNT_NOT_PROVIDED, the D2 payment PATCH, the Member.signup snapshot, event payloads, notification locale, OpenAPI error lists, D1 details (leftAt, waitingTotal, TASKS gating, percent) — and the tests the audit found weak | A | 🔁 `changes_requested` | E3-T09 | — | 2026-09-25 | executor: apply corrections |
 | [E3-T11](tasks/E3-T11.md) | Gate E3 audit re-run (api) after the fixes — clean verify, spec-test traceability, the audit's required tests, bin/e3-smoke ×2, seeds ×2, snapshot drift and the gate lines; no product changes | A | — `not_open` | E3-T07, E3-T08, E3-T09, E3-T10 | — | 2026-09-24 | organizer opens it |
 
 ## E4

@@ -14,8 +14,14 @@ public class SignupIdentityService {
     public SignupIdentityService(AccountRepository accounts,MembershipRepository memberships,EventPublisher events,Clock clock) {
         this.accounts=accounts;this.memberships=memberships;this.events=events;this.clock=clock;
     }
-    public String validate(String memberId,String email,String name,String locale,String consentVersion,Instant acceptedAt,boolean readmission) {
-        var account=accounts.findByEmail(email).orElse(null);
+    /**
+     * R-04-22: the validation's account and membership. A member who already has an account (a readmission, R-04-06 d)
+     * keeps it: no second `Account`, and a signup never changes an account's login email (the account is global and may
+     * hold other clubs' memberships). Only a member without an account is matched, or given a new one, by its primary email.
+     */
+    public String validate(String memberId,String accountId,String email,String name,String locale,String consentVersion,Instant acceptedAt,boolean readmission) {
+        var account=accountId==null?null:accounts.findById(accountId).orElse(null);
+        if(account==null) account=accounts.findByEmail(email).orElse(null);
         if(account==null) {
             account=new Account(UUID.randomUUID().toString(),email,name,locale,null,Set.of(),Account.Status.ACTIVE,new Account.Security(0,null,null,0),Map.of(),false,clock.instant(),null,null,
                     Account.Source.SIGNUP,null,null,List.of(new Account.Consent(Account.ConsentPolicy.CLUB,TenantContext.require(),consentVersion,acceptedAt)),List.of());

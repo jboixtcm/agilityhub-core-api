@@ -74,9 +74,12 @@ public class MembersController {
     @PatchMapping("/api/v1/members/{id}")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({VALIDATION_ERROR, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, MEMBER_ERASED})
+    @ContractErrors({VALIDATION_ERROR, ID_DOCUMENT_ALREADY_EXISTS, STALE_VERSION, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update member",
-            description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required.",
+            description = "S03 §6, R-03-08. Editable census fields only; plan, price, roles and payment method use their dedicated use cases. Version is required. "
+                    + "A pending readmission (S04 R-04-06, E38): the person fields, contacts, address and payment method edit the submitted values, not the LEFT record; "
+                    + "the identity document cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING. "
+                    + "A wrong document is resolved by rejecting the readmission.",
             responses = @ApiResponse(responseCode = "200", description = "Member", content = @Content(schema = @Schema(implementation = Member.class))))
     public java.util.Map<String,Object> updateMember(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = MemberPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.member(id, true).get("status"))) { members.patchPending(id, request); }
         else { members.patch(id, request, false); } return queries.member(id, true); }); }

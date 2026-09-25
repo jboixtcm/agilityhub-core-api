@@ -111,8 +111,10 @@ public class SignupService implements SignupPaymentAccess {
     private List<Dog> pending(String memberId) { return dogs(memberId).stream().filter(d -> "PENDING".equals(d.status)).toList(); }
     private List<String> dogIds(List<Dog> dogs) { return dogs.stream().map(d -> d.id).toList(); }
     /**
-     * R-04-05/R-04-06 matching through the `member_id_document` and `contactEmails.email` indexes (E3-T09: the anonymous
-     * lookups never scan the club's members). The `$type` clause lets Mongo use the partial `member_id_document` index.
+     * R-04-05/R-04-06 matching through the `member_id_document`, `contactEmails.email` and
+     * `readmissionRequest.submitted.contactEmails.email` indexes (E3-T09: the anonymous lookups never scan the club's
+     * members). The `$type` clause lets Mongo use the partial `member_id_document` index. A pending readmission is also
+     * matched on the primary address it submitted (R-04-06 a), as any pending member on its own.
      */
     private Member match(String document,List<Map<String,Object>> emails,boolean left) {
         var statuses=left?List.of("LEFT"):List.of("PENDING","ACTIVE");
@@ -120,9 +122,13 @@ public class SignupService implements SignupPaymentAccess {
                 Criteria.where("status").in(statuses))).stream().findFirst().orElse(null);
         if(exact!=null || left) return exact;
         var addresses=emails.stream().map(e -> e.get("email")).toList();
-        return access.members.matching(Criteria.where("contactEmails.email").in(addresses).and("status").in(statuses)).stream()
-                .filter(m -> !rows(m.contactEmails).isEmpty() && addresses.contains(rows(m.contactEmails).getFirst().get("email"))).findFirst().orElse(null);
+        var primary=access.members.matching(Criteria.where("contactEmails.email").in(addresses).and("status").in(statuses)).stream()
+                .filter(m -> addresses.contains(primaryEmail(m.contactEmails))).findFirst();
+        if(primary.isPresent()) return primary.get();
+        return access.members.matching(Criteria.where("readmissionRequest.submitted.contactEmails.email").in(addresses).and("status").is("PENDING")).stream()
+                .filter(m -> readmissionPending(m) && addresses.contains(primaryEmail(submitted(m).get("contactEmails")))).findFirst().orElse(null);
     }
+    private static Object primaryEmail(Object contactEmails) { var rows=rows(contactEmails);return rows.isEmpty()?null:rows.getFirst().get("email"); }
     @Transactional
     public Map<String,Object> identityCheck(Map<String,Object> request) {
         requireOpen();
@@ -139,13 +145,14 @@ public class SignupService implements SignupPaymentAccess {
     }
     @SuppressWarnings("unchecked") private List<String> strings(Object raw) { return (List<String>)raw; }
     /**
-     * R-04-12: the candidates are the owners of an active or pending dog with that name (the case- and accent-insensitive
-     * `name_ci` index), then {@link SignupPolicy#family} decides exactly as before. E3-T09: no scan of the club's members.
+     * R-04-12: the candidates are the owners of an active or pending dog with that name, then {@link SignupPolicy#family}
+     * decides exactly as before. E3-T09: no scan of the club's members; the dogs are found through their normalised
+     * `nameKey` (trimmed, inner spaces collapsed; round 2), compared case- and accent-insensitively by its index.
      */
     private Optional<SignupPolicy.Match> holder(String holder,String dog) {
-        String name=dog==null?"":dog.strip().replaceAll("(?U)\\s+"," ");
+        String name=Objects.requireNonNullElse(Dog.nameKey(dog),"");
         var owned=new LinkedHashMap<String,List<Dog>>();
-        for(var d:access.dogs.matchingIgnoringCase(Criteria.where("name").is(name).and("status").in("PENDING","ACTIVE"))) owned.computeIfAbsent(d.memberId,k -> new ArrayList<>()).add(d);
+        for(var d:access.dogs.matchingIgnoringCase(Criteria.where("nameKey").is(name).and("status").in("PENDING","ACTIVE"))) owned.computeIfAbsent(d.memberId,k -> new ArrayList<>()).add(d);
         if(owned.isEmpty()) return Optional.empty();
         var candidates=access.members.matching(Criteria.where("_id").in(owned.keySet()).and("status").in("PENDING","ACTIVE")).stream().map(m -> new SignupPolicy.Candidate(m.clubId,m.id,m.status,m.firstName,m.lastName1,m.lastName2,
                 owned.get(m.id).stream().map(d -> new SignupPolicy.NamedDog(d.name,d.status)).toList())).toList();
@@ -230,6 +237,15 @@ public class SignupService implements SignupPaymentAccess {
         appendConsents(member,rows(submitted(member).get("consents")));
         member.readmissionRequest=null;
     }
+    /**
+     * R-04-06 (c): the recipient of a readmission's N-01 and N-03 (S04 §8 `APPLICANT`): the submitted primary address and
+     * name, in `signup.locale`. It travels in the event because a rejection drops the submitted values before delivery.
+     */
+    private Map<String,Object> applicant(Member member) {
+        var person=submitted(member);
+        return object("email",primaryEmail(person.get("contactEmails")),"firstName",person.get("firstName"),"lastName1",person.get("lastName1"),"gender",person.get("gender"),
+                "locale",map(member.signup).get("locale"));
+    }
     /** R-04-23 (E38): a rejected readmission leaves the LEFT record exactly as it was before the submission. */
     private void restoreLeft(Member member) {
         var previous=map(map(member.readmissionRequest).get("previous"));
@@ -295,7 +311,8 @@ public class SignupService implements SignupPaymentAccess {
         if(readmission) access.members.save(member);else access.members.insert(member);
         var dog=storeDog(prepared,member.signup,rows(map(request.get("dog")).get("documents")));createPayments(member.id,submission,quote);
         boolean checkout=checkoutRequired(member,quote.totalDue());
-        events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(effectivePayment(member)).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout));
+        events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(effectivePayment(member)).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout,
+                "applicant",readmission?applicant(member):null));
         // R-04-06 (E38): the readmission submission is audited with the masked diff; anonymous, so its origin is PUBLIC.
         if(readmission) audits.write(new AuditCommand(AuditAction.SIGNUP_SUBMITTED,"Member",member.id,member.id,before,CensusAudit.view(member,mapper),null),CurrentUser.current()==null?"PUBLIC":null);
         refreshDashboard();
@@ -629,7 +646,8 @@ public class SignupService implements SignupPaymentAccess {
         boolean readmission=Boolean.TRUE.equals(map(member.signup).get("readmission"));
         if(!addDog) {
             var privacy=history(member).stream().filter(c -> c.type().equals("PRIVACY_POLICY")&&c.granted()).reduce((a,b)->b).orElseThrow(() -> invalid("consents","REQUIRED"));
-            member.accountId=identities.validate(id,email(member),fullName(member),string(member.signup.get("locale")),privacy.version(),privacy.acceptedAt(),readmission);
+            // R-04-22 / R-04-06 (d): a member with an account keeps it; only one without is matched or created by its primary email.
+            member.accountId=identities.validate(id,member.accountId,email(member),fullName(member),string(member.signup.get("locale")),privacy.version(),privacy.acceptedAt(),readmission);
             if(member.memberNumber==null) member.memberNumber=settings.nextMemberNumber(access.members.matching(new Criteria()).stream().map(m -> m.memberNumber).filter(Objects::nonNull).max(Integer::compareTo).orElse(0)+1);
             member.status="ACTIVE";member.joinedAt=clock.instant();member.leftAt=null;member.leftReason=null;member.leaveDate=null;
         }
@@ -674,12 +692,13 @@ public class SignupService implements SignupPaymentAccess {
         // A rejected readmission gets the LEFT record's own signup back (E38): its decision stays on the dogs' blocks.
         var decision=object("rejectedAt",clock.instant(),"rejectedByAccountId",CurrentUser.current()==null?null:CurrentUser.current().accountId(),"rejectionReason",reason);
         for(var dog:dogs) dog.signup=stamped(block(member,dog),decision);
-        if(!active&&readmissionPending(member)) restoreLeft(member);
+        var applicant=!active&&readmissionPending(member)?applicant(member):null;
+        if(applicant!=null) restoreLeft(member);
         else if(!active) { member.status="LEFT";member.leftAt=clock.instant();member.leftReason="SIGNUP_REJECTED";member.familyGroupClaim=object("status","NONE");member.signup=stamped(map(member.signup),decision); }
         access.members.save(member);
         for(var dog:dogs) { dog.status="INACTIVE";dog.deactivationReason="SIGNUP_REJECTED";dog.deactivatedAt=clock.instant();access.dogs.save(dog); }
         boolean paid=payments.reject(id,scope);
-        events.emit("SignupRejected","Member",id,object("memberId",id,"dogIds",dogIds(dogs),"reason",reason,"memberWasActive",active));
+        events.emit("SignupRejected","Member",id,object("memberId",id,"dogIds",dogIds(dogs),"reason",reason,"memberWasActive",active,"applicant",applicant));
         refreshDashboard();
         return object("memberId",id,"status",member.status,"dogIds",dogIds(dogs),"paidPaymentRequiresRefund",paid);
     }

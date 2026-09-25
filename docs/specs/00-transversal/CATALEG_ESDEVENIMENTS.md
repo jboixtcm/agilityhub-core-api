@@ -8,7 +8,7 @@
 | `AccountCreated` | accountId, email, source (SIGNUP · IMPORT_LEARN · CONSOLE) | S01 | auditoria |
 | `MagicLinkRequested` | accountId, clientId | S01 | N-25 |
 | `PasswordChanged` | accountId | S01 | N-26 |
-| `MembershipChanged` | accountId, clubId, roles (abans/després) | S01/S03/S05 | auditoria, cache de permisos |
+| `MembershipChanged` | accountId, clubId, `before`, `after` (els rols abans i després; 25-09: una sola grafia per a tots els emissors, E3-T10) | S01/S03/S05 | auditoria, cache de permisos |
 | `ImpersonationStarted` / `ImpersonationEnded` | actorAccountId, memberId | S01 | auditoria |
 | `ClubCreated` / `ClubUpdated` / `ClubModulesChanged` / `ClubStatusChanged` | clubId, diff | S02/S17 | cache de branding, auditoria |
 | `ParameterChanged` | key, before, after | S02 | cache de configuració, auditoria |

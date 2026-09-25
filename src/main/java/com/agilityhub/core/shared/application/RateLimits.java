@@ -12,7 +12,7 @@ import java.util.Map;
 /** Per-instance token buckets for the E0 single-instance deployment. */
 public final class RateLimits {
     public enum Route { TOKEN, BRANDING, PUBLIC, ME, MAGIC_LINK_EMAIL, MAGIC_LINK_IP, SIGNUP_IDENTITY, SIGNUP_FAMILY, SIGNUP_UPLOAD, SIGNUP_SUBMIT, SIGNUP_DAILY, SIGNUP_CHECKOUT, SIGNUP_TOWNS,
-        /** E3-T09: the anonymous signup mails (N-39, the applicant's N-01) per club, notification and recipient. */
+        /** E3-T09: the anonymous signup mails (N-39, the applicant's N-01) per club, notification and recipient (`notificationsPerRecipientPerHour`). */
         SIGNUP_RECIPIENT }
     public record Limit(long capacity, Duration period) {
         public Limit {
@@ -27,7 +27,8 @@ public final class RateLimits {
      */
     private static final Map<String, Route> SIGNUP_KEYS = Map.of("identityChecksPerHour", Route.SIGNUP_IDENTITY,
             "familyGroupLookupsPerHour", Route.SIGNUP_FAMILY, "uploadUrlsPerHour", Route.SIGNUP_UPLOAD, "signupPerHour", Route.SIGNUP_SUBMIT,
-            "signupPerDay", Route.SIGNUP_DAILY, "checkoutSessionsAnonymousPerHour", Route.SIGNUP_CHECKOUT, "townsPerHour", Route.SIGNUP_TOWNS);
+            "signupPerDay", Route.SIGNUP_DAILY, "checkoutSessionsAnonymousPerHour", Route.SIGNUP_CHECKOUT, "townsPerHour", Route.SIGNUP_TOWNS,
+            "notificationsPerRecipientPerHour", Route.SIGNUP_RECIPIENT);
     private record Key(Route route, String subject, Limit limit) { }
     private final boolean enabled;
     private final Map<Route, Limit> limits;
@@ -44,7 +45,6 @@ public final class RateLimits {
         policies.putIfAbsent(Route.SIGNUP_DAILY,new Limit(20,Duration.ofDays(1)));
         policies.putIfAbsent(Route.SIGNUP_CHECKOUT,new Limit(10,Duration.ofHours(1)));
         policies.putIfAbsent(Route.SIGNUP_TOWNS,new Limit(60,Duration.ofHours(1)));
-        // Proposed catalog key `signup.rateLimit.notificationsPerRecipientPerHour` (E3-T09 report); a constant until the catalog has it.
         policies.putIfAbsent(Route.SIGNUP_RECIPIENT,new Limit(3,Duration.ofHours(1)));
         this.limits = Map.copyOf(policies);
         this.time = new TimeMeter() {

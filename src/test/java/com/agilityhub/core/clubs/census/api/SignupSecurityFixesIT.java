@@ -43,6 +43,8 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.shared.application.SignupCapabilities capabilities;
     @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @Autowired org.springframework.context.ApplicationContext context;
+    @Autowired com.agilityhub.core.clubs.census.persistence.CensusRepository<com.agilityhub.core.clubs.census.persistence.Dog> dogs;
     String club,host,plan,level;
     int sequence;
     static final String IBAN="ES5500000000000000000001";
@@ -184,7 +186,16 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     }
     @Test void T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas() throws Exception {
         var original=request();String id=leftMember(original);var before=member(id);
-        submit(readmission(original));reject(id);
+        submit(readmission(original));
+        // Round 2 (R-04-06 b): the readmission matched on the document, so D2 cannot change it while it is pending.
+        long version=((Number)member(id).get("version")).longValue();
+        var locked=result(admin(patch("/api/v1/members/"+id).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",version,
+                "idDocument",Map.of("type","DNI","number",national()))))),409);
+        assertThat(locked.path("code").asText()).isEqualTo("INVALID_STATE");assertThat(locked.at("/details/reason").asText()).isEqualTo("READMISSION_PENDING");
+        // Sending the document it already has is no edit.
+        result(admin(patch("/api/v1/members/"+id).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",version,
+                "idDocument",Map.of("type","DNI","number",original.at("/person/idDocument/value").asText()))))),200);
+        reject(id);
         var after=member(id);
         var expected=new Document(before);expected.remove("version");expected.remove("updatedAt");
         var actual=new Document(after);actual.remove("version");actual.remove("updatedAt");
@@ -214,6 +225,101 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         validate(id);
         assertThat(member(id).getList("phones",Document.class).getFirst().getString("number")).isEqualTo("600000077");
         assertThat(member(id).get("paymentMethod",Document.class).getString("holderName")).isEqualTo("Edited Holder");
+    }
+
+    // ---- Round 2: the pending readmission (S04 R-04-06 a–d, organizer 24-09) and the family lookup's name key ----
+    static String unique(String prefix) { return prefix+"-"+UUID.randomUUID()+"@example.test"; }
+    ObjectNode withEmail(ObjectNode body,String email) { ((ObjectNode)body.get("person")).set("emails",mapper.valueToTree(List.of(email)));return body; }
+
+    /** Point 1 (R-04-05 + R-04-06 a): the primary address a readmission submitted is matched as for any pending member. */
+    @Test void R_04_05_R_04_06_aPendingReadmissionsSubmittedAddressIsMatchedLikeAnyPendingMember() throws Exception {
+        var original=request();String id=leftMember(original);
+        var readmit=readmission(original);String address=readmit.at("/person/emails/0").asText();submit(readmit);
+        var check=Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of(address));
+        assertThat(result(from(postJson("/signup/identity-checks",check),"198.51.100.240"),200).path("result").asText()).isEqualTo("SIGNUP_ALREADY_PENDING");
+        int members=collection("members").size();
+        assertThat(submit(withEmail(request(),address),422).path("code").asText()).isEqualTo("SIGNUP_ALREADY_PENDING");
+        assertThat(collection("members")).as("never a second pending application").hasSize(members);
+        // The record's own primary address still matches, as before.
+        var old=Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of(original.at("/person/emails/0").asText()));
+        assertThat(result(from(postJson("/signup/identity-checks",old),"198.51.100.240"),200).path("result").asText()).isEqualTo("SIGNUP_ALREADY_PENDING");
+        assertThat(member(id).getString("status")).isEqualTo("PENDING");
+    }
+
+    /** Point 3 (S04 §8 APPLICANT, R-04-06 c): N-01 and N-03 of a readmission reach the submitted address only. */
+    @Test void R_04_06_T_04_12_aReadmissionsN01AndN03GoToTheSubmittedApplicantOnly() throws Exception {
+        var mailbox=(com.agilityhub.core.clubs.messaging.application.FakeEmailSender)sender;
+        String recorded=unique("recorded"),applicant=unique("applicant");String admin=administrator();
+        var original=withEmail(request(),recorded);String oldSurname=original.at("/person/lastName1").asText();
+        String id=leftMember(original);dispatch();mailbox.clear();
+        var readmit=withEmail(readmission(original),applicant);readmit.put("locale","es");((ObjectNode)readmit.get("person")).put("firstName","Returning").put("lastName1","Readmitted");
+        submit(readmit);dispatch();
+        var received=mailbox.messages().stream().filter(m->m.to().equals(applicant)).toList();
+        assertThat(received).as("N-01 to the submitted address").hasSize(1);assertThat(received.getFirst().locale().getLanguage()).isEqualTo("es");
+        assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code"))&&applicant.equals(n.getString("recipientEmail"))))
+                .singleElement().satisfies(n->assertThat(n.getString("locale")).isEqualTo("es"));
+        // The admins' copy names who applied: the submitted name, nothing from the LEFT record.
+        var adminCopy=mailbox.messages().stream().filter(m->m.to().equals(admin+"@example.test")).toList();
+        assertThat(adminCopy).hasSize(1);assertThat(adminCopy.getFirst().text()).contains("Returning Readmitted").doesNotContain(oldSurname);
+        assertThat(mailbox.messages().stream().filter(m->m.to().equals(recorded))).as("nothing to the LEFT record's address").isEmpty();
+        mailbox.clear();reject(id);
+        // The rejection restored the record (its old address); the recipient travelled in the event.
+        assertThat(member(id).getList("contactEmails",Document.class).getFirst().getString("email")).isEqualTo(recorded);
+        var rejected=collection("domain_events").stream().filter(e->"SignupRejected".equals(e.getString("type"))).toList();
+        assertThat(rejected).singleElement().satisfies(e->assertThat(e.toJson()).contains(applicant).doesNotContain(recorded));
+        dispatch();
+        var n03=mailbox.messages().stream().filter(m->m.to().equals(applicant)).toList();
+        assertThat(n03).as("N-03 to the submitted address").hasSize(1);assertThat(n03.getFirst().locale().getLanguage()).isEqualTo("es");
+        assertThat(n03.getFirst().text()).contains("Returning").doesNotContain(oldSurname);
+        assertThat(mailbox.messages().stream().filter(m->m.to().equals(recorded))).as("nothing to the LEFT record's address").isEmpty();
+    }
+
+    /** Point 4 (R-04-12): the lookup compares a normalised name key; «Example  Dog» is found by «Example Dog». */
+    @Test void R_04_12_familyLookupFindsAStoredDogNameWithRepeatedSpaces() throws Exception {
+        var holder=request();((ObjectNode)holder.get("person")).put("firstName","Spaced").put("lastName1","Holder");((ObjectNode)holder.get("dog")).put("name","Example  Dog");
+        submit(holder);
+        assertThat(result(from(postJson("/signup/family-group-lookups",Map.of("holderName","Spaced Holder","dogName","Example Dog")),"198.51.100.241"),200).path("result").asText()).isEqualTo("FOUND");
+        // A dog stored before the key existed is found once the startup migration has run; running it again changes nothing.
+        String legacy=UUID.randomUUID().toString(),legacyDog=UUID.randomUUID().toString();
+        mongo.getCollection("members").insertOne(new Document("_id",legacy).append("clubId",club).append("status","ACTIVE").append("firstName","Legacy").append("lastName1","Holder")
+                .append("idDocument",new Document("type","DNI").append("number",national())).append("contactEmails",List.of(new Document("email",unique("legacy")))).append("version",0L));
+        mongo.getCollection("dogs").insertOne(new Document("_id",legacyDog).append("clubId",club).append("memberId",legacy).append("name"," Legacy \t Dog ").append("status","ACTIVE").append("version",0L));
+        var migration=context.getBean("dogNameKeyMigration",org.springframework.boot.ApplicationRunner.class);
+        migration.run(new org.springframework.boot.DefaultApplicationArguments());
+        var migrated=mongo.getCollection("dogs").find(new Document("_id",legacyDog)).first();
+        assertThat(migrated.getString("nameKey")).isEqualTo("Legacy Dog");
+        migration.run(new org.springframework.boot.DefaultApplicationArguments());
+        assertThat(mongo.getCollection("dogs").find(new Document("_id",legacyDog)).first()).isEqualTo(migrated);
+        assertThat(result(from(postJson("/signup/family-group-lookups",Map.of("holderName","Legacy Holder","dogName","legacy dog")),"198.51.100.241"),200).path("result").asText()).isEqualTo("FOUND");
+        // A database indexed by the first round (`name_ci` on `name`) gets the key's index instead at the next start.
+        mongo.getCollection("dogs").createIndex(new Document("clubId",1).append("name",1),new com.mongodb.client.model.IndexOptions().name("name_ci")
+                .collation(com.mongodb.client.model.Collation.builder().locale("en").collationStrength(com.mongodb.client.model.CollationStrength.PRIMARY).build()));
+        dogs.ensureNameIndex();
+        assertThat(mongo.getCollection("dogs").listIndexes().into(new ArrayList<>()).stream().map(index->index.getString("name"))).contains("dog_name_key").doesNotContain("name_ci");
+    }
+
+    /** Point 5 (R-04-22, R-04-06 d): a readmission keeps the member's account and never changes its login email. */
+    @Test void R_04_22_T_04_12_aValidatedReadmissionKeepsTheMembersAccountAndMembership() throws Exception {
+        String login=unique("login"),submitted=unique("returning");
+        var original=withEmail(request(),login);String id=leftMember(original);String account=member(id).getString("accountId");
+        assertThat(account).isNotNull();
+        submit(withEmail(readmission(original),submitted));validate(id);
+        assertThat(member(id).getString("accountId")).isEqualTo(account);
+        assertThat(member(id).getList("contactEmails",Document.class).getFirst().getString("email")).isEqualTo(submitted);
+        assertThat(mongo.getCollection("accounts").countDocuments(new Document("email",submitted))).as("no second account").isZero();
+        assertThat(mongo.getCollection("accounts").find(new Document("_id",account)).first().getString("email")).as("the login email never changes").isEqualTo(login);
+        assertThat(mongo.getCollection("memberships").find(new Document("clubId",club).append("memberId",id)).into(new ArrayList<>())).singleElement()
+                .satisfies(m->{assertThat(m.getString("accountId")).isEqualTo(account);assertThat(m.getString("status")).isEqualTo("ACTIVE");assertThat(m.getList("roles",String.class)).contains("MEMBER");});
+    }
+
+    /** Point 6 (R-04-20): the recipient cap is `signup.rateLimit.notificationsPerRecipientPerHour`, read per club. */
+    @Test void R_04_05_R_04_20_theRecipientCapIsTheClubsParameter() throws Exception {
+        parameter("signup.rateLimit",Map.of("identityChecksPerHour",10,"familyGroupLookupsPerHour",20,"uploadUrlsPerHour",30,"signupPerHour",5,"signupPerDay",20,
+                "checkoutSessionsAnonymousPerHour",10,"townsPerHour",60,"notificationsPerRecipientPerHour",1));
+        var body=withEmail(request(),unique("capped"));activeMember(body);dispatch();
+        for(int i=0;i<3;i++) assertThat(result(from(postJson("/signup/identity-checks",identity(body)),"198.51.100."+(242+i)),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
+        dispatch();
+        assertThat(collection("notifications").stream().filter(n->"N-39".equals(n.getString("code")))).as("one N-39 an hour for this club").hasSize(1);
     }
 
     // ---- Step 4.1: signup.rateLimit is read per club ----
@@ -303,6 +409,8 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         try {
             assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",holder.at("/person/idDocument"),"emails",List.of("unknown@example.test"))),"198.51.100.209"),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
             assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of(holder.at("/person/emails/0").asText()))),"198.51.100.209"),200).path("result").asText()).isEqualTo("VERIFICATION_SENT");
+            // Round 2: a miss runs every match query, the pending readmissions' submitted addresses included (R-04-06 a).
+            assertThat(result(from(postJson("/signup/identity-checks",Map.of("idDocument",Map.of("type","DNI","value",national()),"emails",List.of("nobody@example.test"))),"198.51.100.209"),200).path("result").asText()).isEqualTo("NEW");
             var found=result(from(postJson("/signup/family-group-lookups",Map.of("holderName","angela holder","dogName",holder.at("/dog/name").asText().toUpperCase(Locale.ROOT))),"198.51.100.209"),200);
             assertThat(found.path("result").asText()).isEqualTo("FOUND");assertThat(found.path("holderDisplayName").asText()).isEqualTo("Àngela H.");
         } finally { database.runCommand(new Document("profile",0)); }

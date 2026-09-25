@@ -2,6 +2,18 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-25 · E3-T09 round 2 · the pending readmission (R-04-06 a–d): DNI locked in D2, account kept, matching
+
+**0 operations added, 3 changed** (descriptions and one error list; no schema change):
+
+- `PATCH /members/{id}`: + `409 INVALID_STATE` with `details.reason = READMISSION_PENDING` when a pending readmission's
+  identity document would change (a wrong one is resolved by rejecting the readmission); the description states that the
+  other person fields of a pending readmission edit the submitted values.
+- `POST /signup/identity-checks`: a pending readmission is also matched on the primary address it submitted
+  (`SIGNUP_ALREADY_PENDING`); the N-39 cap per recipient is `signup.rateLimit.notificationsPerRecipientPerHour` (3).
+- `POST /members/{id}/validation`: a member who has an account keeps it (no second `Account`, the login email never
+  changes, R-04-22).
+
 ## 2026-09-25 · E3-T10 · gate E3 fixes (api 3/3): legal identity on /branding, D1 number types, S04 error lists
 
 **0 operations added, 11 changed** (paths unchanged). Not additive where marked:

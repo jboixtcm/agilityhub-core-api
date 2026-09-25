@@ -11,6 +11,12 @@ public class Dog extends CensusEntity {
     public Map<String,Object> externalIds;
     public String memberId;
     public String name;
+    /**
+     * R-04-12 (E3-T09 round 2): the family lookup's key, {@link #nameKey(String)} of {@link #name}. Written by every census
+     * write of the dog ({@link CensusRepository}, {@link CensusMigrationRepository}); compared with
+     * {@link CensusRepository#NAME_COLLATION}, so case and accents do not count either.
+     */
+    public String nameKey;
     public String breed;
     public String sex;
     @org.springframework.data.convert.ValueConverter(CensusDateConverter.class)
@@ -30,4 +36,7 @@ public class Dog extends CensusEntity {
     public Instant registeredAt;
     public Instant deactivatedAt;
     public String deactivationReason;
+    /** R-04-12 normalisation of a dog's name: trimmed, inner whitespace collapsed to one space. */
+    public static String nameKey(String name) { return name==null?null:name.strip().replaceAll("(?U)\\s+"," "); }
+    @Override void beforeWrite() { nameKey = nameKey(name); }
 }

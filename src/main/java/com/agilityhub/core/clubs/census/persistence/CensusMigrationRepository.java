@@ -26,6 +26,11 @@ public class CensusMigrationRepository extends TenantRepository<Member> {
         var update=new Update().setOnInsert("clubId",TenantContext.require()).setOnInsert("createdAt",clock.instant())
                 .set("updatedAt",clock.instant()).inc("version",1);
         fields.forEach((key,value) -> { if (value==null) { update.unset(key); } else { update.set(key,value); } });
+        // R-04-12 (E3-T09 round 2): a migrated dog name keeps the family lookup's key current, like every census write.
+        if ("dogs".equals(collection) && fields.containsKey("name")) {
+            String key=Dog.nameKey(fields.get("name") instanceof String name ? name : null);
+            if (key==null) { update.unset("nameKey"); } else { update.set("nameKey",key); }
+        }
         mongo.upsert(query,update,collection);
     }
     public void lock() {

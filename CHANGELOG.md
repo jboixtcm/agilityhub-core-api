@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E3-T09 round 2: the pending readmission (S04 R-04-06 a–d, organizer 24-09) and the family lookup's name key.
+  - R-04-05: the identity check and `POST /signup` also match a pending readmission on the primary address it submitted
+    (index `{clubId, readmissionRequest.submitted.contactEmails.email}`), so no second pending application is created.
+  - D2 cannot change the identity document of a pending readmission: `409 INVALID_STATE`,
+    `details.reason = READMISSION_PENDING`; a rejection restores the record exactly, `idDocument` included.
+  - N-01 and N-03 of a readmission go to the applicant: the submitted primary address and name, in `signup.locale`. The
+    recipient travels in `SignupSubmitted.applicant` / `SignupRejected.applicant`, so a rejection still delivers N-03.
+  - R-04-12: `Dog.nameKey` (trimmed, inner whitespace collapsed), written by every census write and by the Playoff
+    migration writer, indexed `{clubId, nameKey}` with the primary-strength collation (`dog_name_key`, replaces
+    `name_ci`); the startup runner `dogNameKeyMigration` backfills existing dogs idempotently.
+  - R-04-22: the validation keeps the member's `accountId` (no second `Account`, the login email never changes); only a
+    member without an account is matched or created by its primary email.
+  - R-04-20: the per-recipient mail cap reads `signup.rateLimit.notificationsPerRecipientPerHour` per club (default 3).
+
 - E3-T10: gate E3 audit fixes (api, 3/3), the api minors (`roadmap/reviews/gate-E3/consolidated.md` «Minor», api).
   - Signup: a claim FOUND at the lookup but no longer unique or eligible at submission falls back to
     `NOT_FOUND_PENDING` when `signup.allowFamilyGroupPending` allows it (R-04-12); `ACCOUNT_NOT_PROVIDED` reads

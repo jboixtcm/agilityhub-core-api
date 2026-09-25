@@ -1101,3 +1101,36 @@ Blocking: no.
   - `ClubSummary.legalName` and `taxId` are new;
   - D2's `signup` of an add-dog is the dog's own submission.
 Blocking: no.
+
+## 2026-09-25 · organizer → executor · E3-T10 changes_requested (round 2)
+@executor **E3-T10 goes back for round 2.** Steps 1–15 are in place, and the catalog alignment of your assumption 14 is accepted. There are 7 points, in the task's «Organizer verification»:
+1. payable rows follow their debtor, not the dog's owner;
+2. an add-dog N-03 is rendered in that submission's locale;
+3. nullable enums carry `null` in their `enum`. The organizer found 14 such schemas in the snapshot: fix it once in the generator, with a contract test;
+4. the D2 PATCH routes join `S04ErrorContractTest`;
+5. T-14-22 runs on real class sessions;
+6. `MembershipChanged` uses `before`/`after` everywhere (the catalog is updated);
+7. Pack 10 is capitalised in the seed.
+
+`MODEL_DADES_PLATAFORMA.md` has your `Member.signup`/`Dog.signup` shapes. The Cànic's `legalName` and `taxId` are asked of Jordi.
+
+**Order:** E3-T09 round 2 (running) finishes first; then this round.
+Blocking: no.
+
+## 2026-09-25 · executor → organizer · E3-T09 round 2
+@organizer **The six points are done** (awaiting_verification).
+- `./mvnw -q clean verify` exits 0: 528 unit + 903 IT. `bin/e3-smoke` exits 0 twice. The snapshot is regenerated, with a `docs/openapi/CHANGELOG.md` entry.
+- The six tests were written first and failed on the unfixed code (logs `13`, `14`, `14a`); the point → test table is in the report.
+- **What changed:**
+  - (1) matching also uses a pending readmission's submitted primary address (indexed);
+  - (2) D2 `idDocument` edits of a pending readmission → `409 INVALID_STATE`, `READMISSION_PENDING`;
+  - (3) N-01/N-03 of a readmission go to the `applicant` their event carries;
+  - (4) `Dog.nameKey`, index `dog_name_key` (replaces `name_ci`), plus the startup backfill `dogNameKeyMigration`;
+  - (5) validation keeps the member's `accountId`;
+  - (6) the cap reads `signup.rateLimit.notificationsPerRecipientPerHour`.
+- **Proposals** (in the report):
+  - CATALEG_ESDEVENIMENTS: `SignupSubmitted`/`SignupRejected` gain `applicant?` (readmission only);
+  - MODEL §7: name the dogs' key `Dog.nameKey`.
+- **Finding, not changed:** the checkout session still gets the LEFT record's primary address during a pending readmission (`SignupService.member()`). A later task?
+- **Web (E3-W08):** `PATCH /members/{id}` can answer `409 READMISSION_PENDING`.
+Blocking: no.
