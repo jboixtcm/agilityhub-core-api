@@ -91,7 +91,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
         var published = new TreeMap<String, List<String>>();
         api.path("paths").fields().forEachRemaining(path -> {
             var list = path.getValue().path("get");
-            if (universalList(path.getKey(), list)) {
+            if (universalList(list)) {
                 var keys = new ArrayList<String>(); list.path("x-fields").forEach(key -> keys.add(key.asText()));
                 published.put(path.getKey(), keys);
             }
@@ -129,7 +129,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
                 if (list.path("parameters").findValuesAsText("name").contains("fields") || list.has("x-fields")) { problems.add(path + ": contract only, but it publishes fields"); }
                 continue;
             }
-            if (!universalList(path, list)) { continue; }
+            if (!universalList(list)) { continue; }
             var keys = new ArrayList<String>(); list.path("x-fields").forEach(key -> keys.add(key.asText()));
             String page = list.at("/responses/200/content/application~1json/schema/$ref").asText().replace("#/components/schemas/", "");
             var items = SnapshotSchemas.schema(page).at("/properties/items/items");
@@ -217,10 +217,92 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
         return entry.getString("memberId");
     }
 
-    /** A GET that answers a page through the universal list contract: filters, `fields`, and no deferred contract. */
-    static boolean universalList(String path, JsonNode operation) {
+    /**
+     * A GET that answers a page through the universal list contract: filters, `fields`, a JSON page, and no deferred contract.
+     * E5-T24: an export (a file) and `filter-values` (no `fields`) are told apart by their contract, not by their path, so that
+     * {@link #CONVENCIONS_API_4_noOperationPublishesFieldsWithoutXFieldsAndEachExportPublishesItsLists} sees them.
+     */
+    static boolean universalList(JsonNode operation) {
         return !operation.isMissingNode() && operation.has("x-filterable") && operation.path("parameters").findValuesAsText("name").contains("fields")
-                && !path.endsWith("/export") && !path.endsWith("/filter-values") && !operation.path("description").asText().startsWith("Contract only");
+                && operation.at("/responses/200/content/application~1json/schema").has("$ref") && !operation.path("description").asText().startsWith("Contract only");
+    }
+
+    /** Export path → the list whose `x-fields` it publishes (CONVENCIONS_API §4, amended 26-09). */
+    static final Map<String, String> EXPORTS = Map.of("/api/v1/members/export", "/api/v1/members", "/api/v1/dogs/export", "/api/v1/dogs",
+            "/api/v1/audit-entries/export", "/api/v1/audit-entries", "/api/v1/activities/export", "/api/v1/activities",
+            "/api/v1/activity-registrations/export", "/api/v1/activities/{id}/registrations", "/api/v1/training-bookings/export", "/api/v1/training-bookings");
+    /** The exports of lists that are still contract only (S12, S11): no `fields` and no `x-fields` until they are implemented. */
+    static final Set<String> CONTRACT_ONLY_EXPORTS = Set.of("/api/v1/invoices/export", "/api/v1/notifications/export");
+
+    /**
+     * E5-T24 step 5 (CONVENCIONS_API §4, amended 26-09; review E5-T22 #2): on every operation of the contract, the `fields`
+     * parameter comes with its `x-fields` and `x-fields` with the parameter; `filter-values` takes no `fields`. Each export
+     * publishes its list's `x-fields` (it picks its columns from them), and the parameter's description names this
+     * operation's `x-fields`, never another operation's.
+     */
+    @Test void CONVENCIONS_API_4_noOperationPublishesFieldsWithoutXFieldsAndEachExportPublishesItsLists() throws Exception {
+        var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var problems = new ArrayList<String>(); var exports = new TreeSet<String>(); var descriptions = new TreeSet<String>();
+        for (var path : (Iterable<Map.Entry<String, JsonNode>>) api.path("paths")::fields) {
+            for (var method : (Iterable<Map.Entry<String, JsonNode>>) path.getValue()::fields) {
+                var operation = method.getValue(); String name = method.getKey().toUpperCase(Locale.ROOT) + " " + path.getKey();
+                boolean fields = operation.path("parameters").findValuesAsText("name").contains("fields"), published = operation.has("x-fields");
+                if (fields && !published) { problems.add(name + ": fields without x-fields"); }
+                if (published && !fields) { problems.add(name + ": x-fields without the fields parameter"); }
+                if (published && operation.path("x-fields").isEmpty()) { problems.add(name + ": empty x-fields"); }
+                if (path.getKey().endsWith("/filter-values") && fields) { problems.add(name + ": filter-values takes no fields"); }
+                // A list export has its list's contract (x-filterable); /instructor/week/export is a document, not a list.
+                if (path.getKey().endsWith("/export") && operation.has("x-filterable")) { exports.add(path.getKey()); }
+                for (var parameter : operation.path("parameters")) { if (parameter.path("name").asText().equals("fields")) { descriptions.add(parameter.path("description").asText()); } }
+                if (EXPORTS.containsKey(path.getKey())) {
+                    var list = api.path("paths").path(EXPORTS.get(path.getKey())).path("get").path("x-fields");
+                    if (list.isEmpty() || !operation.path("x-fields").equals(list)) { problems.add(name + ": x-fields " + operation.path("x-fields") + " instead of its list's " + list); }
+                }
+                if (CONTRACT_ONLY_EXPORTS.contains(path.getKey()) && (fields || published)) { problems.add(name + ": contract only, but it publishes fields"); }
+            }
+        }
+        var classified = new TreeSet<>(EXPORTS.keySet()); classified.addAll(CONTRACT_ONLY_EXPORTS);
+        assertThat(exports).as("every export of the contract is checked").isEqualTo(classified);
+        if (descriptions.size() != 1 || !descriptions.first().contains("this operation's x-fields") || descriptions.first().contains("list operation's")) {
+            problems.add("the fields parameter's description (one for lists and exports, naming this operation's x-fields): " + descriptions);
+        }
+        assertThat(problems).isEmpty();
+    }
+
+    /**
+     * E5-T24 step 8 (E5-T22 question 1; CONVENCIONS_API §4): each universal list publishes in `x-filterable` exactly the fields
+     * its runtime filter accepts, for ADMIN and INSTRUCTOR with every module on; `/weeks`, `/class-sessions`, `/ring-blocks`,
+     * `/training-bookings` and `/bookings`, which already accepted `id`, now publish it.
+     */
+    @Test void CONVENCIONS_API_4_everyEngineListPublishesTheFiltersItAccepts() throws Exception {
+        var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var problems = new ArrayList<String>();
+        for (var entry : new TreeMap<>(ENGINE_LISTS).entrySet()) {
+            var published = new TreeSet<String>(); api.path("paths").path(entry.getKey()).path("get").path("x-filterable").forEach(field -> published.add(field.asText()));
+            var accepted = new TreeSet<String>();
+            for (String role : List.of("ADMIN", "INSTRUCTOR")) {
+                try { accepted.addAll(filters(entry.getValue(), role)); }
+                catch (ApiException denied) { assertThat(role).as(entry.getKey() + " " + denied.code()).isEqualTo("INSTRUCTOR"); }
+            }
+            accepted.removeAll(REFUSED_FILTERS.getOrDefault(entry.getKey(), Set.of()));
+            if (!published.equals(accepted)) { problems.add(entry.getKey() + ": x-filterable " + published + " but accepts " + accepted); }
+        }
+        assertThat(problems).isEmpty();
+        for (String path : List.of("/api/v1/weeks", "/api/v1/class-sessions", "/api/v1/ring-blocks", "/api/v1/training-bookings", "/api/v1/bookings", "/api/v1/training-bookings/export")) {
+            assertThat(mapper.convertValue(api.path("paths").path(path).path("get").path("x-filterable"), List.class)).as(path).contains("id");
+        }
+    }
+    /**
+     * Filters of a shared runtime allowlist that a list itself refuses: the registrations list takes its activity from the
+     * path, so `activityId` (its export's filter) answers 400 INVALID_FILTER there (E5-T20; ActivityRealCoreFollowUpsIT).
+     */
+    static final Map<String, Set<String>> REFUSED_FILTERS = Map.of("/api/v1/activities/{id}/registrations", Set.of("activityId"));
+    /** The filter fields the runtime allowlist of `list` accepts for `role`. */
+    Set<String> filters(String list, String role) {
+        var jwt = Jwt.withTokenValue("token").header("alg", "none").subject("list-fields-" + role).claim("clubId", CLUB).build();
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
+        try (var tenant = TenantContext.open(CLUB)) { return Set.copyOf(lists.dataset(list).definition().filters().keySet()); }
+        finally { SecurityContextHolder.clearContext(); }
     }
 
     /** The keys the runtime allowlist accepts for ADMIN and for INSTRUCTOR, with every module on. */

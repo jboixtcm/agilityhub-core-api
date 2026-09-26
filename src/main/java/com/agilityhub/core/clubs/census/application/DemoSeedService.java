@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 /** Local demo bootstrap. A completed run is insert-only and never resets subsequent demo edits. */
 @Service
 public class DemoSeedService {
+    /** S04 R-04-08: the document type every signup creates; a left dog's is received (E5-T24). */
+    private static final String VACCINATION_CARD = "VACCINATION_CARD";
     private final CensusAccess census; private final CensusRepository<DogDocument> documents; private final DemoSeedRepository runs;
     private final MigrationCatalogAccess catalogs; private final RoleAssignmentService team; private final DemoIdentityService identity;
     private final com.agilityhub.core.platform.application.MigrationClubAccess clubs;
@@ -109,6 +111,26 @@ public class DemoSeedService {
                 documents.insert(document);
             }
         }
+        // E5-T24 (web E4-W13 question 3; S04 R-04-06, R-04-07): the first LEFT members get a fictional identity document and one
+        // INACTIVE chipped dog with a received vaccination card (seeds/demo-*.yaml `leftDogs`), so a readmission can reuse it.
+        var leftMembers = created.values().stream().filter(m -> "LEFT".equals(m.status)).toList();
+        for (int i = 0; i < spec.leftDogs().size(); i++) {
+            var row = spec.leftDogs().get(i); var owner = leftMembers.get(i);
+            owner.idDocument = Map.of("type", row.idDocumentType(), "number", contacts.normalizeDocument(row.idDocumentType(), row.idDocument()));
+            census.members.save(owner);
+            var dog = new Dog(); dog.id = DemoDataset.id(club, "left-dog", i); dog.clubId = club; dog.memberId = owner.id; dog.name = row.dogName();
+            dog.sourceIds = Map.of("demo", dog.id); dog.breed = "Fictional mixed breed"; dog.sex = "FEMALE"; dog.birthDate = spec.referenceDate().minusYears(6);
+            dog.chip = row.chip(); dog.status = "INACTIVE"; dog.deactivatedAt = owner.leftAt; dog.deactivationReason = "MEMBER_LEFT";
+            dog.registeredAt = owner.joinedAt; dog.levelId = require(levels, row.levelCode()).get("_id").toString(); dog.levelAssignedAt = owner.joinedAt;
+            dog.levelHistory = List.of(); dog.licenses = List.of(); dog.handlerName = owner.firstName;
+            census.dogs.insert(dog);
+            for (String type : requiredDocuments) {
+                var document = new DogDocument(); document.id = documentService.documentId(dog.id, type); document.clubId = club;
+                document.dogId = dog.id; document.type = type; document.state = "PENDING"; document.files = List.of();
+                documents.insert(document);
+            }
+            receive(dog.id, VACCINATION_CARD, owner.accountId);
+        }
         for (int index : spec.instructors()) {
             var member = data.members().get(index); team.createInstructor(member.id(), member.firstName(),
                     config.ringPalette().isEmpty() ? config.primaryColor() : config.ringPalette().get(index % config.ringPalette().size()));
@@ -124,15 +146,17 @@ public class DemoSeedService {
         for (int i = 0; i < pendingMembers.size(); i++) {
             signupSeeder.apply(pendingMembers.get(i), spec.pendingSignups().get(i), i, requiredDocuments);
         }
-        int dogCount = data.dogs().size() + pendingMembers.size();
+        int leftDogs = spec.leftDogs().size(); int dogCount = data.dogs().size() + pendingMembers.size() + leftDogs;
         var counts = new LinkedHashMap<String, Integer>();
         counts.put("activeMembers", spec.activeMembers()); counts.put("pendingMembers", spec.pendingMembers());
         counts.put("inactiveMembers", spec.inactiveMembers()); counts.put("leftMembers", spec.leftMembers());
         counts.put("members", data.members().size()); counts.put("dogs", dogCount); counts.put("familyGroups", spec.familyGroups());
-        counts.put("activeDogs", data.dogs().size()); counts.put("pendingDogs", pendingMembers.size());
+        counts.put("activeDogs", data.dogs().size()); counts.put("pendingDogs", pendingMembers.size()); counts.put("inactiveDogs", leftDogs);
         counts.put("instructors", spec.instructors().size()); counts.put("administrators", spec.administrators().size());
-        counts.put("receivedDocuments", requiredDocuments.isEmpty() ? 0 : spec.receivedDocuments());
-        counts.put("pendingDocuments", dogCount * requiredDocuments.size() - counts.get("receivedDocuments"));
+        // Each left dog's vaccination card is received; its other required types stay pending, as the active dogs' do.
+        int requiredCards = requiredDocuments.contains(VACCINATION_CARD) ? leftDogs : 0;
+        counts.put("receivedDocuments", (requiredDocuments.isEmpty() ? 0 : spec.receivedDocuments()) + leftDogs);
+        counts.put("pendingDocuments", dogCount * requiredDocuments.size() - (requiredDocuments.isEmpty() ? 0 : spec.receivedDocuments()) - requiredCards);
         clubs.reserveNumbers(data.members().size());
         runs.insert(new DemoSeedRun(club, club, seed, signature, counts));
         return new Result(club, data.members().size() + dogCount + spec.familyGroups(), counts);

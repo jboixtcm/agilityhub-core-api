@@ -96,6 +96,14 @@ new `@example.test` accounts are passwordless. IBANs use fictional bank/branch 0
 and valid domestic/mod-97 check digits. No real data is read and no welcome mail is sent.
 Member numbers are reserved for later signups.
 
+A readmission can reuse a seed dog (E5-T24, web E4-W13; S04 R-04-06/R-04-07). `leftDogs` gives the
+first LEFT member (number 192) the fictional DNI `99000001C` and one INACTIVE dog, «Demo Boira»
+(chip `941000000000805`, level B, `deactivationReason = MEMBER_LEFT` at the member's `leftAt`), whose
+vaccination card is RECEIVED with a fictional PDF. A `POST /signup` with that DNI and that chip is a
+readmission of member 192 that reuses the dog; D2 shows the dog's own card beside the submitted one. So
+the demo has 246 dogs: 242 ACTIVE, 3 PENDING and this INACTIVE one, and 7 received documents. The D1
+counts (184 ACTIVE members, 242 ACTIVE dogs) do not change.
+
 Generation is deterministic for the same seed/specification/tenant; census IDs stay
 stable. Infrastructure timestamps and account/attachment IDs are allocated when
 persisting. A completed run makes subsequent runs no-ops and preserves manual demo

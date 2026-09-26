@@ -22,7 +22,7 @@ public class ListExportService {
     public Result export(String key, String format, String selected, MultiValueMap<String, String> params) {
         policy.requireAllowed(format);
         var dataset = lists.dataset(key); var query = ListQuery.parse(dataset.definition(), params);
-        var columns = dataset.definition().selectColumns(selected);
+        var columns = dataset.definition().selectColumns(selected != null || query.fields().isEmpty() ? selected : fieldColumns(dataset.definition(), query.fields()));
         long rows = lists.exportCount(dataset, query, ExportPolicy.MAX_ROWS);
         if (rows > ExportPolicy.MAX_ROWS) { throw new ApiException(ErrorCode.EXPORT_TOO_LARGE); }
         String id = UUID.randomUUID().toString(); String clubId = TenantContext.require();
@@ -38,5 +38,13 @@ public class ListExportService {
         if (!inline) { return new Result(id, name, null); }
         try { return new Result(id, name, renderer.render(job, true)); }
         catch (RuntimeException ex) { jobs.fail(job, ex); throw ex; }
+    }
+    /**
+     * CONVENCIONS_API §4 (amended 26-09, E5-T24): an export honours `fields`, already checked against the list's `x-fields` (any
+     * other key is 400 INVALID_FILTER). Without `columns`, its keys that are export columns are the columns, in its order; keys
+     * without a column (the row id) are left out, and `fields` that names no column is 400 INVALID_FILTER.
+     */
+    static String fieldColumns(ListDefinition definition, List<String> fields) {
+        return String.join(",", fields.stream().filter(definition.columns()::contains).toList());
     }
 }

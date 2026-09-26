@@ -19,8 +19,8 @@ public class SignupFilesController {
     public void upload(@RequestParam String fileKey,@RequestParam long expires,@RequestParam String signature,HttpServletRequest request) throws IOException {
         attachments.putSignupLocal(fileKey,expires,signature,request.getContentType(),request.getInputStream());
     }
+    /** The signed download URL of a signup file (CONVENCIONS_API §5, E5-T24): authorised by its signature alone, no bearer. */
     @GetMapping("/api/v1/signup/files")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InputStreamResource> download(@RequestParam String fileKey,@RequestParam long expires,@RequestParam String signature) throws IOException {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition","attachment")
                 .header("Cache-Control","no-store").body(new InputStreamResource(attachments.openLocal(fileKey,expires,signature)));

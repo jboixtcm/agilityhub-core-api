@@ -8,6 +8,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T24: the real-core gaps found by the web's E4-W13, and the E5-T22 review's points.
+  - R-04-19 (amended 26-09): D2 adds a file to a pending dog, a readmission's reused dog included, with the ADMIN's own
+    `POST /attachments/upload-url` (`purpose = DOG_DOCUMENT`). `PATCH /dogs/{id}` claims that key when it was uploaded in
+    the club and is not claimed for another dog or type. Any other key answers `400 FILE_NOT_FOUND`, a removed one too, and
+    the limit of 10 new files per request counts these keys. The file is stored with the name the PATCH sends.
+  - CONVENCIONS_API §5 (amended 26-09, A31): the local storage's signed URLs authorise themselves. `PUT
+    /api/v1/attachments/uploads/{id}`, `GET /api/v1/attachments/files/{id}` and `GET /api/v1/signup/files` read no bearer
+    and take the club from the signed file. A wrong signature or an expired URL answers `403`.
+  - Seeds: `seed:demo` gives the Cànic's first LEFT member (number 192) a fictional DNI and an INACTIVE chipped dog with a
+    received vaccination card (`seeds/demo-canic.yaml` `leftDogs`), so a readmission can reuse a seed dog (R-04-06/R-04-07).
+    The demo has 246 dogs and 7 received documents; the D1 counts do not change. A database seeded before keeps its old
+    specification: `seed:demo` answers `CLUB_NOT_EMPTY` there, as for any changed specification.
+  - S14 §3 (amended 26-09): an instructor's audited action is stored with `origin = BACKOFFICE` (`actorRole = INSTRUCTOR`);
+    the event envelope keeps `INSTRUCTOR`.
+  - CONVENCIONS_API §4 (amended 26-09): exports publish their list's `x-fields` and honour `fields`: without `columns`, the
+    requested keys that are columns pick the columns. `filter-values` and the contract-only exports take no `fields`. A
+    `@ListContract` that would publish `fields` without `x-fields` (or the reverse) stops the application at startup.
+  - R-04-09 (amended 26-09): a member whose own plan is no longer assignable counts as a member without a plan. `GET
+    /signup` no longer answers `422 PLAN_NOT_AVAILABLE` for that member (it quoted the gone plan), and `POST /me/dogs/signup`
+    requires `planIdRequested`.
+  - `/weeks`, `/class-sessions`, `/ring-blocks`, `/training-bookings` (and its export) and `/bookings` publish the `id`
+    filter they accepted. `TemplateClass.placementId` is nullable, as sent.
+  - Tests: the family member's IT goes through the family-group signup and its validation (R-04-13); two test names cite
+    their own spec ids. `bin/e3-smoke` readmits the seed's LEFT member and adds a file with the ADMIN's upload through the
+    signed URLs, without a bearer.
 - E5-T23: the Cànic's cash payment instructions, and the E5-T21 review's points.
   - S04 §2 row 19 (Jordi, 26-09): `seeds/club-canic.yaml` (and its consumer variant) sets
     `paymentProviders.MANUAL.instructions` in `ca` and `es`, word for word as confirmed from the approved mockup 19.

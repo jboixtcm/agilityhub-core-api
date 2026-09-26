@@ -76,9 +76,11 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; YYYY-MM.") String birthMonth,
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only.") @Size(max = 1000) String notesToInstructors,
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; replaces files for the supplied document types. "
-                    + "A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new signup upload. "
-                    + "The key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId} answers 400 FILE_NOT_FOUND. "
-                    + "At most 10 new uploads per request (kept files do not count). Sending back the view's keys is no change.") List<SignupRequests.SignupDocument> documents,
+                    + "A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new file: "
+                    + "the caller's own POST /attachments/upload-url with purpose = DOG_DOCUMENT, uploaded in the club and not claimed by another dog or type "
+                    + "(a signup upload is also taken). Another club's, purpose's or account's key, one claimed elsewhere or never uploaded answers 400 FILE_NOT_FOUND, "
+                    + "and so does the key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId}. "
+                    + "At most 10 new files per request (kept files do not count). Sending back the view's keys is no change.") List<SignupRequests.SignupDocument> documents,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record DogLevelRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String levelId) { }

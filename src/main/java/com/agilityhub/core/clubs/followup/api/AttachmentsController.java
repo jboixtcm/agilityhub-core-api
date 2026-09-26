@@ -108,16 +108,16 @@ public class AttachmentsController {
         access.removableAttachment(access.caller(jwt.getClaimAsString("memberId")), id);
         throw new UnsupportedOperationException();
     }
+    /** The local storage's signed upload URL (CONVENCIONS_API §5, E5-T24): authorised by its signature alone, no bearer. */
     @io.swagger.v3.oas.annotations.Hidden
     @PutMapping("/api/v1/attachments/uploads/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void putLocal(@PathVariable String id, @RequestParam long expires, @RequestParam String signature, jakarta.servlet.http.HttpServletRequest request) throws IOException {
         attachments.putLocal(id, expires, signature, request.getContentType(), request.getInputStream());
     }
+    /** The local storage's signed download URL (CONVENCIONS_API §5, E5-T24): authorised by its signature alone, no bearer. */
     @io.swagger.v3.oas.annotations.Hidden
     @GetMapping("/api/v1/attachments/files/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     public ResponseEntity<InputStreamResource> getLocal(@PathVariable String id, @RequestParam long expires, @RequestParam String signature) throws IOException {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment")
                 .header("Cache-Control", "no-store").body(new InputStreamResource(attachments.openLocal(id, expires, signature)));

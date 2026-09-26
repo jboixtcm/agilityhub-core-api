@@ -1,0 +1,2 @@
+undone in tree B: SignupService.addDog falls back to member.planId (step 6)
+tree ready: target/before-fix-b

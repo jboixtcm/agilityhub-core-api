@@ -12,7 +12,10 @@ import java.util.*;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
-/** Local presigned URLs require a bearer token, like the local export adapter. */
+/**
+ * Local presigned URLs: an HMAC over the file id, the expiry and the method. E5-T24 (CONVENCIONS_API §5, A31): like S3's, they
+ * authorise themselves; the routes read no bearer ({@code SignedFileRequests}).
+ */
 public class LocalAttachmentStorage implements AttachmentStorage {
     private final Path root; private final byte[] key; private final Clock clock;
     

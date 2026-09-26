@@ -47,10 +47,17 @@ public class AuditWriter {
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),
                 actor.name(), actor.role(), actor.impersonatedMemberId(), actor.support(), action, entityType,
                 entityId, memberId, changes, reason, actor.ip(), actor.userAgent(), actor.traceId(),
-                origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name());
+                auditOrigin(origin != null ? origin : com.agilityhub.core.shared.application.CurrentUser.current()==null?null:com.agilityhub.core.shared.application.CurrentUser.current().origin().name()));
         // MongoTemplate participates in the caller's transaction, or inserts immediately without one.
         repository.append(entry);
     }
+
+    /**
+     * S14 §3 (amended 26-09, review E5-T22 #1; E5-T24): the audit `origin` is APP · BACKOFFICE · SYSTEM · WEBHOOK · PUBLIC. The
+     * request's event origin INSTRUCTOR (CATALEG_ESDEVENIMENTS, which N-04/N-05 route on) is written BACKOFFICE; `actorRole =
+     * INSTRUCTOR` tells it apart. Entries stored earlier with INSTRUCTOR still read BACKOFFICE ({@code AuditListProjection}).
+     */
+    static String auditOrigin(String origin) { return "INSTRUCTOR".equals(origin) ? "BACKOFFICE" : origin; }
 
     private static void requireText(String text, String message) {
         if (text == null || text.isBlank()) { throw new IllegalArgumentException(message); }

@@ -68,9 +68,11 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         assertThat(response.getStatus()).as("HTTP code=%s details=%s",body.path("code").asText(),body.path("details")).isEqualTo(status);return body;
     }
     /** A validated (ACTIVE) member of the copy, through the public signup and D2 with its dry-run total, as in {@code SignupGateFixesIT}. */
-    String activeMember(String planId) throws Exception {
+    String activeMember(String planId) throws Exception { return activeMember(request(planId)); }
+    /** The same with the given signup body; the validation takes D2's proposals (no explicit plan). */
+    String activeMember(ObjectNode signup) throws Exception {
         String ip="198.51.100."+(++sequence%250+1);
-        String id=result(postJson("/signup",request(planId)).header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr(ip);return r;}),201).path("memberId").asText();
+        String id=result(postJson("/signup",signup).header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr(ip);return r;}),201).path("memberId").asText();
         var review=result(admin(get("/api/v1/members/"+id+"/signup")),200);var body=new LinkedHashMap<String,Object>();body.put("version",review.path("version").asLong());
         var dogs=new ArrayList<Map<String,Object>>();for(var dog:review.path("dogs")) dogs.add(Map.of("dogId",dog.path("id").asText(),"levelId",level));body.put("dogs",dogs);
         body.put("nextInvoiceDate",review.at("/proposals/nextInvoiceDate").asText());
@@ -87,9 +89,33 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         throw new AssertionError("No plan "+id+" in "+config.path("plans"));
     }
     Map<String,Object> addDog(String chip) { return Map.of("dog",Map.of("name","Added Dog "+chip.substring(chip.length()-3),"sex","MALE","breed","Example breed","birthMonth","2023-02","chip",chip),"documents",List.of()); }
+    /**
+     * E5-T24 step 7 (review E5-T22 #4): a member on the family fare the real way (R-04-13). An ACTIVE holder on ABONAT with one
+     * dog; a public signup on ABONAT that claims the holder's family group; its D2 validation, with D2's proposal, takes the
+     * hidden family fare `ABONAT_FAMILIAR` and its price, and joins the holder's group.
+     */
+    String familyMember() throws Exception {
+        String holder=activeMember(planId("ABONAT"));var holderRow=member(holder);
+        String holderDog=mongo.getCollection("dogs").find(new Document("memberId",holder).append("clubId",club)).first().getString("name");
+        var body=request(planId("ABONAT"));
+        body.set("familyGroupClaim",mapper.valueToTree(Map.of("holderName",holderRow.getString("firstName")+" "+holderRow.getString("lastName1"),"dogName",holderDog,"leavePending",false)));
+        String id=activeMember(body);
+        assertThat(member(id).getString("planId")).isEqualTo(planId("ABONAT_FAMILIAR"));
+        assertThat(member(id).getString("priceId")).isEqualTo(mongo.getCollection("prices").find(new Document("clubId",club).append("planId",planId("ABONAT_FAMILIAR"))).first().getString("_id"));
+        assertThat(member(id).getString("familyGroupId")).isNotNull().isEqualTo(member(holder).getString("familyGroupId"));
+        return id;
+    }
+    static JsonNode quote(JsonNode config,String planId) {
+        for(var quote:config.at("/upfront/planQuotes")) if(planId.equals(quote.path("planId").asText())) return quote;
+        throw new AssertionError("No quote for "+planId);
+    }
+    static long today(JsonNode quote) {
+        for(var option:quote.path("options")) if("TODAY".equals(option.path("option").asText())) return option.at("/amountDue/amountMinor").asLong();
+        throw new AssertionError("No TODAY option in "+quote);
+    }
 
     /** Step 1 (E4-W12 question 1): every plan with `texts.priceLabel` carries it in the reader's locale; the others have none. */
-    @Test void R_05_19_T_04_09_eachPlanCarriesItsPriceLabelInTheReadersLocale() throws Exception {
+    @Test void R_05_19_T_05_07_eachPlanCarriesItsPriceLabelInTheReadersLocale() throws Exception {
         var catalan=anonymous("ca");
         assertThat(plan(catalan,planId("TERAPIA")).path("priceLabel").asText()).isEqualTo("condicions i cost segons cada cas");
         assertThat(plan(anonymous("es"),planId("TERAPIA")).path("priceLabel").asText()).isEqualTo("condiciones y coste según cada caso");
@@ -104,10 +130,11 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
     /**
      * Step 2 (E4-W12 question 2, R-04-09, M8): a family member on the hidden `ABONAT_FAMILIAR` finds it in `plans`, in catalog
      * order and marked `current`; the other plans read `current: false`. The public offer still hides it and has no `current`.
+     * E5-T24 step 7: the member comes through the family-group signup and its validation (R-04-13), and the family fare's quote
+     * is priced on the family price: 50 % of 90 € for a third dog (`billing.familyDiscountPercentFromSecondDog`).
      */
-    @Test void R_04_09_T_04_21_theFamilyMembersOwnHiddenPlanIsListedAsCurrentInAddDogMode() throws Exception {
-        String id=activeMember(planId("ABONAT"));
-        mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("planId",planId("ABONAT_FAMILIAR"))));
+    @Test void R_04_09_theFamilyMembersOwnHiddenPlanIsListedAsCurrentInAddDogMode() throws Exception {
+        String id=familyMember();
         var config=asMember(id);
         assertThat(ids(config.path("plans"))).containsExactlyElementsOf(planIds(List.of("ABONAT","ABONAT_FAMILIAR","PACK6","PACK10","TERAPIA")));
         var family=plan(config,planId("ABONAT_FAMILIAR"));
@@ -115,8 +142,10 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         assertThat(family.path("name").asText()).isEqualTo("Abonat · 2 gossos (familiar)");
         assertThat(family.at("/price/amount/amountMinor").asLong()).isEqualTo(9000);
         for(var plan:config.path("plans")) if(plan!=family) assertThat(plan.path("current").isBoolean()&&!plan.path("current").asBoolean()).as(plan.path("id").asText()).isTrue();
-        // One quote per listed plan, the family fare included (M5).
+        // One quote per listed plan, the family fare included (M5), priced on the family price (R-04-14).
         assertThat(config.at("/upfront/planQuotes").findValuesAsText("planId")).containsExactlyInAnyOrderElementsOf(ids(config.path("plans")));
+        assertThat(today(quote(config,planId("ABONAT_FAMILIAR")))).as("50 % of the family price, 9000").isEqualTo(4500);
+        assertThat(today(quote(config,planId("ABONAT")))).as("50 % of ABONAT's 6000").isEqualTo(3000);
         assertThat(config.at("/member/planId").asText()).isEqualTo(planId("ABONAT_FAMILIAR"));
         assertThat(SnapshotSchemas.violations(config,"SignupConfig")).isEmpty();
         // The public offer is unchanged: no hidden plan, and no `current` on any plan.
@@ -160,5 +189,45 @@ class SignupPlansFollowUpIT extends AbstractIntegrationTest {
         var added=result(asMember(postJson("/me/dogs/signup",withBody).header("Idempotency-Key",UUID.randomUUID()),id),201);
         var dog=mongo.getCollection("dogs").find(new Document("_id",added.path("dogId").asText()).append("clubId",club)).first();
         assertThat(dog.get("signup",Document.class).getString("planIdRequested")).isEqualTo(planId("PACK6"));
+    }
+
+    @Autowired ClubConfigService configs;
+    /** The member's add-dog without, with a gone and with an offered `planIdRequested` (R-04-09): 400 REQUIRED, 422, 201. */
+    void mustChoose(String id,String gone,String offered,String chip) throws Exception {
+        var config=asMember(id);
+        assertThat(ids(config.path("plans"))).doesNotContain(gone);
+        config.path("plans").forEach(plan -> assertThat(plan.path("current").isBoolean()&&!plan.path("current").asBoolean()).as(plan.path("id").asText()).isTrue());
+        assertThat(config.at("/member/planId").asText()).isEqualTo(gone);
+        assertThat(config.path("upfront").has("additionalDogOptions")).as("no options for a gone plan, as for no plan").isFalse();
+        assertThat(config.at("/upfront/planQuotes").findValuesAsText("planId")).containsExactlyInAnyOrderElementsOf(ids(config.path("plans")));
+        long dogs=mongo.getCollection("dogs").countDocuments(new Document("clubId",club).append("memberId",id));
+        var refused=result(asMember(postJson("/me/dogs/signup",addDog(chip+"1")).header("Idempotency-Key",UUID.randomUUID()),id),400);
+        assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(refused.at("/details/fieldErrors")).hasSize(1);
+        assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("planIdRequested");
+        assertThat(refused.at("/details/fieldErrors/0/code").asText()).isEqualTo("REQUIRED");
+        assertThat(mongo.getCollection("dogs").countDocuments(new Document("clubId",club).append("memberId",id))).as("nothing stored").isEqualTo(dogs);
+        var withBody=new LinkedHashMap<String,Object>(addDog(chip+"2"));withBody.put("planIdRequested",gone);
+        assertThat(result(asMember(postJson("/me/dogs/signup",withBody).header("Idempotency-Key",UUID.randomUUID()),id),422).path("code").asText()).isEqualTo("PLAN_NOT_AVAILABLE");
+        withBody.put("planIdRequested",offered);
+        var added=result(asMember(postJson("/me/dogs/signup",withBody).header("Idempotency-Key",UUID.randomUUID()),id),201);
+        assertThat(mongo.getCollection("dogs").find(new Document("_id",added.path("dogId").asText()).append("clubId",club)).first().get("signup",Document.class)
+                .getString("planIdRequested")).isEqualTo(offered);
+    }
+
+    /**
+     * E5-T24 step 6 (R-04-09, amended 26-09; review E5-T22 #3): a member whose own plan is no longer assignable counts as a
+     * member without a plan: GET /signup marks no plan current, and POST /me/dogs/signup without planIdRequested answers
+     * 400 VALIDATION_ERROR with REQUIRED on that field and stores nothing. Asking for the gone plan is 422 PLAN_NOT_AVAILABLE;
+     * an offered one is accepted. First the plan is deactivated (D11, PATCH /plans/{id}), then a pack's module is turned off.
+     */
+    @Test void R_04_09_aMemberWhoseOwnPlanIsGoneMustChooseOne() throws Exception {
+        String abonat=activeMember(planId("ABONAT")),pack=activeMember(planId("PACK6"));
+        long version=((Number)mongo.getCollection("plans").find(new Document("_id",planId("ABONAT"))).first().get("version")).longValue();
+        result(admin(patch("/api/v1/plans/"+planId("ABONAT")).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",version,"active",false)))),200);
+        mustChoose(abonat,planId("ABONAT"),planId("PACK6"),"94100000591000");
+        result(admin(patch("/api/v1/plans/"+planId("ABONAT")).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",version+1,"active",true)))),200);
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$pull",new Document("modules","PACKS")));configs.invalidate(club);signupService.invalidateConfiguration(club);
+        mustChoose(pack,planId("PACK6"),planId("ABONAT"),"94100000592000");
     }
 }

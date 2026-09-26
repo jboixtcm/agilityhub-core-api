@@ -515,9 +515,10 @@ public class SignupService implements SignupPaymentAccess {
     /**
      * Checks the documents and claims their files (R-04-08); writes no document. A submission (step 17) always has a
      * VACCINATION_CARD row; a D2 edit has only the types it sends (E3-T17 round 2). E5-T19 (R-04-19): in a D2 edit, a file key
-     * D2's view gave for that type ({@link StoredFiles#current}) keeps its file as it is, and any other key is a new signup
-     * upload, so D2 adds or removes one file by sending the type's other keys back. E5-T21: a key whose stored row was removed
-     * through S03 is refused (400 FILE_NOT_FOUND), and R-04-08's limit of 10 files counts only the new uploads.
+     * D2's view gave for that type ({@link StoredFiles#current}) keeps its file as it is, and any other key is a new upload, so
+     * D2 adds or removes one file by sending the type's other keys back. E5-T24: D2's new file is the ADMIN's own DOG_DOCUMENT
+     * upload ({@link AttachmentService#claimDogDocument}); a submission's, a signup upload. E5-T21: a key whose stored row was
+     * removed through S03 is refused (400 FILE_NOT_FOUND), and R-04-08's limit of 10 files counts only the new uploads.
      * `shown` is D2's view ({@link #shownKeys}) in a D2 edit, and null at submission, which has no view yet.
      */
     private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted,Map<String,Set<String>> shown) {
@@ -539,8 +540,11 @@ public class SignupService implements SignupPaymentAccess {
                 if(key!=null&&current.containsKey(key)) { files.add(new LinkedHashMap<>(current.get(key)));continue; }
                 // E5-T21 (R-04-19): a removed file stays removed; its key is no upload to claim again, as an S03 key is not.
                 if(document.stored().removed().contains(key)) throw new ApiException(ErrorCode.FILE_NOT_FOUND);
-                var claim=attachments.claimSignup(key,dog.id+":"+type);
-                files.add(object("id",claim.id(),"fileKey",claim.fileKey(),"name",name,"mimeType",claim.mimeType(),"sizeBytes",claim.sizeBytes(),"uploadedAt",claim.uploadedAt()));
+                // E5-T24 (R-04-19, E4-W13): D2 adds a file with the ADMIN's own DOG_DOCUMENT upload; a submission takes signup uploads only.
+                boolean adminUpload=!submission&&key!=null&&!key.startsWith("signup/");
+                var claim=adminUpload?attachments.claimDogDocument(key,dog.id+":"+type):attachments.claimSignup(key,dog.id+":"+type);
+                files.add(object("id",claim.id(),"fileKey",claim.fileKey(),"name",name,"mimeType",claim.mimeType(),"sizeBytes",claim.sizeBytes(),"uploadedAt",claim.uploadedAt(),
+                        "uploadedByAccountId",claim.uploadedByAccountId()));
             }
             // E5-T19 (R-04-06, R-04-08): a reused dog whose own card is RECEIVED meets the requirement; its card stays at validation.
             // E5-T23 (review E5-T21 #1): a D2 edit meets it unless it changes the card, so a card without files needs one only
@@ -593,13 +597,21 @@ public class SignupService implements SignupPaymentAccess {
             if(files.isEmpty()) events.emit("DogDocumentPending","DogDocument",doc.id,object("dogId",dog.id,"type",type,"state","PENDING","trigger",received?"FILE_REMOVED":"REGISTRATION"));
         }
     }
+    /**
+     * R-04-09 (E5-T24, review E5-T22 #3): the member's own plan while the club can still assign it. A member whose plan is no
+     * longer assignable (inactive, or its module off) counts as a member without a plan (B34): null, no plan `current`.
+     */
+    private String ownPlan(Member member) {
+        return member.planId!=null&&policy.assignablePlans().stream().anyMatch(plan -> plan.id().equals(member.planId))?member.planId:null;
+    }
     @Transactional
     @Audited(action=AuditAction.SIGNUP_EDITED,entityType="'Dog'",entity="#result['dogId']",member="#memberId")
     public Map<String,Object> addDog(String memberId,Map<String,Object> request,String ip,String userAgent) {
         lock();var member=access.me();if(!"ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE);
         if(member.erasedAt!=null) throw new ApiException(ErrorCode.MEMBER_ERASED);
-        String requested=string(request.get("planIdRequested"));String planId=requested==null?member.planId:requested;
-        // R-04-09 (E5-T22): a member without a plan (B34) chooses one of the offered plans; only an empty offer leaves it null.
+        String requested=string(request.get("planIdRequested"));String planId=requested==null?ownPlan(member):requested;
+        // R-04-09 (E5-T22, E5-T24): a member without a plan (B34), or whose plan is gone, chooses one of the offered plans; only
+        // an empty offer leaves it null.
         if(planId==null&&!policy.plans().isEmpty()) throw invalid("planIdRequested","REQUIRED");
         // M8: the member's own plan is assignable even when it is hidden from the public offer (the family fare); another plan must be offered.
         if(Objects.equals(planId,member.planId)) policy.requireAssignable(planId);else policy.require(planId);
@@ -638,10 +650,12 @@ public class SignupService implements SignupPaymentAccess {
                     "instructions",type.equals("MANUAL")?settings.manualInstructions(language):null,"mandateText",type.equals("SEPA_DD")?mandate(language):null)).toList());
             var monthly=plans.stream().filter(plan -> "MONTHLY_FEE".equals(plan.billingMode())&&plan.price()!=null).findFirst().orElse(null);
             var upfront=object("firstMonthSplitDay",config.get("signup.firstMonthSplitDay",Integer.class),"today",policy.today(),"firstMonthOptions",monthly==null?List.of():policy.firstOptions(monthly.price().amount()).stream().map(this::configChoice).toList());
-            // R-04-14: the TODAY choice of an added dog always exists; ALTERNATIVE only up to billing.upfrontCutoffDay.
-            if(me!=null&&me.planId!=null) upfront.put("additionalDogOptions",policy.additionalOptions(me.planId,me.planId).stream().map(this::configChoice).toList());
+            // R-04-14: the TODAY choice of an added dog always exists; ALTERNATIVE only up to billing.upfrontCutoffDay. E5-T24 (R-04-09):
+            // none for a member whose plan is gone, as for one without a plan (quoting a gone plan answered 422 PLAN_NOT_AVAILABLE).
+            String own=me==null?null:ownPlan(me);
+            if(own!=null) upfront.put("additionalDogOptions",policy.additionalOptions(own,own).stream().map(this::configChoice).toList());
             // M5: one quote per listed plan, computed like the submission; the add-dog mode also quotes the member's own (maybe hidden) plan.
-            upfront.put("planQuotes",shown.stream().map(plan -> quoteView(policy.planQuote(plan,me!=null,me==null?null:me.planId))).toList());
+            upfront.put("planQuotes",shown.stream().map(plan -> quoteView(policy.planQuote(plan,me!=null,own))).toList());
             result.put("upfront",upfront);
         }
         if(me!=null) result.put("member",object("planId",me.planId,"paymentMethodMasked",billing()?queries.payment(me):null,"consentsUpToDate",policy.currentConsent(history(me),legalVersion())));

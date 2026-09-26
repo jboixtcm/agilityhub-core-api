@@ -280,6 +280,23 @@ class CalendarIT extends AbstractIntegrationTest {
         ok("POST","/ring-blocks/"+id+"/cancellation",Map.of());error("POST","/ring-blocks/"+id+"/cancellation",Map.of(),ErrorCode.INVALID_STATE);
         audit(AuditAction.RING_BLOCK_CREATED);audit(AuditAction.RING_BLOCK_CANCELLED);
     }
+    /**
+     * E5-T24 step 4 (S14 §3 and CATALEG_ESDEVENIMENTS, amended 26-09; review E5-T22 #1): an instructor's audited action is stored
+     * with `origin = BACKOFFICE` and `actorRole = INSTRUCTOR`; the event envelope keeps `INSTRUCTOR` (S08 R-08-19 routes on it).
+     */
+    @Test @AuditCovers(AuditAction.RING_BLOCK_CREATED)
+    void R_14_09_anInstructorsAuditedActionIsStoredBackofficeAndItsEventKeepsInstructor() throws Exception {
+        modules(Module.FREE_TRAINING);
+        // The authority a real token gives (SimpleGrantedAuthority), from which the request's origin is INSTRUCTOR (CurrentUserFilter).
+        var block=mapper.readTree(mvc.perform(call("POST","/ring-blocks",blockBody("2026-08-25T14:10:00Z","2026-08-25T14:40:00Z"))
+                .with(jwt().jwt(j -> j.subject("teacher").claim("clubId",CLUB)).authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_INSTRUCTOR"))))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsByteArray());
+        var audit=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("RING_BLOCK_CREATED").and("entityId").is(block.path("id").asText())),Document.class,"audit_entries");
+        assertThat(audit).as("the audit entry").isNotNull();
+        assertThat(audit.getString("origin")).isEqualTo("BACKOFFICE");assertThat(audit.getString("actorRole")).isEqualTo("INSTRUCTOR");
+        var event=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("RingBlockCreated")),Document.class,"domain_events");
+        assertThat(event).as("the outbox event").isNotNull();assertThat(event.getString("origin")).isEqualTo("INSTRUCTOR");
+    }
     @Test void T_06_16_trainingConflictsCancelAtomicallyOnlyForAdmin() throws Exception {
         modules(Module.FREE_TRAINING);var from=Instant.parse("2026-08-25T16:00:00Z");
         doubles.training.add(new TrainingConflictPort.Booking("training-a","plan-ring",from,from.plusSeconds(1800),"Example","Dog"));

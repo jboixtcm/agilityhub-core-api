@@ -190,12 +190,15 @@ class SignupIT extends AbstractIntegrationTest {
         var review=result(admin(get("/api/v1/members/"+id+"/signup").header("Host",host)),200);
         var download=java.net.URI.create(review.at("/dogs/0/documents/0/files/0/downloadUrl").asText());
         mvc.perform(admin(get(download).header("Host",host))).andExpect(status().isOk()).andExpect(content().bytes(bytes));
-        mvc.perform(get(download).header("Host",host)).andExpect(status().isUnauthorized());
+        // E5-T24 (CONVENCIONS_API §5, amended 26-09): the signed URL authorises itself, without a bearer.
+        mvc.perform(get(download).header("Host",host)).andExpect(status().isOk()).andExpect(content().bytes(bytes));
         validate(id,16000);
         mvc.perform(asMember(get(download).header("Host",host),id)).andExpect(status().isOk()).andExpect(content().bytes(bytes));
         String other="files-"+UUID.randomUUID().toString().substring(0,8),otherHost=other+".example.test";
         clubs.save(PlatformFixtures.club(other,otherHost));hosts.invalidate();
-        mvc.perform(get(download).header("Host",otherHost).with(jwt().jwt(j->j.subject("foreign-admin").claim("clubId",other)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))).andExpect(status().isNotFound());
+        // The club comes from the signed file: another club's host and bearer do no harm.
+        mvc.perform(get(download).header("Host",otherHost).with(jwt().jwt(j->j.subject("foreign-admin").claim("clubId",other)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isOk()).andExpect(content().bytes(bytes));
         clock.setInstant(clock.instant().plusSeconds(301));
         mvc.perform(admin(get(download).header("Host",host))).andExpect(status().isForbidden());
         assertThat(result(postJson("/signup/upload-urls",Map.of("fileName","large.pdf","contentType","application/pdf","sizeBytes",30*1024*1024)),400).path("code").asText()).isEqualTo("FILE_TOO_LARGE");

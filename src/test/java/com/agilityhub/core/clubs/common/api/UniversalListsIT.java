@@ -182,6 +182,33 @@ class UniversalListsIT extends AbstractIntegrationTest {
         admin(get("/api/v1/members/export").param("format", "csv")).andExpect(status().isBadRequest());
         admin(get("/api/v1/members/export").param("format", "xlsx").param("columns", "iban")).andExpect(status().isBadRequest());
     }
+    /** The header row of an inline XLSX export. */
+    List<String> headers(ResultActions export) throws Exception {
+        byte[] file = export.andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(file))) {
+            var row = workbook.getSheetAt(0).getRow(0); var cells = new ArrayList<String>();
+            for (int i = 0; i < row.getLastCellNum(); i++) { cells.add(row.getCell(i).getStringCellValue()); }
+            return cells;
+        }
+    }
+    /**
+     * E5-T24 step 5 (CONVENCIONS_API §4, amended 26-09; review E5-T22 #2): an export honours `fields`. Without `columns`, the
+     * requested keys that are columns are the columns, in their order (the row id has none). A key outside the list's
+     * `x-fields`, or keys that name no column, answer 400 INVALID_FILTER; `columns` keeps its precedence.
+     */
+    @Test void CONVENCIONS_API_4_T_03_11_anExportsFieldsPickItsColumns() throws Exception {
+        var byColumns = headers(admin(get("/api/v1/members/export").param("format", "xlsx").param("columns", "memberNumber,fullName").param("filter", "id:in:member-0")));
+        assertThat(byColumns).hasSize(2).last().isEqualTo("Socio");
+        assertThat(headers(admin(get("/api/v1/members/export").param("format", "xlsx").param("fields", "id,memberNumber,version,fullName").param("filter", "id:in:member-0"))))
+                .as("the fields that are columns, in their order").isEqualTo(byColumns);
+        assertThat(headers(admin(get("/api/v1/members/export").param("format", "xlsx").param("fields", "memberNumber").param("columns", "fullName"))))
+                .as("columns keeps its precedence").containsExactly("Socio");
+        for (String fields : List.of("id,iban", "id", "version,id")) {
+            admin(get("/api/v1/members/export").param("format", "xlsx").param("fields", fields)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_FILTER"));
+        }
+        assertThat(headers(admin(get("/api/v1/dogs/export").param("format", "xlsx").param("fields", "id,name")))).hasSize(1);
+        assertThat(headers(admin(get("/api/v1/dogs/export").param("format", "xlsx")))).as("the default columns").hasSizeGreaterThan(1);
+    }
     @Test void T_03_11_5000InlineAnd5001DurableHandoff() throws Exception {
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "members");
         var rows = new ArrayList<Document>(); for (int i = 0; i < 5000; i++) { rows.add(member(i)); } mongo.insert(rows, "members");

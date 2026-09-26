@@ -277,9 +277,10 @@ class E5ContractIT extends AbstractIntegrationTest {
             if (route.idempotency()) { assertThat(key.orElseThrow().path("required").asBoolean()).as(route.path()).isTrue(); }
         }
         assertThat(api.at("/paths/~1api~1v1~1training-bookings~1{id}~1cancellation/post/parameters").findValuesAsText("name")).contains("Idempotency-Key");
-        for (var entry : Map.of("bookings", "state,dogId,memberId,classSessionId,bookingWeekKey,origin,classStartsAt",
-                "training-bookings", "date,ringId,memberId,dogId,state,origin", "jobs/{name}/runs", "status,scheduledFor,trigger,dryRun",
-                "ring-blocks", "ringId,kind,reason,state,from,to").entrySet()) {
+        // E5-T24 step 8 (E5-T22 question 1): the lists that accepted an `id` filter publish it.
+        for (var entry : Map.of("bookings", "id,state,dogId,memberId,classSessionId,bookingWeekKey,origin,classStartsAt",
+                "training-bookings", "id,date,ringId,memberId,dogId,state,origin", "jobs/{name}/runs", "status,scheduledFor,trigger,dryRun",
+                "ring-blocks", "id,ringId,kind,reason,state,from,to").entrySet()) {
             assertThat(strings(api.path("paths").path("/api/v1/" + entry.getKey()).at("/get/x-filterable"))).containsExactly(entry.getValue().split(","));
         }
         assertThat(strings(api.at("/paths/~1api~1v1~1bookings/get/x-sortable"))).containsExactly("classStartsAt", "bookedAt");

@@ -151,7 +151,7 @@ public class TrainingController {
 
     @GetMapping("/api/v1/training-bookings")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},
+    @ListContract(filterable = {"id", "date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},
             columns = {"date*", "startsAtLocal*", "ringName*", "memberName*", "dogName*", "state*", "origin", "createdAt"}, paged = true, exportable = true,
             fields = {"id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
@@ -168,8 +168,9 @@ public class TrainingController {
 
     @GetMapping("/api/v1/training-bookings/export")
     @PreAuthorize("hasRole('ADMIN')")
-    @ListContract(filterable = {"date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},
-            columns = {"date*", "startsAtLocal*", "ringName*", "memberName*", "dogName*", "state*", "origin", "createdAt"}, paged = true, exportable = false)
+    @ListContract(filterable = {"id", "date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},
+            columns = {"date*", "startsAtLocal*", "ringName*", "memberName*", "dogName*", "state*", "origin", "createdAt"}, paged = true, exportable = false,
+            fields = {"id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportTrainingBookings", description = "Roles: ADMIN (S14 R-14-12: list exports are ADMIN only; INSTRUCTOR → 403). Same q/filter/sort and selected columns as GET /training-bookings (listKey training-bookings); 200 file or 202 ExportAccepted. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = {@ApiResponse(responseCode = "200", description = "Export file", content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),

@@ -123,6 +123,23 @@ class PlanningIT extends AbstractIntegrationTest {
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("WeekTemplateChanged")), "domain_events")).isGreaterThan(10);
         error("PATCH", path, Map.of("version", view.path("version").asLong(), "kind", "SATURDAY"), ErrorCode.VALIDATION_ERROR);
     }
+    /**
+     * E5-T24 step 8 (E5-T22 question 2): with COURSES on (every module), a template class without a placement sends
+     * `placementId: null`, in the write's answer and in GET /week-templates/{id}. The contract allows it, as it does for
+     * ClassSession.placementId: `["string", "null"]` (checked against the committed snapshot).
+     */
+    @Test void T_06_01_aTemplateClassWithoutAPlacementSendsANullPlacementIdUnderCourses() throws Exception {
+        mongo.getCollection("clubs").updateOne(new Document("_id", CLUB), new Document("$set", new Document("modules",
+                Arrays.stream(com.agilityhub.core.platform.application.Module.values()).map(Enum::name).toList())));
+        configs.invalidate(CLUB); templateQuery.invalidate(CLUB);
+        String id = template("Courses", "WEEKDAYS"); String band = band(id).at("/bands/0/id").asText();
+        var written = ok("POST", "/week-templates/" + id + "/classes", classBody(band));
+        for (var view : List.of(written, ok("GET", "/week-templates/" + id, null))) {
+            assertThat(view.at("/classes/0").has("placementId")).isTrue(); assertThat(view.at("/classes/0/placementId").isNull()).isTrue();
+            assertThat(SnapshotSchemas.violations(view, "WeekTemplate")).isEmpty();
+        }
+        assertThat(mapper.convertValue(SnapshotSchemas.schema("TemplateClass").at("/properties/placementId/type"), List.class)).containsExactly("string", "null");
+    }
     @Test void T_06_09_T_06_19_validationVariantsAndLocalizedLiveCatalog() throws Exception {
         String id = template("Variants", "WEEKDAYS"), path = "/week-templates/" + id; var view = band(id); String band = view.at("/bands/0/id").asText();
         var body = classBody("foreign"); error("POST", path + "/classes", body, ErrorCode.VALIDATION_ERROR);

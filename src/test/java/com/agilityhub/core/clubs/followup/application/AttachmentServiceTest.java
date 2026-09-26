@@ -124,6 +124,68 @@ class AttachmentServiceTest {
         }
         verifyNoInteractions(events);
     }
+    /**
+     * E5-T24 (R-04-19, amended 26-09): D2's new file is the caller's own DOG_DOCUMENT upload of the club, unclaimed or claimed for
+     * the same dog and type; anything else is FILE_NOT_FOUND. The uploaded bytes must match the grant, and the claim binds it.
+     */
+    @Test void R_04_19_d2ClaimsOnlyTheCallersOwnDogDocumentUpload() {
+        when(grants.findById(key)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("FILE_NOT_FOUND");
+        grant("example-account", "DOG_PHOTO", null, now.plusSeconds(300));
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("FILE_NOT_FOUND");
+        grant("someone-else", "DOG_DOCUMENT", null, now.plusSeconds(300));
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("FILE_NOT_FOUND");
+        grant("example-account", "DOG_DOCUMENT", "other-dog:VACCINATION_CARD", now.plusSeconds(300));
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("FILE_NOT_FOUND");
+        grant("example-account", "DOG_DOCUMENT", null, now.plusSeconds(300));
+        when(storage.metadata(key)).thenThrow(new ApiException(ErrorCode.NOT_FOUND));
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).as("never uploaded").hasMessage("FILE_NOT_FOUND");
+        doThrow(new ApiException(ErrorCode.VALIDATION_ERROR)).when(storage).metadata(key);
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("VALIDATION_ERROR");
+        doReturn(new AttachmentStorage.Metadata("text/plain", 5)).when(storage).metadata(key);
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("FILE_TOO_LARGE");
+        doReturn(new AttachmentStorage.Metadata("image/png", 4)).when(storage).metadata(key);
+        assertThatThrownBy(() -> service.claimDogDocument(key, "dog:VACCINATION_CARD")).hasMessage("FILE_TYPE_NOT_ALLOWED");
+        verify(grants, never()).bind(anyString(), anyString());
+        doReturn(new AttachmentStorage.Metadata("text/plain", 4)).when(storage).metadata(key);
+        // An expired upload URL does not matter: the file waits for the D2 save.
+        grant("example-account", "DOG_DOCUMENT", null, now.minusSeconds(1));
+        var claimed = service.claimDogDocument(key, "dog:VACCINATION_CARD");
+        assertThat(claimed.id()).isEqualTo(key); assertThat(claimed.fileKey()).isEqualTo(key); assertThat(claimed.uploadedByAccountId()).isEqualTo("example-account");
+        grant("example-account", "DOG_DOCUMENT", "dog:VACCINATION_CARD", now);
+        assertThat(service.claimDogDocument(key, "dog:VACCINATION_CARD").fileKey()).as("claimed again for the same dog and type").isEqualTo(key);
+        verify(grants, times(2)).bind(key, "dog:VACCINATION_CARD");
+    }
+    /**
+     * E5-T24 (CONVENCIONS_API §5, A31): the local signed URLs are authorised by their signature, checked before any lookup, for
+     * the grant they name whatever the caller's tenant; nobody needs to be signed in.
+     */
+    @Test void CONVENCIONS_API_5_localSignedUrlsAuthoriseThemselves(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        var local = new LocalAttachmentStorage(directory, "fictional-signing-key-0123456789".getBytes(java.nio.charset.StandardCharsets.UTF_8), Clock.fixed(now, ZoneOffset.UTC));
+        var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events);
+        var upload = java.net.URI.create(local.uploadUrl(key, "text/plain", 4, now.plusSeconds(300)));
+        long expires = now.plusSeconds(300).getEpochSecond(); String signature = upload.getQuery().substring(upload.getQuery().indexOf("signature=") + 10);
+        assertThatThrownBy(() -> signed.putLocal(key, expires, "wrong", "text/plain", new ByteArrayInputStream(new byte[4]))).hasMessage("FORBIDDEN");
+        assertThatThrownBy(() -> signed.putLocal(key, now.getEpochSecond(), signature, "text/plain", new ByteArrayInputStream(new byte[4]))).hasMessage("FORBIDDEN");
+        verify(grants, never()).signed(anyString());
+        when(grants.signed(key)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> signed.putLocal(key, expires, signature, "text/plain", new ByteArrayInputStream(new byte[4]))).hasMessage("NOT_FOUND");
+        when(grants.signed(key)).thenReturn(Optional.of(new UploadGrant(key, "another-club", "another-account", "DOG_DOCUMENT", "Example.txt", "text/plain", 4, now, now.plusSeconds(300), null)));
+        try (var anonymous = CurrentUser.open(null)) {
+            assertThatThrownBy(() -> signed.putLocal(key, expires, signature, "image/png", new ByteArrayInputStream(new byte[4]))).hasMessage("FILE_TYPE_NOT_ALLOWED");
+            assertThatThrownBy(() -> signed.openLocal(key, expires, local.downloadUrl(key, "x", now.plusSeconds(300)).split("signature=")[1])).as("not claimed yet").hasMessage("NOT_FOUND");
+            signed.putLocal(key, expires, signature, "text/plain", new ByteArrayInputStream("text".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        }
+        assertThat(local.metadata(key)).isEqualTo(new AttachmentStorage.Metadata("text/plain", 4));
+        when(grants.signed(key)).thenReturn(Optional.of(new UploadGrant(key, "another-club", "another-account", "DOG_DOCUMENT", "Example.txt", "text/plain", 4, now, now.plusSeconds(300), "dog:VACCINATION_CARD")));
+        assertThatThrownBy(() -> signed.putLocal(key, expires, signature, "text/plain", new ByteArrayInputStream(new byte[4]))).as("claimed").hasMessage("INVALID_STATE");
+        String download = local.downloadUrl(key, "x", now.plusSeconds(300)).split("signature=")[1];
+        assertThatThrownBy(() -> signed.openLocal(key, expires, signature)).as("the upload's signature").hasMessage("FORBIDDEN");
+        try (var anonymous = CurrentUser.open(null); var input = signed.openLocal(key, expires, download)) {
+            assertThat(new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)).isEqualTo("text");
+        }
+        verify(grants, never()).findById(key);
+    }
     /** E5-T19 (R-04-08, R-04-19): a signup file's id is a plain one, never its key with `/`; a re-claim of the key keeps it. */
     @Test void R_04_08_R_04_19_aClaimedSignupFileHasAPlainIdThatIsNotItsStorageKey() {
         String signupKey = "signup/example-club/202601/" + UUID.randomUUID() + "/card.txt";

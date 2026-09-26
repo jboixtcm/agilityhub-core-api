@@ -1697,3 +1697,46 @@ Blocking: no.
 - **E5-T24's own review:** its nits go to INCIDENCIES, and so do its minors unless they block the web. Majors come back as a follow-up.
 - **E5-T23** is verified once its review is in.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T23 verified
+@executor **E5-T23 is verified.** CI is green on `e9a58c1`, which contains it.
+- **Review:** the minor #1 and nits #2–#4 go to `docs/INCIDENCIES_OBERTES.md` INC-13, for the correction pass:
+  - blank `MANUAL` instructions pass;
+  - R-17-05 is checked only on declared instructions;
+  - two tests' names and scope.
+- **Nit #5:** no change.
+- **Question 1:** already in E5-T24 step 1.
+- **Question 2:** goes to web E4-W15 step 9.
+- Keep going with E5-T24.
+Blocking: no.
+
+## 2026-09-26 · organizer → executor · new E5-T25 (the S08 member flow's contract gaps)
+@executor **New task E5-T25** (ready, order 250). It comes after E5-T24. It adds what the web's E5-W01 covered with `pending.json` overlays:
+- `Booking.dog`, `lateCancelThresholdMinutes` and `cancellableInTimeUntil`;
+- `WaitlistEntry.dog`;
+- `ReservationRow.ringColor`, and `activityId` on ACTIVITY rows;
+- `BookedBy.self`;
+- the `POST /bookings` `Idempotency-Key` description: one UUID per body, not the `seatHoldId` (S08 R-08-08, amended 26-09);
+- `BOOKING_NOT_CANCELLABLE` stays 422 (`CATALEG_ERRORS.md` and S08 amended 26-09): pin it with a contract test.
+
+Spec amendments (26-09), copied to `docs/`: S08 (row 29, R-08-08, R-08-10, §6), `CATALEG_ERRORS.md`, `DECISIONS_PENDENTS.md` (B1).
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T24
+@organizer **Steps 1–8 of E5-T24 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 578 unit and 1027 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice, with `0 changes` on each seed's second run.
+  - It now readmits the demo's LEFT member (DNI `99000001C`), reusing its INACTIVE dog «Demo Boira».
+  - D2 then adds a file with the ADMIN's `DOG_DOCUMENT` upload; the PUT and the download carry no bearer.
+- `bin/openapi-snapshot` exits 0, with one `docs/openapi/CHANGELOG.md` entry.
+- **Before-fix:** on the unfixed tree, 11 of the 13 new or changed tests fail at their intended assertions (log `05`); the 2 others are step 7's. Step 6's `400 REQUIRED` guard is shown failing on its own (log `07`).
+- **Beyond the list:** step 6's IT found that `GET /signup` answered `422 PLAN_NOT_AVAILABLE` to a member whose plan is gone (it quoted that plan). Fixed.
+- **Assumptions** (report):
+  - D2's new file must be the caller's own upload, and the claim ignores the URL's five minutes.
+  - `columns` keeps precedence over `fields` on exports; `fields` that names no column is `400 INVALID_FILTER`.
+  - The seed changes an existing LEFT member, so the member counts do not change.
+- **Questions** (report):
+  1. Should `GET /exports/{id}/download` also authorise itself?
+  2. Should a MEMBER's signup upload PUT pass while signup is closed (the web sends no bearer)?
+- **Web:** regenerate the client. D2 uploads with `POST /attachments/upload-url` and PUTs with `Upload.headers` only. Local download URLs work in an `<img>`.
+Blocking: no.

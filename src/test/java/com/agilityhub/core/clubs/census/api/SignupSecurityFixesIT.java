@@ -805,6 +805,172 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(storedDocument(dogId,"INSURANCE")).as("the dog's own insurance, not rewritten").isEqualTo(insuranceBefore);
     }
 
+    // ---- E5-T24 step 1 (web E4-W13 question 1; R-04-19, amended 26-09): D2 adds a file with the ADMIN's DOG_DOCUMENT upload ----
+    /** An ADMIN of `clubId`, other than this class's `security-admin`. */
+    java.util.function.UnaryOperator<MockHttpServletRequestBuilder> adminOf(String clubId,String account) {
+        return request -> request.with(jwt().jwt(j->j.subject(account).claim("clubId",clubId)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN")));
+    }
+    /** D2's card files sent back, plus `added`. */
+    static Map<String,Object> cardWith(JsonNode card,List<Map<String,Object>> added) { var files=new ArrayList<>(sentBack(card));files.addAll(added);return card(files); }
+
+    /**
+     * E5-T24 step 1 (R-04-19, R-04-08): D2 adds a file to a public signup's pending dog with the ADMIN's own
+     * POST /attachments/upload-url (purpose DOG_DOCUMENT), sending back its view's key and the new one. The file is stored with
+     * the name the PATCH sends, and D2's view lists it. Another club's, purpose's or account's key, one claimed for another dog,
+     * one never uploaded and a removed one answer 400 FILE_NOT_FOUND and change nothing. The 10-file limit counts these keys.
+     */
+    @Test void R_04_19_R_04_08_d2AddsAFileToAPendingSignupDogWithTheAdminsUpload() throws Exception {
+        String applicant=upload("card.pdf");
+        String id=submit(sending(request(),card(List.of(file(applicant,"card.pdf"))))).path("memberId").asText();String dogId=dog(id).getString("_id");
+        String added=attachment("DOG_DOCUMENT","application/pdf",this::admin);
+        editDocuments(id,dogId,200,cardWith(document(review(id).at("/dogs/0"),"VACCINATION_CARD"),List.of(file(added,"club-card.pdf"))));
+        var stored=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(fileKeys(stored)).containsExactly(applicant,added);assertThat(stored.getString("state")).isEqualTo("RECEIVED");
+        assertThat(stored.getList("files",Document.class).get(1)).containsEntry("id",added).containsEntry("name","club-card.pdf").containsEntry("uploadedByAccountId","security-admin");
+        var card=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        assertThat(keys(card)).containsExactly(applicant,added);
+        assertThat(card.at("/files/1/name").asText()).isEqualTo("club-card.pdf");
+        assertThat(card.at("/files/1/downloadUrl").asText()).startsWith("/api/v1/attachments/files/"+added+"?");
+        // Keys D2 cannot add.
+        String photo=attachment("DOG_PHOTO","image/png",this::admin);
+        String otherAccount=attachment("DOG_DOCUMENT","application/pdf",adminOf(club,"other-admin"));
+        String never=result(admin(postJson("/attachments/upload-url",Map.of("purpose","DOG_DOCUMENT","fileName","missing.pdf","mimeType","application/pdf","sizeBytes",10))),201).path("fileKey").asText();
+        String other=submit(request()).path("memberId").asText();String otherDog=dog(other).getString("_id");
+        String elsewhere=attachment("DOG_DOCUMENT","application/pdf",this::admin);
+        result(admin(json(post("/api/v1/dogs/"+otherDog+"/documents"),Map.of("type","VACCINATION_CARD","name","other.pdf","fileKey",elsewhere))),201);
+        String home=club,homeHost=host,homePlan=plan,homeLevel=level;String foreignClub=newClub("fo");host=foreignClub+".example.test";
+        String foreign=attachment("DOG_DOCUMENT","application/pdf",adminOf(foreignClub,"security-admin"));
+        club=home;host=homeHost;plan=homePlan;level=homeLevel;
+        var written=storedDocument(dogId,"VACCINATION_CARD");
+        for(String key:List.of(photo,otherAccount,never,elsewhere,foreign)) {
+            assertThat(editDocuments(id,dogId,400,cardWith(card,List.of(file(key,"refused.pdf")))).path("code").asText()).as(key).isEqualTo("FILE_NOT_FOUND");
+        }
+        assertThat(storedDocument(dogId,"VACCINATION_CARD")).isEqualTo(written);
+        // R-04-08: at most 10 new files per request, these keys included.
+        var eleven=new ArrayList<Map<String,Object>>();for(int i=0;i<11;i++) eleven.add(file(attachment("DOG_DOCUMENT","application/pdf",this::admin),"many-"+i+".pdf"));
+        var tooMany=editDocuments(id,dogId,400,cardWith(card,eleven));
+        assertThat(tooMany.at("/details/fieldErrors/0/code").asText()).isEqualTo("TOO_MANY_FILES");
+        editDocuments(id,dogId,200,cardWith(card,eleven.subList(0,8)));
+        assertThat(fileKeys(storedDocument(dogId,"VACCINATION_CARD"))).hasSize(10);
+        // E5-T21: a file removed through S03 stays removed, the ADMIN's upload too.
+        removeThroughS03(dogId,"VACCINATION_CARD",1);
+        var removed=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(removed.getList("files",Document.class).get(1)).containsEntry("fileKey",added).containsKey("removedAt");
+        assertThat(editDocuments(id,dogId,400,cardWith(document(review(id).at("/dogs/0"),"VACCINATION_CARD"),List.of(file(added,"club-card.pdf")))).path("code").asText()).isEqualTo("FILE_NOT_FOUND");
+        assertThat(storedDocument(dogId,"VACCINATION_CARD")).isEqualTo(removed);
+    }
+
+    /**
+     * E5-T24 step 1 (R-04-19, R-04-06, E38): the reused dog of a readmission takes the ADMIN's upload too. D2 adds it to the
+     * submitted card and its view lists it with its stored name; the dog's own card waits, and the validation writes the file
+     * to the dog. The reused dog's other document routes stay frozen (409 READMISSION_PENDING).
+     */
+    @Test void R_04_19_R_04_06_d2AddsTheAdminsUploadToTheReusedDogAndTheValidationWritesIt() throws Exception {
+        String oldCard=upload("card.pdf");
+        var original=sending(request(),card(List.of(file(oldCard,"card.pdf"))));String id=leftMember(original);String dogId=dog(id).getString("_id");
+        var documentsBefore=dogDocuments(dogId);
+        String newCard=upload("new-card.pdf");submit(changedDog(readmission(original),newCard));
+        String added=attachment("DOG_DOCUMENT","application/pdf",this::admin);
+        editDocuments(id,dogId,200,cardWith(document(review(id).at("/dogs/0"),"VACCINATION_CARD"),List.of(file(added,"club-card.pdf"))));
+        var view=review(id).at("/dogs/0");
+        assertThat(keys(document(view,"VACCINATION_CARD"))).containsExactly(newCard,added);
+        assertThat(document(view,"VACCINATION_CARD").at("/files/1/name").asText()).isEqualTo("club-card.pdf");
+        assertThat(keys(document(view.at("/readmission/current"),"VACCINATION_CARD"))).as("the dog's own card").containsExactly(oldCard);
+        assertThat(dogDocuments(dogId)).as("the record's documents wait for the validation").isEqualTo(documentsBefore);
+        String frozen=attachment("DOG_DOCUMENT","application/pdf",this::admin);
+        assertThat(result(admin(json(post("/api/v1/dogs/"+dogId+"/documents"),Map.of("type","VACCINATION_CARD","name","frozen.pdf","fileKey",frozen))),409)
+                .at("/details/reason").asText()).isEqualTo("READMISSION_PENDING");
+        validate(id);
+        var written=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(fileKeys(written)).containsExactly(newCard,added);assertThat(written.getString("state")).isEqualTo("RECEIVED");
+        assertThat(written.getList("files",Document.class).get(1)).containsEntry("name","club-card.pdf").containsEntry("uploadedByAccountId","security-admin");
+    }
+
+    // ---- E5-T24 step 2 (web E4-W13 question 2; CONVENCIONS_API §5, amended 26-09; A31): local signed URLs authorise themselves ----
+    /** A PUT of a signed upload URL with the headers the upload gave only (no bearer), as the web and S3 do; its status. */
+    int putSigned(JsonNode grant,String url,byte[] bytes,String... extraHeader) throws Exception {
+        var put=put(java.net.URI.create(url)).contentType(grant.at("/headers/Content-Type").asText()).header("If-None-Match",grant.at("/headers/If-None-Match").asText()).content(bytes);
+        if(extraHeader.length==2) put.header(extraHeader[0],extraHeader[1]);
+        return mvc.perform(put).andReturn().getResponse().getStatus();
+    }
+    /** A GET of a signed download URL without a bearer. */
+    org.springframework.mock.web.MockHttpServletResponse getSigned(String url,String... extraHeader) throws Exception {
+        var get=get(java.net.URI.create(url));if(extraHeader.length==2) get.header(extraHeader[0],extraHeader[1]);
+        return mvc.perform(get).andReturn().getResponse();
+    }
+    /** `url` with its `signature` parameter's first character changed. */
+    static String tampered(String url) {
+        int at=url.indexOf("signature=")+"signature=".length();
+        return url.substring(0,at)+(url.charAt(at)=='A'?'B':'A')+url.substring(at+1);
+    }
+    static String signature(String url) { return url.substring(url.indexOf("signature=")+"signature=".length()); }
+    static String withSignatureOf(String url,String other) {
+        return url.substring(0,url.indexOf("expires="))+other.substring(other.indexOf("expires="));
+    }
+    JsonNode adminUploadUrl(String name,int size) throws Exception {
+        return result(admin(postJson("/attachments/upload-url",Map.of("purpose","DOG_DOCUMENT","fileName",name,"mimeType","application/pdf","sizeBytes",size))),201);
+    }
+
+    /**
+     * E5-T24 step 2: the local upload URL takes a PUT that carries only the upload's headers; a bearer does no harm (an
+     * invalid one included). A tampered signature and an expired URL answer 403 and store nothing. The file is then claimed
+     * by D2's edit (step 1).
+     */
+    @Test void CONVENCIONS_API_5_R_04_19_aSignedUploadUrlTakesAPutWithItsHeadersOnlyAndItsFileIsClaimed() throws Exception {
+        String id=submit(request()).path("memberId").asText();String dogId=dog(id).getString("_id");
+        byte[] bytes="fictional club card".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var grant=adminUploadUrl("club-card.pdf",bytes.length);String url=grant.path("uploadUrl").asText();String key=grant.path("fileKey").asText();
+        assertThat(url).startsWith("/api/v1/attachments/uploads/"+key+"?");
+        assertThat(putSigned(grant,tampered(url),bytes)).as("a tampered signature").isEqualTo(403);
+        assertThat(stored(key)).isFalse();
+        assertThat(putSigned(grant,url,bytes)).as("the URL and the upload's headers only").isEqualTo(204);
+        assertThat(stored(key)).isTrue();
+        var second=adminUploadUrl("second.pdf",bytes.length);
+        assertThat(putSigned(second,second.path("uploadUrl").asText(),bytes,"Authorization","Bearer not-a-token")).as("a bearer does no harm").isEqualTo(204);
+        var late=adminUploadUrl("late.pdf",bytes.length);
+        clock.advance(Duration.ofSeconds(301));
+        assertThat(putSigned(late,late.path("uploadUrl").asText(),bytes)).as("an expired URL").isEqualTo(403);
+        assertThat(stored(late.path("fileKey").asText())).isFalse();
+        var card=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        editDocuments(id,dogId,200,cardWith(card,List.of(file(key,"club-card.pdf"),file(second.path("fileKey").asText(),"second.pdf"))));
+        assertThat(keys(document(review(id).at("/dogs/0"),"VACCINATION_CARD"))).containsExactly(key,second.path("fileKey").asText());
+    }
+
+    /**
+     * E5-T24 step 2: D2's download URLs, of the ADMIN's files (attached through S03) and of a signup file, answer 200 with the
+     * file without a bearer, whatever the host, and with another club's bearer. Another file's signature, a tampered one and an
+     * expired URL answer 403.
+     */
+    @Test void CONVENCIONS_API_5_signedDownloadUrlsAnswerWithoutABearerAndRefuseAnotherFilesSignature() throws Exception {
+        String applicant=upload("card.pdf");
+        String id=submit(sending(request(),card(List.of(file(applicant,"card.pdf"))))).path("memberId").asText();String dogId=dog(id).getString("_id");
+        String first=attachment("DOG_DOCUMENT","application/pdf",this::admin),second=attachment("DOG_DOCUMENT","application/pdf",this::admin);
+        for(String key:List.of(first,second)) result(admin(json(post("/api/v1/dogs/"+dogId+"/documents"),Map.of("type","VACCINATION_CARD","name",key.equals(first)?"first.pdf":"second.pdf","fileKey",key))),201);
+        var card=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        assertThat(keys(card)).containsExactly(applicant,first,second);
+        String signupUrl=card.at("/files/0/downloadUrl").asText(),firstUrl=card.at("/files/1/downloadUrl").asText(),secondUrl=card.at("/files/2/downloadUrl").asText();
+        assertThat(signupUrl).startsWith("/api/v1/signup/files?");assertThat(firstUrl).startsWith("/api/v1/attachments/files/"+first+"?");
+        var signupFile=getSigned(signupUrl,"Host","unknown.example.test");
+        assertThat(signupFile.getStatus()).as("a signup file, without a bearer, whatever the host").isEqualTo(200);
+        assertThat(signupFile.getContentAsString()).isEqualTo("fictional card.pdf");
+        var adminFile=getSigned(firstUrl);
+        assertThat(adminFile.getStatus()).as("the ADMIN's file, without a bearer").isEqualTo(200);
+        assertThat(adminFile.getContentAsString()).isEqualTo("fictional DOG_DOCUMENT");
+        assertThat(adminFile.getHeader("Cache-Control")).isEqualTo("no-store");
+        var otherClub=mvc.perform(get(java.net.URI.create(firstUrl)).with(jwt().jwt(j->j.subject("foreign-member").claim("clubId","another-club")).authorities(new SimpleGrantedAuthority("ROLE_MEMBER"))))
+                .andReturn().getResponse();
+        assertThat(otherClub.getStatus()).as("another club's bearer does no harm").isEqualTo(200);
+        assertThat(getSigned(firstUrl,"Authorization","Bearer not-a-token").getStatus()).as("an invalid bearer is not read").isEqualTo(200);
+        assertThat(signature(firstUrl)).isNotEqualTo(signature(secondUrl));
+        for(String refused:List.of(withSignatureOf(firstUrl,secondUrl),tampered(firstUrl),withSignatureOf(signupUrl,firstUrl))) {
+            var response=getSigned(refused);
+            assertThat(response.getStatus()).as(refused.substring(0,refused.indexOf('?'))).isEqualTo(403);
+            assertThat(mapper.readTree(response.getContentAsString()).path("code").asText()).isEqualTo("FORBIDDEN");
+        }
+        clock.advance(Duration.ofSeconds(301));
+        assertThat(getSigned(firstUrl).getStatus()).as("an expired URL").isEqualTo(403);
+    }
+
     /** E3-T17 (R-04-23): a dog that is new in a rejected readmission is INACTIVE{SIGNUP_REJECTED} with the decision; the old one is untouched. */
     @Test void T_04_19_aNewDogOfARejectedReadmissionIsStampedAndTheMembersOldDogIsUntouched() throws Exception {
         var original=request();String id=leftMember(original);var old=dog(id);

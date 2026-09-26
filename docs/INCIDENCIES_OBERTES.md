@@ -22,6 +22,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-10 | 24-09 | api · RGPD | Les altes rebutjades no tenen retenció: S14 R-14-16 (b) no està implementada | Mitjana | oberta — la purga és d'E11 (retenció i supressió); trobada a la revisió de la porta E3 |
 | INC-11 | 26-09 | web | Diferències cosmètiques de les pantalles d'E3 respecte dels mockups (re-execució de la porta, E3-W09) | Baixa | oberta — passada de polit abans del llançament |
 | INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
+| INC-13 | 26-09 | api · definició de club | Revisió d'E5-T23: les instruccions d'`MANUAL` en blanc passen la validació, la regla R-17-05 només es comprova quan la definició les declara, noms i abast de dos tests | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -249,3 +250,28 @@ Solució probable:
 - **L'ítem de `/platform/audit-entries`.** `AuditEntryListItem` també és l'ítem d'aquesta operació, que encara és només contracte i ja no accepta `fields`. L'operació documenta, doncs, ítems que només exigeixen `id`. És inofensiu fins que s'implementi l'operació. Proposta: dir-ho a la descripció de l'operació, o donar-li un ítem sencer quan s'implementi.
 
 **On mirar**: `SchedulingContracts`, `BookingContracts`, `InstructorContracts`, `AuditContracts.java` (prop de `:102`), `ListFieldsContractIT`.
+
+---
+
+## INC-13 · Detalls de la revisió d'E5-T23 (api, definició de club)
+
+**Gravetat**: baixa. El seed del Cànic és correcte, i cap pantalla ni cap abonat no en surt afectat. Són casos límit d'una definició de club que escrigui la plataforma, i deute de proves. La revisió independent d'E5-T23 (26-09) els ha trobat, i l'organitzador els deixa per a la passada de correccions.
+
+**Origen**: `roadmap/reviews/E5-T23-20260926-1530-claude.md` (api), el menor #1 i els detalls #2–#4.
+
+**Llista**:
+- **Instruccions en blanc.** La comprovació de l'idioma per defecte (S17 R-17-05, «`MANUAL`: instruccions amb `defaultLocale` obligatori») només mira que la clau hi sigui (`ClubDefinitionWriter.java:129-133`). Una definició amb `MANUAL.instructions: {ca: " ", es: "…"}` passa l'esquema i l'escriptor, i es desa tal com és. Aleshores:
+  - qui llegeix en català no veu cap instrucció a la pantalla 19 ni a N-01, perquè `CensusClubSettings.manualInstructions("ca")` torna `null` i un text en blanc no cau a un altre idioma;
+  - l'export deixa fora el text en blanc, i tornar a aplicar aquest export falla amb `REQUIRED`. Es trenca el viatge d'anada i tornada de R-17-01.
+
+  Correcció: comprovar que el text no sigui en blanc, o un `"pattern": "\\S"` a `localizedText` de l'esquema. Un cas a `ClubDefinitionCodecTest` o a `ClubDefinitionsIT`.
+- **Quan es comprova R-17-05.** Només quan la definició declara `instructions`. Dos casos passen:
+  - una definició que canvia `club.defaultLocale` sense declarar `instructions` conserva les desades, que potser no tenen el nou idioma per defecte;
+  - s'accepta un idioma fora de `club.locales` (per exemple `en` al Cànic, que és ca/es), mentre que les pàgines el refusen.
+
+  Correcció: validar les instruccions resultants de la fusió, no el node declarat.
+- **Noms i abast de dos tests** (AGENTS, regla 5):
+  - `ClubDefinitionsIT.T_04_14_T_02_12_canicSeedCarriesItsCashPaymentInstructions` cita T-04-14 i no n'afirma res. Proposta: `R_04_10_T_02_12_T_17_01_…`;
+  - `SignupSecurityFixesIT.R_04_19_R_04_06_aSubmissionRefusesAKeyRemovedFromTheReusedDogsOwnCard`: la meitat de `POST /me/dogs/signup` no aïlla la clau treta, perquè qualsevol clau que el gos reutilitzat ja tingui respon el mateix `400`. Proposta: afirmar-ho també amb la clau que es conserva, o dir-ho al Javadoc.
+
+**On mirar**: `ClubDefinitionWriter.java`, `seeds/club-definition.schema.json` (`localizedText`, `manualPaymentProvider`), `ClubDefinitionMapper.instructions()`, `CensusClubSettings.manualInstructions`.

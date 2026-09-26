@@ -538,7 +538,8 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(events("DogUpdated")).hasSize(1);
         error(own(body(put("/api/v1/me/dogs/dog-two/photo"), input)), ErrorCode.ATTACHMENT_ENTITY_MISMATCH);
         error(admin(body(put("/api/v1/dogs/dog-one/photo"), input)), ErrorCode.ATTACHMENT_ENTITY_MISMATCH);
-        error(call(get(url), OTHER, "foreign", "MEMBER"), ErrorCode.NOT_FOUND);
+        // E5-T24 (CONVENCIONS_API §5, amended 26-09): the signed URL authorises itself, so another club's bearer does no harm.
+        call(get(url), OTHER, "foreign", "MEMBER").andExpect(status().isOk()).andExpect(content().bytes(data));
         error(own(get(url + "x")), ErrorCode.FORBIDDEN);
         error(own(put(photo.path("uploadUrl").asText()).contentType("image/png").content(data)), ErrorCode.INVALID_STATE);
         var adminPhoto = uploadUrl("DOG_PHOTO", "image/png", data, true);

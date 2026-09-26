@@ -25,6 +25,10 @@ pendingSignups:
   - {planCode: ABONAT, daysAgo: 3, accountProvided: false, dogName: Demo Neu, chip: '941000000000803'}
 # Fictional mobile numbers (E4 SMS intents): the club's country prefix + this format over the member number.
 phoneNumberFormat: '600%06d'
+# E5-T24 (web E4-W13 question 3, S04 R-04-06/R-04-07): the first LEFT member (number 192) gets this fictional DNI and one
+# INACTIVE chipped dog with a received vaccination card, so a readmission (POST /signup with the DNI and the chip) reuses it.
+leftDogs:
+  - {idDocumentType: DNI, idDocument: '99000001C', dogName: Demo Boira, chip: '941000000000805', levelCode: B}
 
 # E4-T05 (S06 P7 / S07 P6). Everything below is dated relative to the run's week start (--week-start, default: the
 # club-local Monday of the current week); `week` / `offset` count weeks after it. Instructors are indexes into the

@@ -212,7 +212,7 @@ public class BookingsController {
 
     @GetMapping("/api/v1/bookings")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt"}, sortable = {"classStartsAt", "bookedAt"},
+    @ListContract(filterable = {"id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt"}, sortable = {"classStartsAt", "bookedAt"},
             columns = {"classStartsAt*", "dogName*", "memberName*", "state*", "origin*", "bookedAt", "bookingWeekKey", "late"}, paged = true, exportable = false,
             fields = {"id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})

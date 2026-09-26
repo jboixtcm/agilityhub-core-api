@@ -163,7 +163,7 @@ Correu enviat el 06-09 (`CORREU_JOSEP_PENDENTS_B.md`, 21 preguntes amb el valor 
 
 | # | Pregunta (núm. al correu) | Resposta del Josep | Efecte aplicat el 08-09 |
 |---|---|---|---|
-| B1 | Literal de la pantalla 29 (19) | Sí | ✅ «Podràs reservar aquesta classe a partir de diumenge {dia} a les 20 h» (A19 tancat) |
+| B1 | Literal de la pantalla 29 (19) | Sí | ✅ «Podràs reservar aquesta classe a partir de diumenge {dia} a les 20 h» (A19 tancat). **Precisió de l'organitzador (26-09, revisió d'E5-W01):** aquesta frase val quan el límit és el de la setmana vinent (`week = NEXT`). Amb el límit d'aquesta setmana (`CURRENT`), la classe ja haurà passat a aquella hora, i torna el literal del mockup: «Podràs reservar per a la setmana vinent a partir de diumenge {dia} a les 20 h» (S08 §2, fila 29) |
 | B2 | Efectiu: mensual o semestres? (8) | **No hi ha pagament mensual en efectiu**: sempre la primera fracció en mesos i després **semestres naturals** | 🔄⚠️ `billing.cashInvoicing = SEMESTER` (S12 R-12-05); el text de semestres de la pantalla 19 **es manté**. Supera «efectiu mensual» (Jordi 05-09) → **A29** |
 | B3 | IVA | resolt per Jordi 05-09 (sense IVA) | — |
 | B4 | Data de cobrament de la remesa (7) | **La quota d'octubre es cobra l'1 d'octubre** | 🔄⚠️ `billing.sepa.collectionDayOfMonth = 1` amb semàntica nova = dia **del mes facturat**; la remesa es genera el mes anterior (≈ dia 25). Supera «últim dia del mes» (Jordi 05-09) → **A28** |

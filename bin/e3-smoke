@@ -121,7 +121,7 @@ class Smoke:
                             "-jar", "/app/app.jar", "--core.command=" + args[0], *args[1:])
 
     def call(self, method, path, expected=200, *, access=None, body=None, form=None, raw=None, mime=None,
-             key=None, quiet=False, error=None):
+             key=None, quiet=False, error=None, extra=(), binary=False):
         headers = ["User-Agent: AgilityHub-E3-Smoke"]
         if self.host:
             headers.append("Host: " + self.host)
@@ -129,6 +129,7 @@ class Smoke:
             headers.append("Authorization: Bearer " + access)
         if key:
             headers.append("Idempotency-Key: " + key)
+        headers += list(extra)
         args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "20",
                 "--request", method, "--output", str(self.private / "response"), "--write-out", "%{http_code}", "--config", "-"]
         if body is not None or form is not None or raw is not None:
@@ -147,6 +148,10 @@ class Smoke:
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed (exit {result.returncode})")
         status = int(result.stdout)
+        if binary and status == expected:
+            if not quiet:
+                print(f"curl {method} {path.split('?')[0]} -> {status}", flush=True)
+            return (self.private / "response").read_bytes()
         data = (self.private / "response").read_text()
         value = json.loads(data) if data else None
         code = value.get("code", "") if isinstance(value, dict) else ""
@@ -390,6 +395,45 @@ class Smoke:
         self.mailbox("N-03", second["person"]["emails"][0])
         self.dashboard(admin, 3, 185)
         print("PASS signup without family -> rejection -> N-03; D1 counters restored", flush=True)
+
+        # E5-T24 (web E4-W13 questions 1-3; S04 R-04-06/R-04-07/R-04-19; CONVENCIONS_API §5): the demo's LEFT member with an
+        # INACTIVE chipped dog is readmitted with its DNI and chip, which reuses the dog. D2 adds a file to the reused dog's
+        # card with the ADMIN's DOG_DOCUMENT upload through the signed URLs alone (no bearer); a rejection restores the record.
+        left = self.mongo("(()=>{const d=db.dogs.findOne({clubId:" + json.dumps(self.club_id) + ",status:'INACTIVE',deactivationReason:'MEMBER_LEFT'});"
+                          "const m=db.members.findOne({_id:d.memberId});return {member:m._id,status:m.status,document:m.idDocument,dog:d._id,chip:d.chip};})()")
+        require(left["status"] == "LEFT" and left["document"]["type"] == "DNI", "The demo seed has no LEFT member with an INACTIVE chipped dog")
+        readmission = application(3)
+        readmission["person"]["idDocument"] = dict(type="DNI", value=left["document"]["number"])
+        readmission["dog"]["chip"] = left["chip"]
+        require(self.call("POST", "/api/v1/signup", 201, key=str(uuid.uuid4()), body=readmission)["memberId"] == left["member"],
+                "The readmission did not match the demo's LEFT member")
+        self.dashboard(admin, 4, 185)
+        review = self.call("GET", f"/api/v1/members/{left['member']}/signup", access=admin)
+        require("READMISSION" in review["warnings"] and [dog["id"] for dog in review["dogs"]] == [left["dog"]], "The readmission did not reuse the seed dog")
+        card = next(doc for doc in review["dogs"][0]["documents"] if doc["type"] == "VACCINATION_CARD")
+        require(card["state"] == "RECEIVED" and len(card["files"]) == 1, "The reused dog's own card is not received")
+        print("PASS readmission of the demo's LEFT member reuses its INACTIVE seed dog and its received card", flush=True)
+        upload = self.call("POST", "/api/v1/attachments/upload-url", 201, access=admin,
+                           body=dict(purpose="DOG_DOCUMENT", fileName="club-card.pdf", mimeType="application/pdf", sizeBytes=len(pdf)))
+        require(upload["uploadUrl"].startswith("/api/v1/attachments/uploads/"), "Expected a local signed upload URL")
+        self.call("PUT", upload["uploadUrl"], 204, raw=pdf, mime=upload["headers"]["Content-Type"],
+                  extra=["If-None-Match: " + upload["headers"]["If-None-Match"]])
+        files = [dict(fileKey=f["fileKey"], name=f["name"]) for f in card["files"]] + [dict(fileKey=upload["fileKey"], name="club-card.pdf")]
+        self.call("PATCH", f"/api/v1/dogs/{left['dog']}", access=admin,
+                  body=dict(version=review["dogs"][0]["version"], documents=[dict(type="VACCINATION_CARD", files=files)]))
+        review = self.call("GET", f"/api/v1/members/{left['member']}/signup", access=admin)
+        card = next(doc for doc in review["dogs"][0]["documents"] if doc["type"] == "VACCINATION_CARD")
+        added = next((f for f in card["files"] if f["fileKey"] == upload["fileKey"]), None)
+        require(added is not None and added["name"] == "club-card.pdf", "D2 does not list the file added with the ADMIN's upload")
+        require(self.call("GET", added["downloadUrl"], binary=True) == pdf, "The signed download URL did not answer the file without a bearer")
+        print("PASS D2 adds a file with the ADMIN's DOG_DOCUMENT upload; the signed upload and download URLs need no bearer", flush=True)
+        self.call("POST", f"/api/v1/members/{left['member']}/rejection", access=admin,
+                  body=dict(version=review["version"], reason="Fictional readmission rejection"))
+        restored = self.mongo("(()=>{const m=db.members.findOne({_id:" + json.dumps(left["member"]) + "});const d=db.dogs.findOne({_id:"
+                              + json.dumps(left["dog"]) + "});return {member:m.status,dog:d.status};})()")
+        require(restored == dict(member="LEFT", dog="INACTIVE"), "The rejected readmission did not restore the LEFT record")
+        self.dashboard(admin, 3, 185)
+        print("PASS rejected readmission restores the LEFT member and its INACTIVE dog; D1 counters restored", flush=True)
         parameter = self.call("GET", "/api/v1/parameters/signup.enabled", access=admin)
         self.call("PUT", "/api/v1/parameters/signup.enabled", access=admin,
                   body=dict(value=False, version=parameter["version"], reason="Fictional E3 gate closure"))

@@ -34,8 +34,8 @@ public class AuditListProjection {
                 branch(new Document("$in", List.of("$actorRole", List.of("ADMIN", "PLATFORM", "INSTRUCTOR"))), "BACKOFFICE"),
                 branch(new Document("$eq", List.of("$actorRole", "MEMBER")), "APP"),
                 branch(new Document("$eq", List.of("$actorRole", "WEBHOOK")), "WEBHOOK"))).append("default", "SYSTEM"));
-        // S14 §3: the audit origin is APP · BACKOFFICE · SYSTEM · WEBHOOK · PUBLIC. The writer stores the request's event origin,
-        // where an instructor's action is INSTRUCTOR: it reads as BACKOFFICE, as for an entry without origin (E5-T22).
+        // S14 §3: the audit origin is APP · BACKOFFICE · SYSTEM · WEBHOOK · PUBLIC. Since E5-T24 the writer stores an instructor's
+        // action as BACKOFFICE; an entry stored earlier with the event origin INSTRUCTOR still reads BACKOFFICE (E5-T22).
         Object stored = new Document("$cond", List.of(new Document("$eq", List.of("$origin", "INSTRUCTOR")), "BACKOFFICE", "$origin"));
         result.add(new Document("$set", new Document("origin", ifNull(stored, origin))
                 .append("entityLabel", ifNull("$entityLabel", new Document("$concat", List.of("$entityType", " · ", "$entityId"))))

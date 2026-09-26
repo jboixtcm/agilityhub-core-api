@@ -96,7 +96,10 @@ public class ExportsController {
     @RequestMapping(path = "/api/v1/members/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "memberNumber", "lastName", "fullName(contains)", "status", "displayStatus", "planId", "priceId", "paymentMethodType", "nextInvoiceDate", "joinedAt", "leaveDate", "bookingBlocked", "familyGroupId", "imageRightsGranted", "roles", "city", "postalCode", "dogLevelId", "dogName(contains)", "hasPendingDocuments", "freeTrainingAllowed", "gender", "birthDate"}, sortable = {"lastName", "firstName", "memberNumber", "joinedAt", "leaveDate", "nextInvoiceDate", "city"},
-            columns = {"fullName*", "dogs*", "plan*", "displayStatus*", "memberNumber", "contact", "paymentMethod@BILLING", "nextInvoiceDate@BILLING", "familyGroup@FAMILY_GROUP", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining@FREE_TRAINING", "birthDate", "gender", "idDocument"}, paged = true, exportable = false)
+            columns = {"fullName*", "dogs*", "plan*", "displayStatus*", "memberNumber", "contact", "paymentMethod@BILLING", "nextInvoiceDate@BILLING", "familyGroup@FAMILY_GROUP", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining@FREE_TRAINING", "birthDate", "gender", "idDocument"}, paged = true, exportable = false,
+            fields = {"id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked",
+                    "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup",
+                    "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export members",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
@@ -111,7 +114,8 @@ public class ExportsController {
     @RequestMapping(path = "/api/v1/dogs/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"id", "name(contains)", "breed(contains)", "levelId", "memberId", "ownerName(contains)", "handlerName(contains)", "status", "freeTrainingAllowed", "hasLicense", "licenseOrganisation", "hasPendingDocuments", "sex", "birthDate", "chip", "registeredAt", "levelAssignedAt"}, sortable = {"name", "breed", "levelOrder", "ownerLastName", "registeredAt", "levelAssignedAt"},
-            columns = {"name*", "breed*", "level*#levels.enabled", "owner*", "handler", "freeTraining*@FREE_TRAINING", "licenses*", "displayStatus*", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack@PACKS", "registeredAt"}, paged = true, exportable = false)
+            columns = {"name*", "breed*", "level*#levels.enabled", "owner*", "handler", "freeTraining*@FREE_TRAINING", "licenses*", "displayStatus*", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack@PACKS", "registeredAt"}, paged = true, exportable = false,
+            fields = {"id", "name", "breed", "level", "owner", "handler", "handlerName", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export dogs",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Up to 5,000 rows inline; larger requests queue a background export, capped at 100,000 rows. Catalog EXPORT_LIMIT is HTTP 422. Files and signed links last seven days.",
@@ -126,7 +130,9 @@ public class ExportsController {
     @RequestMapping(path = "/api/v1/audit-entries/export", method = {RequestMethod.GET, RequestMethod.POST})
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
-            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = false)
+            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = false,
+            fields = {"id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel",
+                    "memberId", "action", "changes", "reason", "details"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export audit entries",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Nested sensitive details and changes are masked. Up to 5,000 rows inline; larger exports queue the existing background worker.",
@@ -142,7 +148,7 @@ public class ExportsController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.BILLING)
     @ListContract(filterable = {}, sortable = {},
-            columns = {}, paged = true, exportable = false)
+            columns = {}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export invoices",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
@@ -157,7 +163,8 @@ public class ExportsController {
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.ACTIVITIES)
     @ListContract(filterable = {"activityId", "state", "origin", "registeredAt", "memberId", "id"}, sortable = {"registeredAt", "position", "memberLastName"},
-            columns = {"member*", "state*", "position*", "origin*", "registeredAt*", "cancelledAt", "cancelReason"}, paged = true, exportable = false)
+            columns = {"member*", "state*", "position*", "origin*", "registeredAt*", "cancelledAt", "cancelReason"}, paged = true, exportable = false,
+            fields = {"registrationId", "member", "state", "position", "waitlistRank", "origin", "registeredAt", "cancelledAt", "cancelReason"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export activity registrations",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Filter by activityId to export an activity. Implemented by S07.",
@@ -171,7 +178,7 @@ public class ExportsController {
     @GetMapping("/api/v1/notifications/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {}, sortable = {},
-            columns = {}, paged = true, exportable = false)
+            columns = {}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export notifications",
             description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",

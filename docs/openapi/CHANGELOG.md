@@ -2,6 +2,41 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T24 · D2's new file from the ADMIN's upload; self-authorising signed URLs; `x-fields` on exports; `id` filterable on five lists
+
+**0 operations added or removed; 1 property made nullable; `x-fields` added on 9 operations (6 exports, 3 of them GET and
+POST); the `fields` parameter removed from 3 operations; 6 `x-filterable` gain `id`; the `fields` parameter's description
+changes wherever it is published, and 5 other descriptions change.** The web must regenerate its client:
+
+- **`PATCH /dogs/{id}`** (S04 R-04-19, amended 26-09; web E4-W13 question 1). On a `PENDING` dog, a readmission's reused
+  dog included, a new file in `documents` is the ADMIN's own `POST /attachments/upload-url` with `purpose = DOG_DOCUMENT`:
+  upload it through its signed URL, then send its `fileKey` with the type's kept keys and the file's `name`. A key of
+  another club, purpose or account, one claimed for another dog or type, one never uploaded, or one removed through S03
+  answers `400 FILE_NOT_FOUND`. At most 10 new files per request. D2's view (`GET /members/{id}/signup`) then lists the
+  file with that name and a `downloadUrl`. `DogPatch.documents` and the operation describe it; the operation also says
+  that the card requirement applies only when the card's keys change (E5-T23 question 1).
+- **Signed local file URLs** (CONVENCIONS_API §5, amended 26-09; web E4-W13 question 2). Not in the contract (hidden
+  routes), behaviour only: `PUT /api/v1/attachments/uploads/{id}`, `GET /api/v1/attachments/files/{id}` and `GET
+  /api/v1/signup/files` are authorised by their `expires` and `signature` alone. Send the upload with `Upload.headers`
+  only, never a bearer; an `<img>` can read a download URL. A wrong signature or an expired URL answers `403 FORBIDDEN`.
+  Another club's or an invalid bearer is not read.
+- **Exports** (CONVENCIONS_API §4, amended 26-09). `GET|POST /members/export`, `/dogs/export`, `/audit-entries/export`
+  and `GET /activities/export`, `/activity-registrations/export`, `/training-bookings/export` publish their list's
+  `x-fields`. Without `columns`, `fields` picks the columns: its keys that are columns, in their order (the row id has no
+  column); `fields` that names no column, or a key outside `x-fields`, answers `400 INVALID_FILTER`. With `columns`,
+  `columns` decides, as before.
+- **`fields` removed** from `GET /activities/filter-values`, `GET /invoices/export` and `GET /notifications/export`
+  (contract-only exports). The `fields` parameter's description names this operation's `x-fields`.
+- **`x-filterable` gains `id`** on `GET /weeks`, `/class-sessions`, `/ring-blocks`, `/training-bookings`,
+  `/training-bookings/export` and `/bookings` (E5-T22 question 1): they already accepted it.
+- **`TemplateClass.placementId`** is `["string", "null"]` (E5-T22 question 2): `GET /week-templates/{id}` and its writes
+  send `null` for a class without a placement, and always without COURSES.
+- **`GET /signup` in add-dog mode** (S04 R-04-09, amended 26-09; behaviour, and the descriptions of `SignupPlan.current` and
+  `AddDogSignupRequest.planIdRequested`). A member whose own plan is
+  no longer assignable (inactive, or its module off) counts as a member without a plan: no plan `current`, no
+  `upfront.additionalDogOptions`, and `POST /me/dogs/signup` without `planIdRequested` answers `400 VALIDATION_ERROR`
+  (`REQUIRED`). Before, that member's `GET /signup` answered `422 PLAN_NOT_AVAILABLE`.
+
 ## 2026-09-26 · E5-T23 · D2's card requirement only when the card changes
 
 **0 operations, schemas or descriptions changed.** Behaviour only (R-04-19, R-04-08, R-04-06):

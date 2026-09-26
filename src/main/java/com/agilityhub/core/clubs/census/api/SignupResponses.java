@@ -42,7 +42,7 @@ public final class SignupResponses {
             @Schema(requiredMode = NOT_REQUIRED) Money entryFee,
             @Schema(requiredMode = NOT_REQUIRED) SignupPack pack,
             @Schema(requiredMode = NOT_REQUIRED) Money maintenanceFee,
-            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup") Boolean current) { }
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan, or whose plan is no longer assignable, gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup") Boolean current) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupPrice(@Schema(format = "uuid") String id, Money amount,
             @Schema(allowableValues = {"MONTHLY", "ONE_OFF"}) String periodicity) { }

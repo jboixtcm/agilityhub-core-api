@@ -186,7 +186,9 @@ public class OpenApiConfiguration {
                     .description(switch (name) {
                         case "filter" -> "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.";
                         case "sort" -> "Repeat field,asc or field,desc; only x-sortable fields.";
-                        case "fields" -> "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.";
+                        case "fields" -> "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id "
+                                + "and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns "
+                                + "when columns is absent; none of them is INVALID_FILTER.";
                         case "q" -> "Free-text search within the caller's permitted projection.";
                         case "page" -> "Zero-based page index.";
                         default -> "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.";

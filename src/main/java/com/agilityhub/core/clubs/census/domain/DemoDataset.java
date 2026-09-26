@@ -12,8 +12,15 @@ public final class DemoDataset {
             Map<String, Integer> levelDogs, List<String> firstNames, String surnamePrefix, List<String> dogNames,
             List<String> accountEmails, List<String> planCodes, String familyPlanCode, int familyGroups,
             List<Integer> instructors, List<Integer> administrators, int receivedDocuments, LocalDate referenceDate,
-            List<PendingSignup> pendingSignups, String phoneNumberFormat) {
+            List<PendingSignup> pendingSignups, String phoneNumberFormat, List<LeftDog> leftDogs) {
         public Spec {
+            var left = leftDogs == null ? List.<LeftDog>of() : List.copyOf(leftDogs);
+            var chips = new HashSet<String>(); left.forEach(dog -> chips.add(dog.chip()));
+            if (left.size() > leftMembers || chips.size() != left.size()
+                    || pendingSignups != null && pendingSignups.stream().anyMatch(signup -> chips.contains(signup.chip()))) {
+                throw new IllegalArgumentException("Invalid demo left dogs");
+            }
+            leftDogs = left;
             if (phoneNumberFormat != null && !phoneNumberFormat.matches("[0-9]{1,9}%0[1-9]d")) { throw new IllegalArgumentException("Invalid demo phone format"); }
             if (activeMembers < 5 || activeMembers > 1000 || pendingMembers < 0 || inactiveMembers < 0 || leftMembers < 0
                     || pendingMembers + inactiveMembers + leftMembers > 1000 || levelDogs == null || levelDogs.isEmpty()
@@ -42,6 +49,19 @@ public final class DemoDataset {
             if (planCode == null || planCode.isBlank() || daysAgo < 0 || daysAgo > 365
                     || dogName == null || dogName.isBlank() || chip == null || !chip.matches("[0-9]{15}")) {
                 throw new IllegalArgumentException("Invalid fictional pending signup");
+            }
+        }
+    }
+    /**
+     * E5-T24 (web E4-W13 question 3; S04 R-04-06, R-04-07): the n-th entry goes to the n-th LEFT member, who gets this fictional
+     * identity document and one INACTIVE dog with this chip and level and a received vaccination card, so that a readmission
+     * can reuse a seed dog.
+     */
+    public record LeftDog(String idDocumentType, String idDocument, String dogName, String chip, String levelCode) {
+        public LeftDog {
+            if (idDocumentType == null || idDocumentType.isBlank() || idDocument == null || idDocument.isBlank()
+                    || dogName == null || dogName.isBlank() || chip == null || !chip.matches("[0-9]{15}") || levelCode == null || levelCode.isBlank()) {
+                throw new IllegalArgumentException("Invalid fictional left dog");
             }
         }
     }

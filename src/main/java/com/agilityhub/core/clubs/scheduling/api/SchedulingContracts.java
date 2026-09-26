@@ -22,7 +22,7 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId, List<String> levelIds,
             int capacity, CapacityMode capacityMode, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String description,
             String displayDescription, List<String> inconsistencyIds,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with COURSES") String placementId) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The class's placement with COURSES; null for a class without one, and always without COURSES") String placementId) { }
     public record Inconsistency(String id, InconsistencyType type,
             @Schema(requiredMode = NOT_REQUIRED) DayOfWeek dayOfWeek, @Schema(requiredMode = NOT_REQUIRED) LocalDate date,
             @Schema(requiredMode = NOT_REQUIRED) String startTime, @Schema(requiredMode = NOT_REQUIRED) String bandId,

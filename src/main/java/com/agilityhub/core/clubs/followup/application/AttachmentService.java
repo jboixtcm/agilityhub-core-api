@@ -75,6 +75,34 @@ public class AttachmentService {
         grants.bind(key,entity);
         return new File(signupFileId(key),grant.fileName(),key,grant.mimeType(),grant.sizeBytes(),clock.instant(),null);
     }
+    /**
+     * E5-T24 (S04 R-04-19, amended 26-09 after the web's E4-W13): a new file in D2's edit of a pending dog is the ADMIN's own
+     * `POST /attachments/upload-url` with `purpose = DOG_DOCUMENT`, uploaded in the club and not claimed by another entity.
+     * Any other key (another club's, purpose's or account's, claimed for another dog or type, or never uploaded) is not
+     * found, as a signup key is: 400 FILE_NOT_FOUND. The file waits for the D2 save, so the URL's five minutes do not apply.
+     */
+    @Transactional
+    public File claimDogDocument(String key, String entity) {
+        var grant = grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND));
+        if (!"DOG_DOCUMENT".equals(grant.purpose()) || !account().equals(grant.accountId())
+                || grant.boundEntity() != null && !grant.boundEntity().equals(entity)) { throw new ApiException(ErrorCode.FILE_NOT_FOUND); }
+        validate("DOG_DOCUMENT", grant.mimeType(), grant.sizeBytes());
+        AttachmentStorage.Metadata actual;
+        try { actual = storage.metadata(key); } catch (ApiException missing) { if (missing.code() == ErrorCode.NOT_FOUND) { throw new ApiException(ErrorCode.FILE_NOT_FOUND); } throw missing; }
+        if (actual.sizeBytes() != grant.sizeBytes()) { throw new ApiException(ErrorCode.FILE_TOO_LARGE); }
+        if (!Objects.equals(actual.mimeType(), grant.mimeType())) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
+        grants.bind(key, entity);
+        return new File(key, grant.fileName(), key, grant.mimeType(), grant.sizeBytes(), clock.instant(), grant.accountId());
+    }
+    /**
+     * E5-T24 (CONVENCIONS_API §5, A31): the local signed URLs authorise themselves. The signature binds the file id, the expiry
+     * and the method, so it is checked first (a wrong or expired one is 403 FORBIDDEN); the file, and so its club, is then the
+     * one the URL signed, and a bearer, if any, plays no part (the routes read none, {@code SignedFileRequests}).
+     */
+    private UploadGrant signedGrant(LocalAttachmentStorage local, String id, long expires, String signature, String method) {
+        local.authorize(id, expires, signature, method);
+        return grants.signed(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+    }
     public void putSignupLocal(String key,long expires,String signature,String type,InputStream input) throws IOException {
         if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         requireSignupOpen();
@@ -107,17 +135,18 @@ public class AttachmentService {
     }
     private UploadGrant grant(String key) { return grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     public String url(String key, String name) { return key == null ? null : storage.downloadUrl(key, name, clock.instant().plusSeconds(300)); }
+    /** The local signed upload URL (E5-T24): its signature alone authorises the PUT, for the club of the grant it names. */
     public void putLocal(String id, long expires, String signature, String type, InputStream input) throws IOException {
         if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }
-        var grant = grant(id); if (!grant.accountId().equals(account())) { throw new ApiException(ErrorCode.FORBIDDEN); }
-        local.authorize(id, expires, signature, "PUT");
+        var grant = signedGrant(local, id, expires, signature, "PUT");
         if (grant.boundEntity() != null || !grant.expiresAt().isAfter(clock.instant())) { throw new ApiException(ErrorCode.INVALID_STATE); }
         if (!grant.mimeType().equals(type)) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
         local.put(id, type, grant.sizeBytes(), input);
     }
+    /** The local signed download URL (E5-T24): its signature alone authorises the GET of a claimed file, whatever the bearer. */
     public InputStream openLocal(String id, long expires, String signature) throws IOException {
         if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }
-        var grant = grant(id); local.authorize(id, expires, signature, "GET");
+        var grant = signedGrant(local, id, expires, signature, "GET");
         if (grant.boundEntity() == null) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return local.open(id);
     }

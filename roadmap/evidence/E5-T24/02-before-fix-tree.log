@@ -1,0 +1,34 @@
+back to HEAD: docs/openapi/openapi.json
+back to HEAD: seeds/README.md
+back to HEAD: seeds/demo-canic.yaml
+back to HEAD: src/main/java/com/agilityhub/core/clubs/activities/api/ActivitiesController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/bookings/api/BookingsController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/api/CensusRequests.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/api/DogsController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/api/SignupRequests.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/api/SignupResponses.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/application/DemoSeedService.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/domain/DemoDataset.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/common/api/ExportsController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/common/application/ListExportService.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/api/AttachmentsController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/api/SignupFilesController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/application/AttachmentService.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/persistence/LocalAttachmentStorage.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/persistence/UploadGrantRepository.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/scheduling/api/SchedulingContracts.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/scheduling/api/SchedulingController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/training/api/TrainingController.java
+back to HEAD: src/main/java/com/agilityhub/core/configuration/OpenApiConfiguration.java
+back to HEAD: src/main/java/com/agilityhub/core/configuration/SecurityConfiguration.java
+back to HEAD: src/main/java/com/agilityhub/core/platform/application/audit/AuditWriter.java
+back to HEAD: src/main/java/com/agilityhub/core/platform/persistence/audit/AuditListProjection.java
+back to HEAD: src/main/java/com/agilityhub/core/shared/api/TenantFilter.java
+back to HEAD: src/main/java/com/agilityhub/core/shared/application/contract/ListContract.java
+removed (added after HEAD): src/main/java/com/agilityhub/core/configuration/ListContractValidation.java
+removed (added after HEAD): src/main/java/com/agilityhub/core/shared/api/SignedFileRequests.java
+back to HEAD: src/test/java/com/agilityhub/core/clubs/followup/application/AttachmentServiceTest.java
+back to HEAD: src/test/java/com/agilityhub/core/clubs/census/application/DemoSeedsIT.java
+removed (added after HEAD): src/test/java/com/agilityhub/core/configuration/ListContractValidationTest.java
+tree ready: target/before-fix

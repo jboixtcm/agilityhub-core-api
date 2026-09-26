@@ -148,7 +148,7 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/weeks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"startDate", "state"}, sortable = {"startDate"}, paged = true,
+    @ListContract(filterable = {"id", "startDate", "state"}, sortable = {"startDate"}, paged = true,
             fields = {"id", "isoYear", "isoWeek", "startDate", "endDate", "state", "generatedAt", "validatedAt", "weekdayTemplateName", "saturdayTemplateName", "classCounts"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "weeks", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<WeekListItem>", useReturnTypeSchema = true))
@@ -220,7 +220,7 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/class-sessions")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true,
+    @ListContract(filterable = {"id", "date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true,
             fields = {"id", "weekId", "date", "startTime", "endTime", "startsAt", "endsAt", "ringId", "levelIds", "instructorIds", "capacity", "capacityMode", "description",
                     "displayDescription", "state", "counters", "atRisk", "riskExempt", "cancellation", "origin", "version", "inconsistencyIds", "placementId", "notes"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
@@ -293,7 +293,7 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/ring-blocks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
-    @ListContract(filterable = {"ringId", "kind", "reason", "state", "from", "to"}, sortable = {"from"}, paged = true,
+    @ListContract(filterable = {"id", "ringId", "kind", "reason", "state", "from", "to"}, sortable = {"from"}, paged = true,
             fields = {"id", "ringId", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlockListItem>", useReturnTypeSchema = true))

@@ -58,6 +58,8 @@ public class SecurityConfiguration {
             // S08 R-08-08: the .ics link authenticates with its signed token, not a JWT; the club comes from the host.
             authorize.requestMatchers(HttpMethod.GET, "/api/v1/bookings/*/calendar.ics").permitAll();
             authorize.requestMatchers(HttpMethod.PUT, "/api/v1/signup/uploads").permitAll();
+            // E5-T24 (CONVENCIONS_API §5, A31): a signed local file URL authorises itself; its service checks the signature.
+            authorize.requestMatchers(com.agilityhub.core.shared.api.SignedFileRequests::matches).permitAll();
             authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid",
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",
                     "/api/v1/signup/family-group-lookups", "/api/v1/checkout-sessions").permitAll();
@@ -85,7 +87,10 @@ public class SecurityConfiguration {
             combined.addAll(scopes.convert(jwt));
             return combined;
         });
-        http.oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
+        // E5-T24: the bearer of a signed file URL is never read, so it does no harm (an expired one included).
+        var bearers = new org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver();
+        http.oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> com.agilityhub.core.shared.api.SignedFileRequests.matches(request) ? null : bearers.resolve(request))
+                .jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
                 .authenticationEntryPoint((request, response, exception) -> writeError(request, response, ErrorCode.UNAUTHENTICATED, errors, mapper))
                 .accessDeniedHandler((request, response, exception) -> writeError(request, response, ErrorCode.FORBIDDEN, errors, mapper)));
         http.exceptionHandling(config -> config

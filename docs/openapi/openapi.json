@@ -1142,7 +1142,7 @@
             "$ref" : "#/components/schemas/SignupDog"
           },
           "planIdRequested" : {
-            "description" : "R-04-09: omitted, the member's own plan. A member without a plan must send one of the offered plans (400 VALIDATION_ERROR, fieldErrors planIdRequested REQUIRED), unless GET /signup offers none",
+            "description" : "R-04-09: omitted, the member's own plan. A member without a plan, or whose plan is no longer assignable (inactive or its module off; GET /signup then marks no plan current), must send one of the offered plans (400 VALIDATION_ERROR, fieldErrors planIdRequested REQUIRED), unless GET /signup offers none",
             "format" : "uuid",
             "type" : "string"
           }
@@ -4755,7 +4755,7 @@
             "type" : "string"
           },
           "documents" : {
-            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new signup upload. The key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId} answers 400 FILE_NOT_FOUND. At most 10 new uploads per request (kept files do not count). Sending back the view's keys is no change.",
+            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new file: the caller's own POST /attachments/upload-url with purpose = DOG_DOCUMENT, uploaded in the club and not claimed by another dog or type (a signup upload is also taken). Another club's, purpose's or account's key, one claimed elsewhere or never uploaded answers 400 FILE_NOT_FOUND, and so does the key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId}. At most 10 new files per request (kept files do not count). Sending back the view's keys is no change.",
             "items" : {
               "$ref" : "#/components/schemas/SignupDocument"
             },
@@ -13026,7 +13026,7 @@
             "type" : "string"
           },
           "current" : {
-            "description" : "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup",
+            "description" : "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan, or whose plan is no longer assignable, gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup",
             "type" : "boolean"
           },
           "description" : {
@@ -13910,8 +13910,8 @@
             "type" : "array"
           },
           "placementId" : {
-            "description" : "Only with COURSES",
-            "type" : "string"
+            "description" : "The class's placement with COURSES; null for a class without one, and always without COURSES",
+            "type" : [ "string", "null" ]
           },
           "ringId" : {
             "type" : [ "string", "null" ]
@@ -16136,7 +16136,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -16526,7 +16526,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -16709,6 +16709,7 @@
           "key" : "registrationTo"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
@@ -16776,13 +16777,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
-          "in" : "query",
-          "name" : "fields",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -18534,7 +18528,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -19058,7 +19052,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -19246,6 +19240,7 @@
           "key" : "cancelReason"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "registrationId", "member", "state", "position", "waitlistRank", "origin", "registeredAt", "cancelledAt", "cancelReason" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "activityId", "state", "origin", "registeredAt", "memberId", "id" ],
         "x-sortable" : [ "registeredAt", "position", "memberLastName" ]
@@ -20833,7 +20828,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -21058,7 +21053,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -21303,7 +21298,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -21494,6 +21489,7 @@
           "key" : "details"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel", "memberId", "action", "changes", "reason", "details" ],
         "x-filter-operators" : {
           "at" : [ "between" ]
         },
@@ -21570,7 +21566,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -21761,6 +21757,7 @@
           "key" : "details"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel", "memberId", "action", "changes", "reason", "details" ],
         "x-filter-operators" : {
           "at" : [ "between" ]
         },
@@ -22434,7 +22431,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -22602,7 +22599,7 @@
         "x-exportable" : false,
         "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
+        "x-filterable" : [ "id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
         "x-sortable" : [ "classStartsAt", "bookedAt" ]
       },
       "post" : {
@@ -23578,7 +23575,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -23722,7 +23719,7 @@
         "x-exportable" : false,
         "x-fields" : [ "id", "weekId", "date", "startTime", "endTime", "startsAt", "endsAt", "ringId", "levelIds", "instructorIds", "capacity", "capacityMode", "description", "displayDescription", "state", "counters", "atRisk", "riskExempt", "cancellation", "origin", "version", "inconsistencyIds", "placementId", "notes" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "date", "state", "ringId", "instructorId", "levelId", "weekId" ],
+        "x-filterable" : [ "id", "date", "state", "ringId", "instructorId", "levelId", "weekId" ],
         "x-sortable" : [ "startsAt", "date" ]
       },
       "post" : {
@@ -27831,7 +27828,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -28103,7 +28100,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -28318,6 +28315,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "name", "breed", "level", "owner", "handler", "handlerName", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -28397,7 +28395,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -28612,6 +28610,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "name", "breed", "level", "owner", "handler", "handlerName", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -28943,7 +28942,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The documents of a pending dog change only for the types sent. A type's files are the ones sent: a fileKey that GET /members/{id}/signup shows for that type keeps its file, and any other fileKey is a new signup upload (R-04-19). With signup.requireDogDocumentAtSignup, a VACCINATION_CARD without files answers 422 DOG_DOCUMENT_REQUIRED, unless the reused dog of a pending readmission has its own card with a file. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: 409 INVALID_STATE with details.reason = READMISSION_PENDING. The response is the dog record, which keeps its own values until validation: D2 re-reads GET /members/{id}/signup for the submitted ones.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The documents of a pending dog change only for the types sent. A type's files are the ones sent: a fileKey that GET /members/{id}/signup shows for that type keeps its file, and any other fileKey is a new file, the ADMIN's own POST /attachments/upload-url with purpose = DOG_DOCUMENT (R-04-19, amended 26-09); see DogPatch.documents. With signup.requireDogDocumentAtSignup, a VACCINATION_CARD without files answers 422 DOG_DOCUMENT_REQUIRED only when the request changes the card's keys (sending back a PENDING card is no change), and never when the reused dog of a pending readmission has its own card with a file. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: 409 INVALID_STATE with details.reason = READMISSION_PENDING. The response is the dog record, which keeps its own values until validation: D2 re-reads GET /members/{id}/signup for the submitted ones.",
         "operationId" : "updateDog",
         "parameters" : [ {
           "in" : "path",
@@ -33039,7 +33038,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -34949,13 +34948,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
-          "in" : "query",
-          "name" : "fields",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -35315,7 +35307,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -40904,7 +40896,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -41193,7 +41185,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -41427,6 +41419,7 @@
           "key" : "idDocument"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -41504,7 +41497,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -41738,6 +41731,7 @@
           "key" : "idDocument"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -42434,7 +42428,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -44834,13 +44828,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
-          "in" : "query",
-          "name" : "fields",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -49890,7 +49877,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -50034,7 +50021,7 @@
         "x-exportable" : false,
         "x-fields" : [ "id", "ringId", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "ringId", "kind", "reason", "state", "from", "to" ],
+        "x-filterable" : [ "id", "ringId", "kind", "reason", "state", "from", "to" ],
         "x-sortable" : [ "from" ]
       },
       "post" : {
@@ -54873,7 +54860,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -55041,7 +55028,7 @@
         "x-exportable" : true,
         "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "date", "ringId", "memberId", "dogId", "state", "origin" ],
+        "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
       },
       "post" : {
@@ -55272,7 +55259,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -55455,8 +55442,9 @@
           "key" : "createdAt"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "date", "ringId", "memberId", "dogId", "state", "origin" ],
+        "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
       }
     },
@@ -58141,7 +58129,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -58285,7 +58273,7 @@
         "x-exportable" : false,
         "x-fields" : [ "id", "isoYear", "isoWeek", "startDate", "endDate", "state", "generatedAt", "validatedAt", "weekdayTemplateName", "saturdayTemplateName", "classCounts" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "startDate", "state" ],
+        "x-filterable" : [ "id", "startDate", "state" ],
         "x-sortable" : [ "startDate" ]
       },
       "post" : {

@@ -1,0 +1,42 @@
+surefire totals: tests=578 failures=0 errors=0 skipped=0 (127 classes)
+failsafe totals: tests=1027 failures=0 errors=0 skipped=0 (87 classes)
+Classes this task adds or changes:
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=45 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.CensusIT: tests=41 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupIT: tests=33 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT: tests=4 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=10 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.common.api.UniversalListsIT: tests=34 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.followup.application.AttachmentServiceTest: tests=10 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.scheduling.application.CalendarIT: tests=17 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.scheduling.application.PlanningIT: tests=11 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E4ContractIT: tests=63 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E5ContractIT: tests=38 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.ListFieldsContractIT: tests=4 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.ListContractValidationTest: tests=2 failures=0 errors=0 skipped=0
+E5-T24 test methods (added or changed):
+  PASS SignupSecurityFixesIT#R_04_19_R_04_08_d2AddsAFileToAPendingSignupDogWithTheAdminsUpload
+  PASS SignupSecurityFixesIT#R_04_19_R_04_06_d2AddsTheAdminsUploadToTheReusedDogAndTheValidationWritesIt
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_R_04_19_aSignedUploadUrlTakesAPutWithItsHeadersOnlyAndItsFileIsClaimed
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_signedDownloadUrlsAnswerWithoutABearerAndRefuseAnotherFilesSignature
+  PASS CensusIT#T_03_23_photoAndNoteAttachmentsAreBoundPrivateAndReplaySafe
+  PASS SignupIT#T_04_13_signedUploadClaimsOnlyExistingTenantFilesAndEnforcesLimits
+  PASS AttachmentServiceTest#R_04_19_d2ClaimsOnlyTheCallersOwnDogDocumentUpload
+  PASS AttachmentServiceTest#CONVENCIONS_API_5_localSignedUrlsAuthoriseThemselves
+  PASS DemoSeedsIT#R_04_06_R_04_07_theDemosLeftMemberHasAnInactiveChippedDogThatAReadmissionReuses
+  PASS DemoSeedsIT#T_03_42_fullDemoCountsDocumentsTeamTenantAndRepeat
+  PASS DemoSeedsIT#T_03_42_smallFixtureUsesSameGeneratorAndExistingCensusIsProtected
+  PASS CalendarIT#R_14_09_anInstructorsAuditedActionIsStoredBackofficeAndItsEventKeepsInstructor
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_noOperationPublishesFieldsWithoutXFieldsAndEachExportPublishesItsLists
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_everyUniversalListPublishesExactlyTheFieldsItAccepts
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly
+  PASS UniversalListsIT#CONVENCIONS_API_4_T_03_11_anExportsFieldsPickItsColumns
+  PASS ListContractValidationTest#CONVENCIONS_API_4_wellDeclaredListContractsStart
+  PASS ListContractValidationTest#CONVENCIONS_API_4_aMisdeclaredListContractStopsTheStartup
+  PASS SignupPlansFollowUpIT#R_04_09_aMemberWhoseOwnPlanIsGoneMustChooseOne
+  PASS SignupPlansFollowUpIT#R_04_09_theFamilyMembersOwnHiddenPlanIsListedAsCurrentInAddDogMode
+  PASS SignupPlansFollowUpIT#R_05_19_T_05_07_eachPlanCarriesItsPriceLabelInTheReadersLocale
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_everyEngineListPublishesTheFiltersItAccepts
+  PASS PlanningIT#T_06_01_aTemplateClassWithoutAPlacementSendsANullPlacementIdUnderCourses
+  PASS E4ContractIT#T_06_20_T_07_17_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+  PASS E5ContractIT#T_08_47_T_09_24_T_15_29_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata

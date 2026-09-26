@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
@@ -150,7 +151,9 @@ class DemoSeedsIT extends AbstractIntegrationTest {
             var doc = mongo.findOne(Query.query(Criteria.where("state").is("RECEIVED")), Document.class, "dog_documents");
             assertThat(doc).isNotNull();
             var rendered = documents.list(doc.getString("dogId")); assertThat(rendered).anyMatch(row -> row.get("state").equals("RECEIVED"));
-            assertThat(mongo.count(Query.query(Criteria.where("state").is("RECEIVED")), "dog_documents")).isEqualTo(6);
+            // Six active dogs' documents, and the vaccination card of the LEFT member's INACTIVE dog (E5-T24).
+            assertThat(mongo.count(Query.query(Criteria.where("state").is("RECEIVED")), "dog_documents")).isEqualTo(7);
+            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("status").is("INACTIVE")), "dogs")).isEqualTo(1);
             assertThat(mongo.count(new Query(), "instructors")).isEqualTo(3);
             assertThat(mongo.count(Query.query(Criteria.where("adminProfile.active").is(true)), "memberships")).isEqualTo(2);
             // CATALEG_ESDEVENIMENTS (25-09, E3-T10 round 2): the demo accounts' MembershipChanged use the one spelling too.
@@ -209,7 +212,8 @@ class DemoSeedsIT extends AbstractIntegrationTest {
     @Test void T_03_42_smallFixtureUsesSameGeneratorAndExistingCensusIsProtected() throws Exception {
         String club = club(); var spec = DemoFixtures.spec(mapper, true);
         try (var tenant = TenantContext.open(club)) {
-            var result = demo.apply(spec, 42); assertThat(result.counts()).containsEntry("activeMembers", 8).containsEntry("activeDogs", 16).containsEntry("pendingDogs", 3).containsEntry("dogs", 19);
+            var result = demo.apply(spec, 42); assertThat(result.counts()).containsEntry("activeMembers", 8).containsEntry("activeDogs", 16).containsEntry("pendingDogs", 3)
+                    .containsEntry("inactiveDogs", 1).containsEntry("dogs", 20).containsEntry("receivedDocuments", 3).containsEntry("pendingDocuments", 17);
             assertThat(demo.apply(spec, 42).changes()).isZero();
             mongo.remove(new Query(), "demo_seed_runs");
             assertThatThrownBy(() -> demo.apply(spec, 42)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.CLUB_NOT_EMPTY));
@@ -219,6 +223,46 @@ class DemoSeedsIT extends AbstractIntegrationTest {
             assertThatThrownBy(() -> command.run(new DefaultApplicationArguments(args))).isInstanceOf(IllegalArgumentException.class);
         }
         assertThatThrownBy(() -> command.run(new DefaultApplicationArguments("--club=missing"))).isInstanceOf(ApiException.class);
+    }
+    /**
+     * E5-T24 step 3 (web E4-W13 question 3; S04 R-04-06, R-04-07): the demo's LEFT member has the seed's fictional DNI and an
+     * INACTIVE chipped dog with a received vaccination card. A readmission with that DNI and chip, as the web's real-core e2e
+     * sends it, reuses both: D2 shows the seed dog and its own RECEIVED card. The seed stays idempotent.
+     */
+    @Test void R_04_06_R_04_07_theDemosLeftMemberHasAnInactiveChippedDogThatAReadmissionReuses() throws Exception {
+        var input = seed(); ((ObjectNode) input.get("club")).put("status", "ACTIVE"); String club = definitions.apply(input, false).id();
+        var spec = DemoFixtures.spec(mapper, true); var left = spec.leftDogs().getFirst();
+        try (var tenant = TenantContext.open(club)) {
+            assertThat(demo.apply(spec, 42).counts()).containsEntry("inactiveDogs", 1).containsEntry("leftMembers", 1);
+            assertThat(demo.apply(spec, 42).changes()).isZero();
+        }
+        var member = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("status").is("LEFT")), Document.class, "members");
+        assertThat(member.get("idDocument", Document.class)).containsEntry("type", "DNI").containsEntry("number", left.idDocument());
+        var dog = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("memberId").is(member.getString("_id"))), Document.class, "dogs");
+        assertThat(dog).containsEntry("status", "INACTIVE").containsEntry("chip", left.chip()).containsEntry("name", left.dogName()).containsEntry("deactivationReason", "MEMBER_LEFT");
+        assertThat(dog.getDate("deactivatedAt")).isEqualTo(member.getDate("leftAt"));
+        var card = mongo.findOne(Query.query(Criteria.where("dogId").is(dog.getString("_id")).and("type").is("VACCINATION_CARD")), Document.class, "dog_documents");
+        assertThat(card.getString("state")).isEqualTo("RECEIVED"); assertThat(card.getList("files", Document.class)).hasSize(1);
+        var config = mapper.readTree(mvc.perform(get("/api/v1/signup").header("Host", "app.agilitycanic.cat")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        String version = config.at("/legal/legalTextsVersion").asText();
+        String plan = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("code").is("ABONAT")), Document.class, "plans").getString("_id");
+        var body = Map.of("locale", "ca", "website", "", "planId", plan,
+                "person", Map.of("idDocument", Map.of("type", "DNI", "value", left.idDocument()), "firstName", "Returning", "lastName1", "Example", "birthDate", "1990-01-01",
+                        "gender", "FEMALE", "emails", List.of("returning.demo@example.test"), "phones", List.of(Map.of("prefix", "+34", "number", "600000099")),
+                        "address", Map.of("street", "Example street", "postalCode", "99999", "town", "Example town")),
+                "dog", Map.of("name", left.dogName(), "sex", "FEMALE", "breed", "Fictional mixed breed", "birthMonth", "2020-09", "chip", left.chip()),
+                "payment", Map.of("type", "MANUAL", "firstMonthOption", "TODAY"),
+                "consents", Map.of("privacyPolicy", Map.of("accepted", true, "version", version), "imageUse", Map.of("granted", false, "version", version)));
+        var submitted = mapper.readTree(mvc.perform(post("/api/v1/signup").header("Host", "app.agilitycanic.cat").header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType("application/json").content(mapper.writeValueAsBytes(body))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        assertThat(submitted.path("memberId").asText()).isEqualTo(member.getString("_id"));
+        var review = mapper.readTree(mvc.perform(get("/api/v1/members/" + member.getString("_id") + "/signup").header("Host", "app.agilitycanic.cat")
+                .with(jwt().jwt(j -> j.subject("seed-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN"))).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        assertThat(review.path("warnings").toString()).contains("READMISSION");
+        assertThat(review.path("dogs")).hasSize(1); assertThat(review.at("/dogs/0/id").asText()).isEqualTo(dog.getString("_id"));
+        JsonNode own = null; for (var document : review.at("/dogs/0/readmission/current/documents")) { if ("VACCINATION_CARD".equals(document.path("type").asText())) { own = document; } }
+        assertThat(own).as("the reused dog's own card in D2").isNotNull();
+        assertThat(own.path("state").asText()).isEqualTo("RECEIVED"); assertThat(own.path("files")).hasSize(1);
     }
     @Test void T_14_11_T_04_34_demoPendingRowsAreReviewableAndPreserveSubsequentEdits() throws Exception {
         String club = club();
