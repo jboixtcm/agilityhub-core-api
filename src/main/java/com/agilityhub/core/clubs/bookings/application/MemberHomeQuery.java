@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
  * instructor visibility included); module off removes its rows (§9). Activity registrations belong to the member, not
  * to a dog, so the dog filter keeps them. `dogName` is sent only with «Tots» (T-08-12: «amb {gos} només amb Tots»): with a
  * dog selected every row is that dog's. The class labels of the CLASS and CLASS_WAITLIST rows come from one class query.
+ * E5-T25: the class and training rows carry their ring's `ringColor` (03's dot); an ACTIVITY row carries its `activityId`.
  */
 @Service
 public class MemberHomeQuery {
@@ -56,13 +57,14 @@ public class MemberHomeQuery {
             String title = messages.format("bookings.home.trainingTitle", Map.of(), locale);
             for (var t : training.upcoming(memberId, filtered, now)) {
                 rows.add(new Entry(t.startsAt(), row("TRAINING", t.id(), "CONFIRMED", t.dogId(), names.get(t.dogId()), title, t.startsAt(),
-                        views.local(t.startsAt()), views.local(t.endsAt()), t.ringName(), null, null)));
+                        views.local(t.startsAt()), views.local(t.endsAt()), t.ringName(), t.ringColor(), null, null, null)));
             }
         }
         if (context.enabled(Module.ACTIVITIES)) {
+            // S07 §2: an ACTIVITY row carries its activity; the row `id` is the registration's. An activity has no single ring colour.
             for (var a : activities.live(memberId)) {
                 rows.add(new Entry(a.startsAt(), row("ACTIVITY", a.id(), a.state(), null, null, a.title(), a.startsAt(), a.startsAtLocal(), a.endsAtLocal(),
-                        a.placeLabel(), null, null)));
+                        a.placeLabel(), null, a.activityId(), null, null)));
             }
         }
         rows.sort(Comparator.comparing(Entry::startsAt).thenComparing(e -> e.row().get("type").toString()).thenComparing(e -> e.row().get("id").toString()));
@@ -101,22 +103,22 @@ public class MemberHomeQuery {
                     now, b.classStartsAt(), hours, false);
             rows.add(new Entry(b.classStartsAt(), row("CLASS", b.id(), b.state() == BookingState.PAYMENT_PENDING ? "PAYMENT_PENDING" : "CONFIRMED", b.dogId(),
                     names.get(b.dogId()), title(labels.description(), locale), b.classStartsAt(), views.local(b.classStartsAt()), views.local(b.classEndsAt()),
-                    labels.ringName(), visibility.instructorName(), visibility.instructorVisibleAt())));
+                    labels.ringName(), labels.ringColor(), null, visibility.instructorName(), visibility.instructorVisibleAt())));
         }
         for (var e : waiting) {
             var labels = labelsById.get(e.classSessionId());
             rows.add(new Entry(e.classStartsAt(), row("CLASS_WAITLIST", e.id(), "WAITLISTED", e.dogId(), names.get(e.dogId()),
                     title(labels == null ? "" : labels.description(), locale), e.classStartsAt(), views.local(e.classStartsAt()), null,
-                    labels == null ? null : labels.ringName(), null, null)));
+                    labels == null ? null : labels.ringName(), labels == null ? null : labels.ringColor(), null, null, null)));
         }
     }
     private String title(String description, Locale locale) {
         return messages.format("bookings.home.classTitle", Map.of("description", Objects.toString(description, "")), locale);
     }
     private static Map<String, Object> row(String type, String id, String state, String dogId, String dogName, String title, Instant startsAt,
-            String startsAtLocal, String endsAtLocal, String ringName, String instructorName, Instant instructorVisibleAt) {
+            String startsAtLocal, String endsAtLocal, String ringName, String ringColor, String activityId, String instructorName, Instant instructorVisibleAt) {
         return BookingViews.map("type", type, "id", id, "state", state, "dogId", dogId, "dogName", dogName, "title", title, "startsAt", startsAt,
-                "startsAtLocal", startsAtLocal, "endsAtLocal", endsAtLocal, "ringName", ringName, "instructorName", instructorName,
-                "instructorVisibleAt", instructorVisibleAt);
+                "startsAtLocal", startsAtLocal, "endsAtLocal", endsAtLocal, "ringName", ringName, "ringColor", ringColor, "activityId", activityId,
+                "instructorName", instructorName, "instructorVisibleAt", instructorVisibleAt);
     }
 }

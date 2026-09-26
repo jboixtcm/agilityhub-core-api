@@ -8,11 +8,11 @@
     ],
     "limits": {"unit": "DOG", "currentWeek": {"count": 1, "max": 2, "weekKey": "2026-10-04"}, "nextWeek": {"count": 1, "max": 1, "weekKey": "2026-10-11"}},
     "reservations": [
-      {"type": "CLASS", "id": "b1", "state": "CONFIRMED", "dogId": "d1", "dogName": "Duna", "title": "Classe B+C", "startsAt": "2026-10-05T16:50:00Z", "startsAtLocal": "2026-10-05T18:50", "endsAtLocal": "2026-10-05T19:50", "ringName": "Central", "instructorVisibleAt": "2026-10-04T16:50:00Z"},
-      {"type": "TRAINING", "id": "t1", "state": "CONFIRMED", "dogId": "d2", "dogName": "Rock", "title": "Entrenament", "startsAtLocal": "2026-10-06T08:00", "endsAtLocal": "2026-10-06T08:30", "ringName": "Muntanya"},
-      {"type": "CLASS_WAITLIST", "id": "w1", "state": "WAITLISTED", "dogId": "d1", "dogName": "Duna", "title": "Classe C i sup.", "startsAtLocal": "2026-10-08T20:00", "ringName": "Carretera"},
-      {"type": "ACTIVITY", "id": "a1", "state": "REGISTERED", "title": "Torneig d'Estiu", "startsAtLocal": "2026-10-10T18:30", "endsAtLocal": "2026-10-10T20:30", "ringName": "totes les pistes"},
-      {"type": "CLASS", "id": "b4", "state": "CONFIRMED", "dogId": "d2", "dogName": "Rock", "title": "Classe D i sup.", "startsAt": "2026-10-14T17:00:00Z", "startsAtLocal": "2026-10-14T19:00", "endsAtLocal": "2026-10-14T20:00", "ringName": "Muntanya", "instructorVisibleAt": "2026-10-13T17:00:00Z"}
+      {"type": "CLASS", "id": "b1", "state": "CONFIRMED", "dogId": "d1", "dogName": "Duna", "title": "Classe B+C", "startsAt": "2026-10-05T16:50:00Z", "startsAtLocal": "2026-10-05T18:50", "endsAtLocal": "2026-10-05T19:50", "ringName": "Central", "ringColor": "#8FCE8F", "instructorVisibleAt": "2026-10-04T16:50:00Z"},
+      {"type": "TRAINING", "id": "t1", "state": "CONFIRMED", "dogId": "d2", "dogName": "Rock", "title": "Entrenament", "startsAtLocal": "2026-10-06T08:00", "endsAtLocal": "2026-10-06T08:30", "ringName": "Muntanya", "ringColor": "#F2B58C"},
+      {"type": "CLASS_WAITLIST", "id": "w1", "state": "WAITLISTED", "dogId": "d1", "dogName": "Duna", "title": "Classe C i sup.", "startsAtLocal": "2026-10-08T20:00", "ringName": "Carretera", "ringColor": "#9FC5E8"},
+      {"type": "ACTIVITY", "id": "a1", "activityId": "act1", "state": "REGISTERED", "title": "Torneig d'Estiu", "startsAtLocal": "2026-10-10T18:30", "endsAtLocal": "2026-10-10T20:30", "ringName": "totes les pistes"},
+      {"type": "CLASS", "id": "b4", "state": "CONFIRMED", "dogId": "d2", "dogName": "Rock", "title": "Classe D i sup.", "startsAt": "2026-10-14T17:00:00Z", "startsAtLocal": "2026-10-14T19:00", "endsAtLocal": "2026-10-14T20:00", "ringName": "Muntanya", "ringColor": "#F2B58C", "instructorVisibleAt": "2026-10-13T17:00:00Z"}
     ],
     "history": {"monthsVisible": 2},
     "notifications": {"unreadCount": 2}
@@ -44,22 +44,24 @@
     "pack": {"available": 4, "expiresOn": "2026-11-12"}
   },
   "Booking": {
-    "id": "b9", "state": "ACTIVE", "origin": "APP", "classSessionId": "c4", "dogId": "d1", "memberId": "m1",
+    "id": "b9", "state": "ACTIVE", "origin": "APP", "classSessionId": "c4", "dogId": "d1", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1",
     "classSession": {"startsAtLocal": "2026-10-10T09:00", "endsAtLocal": "2026-10-10T10:00", "description": "C", "ringName": "Muntanya", "instructorVisibleAt": "2026-10-09T07:00:00Z"},
-    "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false},
+    "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false, "self": true},
+    "lateCancelThresholdMinutes": 240, "cancellableInTimeUntil": "2026-10-10T03:00:00Z",
     "swapFromBookingId": "b2", "pack": {"available": 3, "expiresOn": "2026-11-12"},
     "calendarLinks": {"google": "https://calendar.google.com/calendar/render?action=TEMPLATE", "outlook": "https://outlook.live.com/calendar/0/deeplink/compose", "ics": "https://core.example.test/api/v1/bookings/b9/calendar.ics?token=example-token"}
   },
   "Booking#cancelled": {
-    "id": "b2", "state": "CANCELLED_LATE", "origin": "APP", "classSessionId": "c7", "dogId": "d1", "memberId": "m1",
+    "id": "b2", "state": "CANCELLED_LATE", "origin": "APP", "classSessionId": "c7", "dogId": "d1", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1",
     "classSession": {"startsAtLocal": "2026-10-15T18:50", "endsAtLocal": "2026-10-15T19:50", "description": "B+C", "ringName": "Central", "instructorName": "Estel", "instructorVisibleAt": "2026-10-14T16:50:00Z"},
-    "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false},
+    "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false, "self": true},
+    "lateCancelThresholdMinutes": 240, "cancellableInTimeUntil": "2026-10-15T12:50:00Z",
     "calendarLinks": {"google": "https://calendar.google.com/calendar/render?action=TEMPLATE", "outlook": "https://outlook.live.com/calendar/0/deeplink/compose", "ics": "https://core.example.test/api/v1/bookings/b2/calendar.ics?token=example-token"},
     "cancellation": {"at": "2026-10-15T15:05:00Z", "byDisplayName": "Laura", "byRole": "MEMBER", "late": true, "minutesBefore": 105},
     "displayState": "CANCELLED_LATE"
   },
   "WaitlistEntry": {
-    "id": "w1", "state": "NOTIFIED", "classSessionId": "c2", "dogId": "d1", "dogName": "Duna", "memberId": "m1", "position": 1, "joinedAt": "2026-10-06T09:00:00Z",
+    "id": "w1", "state": "NOTIFIED", "classSessionId": "c2", "dogId": "d1", "dogName": "Duna", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1", "position": 1, "joinedAt": "2026-10-06T09:00:00Z",
     "classSession": {"startsAtLocal": "2026-10-08T20:00", "endsAtLocal": "2026-10-08T21:00", "description": "C+D", "ringName": "Carretera"},
     "notifiedAt": "2026-10-08T13:00:00Z", "confirmBy": "2026-10-08T13:30:00Z"
   },

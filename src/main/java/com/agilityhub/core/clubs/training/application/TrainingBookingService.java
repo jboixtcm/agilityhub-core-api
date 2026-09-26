@@ -147,6 +147,10 @@ public class TrainingBookingService {
     Map<String, String> ringNames() {
         var result = new HashMap<String, String>(); catalogs.trainingRings().forEach(r -> result.put(r.id(), r.name())); return result;
     }
+    /** Every ring by id, in one read: S08 screen 03's TRAINING rows take its name and colour (E5-T25). */
+    Map<String, PlanningCatalogAccess.TrainingRingView> rings() {
+        var result = new HashMap<String, PlanningCatalogAccess.TrainingRingView>(); catalogs.trainingRings().forEach(r -> result.put(r.id(), r)); return result;
+    }
     /** R-09-05: the counter of the unit for the training week containing {@code instant}. */
     public Counter counter(String dogId, String memberId, Instant instant) {
         var week = context.week(instant);

@@ -10,8 +10,11 @@ import java.util.List;
  * Both return nothing while ACTIVITIES is off.
  */
 public interface MemberActivityRowsPort {
-    /** @param state REGISTERED or WAITLISTED; @param endsAtLocal null for an activity without an end time (S07 «Canvis» 24-09) */
-    record Row(String id, String state, String title, Instant startsAt, String startsAtLocal, String endsAtLocal, String placeLabel) { }
+    /**
+     * @param id the registration; @param activityId its activity (S07 §2, E5-T25); @param state REGISTERED or WAITLISTED;
+     * @param endsAtLocal null for an activity without an end time (S07 «Canvis» 24-09)
+     */
+    record Row(String id, String activityId, String state, String title, Instant startsAt, String startsAtLocal, String endsAtLocal, String placeLabel) { }
     record Bookable(String id, String title, String startsAtLocal, Integer freeSeats) { }
     /** Live registrations of the member whose activity has not ended yet. */
     List<Row> live(String memberId);

@@ -12,8 +12,15 @@ public final class CancellationPolicy {
     public record Outcome(boolean late, int minutesBefore) { }
     private CancellationPolicy() { }
     public static Outcome evaluate(Instant classStartsAt, Instant now, int lateThresholdMinutes) {
-        boolean late = now.isAfter(classStartsAt.minus(Duration.ofMinutes(lateThresholdMinutes)));
+        boolean late = now.isAfter(inTimeUntil(classStartsAt, lateThresholdMinutes));
         return new Outcome(late, minutesBefore(classStartsAt, now));
+    }
+    /**
+     * `Booking.cancellableInTimeUntil` (07): the last instant a cancellation is still in time. The threshold is elapsed
+     * time, so across a DST change it is not the same wall-clock distance (T-08-42).
+     */
+    public static Instant inTimeUntil(Instant classStartsAt, int lateThresholdMinutes) {
+        return classStartsAt.minus(Duration.ofMinutes(lateThresholdMinutes));
     }
     public static int minutesBefore(Instant classStartsAt, Instant now) {
         return (int) Math.floorDiv(Duration.between(now, classStartsAt).getSeconds(), 60);

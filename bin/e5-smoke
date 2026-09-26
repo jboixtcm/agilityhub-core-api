@@ -303,6 +303,16 @@ class Smoke:
         e_dog = next(d["id"] for d in own if d["levelName"] == "E")
         self.record("GET /me/home (member@)", "200", f"{len(home['dogs'])} chips ({len(own)} own); rows {types}; "
                     f"W0 {home['limits']['currentWeek']['count']}/{home['limits']['currentWeek']['max']} key {home['limits']['currentWeek']['weekKey']}")
+        # E5-T25: 03's dot is the ring's colour on class, waiting and training rows; an ACTIVITY row names its activity.
+        ringed = [r for r in home["reservations"] if r["type"] in ("CLASS", "CLASS_WAITLIST", "TRAINING")]
+        require(ringed and all(re.fullmatch("#[0-9A-Fa-f]{6}", r["ringColor"] or "") and r["activityId"] is None for r in ringed), "03 ring colours mismatch")
+        activity_rows = [r for r in home["reservations"] if r["type"] == "ACTIVITY"]
+        activity_ids = dict(self.mongo('db.activity_registrations.find({_id:{$in:' + json.dumps([r["id"] for r in activity_rows]) + '}})'
+                                       '.toArray().map(r=>[r._id,r.activityId])'))
+        require(activity_rows and all(r["activityId"] and r["activityId"] == activity_ids.get(r["id"]) and r["ringColor"] is None for r in activity_rows),
+                "03 activity ids mismatch")
+        self.record("GET /me/home rows (E5-T25)", "200", f"ringColor on {len(ringed)} class/waiting/training rows; "
+                    f"activityId {short(activity_rows[0]['activityId'])} on {len(activity_rows)} ACTIVITY row(s)")
 
         # 04: one chip each, the six live row states across the scenario members.
         states, views = set(), {}
@@ -333,8 +343,20 @@ class Smoke:
         self.record("POST /bookings + same Idempotency-Key", "201 + identical 201", f"{short(booking['id'])} ACTIVE, calendarLinks google/outlook/ics")
         detail = self.call("GET", f"/api/v1/bookings/{booking['id']}", access=self.m[5])
         require(detail["displayState"] == "CONFIRMED", "Detail displayState mismatch")
+        # E5-T25: the booked dog, the Cànic's threshold (240) and the api's in-time deadline, BookedBy.self.
+        class_starts = datetime.datetime.fromisoformat(self.mongo('db.bookings.findOne({_id:' + json.dumps(booking["id"]) + '}).classStartsAt').replace("Z", "+00:00"))
+        deadline = self.utc(class_starts - datetime.timedelta(minutes=240))
+        chip = next(d for d in own if d["id"] == e_dog)
+        for form in (booking, detail):
+            require(form["dog"]["id"] == e_dog and form["dog"]["name"] == chip["name"] and form["dog"]["sex"] in ("MALE", "FEMALE"), "Booking.dog mismatch")
+            require(form["lateCancelThresholdMinutes"] == 240 and form["cancellableInTimeUntil"] == deadline, "In-time deadline mismatch")
+            require(form["bookedBy"]["self"] is True and form["bookedBy"]["viaClub"] is False, "BookedBy.self mismatch")
+        self.record("POST /bookings, GET /bookings/{id} (E5-T25)", "201, 200", f"dog {form['dog']['sex']}, lateCancelThresholdMinutes 240, "
+                    f"cancellableInTimeUntil {deadline} (start − 240 min), bookedBy.self true")
         cancelled = self.call("POST", f"/api/v1/bookings/{booking['id']}/cancellation", access=self.m[5], body={})
         require(cancelled["state"] == "CANCELLED" and cancelled["cancellation"]["late"] is False, "In-time cancellation mismatch")
+        require(cancelled["dog"]["id"] == e_dog and cancelled["lateCancelThresholdMinutes"] == 240 and cancelled["cancellableInTimeUntil"] == deadline,
+                "Cancellation answer lacks the E5-T25 fields")
         released = self.mongo('db.domain_events.find({clubId:' + json.dumps(self.canic) + ',type:"SeatReleased",aggregateId:' + json.dumps(target["id"])
                               + '}).toArray().map(e=>e.payload)')
         require(released and "notifyWaitlist" in released[-1], "SeatReleased missing")
@@ -376,7 +398,9 @@ class Smoke:
         entry = self.call("POST", "/api/v1/waitlist-entries", 201, access=self.m[8], body=dict(classSessionId=full["id"], dogId=dog8))
         joined = self.mongo('db.domain_events.countDocuments({type:"WaitlistJoined",aggregateId:' + json.dumps(entry["id"]) + '})')
         require(entry["state"] == "ACTIVE" and joined == 1, "Join mismatch")
-        self.record("POST /waitlist-entries (WAITLIST_OPEN class)", "201 ACTIVE", f"WaitlistJoined; waiting {full['waiting']} → {full['waiting'] + 1}")
+        require(entry["dog"]["id"] == dog8 and entry["dog"]["sex"] in ("MALE", "FEMALE") and entry["dog"]["name"] == entry["dogName"], "WaitlistEntry.dog mismatch")
+        self.record("POST /waitlist-entries (WAITLIST_OPEN class)", "201 ACTIVE", f"WaitlistJoined; waiting {full['waiting']} → {full['waiting'] + 1}; "
+                    f"dog {entry['dog']['sex']} (E5-T25)")
         nine = next(r for r in self.call("GET", "/api/v1/me/home", access=self.m[9], quiet=True)["reservations"]
                     if r["type"] == "CLASS" and r["startsAtLocal"] == full["startsAtLocal"])
         self.call("POST", f"/api/v1/bookings/{nine['id']}/cancellation", access=self.m[9], body={})

@@ -9,7 +9,8 @@ import java.util.List;
  * `clubs.bookings` never imports `clubs.training`; the adapter lives in `clubs.training.application` (E5-T01 direction).
  */
 public interface MemberTrainingRowsPort {
-    record Row(String id, String dogId, Instant startsAt, Instant endsAt, String ringName) { }
+    /** @param ringColor the ring's colour for 03's dot (E5-T25), null for a ring without one */
+    record Row(String id, String dogId, Instant startsAt, Instant endsAt, String ringName, String ringColor) { }
     /** ACTIVE training bookings of the given dogs that end after {@code now}, by start. */
     List<Row> upcoming(String memberId, Collection<String> dogIds, Instant now);
 }

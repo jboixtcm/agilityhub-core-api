@@ -160,6 +160,19 @@ class BookingRulesTest {
         assertThat(CancellationPolicy.evaluate(start, local("2026-10-15T14:50:01", MADRID), 240).late()).isTrue();
     }
 
+    /** E5-T25 step 2: `Booking.cancellableInTimeUntil` is the last in-time instant of the rule above, in elapsed time. */
+    @Test void T_08_06_T_08_42_theInTimeDeadlineIsTheLastInstantTheRuleCallsInTime() {
+        var start = local("2026-10-15T18:50", MADRID);
+        var until = CancellationPolicy.inTimeUntil(start, 240);
+        assertThat(until).isEqualTo(local("2026-10-15T14:50", MADRID));
+        assertThat(CancellationPolicy.evaluate(start, until, 240).late()).isFalse();
+        assertThat(CancellationPolicy.evaluate(start, until.plusSeconds(1), 240).late()).isTrue();
+        // Across the 25-10-2026 change: 8 h before 09:00 (08:00Z) is 00:00Z, 02:00 summer time, not 01:00 local.
+        var dst = local("2026-10-25T09:00", MADRID);
+        assertThat(CancellationPolicy.inTimeUntil(dst, 480)).isEqualTo(Instant.parse("2026-10-25T00:00:00Z"));
+        assertThat(CancellationPolicy.inTimeUntil(dst, 480).atZone(MADRID).toLocalTime()).isEqualTo(LocalTime.parse("02:00"));
+    }
+
     @Test void T_08_07_theWaitingListIsToldOnlyStrictlyAboveTheNoticeThreshold() {
         var start = local("2026-10-15T18:50", MADRID);
         assertThat(CancellationPolicy.notifyWaitlist(true, start, local("2026-10-15T16:49", MADRID), 30, true)).isTrue();

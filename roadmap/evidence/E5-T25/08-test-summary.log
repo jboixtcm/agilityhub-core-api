@@ -1,0 +1,34 @@
+surefire totals: tests=586 failures=0 errors=0 skipped=0 (128 classes)
+failsafe totals: tests=1034 failures=0 errors=0 skipped=0 (88 classes)
+Classes this task adds or changes, and the classes its tests pin:
+  [surefire] com.agilityhub.core.configuration.S08MemberFlowContractTest: tests=7 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.bookings.api.MemberFlowContractIT: tests=6 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.bookings.api.MemberAggregatesIT: tests=7 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.bookings.domain.BookingRulesTest: tests=16 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E5ContractIT: tests=38 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.E5ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.bookings.api.BookingsIT: tests=18 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.bookings.api.WaitlistIT: tests=18 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.training.api.TrainingIT: tests=23 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.shared.domain.ErrorCatalogContractTest: tests=4 failures=0 errors=0 skipped=0
+E5-T25 test methods (added or changed) and the existing ones they rely on:
+  PASS S08MemberFlowContractTest#S08_07_T_08_15_aBookingCarriesTheBookedDog
+  PASS S08MemberFlowContractTest#R_08_10_T_08_42_aBookingCarriesTheThresholdAndTheInTimeDeadline
+  PASS S08MemberFlowContractTest#S08_07_T_08_19_aWaitlistEntryCarriesTheWaitingDog
+  PASS S08MemberFlowContractTest#S08_03_T_08_12_T_07_16_homeRowsCarryTheRingColourAndTheActivity
+  PASS S08MemberFlowContractTest#S08_07_T_08_27_bookedBySaysWhetherTheReaderMadeTheBooking
+  PASS S08MemberFlowContractTest#R_08_08_T_08_16_theIdempotencyKeyOfABookingIsOneUuidPerBody
+  PASS S08MemberFlowContractTest#R_08_10_T_08_18_bookingNotCancellableIsPublishedAs422Only
+  PASS MemberFlowContractIT#S08_07_T_08_15_everyBookingCarriesItsDog
+  PASS MemberFlowContractIT#R_08_10_T_08_06_everyBookingCarriesTheThresholdAndTheInTimeDeadline
+  PASS MemberFlowContractIT#T_08_42_theInTimeDeadlineIsElapsedTimeAcrossTheDaylightSavingChange
+  PASS MemberFlowContractIT#S08_07_T_08_19_everyWaitlistEntryCarriesItsDog
+  PASS MemberFlowContractIT#S08_07_T_08_27_bookedBySelfComparesAccountsNotNames
+  PASS MemberFlowContractIT#R_08_08_T_08_16_eachBodyTakesItsOwnIdempotencyKey
+  PASS MemberAggregatesIT#T_08_12_T_07_16_homeRowsCarryTheRingColourAndTheActivityId
+  PASS BookingRulesTest#T_08_06_T_08_42_theInTimeDeadlineIsTheLastInstantTheRuleCallsInTime
+  PASS E5ContractIT#T_08_47_T_09_24_T_15_29_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+  PASS E5ResponseContractTest#T_08_47_T_09_24_T_15_29_formsKeepEveryDocumentedFieldDuringRoundTrip
+  PASS BookingsIT#T_08_16_theSameIdempotencyKeyReplaysTheResponseAlsoAStored409
+  PASS BookingsIT#T_08_18_cancellationInTimeLateAndRejectedWithSeatReleaseAndMinimumAlert

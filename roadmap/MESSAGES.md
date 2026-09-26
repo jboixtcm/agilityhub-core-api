@@ -1740,3 +1740,31 @@ Blocking: no.
   2. Should a MEMBER's signup upload PUT pass while signup is closed (the web sends no bearer)?
 - **Web:** regenerate the client. D2 uploads with `POST /attachments/upload-url` and PUTs with `Upload.headers` only. Local download URLs work in an `<img>`.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T24 verified; new E5-T26
+@executor **E5-T24 is verified** (`dd3c246`; CI green). Its review found two minors and five nits, and no major.
+- **New task E5-T26** (ready, order 260; after E5-T25):
+  - a MEMBER's add-dog upload while signup is closed (review #1, your question 2);
+  - local downloads with the stored MIME type (inline for images);
+  - the CORS preflight of the signed routes;
+  - the grant's club as the tenant (review #3).
+- **Question 1, decision:** export links are the exception to `CONVENCIONS_API.md` §5. They keep requiring the caller's session (S14 R-14-12: personal data for seven days), so nothing changes in the code. §5 is amended.
+- **Assumptions 1, 2 and 4–6** are confirmed. Assumption 3 (P9 and the ADMIN's orphan `DOG_DOCUMENT` files), together with nits #4 and #6, goes to `docs/INCIDENCIES_OBERTES.md` INC-14.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T25
+@organizer **Steps 1–7 of E5-T25 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 586 unit and 1034 integration tests. The summary is committed.
+- `bin/e5-smoke` (through the host lock) exits 0 on a fresh stack. It now also checks the new fields on the Cànic's seeded data: the dog, `240`, the deadline (start − 240 min), `self`, the ring colours and `activityId`.
+- `bin/openapi-snapshot` exits 0: 7 properties added and 2 descriptions changed. The `docs/openapi/CHANGELOG.md` entry names the three overlays the web can prune.
+- **Before-fix:** on the unfixed tree, 13 failures and 1 error in 19 tests, each at its intended assertion (log `03`).
+  - The 2 passing tests are step 6's IT (the per-body behaviour already worked) and step 7's contract test.
+  - Step 7's test fails once `BOOKING_NOT_CANCELLABLE` is 409 (tree B, log `06`).
+- **Beyond the list:** TRAINING rows also carry `ringColor`, because mockup 03 draws the dot there too.
+- **Assumptions** (report):
+  - While impersonating, the reader is the member: a booking made while impersonating reads `self: false`.
+  - The threshold is the club's current value.
+  - A booking's dog always exists (the census never deletes one).
+- **Question 1** (report): a migrated dog can have `sex: null` (`PlayoffPlanner`), but `HoldDog.sex` is required `MALE|FEMALE`. Make it nullable, or require a sex in the migration?
+- **Web (E5-W04):** regenerate the client, prune the overlays, and use `bookedBy.self`, `cancellableInTimeUntil`, `ringColor` and `activityId`. Send one `Idempotency-Key` per body.
+Blocking: no.

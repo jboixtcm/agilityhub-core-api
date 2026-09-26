@@ -1950,12 +1950,16 @@
           "displayName" : {
             "type" : "string"
           },
+          "self" : {
+            "description" : "True when the reader's own account made the booking (07: «Reservada el…» instead of «Reservada per {displayName} el…»)",
+            "type" : "boolean"
+          },
           "viaClub" : {
             "description" : "True when booked by the club (BACKOFFICE)",
             "type" : "boolean"
           }
         },
-        "required" : [ "displayName", "viaClub" ],
+        "required" : [ "displayName", "self", "viaClub" ],
         "type" : "object"
       },
       "Booking" : {
@@ -1970,6 +1974,11 @@
           },
           "calendarLinks" : {
             "$ref" : "#/components/schemas/CalendarLinks"
+          },
+          "cancellableInTimeUntil" : {
+            "description" : "R-08-10: the class start minus lateCancelThresholdMinutes, computed by the api; a cancellation is in time while now <= this instant",
+            "format" : "date-time",
+            "type" : "string"
           },
           "cancellation" : {
             "anyOf" : [ {
@@ -2002,11 +2011,20 @@
             "enum" : [ "CONFIRMED", "DONE", "NO_SHOW", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB", "PAYMENT_PENDING" ],
             "type" : "string"
           },
+          "dog" : {
+            "$ref" : "#/components/schemas/HoldDog",
+            "description" : "The booked dog; its sex gives 07's Catalan article («amb la Duna»)"
+          },
           "dogId" : {
             "type" : "string"
           },
           "id" : {
             "type" : "string"
+          },
+          "lateCancelThresholdMinutes" : {
+            "description" : "The club's bookings.lateCancelThresholdMinutes (R-08-10), for 07's warning and late note",
+            "format" : "int32",
+            "type" : "integer"
           },
           "memberId" : {
             "description" : "Owner of the dog (the member + dog unit)",
@@ -2032,7 +2050,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "bookedAt", "bookedBy", "calendarLinks", "classSession", "classSessionId", "dogId", "id", "memberId", "origin", "state" ],
+        "required" : [ "bookedAt", "bookedBy", "calendarLinks", "cancellableInTimeUntil", "classSession", "classSessionId", "dog", "dogId", "id", "lateCancelThresholdMinutes", "memberId", "origin", "state" ],
         "type" : "object"
       },
       "BookingBlock" : {
@@ -11120,6 +11138,10 @@
       },
       "ReservationRow" : {
         "properties" : {
+          "activityId" : {
+            "description" : "ACTIVITY rows only (S07 §2): the activity of the registration `id`; null on the other rows",
+            "type" : [ "string", "null" ]
+          },
           "dogId" : {
             "type" : [ "string", "null" ]
           },
@@ -11140,6 +11162,10 @@
           },
           "instructorVisibleAt" : {
             "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "ringColor" : {
+            "description" : "The ring's colour for 03's dot: CLASS, CLASS_WAITLIST and TRAINING rows; null on ACTIVITY rows and for a ring without one",
             "type" : [ "string", "null" ]
           },
           "ringName" : {
@@ -14960,6 +14986,10 @@
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
+          "dog" : {
+            "$ref" : "#/components/schemas/HoldDog",
+            "description" : "The waiting dog; its sex gives the Catalan article of the waiting-list detail"
+          },
           "dogId" : {
             "type" : "string"
           },
@@ -14990,7 +15020,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "classSession", "classSessionId", "dogId", "id", "joinedAt", "memberId", "state" ],
+        "required" : [ "classSession", "classSessionId", "dog", "dogId", "id", "joinedAt", "memberId", "state" ],
         "type" : "object"
       },
       "WaitlistEntryRequest" : {
@@ -22603,9 +22633,10 @@
         "x-sortable" : [ "classStartsAt", "bookedAt" ]
       },
       "post" : {
-        "description" : "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId); Idempotency-Key = seatHoldId, a repeated key returns the same response, also a 409. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId). Idempotency-Key (R-08-08): one client UUID per request body. A retry of the same body reuses its key and returns the same response, a stored 409 or 422 included; a different body, such as another swapBookingId chosen after a failed attempt, takes a new key; the same key with another body → 409 IDEMPOTENCY_KEY_REUSED. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
         "operationId" : "confirmBooking",
         "parameters" : [ {
+          "description" : "One client UUID per request body (R-08-08): reused by a retry of the same body, new for a different body",
           "in" : "header",
           "name" : "Idempotency-Key",
           "required" : true,

@@ -2,6 +2,36 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T25 · The S08 member flow's gaps (web E5-W01): the booked and the waiting dog, the in-time deadline, `BookedBy.self`, 03's ring colour and activity id, one `Idempotency-Key` per body
+
+**0 operations added or removed; 7 properties added (5 required, 2 optional and nullable); 2 descriptions changed.** The
+web must regenerate its client and can prune its three `pending.json` overlays (`x-schema-overlays`):
+`Booking.dog`, `Booking.lateCancelThresholdMinutes` and `WaitlistEntry.dog`.
+
+- **`Booking`** (`POST /bookings`, `POST /waitlist-entries/{id}/claim`, `GET /bookings/{id}`, `GET /me/bookings`, `POST
+  /bookings/{id}/cancellation`; S08 §2 row 07, R-08-10):
+  - `dog` (required, `HoldDog`: `id`, `name`, `sex`), as `SeatHoldResponse.dog`: the sex gives 07's Catalan article.
+  - `lateCancelThresholdMinutes` (required, integer): the club's `bookings.lateCancelThresholdMinutes`, 240 at the Cànic.
+    A MEMBER cannot read `/parameters`; 07's warning and late note name it.
+  - `cancellableInTimeUntil` (required, date-time): the class start minus the threshold in elapsed time, computed by the
+    api. A cancellation is in time while `now <= cancellableInTimeUntil` (R-08-10, the threshold itself is in time). Do no
+    date arithmetic: across a DST change the wall-clock distance is not the threshold.
+- **`BookedBy.self`** (required, boolean; 07's «Reservada per {name}»): `true` when the reader's own account made the
+  booking. Stop comparing first names. While an admin impersonates a member, the reader is that member: a booking the
+  member made reads `self: true`, one made while impersonating reads `self: false` and `viaClub: true`. `displayName` and
+  `viaClub` are unchanged.
+- **`WaitlistEntry.dog`** (required, `HoldDog`; the waiting-list detail): `dogName` stays.
+- **`ReservationRow`** (`GET /me/home`, 03), two optional, nullable properties that the api always sends:
+  - `ringColor`: the ring's colour on CLASS, CLASS_WAITLIST and TRAINING rows (the mockup's dot); `null` on ACTIVITY
+    rows and for a ring without a colour.
+  - `activityId`: on ACTIVITY rows, the activity of the registration `id` (S07 §2); `null` on the other rows.
+- **`POST /bookings`** (R-08-08, amended 26-09): the description no longer says «Idempotency-Key = seatHoldId», and the
+  header has a description. The key is one client UUID per request body: a retry of the same body reuses it and gets the
+  same answer, a stored `409`/`422` included; a different body, for example another `swapBookingId` chosen after a failed
+  attempt, takes a new key; the same key with another body answers `409 IDEMPOTENCY_KEY_REUSED`. Behaviour unchanged.
+- **`BOOKING_NOT_CANCELLABLE`** is `422` (`CATALEG_ERRORS.md`, R-08-10, amended 26-09): unchanged. `POST
+  /bookings/{id}/cancellation` publishes it under `422` only.
+
 ## 2026-09-26 · E5-T24 · D2's new file from the ADMIN's upload; self-authorising signed URLs; `x-fields` on exports; `id` filterable on five lists
 
 **0 operations added or removed; 1 property made nullable; `x-fields` added on 9 operations (6 exports, 3 of them GET and

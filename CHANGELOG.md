@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T25: the S08 member flow's contract gaps found by the web's E5-W01.
+  - S08 §2 (07 and the waiting-list detail): `Booking.dog` and `WaitlistEntry.dog` (`HoldDog`: id, name, sex) on every
+    read, the `POST /bookings`, claim and cancellation answers included.
+  - R-08-10: `Booking.lateCancelThresholdMinutes` (the club's `bookings.lateCancelThresholdMinutes`) and
+    `Booking.cancellableInTimeUntil` (the class start minus the threshold, in elapsed time; the last in-time instant of the
+    cancellation rule, which now reads it from the same `CancellationPolicy.inTimeUntil`).
+  - `BookedBy.self`: true when the reader's account made the booking; accounts are compared, never names. While an admin
+    impersonates, the reader is the member, and a booking made while impersonating is the club's.
+  - `GET /me/home` (03): class, waiting and training rows carry `ringColor`; ACTIVITY rows carry `activityId` (S07 §2).
+  - R-08-08 (amended 26-09): the `POST /bookings` description and its `Idempotency-Key` header say one client UUID per
+    request body, not the `seatHoldId`. Behaviour unchanged, now pinned by an IT. `BOOKING_NOT_CANCELLABLE` stays 422,
+    pinned by a contract test.
 - E5-T24: the real-core gaps found by the web's E4-W13, and the E5-T22 review's points.
   - R-04-19 (amended 26-09): D2 adds a file to a pending dog, a readmission's reused dog included, with the ADMIN's own
     `POST /attachments/upload-url` (`purpose = DOG_DOCUMENT`). `PATCH /dogs/{id}` claims that key when it was uploaded in

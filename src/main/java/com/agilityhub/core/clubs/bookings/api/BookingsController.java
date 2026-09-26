@@ -121,9 +121,10 @@ public class BookingsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, SEAT_HOLD_EXPIRED, SWAP_NOT_ALLOWED, CLASS_FULL, CLASS_NOT_BOOKABLE, NOT_YET_OPEN, BOOKING_LIMIT_REACHED,
             BOOKING_BLOCKED, INACTIVITY_PERIOD, MEMBER_NOT_ACTIVE, LEVEL_NOT_ALLOWED, ALREADY_BOOKED, PACK_EMPTY, SEAT_TAKEN, IDEMPOTENCY_KEY_REUSED})
-    @Operation(summary = "confirmBooking", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId); Idempotency-Key = seatHoldId, a repeated key returns the same response, also a 409. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
+    @Operation(summary = "confirmBooking", description = "Roles: MEMBER (also the impersonation token: origin BACKOFFICE). R-08-08 confirmation (or R-08-09 atomic swap with swapBookingId). Idempotency-Key (R-08-08): one client UUID per request body. A retry of the same body reuses its key and returns the same response, a stored 409 or 422 included; a different body, such as another swapBookingId chosen after a failed attempt, takes a new key; the same key with another body → 409 IDEMPOTENCY_KEY_REUSED. PAY_TO_BOOK (SINGLE_CLASS) → PAYMENT_PENDING + checkoutUrl. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "201", description = "Booking", useReturnTypeSchema = true))
     public Booking confirmBooking(@Valid @RequestBody BookingRequest request,
+            @io.swagger.v3.oas.annotations.Parameter(description = "One client UUID per request body (R-08-08): reused by a retry of the same body, new for a different body")
             @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         var actor = actors.member(memberId(jwt));

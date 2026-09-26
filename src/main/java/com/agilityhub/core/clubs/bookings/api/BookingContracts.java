@@ -48,6 +48,8 @@ public final class BookingContracts {
             @Schema(description = LOCAL) String startsAtLocal,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = LOCAL) String endsAtLocal,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The ring's colour for 03's dot: CLASS, CLASS_WAITLIST and TRAINING rows; null on ACTIVITY rows and for a ring without one") String ringColor,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ACTIVITY rows only (S07 §2): the activity of the registration `id`; null on the other rows") String activityId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null until bookings.showInstructorHoursBefore (R-08-20)") String instructorName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant instructorVisibleAt) { }
     public record HomeHistory(int monthsVisible) { }
@@ -103,8 +105,11 @@ public final class BookingContracts {
     // ---- Booking (POST /bookings, claim, GET /bookings/{id}, cancellation)
     @Schema(description = "S08 booking. INSTRUCTOR and ADMIN read the same form; PAYMENT_PENDING carries checkoutUrl.")
     public record Booking(String id, BookingState state, BookingOrigin origin, String classSessionId, String dogId,
+            @Schema(description = "The booked dog; its sex gives 07's Catalan article («amb la Duna»)") HoldDog dog,
             @Schema(description = "Owner of the dog (the member + dog unit)") String memberId,
             BookingClassSession classSession, Instant bookedAt, BookedBy bookedBy,
+            @Schema(description = "The club's bookings.lateCancelThresholdMinutes (R-08-10), for 07's warning and late note") int lateCancelThresholdMinutes,
+            @Schema(description = "R-08-10: the class start minus lateCancelThresholdMinutes, computed by the api; a cancellation is in time while now <= this instant") Instant cancellableInTimeUntil,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String swapFromBookingId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with PACKS") PackBalance pack,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with SINGLE_CLASS") BookingCharge charge,
@@ -116,7 +121,8 @@ public final class BookingContracts {
             String description, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant instructorVisibleAt) { }
-    public record BookedBy(String displayName, @Schema(description = "True when booked by the club (BACKOFFICE)") boolean viaClub) { }
+    public record BookedBy(String displayName, @Schema(description = "True when booked by the club (BACKOFFICE)") boolean viaClub,
+            @Schema(description = "True when the reader's own account made the booking (07: «Reservada el…» instead of «Reservada per {displayName} el…»)") boolean self) { }
     public record BookingCharge(ChargeMode mode, Money price, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant paidAt) { }
     public record CalendarLinks(@Schema(format = "uri") String google, @Schema(format = "uri") String outlook,
             @Schema(format = "uri", description = "Signed token valid until classEndsAt") String ics) { }
@@ -136,7 +142,8 @@ public final class BookingContracts {
 
     // ---- Waitlist
     public record WaitlistEntry(String id, WaitlistState state, String classSessionId, String dogId,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName, String memberId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName,
+            @Schema(description = "The waiting dog; its sex gives the Catalan article of the waiting-list detail") HoldDog dog, String memberId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "FIFO order (R-08-14); null when waitlist.mode = ALL_AT_ONCE") Integer position, Instant joinedAt,
             BookingClassSession classSession,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant notifiedAt,

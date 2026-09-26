@@ -12,7 +12,8 @@ public class MemberActivityRows implements MemberActivityRowsPort {
     public MemberActivityRows(ActivityQueryService queries) { this.queries = queries; }
 
     @Override public List<Row> live(String memberId) {
-        return queries.liveRegistrationsFor(memberId).stream().map(r -> new Row(r.get("id").toString(), r.get("state").toString(), Objects.toString(r.get("title"), ""),
+        return queries.liveRegistrationsFor(memberId).stream().map(r -> new Row(r.get("id").toString(), r.get("activityId").toString(), r.get("state").toString(),
+                Objects.toString(r.get("title"), ""),
                 (Instant) r.get("startsAt"), r.get("startsAtLocal").toString(), (String) r.get("endsAtLocal"), (String) r.get("ringName"))).toList();
     }
     @Override public List<Bookable> bookable(String memberId, String dogId) {

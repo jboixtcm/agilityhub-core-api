@@ -20,10 +20,13 @@ public class MemberTrainingRows implements MemberTrainingRowsPort {
     }
     @Override public List<Row> upcoming(String memberId, Collection<String> dogIds, Instant now) {
         if (dogIds.isEmpty()) { return List.of(); }
-        var rings = service.ringNames();
+        var rings = service.rings();
         // A slot lasts training.slotMinutes (well under a day): starting after now − 1 day covers every row still running.
         return bookings.visible(census.reachableMembers(memberId), dogIds, TrainingBookingState.ACTIVE, now.minusSeconds(86_400), null).stream()
                 .filter(b -> dogIds.contains(b.dogId()) && b.endsAt().isAfter(now))
-                .map(b -> new Row(b.id(), b.dogId(), b.startsAt(), b.endsAt(), rings.get(b.ringId()))).toList();
+                .map(b -> {
+                    var ring = rings.get(b.ringId());
+                    return new Row(b.id(), b.dogId(), b.startsAt(), b.endsAt(), ring == null ? null : ring.name(), ring == null ? null : ring.color());
+                }).toList();
     }
 }

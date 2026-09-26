@@ -150,6 +150,31 @@ class MemberAggregatesIT extends BookingFixtures {
         assertThat(code(home("laura", "s08-d-toby", 404))).isEqualTo("DOG_NOT_ACCESSIBLE");
     }
 
+    /**
+     * E5-T25 step 4 (S08 §2 row 03, S07 §2): each class, waiting and training row carries its ring's colour for 03's dot;
+     * an ACTIVITY row carries its activity (the row `id` stays the registration's) and no colour.
+     */
+    @Test void T_08_12_T_07_16_homeRowsCarryTheRingColourAndTheActivityId() throws Exception {
+        mongo.save(new Document("_id", "s08-ring-m").append("clubId", CLUB).append("name", "Muntanya").append("shortName", "MUN").append("color", "#F2B58C")
+                .append("allowsFreeTraining", true).append("active", true).append("order", 2).append("version", 0), "rings");
+        book(as("laura"), "wed", "s08-d-duna");
+        book(as("pere"), "last", "s08-d-nit"); join(as("laura"), "last", "s08-d-duna", 201);
+        training("s08-t-rock", "s08-d-rock", "2026-10-07T08:00");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-t-rock")), new Update().set("ringId", "s08-ring-m"), "training_bookings");
+        activity("s08-act", "2026-10-10", "s08-m-laura");
+
+        var all = home("laura", null, 200);
+        assertThat(all.path("reservations")).extracting(r -> r.path("type").asText() + ":" + r.path("ringColor").asText(null) + ":" + r.path("activityId").asText(null))
+                .containsExactly("TRAINING:#F2B58C:null", "CLASS:#8FCE8F:null", "CLASS_WAITLIST:#8FCE8F:null", "ACTIVITY:null:s08-act");
+        assertThat(all.at("/reservations/3/id").asText()).isEqualTo("s08-act-r");
+        for (var row : all.path("reservations")) { com.agilityhub.core.support.SnapshotSchemas.assertConforms(row, "ReservationRow"); }
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(all, "MeHome");
+        // A ring without a colour sends null.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-ring")), new Update().unset("color"), "rings");
+        assertThat(home("laura", "s08-d-duna", 200).path("reservations")).extracting(r -> r.path("type").asText() + ":" + r.path("ringColor").isNull())
+                .containsExactly("CLASS:true", "CLASS_WAITLIST:true", "ACTIVITY:true");
+    }
+
     @Test void T_07_27_homeHasNoActivityRowsWhileActivitiesIsOffAndShowsThemAgainAfter() throws Exception {
         activity("s08-act", "2026-10-10", "s08-m-laura");
         assertThat(home("laura", null, 200).path("reservations")).extracting(r -> r.path("type").asText()).containsExactly("ACTIVITY");

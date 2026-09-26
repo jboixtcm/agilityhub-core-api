@@ -23,6 +23,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-11 | 26-09 | web | Diferències cosmètiques de les pantalles d'E3 respecte dels mockups (re-execució de la porta, E3-W09) | Baixa | oberta — passada de polit abans del llançament |
 | INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
 | INC-13 | 26-09 | api · definició de club | Revisió d'E5-T23: les instruccions d'`MANUAL` en blanc passen la validació, la regla R-17-05 només es comprova quan la definició les declara, noms i abast de dos tests | Baixa | oberta — passada de correccions |
+| INC-14 | 26-09 | api · fitxers | Revisió d'E5-T24: la ruta signada es reconeix pel camí cru, P9 no neteja els fitxers `DOG_DOCUMENT` orfes de l'ADMIN, el test de T-05-07 no la cobreix sencera | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -275,3 +276,18 @@ Solució probable:
   - `SignupSecurityFixesIT.R_04_19_R_04_06_aSubmissionRefusesAKeyRemovedFromTheReusedDogsOwnCard`: la meitat de `POST /me/dogs/signup` no aïlla la clau treta, perquè qualsevol clau que el gos reutilitzat ja tingui respon el mateix `400`. Proposta: afirmar-ho també amb la clau que es conserva, o dir-ho al Javadoc.
 
 **On mirar**: `ClubDefinitionWriter.java`, `seeds/club-definition.schema.json` (`localizedText`, `manualPaymentProvider`), `ClubDefinitionMapper.instructions()`, `CensusClubSettings.manualInstructions`.
+
+---
+
+## INC-14 · Detalls de la revisió d'E5-T24 (api, fitxers)
+
+**Gravetat**: baixa. Avui no fallen: són defensa en profunditat, una neteja que falta i un test amb un nom més ampli del que prova. La revisió independent d'E5-T24 (26-09) els ha trobat, i l'organitzador els deixa per a la passada de correccions. Els menors de la mateixa revisió van a la tasca E5-T26.
+
+**Origen**: `roadmap/reviews/E5-T24-20260926-1636-claude.md` (api), detalls #4, #5 i #6.
+
+**Llista**:
+- **El camí de les rutes signades.** `SignedFileRequests` (prop de `:19`–`:25`) decideix el `permitAll`, que no es llegeixi el bearer i que la ruta no tingui tenant a partir del `getRequestURI()` cru. `RateLimitFilter` fa servir, a propòsit, el camí descodificat i sense `;` amb què encamina Spring. Avui és segur, perquè `StrictHttpFirewall` refusa `%2F`, `%2E` i `;`. Per coherència, cal fer servir el mateix camí amb `UrlPathHelper`.
+- **P9 i els fitxers de l'ADMIN.** P9 només neteja els grants `SIGNUP_DOCUMENT` (S15 R-15-19). Per això un fitxer `DOG_DOCUMENT` que l'ADMIN puja a D2 i no s'arriba a desar, o el d'una readmissió rebutjada, no s'esborra mai. Proposta: que P9 també netegi els grants `DOG_DOCUMENT` orfes, amb el mateix termini.
+- **T-05-07.** `SignupPlansFollowUpIT.R_05_19_T_05_07_…` només comprova el `priceLabel` de Teràpia en `ca` i `es`. T-05-07 demana les línies de preu dels tres tipus de pla i «sense preu» en `ca`, `es` i `en`. Cal ampliar-lo o dir quin test cobreix la resta.
+
+**On mirar**: `SignedFileRequests.java`, `RateLimitFilter` (prop de `:28`), el procés P9 (`S15 R-15-19`), `AttachmentService.claimDogDocument`, `SignupPlansFollowUpIT.java` (prop de `:118`).

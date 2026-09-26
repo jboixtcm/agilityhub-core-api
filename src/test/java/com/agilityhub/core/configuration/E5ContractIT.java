@@ -42,7 +42,7 @@ class E5ContractIT extends AbstractIntegrationTest {
     static final String CLUB = "e5-club-a", OTHER = "e5-club-b", HOST = "e5-a.example.test", OTHER_HOST = "e5-b.example.test";
     static final List<String> ROLES = List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN");
     static final List<String> DATA = List.of("bookings", "seat_holds", "waitlist_entries", "seat_locks", "training_bookings", "job_runs", "job_locks",
-            "class_sessions", "members", "memberships", "domain_events", "audit_entries", "idempotency_records", "notifications", "parameters");
+            "class_sessions", "members", "memberships", "dogs", "domain_events", "audit_entries", "idempotency_records", "notifications", "parameters");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired ClubRepository clubs;
@@ -93,6 +93,11 @@ class E5ContractIT extends AbstractIntegrationTest {
                 .append("firstName", "Example").append("bookingBlock", Map.of("active", false)), "members");
         mongo.save(new org.bson.Document("_id", "e5-member-membership").append("clubId", CLUB).append("accountId", "e5-MEMBER").append("memberId", "e5-member-a")
                 .append("status", "ACTIVE"), "memberships");
+        // E5-T25: a booking and a waiting-list entry read their dog (`Booking.dog`, `WaitlistEntry.dog`), as every real one has.
+        for (String dog : List.of("dog-a", "dog-b")) {
+            mongo.save(new org.bson.Document("_id", dog).append("clubId", CLUB).append("memberId", "e5-member-a").append("name", "Example " + dog)
+                    .append("sex", "FEMALE").append("status", "ACTIVE").append("version", 0), "dogs");
+        }
         Instant starts = Instant.parse("2026-10-07T16:50:00Z"), ends = Instant.parse("2026-10-07T17:50:00Z"), now = clock.instant();
         var session = new LinkedHashMap<String, Object>();
         session.put("id", "e5-class-a"); session.put("clubId", CLUB); session.put("weekId", "e5-week-a"); session.put("date", "2026-10-07");

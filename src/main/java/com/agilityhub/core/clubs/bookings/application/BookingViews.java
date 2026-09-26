@@ -7,6 +7,7 @@ import com.agilityhub.core.clubs.census.application.BookingMemberAccess;
 import com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess;
 import com.agilityhub.core.platform.application.CensusClubSettings;
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.shared.application.CurrentUser;
 import com.agilityhub.core.shared.application.LocaleContext;
 import com.agilityhub.core.shared.domain.ApiException;
 import java.time.*;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 /**
  * S08 §6 wire forms as ordered maps (the controller converts them to the published DTOs): club-local `*Local`
  * strings, localized class labels, R-08-20 instructor visibility, calendar links and the derived `displayState`.
+ * E5-T25: a booking and a waiting-list entry carry their dog, a booking its R-08-10 in-time deadline and `bookedBy.self`.
  */
 @Service
 public class BookingViews {
@@ -71,13 +73,18 @@ public class BookingViews {
     }
 
     public Map<String, Object> booking(Booking b, boolean staff, String checkoutUrl) {
-        var labels = labelsOf(b); var now = context.now();
+        var labels = labelsOf(b); var now = context.now(); int threshold = context.integer("bookings.lateCancelThresholdMinutes");
         var out = new LinkedHashMap<String, Object>();
         out.put("id", b.id()); out.put("state", b.state()); out.put("origin", b.origin()); out.put("classSessionId", b.classSessionId());
-        out.put("dogId", b.dogId()); out.put("memberId", b.memberId());
+        out.put("dogId", b.dogId()); out.put("dog", dog(b.dogId())); out.put("memberId", b.memberId());
         out.put("classSession", classCard(labels, b.classStartsAt(), b.classEndsAt(), now, staff)); out.put("bookedAt", b.bookedAt());
-        // Every booking is created with `bookedBy` (R-08-19); only the display name may be empty.
-        out.put("bookedBy", map("displayName", Objects.toString(b.bookedBy().displayName(), ""), "viaClub", b.origin() == BookingOrigin.BACKOFFICE));
+        // Every booking is created with `bookedBy` (R-08-19); only the display name may be empty. `self` compares accounts,
+        // never names (E5-T25): while impersonating, the reader is the member and the booker of a club booking the admin.
+        var reader = CurrentUser.current();
+        out.put("bookedBy", map("displayName", Objects.toString(b.bookedBy().displayName(), ""), "viaClub", b.origin() == BookingOrigin.BACKOFFICE,
+                "self", reader != null && reader.accountId() != null && reader.accountId().equals(b.bookedBy().accountId())));
+        // R-08-10 for 07: a MEMBER cannot read /parameters, and the client does no date arithmetic.
+        out.put("lateCancelThresholdMinutes", threshold); out.put("cancellableInTimeUntil", CancellationPolicy.inTimeUntil(b.classStartsAt(), threshold));
         out.put("swapFromBookingId", b.swapFromBookingId());
         out.put("pack", context.enabled(Module.PACKS) ? packs.balance(b.memberId(), b.dogId()).map(p -> map("available", p.available(), "expiresOn", p.expiresOn())).orElse(null) : null);
         out.put("charge", b.charge() == null || !context.enabled(Module.SINGLE_CLASS) ? null : map("mode", b.charge().mode(), "price", b.charge().price(), "paidAt", b.charge().paidAt()));
@@ -108,13 +115,22 @@ public class BookingViews {
     public Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff) {
         var session = classes.find(e.classSessionId()); var labels = labelsOf(e.classSessionId());
         var out = new LinkedHashMap<String, Object>();
+        var dog = dog(e.dogId());
         out.put("id", e.id()); out.put("state", e.state()); out.put("classSessionId", e.classSessionId()); out.put("dogId", e.dogId());
-        out.put("dogName", census.dog(e.dogId()).map(BookingMemberAccess.Dog::name).orElse(null)); out.put("memberId", e.memberId());
+        out.put("dogName", dog.get("name")); out.put("dog", dog); out.put("memberId", e.memberId());
         out.put("position", context.waitlistMode() == WaitlistMode.FIFO ? e.position() : null); out.put("joinedAt", e.joinedAt());
         out.put("classSession", classCard(labels, e.classStartsAt(), session.map(ClassSessionBookingAccess.Session::endsAt).orElse(e.classStartsAt()), context.now(), staff));
         out.put("notifiedAt", e.notifiedAt()); out.put("confirmBy", e.confirmBy()); out.put("bookingId", e.bookingId());
         out.put("cancelledAt", e.cancelledAt()); out.put("cancelReason", e.cancelReason());
         return out;
+    }
+    /**
+     * The `HoldDog` of a booking or a waiting-list entry (E5-T25): the same form as `SeatHoldResponse.dog`. The census
+     * never deletes a dog, so a booking's dog always exists.
+     */
+    private Map<String, Object> dog(String dogId) {
+        var dog = census.dog(dogId).orElseThrow(() -> new IllegalStateException("S08 row of a missing dog " + dogId));
+        return map("id", dog.id(), "name", dog.name(), "sex", dog.sex());
     }
     public Map<String, Object> calendarLinks(Booking b, ClassSessionBookingAccess.Labels labels) {
         var event = event(b, labels);
