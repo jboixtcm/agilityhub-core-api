@@ -47,8 +47,9 @@ gain `x-fields`; 3 operations change their documented errors.** The web must reg
   reused dog of a pending readmission has its own card with a file (R-04-06).
 - Behaviour, no schema change: a file claimed at signup gets a plain `id` (a UUID derived from its key), not its storage
   key, so `DELETE /dogs/{id}/documents/{docId}/files/{fileId}` addresses it (`DocumentFile.id`, `format: uuid`, now holds
-  for these files too). A D2 edit sending the same `fileKey` twice in a type answers `400 VALIDATION_ERROR`
-  (`documents.files.fileKey`, `DUPLICATE`). D2's view no longer lists a file removed through S03.
+  for these files too). The same `fileKey` sent twice in a type answers `400 VALIDATION_ERROR`
+  (`documents.files.fileKey`, `DUPLICATE`): in a D2 edit (`PATCH /dogs/{id}`) and at submission (`POST /signup`,
+  `POST /me/dogs/signup`; E5-T21, review E5-T19 #2). D2's view no longer lists a file removed through S03.
 
 ## 2026-09-26 · E5-T18 · the ES padding of `taxId`; the SEPA mandate text of mockup 19
 

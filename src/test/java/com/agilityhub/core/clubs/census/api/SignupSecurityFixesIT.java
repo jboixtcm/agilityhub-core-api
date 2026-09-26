@@ -556,7 +556,10 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
 
     /**
      * Step 2 (E3-T17 question 2): a file claimed at signup has a plain id, not its storage key, so D2 removes one file of a
-     * public signup's pending dog with DELETE …/files/{fileId}; D2's view and S03's list no longer show it.
+     * public signup's pending dog with DELETE …/files/{fileId}; D2's view and S03's list no longer show it. E5-T21 step 1
+     * (review E5-T19 #1): the removed file stays removed through later D2 edits. (a) Sending back the view, and adding a
+     * file, keep its row (`removedAt`), so P9 still counts it as referenced; (b) sending its key back answers 400
+     * FILE_NOT_FOUND, and the file does not come back.
      */
     @Test void R_04_19_R_04_08_d2RemovesOneFileOfAPendingPublicSignupDog() throws Exception {
         String first=upload("card-1.pdf"),second=upload("card-2.pdf");
@@ -572,9 +575,111 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(after.path("state").asText()).isEqualTo("RECEIVED");assertThat(after.path("files")).hasSize(1);assertThat(after.at("/files/0/id").asText()).isEqualTo(ids.get(1));
         var view=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
         assertThat(keys(view)).as("D2's view no longer shows the removed file").containsExactly(second);assertThat(view.path("state").asText()).isEqualTo("RECEIVED");
-        assertThat(storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).getFirst().get("removedAt")).as("the removal is recorded, not a deletion").isNotNull();
+        var removedRow=storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).getFirst();
+        assertThat(removedRow.get("removedAt")).as("the removal is recorded, not a deletion").isNotNull();
+        // E5-T21 step 1 (a): D2 sends back its view, then adds a file; the removed row stays as it was.
+        editDocuments(id,dogId,200,card(sentBack(view)));
+        assertThat(storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).getFirst()).as("after sending back the view").isEqualTo(removedRow);
+        String third=upload("card-3.pdf");var added=new ArrayList<>(sentBack(view));added.add(file(third,"card-3.pdf"));
+        editDocuments(id,dogId,200,card(added));
+        var written=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(fileKeys(written)).containsExactly(first,second,third);assertThat(written.getString("state")).isEqualTo("RECEIVED");
+        assertThat(written.getList("files",Document.class).getFirst()).as("after adding a file").isEqualTo(removedRow);
+        view=document(review(id).at("/dogs/0"),"VACCINATION_CARD");assertThat(keys(view)).containsExactly(second,third);
+        assertThat(orphans()).as("P9 still counts the removed file as referenced").doesNotContain(first,second,third);
+        // (b) Its key sent back is no upload to claim again (as an S03 key is not); the file does not come back.
+        var back=new ArrayList<>(sentBack(view));back.add(file(first,"card-1.pdf"));
+        assertThat(editDocuments(id,dogId,400,card(back)).path("code").asText()).isEqualTo("FILE_NOT_FOUND");
+        assertThat(storedDocument(dogId,"VACCINATION_CARD")).isEqualTo(written);
+        assertThat(keys(document(review(id).at("/dogs/0"),"VACCINATION_CARD"))).containsExactly(second,third);
         validate(id);
         assertThat(dog(id).getString("status")).isEqualTo("ACTIVE");
+        assertThat(storedDocument(dogId,"VACCINATION_CARD")).as("the validation of a new dog writes no document").isEqualTo(written);
+    }
+
+    /**
+     * E5-T21 step 1 (review E5-T19 #1; R-04-19, R-04-06): a file removed through S03 from a reused dog's own card stays removed
+     * through its readmission. D2 cannot send its key back (400 FILE_NOT_FOUND). The validation writes the submitted card and
+     * keeps the removed row (`removedAt`), so P9 still counts that file as referenced; the replaced file is an orphan.
+     */
+    @Test void R_04_19_R_04_06_aReusedDogsValidationKeepsTheFileRemovedFromItsOwnCard() throws Exception {
+        String removed=upload("card-1.pdf"),kept=upload("card-2.pdf");
+        var original=sending(request(),card(List.of(file(removed,"card-1.pdf"),file(kept,"card-2.pdf"))));String id=leftMember(original);String dogId=dog(id).getString("_id");
+        // The club removes one file of the away member's dog card through S03.
+        var cardDocument=storedDocument(dogId,"VACCINATION_CARD");String fileId=cardDocument.getList("files",Document.class).getFirst().getString("id");
+        result(admin(delete("/api/v1/dogs/"+dogId+"/documents/"+cardDocument.getString("_id")+"/files/"+fileId).header("Host",host)),204);
+        var removedRow=storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).getFirst();
+        assertThat(removedRow.getString("fileKey")).isEqualTo(removed);assertThat(removedRow.get("removedAt")).isNotNull();
+        String newCard=upload("new-card.pdf");submit(changedDog(readmission(original),newCard));
+        assertThat(keys(document(review(id).at("/dogs/0/readmission/current"),"VACCINATION_CARD"))).containsExactly(kept);
+        var back=editDocuments(id,dogId,400,card(List.of(file(newCard,"new-card.pdf"),file(removed,"card-1.pdf"))));
+        assertThat(back.path("code").asText()).isEqualTo("FILE_NOT_FOUND");
+        assertThat(keys(document(review(id).at("/dogs/0"),"VACCINATION_CARD"))).containsExactly(newCard);
+        validate(id);
+        var written=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(fileKeys(written)).containsExactly(removed,newCard);assertThat(written.getString("state")).isEqualTo("RECEIVED");
+        assertThat(written.getList("files",Document.class).getFirst()).as("the removed row as it was").isEqualTo(removedRow);
+        var listed=java.util.stream.StreamSupport.stream(result(admin(get("/api/v1/dogs/"+dogId+"/documents").header("Host",host)),200).spliterator(),false)
+                .filter(d->"VACCINATION_CARD".equals(d.path("type").asText())).findFirst().orElseThrow();
+        assertThat(listed.path("files")).as("S03 lists only the active file").hasSize(1);assertThat(listed.at("/files/0/name").asText()).isEqualTo("new-card.pdf");
+        assertThat(orphans()).as("the replaced file is an orphan; the removed one is still referenced").contains(kept).doesNotContain(removed,newCard);
+    }
+
+    /**
+     * E5-T21 step 2 (review E5-T19 #5; R-04-19): a documents edit that changes no file key of any type is no change. Sending
+     * back D2's view, of a public signup's dog and of a readmission's reused dog, writes nothing (no new version), emits no
+     * SignupEdited, writes no SIGNUP_EDITED audit entry and leaves the dashboard cached. Adding a file is a change.
+     */
+    @Test void R_04_19_sendingBackD2sDocumentsIsNoChange() throws Exception {
+        String pending=submit(withDocuments(request(),upload("card.pdf"),upload("insurance.pdf"))).path("memberId").asText();
+        var original=withDocuments(request(),upload("old-card.pdf"),upload("old-insurance.pdf"));String reused=leftMember(original,215);
+        submit(changedDog(readmission(original),upload("new-card.pdf")));
+        // The dashboard reads the typed level catalog, which this class's minimal level fixture is not: a complete level here.
+        mongo.save(new Level(level,club,"A",new LocalizedText(Map.of("en","Beginner"),"en"),0,"#000000",8,false,true,true,0,clock.instant(),clock.instant(),null,null));
+        for(String id:List.of(pending,reused)) {
+            String dogId=dog(id).getString("_id");var before=dog(id);var documentsBefore=dogDocuments(dogId);
+            int edited=dogEvents("SignupEdited",dogId).size(),audited=signupEditedAudits(dogId).size();
+            var dashboard=dashboard();clock.advance(Duration.ofSeconds(1));
+            var view=review(id).at("/dogs/0");var documents=new ArrayList<Map<String,Object>>();
+            for(var document:view.path("documents")) documents.add(Map.of("type",document.path("type").asText(),"files",sentBack(document)));
+            assertThat(documents).as(id).hasSize(2);
+            result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",before.get("version"),"documents",documents))),200);
+            assertThat(dog(id)).as("no new version").isEqualTo(before);
+            assertThat(dogDocuments(dogId)).as("no document written").isEqualTo(documentsBefore);
+            assertThat(dogEvents("SignupEdited",dogId)).as("no SignupEdited").hasSize(edited);
+            assertThat(signupEditedAudits(dogId)).as("no SIGNUP_EDITED audit entry").hasSize(audited);
+            assertThat(dashboard().path("generatedAt")).as("the dashboard is not refreshed").isEqualTo(dashboard.path("generatedAt"));
+            // Adding a file to the card is a change.
+            var card=new ArrayList<>(sentBack(document(view,"VACCINATION_CARD")));card.add(file(upload("added.pdf"),"added.pdf"));
+            result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",before.get("version"),"documents",List.of(card(card))))),200);
+            assertThat(((Number)dog(id).get("version")).longValue()).isGreaterThan(((Number)before.get("version")).longValue());
+            assertThat(dogEvents("SignupEdited",dogId)).hasSize(edited+1);
+            assertThat(dashboard().path("generatedAt")).as("the dashboard is refreshed").isNotEqualTo(dashboard.path("generatedAt"));
+        }
+        assertThat(signupEditedAudits(dog(reused).getString("_id"))).as("the reused dog's edit changes its request").isNotEmpty();
+    }
+    JsonNode dashboard() throws Exception { return result(admin(get("/api/v1/dashboard").header("Host",host)),200); }
+    List<Document> signupEditedAudits(String dogId) {
+        return collection("audit_entries").stream().filter(e->"SIGNUP_EDITED".equals(e.getString("action"))&&dogId.equals(e.getString("entityId"))).toList();
+    }
+
+    /**
+     * E5-T21 step 3 (review E5-T19 #4; R-04-08): the limit of 10 files per request counts only the new uploads it claims, not
+     * the kept files. D2 adds an 11th file to a card that has 10 by sending them back; 11 new uploads in one request are
+     * still refused, before any is claimed.
+     */
+    @Test void R_04_08_R_04_19_theFileLimitCountsOnlyTheNewUploadsOfARequest() throws Exception {
+        var files=new ArrayList<Map<String,Object>>();for(int i=1;i<=10;i++) files.add(file(upload("card-"+i+".pdf"),"card-"+i+".pdf"));
+        String id=submit(sending(request(),card(files))).path("memberId").asText();String dogId=dog(id).getString("_id");
+        var view=document(review(id).at("/dogs/0"),"VACCINATION_CARD");assertThat(keys(view)).hasSize(10);
+        String eleventh=upload("card-11.pdf");var more=new ArrayList<>(sentBack(view));more.add(file(eleventh,"card-11.pdf"));
+        editDocuments(id,dogId,200,card(more));
+        assertThat(fileKeys(storedDocument(dogId,"VACCINATION_CARD"))).hasSize(11).endsWith(eleventh);
+        assertThat(keys(document(review(id).at("/dogs/0"),"VACCINATION_CARD"))).hasSize(11);
+        var eleven=new ArrayList<Map<String,Object>>();for(int i=0;i<11;i++) eleven.add(file("signup/"+club+"/202609/"+UUID.randomUUID()+"/extra.pdf","extra.pdf"));
+        var refused=editDocuments(id,dogId,400,Map.of("type","INSURANCE","files",eleven));
+        assertThat(refused.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(refused.at("/details/fieldErrors/0/field").asText()).isEqualTo("documents");assertThat(refused.at("/details/fieldErrors/0/code").asText()).isEqualTo("TOO_MANY_FILES");
     }
 
     /**

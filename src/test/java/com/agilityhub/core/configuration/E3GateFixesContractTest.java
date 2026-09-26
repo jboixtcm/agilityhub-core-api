@@ -78,6 +78,18 @@ class E3GateFixesContractTest {
     }
 
     /**
+     * E5-T21 step 5 (review E5-T18 #4; S02 §3 amended 26-09, R-02-06): `PUT /club` clears the tax id with a blank value or
+     * `null`, so `ClubUpdate.taxId` is nullable and its description says so, like `displayCity`. A generated client can then
+     * send `null`. (A club definition clears it with `""` only: its schema refuses `null`, see {@code ClubDefinitionsIT}.)
+     */
+    @Test void R_02_06_clubUpdateTaxIdIsNullableAndBlankOrNullClearsIt() {
+        var update = schema("ClubUpdate");
+        assertThat(texts(update.at("/properties/taxId/type"))).containsExactlyInAnyOrder("string", "null");
+        assertThat(update.at("/properties/taxId/description").asText()).contains("Blank (empty or spaces only) or null clears it.");
+        assertThat(texts(update.path("required"))).doesNotContain("taxId");
+    }
+
+    /**
      * Round 2, point 5 (web E3-W08 round 2), from the Java side: an optional property whose record serializes it even when
      * absent (no `@JsonInclude(NON_NULL)`) is sent as `null`, so its schema declares `null`. Every record the D2 view (R-04-19)
      * and the two submission results (R-04-25, R-04-26) reach is checked, including the branches

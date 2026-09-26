@@ -253,6 +253,30 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(clubs.findById(id).orElseThrow().taxId()).as("an omitted tax id is kept").isEqualTo("G63189617");
     }
     /**
+     * E5-T21 step 5 (review E5-T18 #3; S02 §3 amended 26-09, R-02-06): a definition clears the tax id with `""`; its schema
+     * types `club.taxId` as a string, so `taxId: null` is refused (`VALIDATION_ERROR`, in the dry run too), as a YAML file
+     * written by hand and as a definition node, and the stored tax id stays. Only `PUT /club` clears it with `null`.
+     */
+    @Test void R_02_06_aClubDefinitionRefusesANullTaxId(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var id = definitions.apply(seed("canic"), false).id();
+        var yaml = directory.resolve("club-null-tax-id.yaml");
+        java.nio.file.Files.writeString(yaml, java.nio.file.Files.readString(Path.of("seeds/club-minim.yaml")).replaceFirst("(?m)^club:\\n", "club:\n  taxId: null\n"));
+        assertThat(java.nio.file.Files.readString(yaml)).contains("club:\n  taxId: null\n  slug: \"minim\"");
+        assertThatThrownBy(() -> codec.read(yaml)).isInstanceOfSatisfying(ApiException.class, error -> {
+            assertThat(error.code()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+            assertThat(error.details()).containsEntry("fields", List.of("$.club.taxId: type"));
+        });
+        var definition = seed("canic"); definition.withObject("club").putNull("taxId");
+        for (boolean dryRun : List.of(true, false)) {
+            assertThatThrownBy(() -> definitions.apply(definition, dryRun)).as("dry run %s", dryRun).isInstanceOfSatisfying(ApiException.class, error -> {
+                assertThat(error.code()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+                assertThat(error.details()).containsEntry("fields", List.of("$.club.taxId: type"));
+            });
+        }
+        assertThat(clubs.findById(id).orElseThrow().taxId()).isEqualTo("G63189617");
+        assertThat(TenantContext.current()).isNull();
+    }
+    /**
      * E5-T17 (review E5-T16 #4, optional; S02 §3, R-02-06): under `ES` a definition's 7-digit DNI is stored padded, the form
      * the check reads, so the same id with or without the leading zero is no change.
      */

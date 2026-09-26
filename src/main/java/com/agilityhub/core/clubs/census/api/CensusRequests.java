@@ -76,7 +76,9 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; YYYY-MM.") String birthMonth,
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only.") @Size(max = 1000) String notesToInstructors,
             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; replaces files for the supplied document types. "
-                    + "A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file; any other key is a new signup upload.") List<SignupRequests.SignupDocument> documents,
+                    + "A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new signup upload. "
+                    + "The key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId} answers 400 FILE_NOT_FOUND. "
+                    + "At most 10 new uploads per request (kept files do not count). Sending back the view's keys is no change.") List<SignupRequests.SignupDocument> documents,
             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
     public record DogLevelRequest(
             @Schema(requiredMode = REQUIRED) @NotBlank String levelId) { }

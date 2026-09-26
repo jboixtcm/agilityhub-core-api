@@ -152,16 +152,23 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
      * E5-T18 step 1 (web gate E3-W09, screen 19 (e)): S04 §2 row 19 shows `paymentMethods[SEPA_DD].mandateText`, the key
      * `signup:payment.mandate.ES` with the club's legal name (R-04-10), and its text is the approved mockup 19's (V5, «mandat
      * SEPA (llei 16/2009)»). The copy of the Cànic also offers `en`, which its seed does not, so the English text is served.
-     * T-04-14: under `GENERIC` the mandate does not cite the law.
+     * T-04-14: under `GENERIC` the mandate does not cite the law. E5-T21 step 6 (review E5-T18 #6): `ca` and `es` are the
+     * mockup's words (`docs/pantalles/mobil/19-alta-pagament-consentiments-i-enviament.html`, line 197), with the legal name
+     * where the mockup names the club; `en` is unchanged.
      */
     @Test void R_04_10_T_04_14_theSepaMandateIsTheTextOfMockup19WithTheClubsLegalName() throws Exception {
         String legalName=codec.read(Path.of("seeds/club-canic.yaml")).at("/club/legalName").asText();
         assertThat(legalName).isEqualTo("Club Agility Cànic");
         canic(input -> ((com.fasterxml.jackson.databind.node.ArrayNode)input.at("/club/locales")).add("en"));
         var expected=Map.of(
-                "ca","Autoritzo "+legalName+" a emetre rebuts sobre aquest compte amb caràcter indefinit mentre es mantingui la meva relació amb aquesta entitat (Llei 16/2009, de 13 de novembre, de serveis de pagament).",
-                "es","Autorizo a "+legalName+" a emitir recibos sobre esta cuenta con carácter indefinido mientras se mantenga mi relación con esta entidad (Ley 16/2009, de 13 de noviembre, de servicios de pago).",
+                "ca","Autoritzo a "+legalName+" l'emissió de rebuts sobre aquest compte amb caràcter indefinit mentre es mantingui la meva relació amb aquesta entitat (llei 16/2009, de 13 de novembre, de serveis de pagament).",
+                "es","Autorizo a "+legalName+" la emisión de recibos sobre esta cuenta con carácter indefinido mientras se mantenga mi relación con esta entidad (ley 16/2009, de 13 de noviembre, de servicios de pago).",
                 "en","I authorize "+legalName+" to issue direct debits on this account for as long as my relationship with this organization lasts (Spanish Law 16/2009 of 13 November on payment services).");
+        // The mockup's own line, where it names the club «Club d'Agility Cànic».
+        var lines=java.nio.file.Files.readAllLines(Path.of("docs/pantalles/mobil/19-alta-pagament-consentiments-i-enviament.html")).stream()
+                .filter(line -> line.contains("note grisa")&&line.contains("16/2009")).toList();
+        assertThat(lines).hasSize(1);
+        assertThat(expected.get("ca")).isEqualTo(lines.getFirst().replaceAll("<[^>]+>","").strip().replace("Club d'Agility Cànic",legalName));
         for(String language:List.of("ca","es","en")) {
             assertThat(sepaMandate(language)).as(language).isEqualTo(expected.get(language));
         }

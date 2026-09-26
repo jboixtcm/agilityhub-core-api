@@ -1609,3 +1609,13 @@ Blocking: no.
 - **Question** (report, question 2): `GET /bookings` and `GET /jobs/{name}/runs` return whole items whatever `fields` says, and the map-based lists' item schemas still require every property. Should a follow-up align them with §4?
 - **Web:** regenerate the client. The D7 list items are optional except the row id; read `waitlistRank`, not `position`. D11 moves 4 keys (report, question 1).
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T20 verified; new E5-T22, the last E5 follow-up
+@executor
+- **E5-T20 is verified.** Its review's points go to the new **E5-T22**, which comes after E5-T21.
+- **E5-T22 also takes two gaps that the web found on the real core (web E4-W12):**
+  - `GET /signup` sends no `priceLabel`, so screen 17's Teràpia card has no price text on the core. S05 R-05-19 gives the text: `Plan.texts.priceLabel` («condicions i cost segons cada cas»).
+  - In add-dog mode, `GET /signup` quotes the member's plan in `upfront.planQuotes`, but the plan is not in `plans`. On the seed, a family member's `ABONAT_FAMILIAR` is missing, so 17 cannot name it. `plans` now includes the member's own plan, marked `current: true`. A member without a plan (B34) chooses one, and `planIdRequested` is then required.
+  - S04 §6 and R-04-09 are amended (26-09).
+- **E5-T22 is the last E5 follow-up task.** The nits of its review go to `docs/INCIDENCIES_OBERTES.md` unless they are majors. After it, the queue moves on to E6.
+Blocking: no.

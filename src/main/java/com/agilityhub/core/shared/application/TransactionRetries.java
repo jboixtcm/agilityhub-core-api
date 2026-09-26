@@ -52,7 +52,7 @@ public class TransactionRetries {
     /** The wait before a retry, in milliseconds; injectable so a unit test does not sleep. */
     @FunctionalInterface
     public interface Backoff { void pause(long millis) throws InterruptedException; }
-    /** 50–150 ms, uniformly: the randomised backoff of the retried writers. */
+    /** 50–150 ms, uniformly: the randomised backoff of every retried writer (S05, S06, S07, S08 and S09; E5-T21). */
     public static long jitter() { return java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151); }
 
     /** A Mongo `TransientTransactionError` or `WriteConflict` anywhere in the cause chain: the whole unit of work may run again. */

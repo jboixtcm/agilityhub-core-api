@@ -189,9 +189,10 @@ class E5PersistenceIT extends AbstractIntegrationTest {
     }
 
     /**
-     * E5-T18 step 3 (review E5-T17 #3, S15 R-15-19): the one-off backfill of `docs/DEPLOY.md`, exactly as written there,
-     * gives a document written before E5-T17 its `expiresAt` = `startsAt` + 7 days, leaves a current one as it is, and a
-     * second run changes nothing.
+     * E5-T18 step 3 (review E5-T17 #3, S15 R-15-19): the one-off backfill of `docs/DEPLOY.md` gives a document written before
+     * E5-T17 its `expiresAt` = `startsAt` + 7 days, leaves a current one as it is, and a second run changes nothing. E5-T21
+     * (review E5-T18 #5): the filter and pipeline are read from the `--eval` expression written there, so a drift of the
+     * document fails this test.
      */
     @Test void R_15_19_theDeployBackfillGivesTheOldRingSlotLocksTheirExpiry() throws Exception {
         var startsAt = Instant.parse("2026-09-01T17:00:00Z");
@@ -199,14 +200,27 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         locks.insertOne(new Document("_id", CLUB + ":e5p-old:" + startsAt).append("clubId", CLUB).append("ringId", "e5p-old")
                 .append("startsAt", Date.from(startsAt)).append("sequence", 4));
         try (var tenant = TenantContext.open(CLUB)) { ringSlots.touch("e5p-new", startsAt); }
-        var filter = new Document("expiresAt", new Document("$exists", false));
-        var backfill = List.of(new Document("$set", new Document("expiresAt", new Document("$add", List.of("$startsAt", 604800000)))));
-        assertThat(locks.updateMany(filter, backfill).getModifiedCount()).isPositive();
+        var arguments = deployBackfill();
+        var filter = (Document) arguments.get(0); @SuppressWarnings("unchecked") var backfill = (List<Document>) arguments.get(1);
+        assertThat(filter).isEqualTo(new Document("expiresAt", new Document("$exists", false)));
+        assertThat(locks.updateMany(filter, backfill).getModifiedCount()).as("the one document written before E5-T17").isEqualTo(1);
         var old = locks.find(new Document("_id", CLUB + ":e5p-old:" + startsAt)).first();
         assertThat(old.getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-09-08T17:00:00Z"));
         assertThat(old.get("sequence", Number.class).longValue()).isEqualTo(4);
         assertThat(locks.find(new Document("_id", CLUB + ":e5p-new:" + startsAt)).first().getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-09-08T17:00:00Z"));
         assertThat(locks.updateMany(filter, backfill).getModifiedCount()).as("a second run").isZero();
+    }
+    /** The arguments (filter, pipeline) of the one `db.ring_slot_locks.updateMany(…)` that `docs/DEPLOY.md` runs with `mongosh --eval`. */
+    private static List<Object> deployBackfill() throws Exception {
+        String call = "db.ring_slot_locks.updateMany(";
+        var commands = java.nio.file.Files.readAllLines(java.nio.file.Path.of("docs/DEPLOY.md")).stream().filter(line -> line.contains("--eval '" + call)).toList();
+        assertThat(commands).as("one backfill command in DEPLOY.md").hasSize(1);
+        String command = commands.getFirst();
+        String expression = command.substring(command.indexOf("--eval '") + "--eval '".length(), command.lastIndexOf('\''));
+        assertThat(expression).startsWith(call).endsWith(")");
+        var arguments = Document.parse("{arguments: [" + expression.substring(call.length(), expression.length() - 1) + "]}").getList("arguments", Object.class);
+        assertThat(arguments).hasSize(2);
+        return arguments;
     }
 
     /**

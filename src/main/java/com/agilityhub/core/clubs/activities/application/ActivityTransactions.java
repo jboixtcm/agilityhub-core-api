@@ -2,7 +2,6 @@ package com.agilityhub.core.clubs.activities.application;
 
 import java.util.Collection;
 import java.util.function.Supplier;
-import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.*;
 import com.agilityhub.core.shared.application.LocalLanes;
@@ -12,7 +11,7 @@ import com.agilityhub.core.shared.domain.*;
 /**
  * R-07-08: one Mongo transaction per write; the `$inc registrationSeq` on the Activity ({@code ActivityRepository.lock})
  * makes concurrent writers conflict, and a `WriteConflict` / `TransientTransactionError` is retried at most 3 times with
- * a 50–150 ms randomised backoff, then `409 STALE_VERSION`. The {@link LocalLanes} (one per activity) only bound
+ * the shared 50–150 ms randomised backoff ({@link TransactionRetries#jitter()}), then `409 STALE_VERSION`. The {@link LocalLanes} (one per activity) only bound
  * contention inside one API instance.
  */
 @Service
@@ -34,7 +33,7 @@ public class ActivityTransactions {
                 if(!transientConflict(error)) throw error;
                 if(attempt>=3) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
                 retries.retried(CONTEXT,error);
-                try { Thread.sleep(ThreadLocalRandom.current().nextLong(50,151)); }
+                try { Thread.sleep(TransactionRetries.jitter()); }
                 catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
             }
         }

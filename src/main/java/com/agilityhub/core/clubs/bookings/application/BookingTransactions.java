@@ -5,7 +5,6 @@ import com.agilityhub.core.shared.application.TransactionRetries;
 import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -13,7 +12,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * S08 §6 booking transactions: one Mongo transaction per operation, retried on `WriteConflict` /
- * `TransientTransactionError` (at most 3 attempts, 50–150 ms randomised backoff), never after a commit.
+ * `TransientTransactionError` (at most 3 attempts, the shared 50–150 ms randomised backoff of
+ * {@link TransactionRetries#jitter()}), never after a commit.
  *
  * <p><b>Lock order</b>: `seat_locks` (the `$inc` on each class touched, R-08-07) → `class_sessions` (counters) →
  * `bookings` / `seat_holds`. A swap touches two classes; both seat locks are taken new class first. The
@@ -44,7 +44,7 @@ public class BookingTransactions {
                 if (!transientConflict(failure)) { throw failure; }
                 if (attempt >= ATTEMPTS) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
                 retries.retried(CONTEXT, failure);
-                try { Thread.sleep(ThreadLocalRandom.current().nextLong(50, 151)); }
+                try { Thread.sleep(TransactionRetries.jitter()); }
                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
             }
         }
