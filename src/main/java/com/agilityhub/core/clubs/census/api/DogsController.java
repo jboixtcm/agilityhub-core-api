@@ -74,18 +74,21 @@ public class DogsController {
             DOCUMENT_TYPE_UNKNOWN, DOG_DOCUMENT_REQUIRED})
     @Operation(summary = "Update dog",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. "
+                    + "The documents of a pending dog change only for the types sent. "
                     + "The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the "
-                    + "submitted values, not the dog record; the chip cannot change (the readmission matched on it): 409 INVALID_STATE with "
-                    + "details.reason = READMISSION_PENDING.",
+                    + "submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); "
+                    + "the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: "
+                    + "409 INVALID_STATE with details.reason = READMISSION_PENDING. The response is the dog record, which keeps its own values "
+                    + "until validation: D2 re-reads GET /members/{id}/signup for the submitted ones.",
             responses = @ApiResponse(responseCode = "200", description = "Dog", content = @Content(schema = @Schema(implementation = Dog.class))))
     public java.util.Map<String,Object> updateDog(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = DogPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { if ("PENDING".equals(queries.dog(id).get("status"))) { dogs.patchPending(id, request); } else { dogs.patch(id, request); } return queries.dog(id); }); }
 
     @PatchMapping("/api/v1/dogs/{id}/level")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({LEVELS_DISABLED, LEVEL_NOT_ACTIVE, LEVEL_UNCHANGED, MEMBER_ERASED})
+    @ContractErrors({LEVELS_DISABLED, LEVEL_NOT_ACTIVE, LEVEL_UNCHANGED, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update dog level",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "LevelChangeResult", content = @Content(schema = @Schema(implementation = LevelChangeResult.class))))
     public java.util.Map<String,Object> updateDogLevel(@PathVariable String id, @Valid @RequestBody DogLevelRequest request) { return transactions.run(() -> { dogs.level(id, request.levelId()); return com.agilityhub.core.clubs.census.application.CensusValues.object("level", queries.detail(id).get("level"), "levelAssignedAt", queries.dog(id).get("levelAssignedAt")); }); }
 
@@ -93,8 +96,9 @@ public class DogsController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.FREE_TRAINING)
+    @ContractErrors({INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update dog free training",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "FreeTraining", content = @Content(schema = @Schema(implementation = FreeTraining.class))))
     public java.util.Map<String,Object> updateDogFreeTraining(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = FreeTrainingRequest.class))) @RequestBody java.util.Map<String,Object> request) { com.agilityhub.core.clubs.census.application.CensusValues.allow(request, java.util.Set.of("override")); if (!request.containsKey("override") || (request.get("override") != null && !(request.get("override") instanceof Boolean))) { throw com.agilityhub.core.clubs.census.application.CensusValues.invalid("override", "REQUIRED"); }
         return transactions.run(() -> { dogs.free(id, (Boolean) request.get("override")); return queries.free(id); }); }
@@ -102,9 +106,9 @@ public class DogsController {
     @PostMapping("/api/v1/dogs/{id}/transfer")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({SAME_MEMBER, TARGET_MEMBER_NOT_ACTIVE, DOG_HAS_FUTURE_BOOKINGS, DOG_HAS_OPEN_PACK, MEMBER_ERASED})
+    @ContractErrors({SAME_MEMBER, TARGET_MEMBER_NOT_ACTIVE, DOG_HAS_FUTURE_BOOKINGS, DOG_HAS_OPEN_PACK, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Transfer dog",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "Dog", content = @Content(schema = @Schema(implementation = Dog.class))))
     public java.util.Map<String,Object> transferDog(@PathVariable String id, @Valid @RequestBody DogTransferRequest request) { return transactions.run(() -> { transfers.transfer(id, request.toMemberId(), request.reason()); return queries.dog(id); }); }
 
@@ -129,9 +133,9 @@ public class DogsController {
     @PutMapping("/api/v1/dogs/{id}/photo")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, MEMBER_ERASED})
+    @ContractErrors({FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update dog photo",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "PhotoResponse"))
     public PhotoResponse updateDogPhoto(@PathVariable String id, @Valid @RequestBody FileKeyRequest request) { return new PhotoResponse(transactions.run(() -> documents.photo(id, request.fileKey(), false))); }
 
@@ -148,9 +152,9 @@ public class DogsController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({DOCUMENT_TYPE_UNKNOWN, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, MEMBER_ERASED})
+    @ContractErrors({DOCUMENT_TYPE_UNKNOWN, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Upload dog document",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "201", description = "DogDocument", content = @Content(schema = @Schema(implementation = DogDocument.class))))
     public java.util.Map<String,Object> uploadDogDocument(@PathVariable String id, @Valid @RequestBody DogDocumentRequest request) { return transactions.run(() -> documents.upload(id, request.type(), request.name(), request.fileKey(), false)); }
 
@@ -158,8 +162,9 @@ public class DogsController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
+    @ContractErrors({INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Remove dog document file",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "204", description = "Completed without a response body", content = @Content))
     public void removeDogDocumentFile(@PathVariable String id, @PathVariable String docId, @PathVariable String fileId) { transactions.run(() -> { documents.remove(id, docId, fileId); return null; }); }
 
@@ -167,9 +172,9 @@ public class DogsController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ContractErrors({DOCUMENT_NOT_PENDING, DOCUMENT_REMINDER_TOO_SOON, MEMBER_ERASED})
+    @ContractErrors({DOCUMENT_NOT_PENDING, DOCUMENT_REMINDER_TOO_SOON, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Remind dog document",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "202", description = "Completed without a response body", content = @Content))
     public void remindDogDocument(@PathVariable String id, @Valid @RequestBody DocumentReminderRequest request) { transactions.run(() -> { documents.remind(id, request.type()); return null; }); }
 

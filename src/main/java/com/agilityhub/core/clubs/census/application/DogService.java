@@ -33,8 +33,8 @@ public class DogService {
         allow(request,allowed);
         version(dog.version(), request.get("version"));
         // R-04-06 (E38, E3-T17): during a pending readmission, a D2 edit of the reused dog's step-17 fields and documents edits
-        // the submitted values; the record keeps its own until validation applies them.
-        boolean readmission = "PENDING".equals(dog.status) && signups.getObject().readmissionPending(dog);
+        // the submitted values; the record keeps its own until validation applies them, and is otherwise frozen (round 2).
+        boolean readmission = CensusAccess.readmissionPending(dog);
         var target = readmission ? signups.getObject().submittedView(dog) : dog; var before = fields(target, dog);
         if (request.containsKey("name")) { target.name = text(request.get("name"), "name", 40, true); }
         if (request.containsKey("breed")) { target.breed = text(request.get("breed"), "breed", 60, true); }
@@ -53,7 +53,7 @@ public class DogService {
             String chip = signups.getObject().chip(text(request.get("chip"), "chip", 40, true), "chip");
             // E3-T17 (R-04-06 b, as the identity document): the readmission matched the reused dog on its chip, so the chip
             // cannot change while it is pending; a wrong one is resolved by rejecting it. Sending the chip it has is no edit.
-            if (readmission && !chip.equals(dog.chip)) { throw new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "READMISSION_PENDING")); }
+            if (readmission && !chip.equals(dog.chip)) { throw CensusAccess.readmissionFrozen(); }
             dog.chip = chip;
         } else if (request.containsKey("chip")) { dog.chip = text(request.get("chip"), "chip", 20, false); if (dog.chip != null && dog.chip.isEmpty()) { dog.chip = null; } }
         if (request.containsKey("birthMonth")) {
@@ -64,8 +64,18 @@ public class DogService {
         if (request.containsKey("notesToInstructors")) target.instructorNote=object("text",text(request.get("notesToInstructors"),"notesToInstructors",1000,false),"updatedAt",clock.instant());
         if (request.containsKey("documents")) signups.getObject().saveDocuments(dog,rows(request.get("documents")));
         if (readmission) { signups.getObject().storeSubmitted(dog, target); }
-        if (request.containsKey("handlerName")) { dog.handlerName = text(request.get("handlerName"), "handlerName", 80, false); if ("".equals(dog.handlerName)) { dog.handlerName = null; } }
-        if (request.containsKey("licenses")) { dog.licenses = validation.licenses(request.get("licenses")); }
+        // E3-T17 round 2 (R-04-06): `handlerName` and `licenses` are the record's, not the submission's, so the reused dog's are
+        // frozen as its chip is; sending the value it has is no edit.
+        if (request.containsKey("handlerName")) {
+            String handler = text(request.get("handlerName"), "handlerName", 80, false); if ("".equals(handler)) { handler = null; }
+            if (readmission && !Objects.equals(handler, dog.handlerName)) { throw CensusAccess.readmissionFrozen(); }
+            dog.handlerName = handler;
+        }
+        if (request.containsKey("licenses")) {
+            var licenses = validation.licenses(request.get("licenses"));
+            if (readmission && !licenses.equals(Objects.requireNonNullElse(dog.licenses, List.of()))) { throw CensusAccess.readmissionFrozen(); }
+            dog.licenses = licenses;
+        }
         var diff = events.diff(before, fields(target, dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
         if (diff.isEmpty()) { return; }
         access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
@@ -83,7 +93,9 @@ public class DogService {
     @Audited(action = AuditAction.DOG_LEVEL_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
     public void signupLevel(String id,String levelId) { assignLevel(id,levelId,true); }
     private void assignLevel(String id,String levelId,boolean signup) {
-        var dog = access.mutableDog(id); if (!access.levels()) { throw new ApiException(ErrorCode.LEVELS_DISABLED); }
+        // The validation's first level (`signup`) comes after the readmission is applied; a D2 change of a reused dog's is frozen.
+        var dog = access.mutableDog(id); if (!signup) { CensusAccess.unfrozen(dog); }
+        if (!access.levels()) { throw new ApiException(ErrorCode.LEVELS_DISABLED); }
         access.references.lockLevelCatalog(); var level = access.references.level(levelId);
         if (!Boolean.TRUE.equals(level.get("active"))) { throw new ApiException(ErrorCode.LEVEL_NOT_ACTIVE); }
         if (!signup && Objects.equals(dog.levelId, levelId)) { throw new ApiException(ErrorCode.LEVEL_UNCHANGED); }
@@ -102,7 +114,7 @@ public class DogService {
     @Transactional
     @Audited(action = AuditAction.DOG_FREE_TRAINING_CHANGED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
     public void free(String id, Boolean override) {
-        var dog = access.mutableDog(id); access.require(Module.FREE_TRAINING);
+        var dog = CensusAccess.unfrozen(access.mutableDog(id)); access.require(Module.FREE_TRAINING);
         boolean before = access.free(dog).allowed(); if (Objects.equals(dog.freeTrainingOverride, override)) { return; }
         dog.freeTrainingOverride = override; dog.freeTrainingAllowed = access.free(dog).allowed(); access.dogs.save(dog); freeEvent(dog, before);
     }
@@ -153,7 +165,7 @@ public class DogService {
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
     public void note(String id, String text) {
-        access.require(Module.TASKS); var dog = access.ownDog(id, true);
+        access.require(Module.TASKS); var dog = CensusAccess.unfrozen(access.ownDog(id, true));
         if (CurrentUser.current().impersonation() == null && (access.role("ADMIN") || access.role("INSTRUCTOR"))) { throw new ApiException(ErrorCode.FORBIDDEN); }
         if (text == null || text.length() > 2000) { throw invalid("text", "INVALID_VALUE"); }
         if (text.equals(map(dog.instructorNote).getOrDefault("text", ""))) { return; }

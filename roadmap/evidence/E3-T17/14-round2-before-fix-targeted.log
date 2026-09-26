@@ -1,0 +1,201 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] argLine set to -javaagent:/Users/jordib/.m2/repository/org/jacoco/org.jacoco.agent/0.8.14/org.jacoco.agent-0.8.14-runtime.jar=destfile=/Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 9 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 37 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 228 source files with javac [debug parameters release 21] to target/test-classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[70,28] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[77,19] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[83,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+01:57:34.763 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:57:34.916 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+01:57:34.995 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+01:57:34.996 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+01:57:35.000 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+01:57:35.169 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+01:57:35.335 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+01:57:35.336 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+01:57:35.349 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+01:57:35.503 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+01:57:35.585 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+01:57:35.649 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 908d88e192ea480154661e93eb69031dac58adf87ef87ca5ebcaa8f6e0ed18c5
+01:57:35.803 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.300465S
+01:57:35.807 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+01:57:35.808 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+01:57:35.808 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+01:57:35.808 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+01:57:35.838 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 1295167732d6f2b00c2aa6130464da01dd64d0e3f320d1e844aa873c256bbbc6
+01:57:36.262 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.453707S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-26T01:57:36.915+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : Starting SignupSecurityFixesIT using Java 21.0.12.1 with PID 44160 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-26T01:57:36.916+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : The following 1 profile is active: "test"
+2026-09-26T01:57:37.810+02:00  INFO 44160 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-26T01:57:37.844+02:00  INFO 44160 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 31 ms. Found 0 MongoDB repository interfaces.
+2026-09-26T01:57:38.208+02:00  INFO 44160 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4bddc770], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@d03e31, com.mongodb.Jep395RecordCodecProvider@371ff4ba, com.mongodb.KotlinCodecProvider@2d475ee6]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:61714], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@804ea79], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-26T01:57:38.215+02:00  INFO 44160 --- [agilityhub-core-api] [localhost:61714] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:61714, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10042458, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=1295167732d6:27017, hosts=[1295167732d6:27017], passives=[], arbiters=[], primary='1295167732d6:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab70a6f8b922b2c3d14e1b1, counter=6}, lastWriteDate=Sat Sep 26 01:57:36 CEST 2026, lastUpdateTimeNanos=184463590461000}
+2026-09-26T01:57:40.884+02:00  INFO 44160 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-26T01:57:40.885+02:00  INFO 44160 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-26T01:57:40.885+02:00  INFO 44160 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-26T01:57:40.913+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : Started SignupSecurityFixesIT in 4.189 seconds (process running for 6.631)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-26T01:57:42.260+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 1 dogs
+2026-09-26T01:57:43.426+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-d79adae9-1f1d-4a98-8301-eee35823596f recipientHash=5zQxze9n2WYeF09IqGUhR5wqoup-nFOtaEZnKwX-ESo
+2026-09-26T01:57:43.433+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-d79adae9-1f1d-4a98-8301-eee35823596f recipientHash=5zQxze9n2WYeF09IqGUhR5wqoup-nFOtaEZnKwX-ESo
+2026-09-26T01:57:43.720+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-f2c0f50e-0b95-4b5c-b04b-9552ce1b817a recipientHash=oiF-asFMgHgHzF0SilSCzycEnIaQdiaiV8rLZiehD5Y
+2026-09-26T01:57:43.728+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-f2c0f50e-0b95-4b5c-b04b-9552ce1b817a recipientHash=oiF-asFMgHgHzF0SilSCzycEnIaQdiaiV8rLZiehD5Y
+2026-09-26T01:57:43.971+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-f2c0f50e-0b95-4b5c-b04b-9552ce1b817a recipientHash=liSX9Q1yMktTmWR8BIyvlNODKU45hRpZXYAkv4sfQEg
+2026-09-26T01:57:43.984+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-f2c0f50e-0b95-4b5c-b04b-9552ce1b817a recipientHash=liSX9Q1yMktTmWR8BIyvlNODKU45hRpZXYAkv4sfQEg
+2026-09-26T01:57:44.001+02:00  INFO 44160 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-f2c0f50e-0b95-4b5c-b04b-9552ce1b817a recipientHash=liSX9Q1yMktTmWR8BIyvlNODKU45hRpZXYAkv4sfQEg
+2026-09-26T01:57:45.222+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected status=404 code=NOT_FOUND traceId=36edff97-f469-42d0-8936-51569412c643
+2026-09-26T01:57:45.530+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=e43ded6e-129a-4296-8cb9-02c95ce8063c
+2026-09-26T01:57:45.533+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=841f4b81-830e-4ec3-9eca-bc151e0cd647
+2026-09-26T01:57:45.536+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=4ca80529-7255-482e-a33a-0a4fc66e8dd6
+2026-09-26T01:57:45.538+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=c7baadbd-16cd-4028-bd2f-fb554ddf7f1a
+2026-09-26T01:57:45.542+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=fc66252a-cc80-42ad-8db7-be4518f5a365
+2026-09-26T01:57:45.725+02:00  WARN 44160 --- [agilityhub-core-api] [           main] c.n.schema.UnknownKeywordFactory         : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[ERROR] Tests run: 30, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 13.61 s <<< FAILURE! -- in com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers -- Time elapsed: 0.406 s <<< FAILURE!
+java.lang.AssertionError: 
+[the dog's entry outlives the rejection, which drops the request] 
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers(SignupSecurityFixesIT.java:458)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_theReusedDogsRecordIsFrozenWhileTheReadmissionIsPending -- Time elapsed: 0.452 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: {"DELETE /dogs/{id}/documents/{docId}/files/{fileId}"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id} handlerName"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id} licenses"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id}/free-training"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id}/level"="409 INVALID_STATE READMISSION_PENDING", "POST /attachments INSTRUCTOR_NOTE"="409 INVALID_STATE READMISSION_PENDING", "POST /dogs/{id}/documents"="409 INVALID_STATE READMISSION_PENDING", "POST /dogs/{id}/documents/reminder"="409 INVALID_STATE READMISSION_PENDING", "POST /dogs/{id}/transfer"="409 INVALID_STATE READMISSION_PENDING", "POST /me/dogs/{id}/documents"="409 INVALID_STATE READMISSION_PENDING", "PUT /dogs/{id}/photo"="409 INVALID_STATE READMISSION_PENDING", "PUT /me/dogs/{id}/instructor-note"="409 INVALID_STATE READMISSION_PENDING", "PUT /me/dogs/{id}/photo"="409 INVALID_STATE READMISSION_PENDING"}
+ but was: {"DELETE /dogs/{id}/documents/{docId}/files/{fileId}"="404 NOT_FOUND ", "PATCH /dogs/{id} handlerName"="409 STALE_VERSION ", "PATCH /dogs/{id} licenses"="409 STALE_VERSION ", "PATCH /dogs/{id}/free-training"="200  ", "PATCH /dogs/{id}/level"="200  ", "POST /attachments INSTRUCTOR_NOTE"="201  ", "POST /dogs/{id}/documents"="201  ", "POST /dogs/{id}/documents/reminder"="422 DOCUMENT_NOT_PENDING ", "POST /dogs/{id}/transfer"="200  ", "POST /me/dogs/{id}/documents"="201  ", "PUT /dogs/{id}/photo"="200  ", "PUT /me/dogs/{id}/instructor-note"="200  ", "PUT /me/dogs/{id}/photo"="200  "}
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_theReusedDogsRecordIsFrozenWhileTheReadmissionIsPending(SignupSecurityFixesIT.java:440)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_19_T_04_12_aD2DocumentEditOfTheReusedDogReplacesOnlyTheTypesItSends -- Time elapsed: 0.203 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the submitted insurance stays in the request] 
+expected: "new-insurance.pdf"
+ but was: "insurance.pdf"
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_19_T_04_12_aD2DocumentEditOfTheReusedDogReplacesOnlyTheTypesItSends(SignupSecurityFixesIT.java:385)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_aReadmissionWithoutACardKeepsTheDogsOwnCardAtValidation -- Time elapsed: 0.143 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "RECEIVED"
+ but was: "PENDING"
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.T_04_12_aReadmissionWithoutACardKeepsTheDogsOwnCardAtValidation(SignupSecurityFixesIT.java:330)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_19_aD2DocumentEditOfAPendingDogLeavesTheTypesItDoesNotSend -- Time elapsed: 0.079 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[the card it did not send] 
+expected: {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="3857bc00-2cc7-4e70-94a3-98dc73a5b708", "clubId"="sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="aed133f0-5988-4b2f-a854-27de2b08bdb6", "files"=[{"fileKey"="signup/sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad/202601/ac81a282-4477-4df4-b927-b6b8ce2f2069/card.pdf", "id"="signup/sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad/202601/ac81a282-4477-4df4-b927-b6b8ce2f2069/card.pdf", "mimeType"="application/pdf", "name"="card.pdf", "sizeBytes"=18L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L}
+ but was: {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="3857bc00-2cc7-4e70-94a3-98dc73a5b708", "clubId"="sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="aed133f0-5988-4b2f-a854-27de2b08bdb6", "files"=[], "state"="PENDING", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=1L}
+	at com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT.R_04_19_aD2DocumentEditOfAPendingDogLeavesTheTypesItDoesNotSend(SignupSecurityFixesIT.java:400)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   SignupSecurityFixesIT.R_04_06_R_04_23_T_04_19_theReusedDogsRecordIsFrozenWhileTheReadmissionIsPending:440 
+expected: {"DELETE /dogs/{id}/documents/{docId}/files/{fileId}"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id} handlerName"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id} licenses"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id}/free-training"="409 INVALID_STATE READMISSION_PENDING", "PATCH /dogs/{id}/level"="409 INVALID_STATE READMISSION_PENDING", "POST /attachments INSTRUCTOR_NOTE"="409 INVALID_STATE READMISSION_PENDING", "POST /dogs/{id}/documents"="409 INVALID_STATE READMISSION_PENDING", "POST /dogs/{id}/documents/reminder"="409 INVALID_STATE READMISSION_PENDING", "POST /dogs/{id}/transfer"="409 INVALID_STATE READMISSION_PENDING", "POST /me/dogs/{id}/documents"="409 INVALID_STATE READMISSION_PENDING", "PUT /dogs/{id}/photo"="409 INVALID_STATE READMISSION_PENDING", "PUT /me/dogs/{id}/instructor-note"="409 INVALID_STATE READMISSION_PENDING", "PUT /me/dogs/{id}/photo"="409 INVALID_STATE READMISSION_PENDING"}
+ but was: {"DELETE /dogs/{id}/documents/{docId}/files/{fileId}"="404 NOT_FOUND ", "PATCH /dogs/{id} handlerName"="409 STALE_VERSION ", "PATCH /dogs/{id} licenses"="409 STALE_VERSION ", "PATCH /dogs/{id}/free-training"="200  ", "PATCH /dogs/{id}/level"="200  ", "POST /attachments INSTRUCTOR_NOTE"="201  ", "POST /dogs/{id}/documents"="201  ", "POST /dogs/{id}/documents/reminder"="422 DOCUMENT_NOT_PENDING ", "POST /dogs/{id}/transfer"="200  ", "POST /me/dogs/{id}/documents"="201  ", "PUT /dogs/{id}/photo"="200  ", "PUT /me/dogs/{id}/instructor-note"="200  ", "PUT /me/dogs/{id}/photo"="200  "}
+[ERROR]   SignupSecurityFixesIT.R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers:458 [the dog's entry outlives the rejection, which drops the request] 
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   SignupSecurityFixesIT.R_04_19_T_04_12_aD2DocumentEditOfTheReusedDogReplacesOnlyTheTypesItSends:385 [the submitted insurance stays in the request] 
+expected: "new-insurance.pdf"
+ but was: "insurance.pdf"
+[ERROR]   SignupSecurityFixesIT.R_04_19_aD2DocumentEditOfAPendingDogLeavesTheTypesItDoesNotSend:400 [the card it did not send] 
+expected: {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="3857bc00-2cc7-4e70-94a3-98dc73a5b708", "clubId"="sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="aed133f0-5988-4b2f-a854-27de2b08bdb6", "files"=[{"fileKey"="signup/sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad/202601/ac81a282-4477-4df4-b927-b6b8ce2f2069/card.pdf", "id"="signup/sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad/202601/ac81a282-4477-4df4-b927-b6b8ce2f2069/card.pdf", "mimeType"="application/pdf", "name"="card.pdf", "sizeBytes"=18L, "uploadedAt"=2026-01-01T01:00:00.000 (java.util.Date)}], "state"="RECEIVED", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=0L}
+ but was: {"_class"="com.agilityhub.core.clubs.census.persistence.DogDocument", "_id"="3857bc00-2cc7-4e70-94a3-98dc73a5b708", "clubId"="sec-9e85559b-1e29-48e9-83c8-55a6d1e855ad", "createdAt"=2026-01-01T01:00:00.000 (java.util.Date), "dogId"="aed133f0-5988-4b2f-a854-27de2b08bdb6", "files"=[], "state"="PENDING", "type"="VACCINATION_CARD", "updatedAt"=2026-01-01T01:00:00.000 (java.util.Date), "version"=1L}
+[ERROR]   SignupSecurityFixesIT.T_04_12_aReadmissionWithoutACardKeepsTheDogsOwnCardAtValidation:330 
+expected: "RECEIVED"
+ but was: "PENDING"
+[INFO] 
+[ERROR] Tests run: 30, Failures: 5, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  20.015 s
+[INFO] Finished at: 2026-09-26T01:57:48+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

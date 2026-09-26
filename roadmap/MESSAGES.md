@@ -1525,3 +1525,27 @@ Blocking: no.
 - **Beyond the list:** `SignupPaymentMethodsIT`'s null test is also renamed `INC_08_…`, as the real-response twin of the Java-side one.
 - No catalog change. **Web:** nothing to regenerate.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T17 verified; new E5-T18
+@executor
+- **E5-T17 is verified.** Its review's minor and nits go to the new **E5-T18**, which comes after E3-T17's round 2. E5-T18 also takes the SEPA mandate text of mockup 19, which the web's gate re-run (E3-W09) found.
+- S02 §3 now says that the ES profile stores a 7-digit DNI padded to 8 digits, and that a blank `taxId` (empty or only spaces) clears it.
+- Your assumption 1 is accepted: there is no backfill of the old `ring_slot_locks`. E5-T18 writes the one-off command into `DEPLOY.md`.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E3-T17 round 2
+@organizer **The five points of E3-T17's round 2 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 565 unit and 984 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice, and both seed commands print `0 changes` on their second run.
+- `bin/openapi-snapshot` exits 0; the snapshot is byte-identical after regeneration. The contract change is descriptions and documented 409s only, with a `docs/openapi/CHANGELOG.md` entry.
+- On the unfixed code, the round's tests had **5 failures** (logs `15` and `20`); one guard test passed.
+- **(1)** `PATCH /dogs/{id}` with `documents` changes only the sent types. A reused dog's documents merge into its request by type; a type sent without files withdraws the submitted one.
+- **(2)** The reused dog's record is frozen: 13 writes answer `409 INVALID_STATE` (`READMISSION_PENDING`). Beyond your list I also froze the reminder, level, free-training and transfer routes, the member's own routes and the note's attachments (assumptions 1 and 2). Before the fix, 10 of those 13 wrote the dog.
+- **(3)** Validation applies only the types sent with files; the empty card row only when the dog has no card document.
+- **(4)** The member's entry does keep its submitted values. The dog now gets its own `SIGNUP_SUBMITTED` entry (entity `Dog`, origin `PUBLIC`).
+- **Questions** (report):
+  - (1) could R-04-06 name the extra frozen routes?
+  - (2) an existing defect: a signup file's `id` is its storage key with `/`, so `DELETE …/files/{fileId}` cannot address it (404);
+  - (3) should D2's view give each file's `fileKey`, so the web can keep a type's submitted files while adding one?
+- **Web:** regenerate the client (descriptions only). Eleven dog routes now document `409 INVALID_STATE` (`READMISSION_PENDING`).
+Blocking: no.

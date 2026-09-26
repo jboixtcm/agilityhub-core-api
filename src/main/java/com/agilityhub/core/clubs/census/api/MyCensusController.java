@@ -44,9 +44,9 @@ public class MyCensusController {
     @PutMapping("/api/v1/me/dogs/{id}/photo")
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('MEMBER')")
-    @ContractErrors({FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, MEMBER_ERASED})
+    @ContractErrors({FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update my dog photo",
-            description = "Tenant-scoped S03 response with role and ownership checks.",
+            description = "Tenant-scoped S03 response with role and ownership checks. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "PhotoResponse"))
     public PhotoResponse updateMyDogPhoto(@PathVariable String id, @Valid @RequestBody FileKeyRequest request) { return new PhotoResponse(transactions.run(() -> documents.photo(id, request.fileKey(), true))); }
 
@@ -54,9 +54,9 @@ public class MyCensusController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('MEMBER')")
-    @ContractErrors({DOCUMENT_TYPE_UNKNOWN, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, MEMBER_ERASED})
+    @ContractErrors({DOCUMENT_TYPE_UNKNOWN, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Upload my dog document",
-            description = "Tenant-scoped S03 response with role and ownership checks.",
+            description = "Tenant-scoped S03 response with role and ownership checks. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "201", description = "DogDocument", content = @Content(schema = @Schema(implementation = DogDocument.class))))
     public java.util.Map<String,Object> uploadMyDogDocument(@PathVariable String id, @Valid @RequestBody DogDocumentRequest request) { return transactions.run(() -> documents.upload(id, request.type(), request.name(), request.fileKey(), true)); }
 
@@ -64,8 +64,9 @@ public class MyCensusController {
     @ApiResponse(responseCode = "409", description = "MEMBER_ERASED: census mutations are unavailable after erasure")
     @PreAuthorize("hasRole('MEMBER')")
     @RequiresModule(Module.TASKS)
+    @ContractErrors({INVALID_STATE, MEMBER_ERASED})
     @Operation(summary = "Update instructor note",
-            description = "Tenant-scoped S03 response with role and ownership checks.",
+            description = "Tenant-scoped S03 response with role and ownership checks. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "200", description = "InstructorNote", content = @Content(schema = @Schema(implementation = InstructorNote.class))))
     public Object updateInstructorNote(@PathVariable String id, @Valid @RequestBody InstructorNoteRequest request) { return transactions.run(() -> { dogs.note(id, request.text()); return queries.dog(id).get("instructorNote"); }); }
 

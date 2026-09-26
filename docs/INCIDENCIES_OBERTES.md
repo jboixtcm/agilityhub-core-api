@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v1.2 · 24-09-2026** (v1.1 10-09 · v1.0 09-09)
+**v1.3 · 26-09-2026** (v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -20,6 +20,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-08 | 24-09 | api · contracte | Les respostes serialitzen `null` en camps opcionals que l'OpenAPI no declara `nullable` | Mitjana | oberta — el front ho tolera a D11 (E3-W03) i a D2 (E3-W04) |
 | INC-09 | 24-09 | api · contracte | `RING_HAS_BOOKINGS.details.bookings[]` té dues formes segons la ruta | Baixa | oberta — el front mostra només `memberName` + `dogName` (E4-W02) |
 | INC-10 | 24-09 | api · RGPD | Les altes rebutjades no tenen retenció: S14 R-14-16 (b) no està implementada | Mitjana | oberta — la purga és d'E11 (retenció i supressió); trobada a la revisió de la porta E3 |
+| INC-11 | 26-09 | web | Diferències cosmètiques de les pantalles d'E3 respecte dels mockups (re-execució de la porta, E3-W09) | Baixa | oberta — passada de polit abans del llançament |
 
 ---
 
@@ -207,3 +208,23 @@ Solució probable:
 **Comportament esperat** (S14 R-14-16, b): el procés mensual de retenció (S15) tracta les altes rebutjades (`leftReason = SIGNUP_REJECTED`) amb `leftAt + rgpd.rejectedSignupRetentionDays ≤ avui` com una supressió (`ErasureRequest{source: RETENTION}`, R-14-15). Amb la decisió E38, una readmissió rebutjada torna al seu motiu de baixa original i **no** entra en aquesta classe.
 
 **On mirar**: el procés de retenció d'S15 i `ErasureExecutor` d'S14, quan s'implementin (E11).
+
+---
+
+## INC-11 · Diferències cosmètiques de les pantalles d'E3 respecte dels mockups
+
+**Gravetat**: baixa. Cap no afecta el funcionament: són diferències visuals que la re-execució de l'auditoria de la porta E3 (E3-W09, 26-09) ha llistat, i que l'organitzador deixa per a una passada de polit abans del llançament. Els defectes de debò de la mateixa auditoria van a la tasca E4-W12.
+
+**Origen**: `roadmap/evidence/E3-W09/screens.md` (web) i la revisió `roadmap/reviews/E3-W09-20260926-0118-claude.md` (#6).
+
+**Llista**:
+- 17: el sexe triat és un botó ple; el mockup el marca amb vora i «✓».
+- 18: la nota «Grup trobat…» no té la ✓.
+- 19: les opcions d'inici són botons de ràdio natius (el mockup té cercles de marca); en mode afegir gos, «tria quan vols començar:» encapçala una sola opció.
+- 16: el camp del DNI/NIE no queda alineat amb el del passaport, perquè l'etiqueta del passaport ocupa dues línies.
+- 13: el sexe en minúscula («mascle»); el fons del diàleg «＋ DOC.» només cobreix els primers 844 px de la captura de pàgina sencera.
+- 01: «Recupera-la» no es veu com un enllaç, i «Encara no hi ets? Apunta-t'hi →» és tot taronja (el mockup té la pregunta en gris).
+- D1 a 1280 px: les etiquetes dels KPI en negreta i en una línia pròpia; les files de risc i de preinscripcions ocupen dues línies o més; la llegenda del gràfic no té mostres de color; el fons de la barra lateral s'acaba abans del final de la pàgina.
+- D2: el xip de WhatsApp en una línia pròpia; «Modalitat i tarifa» és un select natiu (el mockup té una píndola taronja); la icona dels botons (✎, ✓) i la de l'avís d'imatge queden damunt del text.
+
+**On mirar**: les captures d'`roadmap/evidence/E3-W09/` al costat de `docs/pantalles/`.

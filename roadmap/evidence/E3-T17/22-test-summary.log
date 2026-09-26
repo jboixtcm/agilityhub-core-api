@@ -1,0 +1,27 @@
+surefire totals: tests=565 failures=0 errors=0 skipped=0 (125 classes)
+failsafe totals: tests=984 failures=0 errors=0 skipped=0 (84 classes)
+Classes of this round:
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=30 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=14 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=22 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupIT: tests=33 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.CensusIT: tests=41 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E3ContractIT: tests=17 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E4ContractIT: tests=63 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E6ContractIT: tests=30 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.bookings.api.CleanupJobIT: tests=6 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupMinorFixesIT: tests=18 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupPaymentMethodsIT: tests=8 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.bookings.api.MemberAggregatesIT: tests=6 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.followup.application.AttachmentServiceTest: tests=7 failures=0 errors=0 skipped=0
+E3-T17 round 2 test methods:
+  PASS SignupSecurityFixesIT#R_04_19_T_04_12_aD2DocumentEditOfTheReusedDogReplacesOnlyTheTypesItSends
+  PASS SignupSecurityFixesIT#R_04_19_aD2DocumentEditOfAPendingDogLeavesTheTypesItDoesNotSend
+  PASS SignupSecurityFixesIT#R_04_06_R_04_23_T_04_19_theReusedDogsRecordIsFrozenWhileTheReadmissionIsPending
+  PASS SignupSecurityFixesIT#T_04_12_aReadmissionWithoutACardKeepsTheDogsOwnCardAtValidation
+  PASS SignupSecurityFixesIT#T_04_12_aReusedDogWithoutACardDocumentGetsTheEmptyCardAtValidation
+  PASS SignupSecurityFixesIT#R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers
+  PASS SignupSecurityFixesIT#R_15_19_T_04_19_T_15_27_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection
+  PASS SignupSecurityFixesIT#T_04_12_T_04_19_rejectedReadmissionLeavesTheRecordExactlyAsItWas
+  PASS SignupSecurityFixesIT#T_04_12_theReusedDogWaitsInTheRequestUntilTheValidationAppliesItsValuesAndDocuments

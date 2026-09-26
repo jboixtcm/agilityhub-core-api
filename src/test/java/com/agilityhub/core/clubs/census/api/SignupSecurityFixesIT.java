@@ -315,22 +315,162 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(orphans()).contains(oldCard).doesNotContain(newCard,oldInsurance);
     }
 
-    /** E3-T17: a readmission that sends no card changes no document until validation, which marks it PENDING as a submission does. */
-    @Test void T_04_12_aReadmissionWithoutACardEmitsDogDocumentPendingOnlyAtValidation() throws Exception {
+    /**
+     * E3-T17 round 2 (R-04-06): the validation applies only the types sent with files. A readmission without a card, and with
+     * an insurance row without files, keeps the dog's card and insurance: their files and states, no DogDocumentPending, and
+     * P9 keeps the files.
+     */
+    @Test void T_04_12_aReadmissionWithoutACardKeepsTheDogsOwnCardAtValidation() throws Exception {
         String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
         var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);
         String dogId=dog(id).getString("_id");var documentsBefore=dogDocuments(dogId);
-        submit(changedDog(readmission(original),null));
+        submit(sending(changedDog(readmission(original),null),Map.of("type","INSURANCE","files",List.of())));
         assertThat(dogDocuments(dogId)).isEqualTo(documentsBefore);assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+        var review=review(id);var view=review.at("/dogs/0");
+        assertThat(document(view,"VACCINATION_CARD").path("state").asText()).isEqualTo("RECEIVED");
+        assertThat(document(view,"VACCINATION_CARD").at("/files/0/name").asText()).isEqualTo("card.pdf");
+        assertThat(document(view,"INSURANCE").at("/files/0/name").asText()).as("a type sent without files keeps the dog's").isEqualTo("insurance.pdf");
+        assertThat(mapper.convertValue(view.at("/readmission/changedFields"),List.class)).doesNotContain("documents");
+        assertThat(review.path("warnings").toString()).doesNotContain("DOCUMENT_PENDING");
+        validate(id);
+        assertThat(dogDocuments(dogId)).as("the dog's documents as they were, files and states").isEqualTo(documentsBefore);
+        assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+        assertThat(orphans()).doesNotContain(oldCard,oldInsurance);
+    }
+
+    /** E3-T17 round 2 (R-04-06): the automatic empty card row applies at validation only when the reused dog has no card document at all. */
+    @Test void T_04_12_aReusedDogWithoutACardDocumentGetsTheEmptyCardAtValidation() throws Exception {
+        var original=request();String id=leftMember(original);String dogId=dog(id).getString("_id");
+        // A dog with no document at all, as a migrated one.
+        mongo.getCollection("dog_documents").deleteMany(new Document("dogId",dogId));int events=dogEvents("DogDocumentPending",dogId).size();
+        submit(changedDog(readmission(original),null));
+        assertThat(dogDocuments(dogId)).isEmpty();assertThat(dogEvents("DogDocumentPending",dogId)).hasSize(events);
         var review=review(id);
         assertThat(document(review.at("/dogs/0"),"VACCINATION_CARD").path("state").asText()).isEqualTo("PENDING");
-        assertThat(document(review.at("/dogs/0/readmission/current"),"VACCINATION_CARD").path("state").asText()).isEqualTo("RECEIVED");
         assertThat(review.path("warnings").toString()).contains("DOCUMENT_PENDING");
         validate(id);
-        assertThat(dogDocuments(dogId).stream().filter(d->"VACCINATION_CARD".equals(d.getString("type")))).singleElement()
-                .satisfies(d->{assertThat(fileKeys(d)).isEmpty();assertThat(d.getString("state")).isEqualTo("PENDING");});
-        assertThat(dogEvents("DogDocumentPending",dogId)).singleElement().satisfies(e->assertThat(e.get("payload",Document.class))
-                .containsEntry("type","VACCINATION_CARD").containsEntry("state","PENDING").containsEntry("trigger","FILE_REMOVED"));
+        assertThat(dogDocuments(dogId)).singleElement().satisfies(d->{assertThat(d.getString("type")).isEqualTo("VACCINATION_CARD");assertThat(d.getString("state")).isEqualTo("PENDING");assertThat(fileKeys(d)).isEmpty();});
+        var pending=dogEvents("DogDocumentPending",dogId);assertThat(pending).hasSize(events+1);
+        assertThat(pending.getLast().get("payload",Document.class)).containsEntry("type","VACCINATION_CARD").containsEntry("trigger","REGISTRATION");
+    }
+
+    // ---- E3-T17 round 2: D2's document edits change only the sent types; the reused dog's record is frozen; its submission is audited ----
+    MockHttpServletRequestBuilder json(MockHttpServletRequestBuilder request,Object body) throws Exception { return request.header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(body)); }
+    static Map<String,Object> sent(String type,String fileKey,String name) { return Map.of("type",type,"files",List.of(Map.of("fileKey",fileKey,"name",name))); }
+    /** The documents a signup sends for its dog. */
+    @SafeVarargs final ObjectNode sending(ObjectNode body,Map<String,Object>... documents) { ((ObjectNode)body.get("dog")).set("documents",mapper.valueToTree(List.of(documents)));return body; }
+    /** A fictional file uploaded through the S03 attachment route, by whoever claims it next (`as`); its key. */
+    String attachment(String purpose,String type,java.util.function.UnaryOperator<MockHttpServletRequestBuilder> as) throws Exception {
+        byte[] bytes=("fictional "+purpose).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var grant=result(as.apply(postJson("/attachments/upload-url",Map.of("purpose",purpose,"fileName","example-"+purpose.toLowerCase(Locale.ROOT),"mimeType",type,"sizeBytes",bytes.length))),201);
+        var upload=as.apply(put(java.net.URI.create(grant.path("uploadUrl").asText())).header("Host",host).contentType(type).content(bytes));
+        assertThat(mvc.perform(upload).andReturn().getResponse().getStatus()).isEqualTo(204);
+        return grant.path("fileKey").asText();
+    }
+
+    /**
+     * Point 1 (R-04-19, R-04-06): a D2 document edit of the reused dog merges into the request by type. The readmission sends a
+     * card and an insurance; D2 replaces only the card, and the submitted insurance stays: in D2's view, for P9 and at validation.
+     */
+    @Test void R_04_19_T_04_12_aD2DocumentEditOfTheReusedDogReplacesOnlyTheTypesItSends() throws Exception {
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);
+        String dogId=dog(id).getString("_id");var documentsBefore=dogDocuments(dogId);
+        String newCard=upload("new-card.pdf"),newInsurance=upload("new-insurance.pdf"),editedCard=upload("edited-card.pdf");
+        submit(sending(changedDog(readmission(original),null),sent("VACCINATION_CARD",newCard,"new-card.pdf"),sent("INSURANCE",newInsurance,"new-insurance.pdf")));
+        result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",dog(id).get("version"),"documents",List.of(sent("VACCINATION_CARD",editedCard,"edited-card.pdf"))))),200);
+        // A type sent without files withdraws the submitted one (the dog keeps its own); sent again, it is back in the request.
+        result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",dog(id).get("version"),"documents",List.of(Map.of("type","INSURANCE","files",List.of()))))),200);
+        assertThat(document(review(id).at("/dogs/0"),"INSURANCE").at("/files/0/name").asText()).isEqualTo("insurance.pdf");assertThat(orphans()).contains(newInsurance);
+        result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",dog(id).get("version"),"documents",List.of(sent("INSURANCE",newInsurance,"new-insurance.pdf"))))),200);
+        assertThat(dogDocuments(dogId)).as("the record's documents are untouched").isEqualTo(documentsBefore);
+        var view=review(id).at("/dogs/0");
+        assertThat(document(view,"VACCINATION_CARD").at("/files/0/name").asText()).isEqualTo("edited-card.pdf");
+        assertThat(document(view,"INSURANCE").at("/files/0/name").asText()).as("the submitted insurance stays in the request").isEqualTo("new-insurance.pdf");
+        assertThat(orphans()).as("only the submitted card D2 replaced is an orphan").contains(newCard).doesNotContain(newInsurance,editedCard,oldCard,oldInsurance);
+        validate(id);var written=dogDocuments(dogId);
+        assertThat(written.stream().filter(d->"VACCINATION_CARD".equals(d.getString("type")))).singleElement().satisfies(d->assertThat(fileKeys(d)).containsExactly(editedCard));
+        assertThat(written.stream().filter(d->"INSURANCE".equals(d.getString("type")))).singleElement().satisfies(d->assertThat(fileKeys(d)).containsExactly(newInsurance));
+        assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+    }
+
+    /** Point 1 (R-04-19): the automatic empty card row belongs to the submission, never to a D2 edit of a pending dog. */
+    @Test void R_04_19_aD2DocumentEditOfAPendingDogLeavesTheTypesItDoesNotSend() throws Exception {
+        String card=upload("card.pdf"),insurance=upload("insurance.pdf"),edited=upload("edited-insurance.pdf");
+        String id=submit(withDocuments(request(),card,insurance)).path("memberId").asText();String dogId=dog(id).getString("_id");
+        var cardBefore=dogDocuments(dogId).stream().filter(d->"VACCINATION_CARD".equals(d.getString("type"))).findFirst().orElseThrow();
+        result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",dog(id).get("version"),"documents",List.of(sent("INSURANCE",edited,"edited-insurance.pdf"))))),200);
+        var after=dogDocuments(dogId);
+        assertThat(after.stream().filter(d->"VACCINATION_CARD".equals(d.getString("type")))).singleElement().as("the card it did not send").isEqualTo(cardBefore);
+        assertThat(after.stream().filter(d->"INSURANCE".equals(d.getString("type")))).singleElement().satisfies(d->assertThat(fileKeys(d)).containsExactly(edited));
+        assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+        assertThat(review(id).path("warnings").toString()).doesNotContain("DOCUMENT_PENDING");
+    }
+
+    /**
+     * Point 2 (R-04-06, R-04-23): while the readmission waits, the reused dog's record is frozen. Every route that would write
+     * it, D2's and the member's own, answers 409 INVALID_STATE (READMISSION_PENDING); D2 edits only the submitted values and
+     * documents, with PATCH /dogs/{id}. The rejection still leaves the dog exactly as it was.
+     */
+    @Test void R_04_06_R_04_23_T_04_19_theReusedDogsRecordIsFrozenWhileTheReadmissionIsPending() throws Exception {
+        String otherLevel=UUID.randomUUID().toString();
+        mongo.insert(new Document("_id",otherLevel).append("clubId",club).append("code","B").append("active",true).append("name",Map.of("en","Advanced")).append("nameKeys",List.of("en:advanced")).append("order",1),"levels");
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);String other=activeMember(request());
+        java.util.function.UnaryOperator<MockHttpServletRequestBuilder> asAdmin=this::admin,asOwner=r->asMember(r,id);
+        String dogId=dog(id).getString("_id"),dogPath="/api/v1/dogs/"+dogId,ownPath="/api/v1/me/dogs/"+dogId;
+        // A file the club added through S03 before the readmission (its id is a plain one: a signup file's is its storage key).
+        var added=result(admin(json(post(dogPath+"/documents"),Map.of("type","INSURANCE","name","club-insurance.pdf","fileKey",attachment("DOG_DOCUMENT","application/pdf",asAdmin)))),201);
+        String addedFile=java.util.stream.StreamSupport.stream(added.path("files").spliterator(),false).filter(f->"club-insurance.pdf".equals(f.path("name").asText())).findFirst().orElseThrow().path("id").asText();
+        var dogBefore=dog(id);var documentsBefore=dogDocuments(dogId);
+        submit(changedDog(readmission(original),upload("new-card.pdf")));var pending=dog(id);long version=((Number)pending.get("version")).longValue();
+        var routes=new LinkedHashMap<String,MockHttpServletRequestBuilder>();
+        routes.put("POST /dogs/{id}/documents",admin(json(post(dogPath+"/documents"),Map.of("type","INSURANCE","name","other-insurance.pdf","fileKey",attachment("DOG_DOCUMENT","application/pdf",asAdmin)))));
+        routes.put("DELETE /dogs/{id}/documents/{docId}/files/{fileId}",admin(delete(dogPath+"/documents/"+added.path("id").asText()+"/files/"+addedFile).header("Host",host)));
+        routes.put("POST /dogs/{id}/documents/reminder",admin(json(post(dogPath+"/documents/reminder"),Map.of("type","VACCINATION_CARD"))));
+        routes.put("PUT /dogs/{id}/photo",admin(json(put(dogPath+"/photo"),Map.of("fileKey",attachment("DOG_PHOTO","image/png",asAdmin)))));
+        routes.put("PATCH /dogs/{id} handlerName",admin(json(patch(dogPath),Map.of("version",version,"handlerName","Other Handler"))));
+        routes.put("PATCH /dogs/{id} licenses",admin(json(patch(dogPath),Map.of("version",version,"licenses",List.of(Map.of("organisation","EXAMPLE","number","1"))))));
+        routes.put("PATCH /dogs/{id}/level",admin(json(patch(dogPath+"/level"),Map.of("levelId",otherLevel))));
+        routes.put("PATCH /dogs/{id}/free-training",admin(json(patch(dogPath+"/free-training"),Map.of("override",true))));
+        routes.put("PUT /me/dogs/{id}/photo",asMember(json(put(ownPath+"/photo"),Map.of("fileKey",attachment("DOG_PHOTO","image/png",asOwner))),id));
+        routes.put("POST /me/dogs/{id}/documents",asMember(json(post(ownPath+"/documents"),Map.of("type","INSURANCE","name","own-insurance.pdf","fileKey",attachment("DOG_DOCUMENT","application/pdf",asOwner))),id));
+        routes.put("PUT /me/dogs/{id}/instructor-note",asMember(json(put(ownPath+"/instructor-note"),Map.of("text","Fictional own note")),id));
+        routes.put("POST /attachments INSTRUCTOR_NOTE",asMember(json(post("/api/v1/attachments"),Map.of("entityType","INSTRUCTOR_NOTE","entityId",dogId,"name","note.pdf","fileKey",attachment("INSTRUCTOR_NOTE","application/pdf",asOwner))),id));
+        routes.put("POST /dogs/{id}/transfer",admin(json(post(dogPath+"/transfer"),Map.of("toMemberId",other,"reason","Fictional transfer reason"))));
+        var answers=new LinkedHashMap<String,String>();var expected=new LinkedHashMap<String,String>();
+        for(var route:routes.entrySet()) {
+            var response=mvc.perform(route.getValue()).andReturn().getResponse();var body=mapper.readTree(response.getContentAsString().isEmpty()?"{}":response.getContentAsString());
+            answers.put(route.getKey(),response.getStatus()+" "+body.path("code").asText()+" "+body.at("/details/reason").asText());expected.put(route.getKey(),"409 INVALID_STATE READMISSION_PENDING");
+        }
+        assertThat(answers).isEqualTo(expected);
+        assertThat(unversioned(dog(id))).as("the record is untouched").isEqualTo(unversioned(pending));
+        assertThat(dogDocuments(dogId)).isEqualTo(documentsBefore);
+        assertThat(mongo.getCollection("attachments").countDocuments(new Document("entityId",dogId))).isZero();
+        // D2 still edits the submitted values with PATCH /dogs/{id}; sending the handler it has is no edit.
+        result(admin(json(patch(dogPath),Map.of("version",version,"name","Edited Dog","handlerName",""))),200);
+        assertThat(review(id).at("/dogs/0/name").asText()).isEqualTo("Edited Dog");
+        reject(id);
+        assertThat(unversioned(dog(id))).isEqualTo(unversioned(dogBefore));
+        assertThat(dogDocuments(dogId).stream().map(SignupSecurityFixesIT::unversioned).toList()).isEqualTo(documentsBefore.stream().map(SignupSecurityFixesIT::unversioned).toList());
+    }
+
+    /** Point 4 (R-04-06, R-14-09): the reused dog's submission is audited like the member's: SIGNUP_SUBMITTED on the Dog, PUBLIC. */
+    @AuditCovers(AuditAction.SIGNUP_SUBMITTED)
+    @Test void R_04_06_R_14_09_theReusedDogsSubmittedValuesAreAuditedLikeTheMembers() throws Exception {
+        var original=request();String id=leftMember(original);String dogId=dog(id).getString("_id");
+        submit(changedDog(readmission(original),upload("new-card.pdf")));reject(id);
+        var entries=collection("audit_entries").stream().filter(e->"SIGNUP_SUBMITTED".equals(e.getString("action"))&&"Dog".equals(e.getString("entityType"))).toList();
+        assertThat(entries).as("the dog's entry outlives the rejection, which drops the request").singleElement().satisfies(e->{
+            assertThat(e.getString("entityId")).isEqualTo(dogId);assertThat(e.getString("memberId")).isEqualTo(id);assertThat(e.getString("origin")).isEqualTo("PUBLIC");
+            var changes=e.getList("changes",Document.class);
+            assertThat(changes).anySatisfy(c->{assertThat(c.getString("path")).isEqualTo("status");assertThat(c.get("before")).isEqualTo("INACTIVE");assertThat(c.get("after")).isEqualTo("PENDING");});
+            assertThat(changes).anySatisfy(c->{assertThat(c.getString("path")).isEqualTo("readmissionRequest.submitted.name");assertThat(c.get("after")).isEqualTo("Renamed Dog");});
+            assertThat(changes).anySatisfy(c->{assertThat(c.getString("path")).isEqualTo("readmissionRequest.submitted.breed");assertThat(c.get("after")).isEqualTo("Other breed");});
+            assertThat(changes).anySatisfy(c->{assertThat(c.getString("path")).isEqualTo("readmissionRequest.submitted.documents");assertThat(c.toJson()).contains("new-card.pdf");});
+        });
+        assertThat(collection("audit_entries").stream().filter(e->"SIGNUP_SUBMITTED".equals(e.getString("action"))&&"Member".equals(e.getString("entityType")))).singleElement()
+                .satisfies(e->assertThat(e.getString("entityId")).isEqualTo(id));
     }
 
     /** E3-T17 (R-04-23): a dog that is new in a rejected readmission is INACTIVE{SIGNUP_REJECTED} with the decision; the old one is untouched. */
@@ -346,7 +486,7 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     }
 
     /** E3-T17 (S15 R-15-19, R-04-06): P9 keeps a pending readmission's files past 48 h; after the rejection they are orphans. */
-    @Test void R_15_19_T_04_19_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection() throws Exception {
+    @Test void R_15_19_T_04_19_T_15_27_p9KeepsAPendingReadmissionsFilesAndDeletesThemAfterTheRejection() throws Exception {
         String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
         var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);
         String newCard=upload("new-card.pdf");submit(changedDog(readmission(original),newCard));

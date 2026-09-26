@@ -35,6 +35,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     and the submitted files become orphans. P9 counts a pending readmission's files as referenced.
   - Audit items 1 and 3: an add-dog replay with the same `Idempotency-Key` (T-04-23) and the holder's family group
     (T-04-16) have their tests.
+  - Round 2 (S04 R-04-06 and R-04-19, amended 26-09):
+    - `PATCH /dogs/{id}` with `documents` changes only the types it sends, for every pending dog: the automatic empty
+      card row belongs to the submission. A reused dog's documents merge into its request by type.
+    - The reused dog's record is frozen while the readmission is pending. The S03 document, file, reminder, photo, level,
+      free-training and transfer routes, the member's own photo, document and instructor-note routes, the
+      instructor-note attachments, and `handlerName`/`licenses` in `PATCH /dogs/{id}` answer `409 INVALID_STATE`
+      (`READMISSION_PENDING`).
+    - The validation applies only the types sent with files; the dog keeps its other documents, files and states. The
+      empty card row is added only when the dog has no card document.
+    - The reused dog's submission is audited like the member's (`SIGNUP_SUBMITTED` on the `Dog`, origin `PUBLIC`).
 
 - E3-T11: gate E3 audit re-run on `d791361`, after the fixes E3-T08…T10 and E3-T12…T16; evidence only, with no product change.
   - `clean verify` passes (554 unit + 965 IT). The S04/S14 traceability is unchanged in shape: 40 of the 44 ids in

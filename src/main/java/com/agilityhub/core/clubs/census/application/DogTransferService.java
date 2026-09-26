@@ -16,7 +16,8 @@ public class DogTransferService {
     @Transactional
     @Audited(action = AuditAction.DOG_TRANSFERRED, entityType = "'Dog'", entity = "#id", reason = "#reason", member = "owner(#id)")
     public void transfer(String id, String toMemberId, String reason) {
-        var dog = access.mutableDog(id); var target = access.mutableMember(toMemberId);
+        // E3-T17 round 2 (R-04-06): a pending readmission's reused dog stays with its member until the validation or the rejection.
+        var dog = CensusAccess.unfrozen(access.mutableDog(id)); var target = access.mutableMember(toMemberId);
         if (dog.memberId.equals(toMemberId)) { throw new ApiException(ErrorCode.SAME_MEMBER); }
         if (!"ACTIVE".equals(target.status)) { throw new ApiException(ErrorCode.TARGET_MEMBER_NOT_ACTIVE); }
         dogs.noBookings(dog);

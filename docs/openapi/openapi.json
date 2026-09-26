@@ -20024,7 +20024,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token; staff → 403); TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: at most files.maxAttachmentsPerEntity per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey of another purpose → ATTACHMENT_ENTITY_MISMATCH. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. TASK and DOG_OBSERVATIONS: contract only, 501 NOT_IMPLEMENTED after the tenant, role, module and entity guards until E6-T03.",
+        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token; staff → 403); TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: at most files.maxAttachmentsPerEntity per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey of another purpose → ATTACHMENT_ENTITY_MISMATCH. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING. TASK and DOG_OBSERVATIONS: contract only, 501 NOT_IMPLEMENTED after the tenant, role, module and entity guards until E6-T03.",
         "operationId" : "add",
         "parameters" : [ {
           "in" : "header",
@@ -20104,7 +20104,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "description" : "MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE"
           },
           "422" : {
             "content" : {
@@ -28638,7 +28638,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record; the chip cannot change (the readmission matched on it): 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The documents of a pending dog change only for the types sent. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: 409 INVALID_STATE with details.reason = READMISSION_PENDING. The response is the dog record, which keeps its own values until validation: D2 re-reads GET /members/{id}/signup for the submitted ones.",
         "operationId" : "updateDog",
         "parameters" : [ {
           "in" : "path",
@@ -29114,7 +29114,7 @@
         "x-sortable" : [ ]
       },
       "post" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "uploadDogDocument",
         "parameters" : [ {
           "in" : "path",
@@ -29193,7 +29193,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -29271,7 +29271,7 @@
     },
     "/api/v1/dogs/{id}/documents/reminder" : {
       "post" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "remindDogDocument",
         "parameters" : [ {
           "in" : "path",
@@ -29343,7 +29343,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -29421,7 +29421,7 @@
     },
     "/api/v1/dogs/{id}/documents/{docId}/files/{fileId}" : {
       "delete" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "removeDogDocumentFile",
         "parameters" : [ {
           "in" : "path",
@@ -29497,7 +29497,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -29575,7 +29575,7 @@
     },
     "/api/v1/dogs/{id}/free-training" : {
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updateDogFreeTraining",
         "parameters" : [ {
           "in" : "path",
@@ -29654,7 +29654,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -29879,7 +29879,7 @@
     },
     "/api/v1/dogs/{id}/level" : {
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updateDogLevel",
         "parameters" : [ {
           "in" : "path",
@@ -29958,7 +29958,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -30201,7 +30201,7 @@
     },
     "/api/v1/dogs/{id}/photo" : {
       "put" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updateDogPhoto",
         "parameters" : [ {
           "in" : "path",
@@ -30280,7 +30280,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -30515,7 +30515,7 @@
     },
     "/api/v1/dogs/{id}/transfer" : {
       "post" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "transferDog",
         "parameters" : [ {
           "in" : "path",
@@ -30594,7 +30594,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -38027,7 +38027,7 @@
     },
     "/api/v1/me/dogs/{id}/documents" : {
       "post" : {
-        "description" : "Tenant-scoped S03 response with role and ownership checks.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "uploadMyDogDocument",
         "parameters" : [ {
           "in" : "path",
@@ -38106,7 +38106,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -38184,7 +38184,7 @@
     },
     "/api/v1/me/dogs/{id}/instructor-note" : {
       "put" : {
-        "description" : "Tenant-scoped S03 response with role and ownership checks.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updateInstructorNote",
         "parameters" : [ {
           "in" : "path",
@@ -38263,7 +38263,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED: census mutations are unavailable after erasure"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {
@@ -38341,7 +38341,7 @@
     },
     "/api/v1/me/dogs/{id}/photo" : {
       "put" : {
-        "description" : "Tenant-scoped S03 response with role and ownership checks.",
+        "description" : "Tenant-scoped S03 response with role and ownership checks. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen until its validation or rejection: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "updateMyDogPhoto",
         "parameters" : [ {
           "in" : "path",
@@ -38420,7 +38420,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED"
+            "description" : "INVALID_STATE, MEMBER_ERASED"
           },
           "422" : {
             "content" : {

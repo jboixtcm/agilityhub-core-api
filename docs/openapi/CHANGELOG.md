@@ -2,6 +2,21 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E3-T17 round 2 · the reused dog's record is frozen while its readmission is pending (E38)
+
+**0 operations or schemas added; 12 operations changed: 11 gain `INVALID_STATE` in their documented 409s, and
+`PATCH /dogs/{id}` gets its description only.** Additive: one more documented 409.
+
+- `PATCH /dogs/{id}` (R-04-19): `documents` change only the types sent (never the card when it is not sent). On the
+  reused dog of a pending readmission they merge into the request by type, and a type sent without files withdraws
+  the submitted one. `handlerName` and `licenses` of that dog cannot change (`409 INVALID_STATE`,
+  `details.reason = READMISSION_PENDING`). The response is the dog record: D2 re-reads `GET /members/{id}/signup`.
+- The reused dog of a pending readmission is frozen (S04 R-04-06, amended 26-09): `409 INVALID_STATE` with
+  `details.reason = READMISSION_PENDING` joins the documented 409 codes of `POST /dogs/{id}/documents`,
+  `DELETE /dogs/{id}/documents/{docId}/files/{fileId}`, `POST /dogs/{id}/documents/reminder`, `PUT /dogs/{id}/photo`,
+  `PATCH /dogs/{id}/level`, `PATCH /dogs/{id}/free-training`, `POST /dogs/{id}/transfer`, `PUT /me/dogs/{id}/photo`,
+  `POST /me/dogs/{id}/documents`, `PUT /me/dogs/{id}/instructor-note` and `POST /attachments` (`INSTRUCTOR_NOTE`).
+
 ## 2026-09-26 · E5-T17 · a tax id of separators only; the E37 statuses of an early class
 
 **0 operations or schemas changed** (the snapshot is byte-identical). Behaviour only:

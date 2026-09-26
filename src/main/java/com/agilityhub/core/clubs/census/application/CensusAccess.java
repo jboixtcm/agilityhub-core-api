@@ -39,6 +39,17 @@ public class CensusAccess implements DogOwnerAccess {
     }
     public Member mutableMember(String id) { var member = members.require(id); CensusRules.mutable(member.erasedAt); return member; }
     public Dog mutableDog(String id) { var dog = dogs.require(id); mutableMember(dog.memberId); return dog; }
+    /** R-04-06 (E38, E3-T17): the reused dog of a pending readmission, whose submitted values and documents wait in its request. */
+    public static boolean readmissionPending(Dog dog) { return dog.readmissionRequest != null && "PENDING".equals(dog.status); }
+    /**
+     * R-04-06 (E38, E3-T17 round 2): the record of a {@link #readmissionPending pending readmission's reused dog} is frozen
+     * until the validation or the rejection, so a rejection leaves it exactly as it was: 409 INVALID_STATE (READMISSION_PENDING).
+     */
+    public static Dog unfrozen(Dog dog) {
+        if (readmissionPending(dog)) { throw readmissionFrozen(); }
+        return dog;
+    }
+    public static ApiException readmissionFrozen() { return new ApiException(ErrorCode.INVALID_STATE, Map.of("reason", "READMISSION_PENDING")); }
     public Dog ownDog(String id, boolean mutation) {
         var dog = dogs.require(id); var member = me();
         if (!member.id.equals(dog.memberId)) { throw new ApiException(ErrorCode.FORBIDDEN); }
@@ -46,8 +57,9 @@ public class CensusAccess implements DogOwnerAccess {
         return dog;
     }
     @Override public void requireDog(String dogId, boolean ownerOnly, boolean mutation) {
-        if (ownerOnly) { ownDog(dogId, mutation); }
-        else if (mutation) { mutableDog(dogId); } else { dogs.require(dogId); }
+        var dog = ownerOnly ? ownDog(dogId, mutation) : mutation ? mutableDog(dogId) : dogs.require(dogId);
+        // E3-T17 round 2 (R-04-06): the instructor note's attachments are the dog's data too; a reused dog's are frozen.
+        if (mutation) { unfrozen(dog); }
     }
     @Override public Optional<String> ownerOf(String dogId) { return dogs.findById(dogId).map(dog -> dog.memberId); }
     public String billedViaMemberId(String memberId) {

@@ -308,7 +308,7 @@ public class SignupService implements SignupPaymentAccess {
         member.readmissionRequest=null;
     }
     // ---- R-04-06 (E38, E3-T17): the reused dog of a readmission waits in `Dog.readmissionRequest` the same way ----
-    public boolean readmissionPending(Dog dog) { return dog.readmissionRequest!=null&&"PENDING".equals(dog.status); }
+    public boolean readmissionPending(Dog dog) { return CensusAccess.readmissionPending(dog); }
     private Map<String,Object> submitted(Dog dog) { return map(map(dog.readmissionRequest).get("submitted")); }
     private void putSubmitted(Dog dog,String key,Object value) {
         var request=new LinkedHashMap<>(dog.readmissionRequest);var values=new LinkedHashMap<>(submitted(dog));
@@ -328,13 +328,25 @@ public class SignupService implements SignupPaymentAccess {
         putSubmitted(dog,"name",view.name);putSubmitted(dog,"sex",view.sex);putSubmitted(dog,"breed",view.breed);
         putSubmitted(dog,"birthDate",view.birthDate==null?null:view.birthDate.toString());putSubmitted(dog,"instructorNote",view.instructorNote);
     }
-    /** Validation applies the submitted values and documents as a submission does (the same states and DogDocumentPending). */
+    /** Validation applies the submitted values and only the documents the applicant sent ({@link #readmissionDocuments}). */
     private void applyReadmission(Dog dog) {
-        var view=submittedView(dog);var claimed=rows(submitted(dog).get("documents"));
+        var view=submittedView(dog);var sent=readmissionDocuments(dog);
         dog.name=view.name;dog.sex=view.sex;dog.breed=view.breed;dog.birthDate=view.birthDate;dog.instructorNote=view.instructorNote;
         dog.deactivatedAt=null;dog.deactivationReason=null;dog.readmissionRequest=null;
-        writeDocuments(dog,claimed);
+        writeDocuments(dog,sent);
     }
+    /**
+     * R-04-06 (E3-T17 round 2): the documents a reused dog's validation writes. Each type sent with files replaces the dog's
+     * document of that type; a type not sent, or sent without files, keeps the dog's own (its files and state, no
+     * DogDocumentPending). The automatic empty card row applies only when the dog has no card document at all.
+     */
+    private List<Map<String,Object>> readmissionDocuments(Dog dog) {
+        var sent=new ArrayList<>(withFiles(rows(submitted(dog).get("documents"))));
+        if(sent.stream().noneMatch(row -> "VACCINATION_CARD".equals(row.get("type")))&&documents.matching(Criteria.where("dogId").is(dog.id).and("type").is("VACCINATION_CARD")).isEmpty())
+            sent.add(object("type","VACCINATION_CARD","files",List.of()));
+        return sent;
+    }
+    private static List<Map<String,Object>> withFiles(List<Map<String,Object>> documents) { return documents.stream().filter(row -> !rows(row.get("files")).isEmpty()).toList(); }
     /**
      * R-04-23 (E38): a rejected readmission leaves its reused dog exactly as it was: its status, reason, date and signup block,
      * and its values and documents, which the submission never wrote. The submitted files become orphans (P9, R-15-19).
@@ -400,13 +412,16 @@ public class SignupService implements SignupPaymentAccess {
         var quote=policy.quote(planId,prepared.dog().id,false,null,option,policy.today());freeze(member.signup,quote);
         if(readmission) access.members.save(member);else access.members.insert(member);
         var dog=storeDog(prepared,member.signup,rows(map(request.get("dog")).get("documents")));createPayments(member.id,submission,quote);
+        String origin=CurrentUser.current()==null?"PUBLIC":null;
         boolean checkout=checkoutRequired(member,quote.totalDue());
         // E3-T17: N-01 names the submitted dog, also a reused one whose record keeps its own name until validation.
         String dogName=readmissionPending(dog)?submittedView(dog).name:dog.name;
         events.emit("SignupSubmitted","Member",member.id,object("memberId",member.id,"dogIds",List.of(dog.id),"planId",planId,"paymentMethodType",map(effectivePayment(member)).get("type"),"source","PUBLIC","readmission",readmission,"checkoutRequired",checkout,
                 "applicant",readmission?applicant(member):null,"locale",locale,"dogNames",List.of(dogName),"upfrontTotal",upfrontTotal(quote)));
         // R-04-06 (E38): the readmission submission is audited with the masked diff; anonymous, so its origin is PUBLIC.
-        if(readmission) audits.write(new AuditCommand(AuditAction.SIGNUP_SUBMITTED,"Member",member.id,member.id,before,CensusAudit.view(member,mapper),null),CurrentUser.current()==null?"PUBLIC":null);
+        if(readmission) audits.write(new AuditCommand(AuditAction.SIGNUP_SUBMITTED,"Member",member.id,member.id,before,CensusAudit.view(member,mapper),null),origin);
+        // E3-T17 round 2: the reused dog's submitted values and documents are audited the same way (they live only in its request).
+        if(readmissionPending(dog)) audits.write(new AuditCommand(AuditAction.SIGNUP_SUBMITTED,"Dog",dog.id,member.id,prepared.before(),CensusAudit.view(dog,mapper),null),origin);
         refreshDashboard();
         return object("memberId",member.id,"signupToken",capabilities.issue(member.id),"upfront",billing()?upfront(member,List.of(dog),quote):null,"checkout",object("required",checkout));
     }
@@ -434,13 +449,15 @@ public class SignupService implements SignupPaymentAccess {
     private static List<Map<String,Object>> lineViews(List<UpfrontPayments.Line> lines) {
         return lines.stream().map(l -> object("id",l.id(),"concept",l.concept(),"amount",l.amount(),"paidAmount",l.paidAmount(),"status",l.status(),"provider",l.provider())).toList();
     }
-    private record PreparedDog(Dog dog,boolean fresh) { }
+    /** `before`: the audited view of a reused dog before the submission (E3-T17 round 2); null for a new dog. */
+    private record PreparedDog(Dog dog,boolean fresh,Map<String,Object> before) { }
     /** Validates and resolves the submitted dog without writing it, so the quote can be frozen before the member is stored. */
     private PreparedDog prepareDog(Member member,Map<String,Object> raw,boolean readmission) {
         // M21: the chip is normalised and checked per country profile before the uniqueness check and the readmission match.
         String chip=policy.chip(text(raw.get("chip"),"dog.chip",40,true),"dog.chip");var matches=access.dogs.matching(Criteria.where("chip").is(chip));Dog dog=null;
         if(!matches.isEmpty()) { dog=matches.getFirst();if(!readmission || !member.id.equals(dog.memberId) || !"INACTIVE".equals(dog.status)) throw new ApiException(ErrorCode.DOG_CHIP_ALREADY_REGISTERED); }
         boolean fresh=dog==null;if(fresh) { dog=new Dog();dog.id=UUID.randomUUID().toString();dog.clubId=TenantContext.require();dog.memberId=member.id; }
+        var before=fresh?null:CensusAudit.view(dog,mapper);
         // R-04-06 (E38, E3-T17): the reused dog of a readmission keeps its own values; the submitted ones wait in its request,
         // with what a rejection restores.
         var values=fresh?dog:new Dog();
@@ -450,28 +467,40 @@ public class SignupService implements SignupPaymentAccess {
         if(!fresh) dog.readmissionRequest=object("submitted",object("name",values.name,"sex",values.sex,"breed",values.breed,"birthDate",values.birthDate.toString(),"instructorNote",values.instructorNote),
                 "previous",object("status",dog.status,"deactivatedAt",dog.deactivatedAt,"deactivationReason",dog.deactivationReason,"signup",dog.signup));
         dog.chip=chip;dog.status="PENDING";
-        return new PreparedDog(dog,fresh);
+        return new PreparedDog(dog,fresh,before);
     }
     private Dog storeDog(PreparedDog prepared,Map<String,Object> block,List<Map<String,Object>> files) {
-        var dog=prepared.dog();dog.signup=new LinkedHashMap<>(block);var claimed=claimDocuments(dog,files);
-        // E38 (E3-T17): the documents a readmission sends for its reused dog wait in the request; the dog's own keep their files and states.
-        if(readmissionPending(dog)) putSubmitted(dog,"documents",claimed);
+        var dog=prepared.dog();dog.signup=new LinkedHashMap<>(block);var claimed=claimDocuments(dog,files,true);
+        // E38 (E3-T17): the documents a readmission sends for its reused dog wait in the request; the dog's own keep their files
+        // and states. Round 2: only the types sent with files, the ones its validation applies.
+        if(readmissionPending(dog)) putSubmitted(dog,"documents",withFiles(claimed));
         if(prepared.fresh()) access.dogs.insert(dog);else access.dogs.save(dog);
         if(!readmissionPending(dog)) writeDocuments(dog,claimed);
         return dog;
     }
     /** The normalised chip of a D2 dog PATCH (§3 `Dog.chip`, M21). */
     public String chip(String raw,String field) { return policy.chip(raw,field); }
-    /** The D2 edit of a pending dog's documents (R-04-19); those of a readmission's reused dog stay in its request (E38, E3-T17). */
-    public void saveDocuments(Dog dog,List<Map<String,Object>> submitted) {
-        var claimed=claimDocuments(dog,submitted);
-        if(readmissionPending(dog)) putSubmitted(dog,"documents",claimed);else writeDocuments(dog,claimed);
+    /**
+     * The D2 edit of a pending dog's documents (R-04-19): only the types it sends change (E3-T17 round 2). Those of a
+     * readmission's reused dog stay in its request (E38), merged by type: a type sent with files replaces the submitted one,
+     * a type sent without files withdraws it (the dog keeps its own), and the other submitted types stay.
+     */
+    public void saveDocuments(Dog dog,List<Map<String,Object>> sent) {
+        var claimed=claimDocuments(dog,sent,false);
+        if(!readmissionPending(dog)) { writeDocuments(dog,claimed);return; }
+        var merged=new LinkedHashMap<String,Map<String,Object>>();
+        for(var row:rows(submitted(dog).get("documents"))) merged.put(string(row.get("type")),row);
+        for(var row:claimed) { if(rows(row.get("files")).isEmpty()) merged.remove(string(row.get("type")));else merged.put(string(row.get("type")),row); }
+        putSubmitted(dog,"documents",new ArrayList<>(merged.values()));
     }
-    /** Checks the submitted documents and claims their files (R-04-08), always with a VACCINATION_CARD row; writes no document. */
-    private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted) {
+    /**
+     * Checks the documents and claims their files (R-04-08); writes no document. A submission (step 17) always has a
+     * VACCINATION_CARD row; a D2 edit has only the types it sends (E3-T17 round 2).
+     */
+    private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted,boolean submission) {
         if(submitted.stream().mapToInt(d -> rows(d.get("files")).size()).sum()>10) throw invalid("documents","TOO_MANY_FILES");
         var types=new HashSet<String>();var all=new ArrayList<>(submitted);var claimed=new ArrayList<Map<String,Object>>();
-        if(all.stream().noneMatch(d -> "VACCINATION_CARD".equals(d.get("type")))) all.add(object("type","VACCINATION_CARD","files",List.of()));
+        if(submission&&all.stream().noneMatch(d -> "VACCINATION_CARD".equals(d.get("type")))) all.add(object("type","VACCINATION_CARD","files",List.of()));
         for(var raw:all) {
             String type=text(raw.get("type"),"documents.type",80,true);if(!types.add(type)) throw invalid("documents","DUPLICATE");
             if(rows(access.config().get("census.dogDocumentTypes",List.class)).stream().noneMatch(t -> type.equals(t.get("key")))) throw new ApiException(ErrorCode.DOCUMENT_TYPE_UNKNOWN);
@@ -725,13 +754,14 @@ public class SignupService implements SignupPaymentAccess {
     }
     /**
      * A dog's documents `{type, state, files}`. With `submitted`, a readmission's reused dog gives what its validation will write
-     * (E3-T17): its own documents, each type the submission sent replaced by the sent one (RECEIVED with files, PENDING without).
+     * (E3-T17): its own documents, each type {@link #readmissionDocuments} applies replaced by the sent one (RECEIVED with
+     * files; the automatic card row, PENDING, only when the dog has no card document).
      */
     private List<Map<String,Object>> documentRows(Dog dog,boolean submitted) {
         var own=documents.matching(Criteria.where("dogId").is(dog.id)).stream().map(d -> object("type",d.type,"state",d.state,"files",rows(d.files))).toList();
         if(!submitted||!readmissionPending(dog)) return own;
         var sent=new LinkedHashMap<String,Map<String,Object>>();
-        for(var row:rows(submitted(dog).get("documents"))) sent.put(string(row.get("type")),object("type",row.get("type"),"state",rows(row.get("files")).isEmpty()?"PENDING":"RECEIVED","files",rows(row.get("files"))));
+        for(var row:readmissionDocuments(dog)) sent.put(string(row.get("type")),object("type",row.get("type"),"state",rows(row.get("files")).isEmpty()?"PENDING":"RECEIVED","files",rows(row.get("files"))));
         var result=new ArrayList<Map<String,Object>>();
         for(var row:own) result.add(Objects.requireNonNullElse(sent.remove(string(row.get("type"))),row));
         result.addAll(sent.values());

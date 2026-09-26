@@ -73,7 +73,7 @@ public class DocumentService {
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'DogDocument'", entity = "documentId(#dogId, #type)", member = "owner(#dogId)")
     public Map<String,Object> upload(String dogId, String type, String name, String key, boolean own) {
-        if (own) { access.ownDog(dogId, true); } else { access.mutableDog(dogId); }
+        CensusAccess.unfrozen(own ? access.ownDog(dogId, true) : access.mutableDog(dogId));
         type(type); name = text(name, "name", 80, true); var doc = document(dogId, type);
         var file = attachments.claim(key, "DOG_DOCUMENT", dogId + ":" + type);
         if (rows(doc.files).stream().anyMatch(row -> key.equals(row.get("fileKey")))) { return view(doc); }
@@ -85,7 +85,7 @@ public class DocumentService {
     @Transactional
     @Audited(action = AuditAction.DOG_DOCUMENT_FILE_REMOVED, entityType = "'DogDocument'", entity = "#docId", member = "owner(#dogId)")
     public void remove(String dogId, String docId, String fileId) {
-        access.mutableDog(dogId); var doc = documents.require(docId);
+        CensusAccess.unfrozen(access.mutableDog(dogId)); var doc = documents.require(docId);
         if (!dogId.equals(doc.dogId)) { throw new ApiException(ErrorCode.NOT_FOUND); }
         var files = new ArrayList<Map<String,Object>>(); boolean changed = false;
         for (var row : rows(doc.files)) {
@@ -105,7 +105,7 @@ public class DocumentService {
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'DogDocument'", entity = "documentId(#dogId, #type)", reason = "'DOCUMENT_REMINDER'", member = "owner(#dogId)")
     public void remind(String dogId, String type) {
-        access.mutableDog(dogId); var definition = type(type); var doc = document(dogId, type);
+        CensusAccess.unfrozen(access.mutableDog(dogId)); var definition = type(type); var doc = document(dogId, type);
         if (!Boolean.TRUE.equals(definition.get("required")) || !"PENDING".equals(view(doc).get("state"))) { throw new ApiException(ErrorCode.DOCUMENT_NOT_PENDING); }
         if (doc.lastReminderAt != null && doc.lastReminderAt.plus(Duration.ofHours(24)).isAfter(clock.instant())) { throw new ApiException(ErrorCode.DOCUMENT_REMINDER_TOO_SOON); }
         doc.lastReminderAt = clock.instant(); save(doc); pendingEvent(doc, "MANUAL");
@@ -125,7 +125,7 @@ public class DocumentService {
     @Transactional
     @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#dogId", member = "owner(#dogId)")
     public String photo(String dogId, String key, boolean own) {
-        var dog = own ? access.ownDog(dogId, true) : access.mutableDog(dogId); attachments.claim(key, "DOG_PHOTO", dogId);
+        var dog = CensusAccess.unfrozen(own ? access.ownDog(dogId, true) : access.mutableDog(dogId)); attachments.claim(key, "DOG_PHOTO", dogId);
         if (!key.equals(dog.photoFileKey)) {
             String before = dog.photoFileKey; dog.photoFileKey = key; access.dogs.save(dog);
             events.emit("DogUpdated", "Dog", dogId, object("dogId", dogId, "memberId", dog.memberId, "diff", object("photoFileKey", object("before", before, "after", key))));
