@@ -10,11 +10,13 @@
 | Codex (gpt-6-astra, xhigh), independent | `codex-20260924-1554.md` | fail: 19 major, 11 minor |
 | Organizer (Claude) + six read-only sub-audits, independent | `claude-20260924.md` | fail: 1 blocker, 18 major, many minors |
 | Execution runs on the Mac, before the fixes (baseline) | api **E3-T07** (done), web **E3-W05** (running) | api: `clean verify` green, **`bin/e3-smoke` red** (a stale assertion, see below) |
-| Execution runs on the Mac, after the fixes | api **E3-T11**, web **E3-W09** | pending |
+| Execution runs on the Mac, after the fixes | api **E3-T11**, web **E3-W09** | done 26-09: both verified, with E3-T17; **the gate passes** |
 
 **Independence.** Neither reviewer saw the other's report. The organizer wrote and saved its report before opening Codex's. Every finding below was confirmed by the organizer in the code. Some were also confirmed in the gate's own screenshots.
 
 ## Verdict: the E3 gate does not pass
+
+> **Update 26-09-2026 (organizer):** after the fix tasks and the two re-runs (api E3-T11 at `d791361`, completed by E3-T17 at `e663872`; web E3-W09 at `6cf867e`), **the gate passes**. Every line of «Gate E3» is ticked in both `roadmap/ROADMAP.md`. The follow-ups are E5-T18…T20 (api) and E4-W12…W14 (web), plus INC-11 for the cosmetics. The verdict below is the 24-09 one.
 
 The happy path works against the real core: a DNI applicant signs up, the admin validates and the welcome link works. But four whole areas fail:
 - NIE and passport applicants cannot submit at all;
@@ -200,7 +202,7 @@ The full lists, with file:line, are in the two source reports. The ones routed t
 ## Fix plan
 The E3 fix tasks run before the E4–E8 tasks of each queue, because the executors take the lowest stage first.
 
-| Task | Repo | Content | Depends on | Status 26-09 02:05 |
+| Task | Repo | Content | Depends on | Status 26-09 02:55 |
 |---|---|---|---|---|
 | **E3-T07** | api | Baseline audit run on `de0e17f` | — | verified |
 | **E3-T08** | api | The smoke (step 1); M5 api side (a quote per plan in `GET /signup`); M6, M7, M8 (+ `planOptions`), M9, M10 (E39), M11 server side (+ `warnDays` in the signup view), M20 api side (E36), M21; the dog `version`; the signup flags; E35 | E3-T07 | verified (2 rounds) |
@@ -212,7 +214,7 @@ The E3 fix tasks run before the E4–E8 tasks of each queue, because the executo
 | **E3-T15** | api | A failure-safe recipient-cap admission: written before the charge, living as long as its event (added 25-09, from the E3-T12 round-2 review) | E3-T10 | verified |
 | **E3-T16** | api | The member's document types in `GET /me/dogs`: screen 13 cannot read `/parameters` (added 25-09, from the E4-W08 report); the Cànic's legal identity, `displayCity` and `legalAddress` for the public footer (Jordi, 25-09); the E3-T15 review's test gaps and the list `size` contract | E3-T10 | verified (2 rounds) |
 | **E3-T11** | api | Audit re-run after the fixes | E3-T07…T10, E3-T12…T16 | verified (2 rounds; the audit record of `d791361`; item 7 holds for the member record only; L66–L68 are ticked on E3-T17's run) |
-| **E3-T17** | api | E38 for the reused dog of a readmission: its values and documents wait in the request, and a rejection leaves them as they were (added 25-09, from the E3-T11 review); the holder's family group (item 3) and the add-dog replay (item 1) | E3-T09 | changes requested (round 1: E38 for the dog holds; round 2: the dog's record frozen while pending, D2 document edits by type, validation applies only what was sent; round 2 running) |
+| **E3-T17** | api | E38 for the reused dog of a readmission: its values and documents wait in the request, and a rejection leaves them as they were (added 25-09, from the E3-T11 review); the holder's family group (item 3) and the add-dog replay (item 1) | E3-T09 | verified (2 rounds; `e663872`; follow-ups → E5-T19, E4-W13, E6-T03 step 12) |
 | **E3-W05** | web | Baseline audit run | — | verified |
 | **E3-W06** | web | B1, M1, M2, M19, the payment texts under the right method; the signup minors (no api change needed) | E3-W04 | verified (2 rounds) |
 | **E3-W07** | web | Snapshot adoption; D2: M12–M15, M11 web side, the refund warning; the D2 and D1 minors (the E38 readmission moved to E3-W08) | E3-W06, api E3-T08 | verified (2 rounds) |

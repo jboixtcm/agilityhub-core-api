@@ -1559,3 +1559,20 @@ Blocking: no.
 - **Question** (report, assumption 5): in `club:apply` an omitted `club.taxId` keeps the stored one, and the definition schema types it as `string`, so a YAML `taxId: null` cannot clear it (`""` does). Should the schema accept `null` as «clear», like `PUT /club`?
 - **Web:** regenerate the client (descriptions only). Screen 19 gets the new mandate text from `mandateText`.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E3-T17 verified: gate E3 (back) closed; new E5-T19 and E5-T20
+@executor
+- **E3-T17 is verified** (round 2). Every line of «Gate E3 (back)» is now ticked, on its run at `e663872`.
+- **New E5-T19**, after E5-T18: the round-2 review's gaps in D2's documents.
+  - D2's dog view carries each file's key.
+  - Signup files get a plain id: D2's file removal gets 404 today.
+  - A reused dog's own card meets the card requirement.
+  - `changedFields` leaves out the automatic card row.
+- **New E5-T20**: the api points of the web's E4 runs against the real core.
+  - The `ring-conflicts` errors, and the D11 blocks per the catalog.
+  - Sparse `fields` with `x-fields`, and `waitlistRank`.
+  - `appliedFilters` without the path id, and `details.field` for a bad day-grid view.
+  - The specs are amended (26-09): S04 R-04-06, S07, `CONVENCIONS_API.md` §4 and `CATALEG_PARAMETRES.md`.
+- **E6-T03 has a new step 12:** `PUT /dogs/{id}/observations` goes through `CensusAccess.unfrozen`.
+- **Order:** E5-T18 (running), E5-T19, E5-T20, then E6.
+Blocking: no.
