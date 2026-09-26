@@ -46,6 +46,12 @@ public class TrainingMemberAccess {
         access.members.matching(Criteria.where("_id").in(ids)).forEach(m -> result.put(m.id, Objects.toString(m.firstName, "")));
         return result;
     }
+    /** `Dog.handlerName` by dog id, only the dogs that have one (S10 R-10-00: «{guia}» = handlerName ?? the member's first name). */
+    public Map<String, String> handlerNames(Collection<String> dogIds) {
+        var result = new HashMap<String, String>(); if (dogIds.isEmpty()) { return result; }
+        access.dogs.matching(Criteria.where("_id").in(dogIds)).forEach(d -> { if (d.handlerName != null && !d.handlerName.isBlank()) { result.put(d.id, d.handlerName); } });
+        return result;
+    }
     public Optional<Dog> dog(String id) { return id == null ? Optional.empty() : access.dogs.findById(id).map(TrainingMemberAccess::view); }
     public List<Dog> dogs(Collection<String> ids) {
         if (ids.isEmpty()) { return List.of(); }

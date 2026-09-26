@@ -27,10 +27,14 @@ public class TrainingOccupancyService implements TrainingOccupancyPort {
             var active = bookings.activeBetween(from, to, null).stream().filter(b -> ringIds == null || ringIds.contains(b.ringId())).toList();
             var names = member ? Map.<String, String>of() : census.firstNames(active.stream().map(TrainingBooking::memberId).distinct().toList());
             var dogs = new HashMap<String, String>();
-            if (!member) { census.dogs(active.stream().map(TrainingBooking::dogId).distinct().toList()).forEach(d -> dogs.put(d.id(), d.name())); }
+            var dogIds = active.stream().map(TrainingBooking::dogId).distinct().toList();
+            if (!member) { census.dogs(dogIds).forEach(d -> dogs.put(d.id(), d.name())); }
+            // S10 R-10-00 (E6-T02): the guide of «{guia} + {gos}» is the dog's handler when it has one.
+            var handlers = member ? Map.<String, String>of() : census.handlerNames(dogIds);
             for (var b : active) {
                 result.add(member ? new Interval(b.ringId(), b.startsAt(), b.endsAt(), Type.TRAINING, "TRAINING", null, null, null, null)
-                        : new Interval(b.ringId(), b.startsAt(), b.endsAt(), Type.TRAINING, "TRAINING", names.get(b.memberId()), dogs.get(b.dogId()), null, b.id()));
+                        : new Interval(b.ringId(), b.startsAt(), b.endsAt(), Type.TRAINING, "TRAINING", handlers.getOrDefault(b.dogId(), names.get(b.memberId())),
+                                dogs.get(b.dogId()), null, b.id()));
             }
         }
         for (var block : schedule.blocks(from, to, !member)) {

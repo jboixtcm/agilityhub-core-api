@@ -50,7 +50,7 @@ public final class InstructorContracts {
     public record InstructorDayClass(String id, @Schema(description = HHMM) String startTime, @Schema(description = HHMM) String endTime,
             String displayDescription, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null for a class without ring") RingRef ring,
             @Schema(allowableValues = {"ACTIVE", "FINISHED", "CANCELLED"}, description = CLASS_STATES) String state, int booked, int capacity,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST («⏳ n»)") Integer waiting,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST («⏳ n»)") Integer waiting,
             @Schema(description = "capacity = 1") boolean individual, DayAttendance attendance) { }
     public record DayAttendance(AttendanceStatus status, int marked, int total) { }
     public record DayRingBlock(String id, String ringName, @Schema(description = HHMM) String fromLocal, @Schema(description = HHMM) String toLocal,
@@ -61,13 +61,13 @@ public final class InstructorContracts {
     // ---- GET/PUT /class-sessions/{id}/attendance (21, D12)
     public record AttendanceSheet(SheetClassSession classSession, Sheet sheet,
             @Schema(description = "Live bookings (ACTIVE, PAYMENT_PENDING) plus the NOTIFIED ones, by bookedAt (R-10-02)") List<AttendanceRow> rows,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") SheetWaitlist waitlist,
-            @Schema(requiredMode = NOT_REQUIRED, description = "PUT response only: the bookingIds whose state changed (same key → same response)") List<String> applied) { }
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") SheetWaitlist waitlist,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "PUT response only: the bookingIds whose state changed (same key → same response)") List<String> applied) { }
     public record SheetClassSession(String id, LocalDate date, @Schema(description = HHMM) String startTime, @Schema(description = HHMM) String endTime,
             String displayDescription, @Schema(requiredMode = NOT_REQUIRED, nullable = true) RingRef ring,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "«Marc, Neus» with classes.maxInstructorsPerClass > 1") String instructorName,
             @Schema(allowableValues = {"ACTIVE", "FINISHED", "CANCELLED"}, description = CLASS_STATES) String state, int capacity, int booked,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting) { }
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with WAITLIST") Integer waiting) { }
     public record Sheet(@Schema(description = "attendanceSummary.version: the optimistic lock of the PUT (R-10-04)") long version,
             @Schema(description = "PRESENT/NO_SHOW/PENDING allowed now (R-10-03)") boolean canMarkPresence,
             @Schema(description = "NOTIFIED allowed now (bookings.instructorLastMinuteNotice, now ≤ T1)") boolean canMarkNotice,
@@ -79,12 +79,14 @@ public final class InstructorContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Short-lived signed URL") String dogPhotoUrl,
             String memberId, String memberFirstName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)") String handlerName,
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            @Schema(requiredMode = NOT_REQUIRED, description = "Only when handlerName differs from memberFirstName: the owner's full name, «(abonat: {nom i cognom})» (R-10-00)") String memberFullName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null with levels.enabled = false") String levelCode,
             AttendanceState state,
             @JsonProperty("final") @Schema(description = "A saved NOTIFIED row is fixed (R-10-03)") boolean fixed,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant markedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String markedByName,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") Integer pendingTasksCount,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") Integer pendingTasksCount,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only NOTIFIED (R-10-05)") AttendanceNotice notice,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only NO_SHOW (R-10-06)") NoShowNotice noShowNotice) { }
     public record AttendanceNotice(@Schema(description = HHMM) String atLocal, Instant at, boolean late,
@@ -98,6 +100,7 @@ public final class InstructorContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "waitlist.fifoConfirmMinutes; only in FIFO") Integer fifoConfirmMinutes,
             List<SheetWaitlistEntry> entries) { }
     public record SheetWaitlistEntry(String entryId, String dogName, String memberFirstName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)") String handlerName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelCode, Instant joinedAt, WaitlistState state) { }
     public record AttendanceSaveRequest(@NotNull @PositiveOrZero @Schema(description = "sheet.version read by the caller") Long version,
             @NotEmpty @Valid @Schema(description = "Items equal to the current state are no-ops") List<AttendanceSaveItem> items) { }
@@ -139,11 +142,11 @@ public final class InstructorContracts {
 
     // ---- GET /dogs/{id}/instructor-card (22, D13)
     public record InstructorCard(CardDog dog, CardMember member,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Absent with levels.enabled = false or no level") CardLevel level,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Absent with levels.enabled = false or no level") CardLevel level,
             CardMetrics metrics, @Schema(description = "At most 5, newest first (R-10-09)") List<LastClass> lastClasses,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") InstructorNoteBlock instructorNote,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") TasksBlock tasks,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS; never on /me/*") ObservationsBlock observations) { }
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") InstructorNoteBlock instructorNote,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS") TasksBlock tasks,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with TASKS; never on /me/*") ObservationsBlock observations) { }
     public record CardDog(String id, String name, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String breed,
             @Schema(allowableValues = {"MALE", "FEMALE"}) String sex, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer ageYears,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String photoUrl,
@@ -158,8 +161,8 @@ public final class InstructorContracts {
     public record CardMetrics(@Schema(description = "Product constant 30") int windowDays,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "round(100 · present / classesCounted); null when 0 (R-10-08)") Integer attendancePct,
             int present, int noShow, int notified, int cancelledLate, int classesCounted,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with FREE_TRAINING") Integer trainingsCount,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with FREE_TRAINING; one decimal") Double trainingsPerWeek) { }
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with FREE_TRAINING") Integer trainingsCount,
+            @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(requiredMode = NOT_REQUIRED, description = "Only with FREE_TRAINING; one decimal") Double trainingsPerWeek) { }
     public record LastClass(String bookingId, LocalDate date, String displayDescription,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName, LastClassState displayState) { }

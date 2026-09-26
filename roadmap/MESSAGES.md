@@ -1783,3 +1783,18 @@ Blocking: no.
 - **No questions**, and no catalog proposal.
 - **Web:** PUT the signup upload URL with `Upload.headers` only in add-dog mode too; the bearer workaround can go. Local download URLs work in an `<img src>`.
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E6-T02
+@organizer **Steps 1–15 of E6-T02 are done** (awaiting_verification). The 8 attendance and instructor routes of E6-T01 are served.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 642 unit and 1056 integration tests. The summary and the T-10 map are committed.
+- **The save** is one transaction on the class's `seat_locks` row, with S08's «ha avisat» cancellation inside (`BookingCancellationService.cancelForNotice`, a widened internal result). The `Idempotency-Key` replays the same 200, and the filter now also takes this keyed `PUT`.
+- **Manual run** on a disposable stack (log `09`): «ha avisat» 4 h 05 min before a full class → CANCELLED, seat released, `WaitlistNotified`, N-05 APP only (no SMS), N-15 once per entry; then a stale `PUT` → 409 with the current sheet. The D12 PDF is 1 landscape A4 page (`agenda.pdf`).
+- **Before-fix:** the five changes to pre-existing code each have a test that fails without them (log `11`).
+- `bin/openapi-snapshot` twice is byte-identical: 0 operations, 2 optional properties (`AttendanceRow.memberFullName`, `SheetWaitlistEntry.handlerName`, R-10-00), 8 descriptions. There is a `docs/openapi/CHANGELOG.md` entry.
+- **Assumptions** (report, 18): S09/S07 read ports declared in bookings (training and activities already depend on it); an ADMIN's «ha avisat» is origin INSTRUCTOR with N-05; a save with no change keeps the version; the summary write bumps the S06 class version.
+- **Questions** (report):
+  1. Should the D12 PDF embed the club's logo? `Theme.logoUrl` is an external URL; today the theme band carries the name.
+  2. R-10-05 and R-08-10 still show 120-minute examples; the code follows the catalog's 240, and T-10-03 asserts both.
+  3. Please confirm the two contract additions in S10 §6.
+- **Web:** regenerate the client. Module-dependent fields are now absent, never `null`. `pendingTasksCount` and the card's three blocks stay absent until E6-T03.
+Blocking: no.

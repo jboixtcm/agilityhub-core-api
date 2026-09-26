@@ -63,8 +63,8 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     /** Operation path → the allowlist of a list that is not a `ListEngine` provider. */
     static final Map<String, Set<String>> OWN_LISTS = Map.of("/api/v1/followup", FollowupContractAccess.FOLLOWUP.fields(),
             "/api/v1/attendances", AttendanceContractAccess.ATTENDANCES.fields(), "/api/v1/jobs/{name}/runs", JobAdminService.RUN_FIELDS);
-    /** The universal lists that are still stubs (S10): they validate the query, `fields` included, and then answer 501. */
-    static final Set<String> STUBS = Set.of("/api/v1/followup", "/api/v1/attendances");
+    /** The universal lists that are still stubs (S10 follow-up, E6-T03): they validate the query, `fields` included, and then answer 501. */
+    static final Set<String> STUBS = Set.of("/api/v1/followup");
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -206,6 +206,14 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(canic);
         mvc.perform(post("/api/v1/jobs/cleanup/trigger").header("Host", CANIC_HOST).contentType("application/json").content("{\"dryRun\":true}")
                 .with(jwt().jwt(j -> j.subject("list-fields-admin").claim("clubId", canic)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))).andExpect(status().isOk());
+        // E6-T02: `GET /attendances` is served; one mark of a demo booking gives it a row to check.
+        var booking = mongo.findOne(Query.query(Criteria.where("clubId").is(canic).and("state").is("ACTIVE")), org.bson.Document.class, "bookings");
+        var session = mongo.findById(booking.getString("classSessionId"), org.bson.Document.class, "class_sessions");
+        mongo.save(new org.bson.Document("_id", "list-fields-attendance").append("clubId", canic).append("bookingId", booking.getString("_id"))
+                .append("classSessionId", session.getString("_id")).append("classDate", session.getString("date")).append("classStartsAt", booking.getDate("classStartsAt"))
+                .append("classEndsAt", booking.getDate("classEndsAt")).append("dogId", booking.getString("dogId")).append("memberId", booking.getString("memberId"))
+                .append("state", "PRESENT").append("markedAt", clock.instant()).append("markedBy", new org.bson.Document("accountId", "list-fields-admin")
+                        .append("role", "ADMIN").append("displayName", "Admin")).append("history", List.of()).append("version", 0), "attendances");
         return canic;
     }
     String registeredActivity(String club) {

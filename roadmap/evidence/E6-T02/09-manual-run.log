@@ -1,0 +1,47 @@
+heavy.sh: 20:36 waiting for the host lock, held by: 20:36 agilityhub-core-web: pnpm e2e:core E4-W15 e3-signup.spec.ts
+heavy.sh: 20:46 got the host lock after 10 min 16 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  279 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+Target class 279dc91a… 2026-10-06 17:40 (Madrid) capacity 4, booked 4, waiting 3
+PASS POST /test/clock: 200 · four hours (and 5 minutes) before the class: in time (Tue 06-10 11:35 Europe/Madrid; server now 2026-10-06T11:35Z)
+curl GET /api/v1/class-sessions/<id>/attendance -> 200
+  sheet: version 0, canMarkPresence True, canMarkNotice True, editableUntil 2026-10-07T21:59:59Z; classSession booked 4/4, waiting 3; 4 rows; waitlist mode ALL_AT_ONCE with 3 entries
+curl PUT /api/v1/class-sessions/<id>/attendance -> 200
+  PUT applied ['b9b39de5…', '7682a694…']; version 0 → 1; notice {"atLocal": "13:35", "at": "2026-10-06T11:35:01.328Z", "late": false, "minutesBefore": 244, "seatReleased": true, "waitlistNotified": true, "afterClassEnd": false, "bookingState": "CANCELLED"}
+curl GET /api/v1/class-sessions/<id>/attendance -> 200
+  released seat: classSession booked 4 → 3 of 4; booking 7682a694… is CANCELLED
+  outbox rows after the save (dispatched by the scheduler):
+    {"type": "AttendanceMarked", "status": "PUBLISHED", "payload": {"bookingId": "7682a694…", "classSessionId": "279dc91a…", "dogId": "a5a7a299…", "memberId": "1d689efd…", "state": "NOTIFIED", "previousState": "PENDING", "by": {"accountId": "00e8b4f4…", "role": "INSTRUCTOR"}, "late": false, "afterClassEnd": false}}
+    {"type": "AttendanceMarked", "status": "PUBLISHED", "payload": {"bookingId": "b9b39de5…", "classSessionId": "279dc91a…", "dogId": "b2809e37…", "memberId": "4798b83a…", "state": "PRESENT", "previousState": "PENDING", "by": {"accountId": "00e8b4f4…", "role": "INSTRUCTOR"}}}
+    {"type": "BookingCancelled", "status": "PUBLISHED", "payload": {"bookingId": "7682a694…", "by": "INSTRUCTOR", "late": false, "minutesBefore": 244, "origin": "INSTRUCTOR", "reason": "INSTRUCTOR_NOTICE"}}
+    {"type": "SeatReleased", "status": "PUBLISHED", "payload": {"classId": "279dc91a…", "freeSeats": 1, "minutesBefore": 244, "notifyWaitlist": true}}
+    {"type": "WaitlistNotified", "status": "PUBLISHED", "payload": {"entryIds": ["a3b1029f…", "81779f7d…", "ede39417…"], "classId": "279dc91a…", "mode": "ALL_AT_ONCE"}}
+  notifications N-05 (member 18ad0d3e…): [{"code": "N-05", "channel": "APP", "status": "SENT"}]
+  notifications N-15 (3 waiting entries now NOTIFIED): [{"code": "N-15", "channel": "PUSH", "status": "QUEUED", "account": "3a5c561a\u2026"}, {"code": "N-15", "channel": "SMS", "status": "QUEUED", "account": "3a5c561a\u2026"}, {"code": "N-15", "channel": "APP", "status": "SENT", "account": "3a5c561a\u2026"}, {"code": "N-15", "channel": "PUSH", "status": "QUEUED", "account": "d3780f06\u2026"}, {"code": "N-15", "channel": "SMS", "status": "QUEUED", "account": "d3780f06\u2026"}, {"code": "N-15", "channel": "APP", "status": "SENT", "account": "d3780f06\u2026"}, {"code": "N-15", "channel": "PUSH", "status": "QUEUED", "account": "e06a5609\u2026"}, {"code": "N-15", "channel": "SMS", "status": "QUEUED", "account": "e06a5609\u2026"}, {"code": "N-15", "channel": "APP", "status": "SENT", "account": "e06a5609\u2026"}]
+curl PUT /api/v1/class-sessions/<id>/attendance -> 409 STALE_VERSION
+  409 body: {"code": "STALE_VERSION", "message": "Les dades han canviat. Actualitza-les i torna-ho a provar.", "traceId": "6882605d…", "details": {"current": {"sheet": {"version": 1, "canMarkPresence": true, "canMarkNotice": true, "editableUntil": "2026-10-07T21:59:59Z", "savedAt": "2026-10-06T11:35:01.328Z", "savedByName": "Aina", "noShowNoticeTime": "08:00"}, "classSession": {"id": "279dc91a…", "date": "2026-10-06", "startTime": "17:40", "endTime": "18:40", "displayDescription": "D+E", "ring": {"id": "2bdf52fc…", "name": "Carretera", "color": "#C9CDD3"}, "instructorName": "Ona", "state": "ACTIVE", "capacity": 4, "booked": 3, "waiting": 3}, "rows": [{"bookingId": "b9b39de5…", "dogName": "Ginesta 158", "state": "PRESENT", "final": false, "notice": null}, {"bookingId": "7682a694…", "dogName": "Vent 171", "state": "NOTIFIED", "final": true, "notice": {"atLocal": "13:35", "at": "2026-10-06T11:35:01.328Z", "late": false, "minutesBefore": 244, "seatReleased": true, "waitlistNotified": true, "afterClassEnd": false, "bookingState": "CANCELLED"}}, {"bookingId": "cdb522d2…", "dogName": "Bruc 184", "state": "PENDING", "final": false, "notice": null}, {"bookingId": "11ac0042…", "dogName": "Neu 203", "state": "PENDING", "final": false, "notice": null}]}}}
+curl GET /api/v1/instructor/week/export?format=pdf&date=2026-10-06 -> 200 application/pdf; Content-Disposition: attachment; filename="canic_agenda_20261005.pdf"; 13593 bytes saved to roadmap/evidence/E6-T02/agenda.pdf
+PASS E6-T02 manual run
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

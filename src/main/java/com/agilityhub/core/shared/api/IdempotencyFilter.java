@@ -53,9 +53,14 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         this.mapper = mapper;
     }
 
+    /** S10 R-10-04 (E6-T02): the attendance save is a keyed PUT that replays the same response for the same key. */
+    static final java.util.regex.Pattern KEYED_PUT = java.util.regex.Pattern.compile("/api/v1/class-sessions/[^/]+/attendance");
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return HealthRequests.matches(request) || !"POST".equals(request.getMethod()) || (request.getHeader("Idempotency-Key") == null && !request.getRequestURI().equals("/api/v1/signup"));
+        boolean keyedMethod = "POST".equals(request.getMethod())
+                || "PUT".equals(request.getMethod()) && KEYED_PUT.matcher(request.getRequestURI().substring(request.getContextPath().length())).matches();
+        return HealthRequests.matches(request) || !keyedMethod || (request.getHeader("Idempotency-Key") == null && !request.getRequestURI().equals("/api/v1/signup"));
     }
 
     @Override
@@ -135,8 +140,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // the existing request transaction. Both paths commit the idempotency row with effects.
         // S08 confirmation and claim replay their business conflicts too (R-08-08: «també si va ser 409»).
         // S09 bookings and cancellations retry DuplicateKey/WriteConflict inside their own transaction (R-09-06) and replay likewise.
+        // S10 R-10-04: the attendance save retries inside its seat-lock transaction and stores its 200 there too.
         boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim")
-                || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation");
+                || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation")
+                || KEYED_PUT.matcher(path).matches();
         // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
         // so two concurrent submissions give one 201 and one 422, never a 500.
         boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup");

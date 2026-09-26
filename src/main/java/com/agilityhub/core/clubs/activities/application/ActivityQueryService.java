@@ -53,7 +53,7 @@ public class ActivityQueryService implements ActivityTitlePort {
             var a=activities.require(r.activityId()); var start=context.times(a).startsAt();
             if(start.isBefore(from) || start.isAfter(to)) continue;
             String state=ActivityRows.historyState(r.state(),r.cancelReason(),a.state()); if(state==null) continue;
-            result.add(object("type","ACTIVITY","id",r.id(),"activityId",a.id(),"title",projection.title(a),"state",state,"startsAtLocal",projection.local(start),
+            result.add(object("type","ACTIVITY","id",r.id(),"activityId",a.id(),"title",projection.title(a),"state",state,"startsAt",start,"startsAtLocal",projection.local(start),
                     "ringName",projection.place(a),"dogId",null,"adminText",r.cancelReason()==RegistrationCancelReason.ACTIVITY_CANCELLED?a.cancellation().adminText():null));
         }
         return result;

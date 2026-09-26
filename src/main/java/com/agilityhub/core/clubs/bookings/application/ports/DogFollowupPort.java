@@ -18,6 +18,8 @@ public interface DogFollowupPort {
     record Tasks(int pendingCount, int doneCount, LatestTask latest) { }
     record Observations(String text, Instant updatedAt, String updatedByName, List<NoteAttachment> attachments, long version) { }
 
+    /** False for the default until E6-T03 implements the port: callers then leave the TASKS fields out, as with TASKS off. */
+    default boolean available() { return true; }
     /** `pendingTasksCount` per dog of the sheet rows (R-10-02). */
     Map<String, Integer> pendingTasks(Collection<String> dogIds);
     /** «Notes als instructors (de l'alumne)»: `Dog.instructorNote` with its INSTRUCTOR_NOTE attachments. */

@@ -32,16 +32,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * E6-T01 contract (S10 WP-10-A): every S10 route answers 501 behind its tenant, role, impersonation, module and
- * resource guards (the role matrix half of T-10-22), is published with typed forms (T-10-21), and the S10 attachment
- * purposes, the S06 attendance status and the P3/P8 catalog rows behave as the contract says.
+ * E6-T01 contract (S10 WP-10-A): every S10 route is published with typed forms (T-10-21) behind its tenant, role,
+ * impersonation, module and resource guards (the role matrix half of T-10-22); the routes E6-T02 serves (`implemented` in
+ * `e6-routes.json`) answer their success status there, the others still 501. The S10 attachment purposes, the S06
+ * attendance status and the P3/P8 catalog rows behave as the contract says.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class E6ContractIT extends AbstractIntegrationTest {
     static final String CLUB = "e6-club-a", OTHER = "e6-club-b", HOST = "e6-a.example.test", OTHER_HOST = "e6-b.example.test";
     static final List<String> ROLES = List.of("ANON", "MEMBER", "INSTRUCTOR", "ADMIN", "AGILITYHUB_ADMIN");
     static final List<String> DATA = List.of("class_sessions", "members", "memberships", "dogs", "instructors", "rings", "tasks", "attachments", "followup_items",
-            "followup_read_marks", "attendances", "upload_grants", "domain_events", "audit_entries", "idempotency_records", "notifications", "parameters");
+            "followup_read_marks", "attendances", "upload_grants", "domain_events", "audit_entries", "idempotency_records", "notifications", "parameters",
+            "bookings", "seat_locks");
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired ClubRepository clubs;
@@ -50,8 +52,9 @@ class E6ContractIT extends AbstractIntegrationTest {
     @Autowired MongoTemplate mongo;
     @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
 
+    /** @param implemented served since E6-T02 (the attendance and instructor routes): an allowed role gets `success`, not 501 */
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
-                 String module, String scope, boolean resource, boolean impersonation) {
+                 String module, String scope, boolean resource, boolean impersonation, boolean implemented) {
         boolean club() { return scope.equals("CLUB"); }
     }
     static Stream<Route> routes() throws Exception {
@@ -82,6 +85,10 @@ class E6ContractIT extends AbstractIntegrationTest {
         session.put("capacityMode", "AUTO"); session.put("counters", Map.of("booked", 4, "waiting", 1));
         session.put("risk", Map.of("exempt", false, "notifiedBookingIds", List.of())); session.put("version", 1);
         mongo.insert(mapper.convertValue(session, com.agilityhub.core.clubs.scheduling.persistence.ClassSession.class));
+        // E6-T02: a live booking of the class, so the served PUT of the matrix is a no-op 200 (PENDING = its current state).
+        mongo.save(new Document("_id", "e6-booking-a").append("clubId", CLUB).append("classSessionId", "e6-class-a").append("dogId", "e6-dog-a")
+                .append("memberId", "e6-member-a").append("state", "ACTIVE").append("origin", "APP").append("bookedAt", now)
+                .append("classStartsAt", Instant.parse("2026-08-03T06:30:00Z")).append("classEndsAt", Instant.parse("2026-08-03T07:30:00Z")).append("version", 0), "bookings");
         mongo.insert(new Task("e6-task-a", CLUB, "e6-dog-a", "e6-member-a", "Practiqueu el balancí", TaskState.PENDING,
                 new Task.Actor("e6-INSTRUCTOR", AuthorRole.INSTRUCTOR, "Estel"), null, null, null, now, now, null, null, 1, 1L));
         mongo.insert(new Attachment("e6-att-task", CLUB, "TASK", "e6-task-a", "e6-att-task", "vídeo.mp4", "video/mp4", 4, "e6-INSTRUCTOR", now, now, null, null, 0));
@@ -133,10 +140,17 @@ class E6ContractIT extends AbstractIntegrationTest {
         return result.andExpect(jsonPath("$.traceId").isNotEmpty()).andExpect(jsonPath("$.message").isNotEmpty());
     }
 
+    /** The status of a served route (E6-T02), whatever its body (JSON or the D12 PDF). */
+    private void served(MockHttpServletRequestBuilder request, int status) throws Exception {
+        var response = mvc.perform(request).andReturn().getResponse();
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(status);
+    }
+
     @ParameterizedTest @MethodSource("routes")
     void T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
         for (String role : ROLES) {
             boolean allowed = route.roles().contains(role);
+            if (allowed && route.implemented()) { served(call(route, CLUB, role), route.success()); continue; }
             error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
                     allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
         }
@@ -151,7 +165,8 @@ class E6ContractIT extends AbstractIntegrationTest {
         var issued = impersonate();
         for (Route route : routes().toList()) {
             var request = call(route, CLUB, "MEMBER").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
-            if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
+            if (route.impersonation() && route.implemented()) { served(request, route.success()); }
+            else if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
             else { error(request, 403, "IMPERSONATION_DENIED", "FORBIDDEN"); }
         }
         assertThat(routes().filter(Route::impersonation).map(r -> r.method() + " " + r.path()).toList()).containsExactly("GET /api/v1/me/history",
@@ -183,7 +198,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         var history = routes().filter(r -> r.path().equals("/api/v1/me/history")).findFirst().orElseThrow();
         for (String staff : List.of("ADMIN", "INSTRUCTOR")) { error(as(get("/api/v1/me/history"), "MEMBER", staff), 403, "FORBIDDEN"); }
         error(call(history, CLUB, "MEMBER", "e6-member-b"), 404, "DOG_NOT_ACCESSIBLE");
-        error(as(get("/api/v1/me/history").param("dogId", "e6-dog-a"), "MEMBER"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/me/history").param("dogId", "e6-dog-a"), "MEMBER"), 200);
         for (Route route : routes().filter(r -> r.resource() && r.roles().contains("MEMBER")).toList()) {
             error(call(route, CLUB, "MEMBER", "e6-member-b"), 404, "NOT_FOUND");
         }
@@ -202,7 +217,7 @@ class E6ContractIT extends AbstractIntegrationTest {
                 .header("Idempotency-Key", UUID.randomUUID().toString()), "INSTRUCTOR"), 400, "VALIDATION_ERROR");
         error(as(put("/api/v1/class-sessions/e6-class-a/attendance").contentType("application/json").content("{\"version\":0,\"items\":[{\"bookingId\":\"b\",\"state\":\"PRESENT\"}]}"),
                 "INSTRUCTOR"), 400, "VALIDATION_ERROR");
-        error(as(get("/api/v1/instructor/day").param("instructorId", "e6-instructor-a"), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/instructor/day").param("instructorId", "e6-instructor-a"), "INSTRUCTOR"), 200);
         error(as(get("/api/v1/instructor/day").param("instructorId", "e6-instructor-b"), "INSTRUCTOR"), 404, "NOT_FOUND");
         error(as(get("/api/v1/instructor/week").param("ringId", "e6-ring-b"), "ADMIN"), 404, "NOT_FOUND");
         error(as(get("/api/v1/instructor/week/export").param("format", "xlsx"), "ADMIN"), 400, "VALIDATION_ERROR");
@@ -215,8 +230,7 @@ class E6ContractIT extends AbstractIntegrationTest {
                 error(as(get(path).param(entry.getKey(), entry.getValue()), "ADMIN"), 400, "INVALID_FILTER");
             }
         }
-        error(as(get("/api/v1/attendances").param("filter", "classDate:between:2026-08-01,2026-08-31").param("filter", "dogId:in:e6-dog-a,e6-dog-b"), "INSTRUCTOR"),
-                501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/attendances").param("filter", "classDate:between:2026-08-01,2026-08-31").param("filter", "dogId:in:e6-dog-a,e6-dog-b"), "INSTRUCTOR"), 200);
         error(as(get("/api/v1/followup").param("filter", "kind:eq:MEMBER_NOTE").param("filter", "authorAccountId:eq:e6-INSTRUCTOR").param("filter", "memberId:eq:e6-member-a")
                 .param("filter", "dogId:eq:e6-dog-a").param("sort", "activityAt,desc"), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
     }
@@ -234,8 +248,8 @@ class E6ContractIT extends AbstractIntegrationTest {
                     + (purpose.equals("TASK") ? "e6-task-a" : "e6-dog-a") + "\",\"fileKey\":\"k\",\"name\":\"a.pdf\"}"), "ADMIN"), 404, "MODULE_DISABLED");
         }
         // The attendance/instructor routes stay (no module); the club «mínim» still reaches them.
-        error(as(get("/api/v1/class-sessions/e6-class-a/attendance"), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
-        error(as(get("/api/v1/me/history"), "MEMBER"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/class-sessions/e6-class-a/attendance"), "INSTRUCTOR"), 200);
+        served(as(get("/api/v1/me/history"), "MEMBER"), 200);
     }
 
     @Test void T_10_16_taskAndObservationPurposesAreStaffOnlyAndStubbedAtRegistration() throws Exception {
@@ -288,7 +302,7 @@ class E6ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_10_21_theStubsWriteNothing() throws Exception {
         var before = database();
-        for (Route route : routes().toList()) {
+        for (Route route : routes().filter(r -> !r.implemented()).toList()) {
             for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().isNotImplemented()); }
         }
         assertThat(database()).isEqualTo(before);
@@ -300,7 +314,8 @@ class E6ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();
-            assertThat(op.path("description").asText()).as(route.path()).contains("501", "guards", "Roles:");
+            if (route.implemented()) { assertThat(op.path("description").asText()).as(route.path()).contains("Roles:").doesNotContain("501"); }
+            else { assertThat(op.path("description").asText()).as(route.path()).contains("501", "guards", "Roles:"); }
             assertThat(op.path("responses").has(Integer.toString(route.success()))).as(route.path()).isTrue();
             assertThat(op.path("operationId").asText()).as(route.path()).doesNotContain("_");
             assertThat(op.path("parameters").findValuesAsText("name")).doesNotContain("clubId");

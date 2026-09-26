@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E6-T02: S10 WP-10-B, attendance and the instructor aggregates.
+  - `PUT /class-sessions/{id}/attendance` (R-10-04): one Mongo transaction serialised by the class's `seat_locks` row,
+    `409 STALE_VERSION{current}`, items equal to the stored state are no-ops, all-or-nothing, the `Idempotency-Key`
+    replays the same 200 (the filter now also takes this keyed `PUT`). «Ha avisat» before the class end cancels the
+    booking through S08 in the same transaction (`BookingCancellationService.cancelForNotice`, origin INSTRUCTOR,
+    reason INSTRUCTOR_NOTICE: seat released, pack refunded in time, waiting list told above the threshold, N-05 without
+    SMS); after the end it is only a record (R-10-05). `attendanceSummary` (with `notifiedAfterEnd`) and `version + 1`.
+    An ADMIN mark outside `[T0, T1]` writes `ATTENDANCE_OVERRIDDEN` (new `AuditAction`).
+  - `GET /class-sessions/{id}/attendance` (R-10-02/03), `GET /instructor/day` (R-10-01), `GET /instructor/week` and its
+    synchronous landscape PDF (R-10-15, labels `export.column.instructor-week.*` in ca/es/en), `GET
+    /dogs/{id}/instructor-card` (R-10-08/09), `GET /me/history` (R-10-14) and the universal `GET /attendances`.
+  - `AttendanceStatePort` is served (R-08-10: a PRESENT/NO_SHOW booking is no longer cancellable; `displayState`
+    «no presentat»); consumers of `ClassSessionUpdated` and of a contradicting `BookingCancelled` (S10 §7).
+  - `AttendanceRepository.claimForNoShowNotice` and one `NoShowNoticeDue` per claim (R-10-06), with the CLI
+    `bin/core attendance:claim-no-show [--club=]` (the P3 job is E6-T04).
+  - S09/S07 read ports for S10 (`TrainingHistoryQuery`, `TrainingStatsQuery`, `ActivityHistoryQuery`), declared in
+    `clubs.bookings` and served by `clubs.training` and `clubs.activities` (they already depend on bookings).
+  - Staff training cells (D12, the day grids) name the dog's handler when it has one (R-10-00).
+
 - E5-T26: the rest of the signed local file URLs (review E5-T24 #1, #3 and «Not checked»; CONVENCIONS_API §5, A31).
   - R-04-27: a MEMBER's `POST /signup/upload-urls` (add-dog) stores the member's account on its grant. Its `PUT
     /api/v1/signup/uploads` then passes while signup is closed, with the upload's headers only and no bearer, and the

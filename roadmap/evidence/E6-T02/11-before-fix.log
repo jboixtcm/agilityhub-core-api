@@ -1,0 +1,45 @@
+reverted in the copy: src/main/java/com/agilityhub/core/clubs/bookings/application/BookingNotifications.java
+reverted in the copy: src/main/java/com/agilityhub/core/clubs/training/application/TrainingOccupancyService.java
+reverted in the copy: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+reverted in the copy: src/main/java/com/agilityhub/core/clubs/bookings/application/BookingCancellationService.java
+reverted in the copy: src/main/java/com/agilityhub/core/clubs/activities/application/ActivityQueryService.java
+$ (cd target/before-fix && ./mvnw -q verify -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=AttendanceIT#T_10_12*+T_10_01_anAdmin*+R_08_10*,InstructorAggregatesIT#T_10_20_theWeek*+T_10_19* -Djacoco.skip=true)
+exit 1
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 23.76 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.InstructorAggregatesIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.InstructorAggregatesIT.T_10_20_theWeekIsTheIsoWeekWithClassesTrainingsAndBlocksAndItsFiltersAndPdf -- Time elapsed: 1.758 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+expected: "Pau + Rock"
+ but was: "Laura + Rock"
+[ERROR] com.agilityhub.core.clubs.bookings.api.InstructorAggregatesIT.T_10_19_theHistoryListsOwnAndGroupDogsWithTheR1014StatesAndTheModuleTypes -- Time elapsed: 2.244 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+expected: 200
+ but was: 500
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 9.337 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.AttendanceIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.R_08_10_aMarkedBookingIsNoLongerCancellableAndANoShowReadsNoPresentat -- Time elapsed: 1.791 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+expected: 200
+ but was: 422
+[ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.T_10_12_anInvalidItemRollsBackTheWholeSaveAStaleVersionGetsTheCurrentSheetAndTheSameKeyReplays -- Time elapsed: 1.322 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+expected: 200
+ but was: 409
+[ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.T_10_01_anAdminMarksOutsideTheWindowAuditedAndAnInstructorIsRefused -- Time elapsed: 2.361 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+expected: 1L
+ but was: 0L
+[ERROR]   AttendanceIT.R_08_10_aMarkedBookingIsNoLongerCancellableAndANoShowReadsNoPresentat:452->save:59->BookingFixtures.call:136 [PUT /class-sessions/s08-wed/attendance {"code":"BOOKING_NOT_CANCELLABLE","message":"Aquesta reserva no es pot cancel·lar.","details":{},"traceId":"cea7999b-8bc2-4e6a-9dca-701b6e17e779"}] 
+expected: 200
+ but was: 422
+[ERROR]   AttendanceIT.T_10_01_anAdminMarksOutsideTheWindowAuditedAndAnInstructorIsRefused:426 
+expected: 1L
+ but was: 0L
+[ERROR]   AttendanceIT.T_10_12_anInvalidItemRollsBackTheWholeSaveAStaleVersionGetsTheCurrentSheetAndTheSameKeyReplays:219->BookingFixtures.call:136 [PUT /class-sessions/s08-fri/attendance {"code":"STALE_VERSION","message":"Les dades han canviat. Actualitza-les i torna-ho a provar.","details":{"current":{"classSession":{"id":"s08-fri","date":"2026-10-09","startTime":"20:00","endTime":"21:00","displ
+expected: 200
+ but was: 409
+[ERROR]   InstructorAggregatesIT.T_10_19_theHistoryListsOwnAndGroupDogsWithTheR1014StatesAndTheModuleTypes:295->fetch:79->BookingFixtures.call:129->BookingFixtures.call:136 [GET /me/history {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi af360c2d-71c0-47f8-a33c-80b4f4de634a al club.","details":{},"traceId":"af360c2d-71c0-47f8-a3
+expected: 200
+ but was: 500
+[ERROR]   InstructorAggregatesIT.T_10_20_theWeekIsTheIsoWeekWithClassesTrainingsAndBlocksAndItsFiltersAndPdf:154 [R-10-00: the handler when the dog has one] 
+expected: "Pau + Rock"
+ but was: "Laura + Rock"
+[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0

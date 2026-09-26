@@ -54,6 +54,17 @@ public class PlanningCatalogAccess {
         return instructors.findAll().stream().filter(Instructor::active).sorted(Comparator.comparing(Instructor::memberId).thenComparing(Instructor::id))
                 .map(Instructor::id).toList();
     }
+    /** S10: `Level.code` and name of every level (active or not: a past class keeps its level), by id. */
+    public record LevelRef(String id, String code, LocalizedText name, boolean active) { }
+    public Map<String, LevelRef> levelRefs() {
+        var result = new LinkedHashMap<String, LevelRef>(); levels.findAll().forEach(l -> result.put(l.id(), new LevelRef(l.id(), l.code(), l.name(), l.active())));
+        return result;
+    }
+    /** S10 R-10-01: the instructors with their census member (the caller's profile), active or not. */
+    public record InstructorRef(String id, String shortName, String memberId, boolean active) { }
+    public List<InstructorRef> instructorRefs() {
+        return instructors.findAll().stream().map(i -> new InstructorRef(i.id(), i.shortName(), i.memberId(), i.active())).toList();
+    }
     public List<String> instructorMembers(Collection<String> ids) { return instructors.findAll().stream().filter(i -> ids.contains(i.id())).map(Instructor::memberId).toList(); }
     public static int capacity(List<Integer> capacities, boolean levelsEnabled, int defaultCapacity) {
         return CapacityCalculator.forLevels(capacities, levelsEnabled, defaultCapacity);

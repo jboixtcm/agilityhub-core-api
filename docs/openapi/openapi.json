@@ -1482,6 +1482,10 @@
           "memberFirstName" : {
             "type" : "string"
           },
+          "memberFullName" : {
+            "description" : "Only when handlerName differs from memberFirstName: the owner's full name, «(abonat: {nom i cognom})» (R-10-00)",
+            "type" : "string"
+          },
           "memberId" : {
             "type" : "string"
           },
@@ -12362,6 +12366,10 @@
           "entryId" : {
             "type" : "string"
           },
+          "handlerName" : {
+            "description" : "Dog.handlerName: «{guia} + {gos}» = handlerName ?? memberFirstName (R-10-00)",
+            "type" : [ "string", "null" ]
+          },
           "joinedAt" : {
             "format" : "date-time",
             "type" : "string"
@@ -20804,7 +20812,7 @@
     },
     "/api/v1/attendances" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) of the S10 attendances (D10, exports, phase 2); an undeclared filter or sort is 400 INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) of the stored S10 attendances (D10, phase 2; a booking never marked has no row); an undeclared filter or sort is 400 INVALID_FILTER. No export. Tenant comes from the JWT.",
         "operationId" : "attendances",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -24209,7 +24217,7 @@
     },
     "/api/v1/class-sessions/{id}/attendance" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN, any class (global vision; MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screens 21/D12 (R-10-02, R-10-03): rows = live bookings plus NOTIFIED by bookedAt; sheet.canMarkPresence/canMarkNotice/editableUntil paint the circles. TASKS off: no pendingTasksCount; WAITLIST off: no waiting/waitlist. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN, any class (global vision; MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screens 21/D12 (R-10-02, R-10-03): rows = live bookings (ACTIVE, PAYMENT_PENDING) plus the NOTIFIED ones, by bookedAt; sheet.canMarkPresence/canMarkNotice/editableUntil paint the circles (a CANCELLED class: both false). A DRAFT class or another club's → 404. TASKS off: no pendingTasksCount; WAITLIST off: no waiting/waitlist. Tenant comes from the JWT.",
         "operationId" : "attendanceSheet",
         "parameters" : [ {
           "in" : "path",
@@ -24354,7 +24362,7 @@
         "tags" : [ "clubs.bookings" ]
       },
       "put" : {
-        "description" : "Roles: INSTRUCTOR inside the window, ADMIN always (audited ATTENDANCE_OVERRIDDEN); MEMBER → 403; impersonation → IMPERSONATION_DENIED. R-10-04: one Mongo transaction serialised by seat_locks with the S08 cancellation of NOTIFIED (R-10-05); version ≠ attendanceSummary.version → 409 STALE_VERSION{current: AttendanceSheet}; any error changes nothing; same Idempotency-Key → same response. details: ATTENDANCE_BOOKING_NOT_ACTIVE{bookingId}, ATTENDANCE_WINDOW_CLOSED{editableUntil}. An unknown state is 400. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR inside the window, ADMIN always (audited ATTENDANCE_OVERRIDDEN); MEMBER → 403; impersonation → IMPERSONATION_DENIED. R-10-04: one Mongo transaction serialised by seat_locks with the S08 cancellation of NOTIFIED (R-10-05); version ≠ attendanceSummary.version → 409 STALE_VERSION{current: AttendanceSheet}; a DRAFT or CANCELLED class → 409 INVALID_STATE; an item equal to the current state is a no-op; any error changes nothing; same Idempotency-Key → same response. details: ATTENDANCE_BOOKING_NOT_ACTIVE{bookingId}, ATTENDANCE_WINDOW_CLOSED{editableUntil}. An unknown state or a repeated bookingId is 400. Tenant comes from the JWT.",
         "operationId" : "saveAttendance",
         "parameters" : [ {
           "in" : "path",
@@ -30067,7 +30075,7 @@
     },
     "/api/v1/dogs/{id}/instructor-card" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN, any dog of the club (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screens 22/D13 (R-10-08, R-10-09): 30-day metrics, last 5 classes, level age. TASKS off: no instructorNote/tasks/observations; FREE_TRAINING off: no trainingsCount/trainingsPerWeek; levels.enabled = false: no level. Another club's dog → 404. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN, any dog of the club (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screens 22/D13 (R-10-08, R-10-09): 30-day metrics (cancelledLate in the denominator, assumption §13-1), last 5 classes, level with assignedAt. TASKS off: no instructorNote/tasks/observations; FREE_TRAINING off: no trainingsCount/trainingsPerWeek; levels.enabled = false: no level. Another club's dog → 404. Tenant comes from the JWT.",
         "operationId" : "instructorCard",
         "parameters" : [ {
           "in" : "path",
@@ -33809,7 +33817,7 @@
     },
     "/api/v1/instructor/day" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screen 20 (R-10-01): global vision; date absent = today (club-local); instructorId absent = the caller's profile (an ADMIN without one gets the first by shortName); an instructor of another club → 404. Every ring block of the day is listed. WAITLIST off: no waiting. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Screen 20 (R-10-01): global vision; date absent = today (club-local); instructorId absent = the caller's profile (`me` too; an ADMIN without one gets the first active instructor by shortName); an instructor of another club → 404. Seven day chips from today; the selected instructor's ACTIVE, FINISHED and CANCELLED classes with attendance.status; every ring block of the day. WAITLIST off: no waiting. Tenant comes from the JWT.",
         "operationId" : "instructorDay",
         "parameters" : [ {
           "in" : "query",
@@ -33964,7 +33972,7 @@
     },
     "/api/v1/instructor/week" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 (R-10-15): ISO week of date in the club's zone, Monday–Saturday (Sunday only with items); instructorId filters classes only (`me` = the caller; also the shared classes with classes.maxInstructorsPerClass > 1), ringId filters everything; trainings and blocks are always shown. FREE_TRAINING off: no TRAINING cells; WAITLIST off: no waiting. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 (R-10-15): ISO week of date in the club's zone, Monday–Saturday (Sunday only with items); classes of the S06 calendar form B (never DRAFT) with attendanceStatus; instructorId filters classes only (`me` = the caller; also the shared classes with classes.maxInstructorsPerClass > 1), ringId filters everything; trainings (half height: training.slotMinutes) and blocks are always shown. FREE_TRAINING off: no TRAINING cells; WAITLIST off: no waiting. Tenant comes from the JWT.",
         "operationId" : "instructorWeek",
         "parameters" : [ {
           "in" : "query",
@@ -34126,7 +34134,7 @@
     },
     "/api/v1/instructor/week/export" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 [PDF]: the same query as GET /instructor/week rendered landscape with the club logo, synchronous. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 [PDF]: the same query as GET /instructor/week rendered as a landscape A4 grid in the club's theme colour, labels in the caller's locale, synchronous (not an export job: no S3, no rate limit); Content-Disposition `{club.slug}_agenda_{yyyyMMdd}.pdf` (the week's Monday). Tenant comes from the JWT.",
         "operationId" : "exportInstructorWeek",
         "parameters" : [ {
           "in" : "query",
@@ -38970,7 +38978,7 @@
     },
     "/api/v1/me/history" : {
       "get" : {
-        "description" : "Roles: MEMBER (also the impersonation token). Screen 25 (R-10-14): own and family-group dogs, history.monthsVisible months, startsAt desc, no live bookings (they are on 03). dogId absent = «Tots»; a dog that is not accessible → 404 DOG_NOT_ACCESSIBLE. type TRAINING needs FREE_TRAINING, ACTIVITY needs ACTIVITIES. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (also the impersonation token). Screen 25 (R-10-14): own and family-group dogs, history.monthsVisible months, startsAt desc, at most 500, no live bookings (they are on 03; cancelled ones appear, future ones too). dogId absent = «Tots»; a dog that is not accessible → 404 DOG_NOT_ACCESSIBLE. TRAINING items need FREE_TRAINING, ACTIVITY items ACTIVITIES (listed with «Tots» only). Tenant comes from the JWT.",
         "operationId" : "memberHistory",
         "parameters" : [ {
           "in" : "query",

@@ -37,7 +37,9 @@ public class BookingNotifications {
         boolean created = event.kind() == BookingEvent.Kind.BookingCreated;
         return Optional.ofNullable(switch (handler) {
             case "N-04" -> created && Set.of("APP", "INSTRUCTOR").contains(origin) ? "N-04" : null;
-            case "N-05" -> !created && Set.of("MEMBER", "INSTRUCTOR").contains(by) && !"BACKOFFICE".equals(origin) && !"PAYMENT_TIMEOUT".equals(reason) ? "N-05" : null;
+            // R-08-19: the «ha avisat» of 21/D12 is origin INSTRUCTOR whoever saves it (an ADMIN too, `by: ADMIN`): N-05, never N-36.
+            case "N-05" -> !created && (Set.of("MEMBER", "INSTRUCTOR").contains(by) || "INSTRUCTOR".equals(origin)) && !"BACKOFFICE".equals(origin)
+                    && !"PAYMENT_TIMEOUT".equals(reason) ? "N-05" : null;
             case "N-36" -> "BACKOFFICE".equals(origin) ? "N-36" : null;
             // E30: a checkout the provider failed to open was already reported to the member as an error.
             case "N-40" -> !created && "PAYMENT_TIMEOUT".equals(reason) && !Boolean.TRUE.equals(p.get("checkoutFailed")) ? "N-40" : null;

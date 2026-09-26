@@ -2,7 +2,7 @@ package com.agilityhub.core.clubs.bookings.application.ports;
 
 import java.util.Optional;
 
-/** S10 R-10-03 contract: the attendance of a booking (`PRESENT` · `NO_SHOW` · …). E6 implements it; the default has none. */
+/** S10 R-10-03 contract: the attendance of a booking (`PRESENT` · `NO_SHOW` · …), served by `AttendanceStates` (E6-T02). */
 public interface AttendanceStatePort {
     Optional<String> state(String bookingId);
     /** A PRESENT/NO_SHOW mark makes the booking no longer cancellable (R-08-10). */

@@ -38,7 +38,7 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
     static final Instant NOW = local("2026-10-06T10:00");
     static final List<String> DATA = List.of("bookings", "seat_holds", "seat_locks", "waitlist_entries", "class_sessions", "members", "dogs", "family_groups",
             "memberships", "accounts", "levels", "rings", "instructors", "parameters", "domain_events", "notifications", "audit_entries", "idempotency_records",
-            "plans", "prices", "upfront_payments", "checkout_sessions", "impersonation_sessions");
+            "plans", "prices", "upfront_payments", "checkout_sessions", "impersonation_sessions", "attendances", "ring_blocks", "training_bookings");
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs; @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher;
     @Autowired InMemoryPackBalances packs; @Autowired InMemoryInactivity inactivity; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;

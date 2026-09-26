@@ -1,0 +1,36 @@
+clubs.bookings.domain                lines  99.6%  branches  95.7%
+clubs.bookings.application           lines  98.7%  branches  83.7%
+clubs.bookings.application.ports     lines  86.0%  branches 100.0%
+clubs.bookings.api                   lines  98.3%  branches  87.5%
+clubs.bookings.persistence           lines  98.6%  branches  85.7%
+clubs.scheduling.application         lines  98.9%  branches  85.8%
+clubs.census.application             lines  98.8%  branches  86.0%
+clubs.catalogs.application           lines  98.7%  branches  91.0%
+clubs.training.application           lines  99.5%  branches  84.9%
+clubs.activities.application         lines  99.2%  branches  85.2%
+shared.api                           lines  94.8%  branches  91.7%
+New or changed classes:
+  AttendanceSheetService         lines  98.6% (1 missed)  branches  91.8% (4 missed)
+  AttendanceSheetQuery           lines 100.0% (0 missed)  branches  78.9% (19 missed)
+  InstructorDayQuery             lines 100.0% (0 missed)  branches  79.2% (5 missed)
+  WeekAgendaQuery                lines  98.1% (1 missed)  branches  79.3% (12 missed)
+  WeekAgendaPdf                  lines  98.0% (2 missed)  branches  84.9% (8 missed)
+  InstructorCardQuery            lines  85.1% (7 missed)  branches  68.8% (10 missed)
+  HistoryQuery                   lines 100.0% (0 missed)  branches  86.2% (12 missed)
+  AttendanceListQuery            lines 100.0% (0 missed)  branches  75.0% (1 missed)
+  AttendanceConsumers            lines 100.0% (0 missed)  branches  61.1% (7 missed)
+  AttendanceStates               lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  AttendanceCallers              lines 100.0% (0 missed)  branches  66.7% (2 missed)
+  NoShowNoticeClaims             lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  ClaimNoShowCommand             lines  92.3% (1 missed)  branches  71.4% (4 missed)
+  AttendanceTransitions          lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  NoticeRules                    lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  AttendanceMetrics              lines 100.0% (0 missed)  branches  97.7% (1 missed)
+  HistoryRules                   lines  95.2% (1 missed)  branches  92.0% (2 missed)
+  AttendanceWindow               lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  InstructorScheduleAccess       lines 100.0% (0 missed)  branches  68.8% (5 missed)
+  AttendanceCensusAccess         lines  96.4% (1 missed)  branches  57.7% (11 missed)
+  TrainingHistory                lines 100.0% (0 missed)  branches  50.0% (2 missed)
+  ActivityHistory                lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  InstructorController           lines 100.0% (0 missed)  branches  87.5% (1 missed)
+  BookingCancellationService     lines 100.0% (0 missed)  branches  92.1% (6 missed)

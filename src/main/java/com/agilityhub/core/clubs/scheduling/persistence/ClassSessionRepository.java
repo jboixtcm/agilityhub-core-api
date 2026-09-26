@@ -54,6 +54,12 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
     private long future(String field, String id, java.time.Instant now) {
         return mongo.count(tenantQuery().addCriteria(Criteria.where(field).is(id).and("state").in("DRAFT", "ACTIVE").and("startsAt").gt(now)), ClassSession.class);
     }
+    /** S10 R-10-04: the attendance summary (S10-owned) and `version + 1`, so a planning edit read before it fails its compare-and-set. */
+    public void attendanceSummary(String id, ClassSession.AttendanceSummary summary) {
+        var result = mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("attendanceSummary", summary).inc("version", 1),
+                ClassSession.class);
+        if (result.getMatchedCount() != 1) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND); }
+    }
     public void finishedAt(String id, java.time.Instant now) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("finishedAt", now), ClassSession.class);
     }

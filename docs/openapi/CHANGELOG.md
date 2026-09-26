@@ -2,6 +2,24 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E6-T02 · S10 attendance, instructor day and week (with its PDF), student card, member history and `/attendances` are served
+
+**0 operations added or removed; 2 optional properties added; 8 descriptions changed.** The 8 routes of E6-T01 that
+this task serves no longer answer `501 NOT_IMPLEMENTED`: `GET /instructor/day`, `GET /instructor/week`, `GET
+/instructor/week/export`, `GET` and `PUT /class-sessions/{id}/attendance`, `GET /attendances`, `GET
+/dogs/{id}/instructor-card` and `GET /me/history`. Their descriptions lose the «Contract only; returns 501» sentence and
+say what the api now decides. The web must regenerate its client for the two properties.
+- **`AttendanceRow.memberFullName`** (optional, string; S10 R-10-00): only when `handlerName` differs from
+  `memberFirstName`, the owner's full name, for the backoffice «(abonat: {nom i cognom})». Absent otherwise.
+- **`SheetWaitlistEntry.handlerName`** (optional, nullable): `Dog.handlerName`, so 21's «Llista d'espera» shows
+  «{guia} + {gos}» like the rows (R-10-00).
+- Module-dependent fields are now **absent**, never `null`, as the schemas already said (not required, not nullable):
+  `waiting` (WAITLIST), `waitlist` (WAITLIST), `pendingTasksCount` (TASKS, and until E6-T03 serves the follow-up port),
+  `applied` (the `PUT` only), `InstructorCard.level` (`levels.enabled`), `instructorNote`, `tasks`, `observations`
+  (TASKS, from E6-T03), `trainingsCount`, `trainingsPerWeek` (FREE_TRAINING). `WeekCell` leaves out every null field.
+- `GET /class-sessions/{id}/attendance` answers `404` for a DRAFT class (it is on no instructor screen). The `PUT`
+  answers `409 INVALID_STATE` for a DRAFT or CANCELLED class and `400 VALIDATION_ERROR` for a repeated `bookingId`.
+
 ## 2026-09-26 · E5-T25 · The S08 member flow's gaps (web E5-W01): the booked and the waiting dog, the in-time deadline, `BookedBy.self`, 03's ring colour and activity id, one `Idempotency-Key` per body
 
 **0 operations added or removed; 7 properties added (5 required, 2 optional and nullable); 2 descriptions changed.** The

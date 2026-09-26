@@ -20,6 +20,13 @@ import org.springframework.transaction.annotation.*;
 @Service
 public class BookingCancellationService {
     public record ClubCancellation(List<Booking> bookings, List<WaitlistEntry> waitlist) { }
+    /**
+     * What a cancellation did (E6-T02 widened it for S10 R-10-05; `cancel` still returns the booking): `seatReleased` =
+     * the booking no longer takes a seat (always, since only a live booking is cancelled); `waitlistNotified` = the
+     * `SeatReleased` emitted before the class started carried `notifyWaitlist = true` (R-08-11); `packRefunded` = a
+     * pack session was given back (R-08-17: in time only).
+     */
+    public record Cancellation(Booking booking, boolean late, int minutesBefore, boolean seatReleased, boolean waitlistNotified, boolean packRefunded) { }
     private final BookingContext context; private final BookingTransactions transactions; private final SeatLockRepository locks;
     private final BookingRepository bookings; private final SeatHoldRepository holds; private final WaitlistEntryRepository waitlist;
     private final PackBalancePort packs; private final AttendanceStatePort attendance; private final BookingEvents events;
@@ -86,18 +93,34 @@ public class BookingCancellationService {
     }
 
     /**
+     * S10 R-10-05 «ha avisat» (R-08-19: `origin = INSTRUCTOR`, `reason = INSTRUCTOR_NOTICE`, N-05 without SMS), inside the
+     * attendance save transaction, which already holds the class's seat lock (R-10-04). The S10 attendance of this
+     * booking is the one the save is changing (PRESENT/NO_SHOW → NOTIFIED is a §5 transition), so the R-08-10 attendance
+     * guard does not apply here; every other precondition does (ACTIVE, `now < classEndsAt`).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Cancellation cancelForNotice(String bookingId, BookingActor actor) {
+        return cancel(bookings.require(bookingId), actor, BookingCancelReason.INSTRUCTOR_NOTICE, null, null, false, true);
+    }
+
+    /**
      * The shared transition, inside a transaction that already holds the class's seat lock.
      * @param swapToClassId R-08-09: set for the old booking of an atomic swap (CANCELLED, `SWAP`, never late) — the
      *        class of the new booking. A same-class swap keeps the class's count, so it never raises `ClassBelowMinimum`.
      */
     Booking cancelLocked(Booking b, BookingActor actor, BookingCancelReason reason, String message, String swapToClassId) {
-        return cancelLocked(b, actor, reason, message, swapToClassId, false);
+        return cancel(b, actor, reason, message, swapToClassId, false, false).booking();
     }
     private Booking cancelLocked(Booking b, BookingActor actor, BookingCancelReason reason, String message, String swapToClassId, boolean checkoutFailed) {
+        return cancel(b, actor, reason, message, swapToClassId, checkoutFailed, false).booking();
+    }
+    private Cancellation cancel(Booking b, BookingActor actor, BookingCancelReason reason, String message, String swapToClassId, boolean checkoutFailed,
+            boolean attendanceNotice) {
         boolean swap = swapToClassId != null, sameClassSwap = b.classSessionId().equals(swapToClassId);
         var now = context.now();
         boolean pending = b.state() == BookingState.PAYMENT_PENDING;
-        if (!(b.state() == BookingState.ACTIVE || pending && actor.isSystem()) || !now.isBefore(b.classEndsAt()) || attendance.marked(b.id())) {
+        if (!(b.state() == BookingState.ACTIVE || pending && actor.isSystem()) || !now.isBefore(b.classEndsAt())
+                || !attendanceNotice && attendance.marked(b.id())) {
             throw new ApiException(swap ? ErrorCode.SWAP_NOT_ALLOWED : ErrorCode.BOOKING_NOT_CANCELLABLE);
         }
         var outcome = CancellationPolicy.evaluate(b.classStartsAt(), now, context.integer("bookings.lateCancelThresholdMinutes"));
@@ -114,21 +137,24 @@ public class BookingCancellationService {
         payload.put("minutesBefore", outcome.minutesBefore()); payload.put("origin", actor.origin()); payload.put("reason", after.cancelReason());
         if (checkoutFailed) { payload.put("checkoutFailed", true); } // E30: payload only, no new reason value
         events.publish(BookingEvent.Kind.BookingCancelled, b.id(), payload, actor);
-        if (now.isBefore(b.classStartsAt())) { seatReleased(b, now, outcome.minutesBefore(), actor); }
+        boolean waitlistNotified = now.isBefore(b.classStartsAt()) && seatReleased(b, now, outcome.minutesBefore(), actor);
         counters.recount(b.classSessionId(), !late && !sameClassSwap, actor);
         if (actor.impersonated()) { audit.cancelledByClub(b, after); }
         if (late) { audit.cancelledLate(b, after); } // S14 R-14-09: every late cancellation, impersonated ones too
-        return after;
+        return new Cancellation(after, late, outcome.minutesBefore(), true, waitlistNotified, refund != null);
     }
-    private void seatReleased(Booking b, Instant now, int minutesBefore, BookingActor actor) {
+    /** Emits `SeatReleased` and returns its `notifyWaitlist`. */
+    private boolean seatReleased(Booking b, Instant now, int minutesBefore, BookingActor actor) {
         int capacity = classes.find(b.classSessionId()).map(ClassSessionBookingAccess.Session::capacity).orElse(0);
         int taken = (int) bookings.forClass(b.classSessionId(), BookingRepository.LIVE).stream().filter(x -> !x.id().equals(b.id())).count();
         boolean liveEntries = waitlist.live(b.classSessionId()).stream().anyMatch(e -> e.state() == WaitlistState.ACTIVE);
         var payload = new LinkedHashMap<String, Object>(); payload.put("classId", b.classSessionId()); payload.put("freeSeats", Math.max(0, capacity - taken));
         payload.put("minutesBefore", minutesBefore);
-        payload.put("notifyWaitlist", CancellationPolicy.notifyWaitlist(context.enabled(Module.WAITLIST), b.classStartsAt(), now,
-                context.integer("waitlist.notifyThresholdMinutes"), liveEntries));
+        boolean notify = CancellationPolicy.notifyWaitlist(context.enabled(Module.WAITLIST), b.classStartsAt(), now,
+                context.integer("waitlist.notifyThresholdMinutes"), liveEntries);
+        payload.put("notifyWaitlist", notify);
         events.publish(BookingEvent.Kind.SeatReleased, b.classSessionId(), payload, actor);
+        return notify;
     }
 
     /**

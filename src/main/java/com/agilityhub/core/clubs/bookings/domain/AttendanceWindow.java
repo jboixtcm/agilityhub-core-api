@@ -19,6 +19,12 @@ public record AttendanceWindow(Instant opensAt, Instant editableUntil) {
     }
     public boolean notOpen(Instant now) { return now.isBefore(opensAt); }
     public boolean closed(Instant now) { return now.isAfter(editableUntil); }
+    /** `PRESENT`, `NO_SHOW` and back to `PENDING`: an INSTRUCTOR inside `[T0, T1]`, an ADMIN always (R-10-03). */
+    public boolean canMarkPresence(boolean admin, Instant now) { return admin || !notOpen(now) && !closed(now); }
+    /** An ADMIN mark outside `[T0, T1]` is audited as `ATTENDANCE_OVERRIDDEN` (S14 R-14-09). */
+    public boolean overrides(boolean admin, Instant now) { return admin && (notOpen(now) || closed(now)); }
+    /** `NOTIFIED`: `bookings.instructorLastMinuteNotice` and `now ≤ T1`, for every role (R-10-03); the booking must still be ACTIVE. */
+    public boolean canMarkNotice(boolean instructorLastMinuteNotice, Instant now) { return instructorLastMinuteNotice && !closed(now); }
 
     /**
      * NONE before `T0` and for a DRAFT class; CLOSED after `T1` and for a CANCELLED class (nothing can be marked);

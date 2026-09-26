@@ -57,6 +57,15 @@ public class TrainingBookingRepository extends TenantRepository<TrainingBooking>
         if (to != null) { filters.add(Criteria.where("startsAt").lt(to)); }
         return mongo.find(tenantQuery().addCriteria(new Criteria().andOperator(filters.toArray(Criteria[]::new))).with(Sort.by("startsAt", "_id")), TrainingBooking.class);
     }
+    /** S10 R-10-14 (25): every booking of the given dogs starting at or after {@code from}, any state, by start. */
+    public List<TrainingBooking> forDogsSince(Collection<String> dogIds, Instant from) {
+        if (dogIds.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("dogId").in(dogIds).and("startsAt").gte(from)).with(Sort.by("startsAt", "_id")), TrainingBooking.class);
+    }
+    /** S10 R-10-08: ACTIVE bookings of a dog with `endsAt ∈ [from, to)` (the trainings done in the 30-day window). */
+    public long countActiveEndingBetween(String dogId, Instant from, Instant to) {
+        return mongo.count(tenantQuery().addCriteria(active().and("dogId").is(dogId).and("endsAt").gte(from).lt(to)), TrainingBooking.class);
+    }
     /** Any state, `startsAt ∈ [from, until)` (the dashboard KPI of E3-T04). */
     public List<TrainingBooking> startingBetween(String clubId, Instant from, Instant until) {
         return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("startsAt").gte(from).lt(until)), TrainingBooking.class);
