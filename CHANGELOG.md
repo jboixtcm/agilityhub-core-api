@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T20: api follow-ups of the web's E4 runs against the real core (E4-W05, E4-W06, E4-W11); the list item schemas narrow.
+  - S07 §6: `GET /activities/{id}/ring-conflicts` documents `400 INVALID_TIME_RANGE` and `422 OUTSIDE_OPENING_HOURS`; an
+    activity with rings and no date answers `INVALID_TIME_RANGE` there instead of a 500.
+  - CATALEG_PARAMETRES (26-09): `learn.baseUrl` and `learn.recommendationsTtlMinutes` are system parameters (not editable by
+    the club); `signup.onboardingFields` and `legal.maxPostpones` are in «Alta i consentiments», editable. A contract test
+    now checks every key's D11 block against the document, and that only system keys are `PLATFORM`.
+  - CONVENCIONS_API §4: with `fields`, `GET /activities` and `GET /activities/{id}/registrations` leave out the keys that
+    were not requested; the row id always comes and is the only required property. `@ListContract(fields)` publishes
+    `x-fields` on the 14 universal lists, and an IT compares each with the runtime allowlist.
+  - R-07-08: `waitlistRank`, the 1-based rank of a WAITLISTED registration among the waiting entries, computed when read,
+    on D7's registrations and on the member's registration views.
+  - D7's registrations: `appliedFilters` without the path's `activityId`; a query `activityId` filter or `fields=id` is
+    `400 INVALID_FILTER`.
+  - CONVENCIONS_API §5-§6: `GET /day-grid?view=foo` answers `400 VALIDATION_ERROR` with `details.field` and `fieldErrors`.
+
 - E5-T19: follow-ups of the E3-T17 round-2 review (D2's documents); an additive contract change.
   - R-04-19: each file row of D2's dog view (`SignupDocumentFile`) carries its `fileKey`. A D2 `PATCH /dogs/{id}` keeps
     the files whose keys it sends back (as they are: id, name, upload date) and claims the other keys as new signup

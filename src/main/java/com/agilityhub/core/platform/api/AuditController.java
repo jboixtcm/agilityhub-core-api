@@ -26,7 +26,9 @@ public class AuditController {
     @GetMapping("/api/v1/audit-entries")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
-            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = true)
+            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = true,
+            fields = {"id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel",
+                    "memberId", "action", "changes", "reason", "details"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Audit entries",
             description = "S14 R-14-11. Tenant-scoped audit, newest first; ADMIN only and impersonation is rejected. Member history includes direct and impersonated entries. Sensitive details and changes are masked.",
@@ -54,7 +56,9 @@ public class AuditController {
     @GetMapping("/api/v1/members/{id}/audit-entries")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
-            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = false)
+            columns = {"at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*", "details"}, paged = true, exportable = false,
+            fields = {"id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel",
+                    "memberId", "action", "changes", "reason", "details"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Member audit entries",
             description = "S14 R-14-11. Tenant-scoped audit, newest first; ADMIN only and impersonation is rejected. Member history includes direct and impersonated entries. Sensitive details and changes are masked.",

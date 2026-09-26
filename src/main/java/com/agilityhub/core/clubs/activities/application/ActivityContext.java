@@ -46,7 +46,8 @@ public class ActivityContext {
     }
     public com.agilityhub.core.clubs.scheduling.application.ActivityBlockRequest blockRequest(Activity a) {
         if(a.ringIds().isEmpty()) return new com.agilityhub.core.clubs.scheduling.application.ActivityBlockRequest(a.id(),List.of(),null,null,actor());
-        var raw=config().get("club.openingHours",Map.class).get(a.date().getDayOfWeek().name());
+        // Without a date there is no window: RingBlockWindow answers INVALID_TIME_RANGE (E5-T20), never a 500.
+        var raw=a.date()==null?null:config().get("club.openingHours",Map.class).get(a.date().getDayOfWeek().name());
         var hours=raw instanceof Map<?,?> map?map:Map.of();
         LocalTime open=hours.get("open")==null?null:LocalTime.parse(hours.get("open").toString()), close=hours.get("close")==null?null:LocalTime.parse(hours.get("close").toString());
         var window=RingBlockWindow.of(a.date(),a.startTime(),a.endTime(),a.ringBlockWindow()==null?null:a.ringBlockWindow().fromTime(),

@@ -46,7 +46,21 @@ public class ActivityApiService {
     public Map<String,Object> detail(String id) { return queries.detail(id); }
     public ListPage<Map<String,Object>> list(MultiValueMap<String,String> params) { return lists.list("activities",ActivityLists.params(params)); }
     public FilterValues facets(String field,MultiValueMap<String,String> params) { return lists.facets("activities",field,ActivityLists.params(params)); }
+    /**
+     * D7's registrations (S07 §6, E5-T20). The activity comes from the path only: a query `activityId` filter is INVALID_FILTER
+     * (not x-filterable) and `appliedFilters` lists the query's filters. Every row carries its `registrationId` and the
+     * `waitlistRank` computed now (R-07-08).
+     */
     public ListPage<Map<String,Object>> registrations(String id,MultiValueMap<String,String> params) {
-        service.require(id); var input=new LinkedMultiValueMap<>(params); input.add("filter","activityId:eq:"+id); return lists.list("activity-registrations",input);
+        service.require(id);
+        if(params.getOrDefault("filter",List.of()).stream().anyMatch(filter -> filter.startsWith("activityId:"))) throw ListDefinition.invalid();
+        var input=new LinkedMultiValueMap<>(params); input.add("filter","activityId:eq:"+id);
+        var page=lists.list("activity-registrations",input); var ranks=projection.waitlistRanks(id);
+        var items=page.items().stream().map(row -> {
+            var item=new LinkedHashMap<String,Object>(row); String registration=row.get("id").toString();
+            item.put("registrationId",registration); item.put("waitlistRank",ranks.get(registration)); return (Map<String,Object>)item;
+        }).toList();
+        return new ListPage<>(items,page.page(),page.size(),page.totalItems(),page.totalPages(),
+                page.appliedFilters().stream().filter(filter -> !filter.field().equals("activityId")).toList());
     }
 }

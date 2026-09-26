@@ -14,8 +14,15 @@ import org.springframework.stereotype.Service;
 /** Explicit application views; public projections never derive from a registration or staff response. */
 @Service
 public class ActivityProjection {
-    final ActivityContext context; private final AttachmentService attachments; private final ActivityRepository activities;
-    public ActivityProjection(ActivityContext context,AttachmentService attachments,ActivityRepository activities) { this.context=context; this.attachments=attachments; this.activities=activities; }
+    final ActivityContext context; private final AttachmentService attachments; private final ActivityRepository activities; private final ActivityRegistrationRepository registrations;
+    public ActivityProjection(ActivityContext context,AttachmentService attachments,ActivityRepository activities,ActivityRegistrationRepository registrations) {
+        this.context=context; this.attachments=attachments; this.activities=activities; this.registrations=registrations;
+    }
+    /** R-07-08 (E5-T20): registration id → `waitlistRank` of the activity's WAITLISTED registrations, computed when read. */
+    public Map<String,Integer> waitlistRanks(String activityId) {
+        var positions=new HashMap<String,Integer>(); registrations.waiting(activityId).forEach(r -> positions.put(r.id(),r.position()));
+        return ActivityRows.waitlistRanks(positions);
+    }
     public static Map<String,Object> object(Object... pairs) {
         var result=new LinkedHashMap<String,Object>(); for(int i=0;i<pairs.length;i+=2) result.put(pairs[i].toString(),pairs[i+1]); return result;
     }
@@ -71,7 +78,8 @@ public class ActivityProjection {
      */
     public String endsAtLocal(Activity a) { return a.endTime()==null?null:local(context.times(a).endsAt()); }
     public Map<String,Object> registration(ActivityRegistration r,Activity a) {
-        return object("id",r.id(),"activityId",a.id(),"memberId",r.memberId(),"state",r.state(),"origin",r.origin(),"position",r.position(),"activity",registeredActivity(a),
+        return object("id",r.id(),"activityId",a.id(),"memberId",r.memberId(),"state",r.state(),"origin",r.origin(),"position",r.position(),
+                "waitlistRank",r.state()==RegistrationState.WAITLISTED?waitlistRanks(a.id()).get(r.id()):null,"activity",registeredActivity(a),
                 "registeredAt",r.registeredAt(),"registeredBy",object("displayName",r.registeredBy().displayName(),"viaClub",r.registeredBy().impersonatedMemberId()!=null),
                 "cancellableUntil",CancellationDeadline.deadline(context.deadlinePolicy(),r.state(),context.times(a),context.impersonated()),
                 "cancellation",r.cancelReason()==null?null:object("reason",r.cancelReason(),"at",r.cancelledAt(),"byRole",r.cancelledBy().role()),

@@ -22,7 +22,8 @@ public class ActivityLists implements ListProvider {
         context.require(); boolean activity=key.equals("activities");
         var fields=activity?List.of("id","title","date","rings","registrations","state","type","slug","registrationTo","createdAt",
                         "typeDisplay","startTime","endTime","allRings","location","maxPlaces")
-                :List.of("id","registrationId","member","state","position","origin","registeredAt","cancelledAt","cancelReason");
+                // The keys of ActivityRegistrationListItem (E5-T20): registrationId is the row id; waitlistRank is computed when it is read.
+                :List.of("registrationId","member","state","position","waitlistRank","origin","registeredAt","cancelledAt","cancelReason");
         var filters=new LinkedHashMap<String,ListDefinition.Field>(); filters.put("id",new ListDefinition.Field("_id",ListDefinition.Type.TEXT));
         if(activity) {
             for(String f:List.of("state","type","date","ringId","levelId","deleted","registrationOpen")) filters.put(f,new ListDefinition.Field(

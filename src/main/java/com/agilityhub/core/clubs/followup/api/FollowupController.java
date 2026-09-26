@@ -46,7 +46,8 @@ public class FollowupController {
 
     @GetMapping("/api/v1/followup")
     @ListContract(filterable = {"kind", "memberId", "dogId", "authorAccountId", "unread"}, sortable = {"activityAt"},
-            columns = {"memberName*", "dogName*", "levelCode*", "activityAt*", "authorName*", "textExcerpt*", "createdAt*", "completedAt*"}, paged = true, exportable = false)
+            columns = {"memberName*", "dogName*", "levelCode*", "activityAt*", "authorName*", "textExcerpt*", "createdAt*", "completedAt*"}, paged = true, exportable = false,
+            fields = {"id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "textExcerpt", "createdAt", "completedAt", "activityAt", "unread"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
     @Operation(summary = "followup", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): visible FollowupItem rows, unread first; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. An undeclared filter or sort is 400 INVALID_FILTER." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "FollowupPage", useReturnTypeSchema = true))

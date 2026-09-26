@@ -148,7 +148,8 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/weeks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"startDate", "state"}, sortable = {"startDate"}, paged = true)
+    @ListContract(filterable = {"startDate", "state"}, sortable = {"startDate"}, paged = true,
+            fields = {"id", "isoYear", "isoWeek", "startDate", "endDate", "state", "generatedAt", "validatedAt", "weekdayTemplateName", "saturdayTemplateName", "classCounts"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "weeks", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<WeekListItem>", useReturnTypeSchema = true))
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -219,7 +220,9 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/class-sessions")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true)
+    @ListContract(filterable = {"date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true,
+            fields = {"id", "weekId", "date", "startTime", "endTime", "startsAt", "endsAt", "ringId", "levelIds", "instructorIds", "capacity", "capacityMode", "description",
+                    "displayDescription", "state", "counters", "atRisk", "riskExempt", "cancellation", "origin", "version", "inconsistencyIds", "placementId", "notes"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "classes", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. MEMBER cannot list classes; use day-grid or class detail. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<ClassSession>", useReturnTypeSchema = true))
     public ListPage<ClassSession> classes(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
@@ -290,7 +293,8 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/ring-blocks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
-    @ListContract(filterable = {"ringId", "kind", "reason", "state", "from", "to"}, sortable = {"from"}, paged = true)
+    @ListContract(filterable = {"ringId", "kind", "reason", "state", "from", "to"}, sortable = {"from"}, paged = true,
+            fields = {"id", "ringId", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER receives RingBlockMemberView without note or createdByName. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlock>", useReturnTypeSchema = true))
     public ListPage<RingBlock> blocks(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
@@ -345,7 +349,11 @@ public class SchedulingController {
     @Operation(summary = "dayGrid", description = "Roles: ADMIN, INSTRUCTOR, MEMBER, AGILITYHUB_ADMIN. Tenant and role guards apply. Every authenticated role may use member view; instructor view requires INSTRUCTOR/ADMIN. Impersonation permits only member view. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "DayGrid", useReturnTypeSchema = true))
     public DayGrid dayGrid(@RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date, @RequestParam(defaultValue = "member") @Schema(allowableValues = {"member", "instructor"}) String view) {
         access.tenant();
-        if (!java.util.Set.of("member", "instructor").contains(view)) { throw new com.agilityhub.core.shared.domain.ApiException(VALIDATION_ERROR); }
+        // CONVENCIONS_API §5-§6 (E5-T20): the error names its field, like every other 400 VALIDATION_ERROR.
+        if (!java.util.Set.of("member", "instructor").contains(view)) {
+            throw new com.agilityhub.core.shared.domain.ApiException(VALIDATION_ERROR, java.util.Map.of("field", "view",
+                    "fieldErrors", java.util.List.of(java.util.Map.of("field", "view", "code", "INVALID_VALUE"))));
+        }
         return view(grid.get(date,view.equals("instructor")),DayGrid.class);
     }
 }

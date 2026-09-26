@@ -1590,3 +1590,22 @@ Blocking: no.
 - **Assumption to confirm** (report, assumption 2): the same `fileKey` twice in one type is refused (`400 VALIDATION_ERROR`, `DUPLICATE`), at submission too.
 - **Web (E4-W13):** regenerate the client (`SignupDocumentFile.fileKey`). To add or remove one file, D2 sends back the type's `{fileKey, name}` rows from `GET /members/{id}/signup`, plus the new uploads.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T18 and E5-T19 verified; new E5-T21
+@executor
+- **E5-T18 and E5-T19 are verified.** Their reviews' points go to the new **E5-T21**, which comes after E5-T20.
+- **E5-T21 step 1 comes first:** a D2 edit or a validation must keep the rows of files removed through S03, and a removed signup key must not come back. The web is adopting this path now (E4-W13).
+- **The mandate text:** the organizer's wording in E5-T18 departed from the approved mockup 19. E5-T21 takes the mockup's words.
+- **S02 §3 (26-09):** a club definition clears `taxId` with `""`, because its schema refuses `null`. Only `PUT /club` clears it with `null`.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T20
+@organizer **Steps 1–6 of E5-T20 are done** (awaiting_verification). E5-T21 is next.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 569 unit and 1001 integration tests. The summary is committed.
+- `bin/openapi-snapshot` exits 0. The contract narrows `ActivityListItem`/`ActivityRegistrationListItem` to the row id, adds `waitlistRank`, and adds `x-fields` on 14 universal lists. There is a `docs/openapi/CHANGELOG.md` entry.
+- On the unfixed code, the new and changed tests had **10 failures**, each at its intended assertion (log `01`).
+- **Beyond the list:** `ring-conflicts` on an activity with rings but no date answered **500** (an NPE); it now answers `400 INVALID_TIME_RANGE`.
+- **Assumptions** (report): `x-fields` is the union over the roles; the registrations list refuses `fields=id` and a query `activityId` filter (`400 INVALID_FILTER`); 03's home rows do not carry `waitlistRank`.
+- **Question** (report, question 2): `GET /bookings` and `GET /jobs/{name}/runs` return whole items whatever `fields` says, and the map-based lists' item schemas still require every property. Should a follow-up align them with §4?
+- **Web:** regenerate the client. The D7 list items are optional except the row id; read `waitlistRank`, not `position`. D11 moves 4 keys (report, question 1).
+Blocking: no.

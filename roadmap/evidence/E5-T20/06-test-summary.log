@@ -1,0 +1,27 @@
+surefire totals: tests=569 failures=0 errors=0 skipped=0 (125 classes)
+failsafe totals: tests=1001 failures=0 errors=0 skipped=0 (86 classes)
+Classes this task adds or changes (the last three only through the contract and its fixtures):
+  [failsafe] com.agilityhub.core.clubs.activities.application.ActivityRealCoreFollowUpsIT: tests=4 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.ListFieldsContractIT: tests=1 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.activities.application.ActivityIT: tests=30 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.platform.api.SettingsIT: tests=22 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.scheduling.application.CalendarIT: tests=16 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.platform.application.ParameterCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.activities.domain.ActivityRulesTest: tests=10 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E4ContractIT: tests=63 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.E4ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+E5-T20 test methods (added or changed; the last two only through the fixtures):
+  PASS ActivityRealCoreFollowUpsIT#T_07_04_R_07_05_ringConflictsAnswersTheErrorsOfTheWindowThePublicationWouldRefuse
+  PASS ParameterCatalogContractTest#T_02_03_everyKeyIsInItsDocumentedD11BlockAndOnlySystemKeysArePlatformOnly
+  PASS SettingsIT#T_02_03_R_02_04_theD11BlocksFollowTheCatalogAndOnlyTheClubKeysAreEditable
+  PASS ActivityRealCoreFollowUpsIT#T_07_21_withFieldsBothD7ListsLeaveOutEveryKeyThatWasNotRequested
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_everyUniversalListPublishesExactlyTheFieldsItAccepts
+  PASS ActivityIT#T_07_21_T_07_29_theD7ColumnsOfTheListAreTheActivityViewsOwnValues
+  PASS ActivityIT#T_07_21_aRegistrationListItemAlwaysSendsCancelReasonNullUntilItIsCancelled
+  PASS ActivityRealCoreFollowUpsIT#R_07_08_T_07_15_aWaitlistedRegistrationReadsItsRankAmongTheWaitingEntries
+  PASS ActivityRulesTest#R_07_08_theWaitlistRankIsTheDenseRankOfThePositions
+  PASS ActivityRealCoreFollowUpsIT#T_07_21_theRegistrationsListAppliesOnlyTheFiltersOfTheQuery
+  PASS CalendarIT#T_06_20_anUnknownDayGridViewIsAValidationErrorOnTheViewField
+  PASS E4ContractIT#T_06_20_T_07_17_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+  PASS E4ResponseContractTest#T_06_20_T_07_17_formsKeepEveryDocumentedFieldDuringRoundTrip

@@ -41,22 +41,23 @@ public final class ActivityContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String internalNotes,
             long version) { }
     /**
-     * D7 row (S07 §2). E4-T06: the columns are the values of the activity's own view; every property is sent, `null` where
-     * allowed. With `fields=`, a property that was not selected is `null`, never a primitive default (E5-T15: `allRings`).
+     * D7 row (S07 §2). E4-T06: the columns are the values of the activity's own view. Without `fields=` every property is sent,
+     * `null` where allowed. E5-T20 (CONVENCIONS_API §4): with `fields=`, a property that was not selected is left out (never
+     * `null` or `false` in its place) and `id` always comes, so only `id` is required.
      */
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    public record ActivityListItem(String id, String title,
-            @Schema(description = "The label of `type` in the reader's locale, or the club's free label (R-07-01): «{title} · {typeDisplay}»") String typeDisplay,
+    public record ActivityListItem(@Schema(requiredMode = REQUIRED) String id, @Schema(requiredMode = NOT_REQUIRED) String title,
+            @Schema(requiredMode = NOT_REQUIRED, description = "The label of `type` in the reader's locale, or the club's free label (R-07-01): «{title} · {typeDisplay}»") String typeDisplay,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate date,
-            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null without hours") String startTime,
-            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = HHMM + "; null when the activity has no end (never the model's next-day 00:00)") String endTime,
-            List<ActivityRing> rings,
-            @Schema(description = "The rings are every active ring of the catalog (R-07-11: «totes — bloquejades»)") Boolean allRings,
-            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = "The free text of an activity away from the club («— (fora del club)»); null at the club") String location,
-            ActivityCounters registrations,
-            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", description = "null = no maximum («obertes · socis»)") Integer maxPlaces,
-            ActivityState state, ActivityType type, String slug,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate registrationTo, Instant createdAt) { }
+            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = HHMM + "; null without hours") String startTime,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = HHMM + "; null when the activity has no end (never the model's next-day 00:00)") String endTime,
+            @Schema(requiredMode = NOT_REQUIRED) List<ActivityRing> rings,
+            @Schema(requiredMode = NOT_REQUIRED, description = "The rings are every active ring of the catalog (R-07-11: «totes — bloquejades»)") Boolean allRings,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "The free text of an activity away from the club («— (fora del club)»); null at the club") String location,
+            @Schema(requiredMode = NOT_REQUIRED) ActivityCounters registrations,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"integer", "null"}, format = "int32", description = "null = no maximum («obertes · socis»)") Integer maxPlaces,
+            @Schema(requiredMode = NOT_REQUIRED) ActivityState state, @Schema(requiredMode = NOT_REQUIRED) ActivityType type, @Schema(requiredMode = NOT_REQUIRED) String slug,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) LocalDate registrationTo, @Schema(requiredMode = NOT_REQUIRED) Instant createdAt) { }
     static final String HHMM = "Club-local HH:mm (R-07-13)";
     static final String ENDS_AT = "Derived instant (E5-T15): for an activity without endTime it is the next local 00:00, which orders and finishes it. "
             + "Clients display startTime/endTime, never this instant";
@@ -80,18 +81,29 @@ public final class ActivityContracts {
     public record ActivityCancellationPreview(List<ActivityCancellationRecipient> registrations, int activeCount, int waitingCount) { }
     public record ActivityCancellationRecipient(String registrationId, String memberName, RegistrationState state,
             List<String> channels, int phoneCount) { }
-    /** E4-T06 step 2: `position`, `cancelledAt` and `cancelReason` are always sent (never omitted), `null` when they do not apply. */
+    /**
+     * E4-T06 step 2: without `fields=`, `position`, `waitlistRank`, `cancelledAt` and `cancelReason` are always sent, `null` when they
+     * do not apply. E5-T20 (CONVENCIONS_API §4): with `fields=`, a property that was not selected is left out and `registrationId`
+     * (the row id) always comes, so only `registrationId` is required.
+     */
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    public record ActivityRegistrationListItem(String registrationId, ActivityRegistrationMember member, RegistrationState state,
-            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", description = "The waitlist position: set while WAITLISTED and kept "
-                    + "after a waitlisted registration is cancelled; null once promoted, or if it was never waitlisted (E5-T15)") Integer position,
-            RegistrationOrigin origin, Instant registeredAt,
-            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, format = "date-time", description = "null until the registration is cancelled") Instant cancelledAt,
-            @Schema(requiredMode = REQUIRED, types = {"string", "null"}, description = "null until the registration is cancelled") RegistrationCancelReason cancelReason) { }
+    public record ActivityRegistrationListItem(@Schema(requiredMode = REQUIRED) String registrationId,
+            @Schema(requiredMode = NOT_REQUIRED) ActivityRegistrationMember member, @Schema(requiredMode = NOT_REQUIRED) RegistrationState state,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"integer", "null"}, format = "int32", description = "The stored waitlist position (the promotion order): set while "
+                    + "WAITLISTED and kept after a waitlisted registration is cancelled; null once promoted, or if it was never waitlisted (E5-T15). It keeps "
+                    + "the gaps left by cancellations and promotions: show waitlistRank") Integer position,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"integer", "null"}, format = "int32", minimum = "1", description = WAITLIST_RANK) Integer waitlistRank,
+            @Schema(requiredMode = NOT_REQUIRED) RegistrationOrigin origin, @Schema(requiredMode = NOT_REQUIRED) Instant registeredAt,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, format = "date-time", description = "null until the registration is cancelled") Instant cancelledAt,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "null until the registration is cancelled") RegistrationCancelReason cancelReason) { }
+    static final String WAITLIST_RANK = "R-07-08 (E5-T20): the 1-based rank of a WAITLISTED registration among the activity's active waiting entries, "
+            + "in position order, computed when it is read (after a promotion the next entry reads 1); null for any other state";
     public record ActivityRegistrationMember(String id, String fullName, String memberNumber, List<ActivityPhone> phones, List<String> emails) { }
     public record ActivityPhone(String prefix, String number, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String label) { }
     public record ActivityRegistration(String id, String activityId, String memberId, RegistrationState state, RegistrationOrigin origin,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer position, RegisteredActivity activity, Instant registeredAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer position,
+            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", minimum = "1", description = WAITLIST_RANK) @JsonInclude(JsonInclude.Include.ALWAYS) Integer waitlistRank,
+            RegisteredActivity activity, Instant registeredAt,
             ActivityRegisteredBy registeredBy, Instant cancellableUntil,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityRegistrationCancellation cancellation,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityImpersonation impersonation) { }
@@ -106,7 +118,9 @@ public final class ActivityContracts {
     public record ActivityRegistrationCancellation(RegistrationCancelReason reason, Instant at, RegistrationCancelledByRole byRole) { }
     public enum RegistrationCancelledByRole { MEMBER, ADMIN, SYSTEM }
     public record ActivityRegistrationSummary(String id, String activityId, RegistrationState state, RegistrationOrigin origin,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer position, RegisteredActivity activity, Instant registeredAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Integer position,
+            @Schema(requiredMode = REQUIRED, types = {"integer", "null"}, format = "int32", minimum = "1", description = WAITLIST_RANK) @JsonInclude(JsonInclude.Include.ALWAYS) Integer waitlistRank,
+            RegisteredActivity activity, Instant registeredAt,
             Instant cancellableUntil, @Schema(requiredMode = NOT_REQUIRED, nullable = true) ActivityRegistrationCancellation cancellation) { }
     public record MeActivities(List<ActivityRow> bookable, List<ActivityRegistrationSummary> mine) { }
     public enum ActivityRowState { OPEN, FULL_WAITLIST, FULL, NOT_BOOKABLE }

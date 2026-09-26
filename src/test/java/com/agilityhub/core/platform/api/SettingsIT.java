@@ -168,6 +168,41 @@ class SettingsIT extends AbstractIntegrationTest {
         assertThat(audits()).isEmpty(); assertThat(events()).isEmpty();
     }
 
+    /**
+     * E5-T20 step 2 (E4-W06 question 3, CATALEG_PARAMETRES amended 26-09): the D11 blocks of `GET /parameters` follow the
+     * catalog. `learn.baseUrl` and `learn.recommendationsTtlMinutes` are system keys, the club edits `signup.onboardingFields`
+     * and `legal.maxPostpones` in «Alta i consentiments», and «Històric i tauler» stays system.
+     */
+    @Test @AuditCovers(AuditAction.PARAMETER_CHANGED)
+    void T_02_03_R_02_04_theD11BlocksFollowTheCatalogAndOnlyTheClubKeysAreEditable() throws Exception {
+        var blocks = new LinkedHashMap<String, Map<String, JsonNode>>();
+        json(admin(get("/api/v1/parameters"))).path("blocks").forEach(block -> {
+            var rows = new LinkedHashMap<String, JsonNode>(); block.path("rows").forEach(row -> rows.put(row.path("key").asText(), row));
+            blocks.put(block.path("key").asText(), rows);
+        });
+        var system = List.of("learn.baseUrl", "learn.recommendationsTtlMinutes", "history.monthsVisible", "dashboard.pendingSignupAgeWarnDays");
+        var club = List.of("signup.onboardingFields", "legal.maxPostpones");
+        assertThat(blocks.get("system")).as("system block").containsKeys(system.toArray(String[]::new)).doesNotContainKeys(club.toArray(String[]::new));
+        assertThat(blocks.get("club")).as("«Club i pistes»").containsKey("learn.linkText").doesNotContainKeys("learn.baseUrl", "learn.recommendationsTtlMinutes");
+        assertThat(blocks.get("signup")).as("«Alta i consentiments»").containsKeys(club.toArray(String[]::new));
+        for (String key : system) {
+            assertThat(blocks.get("system").get(key).path("editableBy").asText()).as(key).isEqualTo("PLATFORM");
+            admin(body(put("/api/v1/parameters/" + key), Map.of("value", key.equals("learn.baseUrl") ? "https://learn.example.test" : 1, "version", 0)))
+                    .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("PLATFORM_ONLY"));
+            admin(delete("/api/v1/parameters/" + key)).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("PLATFORM_ONLY"));
+        }
+        assertThat(audits()).isEmpty();
+        for (String key : club) { assertThat(blocks.get("signup").get(key).path("editableBy").asText()).as(key).isEqualTo("CLUB"); }
+        var fields = List.of(Map.of("key", "name", "required", true), Map.of("key", "phone", "required", true));
+        assertThat(update("signup.onboardingFields", fields, 0).path("isOverride").asBoolean()).isTrue();
+        assertThat(update("legal.maxPostpones", 1, 0).path("value").asInt()).isEqualTo(1);
+        assertThat(configs.get("settings-a").get("signup.onboardingFields", Object.class)).isEqualTo(fields);
+        assertThat(configs.get("settings-a").get("legal.maxPostpones", Integer.class)).isEqualTo(1);
+        assertThat(configs.get("settings-b").get("legal.maxPostpones", Integer.class)).isEqualTo(3);
+        assertThat(audits()).hasSize(2).allSatisfy(entry -> assertThat(entry.action()).isEqualTo(AuditAction.PARAMETER_CHANGED));
+        assertThat(events()).extracting(event -> event.payload().get("key")).containsExactlyInAnyOrder("signup.onboardingFields", "legal.maxPostpones");
+    }
+
     @Test void T_02_08_concurrentEditorsProduceOneChangeAndStaleResponses() throws Exception {
         for (int round = 0; round < 2; round++) {
             long version = json(admin(get("/api/v1/parameters/" + KEY))).path("version").asLong();

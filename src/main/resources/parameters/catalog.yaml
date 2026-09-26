@@ -1919,39 +1919,39 @@ parameters:
   - key: "learn.recommendationsTtlMinutes"
     type: "int"
     default: 60
-    block: "club"
+    block: "system"
     labelKey: "admin-settings:param.learn.recommendationsTtlMinutes.label"
     helpKey: "admin-settings:param.learn.recommendationsTtlMinutes.help"
     constraints: {"min": 0}
     modules: ["LEARN_LINK"]
     scope: "club"
-    editableBy: "CLUB"
+    editableBy: "PLATFORM"
     restartRequired: false
     documentType: "int"
     documentDefault: "60"
   - key: "learn.baseUrl"
     type: "string"
     default: "https://learn.agilitydoghub.com"
-    block: "club"
+    block: "system"
     labelKey: "admin-settings:param.learn.baseUrl.label"
     helpKey: "admin-settings:param.learn.baseUrl.help"
     constraints: {}
     modules: ["LEARN_LINK"]
     scope: "club"
-    editableBy: "CLUB"
+    editableBy: "PLATFORM"
     restartRequired: false
     documentType: "string"
     documentDefault: "`\"https://learn.agilitydoghub.com\"`"
   - key: "signup.onboardingFields"
     type: "json"
     default: [{"key": "name", "required": true}, {"key": "locale", "required": true}, {"key": "phone", "required": false}]
-    block: "system"
+    block: "signup"
     labelKey: "admin-settings:param.signup.onboardingFields.label"
     helpKey: "admin-settings:param.signup.onboardingFields.help"
     constraints: {"validator": "onboardingFields"}
     modules: []
     scope: "club"
-    editableBy: "PLATFORM"
+    editableBy: "CLUB"
     restartRequired: false
     documentType: "json `[{key, required}]`"
     documentDefault: "`[{\"key\": \"name\", \"required\": true}, {\"key\": \"locale\", \"required\": true}, {\"key\": \"phone\", \"required\": false}]`"
@@ -1959,13 +1959,13 @@ parameters:
   - key: "legal.maxPostpones"
     type: "int"
     default: 3
-    block: "system"
+    block: "signup"
     labelKey: "admin-settings:param.legal.maxPostpones.label"
     helpKey: "admin-settings:param.legal.maxPostpones.help"
     constraints: {"min": 0}
     modules: []
     scope: "club"
-    editableBy: "PLATFORM"
+    editableBy: "CLUB"
     restartRequired: false
     documentType: "int"
     documentDefault: "3"

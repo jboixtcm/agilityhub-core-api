@@ -437,6 +437,20 @@ class CalendarIT extends AbstractIntegrationTest {
         var invalid=new LinkedHashMap<String,Object>();invalid.put("version",session(id).path("version").asLong());invalid.put("instructorIds",List.of("plan-instructor","plan-instructor-2"));
         error("PATCH","/class-sessions/"+id,invalid,ErrorCode.TOO_MANY_INSTRUCTORS);
     }
+    /** E5-T20 step 6 (E4-W05 question 5, CONVENCIONS_API §5-§6): an unknown `view` names its field, like every other 400 VALIDATION_ERROR. */
+    @Test void T_06_20_anUnknownDayGridViewIsAValidationErrorOnTheViewField() throws Exception {
+        for(String role:List.of("MEMBER","ADMIN")) {
+            var body=mapper.readTree(mvc.perform(call("GET","/day-grid?date=2026-08-25&view=foo",null)
+                    .with(jwt().jwt(j -> j.subject("planning-member").claim("clubId",CLUB)).authorities(() -> "ROLE_"+role)))
+                    .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsByteArray());
+            assertThat(body.path("code").asText()).as(role).isEqualTo("VALIDATION_ERROR");
+            assertThat(body.at("/details/field").asText()).as(role+" "+body).isEqualTo("view");
+            assertThat(body.at("/details/fieldErrors")).as(role+" "+body).hasSize(1);
+            assertThat(body.at("/details/fieldErrors/0/field").asText()).isEqualTo("view");
+            assertThat(body.at("/details/fieldErrors/0/code").asText()).isEqualTo("INVALID_VALUE");
+        }
+        assertThat(memberGrid("2026-08-25",false).path("date").asText()).isEqualTo("2026-08-25");
+    }
     @TestConfiguration(proxyBeanMethods=false) static class Ports {
         @Bean @org.springframework.context.annotation.Primary Doubles schedulingTestPorts(EventPublisher events,ClubConfigService configs,java.time.Clock clock) { return new Doubles(events,configs,clock); }
     }

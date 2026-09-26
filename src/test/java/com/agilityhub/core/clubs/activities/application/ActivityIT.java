@@ -506,11 +506,11 @@ class ActivityIT extends ActivityFixtures {
         var selected=find(call("GET","/activities?fields=typeDisplay,allRings,location",null,"admin","ADMIN",200).path("items"),"id",fairId);
         assertThat(selected.path("typeDisplay").asText()).isEqualTo("Fira"); assertThat(selected.path("location").asText()).isEqualTo("Example park");
         assertThat(selected.path("allRings").isBoolean()).isTrue();
-        // E5-T15 (review E4-T06 #3): a property that was not selected is null (or omitted), never a primitive default such as allRings: false.
+        // E5-T15 (review E4-T06 #3), E5-T20 step 3 (CONVENCIONS_API §4): a property that was not selected is left out, never null or a primitive default such as allRings: false.
         var titleOnly=find(call("GET","/activities?fields=title",null,"admin","ADMIN",200).path("items"),"id",fourId);
         assertThat(titleOnly.path("title").asText()).isEqualTo("Activitat exemple");
         assertThat(titleOnly.path("allRings").isBoolean()).as("not selected: "+titleOnly).isFalse();
-        assertThat(titleOnly.path("allRings").isNull() || titleOnly.path("allRings").isMissingNode()).isTrue();
+        assertThat(titleOnly.has("allRings")).as("not selected: "+titleOnly).isFalse();
         call("GET","/activities?fields=ringIds",null,"admin","ADMIN",400);
     }
     void assertListMatchesViews(String language) throws Exception {
@@ -533,10 +533,10 @@ class ActivityIT extends ActivityFixtures {
         var cancelled=find(items,"registrationId",gone.path("id").asText());
         assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED"); assertThat(cancelled.path("cancelReason").asText()).isEqualTo("MEMBER");
         assertThat(cancelled.path("cancelledAt").asText()).isEqualTo(clock.instant().toString());
-        assertThat(SnapshotSchemas.required("ActivityRegistrationListItem")).contains("cancelReason","cancelledAt","position");
+        // E5-T20 step 3 (CONVENCIONS_API §4): the schema requires only the row id, because `fields` leaves the other keys out;
+        // without `fields` every key is sent (assertConforms above), `null` until it applies.
+        assertThat(SnapshotSchemas.required("ActivityRegistrationListItem")).containsExactly("registrationId");
         assertThat(SnapshotSchemas.schema("ActivityRegistrationListItem").at("/properties/cancelReason/enum")).anySatisfy(value -> assertThat(value.isNull()).isTrue());
-        var omitted=(ObjectNode)first.deepCopy(); omitted.remove("cancelReason");
-        assertThat(SnapshotSchemas.violations(omitted,"ActivityRegistrationListItem")).as("never omitted").isNotEmpty();
         assertThat(SnapshotSchemas.violations(((ObjectNode)first.deepCopy()).put("cancelReason","UNKNOWN"),"ActivityRegistrationListItem")).isNotEmpty();
         // E5-T15 (review E4-T06 #1): a waitlisted registration keeps its position once cancelled; a promoted one has none.
         assertThat(cancelled.path("position").asInt()).as("kept after a waitlisted registration is cancelled").isEqualTo(2);

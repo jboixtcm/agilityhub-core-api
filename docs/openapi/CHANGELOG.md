@@ -2,6 +2,39 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T20 · the E4 real-core follow-ups: sparse `fields` and `x-fields`, `waitlistRank`, the ring-conflicts errors, the day-grid `view` error
+
+**0 operations or schemas added or removed; 2 list item schemas narrowed; 3 schemas gain `waitlistRank`; 14 list operations
+gain `x-fields`; 3 operations change their documented errors.** The web must regenerate its client:
+
+- **Narrowed (breaking for generated types):** `ActivityListItem` now requires only `id`, and `ActivityRegistrationListItem`
+  only `registrationId` (CONVENCIONS_API §4, amended 26-09). With `fields=`, `GET /activities` and
+  `GET /activities/{id}/registrations` leave out every key that was not requested: before, it came as `null` (or `false`).
+  A requested key keeps its `null`. Without `fields=`, every property is still sent, `null` where it does not apply.
+- `GET /activities/{id}/registrations`: `fields=id` is now `400 INVALID_FILTER` (the item has no `id`; its row id is
+  `registrationId`), and so is `filter=activityId:…` (the activity comes from the path; it was never `x-filterable`).
+  `appliedFilters` lists only the query's filters: the path's `activityId` is no longer there. `INVALID_FILTER` is now
+  documented on this operation and on `GET /activities`.
+- `waitlistRank` (integer ≥ 1 or `null`, R-07-08): the rank of a `WAITLISTED` registration among the activity's waiting
+  entries, in `position` order, computed when read; after a promotion the next entry reads 1. `position` keeps the stored
+  order and its gaps. Optional (and in `x-fields`) on `ActivityRegistrationListItem`; required (nullable) on
+  `ActivityRegistration` (`POST /activity-registrations`, `GET /activity-registrations/{id}`, the cancellation,
+  `GET /me/activities/{id}` `myRegistration`) and `ActivityRegistrationSummary` (`GET /me/activities` `mine[]`).
+- `x-fields` (next to `x-filterable` and `x-sortable`) on every universal list: `/activities`,
+  `/activities/{id}/registrations`, `/members`, `/dogs`, `/bookings`, `/weeks`, `/class-sessions`, `/ring-blocks`,
+  `/training-bookings`, `/attendances`, `/followup`, `/jobs/{name}/runs`, `/audit-entries` and
+  `/members/{id}/audit-entries`. It is every key the list accepts for any role; any other key is `400 INVALID_FILTER`.
+  The `fields` parameter's description says so on every paged operation.
+- `GET /activities/{id}/ring-conflicts` documents `400 INVALID_TIME_RANGE` and `422 OUTSIDE_OPENING_HOURS`, the errors the
+  publication gives for the same window (S07 §6). Behaviour: an activity with rings but no date now answers `400
+  INVALID_TIME_RANGE`, not `500`.
+- Behaviour, no schema change: `GET /day-grid?view=foo` answers `400 VALIDATION_ERROR` with `details.field = "view"` and
+  `details.fieldErrors = [{field: "view", code: "INVALID_VALUE"}]` (before, `details` was empty).
+- Behaviour, no schema change (`GET /parameters`, CATALEG_PARAMETRES 26-09): `learn.baseUrl` and
+  `learn.recommendationsTtlMinutes` are in the `system` block with `editableBy: PLATFORM` (a club `PUT` answers `403
+  PLATFORM_ONLY`); `signup.onboardingFields` and `legal.maxPostpones` are in the `signup` block («Alta i consentiments»)
+  with `editableBy: CLUB`.
+
 ## 2026-09-26 · E5-T19 · D2 adds or removes one file of a pending dog; a plain id for signup files
 
 **0 operations or schemas added or removed; 1 response property added; 2 descriptions changed.** Additive:

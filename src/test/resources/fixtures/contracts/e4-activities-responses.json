@@ -104,6 +104,7 @@
     "state": "CANCELLED",
     "origin": "BACKOFFICE",
     "position": 1,
+    "waitlistRank": null,
     "activity": {
       "id": "activity-a",
       "title": "Example event",
@@ -202,6 +203,7 @@
         "state": "CANCELLED",
         "origin": "BACKOFFICE",
         "position": 1,
+        "waitlistRank": null,
         "activity": {
           "id": "activity-a",
           "title": "Example event",
@@ -278,6 +280,7 @@
       "state": "CANCELLED",
       "origin": "BACKOFFICE",
       "position": 1,
+      "waitlistRank": null,
       "activity": {
         "id": "activity-a",
         "title": "Example event",
@@ -383,6 +386,7 @@
     },
     "state": "ACTIVE",
     "position": null,
+    "waitlistRank": null,
     "origin": "APP",
     "registeredAt": "2026-09-14T16:00:00Z",
     "cancelledAt": null,

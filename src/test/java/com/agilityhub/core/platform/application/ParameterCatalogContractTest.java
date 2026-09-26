@@ -41,6 +41,58 @@ class ParameterCatalogContractTest {
         System.out.println("CATALEG_PARAMETRES.md expanded effective parameter keys: " + document.size());
         System.out.println("Markdown grouped keys/jobs expanded; Club binding rows excluded; Annex amendments folded");
     }
+    /**
+     * E5-T20 step 2 (E4-W06 question 3): every key sits in the D11 block the document gives it («— bloc X» of its section, or
+     * the «Bloc D11» column of Annex A), and a `sistema` key is exactly one the club cannot edit (CATALEG_PARAMETRES 26-09).
+     */
+    @Test void T_02_03_everyKeyIsInItsDocumentedD11BlockAndOnlySystemKeysArePlatformOnly() throws Exception {
+        var catalog = new ParameterCatalog(new ObjectMapper());
+        var blocks = documentBlocks();
+        assertThat(blocks.keySet()).containsExactlyInAnyOrderElementsOf(catalog.entries().keySet());
+        var mismatches = new ArrayList<String>();
+        blocks.forEach((key, block) -> {
+            var actual = catalog.get(key);
+            if (!actual.block().equals(block)) { mismatches.add(key + ": block " + actual.block() + ", document " + block); }
+            if (actual.block().equals("system") != actual.editableBy().equals("PLATFORM")) { mismatches.add(key + ": block " + actual.block() + " editableBy " + actual.editableBy()); }
+        });
+        assertThat(mismatches).isEmpty();
+        assertThat(catalog.get("signup.onboardingFields").block()).isEqualTo("signup");
+        assertThat(catalog.get("learn.baseUrl").editableBy()).isEqualTo("PLATFORM");
+    }
+    static final Map<String, String> BLOCKS = Map.ofEntries(Map.entry("sistema", "system"), Map.entry("Alta i consentiments", "signup"),
+            Map.entry("Classes", "classes"), Map.entry("Llista d'espera", "waitlist"), Map.entry("Entrenaments", "training"),
+            Map.entry("Club i pistes", "club"), Map.entry("Quotes i remesa", "billing"), Map.entry("Comunicacions", "messaging"),
+            Map.entry("Recorreguts", "courses"), Map.entry("Privacitat i auditoria", "privacy"), Map.entry("Processos automàtics", "jobs"));
+    /** Key → catalog block id, read from the document: the section header, the «sistema» sentence, or Annex A's «Bloc D11» cell. */
+    static Map<String, String> documentBlocks() throws Exception {
+        Map<String, String> result = new LinkedHashMap<>();
+        String section = null; boolean annex = false;
+        for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {
+            if (line.startsWith("## ")) {
+                annex = line.contains("Annex A");
+                section = line.contains("— bloc ") ? line.substring(line.indexOf("— bloc ") + "— bloc ".length()).strip() : null;
+            }
+            if (line.startsWith("Paràmetres de **sistema**")) { section = "sistema"; }
+            if (!line.startsWith("| `")) { continue; }
+            String[] cells = Arrays.stream(line.split("\\|", -1)).map(String::strip).toArray(String[]::new);
+            if (cells[2].startsWith("(CLUB")) { continue; }
+            String documented = annex ? cells[cells.length - 3] : section;
+            assertThat(documented).as(line).isNotNull();
+            String block = BLOCKS.entrySet().stream().filter(entry -> documented.startsWith(entry.getKey())).map(Map.Entry::getValue)
+                    .findFirst().orElseThrow(() -> new AssertionError("Unknown D11 block: " + documented));
+            List<String> keys = new ArrayList<>();
+            var matcher = Pattern.compile("`([^`]+)`").matcher(cells[1]);
+            while (matcher.find()) { keys.add(matcher.group(1)); }
+            if (keys.getFirst().equals("files.allowedTypes")) { keys = new ArrayList<>(List.of(keys.getFirst())); }
+            if (keys.getFirst().equals("jobs.<nom>.enabled")) {
+                String names = cells[1].substring(cells[1].indexOf('(') + 1, cells[1].lastIndexOf(')'));
+                keys = Arrays.stream(names.split(" · ")).map(name -> "jobs." + name + ".enabled").toList();
+            }
+            String prefix = keys.getFirst().substring(0, keys.getFirst().lastIndexOf('.'));
+            for (String key : keys) { result.put(key.contains(".") ? key : prefix + "." + key, block); }
+        }
+        return result;
+    }
     static Map<String, Expected> document() throws Exception {
         Map<String, Expected> entries = new LinkedHashMap<>();
         for (String line : Files.readAllLines(Path.of("docs/specs/00-transversal/CATALEG_PARAMETRES.md"))) {

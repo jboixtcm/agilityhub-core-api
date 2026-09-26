@@ -543,7 +543,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "allRings", "createdAt", "endTime", "id", "location", "maxPlaces", "registrations", "rings", "slug", "startTime", "state", "title", "type", "typeDisplay" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "ActivityLocation" : {
@@ -787,9 +787,15 @@
           "state" : {
             "enum" : [ "ACTIVE", "WAITLISTED", "CANCELLED" ],
             "type" : "string"
+          },
+          "waitlistRank" : {
+            "description" : "R-07-08 (E5-T20): the 1-based rank of a WAITLISTED registration among the activity's active waiting entries, in position order, computed when it is read (after a promotion the next entry reads 1); null for any other state",
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : [ "integer", "null" ]
           }
         },
-        "required" : [ "activity", "activityId", "cancellableUntil", "id", "memberId", "origin", "registeredAt", "registeredBy", "state" ],
+        "required" : [ "activity", "activityId", "cancellableUntil", "id", "memberId", "origin", "registeredAt", "registeredBy", "state", "waitlistRank" ],
         "type" : "object"
       },
       "ActivityRegistrationCancellation" : {
@@ -830,7 +836,7 @@
             "type" : "string"
           },
           "position" : {
-            "description" : "The waitlist position: set while WAITLISTED and kept after a waitlisted registration is cancelled; null once promoted, or if it was never waitlisted (E5-T15)",
+            "description" : "The stored waitlist position (the promotion order): set while WAITLISTED and kept after a waitlisted registration is cancelled; null once promoted, or if it was never waitlisted (E5-T15). It keeps the gaps left by cancellations and promotions: show waitlistRank",
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
@@ -844,9 +850,15 @@
           "state" : {
             "enum" : [ "ACTIVE", "WAITLISTED", "CANCELLED" ],
             "type" : "string"
+          },
+          "waitlistRank" : {
+            "description" : "R-07-08 (E5-T20): the 1-based rank of a WAITLISTED registration among the activity's active waiting entries, in position order, computed when it is read (after a promotion the next entry reads 1); null for any other state",
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : [ "integer", "null" ]
           }
         },
-        "required" : [ "cancelReason", "cancelledAt", "member", "origin", "position", "registeredAt", "registrationId", "state" ],
+        "required" : [ "registrationId" ],
         "type" : "object"
       },
       "ActivityRegistrationMember" : {
@@ -927,9 +939,15 @@
           "state" : {
             "enum" : [ "ACTIVE", "WAITLISTED", "CANCELLED" ],
             "type" : "string"
+          },
+          "waitlistRank" : {
+            "description" : "R-07-08 (E5-T20): the 1-based rank of a WAITLISTED registration among the activity's active waiting entries, in position order, computed when it is read (after a promotion the next entry reads 1); null for any other state",
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : [ "integer", "null" ]
           }
         },
-        "required" : [ "activity", "activityId", "cancellableUntil", "id", "origin", "registeredAt", "state" ],
+        "required" : [ "activity", "activityId", "cancellableUntil", "id", "origin", "registeredAt", "state", "waitlistRank" ],
         "type" : "object"
       },
       "ActivityRing" : {
@@ -15788,7 +15806,7 @@
     },
     "/api/v1/activities" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Default sort date desc; default filter deleted:eq:false. q searches title. Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Default sort date desc; default filter deleted:eq:false. q searches title. Without fields every item property is sent (null where it does not apply); with fields an item has id and the requested keys only. Tenant comes from the JWT. Requires ACTIVITIES.",
         "operationId" : "activities",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -15842,7 +15860,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -15868,7 +15886,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
           },
           "401" : {
             "content" : {
@@ -16008,6 +16026,7 @@
           "key" : "registrationTo"
         } ],
         "x-exportable" : true,
+        "x-fields" : [ "id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
@@ -16231,7 +16250,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -16482,7 +16501,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -18178,7 +18197,7 @@
     },
     "/api/v1/activities/{id}/registrations" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Export through /activity-registrations/export with filter=activityId:eq:id. Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. The activity comes from the path only: appliedFilters lists the query's filters, and filter=activityId is INVALID_FILTER. Without fields every item property is sent (null where it does not apply); with fields an item has registrationId and the requested keys only. Export through /activity-registrations/export with filter=activityId:eq:id. Tenant comes from the JWT. Requires ACTIVITIES.",
         "operationId" : "registrations",
         "parameters" : [ {
           "in" : "path",
@@ -18239,7 +18258,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -18265,7 +18284,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
           },
           "401" : {
             "content" : {
@@ -18381,6 +18400,7 @@
         "tags" : [ "clubs.activities" ],
         "x-columns" : [ ],
         "x-exportable" : true,
+        "x-fields" : [ "registrationId", "member", "state", "position", "waitlistRank", "origin", "registeredAt", "cancelledAt", "cancelReason" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "state", "origin", "registeredAt", "memberId" ],
         "x-sortable" : [ "registeredAt", "position", "memberLastName" ]
@@ -18388,7 +18408,7 @@
     },
     "/api/v1/activities/{id}/ring-conflicts" : {
       "get" : {
-        "description" : "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN. The preview of R-07-05's dialog: a window the publication would refuse answers the same error (400 INVALID_TIME_RANGE without a date or hours, 422 OUTSIDE_OPENING_HOURS). Tenant comes from the JWT. Requires ACTIVITIES.",
         "operationId" : "ringConflicts",
         "parameters" : [ {
           "in" : "path",
@@ -18417,7 +18437,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, INVALID_TIME_RANGE"
           },
           "401" : {
             "content" : {
@@ -18467,7 +18487,7 @@
                 }
               }
             },
-            "description" : "Unprocessable Entity"
+            "description" : "OUTSIDE_OPENING_HOURS"
           },
           "429" : {
             "content" : {
@@ -18762,7 +18782,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -20537,7 +20557,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -20700,6 +20720,7 @@
           "key" : "markedByName"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "bookingId", "classSessionId", "classDate", "classStartsAt", "dogId", "dogName", "memberId", "memberName", "state", "markedAt", "markedByName" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "dogId", "memberId", "classSessionId", "classDate", "state" ],
         "x-sortable" : [ "classStartsAt", "classDate" ]
@@ -20761,7 +20782,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -20927,6 +20948,7 @@
           "key" : "details"
         } ],
         "x-exportable" : true,
+        "x-fields" : [ "id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel", "memberId", "action", "changes", "reason", "details" ],
         "x-filter-operators" : {
           "at" : [ "between" ]
         },
@@ -21005,7 +21027,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -21272,7 +21294,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -22136,7 +22158,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -22302,6 +22324,7 @@
           "key" : "late"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "memberId", "bookedAt", "late" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
         "x-sortable" : [ "classStartsAt", "bookedAt" ]
@@ -23279,7 +23302,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -23421,6 +23444,7 @@
         "tags" : [ "clubs.scheduling" ],
         "x-columns" : [ ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "weekId", "date", "startTime", "endTime", "startsAt", "endsAt", "ringId", "levelIds", "instructorIds", "capacity", "capacityMode", "description", "displayDescription", "state", "counters", "atRisk", "riskExempt", "cancellation", "origin", "version", "inconsistencyIds", "placementId", "notes" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "date", "state", "ringId", "instructorId", "levelId", "weekId" ],
         "x-sortable" : [ "startsAt", "date" ]
@@ -27531,7 +27555,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -27721,6 +27745,7 @@
           "key" : "registeredAt"
         } ],
         "x-exportable" : true,
+        "x-fields" : [ "id", "name", "breed", "level", "owner", "handler", "handlerName", "freeTraining", "licenses", "displayStatus", "sex", "age", "chip", "pendingDocuments", "levelAssignedAt", "pack", "registeredAt", "version" ],
         "x-filter-operators" : {
           "breed" : [ "contains" ],
           "handlerName" : [ "contains" ],
@@ -27802,7 +27827,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -28096,7 +28121,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -32738,7 +32763,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -32904,6 +32929,7 @@
           "key" : "completedAt"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "textExcerpt", "createdAt", "completedAt", "activityAt", "unread" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "kind", "memberId", "dogId", "authorAccountId", "unread" ],
         "x-sortable" : [ "activityAt" ]
@@ -34648,7 +34674,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -35013,7 +35039,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -35169,6 +35195,7 @@
           "key" : "skipReason"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "status", "scheduledFor", "trigger", "dryRun" ],
         "x-sortable" : [ "scheduledFor", "startedAt" ]
@@ -40601,7 +40628,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -40810,6 +40837,7 @@
           "key" : "idDocument"
         } ],
         "x-exportable" : true,
+        "x-fields" : [ "id", "memberNumber", "fullName", "dogs", "plan", "displayStatus", "contact", "paymentMethod", "nextInvoiceDate", "familyGroup", "joinedAt", "leaveDate", "bookingBlocked", "imageRights", "roles", "city", "postalCode", "pendingDocuments", "freeTraining", "birthDate", "gender", "idDocument", "version", "signupPending", "pendingDogs", "warnings", "signup", "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status" ],
         "x-filter-operators" : {
           "dogName" : [ "contains" ],
           "fullName" : [ "contains" ]
@@ -40889,7 +40917,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -41200,7 +41228,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -42130,7 +42158,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -42296,6 +42324,7 @@
           "key" : "details"
         } ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "clubId", "at", "actorAccountId", "actorName", "actorRole", "impersonatedMemberId", "impersonatedName", "origin", "entityType", "entityId", "entityLabel", "memberId", "action", "changes", "reason", "details" ],
         "x-filter-operators" : {
           "at" : [ "between" ]
         },
@@ -44530,7 +44559,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -46922,7 +46951,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -47306,7 +47335,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -47853,7 +47882,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -49606,7 +49635,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -49748,6 +49777,7 @@
         "tags" : [ "clubs.scheduling" ],
         "x-columns" : [ ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "ringId", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "ringId", "kind", "reason", "state", "from", "to" ],
         "x-sortable" : [ "from" ]
@@ -54588,7 +54618,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -54754,6 +54784,7 @@
           "key" : "createdAt"
         } ],
         "x-exportable" : true,
+        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
@@ -54986,7 +55017,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -57855,7 +57886,7 @@
           },
           "style" : "form"
         }, {
-          "description" : "Comma-separated response column keys.",
+          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
           "in" : "query",
           "name" : "fields",
           "schema" : {
@@ -57997,6 +58028,7 @@
         "tags" : [ "clubs.scheduling" ],
         "x-columns" : [ ],
         "x-exportable" : false,
+        "x-fields" : [ "id", "isoYear", "isoWeek", "startDate", "endDate", "state", "generatedAt", "validatedAt", "weekdayTemplateName", "saturdayTemplateName", "classCounts" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "startDate", "state" ],
         "x-sortable" : [ "startDate" ]

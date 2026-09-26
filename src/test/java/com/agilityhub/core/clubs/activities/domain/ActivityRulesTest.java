@@ -104,6 +104,15 @@ class ActivityRulesTest {
         assertThat(ActivityRows.place(true,null,List.of("a"),rings,rings,"all rings")).isEqualTo("Central");
         assertThat(ActivityRows.place(false,"Town",List.of(),rings,rings,"all rings")).isEqualTo("Town");
     }
+    /** E5-T20 (R-07-08): the rank is dense over the waiting entries in position order, whatever gaps the stored positions have. */
+    @Test void R_07_08_theWaitlistRankIsTheDenseRankOfThePositions() {
+        var positions=new HashMap<String,Integer>(); positions.put("c",7); positions.put("a",3); positions.put("b",5);
+        assertThat(ActivityRows.waitlistRanks(positions)).containsExactly(Map.entry("a",1),Map.entry("b",2),Map.entry("c",3));
+        positions.put("d",5); positions.put("e",null);
+        assertThat(ActivityRows.waitlistRanks(positions)).as("ties by id, a missing position last")
+                .containsExactly(Map.entry("a",1),Map.entry("b",2),Map.entry("d",3),Map.entry("c",4),Map.entry("e",5));
+        assertThat(ActivityRows.waitlistRanks(Map.of())).isEmpty();
+    }
     @Test void T_07_08_localInstantsUseClubZoneAndDstDayLength() {
         assertThat(times.startsAt()).isEqualTo(Instant.parse("2026-08-07T16:30:00Z")); assertThat(times.registrationClosesAt()).isEqualTo(Instant.parse("2026-08-06T22:00:00Z"));
         var argentina=ActivityTimes.of(date,"18:30","20:30",date.minusDays(1),date.minusDays(1),ZoneId.of("America/Argentina/Buenos_Aires"));

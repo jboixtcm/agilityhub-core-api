@@ -106,7 +106,8 @@ public class InstructorController {
     @GetMapping("/api/v1/attendances")
     @PreAuthorize(STAFF)
     @ListContract(filterable = {"dogId", "memberId", "classSessionId", "classDate", "state"}, sortable = {"classStartsAt", "classDate"},
-            columns = {"classStartsAt*", "classDate", "dogName*", "memberName*", "state*", "markedAt", "markedByName"}, paged = true, exportable = false)
+            columns = {"classStartsAt*", "classDate", "dogName*", "memberName*", "state*", "markedAt", "markedByName"}, paged = true, exportable = false,
+            fields = {"id", "bookingId", "classSessionId", "classDate", "classStartsAt", "dogId", "dogName", "memberId", "memberName", "state", "markedAt", "markedByName"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
     @Operation(summary = "attendances", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) of the S10 attendances (D10, exports, phase 2); an undeclared filter or sort is 400 INVALID_FILTER." + STUB,
             responses = @ApiResponse(responseCode = "200", description = "ListPage<AttendanceListItem>", useReturnTypeSchema = true))

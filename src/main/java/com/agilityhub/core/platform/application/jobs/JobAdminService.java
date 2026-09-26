@@ -34,6 +34,8 @@ import static com.agilityhub.core.platform.application.jobs.JobViews.*;
 public class JobAdminService {
     private static final DateTimeFormatter LOCAL = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final Set<SkipReason> NEUTRAL_SKIPS = EnumSet.of(SkipReason.DISABLED, SkipReason.MODULE_OFF, SkipReason.CLUB_INACTIVE, SkipReason.NOT_DUE);
+    /** The `fields` keys `GET /jobs/{name}/runs` accepts (its `x-fields`); a run row is always the whole `JobRunListItem`. */
+    public static final Set<String> RUN_FIELDS = Set.of("id");
     private final JobRunner runner; private final JobRunRepository runs; private final JobContractAccess access; private final JobTriggerService triggers;
     private final ParameterSettingsService parameters; private final ClubConfigService configs; private final ClubRepository clubs;
     private final ListEngine lists; private final Clock clock;
@@ -82,7 +84,7 @@ public class JobAdminService {
         filters.put("dryRun", new ListDefinition.Field("dryRun", ListDefinition.Type.BOOLEAN));
         var columns = List.of("scheduledForLocal", "trigger", "status", "dryRun", "durationMs", "counters", "errorCount", "skipReason");
         var list = new ListDefinition("job-runs", filters, Map.of("scheduledFor", "scheduledFor", "startedAt", "startedAt"), List.of(), columns, columns,
-                List.of("startedAt,desc"), Set.of("id"));
+                List.of("startedAt,desc"), RUN_FIELDS);
         var dataset = new ListDataset(list, "job_runs", List.of(new Document("$match", new Document("job", definition.name().name()))),
                 Map.of("id", "$_id"), Set.of(), (field, value) -> Objects.toString(value, ""));
         var page = lists.list(dataset, params);
