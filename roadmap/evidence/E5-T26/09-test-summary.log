@@ -1,0 +1,25 @@
+surefire totals: tests=588 failures=0 errors=0 skipped=0 (128 classes)
+failsafe totals: tests=1038 failures=0 errors=0 skipped=0 (88 classes)
+Classes this task changes, and the classes that exercise the routes it touches:
+  [surefire] com.agilityhub.core.clubs.followup.application.AttachmentServiceTest: tests=12 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=49 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupIT: tests=33 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT: tests=14 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupS3UploadIT: tests=1 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.CensusIT: tests=41 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.activities.application.ActivityIT: tests=30 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.shared.api.TenantFilterTest: tests=3 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.identity.api.CorsIT: tests=3 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+E5-T26 test methods (added or changed) and the existing ones on the same routes:
+  PASS AttachmentServiceTest#CONVENCIONS_API_5_R_04_27_signedRoutesRunWithTheGrantsClubAsTheTenant
+  PASS AttachmentServiceTest#R_04_27_aMembersSignupUploadGrantCarriesTheAccount
+  PASS AttachmentServiceTest#CONVENCIONS_API_5_localSignedUrlsAuthoriseThemselves
+  PASS SignupSecurityFixesIT#R_04_27_R_04_08_aMembersAddDogUploadPassesWhileSignupIsClosedAndAnAnonymousOneDoesNot
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_R_04_27_theSignupUploadRouteTakesTheGrantsClubWhateverTheHostOrBearer
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_localDownloadsAnswerTheStoredTypeAndNameAndShowImagesInline
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_T_01_25_theSignedUploadRoutesPassTheCorsPreflightOfTheClubsWebOrigin
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_R_04_19_aSignedUploadUrlTakesAPutWithItsHeadersOnlyAndItsFileIsClaimed
+  PASS SignupSecurityFixesIT#CONVENCIONS_API_5_signedDownloadUrlsAnswerWithoutABearerAndRefuseAnotherFilesSignature
+  PASS SignupSecurityFixesIT#R_04_27_T_04_23_anonymousSignupRoutesAreClosedWithTheForm
+  PASS SignupSecurityFixesIT#R_04_08_T_04_13_signupUploadUrlReturnsTheHeadersTheStorageSigned

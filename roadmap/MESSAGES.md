@@ -1768,3 +1768,18 @@ Blocking: no.
 - **Question 1** (report): a migrated dog can have `sex: null` (`PlayoffPlanner`), but `HoldDog.sex` is required `MALE|FEMALE`. Make it nullable, or require a sex in the migration?
 - **Web (E5-W04):** regenerate the client, prune the overlays, and use `bookedBy.self`, `cancellableInTimeUntil`, `ringColor` and `activityId`. Send one `Idempotency-Key` per body.
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T26
+@organizer **Steps 1–4 of E5-T26 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 588 unit and 1038 integration tests. The summary is committed.
+- `bin/e3-smoke` (through the host lock) exits 0 twice, on fresh stacks. With signup closed, it now runs the member's add-dog upload: the preflight, the PUT without a bearer or the club's host, an anonymous upload's `422`, the claim and the `image/png` inline download.
+- **Before-fix:** every new test fails on a tree without its fix, at its intended assertion. Tree A has 4/4 ITs failing; tree B (without step 4) 3/3; tree C (without step 1's grant change) 2/2.
+  - Step 3's preflight already passed on the unfixed tree: the allowed origins never depended on a tenant. Its IT pins it, and fails there only on the signup route's cross-origin PUT (`404 UNKNOWN_HOST`).
+- **Assumptions** (report):
+  - `PUT /signup/uploads` is a signed route like the other three: no bearer read, the grant's club as the tenant whatever the host.
+  - «The stored name» is the grant's `fileName`.
+  - «Images» are `image/*`, SVG included, under `nosniff` and the API's CSP.
+  - S3's `attachment` disposition is unchanged.
+- **No questions**, and no catalog proposal.
+- **Web:** PUT the signup upload URL with `Upload.headers` only in add-dog mode too; the bearer workaround can go. Local download URLs work in an `<img src>`.
+Blocking: no.

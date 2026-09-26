@@ -1,0 +1,10 @@
+back to HEAD: src/main/java/com/agilityhub/core/clubs/activities/api/PublicActivitiesController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/api/AttachmentsController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/api/SignupFilesController.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/application/AttachmentService.java
+back to HEAD: src/main/java/com/agilityhub/core/clubs/followup/persistence/UploadGrantRepository.java
+back to HEAD: src/main/java/com/agilityhub/core/configuration/SecurityConfiguration.java
+back to HEAD: src/main/java/com/agilityhub/core/shared/api/SignedFileRequests.java
+back to HEAD: src/main/java/com/agilityhub/core/shared/api/TenantFilter.java
+back to HEAD: src/test/java/com/agilityhub/core/clubs/followup/application/AttachmentServiceTest.java
+tree ready: target/before-fix

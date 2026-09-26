@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T26: the rest of the signed local file URLs (review E5-T24 #1, #3 and «Not checked»; CONVENCIONS_API §5, A31).
+  - R-04-27: a MEMBER's `POST /signup/upload-urls` (add-dog) stores the member's account on its grant. Its `PUT
+    /api/v1/signup/uploads` then passes while signup is closed, with the upload's headers only and no bearer, and the
+    member's `POST /me/dogs/signup` claims the file. An anonymous grant still answers `422 SIGNUP_CLOSED`.
+  - `PUT /api/v1/signup/uploads` is a signed route like the other three: no bearer is read, and the grant's club is the
+    tenant whatever the host.
+  - On the four signed routes, the grant's club is the `TenantContext` while the handler runs.
+  - `GET /api/v1/attachments/files/{id}` and `GET /api/v1/signup/files` answer the file's stored MIME type and length,
+    as S3 does. An image is `inline` and any other file an `attachment`, both with the stored name (RFC 5987 for
+    non-ASCII). So an `<img>` shows a local download, also from the web's own origin. `nosniff` and the API's CSP stay.
+  - The CORS preflight of the signed upload routes from the club's web origin is pinned by an IT (it already passed).
+  - `bin/e3-smoke`: with signup closed, the member's add-dog upload (preflight, PUT without a bearer or the club's host,
+    the claim, the image download) and an anonymous upload answering `422`.
 - E5-T25: the S08 member flow's contract gaps found by the web's E5-W01.
   - S08 §2 (07 and the waiting-list detail): `Booking.dog` and `WaitlistEntry.dog` (`HoldDog`: id, name, sex) on every
     read, the `POST /bookings`, claim and cancellation answers included.

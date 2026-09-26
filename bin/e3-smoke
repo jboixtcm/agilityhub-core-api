@@ -9,12 +9,14 @@ import re
 import secrets
 import signal
 import socket
+import struct
 import subprocess
 import sys
 import tempfile
 import time
 import urllib.parse
 import uuid
+import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL_IMAGE = "agilityhub-e3-smoke:local"
@@ -61,6 +63,14 @@ def fictional_pdf():
         output += f"{offset:010d} 00000 n \n".encode()
     output += f"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{start}\n%%EOF\n".encode()
     return bytes(output)
+
+
+def fictional_png():
+    """Minimal valid 1x1 grey PNG (E5-T26); no external generator dependency."""
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 0, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(b"\x00\x80")) + chunk(b"IEND", b""))
 
 
 class Smoke:
@@ -161,6 +171,30 @@ class Smoke:
         if not quiet:
             print(f"curl {method} {path.split('?')[0]} -> {status}" + (" " + error if error else ""), flush=True)
         return value
+
+    def exchange(self, method, path, headers=(), raw=None):
+        """E5-T26: a request that carries only `headers` (no club Host, no bearer), as a browser sends a signed URL from the
+        web's own origin; returns the status, the response headers (lower-case names) and the body."""
+        response, dumped = self.private / "response", self.private / "headers"
+        response.unlink(missing_ok=True)
+        args = ["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "20", "--request", method,
+                "--output", str(response), "--dump-header", str(dumped), "--write-out", "%{http_code}", "--config", "-"]
+        if raw is not None:
+            (self.private / "request").write_bytes(raw)
+            args += ["--data-binary", "@" + str(self.private / "request")]
+        # Signed URLs stay in stdin, never argv or output.
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.base + path)
+        result = subprocess.run(args, input=config, cwd=ROOT, env=self.env, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        require(result.returncode == 0, f"curl {method} {path.split('?')[0]} failed (exit {result.returncode})")
+        received = {}
+        for line in dumped.read_text(errors="replace").splitlines()[1:]:
+            name, separator, value = line.partition(":")
+            if separator:
+                received[name.strip().lower()] = value.strip()
+        status = int(result.stdout)
+        print(f"curl {method} {path.split('?')[0]} -> {status}", flush=True)
+        return status, received, response.read_bytes() if response.exists() else b""
 
     def dashboard(self, admin, pending, active):
         def updated():
@@ -426,7 +460,14 @@ class Smoke:
         added = next((f for f in card["files"] if f["fileKey"] == upload["fileKey"]), None)
         require(added is not None and added["name"] == "club-card.pdf", "D2 does not list the file added with the ADMIN's upload")
         require(self.call("GET", added["downloadUrl"], binary=True) == pdf, "The signed download URL did not answer the file without a bearer")
-        print("PASS D2 adds a file with the ADMIN's DOG_DOCUMENT upload; the signed upload and download URLs need no bearer", flush=True)
+        # E5-T26 (CONVENCIONS_API §5): the local download answers like S3, with the stored type; a PDF is an attachment.
+        status, headers, body = self.exchange("GET", added["downloadUrl"])
+        disposition = headers.get("content-disposition", "")
+        require(status == 200 and body == pdf and headers.get("content-type") == "application/pdf"
+                and disposition.startswith("attachment;") and "club-card.pdf" in disposition,
+                f"The PDF download answered {status} {headers.get('content-type')} {disposition}")
+        print("PASS D2 adds a file with the ADMIN's DOG_DOCUMENT upload; the signed upload and download URLs need no bearer; "
+              "the download is application/pdf, attachment, with the stored name", flush=True)
         self.call("POST", f"/api/v1/members/{left['member']}/rejection", access=admin,
                   body=dict(version=review["version"], reason="Fictional readmission rejection"))
         restored = self.mongo("(()=>{const m=db.members.findOne({_id:" + json.dumps(left["member"]) + "});const d=db.dogs.findOne({_id:"
@@ -434,13 +475,54 @@ class Smoke:
         require(restored == dict(member="LEFT", dog="INACTIVE"), "The rejected readmission did not restore the LEFT record")
         self.dashboard(admin, 3, 185)
         print("PASS rejected readmission restores the LEFT member and its INACTIVE dog; D1 counters restored", flush=True)
+        # E5-T26 (R-04-27): an anonymous upload URL taken while the form is open, PUT after its closure below.
+        anonymous = self.call("POST", "/api/v1/signup/upload-urls", body=dict(fileName="late.pdf", contentType="application/pdf", sizeBytes=len(pdf)))
         parameter = self.call("GET", "/api/v1/parameters/signup.enabled", access=admin)
         self.call("PUT", "/api/v1/parameters/signup.enabled", access=admin,
                   body=dict(value=False, version=parameter["version"], reason="Fictional E3 gate closure"))
         wait(lambda: not self.call("GET", "/api/v1/signup", quiet=True)["enabled"], "Public signup cache did not close")
         self.call("POST", "/api/v1/signup", 422, key=str(uuid.uuid4()), body=application(2), error="SIGNUP_CLOSED")
         print("PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED", flush=True)
+        self.closed_signup_upload(admin, access, member_id, request["dog"], anonymous, pdf)
         print("PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld", flush=True)
+
+    def closed_signup_upload(self, admin, access, member_id, dog, anonymous, pdf):
+        """E5-T26 (R-04-27; CONVENCIONS_API §5 and §9): with the form closed, the validated member adds a dog with a card
+        uploaded as the web does: the upload's headers only, from the club's web origin, with no bearer and no club host. The
+        anonymous upload URL taken while the form was open closes with it. The download is the stored type, inline for an image."""
+        png = fictional_png()
+        origin = "http://" + self.host
+        upload = self.call("POST", "/api/v1/signup/upload-urls", access=access,
+                           body=dict(fileName="member-card.png", contentType="image/png", sizeBytes=len(png)))
+        signed = [f"{name}: {value}" for name, value in upload["headers"].items()]
+        status, headers, _ = self.exchange("OPTIONS", upload["uploadUrl"], ["Origin: " + origin, "Access-Control-Request-Method: PUT",
+                                                                          "Access-Control-Request-Headers: content-type,if-none-match"])
+        require(status == 200 and headers.get("access-control-allow-origin") == origin and "PUT" in headers.get("access-control-allow-methods", ""),
+                f"The CORS preflight of the signed upload answered {status}")
+        status, headers, _ = self.exchange("PUT", upload["uploadUrl"], ["Origin: " + origin, *signed], raw=png)
+        require(status == 204 and headers.get("access-control-allow-origin") == origin, f"The member's upload while signup is closed answered {status}")
+        status, _, body = self.exchange("PUT", anonymous["uploadUrl"], [f"{name}: {value}" for name, value in anonymous["headers"].items()], raw=pdf)
+        require(status == 422 and json.loads(body or b"{}").get("code") == "SIGNUP_CLOSED", f"An anonymous upload while signup is closed answered {status}")
+        print("PASS signup closed: the member's signed upload passes the CORS preflight and the PUT with its headers only, "
+              "without a bearer or the club's host; an anonymous one answers 422 SIGNUP_CLOSED", flush=True)
+        added = self.call("POST", "/api/v1/me/dogs/signup", 201, access=access, key=str(uuid.uuid4()),
+                          body=dict(dog=dict({key: value for key, value in dog.items() if key != "documents"}, name="Closed Signup Example Dog",
+                                             chip="941000000000951"),
+                                    documents=[dict(type="VACCINATION_CARD", files=[dict(fileKey=upload["fileKey"], name="member-card.png")])]))
+        review = self.call("GET", f"/api/v1/members/{member_id}/signup", access=admin)
+        view = next((d for d in review["dogs"] if d["id"] == added["dogId"]), None)
+        require(view is not None, "D2 does not list the dog added while signup is closed")
+        card = next(doc for doc in view["documents"] if doc["type"] == "VACCINATION_CARD")
+        file = next((f for f in card["files"] if f["fileKey"] == upload["fileKey"]), None)
+        require(file is not None and card["state"] == "RECEIVED", "The add-dog did not claim the member's upload")
+        status, headers, body = self.exchange("GET", file["downloadUrl"], ["Origin: " + origin])
+        disposition = headers.get("content-disposition", "")
+        require(status == 200 and body == png and headers.get("content-type") == "image/png"
+                and disposition.startswith("inline;") and "member-card.png" in disposition
+                and headers.get("access-control-allow-origin") == origin,
+                f"The member's image download answered {status} {headers.get('content-type')} {disposition}")
+        print("PASS the member's add-dog claims the file; its download from the web's origin is image/png, inline, "
+              "with the stored name", flush=True)
 
     def cleanup(self):
         if self.started:

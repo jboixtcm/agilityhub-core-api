@@ -11,7 +11,8 @@ public class UploadGrantRepository extends TenantRepository<UploadGrant> {
     public UploadGrantRepository(MongoTemplate mongo) { super(mongo, UploadGrant.class); }
     /**
      * E5-T24 (CONVENCIONS_API §5): the grant a signed local file URL names. Its caller has checked the URL's signature, which
-     * binds this id; the request has no tenant (no bearer is read), so the grant's own `clubId` becomes the tenant.
+     * binds this id; the request has no tenant (no bearer is read), so the caller then opens the grant's own `clubId` as the
+     * tenant (E5-T26, {@code AttachmentService}).
      */
     public java.util.Optional<UploadGrant> signed(String id) {
         return java.util.Optional.ofNullable(mongo.findOne(Query.query(Criteria.where("_id").is(id)), UploadGrant.class));

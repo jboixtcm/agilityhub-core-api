@@ -158,9 +158,10 @@ class AttachmentServiceTest {
     }
     /**
      * E5-T24 (CONVENCIONS_API §5, A31): the local signed URLs are authorised by their signature, checked before any lookup, for
-     * the grant they name whatever the caller's tenant; nobody needs to be signed in.
+     * the grant they name; nobody needs to be signed in. The request has no tenant (E5-T26: TenantFilter opens none).
      */
     @Test void CONVENCIONS_API_5_localSignedUrlsAuthoriseThemselves(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        tenant.close();
         var local = new LocalAttachmentStorage(directory, "fictional-signing-key-0123456789".getBytes(java.nio.charset.StandardCharsets.UTF_8), Clock.fixed(now, ZoneOffset.UTC));
         var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events);
         var upload = java.net.URI.create(local.uploadUrl(key, "text/plain", 4, now.plusSeconds(300)));
@@ -181,10 +182,65 @@ class AttachmentServiceTest {
         assertThatThrownBy(() -> signed.putLocal(key, expires, signature, "text/plain", new ByteArrayInputStream(new byte[4]))).as("claimed").hasMessage("INVALID_STATE");
         String download = local.downloadUrl(key, "x", now.plusSeconds(300)).split("signature=")[1];
         assertThatThrownBy(() -> signed.openLocal(key, expires, signature)).as("the upload's signature").hasMessage("FORBIDDEN");
-        try (var anonymous = CurrentUser.open(null); var input = signed.openLocal(key, expires, download)) {
+        try (var anonymous = CurrentUser.open(null); var input = signed.openLocal(key, expires, download).content()) {
             assertThat(new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)).isEqualTo("text");
         }
         verify(grants, never()).findById(key);
+    }
+    /**
+     * E5-T26 step 4 (review E5-T24 #3): a signed route's request has no tenant, so the grant's club is the tenant while its
+     * handler runs (the storage's put and open, the signup check), and none is left afterwards. Step 2: the download carries the
+     * grant's file name and the stored MIME type. Step 1 (R-04-27): an anonymous signup grant's PUT closes with the form, decided
+     * on the grant's club; a MEMBER's grant (add-dog) passes with nobody signed in.
+     */
+    @Test void CONVENCIONS_API_5_R_04_27_signedRoutesRunWithTheGrantsClubAsTheTenant(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        tenant.close(); user.close();
+        var local = spy(new LocalAttachmentStorage(directory, "fictional-signing-key-0123456789".getBytes(java.nio.charset.StandardCharsets.UTF_8), Clock.fixed(now, ZoneOffset.UTC)));
+        var tenants = new ArrayList<String>();
+        doAnswer(call -> { tenants.add(TenantContext.current()); return call.callRealMethod(); }).when(local).put(anyString(), anyString(), anyLong(), any());
+        doAnswer(call -> { tenants.add(TenantContext.current()); return call.callRealMethod(); }).when(local).open(anyString());
+        var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events);
+        Instant until = now.plusSeconds(300); long expires = until.getEpochSecond();
+        java.util.function.Function<String, String> signature = url -> url.substring(url.indexOf("signature=") + 10);
+        when(grants.signed(key)).thenReturn(Optional.of(new UploadGrant(key, "another-club", "another-account", "DOG_DOCUMENT", "Vacunes Blau.png", "image/png", 4, now, until, null)));
+        signed.putLocal(key, expires, signature.apply(local.uploadUrl(key, "image/png", 4, until)), "image/png", new ByteArrayInputStream(new byte[4]));
+        when(grants.signed(key)).thenReturn(Optional.of(new UploadGrant(key, "another-club", "another-account", "DOG_DOCUMENT", "Vacunes Blau.png", "image/png", 4, now, until, "dog:VACCINATION_CARD")));
+        var download = signed.openLocal(key, expires, signature.apply(local.downloadUrl(key, "x", until)));
+        download.content().close();
+        assertThat(download).extracting(AttachmentService.Download::name, AttachmentService.Download::mimeType, AttachmentService.Download::sizeBytes)
+                .containsExactly("Vacunes Blau.png", "image/png", 4L);
+        assertThat(tenants).as("the grant's club while the storage writes and reads").containsExactly("another-club", "another-club");
+        assertThat(TenantContext.current()).as("no tenant is left").isNull();
+        // The signup form's route (R-04-27): the grant's club decides whether it is closed.
+        String signupKey = "signup/signup-club/202601/" + UUID.randomUUID() + "/card.png";
+        String signupSignature = signature.apply(local.uploadUrl(signupKey, "image/png", 4, until));
+        var club = new ClubConfig.ClubView("signup-club", "signup", "Example", List.of("ca"), "ca", "Europe/Madrid", "EUR", null, null, "ACTIVE", null);
+        when(configs.current("signup-club")).thenReturn(new ClubConfig(club, Map.of("signup.enabled", false), Set.of(), null, Map.of()));
+        when(grants.signed(signupKey)).thenReturn(Optional.of(new UploadGrant(signupKey, "signup-club", null, "SIGNUP_DOCUMENT", "card.png", "image/png", 4, now, until, null)));
+        assertThatThrownBy(() -> signed.putSignupLocal(signupKey, expires, signupSignature, "image/png", new ByteArrayInputStream(new byte[4])))
+                .as("an anonymous grant").hasMessage("SIGNUP_CLOSED");
+        verify(configs).current("signup-club");
+        when(grants.signed(signupKey)).thenReturn(Optional.of(new UploadGrant(signupKey, "signup-club", "member-account", "SIGNUP_DOCUMENT", "card.png", "image/png", 4, now, until, null)));
+        signed.putSignupLocal(signupKey, expires, signupSignature, "image/png", new ByteArrayInputStream(new byte[4]));
+        assertThat(tenants).as("a MEMBER's grant, with nobody signed in").containsExactly("another-club", "another-club", "signup-club");
+        verify(configs, times(1)).current("signup-club");
+        assertThat(local.metadata(signupKey)).isEqualTo(new AttachmentStorage.Metadata("image/png", 4));
+        assertThat(TenantContext.current()).isNull();
+        verify(grants, never()).findById(anyString());
+    }
+    /** E5-T26 step 1 (R-04-27): a MEMBER's signup upload URL (add-dog) stores the member's account; an anonymous one, none. */
+    @Test void R_04_27_aMembersSignupUploadGrantCarriesTheAccount() {
+        when(storage.uploadUrl(anyString(), anyString(), anyLong(), any())).thenReturn("/api/v1/signup/uploads?fileKey=x");
+        var club = new ClubConfig.ClubView("example-club", "example", "Example", List.of("ca"), "ca", "Europe/Madrid", "EUR", null, null, "ACTIVE", null);
+        when(configs.get("example-club")).thenReturn(new ClubConfig(club, Map.of("files.allowedTypes", List.of("image/*", "application/pdf"), "files.maxSizeMb", 25), Set.of(), null, Map.of()));
+        when(configs.current("example-club")).thenReturn(new ClubConfig(club, Map.of("signup.enabled", true), Set.of(), null, Map.of()));
+        service.signupUpload("card.pdf", "application/pdf", 4);
+        try (var anonymous = CurrentUser.open(null)) { service.signupUpload("card.pdf", "application/pdf", 4); }
+        var inserted = org.mockito.ArgumentCaptor.forClass(UploadGrant.class);
+        verify(grants, times(2)).insert(inserted.capture());
+        assertThat(inserted.getAllValues()).extracting(UploadGrant::accountId).containsExactly("example-account", null);
+        assertThat(inserted.getAllValues()).extracting(UploadGrant::purpose).containsOnly("SIGNUP_DOCUMENT");
+        verify(configs, times(1)).current("example-club");
     }
     /** E5-T19 (R-04-08, R-04-19): a signup file's id is a plain one, never its key with `/`; a re-claim of the key keeps it. */
     @Test void R_04_08_R_04_19_aClaimedSignupFileHasAPlainIdThatIsNotItsStorageKey() {

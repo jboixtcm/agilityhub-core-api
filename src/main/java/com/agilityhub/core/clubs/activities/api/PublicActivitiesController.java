@@ -63,7 +63,7 @@ public class PublicActivitiesController {
         try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(file.clubId())) {
             return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.parseMediaType(file.mimeType()))
                     .header("Cache-Control","no-store").header("Content-Disposition",org.springframework.http.ContentDisposition.inline().filename(file.name()).build().toString())
-                    .body(new org.springframework.core.io.InputStreamResource(attachments.openLocal(file.fileKey(),expires,signature)));
+                    .body(new org.springframework.core.io.InputStreamResource(attachments.openLocal(file.fileKey(),expires,signature).content()));
         }
     }
 }

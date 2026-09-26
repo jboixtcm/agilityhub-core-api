@@ -971,6 +971,138 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         assertThat(getSigned(firstUrl).getStatus()).as("an expired URL").isEqualTo(403);
     }
 
+    // ---- E5-T26 (review E5-T24 #1 and #3, «Not checked»; CONVENCIONS_API §5; R-04-27): the rest of the signed local file URLs ----
+    /** A PUT of a signed upload URL with the upload's headers only (no bearer) and the given extra headers; its response. */
+    org.springframework.mock.web.MockHttpServletResponse putWith(JsonNode grant,byte[] bytes,Map<String,String> headers) throws Exception {
+        var put=put(java.net.URI.create(grant.path("uploadUrl").asText())).contentType(grant.at("/headers/Content-Type").asText())
+                .header("If-None-Match",grant.at("/headers/If-None-Match").asText()).content(bytes);
+        headers.forEach(put::header);
+        return mvc.perform(put).andReturn().getResponse();
+    }
+    static String code(org.springframework.mock.web.MockHttpServletResponse response) throws Exception {
+        return new ObjectMapper().readTree(response.getContentAsString().isEmpty()?"{}":response.getContentAsString()).path("code").asText();
+    }
+    JsonNode anonymousSignupUpload(String name,int size,String ip) throws Exception {
+        return result(from(postJson("/signup/upload-urls",Map.of("fileName",name,"contentType","application/pdf","sizeBytes",size)),ip),200);
+    }
+
+    /**
+     * E5-T26 step 1 (review E5-T24 #1, R-04-27, R-04-08): with signup closed, a MEMBER adding a dog gets an upload URL whose grant
+     * stores the member's account; its PUT with the upload's headers only (no bearer, as CONVENCIONS_API §5 says) answers 204,
+     * and the member's POST /me/dogs/signup claims the file. An anonymous grant's PUT still answers 422 SIGNUP_CLOSED.
+     */
+    @Test void R_04_27_R_04_08_aMembersAddDogUploadPassesWhileSignupIsClosedAndAnAnonymousOneDoesNot() throws Exception {
+        String id=activeMember(request());
+        byte[] bytes="fictional member card".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var anonymous=anonymousSignupUpload("anonymous-card.pdf",bytes.length,"198.51.100.211");
+        parameter("signup.enabled",false);
+        var grant=result(asMember(postJson("/signup/upload-urls",Map.of("fileName","member-card.pdf","contentType","application/pdf","sizeBytes",bytes.length)),id),200);
+        String key=grant.path("fileKey").asText();
+        var put=putWith(grant,bytes,Map.of("Host",host));
+        assertThat(put.getStatus()).as("the member's PUT with the upload's headers only, code=%s",code(put)).isEqualTo(204);
+        assertThat(stored(key)).isTrue();
+        assertThat(mongo.getCollection("attachment_uploads").find(new Document("_id",key)).first().getString("accountId"))
+                .as("the grant stores the member's account").isEqualTo(member(id).getString("accountId"));
+        var addDog=Map.of("dog",Map.of("name","Closed Signup Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000010"+String.format("%06d",++sequence)),
+                "documents",List.of(card(List.of(file(key,"member-card.pdf")))));
+        String dogId=result(asMember(postJson("/me/dogs/signup",addDog).header("Idempotency-Key",UUID.randomUUID()),id),201).path("dogId").asText();
+        assertThat(fileKeys(storedDocument(dogId,"VACCINATION_CARD"))).as("the add-dog claims the file").containsExactly(key);
+        var closed=putWith(anonymous,bytes,Map.of("Host",host));
+        assertThat(closed.getStatus()).as("an anonymous grant").isEqualTo(422);
+        assertThat(code(closed)).isEqualTo("SIGNUP_CLOSED");
+        assertThat(stored(anonymous.path("fileKey").asText())).isFalse();
+    }
+
+    /**
+     * E5-T26 step 4 (review E5-T24 #3; CONVENCIONS_API §5): PUT /signup/uploads is a signed route. The grant's club is the tenant
+     * whatever the host, and no bearer is read: a host of no club, an invalid bearer, another club's host and another club's
+     * bearer do not matter. With signup closed in the grant's club only, an anonymous grant answers 422 SIGNUP_CLOSED from another club's host.
+     */
+    @Test void CONVENCIONS_API_5_R_04_27_theSignupUploadRouteTakesTheGrantsClubWhateverTheHostOrBearer() throws Exception {
+        byte[] bytes="fictional card".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var noClub=anonymousSignupUpload("no-club-host.pdf",bytes.length,"198.51.100.212");
+        var otherBearer=anonymousSignupUpload("other-bearer.pdf",bytes.length,"198.51.100.212");
+        var closedHere=anonymousSignupUpload("closed-here.pdf",bytes.length,"198.51.100.212");
+        String home=club,homeHost=host,homePlan=plan,homeLevel=level;String other=newClub("oc");String otherHost=other+".example.test";
+        club=home;host=homeHost;plan=homePlan;level=homeLevel;
+        var put=putWith(noClub,bytes,Map.of("Host","core.example.test","Authorization","Bearer not-a-token"));
+        assertThat(put.getStatus()).as("a host of no club and an invalid bearer, code=%s",code(put)).isEqualTo(204);
+        put=mvc.perform(put(java.net.URI.create(otherBearer.path("uploadUrl").asText())).header("Host",homeHost).contentType("application/pdf").header("If-None-Match","*").content(bytes)
+                .with(jwt().jwt(j->j.subject("foreign-member").claim("clubId",other)).authorities(new SimpleGrantedAuthority("ROLE_MEMBER")))).andReturn().getResponse();
+        assertThat(put.getStatus()).as("another club's bearer is not read, code=%s",code(put)).isEqualTo(204);
+        assertThat(stored(noClub.path("fileKey").asText())).isTrue();assertThat(stored(otherBearer.path("fileKey").asText())).isTrue();
+        parameter("signup.enabled",false);
+        var closed=putWith(closedHere,bytes,Map.of("Host",otherHost));
+        assertThat(closed.getStatus()).as("closed in the grant's club, sent to an open club's host").isEqualTo(422);
+        assertThat(code(closed)).isEqualTo("SIGNUP_CLOSED");
+        assertThat(stored(closedHere.path("fileKey").asText())).isFalse();
+    }
+
+    /**
+     * E5-T26 step 2 (review E5-T24 «Not checked»): the local downloads answer like S3. `GET /attachments/files/{id}` and
+     * `GET /signup/files` send the file's stored MIME type and its stored name; an image is `inline`, so that an `<img>` shows it,
+     * also from the web's own origin (no Cross-Origin-Resource-Policy; CORS for the club's origin), and a PDF is an `attachment`.
+     */
+    @Test void CONVENCIONS_API_5_localDownloadsAnswerTheStoredTypeAndNameAndShowImagesInline() throws Exception {
+        String applicant=upload("card.pdf");
+        String id=submit(sending(request(),card(List.of(file(applicant,"card.pdf"))))).path("memberId").asText();String dogId=dog(id).getString("_id");
+        byte[] png="fictional image bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8),pdf="fictional pdf bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var imageGrant=result(admin(postJson("/attachments/upload-url",Map.of("purpose","DOG_DOCUMENT","fileName","Vacunació Blau.png","mimeType","image/png","sizeBytes",png.length))),201);
+        var pdfGrant=result(admin(postJson("/attachments/upload-url",Map.of("purpose","DOG_DOCUMENT","fileName","Assegurança \"Blau\".pdf","mimeType","application/pdf","sizeBytes",pdf.length))),201);
+        assertThat(putWith(imageGrant,png,Map.of()).getStatus()).isEqualTo(204);assertThat(putWith(pdfGrant,pdf,Map.of()).getStatus()).isEqualTo(204);
+        for(var grant:List.of(imageGrant,pdfGrant)) result(admin(json(post("/api/v1/dogs/"+dogId+"/documents"),Map.of("type","VACCINATION_CARD","name","example.pdf","fileKey",grant.path("fileKey").asText()))),201);
+        var card=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        assertThat(keys(card)).containsExactly(applicant,imageGrant.path("fileKey").asText(),pdfGrant.path("fileKey").asText());
+        String signupUrl=card.at("/files/0/downloadUrl").asText(),imageUrl=card.at("/files/1/downloadUrl").asText(),pdfUrl=card.at("/files/2/downloadUrl").asText();
+        var shown=getSigned(imageUrl);
+        assertThat(shown.getStatus()).isEqualTo(200);assertThat(shown.getContentAsByteArray()).isEqualTo(png);
+        assertThat(shown.getContentType()).isEqualTo("image/png");
+        assertThat(shown.getHeader("Content-Length")).isEqualTo(String.valueOf(png.length));
+        var inline=org.springframework.http.ContentDisposition.parse(shown.getHeader("Content-Disposition"));
+        assertThat(inline.isInline()).as(shown.getHeader("Content-Disposition")).isTrue();assertThat(inline.getFilename()).isEqualTo("Vacunació Blau.png");
+        assertThat(shown.getHeader("X-Content-Type-Options")).as("the browser keeps the stored type").isEqualTo("nosniff");
+        assertThat(shown.getHeader("Content-Security-Policy")).as("an inline image opened on the api's origin runs no inline script").contains("default-src 'self'");
+        assertThat(shown.getHeader("Cross-Origin-Resource-Policy")).as("an <img> of another origin may show it").isNull();
+        assertThat(shown.getHeader("Cache-Control")).isEqualTo("no-store");
+        var crossOrigin=getSigned(imageUrl,"Origin","https://"+host);
+        assertThat(crossOrigin.getStatus()).isEqualTo(200);assertThat(crossOrigin.getHeader("Access-Control-Allow-Origin")).isEqualTo("https://"+host);
+        var downloaded=getSigned(pdfUrl);
+        assertThat(downloaded.getStatus()).isEqualTo(200);assertThat(downloaded.getContentAsByteArray()).isEqualTo(pdf);
+        assertThat(downloaded.getContentType()).isEqualTo("application/pdf");
+        var attachment=org.springframework.http.ContentDisposition.parse(downloaded.getHeader("Content-Disposition"));
+        assertThat(attachment.isAttachment()).as(downloaded.getHeader("Content-Disposition")).isTrue();assertThat(attachment.getFilename()).isEqualTo("Assegurança \"Blau\".pdf");
+        var signupFile=getSigned(signupUrl);
+        assertThat(signupFile.getStatus()).isEqualTo(200);assertThat(signupFile.getContentType()).isEqualTo("application/pdf");
+        var signupDisposition=org.springframework.http.ContentDisposition.parse(signupFile.getHeader("Content-Disposition"));
+        assertThat(signupDisposition.isAttachment()).isTrue();assertThat(signupDisposition.getFilename()).isEqualTo("card.pdf");
+    }
+
+    /**
+     * E5-T26 step 3 (review E5-T24 «Not checked»; CONVENCIONS_API §9): the web's cross-origin PUT to the signed upload routes
+     * passes the CORS preflight from the club's web origin, like the api's other routes, although these routes have no tenant.
+     * The PUT itself then answers 204 with the CORS headers. An unknown origin gets no CORS headers.
+     */
+    @Test void CONVENCIONS_API_5_T_01_25_theSignedUploadRoutesPassTheCorsPreflightOfTheClubsWebOrigin() throws Exception {
+        byte[] bytes="fictional cross-origin card".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String origin="https://"+host;
+        for(var grant:List.of(adminUploadUrl("club-card.pdf",bytes.length),anonymousSignupUpload("card.pdf",bytes.length,"198.51.100.213"))) {
+            String url=grant.path("uploadUrl").asText(),route=url.substring(0,url.indexOf('?'));
+            var preflight=mvc.perform(options(java.net.URI.create(url)).header("Origin",origin).header("Access-Control-Request-Method","PUT")
+                    .header("Access-Control-Request-Headers","content-type,if-none-match")).andReturn().getResponse();
+            assertThat(preflight.getStatus()).as(route).isEqualTo(200);
+            assertThat(preflight.getHeader("Access-Control-Allow-Origin")).as(route).isEqualTo(origin);
+            assertThat(preflight.getHeader("Access-Control-Allow-Methods")).as(route).contains("PUT");
+            assertThat(preflight.getHeader("Access-Control-Allow-Headers").toLowerCase(Locale.ROOT)).as(route).contains("content-type","if-none-match");
+            var put=putWith(grant,bytes,Map.of("Origin",origin));
+            assertThat(put.getStatus()).as("%s code=%s",route,code(put)).isEqualTo(204);
+            assertThat(put.getHeader("Access-Control-Allow-Origin")).as(route).isEqualTo(origin);
+            var unknown=mvc.perform(options(java.net.URI.create(url)).header("Origin","https://unknown.example.test").header("Access-Control-Request-Method","PUT")
+                    .header("Access-Control-Request-Headers","content-type,if-none-match")).andReturn().getResponse();
+            assertThat(unknown.getStatus()).as(route).isEqualTo(403);
+            assertThat(unknown.getHeaderNames()).as(route).noneMatch(name->name.startsWith("Access-Control-"));
+        }
+    }
+
     /** E3-T17 (R-04-23): a dog that is new in a rejected readmission is INACTIVE{SIGNUP_REJECTED} with the decision; the old one is untouched. */
     @Test void T_04_19_aNewDogOfARejectedReadmissionIsStampedAndTheMembersOldDogIsUntouched() throws Exception {
         var original=request();String id=leftMember(original);var old=dog(id);

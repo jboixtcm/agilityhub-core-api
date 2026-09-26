@@ -24,6 +24,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
 | INC-13 | 26-09 | api · definició de club | Revisió d'E5-T23: les instruccions d'`MANUAL` en blanc passen la validació, la regla R-17-05 només es comprova quan la definició les declara, noms i abast de dos tests | Baixa | oberta — passada de correccions |
 | INC-14 | 26-09 | api · fitxers | Revisió d'E5-T24: la ruta signada es reconeix pel camí cru, P9 no neteja els fitxers `DOG_DOCUMENT` orfes de l'ADMIN, el test de T-05-07 no la cobreix sencera | Baixa | oberta — passada de correccions |
+| INC-15 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | oberta — passada de correccions, abans de cap migració real |
 
 ---
 
@@ -291,3 +292,23 @@ Solució probable:
 - **T-05-07.** `SignupPlansFollowUpIT.R_05_19_T_05_07_…` només comprova el `priceLabel` de Teràpia en `ca` i `es`. T-05-07 demana les línies de preu dels tres tipus de pla i «sense preu» en `ca`, `es` i `en`. Cal ampliar-lo o dir quin test cobreix la resta.
 
 **On mirar**: `SignedFileRequests.java`, `RateLimitFilter` (prop de `:28`), el procés P9 (`S15 R-15-19`), `AttachmentService.claimDogDocument`, `SignupPlansFollowUpIT.java` (prop de `:118`).
+
+---
+
+## INC-15 · Revisió d'E5-T25: el sexe dels gossos migrats i detalls del contracte de reserves (api)
+
+**Gravetat**: **mitjana** per al sexe: s'ha de corregir abans de cap migració real (E11/E12). Baixa per a la resta. Avui no afecta res: encara no s'ha migrat cap club, i les dades locals són de demostració.
+
+**Origen**: `roadmap/reviews/E5-T25-20260926-1724-claude.md` (api), el menor #1 (la pregunta 1 de l'informe) i els detalls #2–#5.
+
+**Llista**:
+- **El sexe d'un gos migrat.**
+  - **El problema:** `PlayoffPlanner` (prop de `:297`) només reconeix «femella» i «mascle», i qualsevol altre valor de «Sexe del gos» es desa com a `null`. S03 diu que `sex` és obligatori (`MALE`·`FEMALE`). El contracte publica `HoldDog.sex` com a obligatori, i ara `Booking.dog` i `WaitlistEntry.dog` el fan servir per a l'article en català («amb la Duna»).
+  - **Decisió de l'organitzador (26-09):** el contracte es manté estricte. Un gos amb el sexe buit o desconegut és un problema **bloquejant** del pla de migració. El pla els llista tots d'una vegada, i s'arreglen a Playoff, a l'export o amb un mapatge a `MappingConfig` abans d'aplicar. Mai es desa un gos sense sexe.
+  - **Correcció:** el codi de la incidència del pla, més un test amb una fila de sexe desconegut.
+- **Un gos que falta fa caure tot un llistat.** A `BookingViews.java:115-122` i `:131`, un gos que falta abans donava `dogName: null`, i ara llança `IllegalStateException`, és a dir, un 500 fora del catàleg d'errors (AGENTS, regla 9). En un llistat del personal com `GET /class-sessions/{id}/waitlist-entries`, una sola entrada dolenta faria caure tot D4/D12. Avui res no esborra gossos. Proposta: mantenir l'invariant, però registrar-ho al log i que els llistats del personal ho tolerin.
+- **`BookedBy.self` llegit per l'ADMIN.** Amb el seu propi token, l'ADMIN que llegeix una reserva que va fer impersonant rep `self: true` juntament amb `viaClub: true`. Correcció: dir a la descripció de l'esquema que el camp és per a les pantalles de l'abonat, o fixar el cas del personal a l'IT.
+- **La clau d'idempotència del `claim`.** La ruta del `claim` (`BookingsController.java:280-283`, R-08-15) també pren un intercanvi, i la clau hi ha de ser la mateixa que la de R-08-08, amb un UUID per cos. La descripció no ho diu.
+- **Noms de tests** (AGENTS, regla 5). `S08MemberFlowContractTest` fa servir T-08-42 i T-08-27 per a comprovacions que no són les d'aquests tests. Les esmenes d'S08 del 26-09 no tenen T-ids propis. Proposta: afegir-los a S08 §12 i canviar els noms.
+
+**On mirar**: `PlayoffPlanner.java`, `MappingConfig`, `BookingViews.java`, `BookingsController.java`, `S08MemberFlowContractTest.java`, `MemberFlowContractIT.java`.

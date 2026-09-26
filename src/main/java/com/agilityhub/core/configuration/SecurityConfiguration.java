@@ -57,8 +57,8 @@ public class SecurityConfiguration {
                     "/.well-known/openid-configuration", "/oauth2/authorize", "/connect/logout").permitAll();
             // S08 R-08-08: the .ics link authenticates with its signed token, not a JWT; the club comes from the host.
             authorize.requestMatchers(HttpMethod.GET, "/api/v1/bookings/*/calendar.ics").permitAll();
-            authorize.requestMatchers(HttpMethod.PUT, "/api/v1/signup/uploads").permitAll();
             // E5-T24 (CONVENCIONS_API §5, A31): a signed local file URL authorises itself; its service checks the signature.
+            // E5-T26: PUT /api/v1/signup/uploads is one of them.
             authorize.requestMatchers(com.agilityhub.core.shared.api.SignedFileRequests::matches).permitAll();
             authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid",
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",

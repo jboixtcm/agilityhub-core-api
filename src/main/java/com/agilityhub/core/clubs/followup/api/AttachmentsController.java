@@ -119,7 +119,18 @@ public class AttachmentsController {
     @io.swagger.v3.oas.annotations.Hidden
     @GetMapping("/api/v1/attachments/files/{id}")
     public ResponseEntity<InputStreamResource> getLocal(@PathVariable String id, @RequestParam long expires, @RequestParam String signature) throws IOException {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment")
-                .header("Cache-Control", "no-store").body(new InputStreamResource(attachments.openLocal(id, expires, signature)));
+        return download(attachments.openLocal(id, expires, signature));
+    }
+    /**
+     * E5-T26: a local download answers like S3, with the file's stored MIME type, so that an `<img>` of another origin shows it.
+     * An image is `inline` and any other file an `attachment`, both with the stored name. `nosniff` and the API's CSP stay.
+     */
+    static ResponseEntity<InputStreamResource> download(AttachmentService.Download file) {
+        MediaType type;
+        try { type = MediaType.parseMediaType(file.mimeType()); } catch (InvalidMediaTypeException invalid) { type = MediaType.APPLICATION_OCTET_STREAM; }
+        var disposition = "image".equals(type.getType()) && !type.isWildcardSubtype() ? ContentDisposition.inline() : ContentDisposition.attachment();
+        return ResponseEntity.ok().contentType(type).contentLength(file.sizeBytes())
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.filename(file.name(), java.nio.charset.StandardCharsets.UTF_8).build().toString())
+                .header(HttpHeaders.CACHE_CONTROL, "no-store").body(new InputStreamResource(file.content()));
     }
 }
