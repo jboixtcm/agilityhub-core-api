@@ -1,0 +1,22 @@
+surefire totals: tests=570 failures=0 errors=0 skipped=0 (125 classes)
+failsafe totals: tests=1005 failures=0 errors=0 skipped=0 (86 classes)
+Classes this task adds or changes (OpenApiSnapshotTest only through the regenerated snapshot):
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=38 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=23 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.E3GateFixesContractTest: tests=9 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=17 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E5PersistenceIT: tests=7 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.catalogs.application.CatalogServiceRetryTest: tests=4 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.shared.application.TransactionRetriesTest: tests=2 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+E5-T21 test methods (added, extended or renamed):
+  PASS SignupSecurityFixesIT#R_04_19_R_04_08_d2RemovesOneFileOfAPendingPublicSignupDog
+  PASS SignupSecurityFixesIT#R_04_19_R_04_06_aReusedDogsValidationKeepsTheFileRemovedFromItsOwnCard
+  PASS SignupSecurityFixesIT#R_04_19_sendingBackD2sDocumentsIsNoChange
+  PASS SignupSecurityFixesIT#R_04_08_R_04_19_theFileLimitCountsOnlyTheNewUploadsOfARequest
+  PASS E3GateFixesContractTest#R_02_06_clubUpdateTaxIdIsNullableAndBlankOrNullClearsIt
+  PASS ClubDefinitionsIT#R_02_06_aClubDefinitionRefusesANullTaxId(Path)
+  PASS SignupGateFixesIT#R_04_10_T_04_14_theSepaMandateIsTheTextOfMockup19WithTheClubsLegalName
+  PASS CatalogServiceRetryTest#R_05_07_R_05_08_aRingChangeInterruptedDuringItsBackoffStopsRetrying
+  PASS TransactionRetriesTest#R_09_06_oneConflictCheckRetriesAWriteConflictADuplicateKeyOrATransientError
+  PASS E5PersistenceIT#R_15_19_theDeployBackfillGivesTheOldRingSlotLocksTheirExpiry

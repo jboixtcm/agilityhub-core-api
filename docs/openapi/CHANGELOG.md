@@ -2,6 +2,24 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T21 · a nullable `ClubUpdate.taxId`; D2's documents edit, described
+
+**0 operations or schemas added or removed; 1 property widened; 2 descriptions.** The web should regenerate its client:
+
+- `PUT /club`: `ClubUpdate.taxId` is `["string", "null"]`, and its description ends «Blank (empty or spaces only) or null
+  clears it.» (S02 §3, amended 26-09), like `displayCity`. Behaviour unchanged: `null` already cleared it. A club
+  definition (`seeds/club-definition.schema.json`) still refuses `taxId: null`; it clears the tax id with `""`.
+- `PATCH /dogs/{id}`: `DogPatch.documents` says that a kept file keeps its stored name, that the key of a file removed
+  through `DELETE /dogs/{id}/documents/{docId}/files/{fileId}` answers `400 FILE_NOT_FOUND`, that the limit of 10 counts
+  only the new uploads, and that sending back the view's keys is no change. `SignupDocumentFile.fileKey` (D2's view,
+  `GET /members/{id}/signup`) says the same of the stored name.
+- Behaviour, no schema change (R-04-19, R-04-08): a D2 documents edit, and the validation of a readmission's reused dog,
+  keep the stored rows of files removed through S03, so a removed file stays removed and P9 still counts it as
+  referenced; sending a removed key back is `400 FILE_NOT_FOUND`. An edit that changes no file key of any type writes
+  nothing: no new `version`, no `SignupEdited`, no audit entry. A type that already has 10 files takes one more upload.
+- Text, no schema change: `GET /signup` `paymentMethods[SEPA_DD].mandateText` in `ca` and `es` is word for word the
+  approved mockup 19's («Autoritzo a … l'emissió de rebuts …», «Autorizo a … la emisión de recibos …»); `en` is unchanged.
+
 ## 2026-09-26 · E5-T20 · the E4 real-core follow-ups: sparse `fields` and `x-fields`, `waitlistRank`, the ring-conflicts errors, the day-grid `view` error
 
 **0 operations or schemas added or removed; 2 list item schemas narrowed; 3 schemas gain `waitlistRank`; 14 list operations

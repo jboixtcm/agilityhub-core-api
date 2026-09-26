@@ -484,33 +484,58 @@ public class SignupService implements SignupPaymentAccess {
      * The D2 edit of a pending dog's documents (R-04-19): only the types it sends change (E3-T17 round 2). Those of a
      * readmission's reused dog stay in its request (E38), merged by type: a type sent with files replaces the submitted one,
      * a type sent without files withdraws it (the dog keeps its own), and the other submitted types stay.
+     * E5-T21: an edit that changes no file key of any type in D2's view is no change: nothing is written, and it returns false.
      */
-    public void saveDocuments(Dog dog,List<Map<String,Object>> sent) {
-        var claimed=claimDocuments(dog,sent,false);
-        if(!readmissionPending(dog)) { writeDocuments(dog,claimed);return; }
-        var merged=new LinkedHashMap<String,Map<String,Object>>();
+    public boolean saveDocuments(Dog dog,List<Map<String,Object>> sent) {
+        var claimed=claimDocuments(dog,sent,false);var shown=shownKeys(dog);
+        if(!readmissionPending(dog)) {
+            var changed=claimed.stream().filter(row -> !keySet(row).equals(shown.getOrDefault(string(row.get("type")),Set.of()))).toList();
+            writeDocuments(dog,changed);
+            return !changed.isEmpty();
+        }
+        var request=dog.readmissionRequest;var merged=new LinkedHashMap<String,Map<String,Object>>();
         for(var row:rows(submitted(dog).get("documents"))) merged.put(string(row.get("type")),row);
         for(var row:claimed) { if(rows(row.get("files")).isEmpty()) merged.remove(string(row.get("type")));else merged.put(string(row.get("type")),row); }
         putSubmitted(dog,"documents",new ArrayList<>(merged.values()));
+        if(!shownKeys(dog).equals(shown)) return true;
+        dog.readmissionRequest=request;
+        return false;
+    }
+    /** Each type's file keys in D2's view ({@link #documentRows}, submitted): what a documents edit is compared on (E5-T21). */
+    private Map<String,Set<String>> shownKeys(Dog dog) {
+        var result=new HashMap<String,Set<String>>();
+        for(var row:documentRows(dog,true)) result.put(string(row.get("type")),keySet(row));
+        return result;
+    }
+    private static Set<String> keySet(Map<String,Object> document) {
+        var keys=new HashSet<String>();for(var file:rows(document.get("files"))) keys.add(string(file.get("fileKey")));
+        return keys;
     }
     /**
      * Checks the documents and claims their files (R-04-08); writes no document. A submission (step 17) always has a
      * VACCINATION_CARD row; a D2 edit has only the types it sends (E3-T17 round 2). E5-T19 (R-04-19): in a D2 edit, a file key
-     * D2's view gave for that type ({@link #currentFiles}) keeps its file as it is, and any other key is a new signup upload,
-     * so D2 adds or removes one file by sending the type's other keys back.
+     * D2's view gave for that type ({@link StoredFiles#current}) keeps its file as it is, and any other key is a new signup
+     * upload, so D2 adds or removes one file by sending the type's other keys back. E5-T21: a key whose stored row was removed
+     * through S03 is refused (400 FILE_NOT_FOUND), and R-04-08's limit of 10 files counts only the new uploads.
      */
     private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted,boolean submission) {
-        if(submitted.stream().mapToInt(d -> rows(d.get("files")).size()).sum()>10) throw invalid("documents","TOO_MANY_FILES");
         var types=new HashSet<String>();var all=new ArrayList<>(submitted);var claimed=new ArrayList<Map<String,Object>>();
         if(submission&&all.stream().noneMatch(d -> "VACCINATION_CARD".equals(d.get("type")))) all.add(object("type","VACCINATION_CARD","files",List.of()));
+        var sent=new ArrayList<SentDocument>();
         for(var raw:all) {
             String type=text(raw.get("type"),"documents.type",80,true);if(!types.add(type)) throw invalid("documents","DUPLICATE");
             if(rows(access.config().get("census.dogDocumentTypes",List.class)).stream().noneMatch(t -> type.equals(t.get("key")))) throw new ApiException(ErrorCode.DOCUMENT_TYPE_UNKNOWN);
-            var current=submission?Map.<String,Map<String,Object>>of():currentFiles(dog,type);var keys=new HashSet<String>();
-            var files=new ArrayList<Map<String,Object>>();for(var file:rows(raw.get("files"))) {
+            sent.add(new SentDocument(type,rows(raw.get("files")),storedFiles(dog,type,submission)));
+        }
+        if(sent.stream().mapToLong(SentDocument::uploads).sum()>10) throw invalid("documents","TOO_MANY_FILES");
+        for(var document:sent) {
+            String type=document.type();var current=document.stored().current();var keys=new HashSet<String>();
+            var files=new ArrayList<Map<String,Object>>();for(var file:document.files()) {
                 String name=text(file.get("name"),"documents.files.name",80,true);String key=string(file.get("fileKey"));
                 if(!keys.add(Objects.toString(key,""))) throw invalid("documents.files.fileKey","DUPLICATE");
                 if(key!=null&&current.containsKey(key)) { files.add(new LinkedHashMap<>(current.get(key)));continue; }
+                // E5-T21 (R-04-19): a removed file stays removed; its key is no upload to claim again, as an S03 key is not.
+                if(document.stored().removed().contains(key)) throw new ApiException(ErrorCode.FILE_NOT_FOUND);
                 var claim=attachments.claimSignup(key,dog.id+":"+type);
                 files.add(object("id",claim.id(),"fileKey",claim.fileKey(),"name",name,"mimeType",claim.mimeType(),"sizeBytes",claim.sizeBytes(),"uploadedAt",claim.uploadedAt()));
             }
@@ -522,14 +547,22 @@ public class SignupService implements SignupPaymentAccess {
         return claimed;
     }
     /**
-     * The files D2's view shows for a type, by file key (E5-T19): the dog's own ones (not those removed through S03) and, for a
-     * readmission's reused dog, the submitted ones. Only these can be kept by sending their key back.
+     * A type's stored files. `current`, by file key, is what D2's view shows (E5-T19): the dog's own files (not those removed
+     * through S03) and, for a readmission's reused dog, the submitted ones; only these can be kept by sending their key back
+     * (none at submission). `removed` holds the keys of the rows removed through S03 (E5-T21).
      */
-    private Map<String,Map<String,Object>> currentFiles(Dog dog,String type) {
-        var result=new LinkedHashMap<String,Map<String,Object>>();
-        for(var doc:documents.matching(Criteria.where("dogId").is(dog.id).and("type").is(type))) activeFiles(doc.files).forEach(file -> result.put(string(file.get("fileKey")),file));
-        if(readmissionPending(dog)) rows(submitted(dog).get("documents")).stream().filter(row -> type.equals(row.get("type"))).forEach(row -> rows(row.get("files")).forEach(file -> result.put(string(file.get("fileKey")),file)));
-        return result;
+    private record StoredFiles(Map<String,Map<String,Object>> current,Set<String> removed) { }
+    /** A type a request sends, with its stored files; `uploads` are its files that are not kept (R-04-08's limit, E5-T21). */
+    private record SentDocument(String type,List<Map<String,Object>> files,StoredFiles stored) {
+        long uploads() { return files.stream().filter(file -> !stored.current().containsKey(string(file.get("fileKey")))).count(); }
+    }
+    private StoredFiles storedFiles(Dog dog,String type,boolean submission) {
+        var current=new LinkedHashMap<String,Map<String,Object>>();var removed=new HashSet<String>();
+        for(var doc:documents.matching(Criteria.where("dogId").is(dog.id).and("type").is(type))) for(var file:rows(doc.files)) {
+            if(file.get("removedAt")!=null) removed.add(string(file.get("fileKey")));else if(!submission) current.put(string(file.get("fileKey")),file);
+        }
+        if(!submission&&readmissionPending(dog)) rows(submitted(dog).get("documents")).stream().filter(row -> type.equals(row.get("type"))).forEach(row -> rows(row.get("files")).forEach(file -> current.put(string(file.get("fileKey")),file)));
+        return new StoredFiles(current,removed);
     }
     /** A readmission's reused dog whose own VACCINATION_CARD has a file (E5-T19): it meets `signup.requireDogDocumentAtSignup`. */
     private boolean ownCardReceived(Dog dog) {
@@ -537,14 +570,19 @@ public class SignupService implements SignupPaymentAccess {
     }
     /** A document's files without those removed through S03 (`removedAt`), as `GET /dogs/{id}/documents` shows them. */
     private static List<Map<String,Object>> activeFiles(Object files) { return rows(files).stream().filter(file -> file.get("removedAt")==null).toList(); }
-    /** Writes the claimed documents type by type (the dog's other types stay): RECEIVED with files, PENDING without. */
+    /**
+     * Writes the claimed documents type by type (the dog's other types stay): RECEIVED with files, PENDING without. E5-T21
+     * (R-04-19): the stored rows of files removed through S03 (`removedAt`) stay, so the removal stays recorded and P9 still
+     * counts the file as referenced.
+     */
     private void writeDocuments(Dog dog,List<Map<String,Object>> claimed) {
         for(var row:claimed) {
-            String type=string(row.get("type"));var files=new ArrayList<>(rows(row.get("files")));
+            String type=string(row.get("type"));var files=rows(row.get("files"));
             var doc=documents.matching(Criteria.where("dogId").is(dog.id).and("type").is(type)).stream().findFirst().orElse(null);
             boolean fresh=doc==null;if(fresh) { doc=new DogDocument();doc.id=UUID.randomUUID().toString();doc.clubId=TenantContext.require();doc.dogId=dog.id;doc.type=type; }
             boolean received="RECEIVED".equals(doc.state);
-            doc.files=files;doc.state=files.isEmpty()?"PENDING":"RECEIVED";if(fresh) documents.insert(doc);else documents.save(doc);
+            var written=new ArrayList<>(rows(doc.files).stream().filter(file -> file.get("removedAt")!=null).toList());written.addAll(files);
+            doc.files=written;doc.state=files.isEmpty()?"PENDING":"RECEIVED";if(fresh) documents.insert(doc);else documents.save(doc);
             // S03 §7 (E3-T10): `trigger` REGISTRATION for a document missing at signup, FILE_REMOVED when a D2 edit empties a received one.
             if(files.isEmpty()) events.emit("DogDocumentPending","DogDocument",doc.id,object("dogId",dog.id,"type",type,"state","PENDING","trigger",received?"FILE_REMOVED":"REGISTRATION"));
         }

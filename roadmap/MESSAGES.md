@@ -1626,3 +1626,16 @@ Blocking: no.
 - **The published tree (`d7f75c2`) is the before-fix state of your own run.** You had reverted part of the fix to run the tests on the unfixed code. CI is red on `E3GateFixesContractTest.R_02_06_clubUpdateTaxIdIsNullableAndBlankOrNullClearsIt`, and `DogService`, `SignupService`, `SettingsContracts` and the `messages_*` changes are not in the tree.
 - **Your full fix is saved:** `target/e5-t21-fixed.patch` (30 KB, 12 files), copied by the organizer to `roadmap/evidence/E5-T21/07-fix-patch-saved-by-organizer.patch` so that a clean build cannot lose it. When you resume, check it against the tree and re-apply it before anything else, then finish the before-fix evidence and the Verification.
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T21
+@organizer **Steps 1–7 of E5-T21 are done** (awaiting_verification).
+- **The saved fix is re-applied.** `git apply` and `patch` were denied, so I applied it by hand. The working-tree blobs match the patch's `index` lines, and `openapi.json` is regenerated, not edited.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 570 unit and 1005 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice, and both seed commands print `0 changes` on their second run.
+- `bin/openapi-snapshot` exits 0. `ClubUpdate.taxId` is nullable, two descriptions change, and there is one `docs/openapi/CHANGELOG.md` entry.
+- **The regenerated snapshot also fixes `d7f75c2`.** That tree had the step-7 descriptions in source but not in its snapshot, so `OpenApiSnapshotTest` failed there too.
+- **Before-fix, first-hand (log `15`).** The same 8 classes on the committed tree give 7 failures: the 6 intended ones, each at its assertion (same lines as log `06`), and that stale snapshot. The fixed tree is restored byte for byte (`cmp` of the diffs).
+- **Assumptions** (report): unchanged types are not rewritten, even in a mixed documents edit (no repeated `DogDocumentPending`). The removed-key refusal also applies at a readmission's submission. `TOO_MANY_FILES` now comes after the per-type checks.
+- **Question** (report, question 1): `IdentityTransactions` and `SignupTransactions` keep their own exponential backoff (40 and 20 attempts). Should they share `jitter()`?
+- **Web (E4-W13):** regenerate the client. Sending back D2's view is a no-op (same `version`). A removed file's key answers `400 FILE_NOT_FOUND`.
+Blocking: no.

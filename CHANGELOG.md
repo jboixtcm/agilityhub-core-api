@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T21: follow-ups of the E5-T19 and E5-T18 reviews; a small contract change (`ClubUpdate.taxId` nullable, two descriptions).
+  - R-04-19 / R-04-06: a D2 documents edit, and the validation of a readmission's reused dog, keep the stored rows of
+    files removed through S03 (`removedAt`), so the removal stays recorded and P9 still counts the file as referenced. A
+    removed file's key sent back answers `400 FILE_NOT_FOUND`, as an S03 key does.
+  - R-04-19: a documents edit that changes no file key of any type (D2 sending back its view) is no change: no new
+    `version`, no `SignupEdited`, no `SIGNUP_EDITED` audit entry, no dashboard refresh.
+  - R-04-08: the limit of 10 files per request counts only the new uploads it claims, not the kept files.
+  - R-07-08, R-08-07, R-09-13: the S07, S08 and S09 writers wait `TransactionRetries.jitter()` (one 50–150 ms range).
+  - S02 §3: `ClubUpdate.taxId` is `["string", "null"]` («blank or null clears it»); a club definition still refuses
+    `taxId: null` (it clears with `""`), now pinned by a test and described in `seeds/club-definition.schema.json`.
+  - `signup:payment.mandate.ES` in `ca` and `es` is word for word the approved mockup 19's text; `en` is unchanged.
+  - Test names follow their rules (`R_05_07_R_05_08_…`, `R_09_06_…`); the DEPLOY backfill test reads its `--eval`
+    expression from `docs/DEPLOY.md`; `docs/openapi/CHANGELOG.md` names the submission routes that refuse a duplicate key.
+
 - E5-T20: api follow-ups of the web's E4 runs against the real core (E4-W05, E4-W06, E4-W11); the list item schemas narrow.
   - S07 §6: `GET /activities/{id}/ring-conflicts` documents `400 INVALID_TIME_RANGE` and `422 OUTSIDE_OPENING_HOURS`; an
     activity with rings and no date answers `INVALID_TIME_RANGE` there instead of a 500.

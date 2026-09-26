@@ -145,7 +145,7 @@ public final class SettingsContracts {
             @Schema(requiredMode = REQUIRED) @NotNull Long version,
             @Schema(requiredMode = NOT_REQUIRED) String name,
             @Schema(requiredMode = NOT_REQUIRED) String legalName,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.") String taxId,
+            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId. Blank (empty or spaces only) or null clears it.") String taxId,
             @Schema(requiredMode = NOT_REQUIRED, description = "The registered office (S02 §3); /branding.legalAddress.") ClubAddress address,
             @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "The town shown with the club's name (S02 §3); null clears it, and /branding shows address.city.") String displayCity,
             @Schema(requiredMode = NOT_REQUIRED) String contactEmail,

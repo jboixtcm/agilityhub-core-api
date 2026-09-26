@@ -3637,8 +3637,8 @@
             "type" : "string"
           },
           "taxId" : {
-            "description" : "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.",
-            "type" : "string"
+            "description" : "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId. Blank (empty or spaces only) or null clears it.",
+            "type" : [ "string", "null" ]
           },
           "theme" : {
             "$ref" : "#/components/schemas/Theme"
@@ -4604,7 +4604,7 @@
             "type" : "string"
           },
           "documents" : {
-            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file; any other key is a new signup upload.",
+            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new signup upload. The key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId} answers 400 FILE_NOT_FOUND. At most 10 new uploads per request (kept files do not count). Sending back the view's keys is no change.",
             "items" : {
               "$ref" : "#/components/schemas/SignupDocument"
             },
@@ -12263,7 +12263,7 @@
             "type" : "string"
           },
           "fileKey" : {
-            "description" : "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file; the type's files it does not send are removed",
+            "description" : "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file with its stored name (the name sent with it is not applied); the type's files it does not send are removed",
             "type" : "string"
           },
           "name" : {

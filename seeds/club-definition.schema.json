@@ -22,7 +22,8 @@
           "type": "string"
         },
         "taxId": {
-          "type": "string"
+          "type": "string",
+          "description": "S02 §3 (amended 26-09): \"\" clears it and an omitted one is kept; null is refused (only PUT /club clears it with null)."
         },
         "address": {
           "type": "object",

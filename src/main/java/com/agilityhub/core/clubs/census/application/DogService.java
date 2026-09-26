@@ -62,7 +62,8 @@ public class DogService {
             if(target.birthDate.isAfter(clubClock.today(TenantContext.require()))) throw invalid("birthMonth","INVALID_VALUE");
         }
         if (request.containsKey("notesToInstructors")) target.instructorNote=object("text",text(request.get("notesToInstructors"),"notesToInstructors",1000,false),"updatedAt",clock.instant());
-        if (request.containsKey("documents")) signups.getObject().saveDocuments(dog,rows(request.get("documents")));
+        // E5-T21: a documents edit that changes no file key of any type (D2 sending back its view) is no change.
+        boolean documents = request.containsKey("documents") && signups.getObject().saveDocuments(dog, rows(request.get("documents")));
         if (readmission) { signups.getObject().storeSubmitted(dog, target); }
         // E3-T17 round 2 (R-04-06): `handlerName` and `licenses` are the record's, not the submission's, so the reused dog's are
         // frozen as its chip is; sending the value it has is no edit.
@@ -76,7 +77,7 @@ public class DogService {
             if (readmission && !licenses.equals(Objects.requireNonNullElse(dog.licenses, List.of()))) { throw CensusAccess.readmissionFrozen(); }
             dog.licenses = licenses;
         }
-        var diff = events.diff(before, fields(target, dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
+        var diff = events.diff(before, fields(target, dog)); if (documents) diff.put("documents",object("replaced",true));
         if (diff.isEmpty()) { return; }
         access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
         if ("PENDING".equals(dog.status)) { signups.getObject().refreshDashboard(); } // R-14-01 (M11): the D1 row shows the dog
