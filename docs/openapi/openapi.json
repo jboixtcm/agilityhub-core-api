@@ -4586,7 +4586,7 @@
             "type" : "string"
           },
           "documents" : {
-            "description" : "PENDING dogs only; replaces files for the supplied document types.",
+            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file; any other key is a new signup upload.",
             "items" : {
               "$ref" : "#/components/schemas/SignupDocument"
             },
@@ -12244,11 +12244,15 @@
             "format" : "uri",
             "type" : "string"
           },
+          "fileKey" : {
+            "description" : "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file; the type's files it does not send are removed",
+            "type" : "string"
+          },
           "name" : {
             "type" : "string"
           }
         },
-        "required" : [ "downloadUrl", "name" ],
+        "required" : [ "downloadUrl", "fileKey", "name" ],
         "type" : "object"
       },
       "SignupDocumentView" : {
@@ -28638,7 +28642,7 @@
         "tags" : [ "clubs.census" ]
       },
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The documents of a pending dog change only for the types sent. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: 409 INVALID_STATE with details.reason = READMISSION_PENDING. The response is the dog record, which keeps its own values until validation: D2 re-reads GET /members/{id}/signup for the submitted ones.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. The documents of a pending dog change only for the types sent. A type's files are the ones sent: a fileKey that GET /members/{id}/signup shows for that type keeps its file, and any other fileKey is a new signup upload (R-04-19). With signup.requireDogDocumentAtSignup, a VACCINATION_CARD without files answers 422 DOG_DOCUMENT_REQUIRED, unless the reused dog of a pending readmission has its own card with a file. The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: 409 INVALID_STATE with details.reason = READMISSION_PENDING. The response is the dog record, which keeps its own values until validation: D2 re-reads GET /members/{id}/signup for the submitted ones.",
         "operationId" : "updateDog",
         "parameters" : [ {
           "in" : "path",

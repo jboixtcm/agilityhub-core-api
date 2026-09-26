@@ -57,6 +57,11 @@ public class AttachmentService {
         grants.insert(new UploadGrant(key,TenantContext.require(),null,"SIGNUP_DOCUMENT",safe,type,size,clock.instant(),expires,null));
         return new Upload(storage.uploadUrl(key,type,size,expires),key,expires,Map.of("Content-Type",type,"If-None-Match","*"));
     }
+    /**
+     * E5-T19: the `id` of a file claimed at signup is a plain one derived from its key, never the key itself, whose `/` would
+     * split `DELETE /dogs/{id}/documents/{docId}/files/{fileId}`. The same key always gives the same id, so a re-claim keeps it.
+     */
+    public static String signupFileId(String key) { return UUID.nameUUIDFromBytes(("signup-file:" + key).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(); }
     @Transactional
     public File claimSignup(String key, String entity) {
         var grant = grants.findById(key).orElseThrow(() -> new ApiException(ErrorCode.FILE_NOT_FOUND));
@@ -68,7 +73,7 @@ public class AttachmentService {
         if (actual.sizeBytes()!=grant.sizeBytes()) { throw new ApiException(ErrorCode.FILE_TOO_LARGE); }
         if (!actual.mimeType().equals(grant.mimeType())) { throw new ApiException(ErrorCode.FILE_TYPE_NOT_ALLOWED); }
         grants.bind(key,entity);
-        return new File(key,grant.fileName(),key,grant.mimeType(),grant.sizeBytes(),clock.instant(),null);
+        return new File(signupFileId(key),grant.fileName(),key,grant.mimeType(),grant.sizeBytes(),clock.instant(),null);
     }
     public void putSignupLocal(String key,long expires,String signature,String type,InputStream input) throws IOException {
         if (!(storage instanceof LocalAttachmentStorage local)) { throw new ApiException(ErrorCode.NOT_FOUND); }

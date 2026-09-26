@@ -109,7 +109,9 @@ public final class SignupResponses {
     public record AddDogSignupResult(@Schema(format = "uuid") String dogId,
             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") SignupUpfront upfront, AddDogCheckout checkout) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-    public record SignupDocumentFile(String name, @Schema(format = "uri") String downloadUrl) { }
+    public record SignupDocumentFile(String name, @Schema(format = "uri") String downloadUrl,
+            @Schema(description = "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file; "
+                    + "the type's files it does not send are removed") String fileKey) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupDocumentView(String type, DocumentState state, List<SignupDocumentFile> files) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)

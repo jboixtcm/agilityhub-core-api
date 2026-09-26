@@ -1,0 +1,15 @@
+surefire totals: tests=567 failures=0 errors=0 skipped=0 (125 classes)
+failsafe totals: tests=994 failures=0 errors=0 skipped=0 (84 classes)
+Classes this task adds or changes:
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=35 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.followup.application.AttachmentServiceTest: tests=8 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+E5-T19 test methods (added or changed; the last one only through its fixture):
+  PASS SignupSecurityFixesIT#R_04_19_T_04_12_d2AddsAndRemovesOneFileOfTheReusedDogsSubmittedCard
+  PASS SignupSecurityFixesIT#R_04_19_aD2EditOfAPendingDogKeepsTheFilesWhoseKeysItSendsBack
+  PASS SignupSecurityFixesIT#R_04_19_R_04_08_d2RemovesOneFileOfAPendingPublicSignupDog
+  PASS SignupSecurityFixesIT#R_04_06_R_04_08_T_04_13_aReusedDogsOwnCardMeetsTheCardRequirementAtSubmission
+  PASS SignupSecurityFixesIT#R_04_06_R_04_08_d2WithdrawsTheSubmittedCardOfAReusedDogWithItsOwnCard
+  PASS SignupSecurityFixesIT#T_04_12_aReusedDogWithoutACardDocumentGetsTheEmptyCardAtValidation
+  PASS AttachmentServiceTest#R_04_08_R_04_19_aClaimedSignupFileHasAPlainIdThatIsNotItsStorageKey
+  PASS E3ResponseContractTest#E3_T01_signupResponseFixturesRoundTripWithTheirNestedFieldsEnumsMoneyAndUtcDates

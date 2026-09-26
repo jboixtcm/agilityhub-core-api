@@ -2,6 +2,21 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T19 · D2 adds or removes one file of a pending dog; a plain id for signup files
+
+**0 operations or schemas added or removed; 1 response property added; 2 descriptions changed.** Additive:
+
+- `SignupDocumentFile.fileKey` (required, string): each file row of `GET /members/{id}/signup` `dogs[].documents[].files[]`
+  and `dogs[].readmission.current.documents[].files[]` carries its key (R-04-19).
+- `PATCH /dogs/{id}` and `DogPatch.documents` (descriptions): a type's files are the ones sent. A `fileKey` that D2's view
+  shows for that type keeps its file as it is; any other key is a new signup upload. With
+  `signup.requireDogDocumentAtSignup`, a `VACCINATION_CARD` without files answers `422 DOG_DOCUMENT_REQUIRED` unless the
+  reused dog of a pending readmission has its own card with a file (R-04-06).
+- Behaviour, no schema change: a file claimed at signup gets a plain `id` (a UUID derived from its key), not its storage
+  key, so `DELETE /dogs/{id}/documents/{docId}/files/{fileId}` addresses it (`DocumentFile.id`, `format: uuid`, now holds
+  for these files too). A D2 edit sending the same `fileKey` twice in a type answers `400 VALIDATION_ERROR`
+  (`documents.files.fileKey`, `DUPLICATE`). D2's view no longer lists a file removed through S03.
+
 ## 2026-09-26 · E5-T18 · the ES padding of `taxId`; the SEPA mandate text of mockup 19
 
 **0 operations or schemas added or removed; 3 property descriptions changed.** Description only:

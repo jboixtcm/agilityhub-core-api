@@ -74,7 +74,10 @@ public class DogsController {
             DOCUMENT_TYPE_UNKNOWN, DOG_DOCUMENT_REQUIRED})
     @Operation(summary = "Update dog",
             description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. "
-                    + "The documents of a pending dog change only for the types sent. "
+                    + "The documents of a pending dog change only for the types sent. A type's files are the ones sent: a fileKey that "
+                    + "GET /members/{id}/signup shows for that type keeps its file, and any other fileKey is a new signup upload (R-04-19). "
+                    + "With signup.requireDogDocumentAtSignup, a VACCINATION_CARD without files answers 422 DOG_DOCUMENT_REQUIRED, "
+                    + "unless the reused dog of a pending readmission has its own card with a file. "
                     + "The reused dog of a pending readmission (S04 R-04-06, E38): name, sex, breed, birth month, notes to instructors and documents edit the "
                     + "submitted values, not the dog record (documents merged by type; a type sent without files withdraws the submitted one); "
                     + "the rest of the record is frozen: the chip (the readmission matched on it), handlerName and licenses cannot change: "

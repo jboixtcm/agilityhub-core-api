@@ -136,10 +136,12 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     // ---- Step 3 (M18, E38): a readmission does not overwrite the LEFT record ----
     static final Instant LEFT_AT=Instant.parse("2025-06-30T10:00:00Z");
     /** An active member who left in June 2025 (reason LEAVE_REQUEST), with the dog made inactive when leaving. */
-    String leftMember(ObjectNode original) throws Exception {
+    String leftMember(ObjectNode original) throws Exception { return leftMember(original,214); }
+    /** E5-T19: another number for a second LEFT member of the same club (`member_number` is unique per club). */
+    String leftMember(ObjectNode original,int number) throws Exception {
         String id=activeMember(original);
         mongo.getCollection("members").updateOne(new Document("_id",id),new Document("$set",new Document("status","LEFT").append("leftAt",Date.from(LEFT_AT))
-                .append("leftReason","LEAVE_REQUEST").append("leaveDate","2025-06-30").append("memberNumber",214)));
+                .append("leftReason","LEAVE_REQUEST").append("leaveDate","2025-06-30").append("memberNumber",number)));
         mongo.getCollection("dogs").updateMany(new Document("memberId",id),new Document("$set",new Document("status","INACTIVE").append("deactivationReason","MEMBER_LEFT").append("deactivatedAt",Date.from(LEFT_AT))));
         return id;
     }
@@ -348,6 +350,8 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         var review=review(id);
         assertThat(document(review.at("/dogs/0"),"VACCINATION_CARD").path("state").asText()).isEqualTo("PENDING");
         assertThat(review.path("warnings").toString()).contains("DOCUMENT_PENDING");
+        // E5-T19 step 4: the automatic card row is no change the applicant sent («Document pendent» already says it).
+        assertThat(mapper.convertValue(review.at("/dogs/0/readmission/changedFields"),List.class)).containsExactlyInAnyOrder("name","breed","birthMonth","notesToInstructors");
         validate(id);
         assertThat(dogDocuments(dogId)).singleElement().satisfies(d->{assertThat(d.getString("type")).isEqualTo("VACCINATION_CARD");assertThat(d.getString("state")).isEqualTo("PENDING");assertThat(fileKeys(d)).isEmpty();});
         var pending=dogEvents("DogDocumentPending",dogId);assertThat(pending).hasSize(events+1);
@@ -471,6 +475,144 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         });
         assertThat(collection("audit_entries").stream().filter(e->"SIGNUP_SUBMITTED".equals(e.getString("action"))&&"Member".equals(e.getString("entityType")))).singleElement()
                 .satisfies(e->assertThat(e.getString("entityId")).isEqualTo(id));
+    }
+
+    // ---- E5-T19: D2 adds or removes one file; a plain id for signup files; the card requirement of a reused dog ----
+    static Map<String,Object> file(String fileKey,String name) { return Map.of("fileKey",fileKey,"name",name); }
+    static Map<String,Object> card(List<Map<String,Object>> files) { return Map.of("type","VACCINATION_CARD","files",files); }
+    /** The file keys of a document in D2's view. */
+    static List<String> keys(JsonNode document) { var keys=new ArrayList<String>();for(var f:document.path("files")) keys.add(f.path("fileKey").asText());return keys; }
+    /** The files of a document in D2's view, as a D2 PATCH sends them back to keep them. */
+    static List<Map<String,Object>> sentBack(JsonNode document) { var files=new ArrayList<Map<String,Object>>();for(var f:document.path("files")) files.add(file(f.path("fileKey").asText(),f.path("name").asText()));return files; }
+    /** The stored file rows of a type the reused dog's request holds. */
+    List<Document> submittedFiles(String memberId,String type) {
+        return dog(memberId).get("readmissionRequest",Document.class).get("submitted",Document.class).getList("documents",Document.class).stream()
+                .filter(d->type.equals(d.getString("type"))).findFirst().orElseThrow().getList("files",Document.class);
+    }
+    Document storedDocument(String dogId,String type) { return dogDocuments(dogId).stream().filter(d->type.equals(d.getString("type"))).findFirst().orElseThrow(); }
+    JsonNode editDocuments(String memberId,String dogId,int status,Map<String,Object> document) throws Exception {
+        return result(admin(json(patch("/api/v1/dogs/"+dogId),Map.of("version",dog(memberId).get("version"),"documents",List.of(document)))),status);
+    }
+
+    /**
+     * Step 1 (R-04-19, R-04-06): D2 adds a third file to the reused dog's submitted card, then removes one, by sending back the
+     * keys its view gives. The kept files stay as they were; validation writes the result, and P9 sees the removed file as an orphan.
+     */
+    @Test void R_04_19_T_04_12_d2AddsAndRemovesOneFileOfTheReusedDogsSubmittedCard() throws Exception {
+        String oldCard=upload("card.pdf"),oldInsurance=upload("insurance.pdf");
+        var original=withDocuments(request(),oldCard,oldInsurance);String id=leftMember(original);
+        String dogId=dog(id).getString("_id");var documentsBefore=dogDocuments(dogId);
+        String first=upload("card-1.pdf"),second=upload("card-2.pdf"),third=upload("card-3.pdf");
+        submit(sending(changedDog(readmission(original),null),card(List.of(file(first,"card-1.pdf"),file(second,"card-2.pdf")))));
+        var view=review(id).at("/dogs/0");
+        assertThat(keys(document(view,"VACCINATION_CARD"))).as("D2's view gives each file's key").containsExactly(first,second);
+        assertThat(keys(document(view.at("/readmission/current"),"VACCINATION_CARD"))).as("the record's own too").containsExactly(oldCard);
+        var submitted=submittedFiles(id,"VACCINATION_CARD");
+        // D2 adds a third file: it sends back the two keys of its view, and the new one.
+        var added=new ArrayList<>(sentBack(document(view,"VACCINATION_CARD")));added.add(file(third,"card-3.pdf"));
+        editDocuments(id,dogId,200,card(added));
+        view=review(id).at("/dogs/0");
+        assertThat(keys(document(view,"VACCINATION_CARD"))).containsExactly(first,second,third);
+        assertThat(submittedFiles(id,"VACCINATION_CARD").subList(0,2)).as("the kept files as they were").isEqualTo(submitted);
+        // D2 removes the first one: it sends back the other two.
+        editDocuments(id,dogId,200,card(sentBack(document(view,"VACCINATION_CARD")).subList(1,3)));
+        var review=review(id);view=review.at("/dogs/0");
+        assertThat(keys(document(view,"VACCINATION_CARD"))).containsExactly(second,third);
+        assertThat(mapper.convertValue(view.at("/readmission/changedFields"),List.class)).contains("documents");
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(review,"MemberSignupView")).isEmpty();
+        assertThat(dogDocuments(dogId)).as("the record's documents are untouched").isEqualTo(documentsBefore);
+        assertThat(orphans()).as("only the removed file is an orphan").contains(first).doesNotContain(second,third,oldCard,oldInsurance);
+        validate(id);
+        var written=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(fileKeys(written)).containsExactly(second,third);assertThat(written.getString("state")).isEqualTo("RECEIVED");
+        assertThat(fileKeys(storedDocument(dogId,"INSURANCE"))).as("the type it did not send").containsExactly(oldInsurance);
+        assertThat(dogEvents("DogDocumentPending",dogId)).isEmpty();
+        assertThat(orphans()).contains(first,oldCard).doesNotContain(second,third,oldInsurance);
+    }
+
+    /**
+     * Step 1 (R-04-19): on a public signup's pending dog too, a key sent back keeps its file as it is, the club's S03 upload
+     * included (it is no signup upload); the type's files not sent back leave it. The same key twice is refused.
+     */
+    @Test void R_04_19_aD2EditOfAPendingDogKeepsTheFilesWhoseKeysItSendsBack() throws Exception {
+        String applicant=upload("card.pdf"),insurance=upload("insurance.pdf"),other=upload("other-card.pdf");
+        String id=submit(withDocuments(request(),applicant,insurance)).path("memberId").asText();String dogId=dog(id).getString("_id");
+        result(admin(json(post("/api/v1/dogs/"+dogId+"/documents"),Map.of("type","VACCINATION_CARD","name","club-card.pdf","fileKey",attachment("DOG_DOCUMENT","application/pdf",this::admin)))),201);
+        var clubFile=storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).get(1);String clubKey=clubFile.getString("fileKey");
+        // D2 keeps the club's file and replaces the applicant's with another upload (D2's view gives these keys: checked below).
+        editDocuments(id,dogId,200,card(List.of(file(clubKey,"club-card.pdf"),file(other,"other-card.pdf"))));
+        var stored=storedDocument(dogId,"VACCINATION_CARD");
+        assertThat(fileKeys(stored)).containsExactly(clubKey,other);
+        assertThat(stored.getList("files",Document.class).getFirst()).as("the kept file as it was").isEqualTo(clubFile);
+        var view=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        assertThat(keys(view)).containsExactly(clubKey,other);
+        editDocuments(id,dogId,200,card(sentBack(view)));
+        assertThat(storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class)).as("sending back the view's files changes nothing").isEqualTo(stored.getList("files",Document.class));
+        assertThat(orphans()).contains(applicant).doesNotContain(other,insurance);
+        var twice=editDocuments(id,dogId,400,card(List.of(file(other,"a.pdf"),file(other,"b.pdf"))));
+        assertThat(twice.path("code").asText()).isEqualTo("VALIDATION_ERROR");
+        assertThat(twice.at("/details/fieldErrors/0/field").asText()).isEqualTo("documents.files.fileKey");assertThat(twice.at("/details/fieldErrors/0/code").asText()).isEqualTo("DUPLICATE");
+    }
+
+    /**
+     * Step 2 (E3-T17 question 2): a file claimed at signup has a plain id, not its storage key, so D2 removes one file of a
+     * public signup's pending dog with DELETE …/files/{fileId}; D2's view and S03's list no longer show it.
+     */
+    @Test void R_04_19_R_04_08_d2RemovesOneFileOfAPendingPublicSignupDog() throws Exception {
+        String first=upload("card-1.pdf"),second=upload("card-2.pdf");
+        String id=submit(sending(request(),card(List.of(file(first,"card-1.pdf"),file(second,"card-2.pdf"))))).path("memberId").asText();String dogId=dog(id).getString("_id");
+        var listed=result(admin(get("/api/v1/dogs/"+dogId+"/documents").header("Host",host)),200);
+        var cardDocument=java.util.stream.StreamSupport.stream(listed.spliterator(),false).filter(d->"VACCINATION_CARD".equals(d.path("type").asText())).findFirst().orElseThrow();
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(cardDocument,"DogDocument")).isEmpty();
+        var ids=new ArrayList<String>();for(var f:cardDocument.path("files")) ids.add(f.path("id").asText());
+        assertThat(ids).hasSize(2).doesNotContain(first,second).allSatisfy(fileId->assertThat(UUID.fromString(fileId).toString()).isEqualTo(fileId));
+        result(admin(delete("/api/v1/dogs/"+dogId+"/documents/"+cardDocument.path("id").asText()+"/files/"+ids.getFirst()).header("Host",host)),204);
+        var after=java.util.stream.StreamSupport.stream(result(admin(get("/api/v1/dogs/"+dogId+"/documents").header("Host",host)),200).spliterator(),false)
+                .filter(d->"VACCINATION_CARD".equals(d.path("type").asText())).findFirst().orElseThrow();
+        assertThat(after.path("state").asText()).isEqualTo("RECEIVED");assertThat(after.path("files")).hasSize(1);assertThat(after.at("/files/0/id").asText()).isEqualTo(ids.get(1));
+        var view=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        assertThat(keys(view)).as("D2's view no longer shows the removed file").containsExactly(second);assertThat(view.path("state").asText()).isEqualTo("RECEIVED");
+        assertThat(storedDocument(dogId,"VACCINATION_CARD").getList("files",Document.class).getFirst().get("removedAt")).as("the removal is recorded, not a deletion").isNotNull();
+        validate(id);
+        assertThat(dog(id).getString("status")).isEqualTo("ACTIVE");
+    }
+
+    /**
+     * Step 3 (R-04-06, R-04-08): with signup.requireDogDocumentAtSignup, a reused dog whose own card has a file meets the
+     * requirement at submission; a new dog, and a reused dog whose card has no file or who has no card, still need one.
+     */
+    @Test void R_04_06_R_04_08_T_04_13_aReusedDogsOwnCardMeetsTheCardRequirementAtSubmission() throws Exception {
+        String oldCard=upload("card.pdf");
+        var withCard=withDocuments(request(),oldCard,upload("insurance.pdf"));String id=leftMember(withCard);String dogId=dog(id).getString("_id");
+        var pendingCard=request();leftMember(pendingCard,215);
+        var withoutCard=request();String none=leftMember(withoutCard,216);mongo.getCollection("dog_documents").deleteMany(new Document("dogId",dog(none).getString("_id")));
+        parameter("signup.requireDogDocumentAtSignup",true);
+        assertThat(submit(request(),422).path("code").asText()).as("a new dog").isEqualTo("DOG_DOCUMENT_REQUIRED");
+        assertThat(submit(changedDog(readmission(pendingCard),null),422).path("code").asText()).as("a reused dog whose card has no file").isEqualTo("DOG_DOCUMENT_REQUIRED");
+        assertThat(submit(changedDog(readmission(withoutCard),null),422).path("code").asText()).as("a reused dog without a card").isEqualTo("DOG_DOCUMENT_REQUIRED");
+        var documentsBefore=dogDocuments(dogId);
+        submit(changedDog(readmission(withCard),null));
+        var view=review(id).at("/dogs/0");
+        assertThat(keys(document(view,"VACCINATION_CARD"))).containsExactly(oldCard);assertThat(mapper.convertValue(view.at("/readmission/changedFields"),List.class)).doesNotContain("documents");
+        validate(id);
+        assertThat(dogDocuments(dogId)).as("its card stays").isEqualTo(documentsBefore);
+    }
+
+    /**
+     * Step 3 (R-04-06, R-04-08): with signup.requireDogDocumentAtSignup, D2 withdraws the submitted card of a reused dog whose
+     * own card has a file (the dog keeps its own); for a reused dog whose card has no file it answers 422 DOG_DOCUMENT_REQUIRED.
+     */
+    @Test void R_04_06_R_04_08_d2WithdrawsTheSubmittedCardOfAReusedDogWithItsOwnCard() throws Exception {
+        String oldCard=upload("card.pdf");
+        var withCard=withDocuments(request(),oldCard,upload("insurance.pdf"));String id=leftMember(withCard);String dogId=dog(id).getString("_id");
+        var pendingCard=request();String other=leftMember(pendingCard,215);String otherDog=dog(other).getString("_id");
+        parameter("signup.requireDogDocumentAtSignup",true);
+        String newCard=upload("new-card.pdf");submit(changedDog(readmission(withCard),newCard));
+        editDocuments(id,dogId,200,card(List.of()));
+        assertThat(keys(document(review(id).at("/dogs/0"),"VACCINATION_CARD"))).as("the dog's own card").containsExactly(oldCard);
+        assertThat(orphans()).contains(newCard).doesNotContain(oldCard);
+        submit(changedDog(readmission(pendingCard),upload("other-card.pdf")));
+        assertThat(editDocuments(other,otherDog,422,card(List.of())).path("code").asText()).isEqualTo("DOG_DOCUMENT_REQUIRED");
     }
 
     /** E3-T17 (R-04-23): a dog that is new in a rejected readmission is INACTIVE{SIGNUP_REJECTED} with the decision; the old one is untouched. */

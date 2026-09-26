@@ -124,4 +124,15 @@ class AttachmentServiceTest {
         }
         verifyNoInteractions(events);
     }
+    /** E5-T19 (R-04-08, R-04-19): a signup file's id is a plain one, never its key with `/`; a re-claim of the key keeps it. */
+    @Test void R_04_08_R_04_19_aClaimedSignupFileHasAPlainIdThatIsNotItsStorageKey() {
+        String signupKey = "signup/example-club/202601/" + UUID.randomUUID() + "/card.txt";
+        when(grants.findById(signupKey)).thenReturn(Optional.of(new UploadGrant(signupKey, "example-club", null, "SIGNUP_DOCUMENT", "card.txt", "text/plain", 4, now, now.plusSeconds(900), null)));
+        when(storage.metadata(signupKey)).thenReturn(new AttachmentStorage.Metadata("text/plain", 4));
+        var claimed = service.claimSignup(signupKey, "dog:VACCINATION_CARD");
+        assertThat(claimed.fileKey()).isEqualTo(signupKey);
+        assertThat(claimed.id()).doesNotContain("/").isEqualTo(UUID.fromString(claimed.id()).toString());
+        assertThat(service.claimSignup(signupKey, "dog:VACCINATION_CARD").id()).as("the same key, the same id").isEqualTo(claimed.id());
+        assertThat(AttachmentService.signupFileId(signupKey.replace("card.txt", "other.txt"))).isNotEqualTo(claimed.id());
+    }
 }

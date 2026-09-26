@@ -1,0 +1,253 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] argLine set to -javaagent:/Users/jordib/.m2/repository/org/jacoco/org.jacoco.agent/0.8.14/org.jacoco.agent-0.8.14-runtime.jar=destfile=/Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 9 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 37 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.configuration.E3ResponseContractTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.367 s -- in com.agilityhub.core.configuration.E3ResponseContractTest
+[INFO] Running com.agilityhub.core.configuration.OpenApiSnapshotTest
+02:57:46.709 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.OpenApiSnapshotTest]: OpenApiSnapshotTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+02:57:46.799 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.OpenApiSnapshotTest
+02:57:46.875 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+02:57:46.877 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+02:57:46.880 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+02:57:47.018 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+02:57:47.173 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+02:57:47.174 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+02:57:47.187 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+02:57:47.343 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+02:57:47.408 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+02:57:47.473 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 16e8914f6a9a610f537a5c6ca8452416ec208a7ca5430e48163554731e508028
+02:57:47.621 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.278265S
+02:57:47.625 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+02:57:47.625 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+02:57:47.625 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+02:57:47.625 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+02:57:47.653 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 915cdb3804c34605a2dfb05da19f98a8dcaa63191a589fa06ad11c7d736c65cd
+02:57:48.138 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.512872S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-26T02:57:48.761+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : Starting OpenApiSnapshotTest using Java 21.0.12.1 with PID 64519 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-26T02:57:48.762+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : The following 1 profile is active: "test"
+2026-09-26T02:57:49.527+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-26T02:57:49.565+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 0 MongoDB repository interfaces.
+2026-09-26T02:57:49.950+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-26T02:57:49.959+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-26T02:57:49.959+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-26T02:57:49.985+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-26T02:57:49.985+02:00  INFO 64519 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1218 ms
+2026-09-26T02:57:50.084+02:00  INFO 64519 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@547ecaff], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@62bffd8e, com.mongodb.Jep395RecordCodecProvider@5925d03a, com.mongodb.KotlinCodecProvider@4ff8ae11]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64451], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6d73bc23], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-26T02:57:50.091+02:00  INFO 64519 --- [agilityhub-core-api] [localhost:64451] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64451, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11332625, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=915cdb3804c3:27017, hosts=[915cdb3804c3:27017], passives=[], arbiters=[], primary='915cdb3804c3:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab7188b2199612ac9a6666b, counter=6}, lastWriteDate=Sat Sep 26 02:57:48 CEST 2026, lastUpdateTimeNanos=188075461740458}
+2026-09-26T02:57:50.500+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-26T02:57:52.482+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring TestDispatcherServlet ''
+2026-09-26T02:57:52.482+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-26T02:57:52.483+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-26T02:57:52.540+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64458 (http) with context path '/'
+2026-09-26T02:57:52.574+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-26T02:57:52.575+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-26T02:57:52.575+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-26T02:57:52.585+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-26T02:57:52.585+02:00  INFO 64519 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 44 ms
+2026-09-26T02:57:52.591+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-26T02:57:52.607+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64459 (http) with context path '/'
+2026-09-26T02:57:52.615+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : Started OpenApiSnapshotTest in 4.03 seconds (process running for 6.832)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-26T02:57:54.596+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 1275 ms
+2026-09-26T02:57:55.021+02:00  INFO 64519 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-26T02:57:55.021+02:00  INFO 64519 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-26T02:57:55.022+02:00  INFO 64519 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-09-26T02:57:55.862+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 788 ms
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.256 s -- in com.agilityhub.core.configuration.OpenApiSnapshotTest
+[INFO] Running com.agilityhub.core.clubs.followup.application.AttachmentServiceTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.408 s -- in com.agilityhub.core.clubs.followup.application.AttachmentServiceTest
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+2026-09-26T02:57:56.342+02:00  INFO 64519 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT]: SignupSecurityFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T02:57:56.405+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-26T02:57:56.447+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : Starting SignupSecurityFixesIT using Java 21.0.12.1 with PID 64519 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-26T02:57:56.447+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : The following 1 profile is active: "test"
+2026-09-26T02:57:56.764+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-26T02:57:56.790+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 0 MongoDB repository interfaces.
+2026-09-26T02:57:56.883+02:00  INFO 64519 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6ae24e72], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@62bffd8e, com.mongodb.Jep395RecordCodecProvider@5925d03a, com.mongodb.KotlinCodecProvider@4ff8ae11]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64451], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3765c2e3], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-26T02:57:56.886+02:00  INFO 64519 --- [agilityhub-core-api] [localhost:64451] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64451, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2737834, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=915cdb3804c3:27017, hosts=[915cdb3804c3:27017], passives=[], arbiters=[], primary='915cdb3804c3:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab7188b2199612ac9a6666b, counter=6}, lastWriteDate=Sat Sep 26 02:57:52 CEST 2026, lastUpdateTimeNanos=188082257967166}
+2026-09-26T02:57:57.741+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-26T02:57:57.742+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-26T02:57:57.742+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-26T02:57:57.762+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.api.SignupSecurityFixesIT      : Started SignupSecurityFixesIT in 1.35 seconds (process running for 11.979)
+2026-09-26T02:57:58.459+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 1 dogs
+2026-09-26T02:57:59.696+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-ab76de17-8198-4511-97be-4b6fd380d35b recipientHash=gPHq8OdRGkmTZTSQ_5Vuj5Gdzh6CovgFOluIs83ZAwU
+2026-09-26T02:57:59.703+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-ab76de17-8198-4511-97be-4b6fd380d35b recipientHash=gPHq8OdRGkmTZTSQ_5Vuj5Gdzh6CovgFOluIs83ZAwU
+2026-09-26T02:57:59.988+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-683dbd80-6e54-4ea7-8d8c-b7d4f606b75f recipientHash=g3jL-rk9tEmEknngBT2iu7pwYHQQlPj2Yr2I_CMqVjk
+2026-09-26T02:58:00.000+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-39 clubId=sec-683dbd80-6e54-4ea7-8d8c-b7d4f606b75f recipientHash=g3jL-rk9tEmEknngBT2iu7pwYHQQlPj2Yr2I_CMqVjk
+2026-09-26T02:58:00.274+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-683dbd80-6e54-4ea7-8d8c-b7d4f606b75f recipientHash=_yRf7ovJ87GwR4Zw5q_VFBdVj035a8cse9FxYsL1wjk
+2026-09-26T02:58:00.292+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-683dbd80-6e54-4ea7-8d8c-b7d4f606b75f recipientHash=_yRf7ovJ87GwR4Zw5q_VFBdVj035a8cse9FxYsL1wjk
+2026-09-26T02:58:00.312+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=sec-683dbd80-6e54-4ea7-8d8c-b7d4f606b75f recipientHash=_yRf7ovJ87GwR4Zw5q_VFBdVj035a8cse9FxYsL1wjk
+2026-09-26T02:58:01.880+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=d8ba7308-b087-4f6f-bd5d-061274e859dc
+2026-09-26T02:58:01.883+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=aec38140-b843-4309-8372-3b1aefca0276
+2026-09-26T02:58:01.885+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=657de767-8031-4dfc-8c98-116e26da16fd
+2026-09-26T02:58:01.887+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=ebc2f940-2e3d-4b8a-b53e-69607e54c2f9
+2026-09-26T02:58:01.892+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=14d316d9-c862-46d5-b39b-d3dc65f7fbd1
+2026-09-26T02:58:02.054+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.n.schema.UnknownKeywordFactory         : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[INFO] Tests run: 35, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.308 s -- in com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT
+[INFO] Running com.agilityhub.core.clubs.census.api.CensusIT
+2026-09-26T02:58:05.650+02:00  INFO 64519 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.CensusIT]: CensusIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T02:58:05.651+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.CensusIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-26T02:58:05.664+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.clubs.census.api.CensusIT       : Starting CensusIT using Java 21.0.12.1 with PID 64519 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-26T02:58:05.665+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.clubs.census.api.CensusIT       : The following 1 profile is active: "test"
+2026-09-26T02:58:05.851+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-26T02:58:05.870+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 18 ms. Found 0 MongoDB repository interfaces.
+2026-09-26T02:58:05.900+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-26T02:58:05.901+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-26T02:58:05.901+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-26T02:58:05.909+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-26T02:58:05.909+02:00  INFO 64519 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 244 ms
+2026-09-26T02:58:05.923+02:00  INFO 64519 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@749063e1], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@62bffd8e, com.mongodb.Jep395RecordCodecProvider@5925d03a, com.mongodb.KotlinCodecProvider@4ff8ae11]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64451], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@233a3f8d], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-26T02:58:05.925+02:00  INFO 64519 --- [agilityhub-core-api] [localhost:64451] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64451, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1626917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=915cdb3804c3:27017, hosts=[915cdb3804c3:27017], passives=[], arbiters=[], primary='915cdb3804c3:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab7188b2199612ac9a6666b, counter=6}, lastWriteDate=Sat Sep 26 02:58:05 CEST 2026, lastUpdateTimeNanos=188091297716291}
+2026-09-26T02:58:06.028+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-26T02:58:06.404+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring TestDispatcherServlet ''
+2026-09-26T02:58:06.404+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-26T02:58:06.404+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-26T02:58:06.412+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64471 (http) with context path '/'
+2026-09-26T02:58:06.424+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-26T02:58:06.425+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-26T02:58:06.425+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-26T02:58:06.433+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-3].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-26T02:58:06.433+02:00  INFO 64519 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 21 ms
+2026-09-26T02:58:06.436+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-26T02:58:06.444+02:00  INFO 64519 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64472 (http) with context path '/'
+2026-09-26T02:58:06.446+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.clubs.census.api.CensusIT       : Started CensusIT in 0.793 seconds (process running for 20.663)
+2026-09-26T02:58:06.487+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 30 dogs
+2026-09-26T02:58:06.772+02:00  INFO 64519 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-26T02:58:06.772+02:00  INFO 64519 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-26T02:58:06.772+02:00  INFO 64519 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-09-26T02:58:07.259+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=05e01c0f-908f-4c29-b2f9-32ce8bb4d21f
+2026-09-26T02:58:07.448+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=3404dc92-1128-48a7-8758-264a4efcd8c5
+[INFO] Tests run: 41, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.393 s -- in com.agilityhub.core.clubs.census.api.CensusIT
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+2026-09-26T02:58:10.043+02:00  INFO 64519 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT]: SignupFollowUpFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T02:58:10.044+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+2026-09-26T02:58:10.284+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-408af5eb-2d8b-4aca-ac55-d49047423304 recipientHash=zTzpYOcVhN_rRQGbvIwh7_j9274vUBhU-9BirSXaPss
+2026-09-26T02:58:10.481+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-cb884048-c56b-4b8e-ad55-26bc647f9ba2 recipientHash=OpHZAff-makqapHYoMRxg_64akPEMCGU7zz0lxQoCcc
+2026-09-26T02:58:10.712+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-b2c7bcd7-d39a-4ce8-9630-3b835a3ae8e8 recipientHash=fX5uAiTLkLba2osdfHP_aTOSNG-XOmgR0JPIMvDFtWo
+2026-09-26T02:58:10.972+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-83788325-1fcb-426b-abff-8115be2cd4cc recipientHash=YSn-Gwg-WUmU46rodHeX4rgqtSAA_4pQiIpnkVRdGqo
+2026-09-26T02:58:12.225+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.c.c.c.a.SignupNotifications          : Signup notification capped per recipient code=N-01 clubId=fu-eeff8dd7-2f9c-40a9-b41e-b957234d6f2a recipientHash=fYt5E1UVnN-3DVr_genF4IjG-luCIBYONlAIAwaq22k
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.196 s -- in com.agilityhub.core.clubs.census.api.SignupFollowUpFixesIT
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupIT
+2026-09-26T02:58:12.240+02:00  INFO 64519 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupIT]: SignupIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T02:58:12.241+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupIT
+2026-09-26T02:58:12.251+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=1d723ea0-c15b-4fc1-9a28-edcb3b0332f0 clubId=sgn-b37728c8-0c5a-4ea1-ab08-5bf3735dd198 ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.547+02:00  WARN 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=45eb0747-11af-4772-942c-7c36700f1112
+2026-09-26T02:58:13.549+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=0aa1470c-41e7-46b7-a91e-c81a36af627f clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.550+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=a9741c8a-c95a-4b80-a800-7ba70b7fc5f6 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.550+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=81ff461c-4817-4949-8088-2da388da8525 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.551+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=b3a19223-2ccd-4f58-a867-3591b29cf4bd clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.551+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=b2e35b2c-2cf5-4290-bd9c-cc63a36ad4e8 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.552+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=2a82941a-d22b-49ae-b577-82e0b83c9beb clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.552+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=8da8ac79-7958-4307-bcb8-c227bd28c24c clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.553+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=21f412cd-e2f1-416b-873c-c687a9429156 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.553+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=c023f18c-c44a-4ca5-8586-c93d3d03047b clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.554+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=b6a5a109-f438-4574-a460-1aa5164d8351 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.554+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=4424f9c0-200a-4431-9821-21ae764ad610 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.555+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=d330fd77-0cea-4f59-81ba-68e2c3fa1c85 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.555+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=a2bc40b2-446b-4ad1-b130-d6a4cd7228b6 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.556+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=9834fd3e-b0ec-4e87-8473-3859730759a6 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.556+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=cbf758d4-2ea3-4f9c-92bd-fccb50e5b4ee clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.557+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=e6159e3d-2c44-400d-b949-fa5076482974 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.557+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=311688c3-177b-4055-8922-7e72d0833933 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.557+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=8a8fbda5-43ec-4ad9-87a7-16ea44edc606 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.558+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=74ecbc74-eafc-4551-8df0-a342797b24f9 clubId=sgn-7399ac49-29e4-4f76-bc49-c7839a7f65ef ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.569+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=0c88c116-2edb-4ecf-bdc1-3be3143aa941 clubId=sgn-d7af11d5-e270-45bb-8e3d-b9488de70c94 ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.569+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=5cc56a9b-5572-4a98-a55c-b8dac45bf23b clubId=sgn-d7af11d5-e270-45bb-8e3d-b9488de70c94 ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.570+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=fa514326-34a8-4f07-ba44-1899c1ac4411 clubId=sgn-d7af11d5-e270-45bb-8e3d-b9488de70c94 ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.570+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=6c9bc794-d78c-46ae-bf16-62ecfe65472d clubId=sgn-d7af11d5-e270-45bb-8e3d-b9488de70c94 ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+2026-09-26T02:58:13.571+02:00  INFO 64519 --- [agilityhub-core-api] [           main] c.a.core.shared.api.IdempotencyFilter    : Signup honeypot traceId=583fe67d-0f90-4de9-8533-d43894f99667 clubId=sgn-d7af11d5-e270-45bb-8e3d-b9488de70c94 ipHash=OxT3Mhpdk-yX8OtZw8jl7XMTY2g6r4-LIk-tWmOu7Fc
+E5-T07 outbox backlog discarded before SignupIT: 137 PENDING records (more than one dispatch() batch)
+[INFO] Tests run: 33, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.902 s -- in com.agilityhub.core.clubs.census.api.SignupIT
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+2026-09-26T02:58:17.143+02:00  INFO 64519 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupGateFixesIT]: SignupGateFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T02:58:17.143+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.186 s -- in com.agilityhub.core.clubs.census.api.SignupGateFixesIT
+[INFO] Running com.agilityhub.core.clubs.census.api.SignupMinorFixesIT
+2026-09-26T02:58:21.330+02:00  INFO 64519 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.census.api.SignupMinorFixesIT]: SignupMinorFixesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-26T02:58:21.331+02:00  INFO 64519 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.census.api.SignupMinorFixesIT
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.746 s -- in com.agilityhub.core.clubs.census.api.SignupMinorFixesIT
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 186, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  39.868 s
+[INFO] Finished at: 2026-09-26T02:58:24+02:00
+[INFO] ------------------------------------------------------------------------

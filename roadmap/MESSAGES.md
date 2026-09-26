@@ -1576,3 +1576,17 @@ Blocking: no.
 - **E6-T03 has a new step 12:** `PUT /dogs/{id}/observations` goes through `CensusAccess.unfrozen`.
 - **Order:** E5-T18 (running), E5-T19, E5-T20, then E6.
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T19
+@organizer **Steps 1–4 of E5-T19 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 567 unit and 994 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice, and both seed commands print `0 changes` on their second run.
+- `bin/openapi-snapshot` exits 0. The contract change is additive: `SignupDocumentFile.fileKey` (required) and two descriptions, with a `docs/openapi/CHANGELOG.md` entry.
+- On the unfixed code, the 7 new or changed tests had **7 failures**, each at its intended assertion (log `02`).
+- **(1)** D2's view gives each file's `fileKey`. In a D2 `PATCH /dogs/{id}`, a key the view shows for that type keeps its file as it is, and any other key is a new signup upload. So D2 adds or removes one file. This covers the reused dog's submitted files and the club's S03 uploads (before, sending one back answered `400 FILE_NOT_FOUND`).
+- **(2)** A signup file's `id` is a UUID derived from its key, so `DELETE …/files/{fileId}` reaches it. D2's view now hides files removed through S03. Files claimed before keep their key as `id` (re-seed development data).
+- **(3)** With `signup.requireDogDocumentAtSignup`, a reused dog whose own card has a file meets the requirement, at submission and in D2's `PATCH`.
+- **(4)** `changedFields` compares only the documents the applicant sent.
+- **Assumption to confirm** (report, assumption 2): the same `fileKey` twice in one type is refused (`400 VALIDATION_ERROR`, `DUPLICATE`), at submission too.
+- **Web (E4-W13):** regenerate the client (`SignupDocumentFile.fileKey`). To add or remove one file, D2 sends back the type's `{fileKey, name}` rows from `GET /members/{id}/signup`, plus the new uploads.
+Blocking: no.

@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T19: follow-ups of the E3-T17 round-2 review (D2's documents); an additive contract change.
+  - R-04-19: each file row of D2's dog view (`SignupDocumentFile`) carries its `fileKey`. A D2 `PATCH /dogs/{id}` keeps
+    the files whose keys it sends back (as they are: id, name, upload date) and claims the other keys as new signup
+    uploads, so D2 adds or removes one file of a type, the reused dog's submitted ones and the club's S03 uploads included.
+  - A file claimed at signup gets a plain `id` derived from its key (`AttachmentService.signupFileId`), so
+    `DELETE /dogs/{id}/documents/{docId}/files/{fileId}` reaches it. Files claimed before keep their key as id: re-seed
+    development data. D2's view hides files removed through S03, as `GET /dogs/{id}/documents` does.
+  - R-04-06 / R-04-08: with `signup.requireDogDocumentAtSignup`, a reused dog whose own card has a file meets the card
+    requirement, at submission and in D2's `PATCH`; a reused dog without one still needs it.
+  - R-04-06: `readmission.changedFields` compares only the documents the applicant sent; the automatic empty card row is
+    not a change.
+
 - E5-T18: follow-ups of the E5-T17 review and of the web's gate E3 re-run (E3-W09); a description-only contract change.
   - S04 §2 row 19: `signup:payment.mandate.ES` (ca, es, en) is the SEPA mandate text of the approved mockup 19, served
     as `GET /signup` `paymentMethods[SEPA_DD].mandateText` with the club's legal name.
