@@ -232,6 +232,27 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThat(TenantContext.current()).isNull();
     }
     /**
+     * E5-T18 step 5 (review E5-T17 #5; S02 §3 amended 26-09, R-02-06): in a definition, a tax id of spaces only is blank,
+     * not «separators only»: it clears the stored one (in the dry run too, as one change), like `""`. A definition without
+     * `club.taxId` keeps the stored one, as every omitted club field (the merge starts from the stored club).
+     */
+    @Test void R_02_06_clubApplyClearsTheTaxIdWithSpacesOnlyLikeEmpty() {
+        var id = definitions.apply(seed("canic"), false).id();
+        for (String blank : List.of("   ", " \t ", "")) {
+            var definition = seed("canic"); definition.withObject("club").put("taxId", blank);
+            assertThat(clubs.findById(id).orElseThrow().taxId()).as("[%s]", blank).isEqualTo("G63189617");
+            assertThat(definitions.apply(definition, true).changes()).as("[%s] dry run", blank).isEqualTo(1);
+            assertThat(clubs.findById(id).orElseThrow().taxId()).as("[%s] dry run writes nothing", blank).isEqualTo("G63189617");
+            assertThat(definitions.apply(definition, false).changes()).as("[%s]", blank).isEqualTo(1);
+            assertThat(clubs.findById(id).orElseThrow().taxId()).as("[%s] clears it", blank).isNull();
+            assertThat(definitions.apply(definition, true).changes()).as("[%s] again", blank).isZero();
+            assertThat(definitions.apply(seed("canic"), false).changes()).isEqualTo(1);
+        }
+        var absent = seed("canic"); absent.withObject("club").remove("taxId");
+        assertThat(definitions.apply(absent, false).changes()).isZero();
+        assertThat(clubs.findById(id).orElseThrow().taxId()).as("an omitted tax id is kept").isEqualTo("G63189617");
+    }
+    /**
      * E5-T17 (review E5-T16 #4, optional; S02 §3, R-02-06): under `ES` a definition's 7-digit DNI is stored padded, the form
      * the check reads, so the same id with or without the leading zero is no change.
      */

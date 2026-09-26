@@ -155,9 +155,10 @@ class E5PersistenceIT extends AbstractIntegrationTest {
      * E5-T17 (S15 R-15-19 and `MODEL_DADES_PLATAFORMA.md` `ring_slot_locks`, amended 25-09): the startup runner gives
      * `ring_slot_locks` a TTL index on `expiresAt` (`expireAfterSeconds: 0`), idempotent on restart and on two instances
      * starting together; every touch of a slot sets `expiresAt` = `startsAt` + 7 days, and a later write recreates a
-     * document the TTL removed with the same upsert.
+     * document the TTL removed with the same upsert. E5-T18 (review E5-T17 #1): T-15-27 is P9's fixture scenario, so the
+     * test is named after the rule it asserts.
      */
-    @Test void T_15_27_R_15_19_ringSlotLocksExpireSevenDaysAfterTheirSlotThroughATtlIndex() throws Exception {
+    @Test void R_15_19_ringSlotLocksExpireSevenDaysAfterTheirSlotThroughATtlIndex() throws Exception {
         var ttl = indexes("ring_slot_locks").get("ring_slot_lock_ttl");
         assertThat(ttl).as("created at startup").isNotNull();
         assertThat(ttl.get("key")).isEqualTo(keys("expiresAt"));
@@ -185,5 +186,45 @@ class E5PersistenceIT extends AbstractIntegrationTest {
         lock = mongo.findById(id, Document.class, "ring_slot_locks");
         assertThat(lock.getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-10-13T16:00:00Z"));
         assertThat(lock.get("sequence", Number.class).longValue()).isEqualTo(1);
+    }
+
+    /**
+     * E5-T18 step 3 (review E5-T17 #3, S15 R-15-19): the one-off backfill of `docs/DEPLOY.md`, exactly as written there,
+     * gives a document written before E5-T17 its `expiresAt` = `startsAt` + 7 days, leaves a current one as it is, and a
+     * second run changes nothing.
+     */
+    @Test void R_15_19_theDeployBackfillGivesTheOldRingSlotLocksTheirExpiry() throws Exception {
+        var startsAt = Instant.parse("2026-09-01T17:00:00Z");
+        var locks = mongo.getCollection("ring_slot_locks");
+        locks.insertOne(new Document("_id", CLUB + ":e5p-old:" + startsAt).append("clubId", CLUB).append("ringId", "e5p-old")
+                .append("startsAt", Date.from(startsAt)).append("sequence", 4));
+        try (var tenant = TenantContext.open(CLUB)) { ringSlots.touch("e5p-new", startsAt); }
+        var filter = new Document("expiresAt", new Document("$exists", false));
+        var backfill = List.of(new Document("$set", new Document("expiresAt", new Document("$add", List.of("$startsAt", 604800000)))));
+        assertThat(locks.updateMany(filter, backfill).getModifiedCount()).isPositive();
+        var old = locks.find(new Document("_id", CLUB + ":e5p-old:" + startsAt)).first();
+        assertThat(old.getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-09-08T17:00:00Z"));
+        assertThat(old.get("sequence", Number.class).longValue()).isEqualTo(4);
+        assertThat(locks.find(new Document("_id", CLUB + ":e5p-new:" + startsAt)).first().getDate("expiresAt").toInstant()).isEqualTo(Instant.parse("2026-09-08T17:00:00Z"));
+        assertThat(locks.updateMany(filter, backfill).getModifiedCount()).as("a second run").isZero();
+    }
+
+    /**
+     * E5-T18 (review E5-T17 #4, S15 R-15-19), on the real database: an index that already carries the TTL's name and a 0 s
+     * TTL but another key (`{startsAt: 1}`) makes Mongo refuse the runner's `ensureIndex`, and the tolerance check then
+     * compares the key too, so the start fails instead of leaving the locks without a TTL. The index is restored after.
+     */
+    @Test void R_15_19_anotherIndexUnderTheTtlNameStaysAStartupFailure() throws Exception {
+        var locks = mongo.getCollection("ring_slot_locks");
+        locks.dropIndex("ring_slot_lock_ttl");
+        try {
+            locks.createIndex(keys("startsAt"), new com.mongodb.client.model.IndexOptions().name("ring_slot_lock_ttl").expireAfter(0L, java.util.concurrent.TimeUnit.SECONDS));
+            assertThatThrownBy(this::startScheduling).isInstanceOf(org.springframework.dao.DataAccessException.class);
+            assertThat(indexes("ring_slot_locks").get("ring_slot_lock_ttl").get("key")).as("the other index is left as it is").isEqualTo(keys("startsAt"));
+        } finally {
+            locks.dropIndex("ring_slot_lock_ttl");
+            startScheduling();
+        }
+        assertThat(indexes("ring_slot_locks").get("ring_slot_lock_ttl").get("key")).isEqualTo(keys("expiresAt"));
     }
 }

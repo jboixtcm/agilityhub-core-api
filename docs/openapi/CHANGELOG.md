@@ -2,6 +2,18 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T18 · the ES padding of `taxId`; the SEPA mandate text of mockup 19
+
+**0 operations or schemas added or removed; 3 property descriptions changed.** Description only:
+
+- `ClubSettings.taxId` (`GET /club`, `PUT /club`), `ClubUpdate.taxId` (`PUT /club`) and `ClubSummary.taxId`
+  (`GET /branding`) now say what the `ES` profile already did since E5-T17 (S02 §3): a 7-digit DNI is stored padded to
+  8 digits (`1234567L` → `01234567L`).
+- Behaviour, no schema change: `GET /signup` `paymentMethods[SEPA_DD].mandateText` under the `ES` profile is the text
+  of the approved mockup 19 (S04 §2 row 19, R-04-10), for example in `ca` «Autoritzo {legal name} a emetre rebuts sobre
+  aquest compte amb caràcter indefinit mentre es mantingui la meva relació amb aquesta entitat (Llei 16/2009, de 13 de
+  novembre, de serveis de pagament).». `GENERIC` is unchanged.
+
 ## 2026-09-26 · E3-T17 round 2 · the reused dog's record is frozen while its readmission is pending (E38)
 
 **0 operations or schemas added; 12 operations changed: 11 gain `INVALID_STATE` in their documented 409s, and

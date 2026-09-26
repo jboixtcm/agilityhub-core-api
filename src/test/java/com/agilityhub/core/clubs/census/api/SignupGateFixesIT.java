@@ -53,8 +53,10 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         mongo.insert(new Document("_id",level).append("clubId",club).append("active",true).append("name",Map.of("en","Beginner")).append("order",0),"levels");
     }
     /** A fresh copy of the Cànic seed, active, on its own host; the fixture club stays unused. */
-    void canic() {
-        var input=codec.read(Path.of("seeds/club-canic.yaml"));input.remove("accounts");
+    void canic() { canic(input -> {}); }
+    /** The same copy, with {@code edit} applied to the definition first. */
+    void canic(java.util.function.Consumer<ObjectNode> edit) {
+        var input=codec.read(Path.of("seeds/club-canic.yaml"));input.remove("accounts");edit.accept(input);
         String slug="canic-"+UUID.randomUUID().toString().substring(0,8);
         ((ObjectNode)input.get("club")).put("slug",slug).put("status","ACTIVE");
         ((ObjectNode)input.at("/domains/0")).put("host",slug+".example.test");
@@ -145,6 +147,33 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         assertThat(submit(request(),422).path("code").asText()).isEqualTo("DOG_DOCUMENT_REQUIRED");
         mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("modules",List.of("BILLING"))));configs.invalidate(club);
         config=signupConfig("ca");assertThat(config.has("allowFamilyGroupPending")).isFalse();assertThat(config.has("requireDogDocumentAtSignup")).isTrue();
+    }
+    /**
+     * E5-T18 step 1 (web gate E3-W09, screen 19 (e)): S04 §2 row 19 shows `paymentMethods[SEPA_DD].mandateText`, the key
+     * `signup:payment.mandate.ES` with the club's legal name (R-04-10), and its text is the approved mockup 19's (V5, «mandat
+     * SEPA (llei 16/2009)»). The copy of the Cànic also offers `en`, which its seed does not, so the English text is served.
+     * T-04-14: under `GENERIC` the mandate does not cite the law.
+     */
+    @Test void R_04_10_T_04_14_theSepaMandateIsTheTextOfMockup19WithTheClubsLegalName() throws Exception {
+        String legalName=codec.read(Path.of("seeds/club-canic.yaml")).at("/club/legalName").asText();
+        assertThat(legalName).isEqualTo("Club Agility Cànic");
+        canic(input -> ((com.fasterxml.jackson.databind.node.ArrayNode)input.at("/club/locales")).add("en"));
+        var expected=Map.of(
+                "ca","Autoritzo "+legalName+" a emetre rebuts sobre aquest compte amb caràcter indefinit mentre es mantingui la meva relació amb aquesta entitat (Llei 16/2009, de 13 de novembre, de serveis de pagament).",
+                "es","Autorizo a "+legalName+" a emitir recibos sobre esta cuenta con carácter indefinido mientras se mantenga mi relación con esta entidad (Ley 16/2009, de 13 de noviembre, de servicios de pago).",
+                "en","I authorize "+legalName+" to issue direct debits on this account for as long as my relationship with this organization lasts (Spanish Law 16/2009 of 13 November on payment services).");
+        for(String language:List.of("ca","es","en")) {
+            assertThat(sepaMandate(language)).as(language).isEqualTo(expected.get(language));
+        }
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("countryProfile","GENERIC")));configs.invalidate(club);
+        for(String language:List.of("ca","es","en")) {
+            assertThat(sepaMandate(language)).as(language).contains(legalName).doesNotContain("16/2009");
+        }
+    }
+    String sepaMandate(String language) throws Exception {
+        var methods=signupConfig(language).path("paymentMethods");
+        for(var method:methods) if("SEPA_DD".equals(method.path("type").asText())) return method.path("mandateText").asText();
+        throw new AssertionError("No SEPA_DD method in "+methods);
     }
     void parameter(String key,Object value) {
         mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is(club).and("key").is(key)),Parameter.class);

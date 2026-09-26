@@ -575,6 +575,22 @@ burst on one last seat queues instead of exhausting its retries. The guarantees 
   attempts) and the S06 writers (at most 6) retry a `WriteConflict` or a `DuplicateKey` with a 50–150 ms backoff
   (E5-T15), counted under the `catalogs` and `scheduling` contexts.
 
+**`ring_slot_locks` retention (E5-T17, S15 R-15-19):** every touch of a slot sets `expiresAt` to 7 days after the
+slot's `startsAt`, and `schedulingCollections` ensures the TTL index `ring_slot_lock_ttl` (`{expiresAt: 1}`,
+`expireAfterSeconds: 0`) on every start. An index with that name but another key or TTL makes the start fail: drop it
+(`db.ring_slot_locks.dropIndex("ring_slot_lock_ttl")`) and restart. P9 (`cleanup`) reports the expired documents that
+are still waiting as `ttlPendingRingSlotLocks`.
+
+**One-off backfill** for any database that ran E5-T07…E5-T16 code (staging, local stacks, dumps taken from them): the
+documents written then have no `expiresAt`, so the TTL never removes them and P9 does not count them. Run once, after
+deploying E5-T17 or later; a second run changes nothing:
+
+```bash
+docker compose --env-file .env.consumer -f docker-compose.consumer.yml exec -T mongo mongosh --quiet agilityhub --eval 'db.ring_slot_locks.updateMany({expiresAt: {$exists: false}}, [{$set: {expiresAt: {$add: ["$startsAt", 604800000]}}}])'
+```
+
+On another deployment, run the same `updateMany` with `mongosh` against its database. `604800000` ms is 7 days.
+
 With the lanes off, a burst on one aggregate ends partly in `409 STALE_VERSION` (see the E5-T07 report for the
 measured numbers). `core.transactions.retries{context,cause}` and `core.transactions.exhausted{context}` in the
 Prometheus metrics show how often the Mongo mechanisms are reached. Do not scale the API out before a decision on

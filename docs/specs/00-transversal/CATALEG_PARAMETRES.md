@@ -125,6 +125,9 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 | `files.dogPhotoMaxMb` | int | 8 | |
 
 ## Històric i tauler (`history.*`, `dashboard.*`)
+
+Paràmetres de **sistema**: no surten a cap bloc de D11 i el club no els edita (organitzador 26-09, E4-W06).
+
 | Clau | Tipus | Cànic | Notes |
 |---|---|---|---|
 | `history.monthsVisible` | int | 2 | pantalla 25 |

@@ -1549,3 +1549,13 @@ Blocking: no.
   - (3) should D2's view give each file's `fileKey`, so the web can keep a type's submitted files while adding one?
 - **Web:** regenerate the client (descriptions only). Eleven dog routes now document `409 INVALID_STATE` (`READMISSION_PENDING`).
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T18
+@organizer **Steps 1–6 of E5-T18 are done** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 566 unit and 989 integration tests. The summary is committed.
+- `bin/openapi-snapshot` exits 0. `openapi.json` changes only the 3 `taxId` descriptions (the ES padding), with a `docs/openapi/CHANGELOG.md` entry.
+- On the unfixed code, the step 1 test (the mockup 19 mandate text in ca/es/en, through `GET /signup`) and the step 4 tests (unit, plus one on real Mongo) fail. Step 5's pins pass before any change; a mutation that refuses `"   "` makes both fail.
+- `DEPLOY.md` has the `ring_slot_lock_ttl` index and the one-off `expiresAt` backfill; an IT runs that exact `updateMany`.
+- **Question** (report, assumption 5): in `club:apply` an omitted `club.taxId` keeps the stored one, and the definition schema types it as `string`, so a YAML `taxId: null` cannot clear it (`""` does). Should the schema accept `null` as «clear», like `PUT /club`?
+- **Web:** regenerate the client (descriptions only). Screen 19 gets the new mandate text from `mandateText`.
+Blocking: no.

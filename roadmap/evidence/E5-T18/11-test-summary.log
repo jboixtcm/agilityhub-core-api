@@ -1,0 +1,28 @@
+surefire totals: tests=566 failures=0 errors=0 skipped=0 (125 classes)
+  com.agilityhub.core.clubs.scheduling.persistence.SchedulingPersistenceTest: tests=4 failures=0 errors=0 skipped=0
+  com.agilityhub.core.shared.application.TransactionRetriesTest: tests=2 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.catalogs.application.CatalogServiceRetryTest: tests=4 failures=0 errors=0 skipped=0
+failsafe totals: tests=989 failures=0 errors=0 skipped=0 (84 classes)
+  com.agilityhub.core.clubs.census.api.SignupGateFixesIT: tests=23 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.E5PersistenceIT: tests=7 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.api.SettingsIT: tests=21 failures=0 errors=0 skipped=0
+  com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=16 failures=0 errors=0 skipped=0
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+E5-T18 test methods:
+  PASS failsafe SignupGateFixesIT#R_04_10_T_04_14_theSepaMandateIsTheTextOfMockup19WithTheClubsLegalName
+  PASS failsafe E5PersistenceIT#R_15_19_ringSlotLocksExpireSevenDaysAfterTheirSlotThroughATtlIndex
+  PASS failsafe E5PersistenceIT#R_15_19_theDeployBackfillGivesTheOldRingSlotLocksTheirExpiry
+  PASS failsafe E5PersistenceIT#R_15_19_anotherIndexUnderTheTtlNameStaysAStartupFailure
+  PASS surefire SchedulingPersistenceTest#R_15_19_theStartupRunnerEnsuresTheRingSlotTtlIndexOnEveryStart
+  PASS surefire SchedulingPersistenceTest#R_15_19_anIndexWithTheTtlNameOnAnotherKeyStaysAStartupFailure
+  PASS surefire TransactionRetriesTest#R_09_06_R_09_13_oneConflictCheckRetriesAWriteConflictADuplicateKeyOrATransientError
+  PASS surefire TransactionRetriesTest#R_07_08_R_08_07_theSharedBackoffDrawsFiftyToOneHundredFiftyMilliseconds
+  PASS surefire CatalogServiceRetryTest#R_05_08_aRingChangeInterruptedDuringItsBackoffStopsRetrying
+  PASS failsafe SettingsIT#R_02_06_aTaxIdOfSpacesOnlyClearsItLikeEmptyAndNull
+  PASS failsafe ClubDefinitionsIT#R_02_06_clubApplyClearsTheTaxIdWithSpacesOnlyLikeEmpty
+Renamed away (must be absent):
+  ABSENT T_15_27_R_15_19_ringSlotLocksExpireSevenDaysAfterTheirSlotThroughATtlIndex
+  ABSENT E5_T17_theStartupRunnerEnsuresTheRingSlotTtlIndexOnEveryStart
+  ABSENT E5_T17_oneConflictCheckForTheRetriedWriters
+  ABSENT E5_T17_theSharedBackoffDrawsFiftyToOneHundredFiftyMilliseconds
+  ABSENT E5_T17_aRingChangeInterruptedDuringItsBackoffStopsRetrying

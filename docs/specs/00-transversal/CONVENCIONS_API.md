@@ -74,6 +74,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 ```
 - `filter=<camp>:<op>:<valor>` repetible; operadors `eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between`. Els camps filtrables/ordenables de cada recurs es declaren a l'OpenAPI (`x-filterable`, `x-sortable`) i el back **rebutja** la resta amb `400 INVALID_FILTER`.
 - `page` ≥ 0 i `size` ∈ {20, 50, 200, 1000} (per defecte 50); qualsevol altre valor → `400 INVALID_FILTER` (organitzador 25-09, informe d'E3-W08).
+- `fields=…`: una clau que no s'ha demanat s'omet de la resposta (mai `null` ni `false` en lloc d'un valor); l'identificador de la fila hi és sempre; cada llistat publica les claus que accepta a l'OpenAPI (`x-fields`), i la resta → `400 INVALID_FILTER` (organitzador 26-09, informe d'E4-W05).
 - `GET /{recurs}/filter-values?field=planId` → valors possibles amb recompte (per al botó de filtre universal).
 - Resposta: `{ items: [...], page, size, totalItems, totalPages, appliedFilters: [...] }`.
 - Vistes desades: `/saved-views` (`listKey`, `name`, `columns[]`, `filters[]`, `sort`, `shared`).

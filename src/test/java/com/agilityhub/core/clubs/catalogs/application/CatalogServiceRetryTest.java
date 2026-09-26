@@ -58,9 +58,12 @@ class CatalogServiceRetryTest {
         assertThat(waits).as("a wait before each retry, none after the last attempt").hasSize(CatalogService.RING_CHANGE_ATTEMPTS - 1);
     }
 
-    /** E5-T17 (review E5-T15 #4): an interrupt during the wait stops the retries and keeps the interrupt flag. */
+    /**
+     * E5-T17 (review E5-T15 #4): an interrupt during the wait stops the retries and keeps the interrupt flag. E5-T18 (review
+     * E5-T17 #1): named after the rule of the retried ring change (R-05-08, which follows S09 R-09-13).
+     */
     @SuppressWarnings("unchecked")
-    @Test void E5_T17_aRingChangeInterruptedDuringItsBackoffStopsRetrying() {
+    @Test void R_05_08_aRingChangeInterruptedDuringItsBackoffStopsRetrying() {
         when(attempt.change(any(), anyString(), anyMap())).thenThrow(writeConflict());
         ObjectProvider<CatalogService> self = mock(ObjectProvider.class); when(self.getObject()).thenReturn(attempt);
         var interrupted = new CatalogService(mock(CatalogRepository.class), mock(CatalogRepository.class), mock(CatalogRepository.class), null, null, null, null, null,

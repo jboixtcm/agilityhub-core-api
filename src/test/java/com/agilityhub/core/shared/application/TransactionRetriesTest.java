@@ -10,7 +10,9 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * E5-T17 (review E5-T15 #4): the S05 ring change, the S06 writers and the S09 training writers share one conflict check
- * and one backoff range (`CatalogService`, `SchedulingTransactions`, `TrainingTransactions`).
+ * and one backoff range (`CatalogService`, `SchedulingTransactions`, `TrainingTransactions`). E5-T18 (review E5-T17 #1):
+ * each test is named after the rules it asserts: the conflicts S09 R-09-06 retries (for the ring-slot writers of R-09-13),
+ * and the 50–150 ms backoff of S07 R-07-08 and S08 R-08-07.
  */
 class TransactionRetriesTest {
     private static com.mongodb.MongoException mongo(int code, String label) {
@@ -18,7 +20,7 @@ class TransactionRetriesTest {
         return failure;
     }
 
-    @Test void E5_T17_oneConflictCheckForTheRetriedWriters() {
+    @Test void R_09_06_R_09_13_oneConflictCheckRetriesAWriteConflictADuplicateKeyOrATransientError() {
         assertThat(TransactionRetries.conflict(new DuplicateKeyException("E11000 ring_slot_locks"))).isTrue();
         assertThat(TransactionRetries.conflict(new UncategorizedMongoDbException("wrapped", mongo(112, null)))).as("a wrapped write conflict").isTrue();
         assertThat(TransactionRetries.conflict(mongo(11000, null))).isTrue();
@@ -30,7 +32,7 @@ class TransactionRetriesTest {
         assertThat(TransactionRetries.transientFailure(mongo(11000, null))).isFalse();
     }
 
-    @Test void E5_T17_theSharedBackoffDrawsFiftyToOneHundredFiftyMilliseconds() {
+    @Test void R_07_08_R_08_07_theSharedBackoffDrawsFiftyToOneHundredFiftyMilliseconds() {
         var drawn = new HashSet<Long>(); for (int i = 0; i < 2000; i++) { drawn.add(TransactionRetries.jitter()); }
         assertThat(drawn).allSatisfy(wait -> assertThat(wait).isBetween(50L, 150L)).contains(50L, 150L);
     }

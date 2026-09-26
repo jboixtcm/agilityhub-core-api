@@ -368,6 +368,23 @@ class SettingsIT extends AbstractIntegrationTest {
     }
 
     /**
+     * E5-T18 step 5 (review E5-T17 #5; S02 §3 amended 26-09, R-02-06): a tax id of spaces only is blank, not «separators
+     * only». It clears the stored one, like `""` and `null`, and is never refused; `/branding` then publishes `null`.
+     */
+    @Test void R_02_06_aTaxIdOfSpacesOnlyClearsItLikeEmptyAndNull() throws Exception {
+        var before = json(admin(get("/api/v1/club")));
+        var stored = json(admin(body(put("/api/v1/club"), Map.of("version", before.path("version").asLong(), "taxId", "G63189617"))));
+        for (String blank : List.of("   ", " \t ")) {
+            assertThat(stored.path("taxId").asText()).isEqualTo("G63189617");
+            var cleared = json(admin(body(put("/api/v1/club"), Map.of("version", stored.path("version").asLong(), "taxId", blank))));
+            assertThat(cleared.path("taxId").isNull()).as("[%s] clears it", blank).isTrue();
+            assertThat(mongo.getCollection("clubs").find(new Document("_id", "settings-a")).first().getString("taxId")).as("[%s] stored", blank).isNull();
+            assertThat(json(mvc.perform(get("/api/v1/branding").header("Host", HOST))).at("/club/taxId").isNull()).as("[%s] /branding", blank).isTrue();
+            stored = json(admin(body(put("/api/v1/club"), Map.of("version", cleared.path("version").asLong(), "taxId", "G63189617"))));
+        }
+    }
+
+    /**
      * E5-T17 (review E5-T16 #4, optional; S02 §3, R-02-06): an `ES` club stores a 7-digit DNI padded, the form its check
      * reads, so the same id written with or without the leading zero is no change: the audit trail does not name it.
      */

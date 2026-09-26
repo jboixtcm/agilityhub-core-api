@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T18: follow-ups of the E5-T17 review and of the web's gate E3 re-run (E3-W09); a description-only contract change.
+  - S04 §2 row 19: `signup:payment.mandate.ES` (ca, es, en) is the SEPA mandate text of the approved mockup 19, served
+    as `GET /signup` `paymentMethods[SEPA_DD].mandateText` with the club's legal name.
+  - S15 R-15-19: after an `ensureIndex` failure, `schedulingCollections` also compares the key of `ring_slot_lock_ttl`
+    (`{expiresAt: 1}` alone). An index with that name on another key stays a startup failure.
+  - `docs/DEPLOY.md`: the `ring_slot_lock_ttl` index, and the one-off `expiresAt` backfill for databases that ran
+    E5-T07…E5-T16 code (an IT runs it).
+  - S02 §3: tests pin that a `taxId` of spaces only clears it, like `""` and `null` (`PUT /club`) and like `""`
+    (`club:apply`). The `taxId` descriptions of `ClubSettings`, `ClubUpdate` and `ClubSummary` add the ES padding.
+  - Test names: the R-15-19 tests of E5-T17 and the other `E5_T17_…` unit tests are named after their rules.
+
 - E5-T17: follow-ups of the E5-T15 and E5-T16 reviews; no contract change (the snapshot is byte-identical).
   - Ruling E37 (S15 §6, amended 25-09): `GET /risk-review` and D1 never say `WILL_CANCEL`/`WILL_REVIEW` for a class that
     starts at or before its day's `classes.riskReviewTime`, because P2 skips it as started.

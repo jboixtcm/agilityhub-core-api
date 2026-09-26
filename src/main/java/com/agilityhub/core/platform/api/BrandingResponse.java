@@ -28,7 +28,7 @@ public record BrandingResponse(ClubSummary club, Theme theme, List<String> local
             @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED,
                     types = {"string", "null"}) String legalName,
             @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED,
-                    types = {"string", "null"}, description = "Normalized: upper case, without spaces or separators (S02 §3).") String taxId,
+                    types = {"string", "null"}, description = "Normalized: upper case, without spaces or separators (S02 §3). ES: a 7-digit DNI is stored padded to 8 digits.") String taxId,
             @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED, types = {"object", "null"},
                     description = "The registered office (LSSI art. 10), or null when the club has no street or postal code.") LegalAddress legalAddress) { }
     public record LegalAddress(String street, String postalCode,
