@@ -1,6 +1,6 @@
 # Catàleg d'esdeveniments de domini
 
-**v1.0 · 03-09-2026** · Escrits a l'outbox `domain_events` **dins la mateixa transacció** que el canvi (MODEL_DADES_PLATAFORMA §6); consumits pel dispatcher (notificacions, projeccions, comptadors, webhooks interns) amb idempotència per `eventId`. Nom = `Aggregate` + participi, en anglès. Tot esdeveniment porta: `eventId`, `clubId` (o `null`), `occurredAt`, `actorAccountId` (+ `impersonatedMemberId`), `origin` (`APP` · `BACKOFFICE` · `SYSTEM` · `WEBHOOK`).
+**v1.0 · 03-09-2026** · Escrits a l'outbox `domain_events` **dins la mateixa transacció** que el canvi (MODEL_DADES_PLATAFORMA §6); consumits pel dispatcher (notificacions, projeccions, comptadors, webhooks interns) amb idempotència per `eventId`. Nom = `Aggregate` + participi, en anglès. Tot esdeveniment porta: `eventId`, `clubId` (o `null`), `occurredAt`, `actorAccountId` (+ `impersonatedMemberId`), `origin` (`APP` · `BACKOFFICE` · `INSTRUCTOR` · `SYSTEM` · `WEBHOOK`; `INSTRUCTOR` = una petició d'un instructor, amb què S08 R-08-19 i S11 trien N-04/N-05; afegit 26-09, revisió d'E5-T22). L'auditoria (S14 §3) no fa servir `INSTRUCTOR`: l'acció d'un instructor s'hi escriu amb `origin = BACKOFFICE`.
 
 | Esdeveniment | Payload principal | Emès a | Consumidors |
 |---|---|---|---|

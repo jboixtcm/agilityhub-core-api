@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v1.3 · 26-09-2026** (v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v1.4 · 26-09-2026** (v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -21,6 +21,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-09 | 24-09 | api · contracte | `RING_HAS_BOOKINGS.details.bookings[]` té dues formes segons la ruta | Baixa | oberta — el front mostra només `memberName` + `dogName` (E4-W02) |
 | INC-10 | 24-09 | api · RGPD | Les altes rebutjades no tenen retenció: S14 R-14-16 (b) no està implementada | Mitjana | oberta — la purga és d'E11 (retenció i supressió); trobada a la revisió de la porta E3 |
 | INC-11 | 26-09 | web | Diferències cosmètiques de les pantalles d'E3 respecte dels mockups (re-execució de la porta, E3-W09) | Baixa | oberta — passada de polit abans del llançament |
+| INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -228,3 +229,23 @@ Solució probable:
 - D2: el xip de WhatsApp en una línia pròpia; «Modalitat i tarifa» és un select natiu (el mockup té una píndola taronja); la icona dels botons (✎, ✓) i la de l'avís d'imatge queden damunt del text.
 
 **On mirar**: les captures d'`roadmap/evidence/E3-W09/` al costat de `docs/pantalles/`.
+
+---
+
+## INC-12 · Detalls de la revisió d'E5-T22 (api)
+
+**Gravetat**: baixa. No afecten el funcionament ni el contracte publicat: són deute de proves i de documentació. La revisió independent d'E5-T22 (26-09) els ha trobat, i l'organitzador els deixa per a la passada de correccions, perquè E5-T22 era l'últim seguiment d'E5. Els menors de la mateixa revisió van a la tasca E5-T24.
+
+**Origen**: `roadmap/reviews/E5-T22-20260926-1457-claude.md` (api), detalls #8 i #9.
+
+**Llista**:
+- **Còpies d'ítems de llista fetes a mà.** Els registres d'ítem de llista nous copien a mà altres tipus, i cal mantenir cada còpia al dia a mà. Només la conformitat amb l'snapshot de `ListFieldsContractIT` en detectaria una deriva. Les parelles:
+  - `ClassSessionListItem` i `ClassSession`;
+  - `RingBlockListItem` i `RingBlock`;
+  - `MemberInstructorListItem` i `MemberInstructorView`;
+  - `ClassBookingItem` i `BookingListItem`.
+
+  Proposta: una prova unitària que compari els noms de propietat de cada parella.
+- **L'ítem de `/platform/audit-entries`.** `AuditEntryListItem` també és l'ítem d'aquesta operació, que encara és només contracte i ja no accepta `fields`. L'operació documenta, doncs, ítems que només exigeixen `id`. És inofensiu fins que s'implementi l'operació. Proposta: dir-ho a la descripció de l'operació, o donar-li un ítem sencer quan s'implementi.
+
+**On mirar**: `SchedulingContracts`, `BookingContracts`, `InstructorContracts`, `AuditContracts.java` (prop de `:102`), `ListFieldsContractIT`.

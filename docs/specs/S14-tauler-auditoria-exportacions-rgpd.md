@@ -38,7 +38,7 @@ Totes amb `createdAt`; `clubId` via `TenantRepository` llevat d'on s'indica. Ín
 | `at` | instant | sí | moment del commit |
 | `actorAccountId`, `actorName`, `actorRole` | UUID?, string?, enum `ADMIN`·`INSTRUCTOR`·`MEMBER`·`SYSTEM`·`PLATFORM`·`WEBHOOK` | sí (`actorAccountId` nul per `SYSTEM`/`WEBHOOK`) | `actorName` = instantània («Jordi») per no dependre del compte; `SYSTEM` porta `job` a `details` |
 | `impersonatedMemberId`, `impersonatedName` | UUID?, string? | no | «Entra com l'abonat»: actor + en nom de qui (R26-08) |
-| `origin` | enum `APP`·`BACKOFFICE`·`SYSTEM`·`WEBHOOK`·`PUBLIC` | sí | mateix enum que el catàleg d'esdeveniments; `PUBLIC` = el formulari públic anònim, que només escriu l'enviament d'una readmissió (24-09, E3-T09) |
+| `origin` | enum `APP`·`BACKOFFICE`·`SYSTEM`·`WEBHOOK`·`PUBLIC` | sí | el del catàleg d'esdeveniments sense `INSTRUCTOR`: l'acció d'un instructor s'audita amb `origin = BACKOFFICE` i `actorRole = INSTRUCTOR` (organitzador 26-09, revisió d'E5-T22); `PUBLIC` = el formulari públic anònim, que només escriu l'enviament d'una readmissió (24-09, E3-T09) |
 | `entityType`, `entityId`, `entityLabel` | string, string, string? | sí | `entityType` = nom del glossari (`Member`, `Dog`, `ClassSession`, `Remittance`, `Parameter`, `Club`…); `entityLabel` instantània («Laura Serra Vidal», «bookings.maxCurrentWeek») |
 | `memberId` | UUID? | no | l'abonat a qui **concerneix** l'entrada (propietari del gos, de la reserva, del rebut…) — índex per D10 |
 | `action` | enum `AuditAction` | sí | catàleg de R-14-09; `enums:auditAction.{ACTION}` al front |
@@ -319,3 +319,4 @@ Dos fils: **fil 1 (transversal back)** = A → B → C → D (l'auditoria és bl
 - 24-09-2026 · R-14-06: la targeta de risc de D1 és el formulari A de `GET /risk-review` (S15 §6) amb els estats mapejats; si difereixen, mana S15 (verificació d'E5-T05).
 - 24-09-2026 · revisió de la porta E3: R-14-02 resta les baixes per `leftAt`; `dashboard.pendingSignupAgeWarnDays` = 2 (el catàleg; §13-1 resolt); R-14-07 només amb els nivells de la progressió (E35); els exemples «avisat Pau + Blat» segueixen l'ICU (un sol avisat).
 - 25-09-2026 · verificació d'E5-T15: §7 afegeix `jobs.riskReview.enabled` a les claus de `ParameterChanged` que invaliden el tauler (l'interruptor del procés `risk-review` canvia els estats de risc de D1, E37). El codi ja invalida amb qualsevol `ParameterChanged`; E5-T17 ho fixa amb un test.
+- 26-09-2026 · verificació d'E5-T22: §3 `origin` sense `INSTRUCTOR` (l'acció d'un instructor s'audita amb `BACKOFFICE`; el catàleg d'esdeveniments sí que el té, per a N-04/N-05). E5-T24 ho fa a l'escriptura.

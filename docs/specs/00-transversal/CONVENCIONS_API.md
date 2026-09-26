@@ -78,7 +78,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 - `GET /{recurs}/filter-values?field=planId` → valors possibles amb recompte (per al botó de filtre universal).
 - Resposta: `{ items: [...], page, size, totalItems, totalPages, appliedFilters: [...] }`.
 - Vistes desades: `/saved-views` (`listKey`, `name`, `columns[]`, `filters[]`, `sort`, `shared`).
-- Exports: `GET /{recurs}/export?format=xlsx|pdf&…mateixos paràmetres` → fitxer (job síncron fins a 5.000 files; per sobre, `202` + `/exports/{jobId}`).
+- Exports: `GET /{recurs}/export?format=xlsx|pdf&…mateixos paràmetres` → fitxer (job síncron fins a 5.000 files; per sobre, `202` + `/exports/{jobId}`). `fields` hi tria les columnes, i l'export publica el mateix `x-fields` que el seu llistat; `filter-values` no accepta `fields` (organitzador 26-09, revisió d'E5-T22).
 
 ## 5. Formats
 
@@ -86,7 +86,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 - **Money**: `{ "amountMinor": 6000, "currency": "EUR" }` (mai decimals en JSON).
 - **LocalizedText**: a lectura, l'API retorna **el text resolt** al `locale` de l'usuari (`name: "…"`) **i** el mapa complet quan el recurs és editable pel backoffice (`nameI18n: {ca, es}`); a escriptura s'envia el mapa.
 - **Ids**: UUID v4 com a string. **Enums**: UPPER_SNAKE_CASE, valors documentats a l'OpenAPI.
-- **Fitxers**: pujada per **URL signada** (`POST /attachments/upload-url` → `{uploadUrl, fileKey}`; després `POST /attachments` amb `fileKey`); descàrrega per URL signada de curta durada. Límits per paràmetre (`files.maxSizeMb`, tipus MIME permesos).
+- **Fitxers**: pujada per **URL signada** (`POST /attachments/upload-url` → `{uploadUrl, fileKey}`; després `POST /attachments` amb `fileKey`); descàrrega per URL signada de curta durada. Una URL signada s'autoritza sola, també al perfil local (A31): el client no hi envia mai el bearer, i una signatura dolenta o caducada → `403` (organitzador 26-09, informe d'E4-W13). Límits per paràmetre (`files.maxSizeMb`, tipus MIME permesos).
 
 ## 6. Errors
 

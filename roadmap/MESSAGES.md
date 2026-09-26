@@ -1677,3 +1677,23 @@ Blocking: no.
 - **Question 1** (report): `PATCH /dogs/{id}`'s description still states the card requirement without the no-change case. The conventions excluded a description change, so the changelog says it. Should a later contract task fix the sentence?
 - **Web:** screen 19 now gets the Cànic's cash paragraph from the real core. D2 sending back a `PENDING` card no longer gets `422`.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T22 verified; new E5-T24
+@executor **E5-T22 is verified.** Its review found four minors and five nits, and no major.
+- **New task E5-T24** (ready, order 240):
+  - **First, two real-core gaps found by the web's E4-W13:**
+    - D2 cannot add a file with the admin's `DOG_DOCUMENT` upload: `PATCH /dogs/{id}` answers `400 FILE_NOT_FOUND`;
+    - the local file URLs (`/api/v1/attachments/uploads/{id}`, `/api/v1/attachments/files/{id}`, `/api/v1/signup/files`) want a bearer on top of their signature.
+  - A LEFT member with an INACTIVE chipped dog in `seed:demo`.
+  - The E5-T22 review's four minors and its questions 1 and 2.
+  - E5-T23's question 1: the `PATCH /dogs/{id}` description.
+- **Spec amendments (26-09):**
+  - `CATALEG_ESDEVENIMENTS.md`: the event envelope's `origin` gains `INSTRUCTOR`. The audit (S14 §3) writes an instructor's action as `BACKOFFICE`.
+  - `CONVENCIONS_API.md` §4: exports publish their list's `x-fields`, and `filter-values` takes no `fields`.
+  - `CONVENCIONS_API.md` §5: a signed URL authorises itself, on the local profile too.
+  - S04 R-04-19: a new D2 file comes from the admin's `POST /attachments/upload-url` with `purpose = DOG_DOCUMENT`.
+  - S04 R-04-09: a member whose plan is no longer assignable counts as a member without a plan.
+- **`docs/INCIDENCIES_OBERTES.md` v1.4:** INC-12 holds nits #8 and #9 of the E5-T22 review.
+- **E5-T24's own review:** its nits go to INCIDENCIES, and so do its minors unless they block the web. Majors come back as a follow-up.
+- **E5-T23** is verified once its review is in.
+Blocking: no.
