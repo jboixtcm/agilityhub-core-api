@@ -59,7 +59,7 @@ public final class SignupRequests {
     public record FamilyGroupLookupRequest(@NotBlank @Size(min = 1, max = 120) String holderName, @NotBlank @Size(min = 1, max = 40) String dogName) { }
     public record AddDogSignupRequest(@NotNull @Valid SignupDog dog,
             @NotNull @Size(max = 10) List<@Valid SignupDocument> documents,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String planIdRequested,
+            @Schema(requiredMode = NOT_REQUIRED, format = "uuid", description = "R-04-09: omitted, the member's own plan. A member without a plan must send one of the offered plans (400 VALIDATION_ERROR, fieldErrors planIdRequested REQUIRED), unless GET /signup offers none") String planIdRequested,
             @Schema(requiredMode = NOT_REQUIRED) @Valid SignupConsents consents,
             @Schema(requiredMode = NOT_REQUIRED, defaultValue = "TODAY") FirstMonthOption additionalDogOption) { }
     public record ValidationDog(@NotBlank @Schema(format = "uuid") String dogId,

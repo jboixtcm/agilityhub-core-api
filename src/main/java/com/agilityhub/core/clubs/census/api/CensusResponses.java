@@ -134,6 +134,16 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) List<DogSummary> dogs,
             @Schema(requiredMode = REQUIRED) boolean bookingBlocked,
             @Schema(requiredMode = REQUIRED) long version) { }
+    /**
+     * An INSTRUCTOR row of `GET /members` (E5-T22, CONVENCIONS_API §4): {@link MemberInstructorView}'s keys; `fields` makes it
+     * sparse, so only `id` is required. `GET /members/{id}` keeps {@link MemberInstructorView} whole.
+     */
+    @Schema(description = "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.")
+    @com.agilityhub.core.shared.application.contract.SparseListItem
+    public record MemberInstructorListItem(
+            @Schema(format = "uuid") String id, Integer memberNumber, String firstName, String lastName1, String lastName2, String fullName,
+            List<ContactEmail> contactEmails, List<Phone> phones, Address address, MemberStatus status, DisplayStatus displayStatus,
+            List<DogSummary> dogs, boolean bookingBlocked, long version) { }
     public record NamedReference(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name) { }
@@ -141,6 +151,7 @@ public final class CensusResponses {
             @Schema(requiredMode = REQUIRED) List<ContactEmail> emails,
             @Schema(requiredMode = REQUIRED) List<Phone> phones) { }
     @Schema(description = "ADMIN list projection; idDocument and account data are masked. INSTRUCTOR uses MemberInstructorView.")
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record MemberListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
@@ -267,6 +278,7 @@ public final class CensusResponses {
             @Schema(requiredMode = NOT_REQUIRED) PackSummary pack,
             @Schema(requiredMode = NOT_REQUIRED) TasksSummary tasksSummary,
             @Schema(requiredMode = REQUIRED) long version) { }
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record DogListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String name,

@@ -18,7 +18,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration(proxyBeanMethods = false)
 public class E4ContractConfiguration implements WebMvcConfigurer {
     static final List<String> NULLABLE_REFERENCES = List.of("Activity", "ActivityPatchRequest", "ActivityRegistration", "ActivityRegistrationSummary",
-            "ClassSession", "ClassSessionMemberView", "MemberActivityDetail");
+            "ClassSession", "ClassSessionListItem", "ClassSessionMemberView", "MemberActivityDetail");
     @Override public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new org.springframework.web.servlet.HandlerInterceptor() {
             @Override public boolean preHandle(jakarta.servlet.http.HttpServletRequest request,
@@ -43,12 +43,8 @@ public class E4ContractConfiguration implements WebMvcConfigurer {
     @Bean OpenApiCustomizer e4ContractProjections() {
         return api -> {
             var schemas = api.getComponents().getSchemas();
+            // E5-T22: `GET /ring-blocks` answers RingBlockListItem rows (sparse with `fields`); MEMBER rows leave out note and createdByName.
             ModelConverters.getInstance(true).readAll(SchedulingContracts.RingBlockMemberView.class).forEach(schemas::putIfAbsent);
-            var wrapper = schemas.get("ListPageRingBlock");
-            var union = new Schema<>().description("ADMIN/INSTRUCTOR receive RingBlock; MEMBER receives RingBlockMemberView without note/createdByName.");
-            union.addAnyOfItem(new Schema<>().$ref("#/components/schemas/RingBlock"));
-            union.addAnyOfItem(new Schema<>().$ref("#/components/schemas/RingBlockMemberView"));
-            ((Schema<?>) wrapper.getProperties().get("items")).setItems(union);
             Schema<?> empty = schemas.get("EmptyRequest");
             empty.setProperties(new java.util.LinkedHashMap<>());
             empty.setRequired(new java.util.ArrayList<>());

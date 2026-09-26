@@ -49,16 +49,21 @@ public class ActivityApiService {
     /**
      * D7's registrations (S07 §6, E5-T20). The activity comes from the path only: a query `activityId` filter is INVALID_FILTER
      * (not x-filterable) and `appliedFilters` lists the query's filters. Every row carries its `registrationId` and the
-     * `waitlistRank` computed now (R-07-08).
+     * `waitlistRank` computed now (R-07-08). The rank reads the row's own `state` (E5-T22, review E5-T20 #1): a row that the
+     * page read as not WAITLISTED gets `null`, even when a promotion or a cancellation happened between the two reads. So
+     * the page always reads `state`; the controller leaves it out again when `fields` did not ask for it.
      */
     public ListPage<Map<String,Object>> registrations(String id,MultiValueMap<String,String> params) {
         service.require(id);
         if(params.getOrDefault("filter",List.of()).stream().anyMatch(filter -> filter.startsWith("activityId:"))) throw ListDefinition.invalid();
         var input=new LinkedMultiValueMap<>(params); input.add("filter","activityId:eq:"+id);
+        var fields=params.get("fields");
+        if(fields!=null && fields.size()==1 && fields.getFirst()!=null && !ListQuery.csv(fields.getFirst()).contains("state")) input.set("fields",fields.getFirst()+",state");
         var page=lists.list("activity-registrations",input); var ranks=projection.waitlistRanks(id);
         var items=page.items().stream().map(row -> {
             var item=new LinkedHashMap<String,Object>(row); String registration=row.get("id").toString();
-            item.put("registrationId",registration); item.put("waitlistRank",ranks.get(registration)); return (Map<String,Object>)item;
+            item.put("registrationId",registration);
+            item.put("waitlistRank","WAITLISTED".equals(String.valueOf(row.get("state")))?ranks.get(registration):null); return (Map<String,Object>)item;
         }).toList();
         return new ListPage<>(items,page.page(),page.size(),page.totalItems(),page.totalPages(),
                 page.appliedFilters().stream().filter(filter -> !filter.field().equals("activityId")).toList());

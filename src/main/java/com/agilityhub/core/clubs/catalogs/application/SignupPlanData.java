@@ -13,7 +13,8 @@ import java.util.List;
 /** Catalog application projection for pure signup calculations; source records never escape it. */
 public record SignupPlanData(String id, String clubId, Type type, String billingMode, int dogsIncluded,
         LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
-        boolean active, boolean showOnSignup, int order, Entry entryFee, Pack pack, List<CurrentPrice> currentPrices) {
+        boolean active, boolean showOnSignup, int order, Entry entryFee, Pack pack, List<CurrentPrice> currentPrices,
+        LocalizedText priceLabel) {
     public enum Type { MONTHLY, PACK, SINGLE_CLASS }
     public enum Concept { MONTHLY_FEE, MAINTENANCE_FEE, PACK, SINGLE_CLASS }
     public record Entry(Money amount, Integer percentOfStandard, boolean waived, boolean useStandard) {
@@ -22,6 +23,12 @@ public record SignupPlanData(String id, String clubId, Type type, String billing
     public record Pack(int sessions, int validityMonths) { }
     public record CurrentPrice(String id, Concept concept, Money amount) { }
     public SignupPlanData { currentPrices = List.copyOf(currentPrices); }
+    /** A plan without `texts.priceLabel` (R-05-19). */
+    public SignupPlanData(String id, String clubId, Type type, String billingMode, int dogsIncluded,
+            LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
+            boolean active, boolean showOnSignup, int order, Entry entryFee, Pack pack, List<CurrentPrice> currentPrices) {
+        this(id, clubId, type, billingMode, dogsIncluded, name, description, conditions, offerLabel, active, showOnSignup, order, entryFee, pack, currentPrices, null);
+    }
     public CurrentPrice currentPrice(Concept concept) {
         return currentPrices.stream().filter(p -> p.concept() == concept).findFirst().orElse(null);
     }
@@ -54,6 +61,7 @@ public record SignupPlanData(String id, String clubId, Type type, String billing
                 plan.billingMode() == null ? null : plan.billingMode().name(), plan.dogsIncluded(),
                 plan.name(), plan.texts() == null ? null : plan.texts().description(), plan.conditions(),
                 plan.texts() == null ? null : plan.texts().offerLabel(), plan.active(), plan.showOnSignup(), plan.order(),
-                entry, plan.pack() == null ? null : new Pack(plan.pack().sessions(), plan.pack().validityMonths()), current);
+                entry, plan.pack() == null ? null : new Pack(plan.pack().sessions(), plan.pack().validityMonths()), current,
+                plan.texts() == null ? null : plan.texts().priceLabel());
     }
 }

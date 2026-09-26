@@ -19,9 +19,13 @@ public class ActivityProjection {
         this.context=context; this.attachments=attachments; this.activities=activities; this.registrations=registrations;
     }
     /** R-07-08 (E5-T20): registration id → `waitlistRank` of the activity's WAITLISTED registrations, computed when read. */
-    public Map<String,Integer> waitlistRanks(String activityId) {
-        var positions=new HashMap<String,Integer>(); registrations.waiting(activityId).forEach(r -> positions.put(r.id(),r.position()));
-        return ActivityRows.waitlistRanks(positions);
+    public Map<String,Integer> waitlistRanks(String activityId) { return waitlistRanks(List.of(activityId)).getOrDefault(activityId,Map.of()); }
+    /** The same ranks for several activities, read in one query and computed once per activity (E5-T22): activity id → ranks. */
+    public Map<String,Map<String,Integer>> waitlistRanks(Collection<String> activityIds) {
+        var positions=new HashMap<String,Map<String,Integer>>();
+        registrations.waiting(Set.copyOf(activityIds)).forEach(r -> positions.computeIfAbsent(r.activityId(),id -> new HashMap<>()).put(r.id(),r.position()));
+        var ranks=new HashMap<String,Map<String,Integer>>(); positions.forEach((id,rows) -> ranks.put(id,ActivityRows.waitlistRanks(rows)));
+        return ranks;
     }
     public static Map<String,Object> object(Object... pairs) {
         var result=new LinkedHashMap<String,Object>(); for(int i=0;i<pairs.length;i+=2) result.put(pairs[i].toString(),pairs[i+1]); return result;
@@ -78,8 +82,12 @@ public class ActivityProjection {
      */
     public String endsAtLocal(Activity a) { return a.endTime()==null?null:local(context.times(a).endsAt()); }
     public Map<String,Object> registration(ActivityRegistration r,Activity a) {
+        return registration(r,a,r.state()==RegistrationState.WAITLISTED?waitlistRanks(a.id()):Map.of());
+    }
+    /** `ranks` are the activity's {@link #waitlistRanks(String)}; a registration that is not WAITLISTED reads `null` whatever they say. */
+    public Map<String,Object> registration(ActivityRegistration r,Activity a,Map<String,Integer> ranks) {
         return object("id",r.id(),"activityId",a.id(),"memberId",r.memberId(),"state",r.state(),"origin",r.origin(),"position",r.position(),
-                "waitlistRank",r.state()==RegistrationState.WAITLISTED?waitlistRanks(a.id()).get(r.id()):null,"activity",registeredActivity(a),
+                "waitlistRank",r.state()==RegistrationState.WAITLISTED?ranks.get(r.id()):null,"activity",registeredActivity(a),
                 "registeredAt",r.registeredAt(),"registeredBy",object("displayName",r.registeredBy().displayName(),"viaClub",r.registeredBy().impersonatedMemberId()!=null),
                 "cancellableUntil",CancellationDeadline.deadline(context.deadlinePolicy(),r.state(),context.times(a),context.impersonated()),
                 "cancellation",r.cancelReason()==null?null:object("reason",r.cancelReason(),"at",r.cancelledAt(),"byRole",r.cancelledBy().role()),

@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.bookings.application.*;
 import com.agilityhub.core.clubs.bookings.domain.BookingState;
 import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.lists.ListEngine;
+import com.agilityhub.core.shared.application.lists.SparseItems;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
@@ -213,15 +214,16 @@ public class BookingsController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ListContract(filterable = {"state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt"}, sortable = {"classStartsAt", "bookedAt"},
             columns = {"classStartsAt*", "dogName*", "memberName*", "state*", "origin*", "bookedAt", "bookingWeekKey", "late"}, paged = true, exportable = false,
-            fields = {"id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "memberId", "bookedAt", "late"})
+            fields = {"id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
-    @Operation(summary = "bookings", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Tenant comes from the JWT.",
+    @Operation(summary = "bookings", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Without fields every item property is sent; with fields an item has id and the requested keys only. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<BookingListItem>", useReturnTypeSchema = true))
     public ListPage<BookingListItem> bookings(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         access.tenant();
         var page = queries.list(lists, params);
-        return new ListPage<>(page.items().stream().map(item -> view(item, BookingListItem.class)).toList(), page.page(), page.size(), page.totalItems(),
-                page.totalPages(), page.appliedFilters());
+        // E5-T22: the rows are rebuilt whole from the page's bookings; `fields` then leaves out the keys that were not requested.
+        return SparseItems.apply(mapper, new ListPage<>(page.items().stream().map(item -> view(item, BookingListItem.class)).toList(), page.page(), page.size(),
+                page.totalItems(), page.totalPages(), page.appliedFilters()), params, "id");
     }
 
     @PostMapping("/api/v1/waitlist-entries")
@@ -292,7 +294,7 @@ public class BookingsController {
     public ClassBookings classBookings(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        return new ClassBookings(queries.forClass(id).stream().map(item -> view(item, BookingListItem.class)).toList());
+        return new ClassBookings(queries.forClass(id).stream().map(item -> view(item, ClassBookingItem.class)).toList());
     }
 
     @GetMapping("/api/v1/class-sessions/{id}/waitlist-entries")

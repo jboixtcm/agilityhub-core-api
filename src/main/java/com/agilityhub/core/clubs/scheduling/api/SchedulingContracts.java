@@ -35,6 +35,7 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String saturdayTemplateId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant validatedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String validatedByAccountId, long version) { }
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record WeekListItem(String id, int isoYear, int isoWeek, LocalDate startDate, LocalDate endDate, WeekState state,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant generatedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant validatedAt,
@@ -73,6 +74,22 @@ public final class SchedulingContracts {
             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> instructorNames,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only in GET /class-sessions/{id} (E5-T15), where it is always sent: the ring, null for a class without a ring")
             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ClassRing ring) { }
+    /**
+     * A row of `GET /class-sessions` (E5-T22, CONVENCIONS_API §4): the keys of the list's `x-fields`, with {@link ClassSession}'s
+     * types; `fields` makes it sparse, so only `id` is required. The class views keep {@link ClassSession} whole.
+     */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    @com.agilityhub.core.shared.application.contract.SparseListItem
+    public record ClassSessionListItem(String id, String weekId, LocalDate date, String startTime, String endTime,
+            Instant startsAt, Instant endsAt, @Schema(nullable = true) String ringId,
+            List<String> levelIds, List<String> instructorIds, int capacity, CapacityMode capacityMode,
+            @Schema(nullable = true) String description, String displayDescription,
+            ClassState state, ClassCounters counters, boolean atRisk, boolean riskExempt,
+            @Schema(nullable = true) ClassCancellation cancellation,
+            @Schema(nullable = true) ClassOrigin origin,
+            @Schema(description = "Only with COURSES") String placementId,
+            @Schema(nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") String notes,
+            long version, List<String> inconsistencyIds) { }
     public record ClassCounters(int booked, int waiting) { }
     public record ClassCancellation(ClassCancellationReason reason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String adminText, String byAccountId, Instant at,
@@ -92,6 +109,15 @@ public final class SchedulingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String activityId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String activityTitle,
             String createdByName, RingBlockState state, long version) { }
+    /**
+     * A row of `GET /ring-blocks` (E5-T22, CONVENCIONS_API §4): {@link RingBlock}'s keys, the list's `x-fields`; `fields` makes it
+     * sparse, so only `id` is required. MEMBER rows never carry `note` or `createdByName`, as {@link RingBlockMemberView}.
+     */
+    @com.agilityhub.core.shared.application.contract.SparseListItem
+    public record RingBlockListItem(String id, String ringId, Instant from, Instant to, LocalDate date, String fromLocal, String toLocal,
+            RingBlockKind kind, RingBlockReason reason, @Schema(nullable = true, description = "Not sent to MEMBER") String note,
+            @Schema(nullable = true) String activityId, @Schema(nullable = true) String activityTitle,
+            @Schema(description = "Not sent to MEMBER") String createdByName, RingBlockState state, long version) { }
     public record RingBlockMemberView(String id, String ringId, Instant from, Instant to, LocalDate date, String fromLocal,
             String toLocal, RingBlockKind kind, RingBlockReason reason,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String activityId,

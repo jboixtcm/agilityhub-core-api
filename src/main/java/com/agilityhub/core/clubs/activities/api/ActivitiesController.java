@@ -42,20 +42,11 @@ public class ActivitiesController {
         });
     }
     /**
-     * CONVENCIONS_API §4 (E5-T20 step 3): with `fields`, an item keeps its row id and the requested keys only. A key that was not
-     * requested is left out, never `null` or `false` in its place; a requested one keeps its `null`. The item is first read
-     * through its record, the allowlist of the list; `fields` itself was validated against `x-fields` by the list engine.
+     * CONVENCIONS_API §4 (E5-T20 step 3): the item is first read through its record, the allowlist of the list; with `fields` it
+     * then keeps its row id and the requested keys only ({@link com.agilityhub.core.shared.application.lists.SparseItems}).
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
     private <T> ListPage<T> sparse(ListPage<T> page,org.springframework.util.MultiValueMap<String,String> params,String rowId) {
-        String requested=params.getFirst("fields");
-        if(requested==null) return page;
-        var fields=java.util.Set.copyOf(com.agilityhub.core.shared.application.lists.ListQuery.csv(requested));
-        var items=page.items().stream().map(item -> {
-            java.util.Map<String,Object> row=mapper.convertValue(item,new com.fasterxml.jackson.core.type.TypeReference<java.util.LinkedHashMap<String,Object>>() {});
-            row.keySet().removeIf(key -> !key.equals(rowId) && !fields.contains(key)); return row;
-        }).toList();
-        return (ListPage) new ListPage<>(items,page.page(),page.size(),page.totalItems(),page.totalPages(),page.appliedFilters());
+        return com.agilityhub.core.shared.application.lists.SparseItems.apply(mapper,page,params,rowId);
     }
     private boolean staff() { return com.agilityhub.core.clubs.scheduling.application.RingBlockService.role("ADMIN") || com.agilityhub.core.clubs.scheduling.application.RingBlockService.role("INSTRUCTOR"); }
     private com.agilityhub.core.clubs.scheduling.application.RingBlockService.Options options(Boolean bookings,Boolean classes,String text) {
@@ -64,7 +55,7 @@ public class ActivitiesController {
 
     @GetMapping("/api/v1/activities")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true,
+    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true,
             fields = {"id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER})
     @Operation(summary = "activities", description = "Roles: ADMIN, INSTRUCTOR. Default sort date desc; default filter deleted:eq:false. q searches title. Without fields every item property is sent (null where it does not apply); with fields an item has id and the requested keys only. Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "ListPage<ActivityListItem>", useReturnTypeSchema = true))
@@ -74,7 +65,7 @@ public class ActivitiesController {
 
     @GetMapping("/api/v1/activities/filter-values")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true)
+    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = true)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER})
     @Operation(summary = "filterValues", description = "Roles: ADMIN, INSTRUCTOR.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
     public FilterValues filterValues(@RequestParam String field, @io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
@@ -83,7 +74,7 @@ public class ActivitiesController {
 
     @GetMapping("/api/v1/activities/export")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = false)
+    @ListContract(filterable = {"state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id"}, sortable = {"date", "title", "state", "createdAt"}, columns = {"title*", "date*", "rings*", "registrations*", "state*", "type", "slug", "registrationTo"}, paged = true, exportable = false)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "export", description = "Roles: ADMIN.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = {@ApiResponse(responseCode = "200", description = "Export file", content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")), @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema = @Schema(type = "string", format = "binary"))}), @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
     public org.springframework.http.ResponseEntity<?> export(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns, @io.swagger.v3.oas.annotations.Parameter(hidden=true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
@@ -163,7 +154,7 @@ public class ActivitiesController {
     @GetMapping("/api/v1/activities/{id}/ring-conflicts")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_TIME_RANGE, OUTSIDE_OPENING_HOURS})
-    @Operation(summary = "ringConflicts", description = "Roles: ADMIN. The preview of R-07-05's dialog: a window the publication would refuse answers the same error (400 INVALID_TIME_RANGE without a date or hours, 422 OUTSIDE_OPENING_HOURS). Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "RingConflicts", useReturnTypeSchema = true))
+    @Operation(summary = "ringConflicts", description = "Roles: ADMIN. The preview of R-07-05's dialog. A window outside the opening hours answers 422 OUTSIDE_OPENING_HOURS, as the publication does. Rings without a date or without hours leave no window to block: the preview answers 400 INVALID_TIME_RANGE, while the publication refuses such an activity earlier, with 422 ACTIVITY_INCOMPLETE. Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "RingConflicts", useReturnTypeSchema = true))
     public RingConflicts ringConflicts(@PathVariable String id) {
         return view(service.conflicts(id),RingConflicts.class);
     }
@@ -202,7 +193,7 @@ public class ActivitiesController {
 
     @GetMapping("/api/v1/activities/{id}/registrations")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"state", "origin", "registeredAt", "memberId"}, sortable = {"registeredAt", "position", "memberLastName"}, paged = true, exportable = true,
+    @ListContract(filterable = {"state", "origin", "registeredAt", "memberId", "id"}, sortable = {"registeredAt", "position", "memberLastName"}, paged = true, exportable = true,
             fields = {"registrationId", "member", "state", "position", "waitlistRank", "origin", "registeredAt", "cancelledAt", "cancelReason"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_FILTER})
     @Operation(summary = "registrations", description = "Roles: ADMIN, INSTRUCTOR. The activity comes from the path only: appliedFilters lists the query's filters, and filter=activityId is INVALID_FILTER. Without fields every item property is sent (null where it does not apply); with fields an item has registrationId and the requested keys only. Export through /activity-registrations/export with filter=activityId:eq:id. Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "ListPage<ActivityRegistrationListItem>", useReturnTypeSchema = true))

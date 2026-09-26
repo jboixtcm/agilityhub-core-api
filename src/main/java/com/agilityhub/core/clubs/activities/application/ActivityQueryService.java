@@ -67,12 +67,16 @@ public class ActivityQueryService implements ActivityTitlePort {
     public Map<String,Object> mine(String dogId) {
         context.require(); String memberId=context.members.me();
         if(dogId!=null) try { dogs.requireDog(dogId,true,false); } catch(ApiException denied) { throw new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE); }
-        var mine=new ArrayList<Map<String,Object>>();
+        var live=new LinkedHashMap<ActivityRegistration,Activity>();
         for(var r:registrations.forMember(memberId)) if(r.state()!=RegistrationState.CANCELLED) {
-            var a=activities.require(r.activityId()); if(context.times(a).endsAt().isAfter(context.clock.instant())) {
-                var row=new LinkedHashMap<>(projection.registration(r,a)); row.remove("memberId"); row.remove("registeredBy"); row.remove("impersonation"); mine.add(row);
-            }
+            var a=activities.require(r.activityId()); if(context.times(a).endsAt().isAfter(context.clock.instant())) live.put(r,a);
         }
+        // R-07-08 (E5-T22, review E5-T20 #5): the waiting ranks of every listed activity in one read, not one read per waiting row.
+        var ranks=projection.waitlistRanks(live.keySet().stream().filter(r -> r.state()==RegistrationState.WAITLISTED).map(ActivityRegistration::activityId).toList());
+        var mine=new ArrayList<Map<String,Object>>();
+        live.forEach((r,a) -> {
+            var row=new LinkedHashMap<>(projection.registration(r,a,ranks.getOrDefault(a.id(),Map.of()))); row.remove("memberId"); row.remove("registeredBy"); row.remove("impersonation"); mine.add(row);
+        });
         return object("bookable",bookableFor(memberId,dogId),"mine",mine);
     }
     public Map<String,Object> detail(String id) {

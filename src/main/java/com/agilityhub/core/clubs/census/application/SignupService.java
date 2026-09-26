@@ -593,6 +593,8 @@ public class SignupService implements SignupPaymentAccess {
         lock();var member=access.me();if(!"ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.MEMBER_NOT_ACTIVE);
         if(member.erasedAt!=null) throw new ApiException(ErrorCode.MEMBER_ERASED);
         String requested=string(request.get("planIdRequested"));String planId=requested==null?member.planId:requested;
+        // R-04-09 (E5-T22): a member without a plan (B34) chooses one of the offered plans; only an empty offer leaves it null.
+        if(planId==null&&!policy.plans().isEmpty()) throw invalid("planIdRequested","REQUIRED");
         // M8: the member's own plan is assignable even when it is hidden from the public offer (the family fare); another plan must be offered.
         if(Objects.equals(planId,member.planId)) policy.requireAssignable(planId);else policy.require(planId);
         appendConsents(member,consentRows(member,map(request.get("consents")),true,locale(),ip));
@@ -617,10 +619,10 @@ public class SignupService implements SignupPaymentAccess {
     private Map<String,Object> configurationFor(Member me) {
         var config=access.config();String language=locale();
         if(!"ACTIVE".equals(config.club().status()) || !Boolean.TRUE.equals(config.get("signup.enabled",Boolean.class))) return object("enabled",false,"closedText",textParameter("signup.text.closed"));
-        var plans=policy.plans();
+        var plans=policy.plans();var shown=me==null?plans:memberPlans(plans,me.planId);
         var legal=new LinkedHashMap<>(settings.signupLegal(language));legal.remove("legalName");
         var result=object("enabled",true,"steps",access.enabled(Module.FAMILY_GROUP)&&me==null?List.of("PERSON","DOG","FAMILY_GROUP","PAYMENT"):List.of("PERSON","DOG","PAYMENT"),
-                "plans",plans.stream().map(this::planView).toList(),"texts",texts(language),"legal",legal,"countryProfile",countries.signupProfile(),
+                "plans",shown.stream().map(plan -> planView(plan,me==null?null:plan.id().equals(me.planId))).toList(),"texts",texts(language),"legal",legal,"countryProfile",countries.signupProfile(),
                 // E3-T08 step 12: the web enforces what the server enforces at submission.
                 "requireDogDocumentAtSignup",Boolean.TRUE.equals(config.get("signup.requireDogDocumentAtSignup",Boolean.class)));
         if(access.enabled(Module.FAMILY_GROUP)) result.put("allowFamilyGroupPending",Boolean.TRUE.equals(config.get("signup.allowFamilyGroupPending",Boolean.class)));
@@ -632,10 +634,8 @@ public class SignupService implements SignupPaymentAccess {
             var upfront=object("firstMonthSplitDay",config.get("signup.firstMonthSplitDay",Integer.class),"today",policy.today(),"firstMonthOptions",monthly==null?List.of():policy.firstOptions(monthly.price().amount()).stream().map(this::configChoice).toList());
             // R-04-14: the TODAY choice of an added dog always exists; ALTERNATIVE only up to billing.upfrontCutoffDay.
             if(me!=null&&me.planId!=null) upfront.put("additionalDogOptions",policy.additionalOptions(me.planId,me.planId).stream().map(this::configChoice).toList());
-            // M5: one quote per plan, computed like the submission; the add-dog mode also quotes the member's own (maybe hidden) plan.
-            var quoted=new ArrayList<>(plans);
-            if(me!=null&&me.planId!=null&&plans.stream().noneMatch(p -> p.id().equals(me.planId))) policy.assignablePlans().stream().filter(p -> p.id().equals(me.planId)).findFirst().ifPresent(quoted::add);
-            upfront.put("planQuotes",quoted.stream().map(plan -> quoteView(policy.planQuote(plan,me!=null,me==null?null:me.planId))).toList());
+            // M5: one quote per listed plan, computed like the submission; the add-dog mode also quotes the member's own (maybe hidden) plan.
+            upfront.put("planQuotes",shown.stream().map(plan -> quoteView(policy.planQuote(plan,me!=null,me==null?null:me.planId))).toList());
             result.put("upfront",upfront);
         }
         if(me!=null) result.put("member",object("planId",me.planId,"paymentMethodMasked",billing()?queries.payment(me):null,"consentsUpToDate",policy.currentConsent(history(me),legalVersion())));
@@ -689,9 +689,20 @@ public class SignupService implements SignupPaymentAccess {
         return messages.format("signup:payment.mandate."+countries.countryCode(),Map.of(),Locale.forLanguageTag(language))
                 .replace("[[club_legal_name]]",string(settings.signupLegal(language).get("legalName")));
     }
-    private Map<String,Object> planView(SignupPolicy.Plan plan) {
+    /**
+     * The add-dog plans (R-04-09, M8, E5-T22): the public offer plus the member's own plan when the offer hides it (the family
+     * fare), in catalog order. A member without a plan (B34), or whose plan is no longer assignable, gets the offer alone.
+     */
+    private List<SignupPolicy.Plan> memberPlans(List<SignupPolicy.Plan> offered,String planId) {
+        if(planId==null||offered.stream().anyMatch(plan -> plan.id().equals(planId))) return offered;
+        var ids=new HashSet<String>();offered.forEach(plan -> ids.add(plan.id()));ids.add(planId);
+        return policy.assignablePlans().stream().filter(plan -> ids.contains(plan.id())).toList();
+    }
+    /** `current` only in the add-dog mode: true on the member's own plan. `priceLabel` is `texts.priceLabel` (R-05-19). */
+    private Map<String,Object> planView(SignupPolicy.Plan plan,Boolean current) {
         return object("id",plan.id(),"type",plan.type(),"billingMode",plan.billingMode(),"name",resolved(plan.name()),"description",resolved(plan.description()),"conditions",resolved(plan.conditions()),
-                "offerLabel",plan.offerLabel()==null?null:resolved(plan.offerLabel()),"price",plan.price(),"entryFee",plan.entryFee(),"pack",plan.pack(),"maintenanceFee",plan.maintenanceFee());
+                "offerLabel",plan.offerLabel()==null?null:resolved(plan.offerLabel()),"price",plan.price(),"priceLabel",plan.priceLabel()==null?null:resolved(plan.priceLabel()),
+                "entryFee",plan.entryFee(),"pack",plan.pack(),"maintenanceFee",plan.maintenanceFee(),"current",current);
     }
     public List<String> warnings(Member member,List<Dog> dogs) {
         var warnings=new ArrayList<String>();

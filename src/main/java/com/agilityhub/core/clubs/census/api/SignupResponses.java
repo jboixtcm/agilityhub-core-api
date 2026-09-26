@@ -38,9 +38,11 @@ public final class SignupResponses {
             String name, String description, String conditions,
             @Schema(requiredMode = NOT_REQUIRED) String offerLabel,
             @Schema(requiredMode = NOT_REQUIRED) SignupPrice price,
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-05-19: the plan's texts.priceLabel in the reader's locale, when the plan has one (the text of screen 17's price line without a current price)") String priceLabel,
             @Schema(requiredMode = NOT_REQUIRED) Money entryFee,
             @Schema(requiredMode = NOT_REQUIRED) SignupPack pack,
-            @Schema(requiredMode = NOT_REQUIRED) Money maintenanceFee) { }
+            @Schema(requiredMode = NOT_REQUIRED) Money maintenanceFee,
+            @Schema(requiredMode = NOT_REQUIRED, description = "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup") Boolean current) { }
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record SignupPrice(@Schema(format = "uuid") String id, Money amount,
             @Schema(allowableValues = {"MONTHLY", "ONE_OFF"}) String periodicity) { }

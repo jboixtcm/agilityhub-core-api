@@ -41,7 +41,7 @@ public class MembersController {
                     "firstName", "lastName1", "lastName2", "contactEmails", "phones", "address", "status"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "List members",
-            description = "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorView without financial or internal data. Fields/filters are limited by role. S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields.",
+            description = "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<MemberListItem>; fields selects a sparse projection", content = @Content(schema = @Schema(implementation = MemberPage.class))))
     public org.springframework.http.ResponseEntity<?> listMembers(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         return org.springframework.http.ResponseEntity.ok(lists.list("members", params));

@@ -19,7 +19,10 @@ import org.springframework.util.MultiValueMap;
 @Service
 public class BookingQueryService implements ListProvider {
     static final List<String> FILTERS = List.of("state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt");
+    /** The stored keys the engine's page projects; the rows are rebuilt whole from the page's bookings anyway. */
     static final List<String> FIELDS = List.of("id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "memberId", "bookedAt", "late");
+    /** The keys `fields` accepts, the list's `x-fields`: every key of `BookingListItem`, the names included (E5-T22). */
+    public static final Set<String> ITEM_FIELDS = Set.of("id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late");
     private final BookingRepository bookings; private final BookingMemberAccess census; private final BookingViews views;
     private final BookingContext context; private final BookingCalendarTokens tokens;
     public BookingQueryService(BookingRepository bookings, BookingMemberAccess census, BookingViews views, BookingContext context, BookingCalendarTokens tokens) {
@@ -60,7 +63,7 @@ public class BookingQueryService implements ListProvider {
         for (String f : FILTERS) { filters.put(f, new ListDefinition.Field(f, f.equals("classStartsAt") ? ListDefinition.Type.INSTANT : ListDefinition.Type.TEXT)); }
         var columns = List.of("classStartsAt", "dogName", "memberName", "state", "origin", "bookedAt", "bookingWeekKey", "late");
         var definition = new ListDefinition(key, filters, Map.of("classStartsAt", "classStartsAt", "bookedAt", "bookedAt"), List.of(), columns,
-                List.of("classStartsAt", "dogName", "memberName", "state", "origin"), List.of("classStartsAt,asc"), Set.copyOf(FIELDS));
+                List.of("classStartsAt", "dogName", "memberName", "state", "origin"), List.of("classStartsAt,asc"), ITEM_FIELDS);
         var output = new LinkedHashMap<String, Object>(); FIELDS.forEach(f -> output.put(f, 1)); output.put("id", "$_id");
         return new ListDataset(definition, "bookings", List.<Document>of(), output, Set.of("late"), (field, value) -> Objects.toString(value, ""));
     }

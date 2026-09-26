@@ -533,8 +533,9 @@ class ActivityIT extends ActivityFixtures {
         var cancelled=find(items,"registrationId",gone.path("id").asText());
         assertThat(cancelled.path("state").asText()).isEqualTo("CANCELLED"); assertThat(cancelled.path("cancelReason").asText()).isEqualTo("MEMBER");
         assertThat(cancelled.path("cancelledAt").asText()).isEqualTo(clock.instant().toString());
-        // E5-T20 step 3 (CONVENCIONS_API §4): the schema requires only the row id, because `fields` leaves the other keys out;
-        // without `fields` every key is sent (assertConforms above), `null` until it applies.
+        // E5-T20 step 3 (CONVENCIONS_API §4): the schema requires only the row id, because `fields` leaves the other keys out.
+        // So assertConforms above no longer proves that every key is sent without `fields`: the assertNoEnd calls above
+        // (`has(field)` and `null`) prove it, and must stay (E5-T22, review E5-T20 #6).
         assertThat(SnapshotSchemas.required("ActivityRegistrationListItem")).containsExactly("registrationId");
         assertThat(SnapshotSchemas.schema("ActivityRegistrationListItem").at("/properties/cancelReason/enum")).anySatisfy(value -> assertThat(value.isNull()).isTrue());
         assertThat(SnapshotSchemas.violations(((ObjectNode)first.deepCopy()).put("cancelReason","UNKNOWN"),"ActivityRegistrationListItem")).isNotEmpty();

@@ -113,30 +113,30 @@ public class AuditController {
     @GetMapping("/api/v1/platform/audit-entries")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"clubId", "at(between)", "action", "entityType", "entityId", "memberId", "actorAccountId", "actorRole", "impersonatedMemberId", "origin"}, sortable = {"at"},
-            columns = {"clubId", "at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*"}, paged = true, exportable = false)
+            columns = {"clubId", "at*", "action*", "entityLabel*", "actorName*", "impersonatedName*", "changes*", "origin*"}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform audit entries",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<AuditEntryListItem>"))
     public ListPage<AuditEntryListItem> platformAuditEntries() { throw new UnsupportedOperationException(); }
 
     @GetMapping("/api/v1/platform/erasure-requests")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"clubId"}, sortable = {},
-            columns = {"id*", "scope*", "status*", "requestedAt*", "executeAt*", "clubId"}, paged = true, exportable = false)
+            columns = {"id*", "scope*", "status*", "requestedAt*", "executeAt*", "clubId"}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform erasure requests",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<ErasureRequest>"))
     public ListPage<ErasureRequest> platformErasureRequests() { throw new UnsupportedOperationException(); }
 
     @GetMapping("/api/v1/platform/security-events")
     @PreAuthorize("hasRole('AGILITYHUB_ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"clubId"}, sortable = {},
-            columns = {"at*", "type*", "accountId", "clubId", "route"}, paged = true, exportable = false)
+            columns = {"at*", "type*", "accountId", "clubId", "route"}, paged = true, exportable = false, acceptsFields = false)
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "Platform security events",
-            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+            description = "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<SecurityEventView>"))
     public ListPage<SecurityEventView> platformSecurityEvents() { throw new UnsupportedOperationException(); }
 

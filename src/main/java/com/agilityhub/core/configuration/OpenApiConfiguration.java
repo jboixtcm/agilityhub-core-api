@@ -142,7 +142,7 @@ public class OpenApiConfiguration {
                     return definition;
                 }).toList());
                 operation.addExtension("x-exportable", list.exportable());
-                if (list.paged()) { addListParameters(operation); }
+                if (list.paged()) { addListParameters(operation, list.acceptsFields()); }
             }
             var errors = handler.getMethodAnnotation(ContractErrors.class);
             if (errors != null) {
@@ -169,9 +169,10 @@ public class OpenApiConfiguration {
         };
     }
 
-    private static void addListParameters(Operation operation) {
+    private static void addListParameters(Operation operation, boolean fields) {
         if (operation.getParameters() == null) { operation.setParameters(new java.util.ArrayList<>()); }
         for (String name : List.of("page", "size", "sort", "q", "filter", "fields")) {
+            if (name.equals("fields") && !fields) { continue; }
             if (operation.getParameters().stream().anyMatch(parameter -> name.equals(parameter.getName()))) { continue; }
             Schema<?> schema = switch (name) {
                 case "page" -> new io.swagger.v3.oas.models.media.IntegerSchema()._default(0).minimum(java.math.BigDecimal.ZERO);

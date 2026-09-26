@@ -25,6 +25,7 @@
           },
           "periodicity": "MONTHLY"
         },
+        "priceLabel": "Example price label",
         "entryFee": {
           "amountMinor": 6000,
           "currency": "EUR"
@@ -36,7 +37,8 @@
         "maintenanceFee": {
           "amountMinor": 6000,
           "currency": "EUR"
-        }
+        },
+        "current": true
       }
     ],
     "paymentMethods": [

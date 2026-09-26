@@ -155,14 +155,15 @@ public class TrainingController {
             columns = {"date*", "startsAtLocal*", "ringName*", "memberName*", "dogName*", "state*", "origin", "createdAt"}, paged = true, exportable = true,
             fields = {"id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
-    @Operation(summary = "trainingBookings", description = "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Requires FREE_TRAINING. Tenant comes from the JWT.",
+    @Operation(summary = "trainingBookings", description = "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<TrainingBookingListItem>", useReturnTypeSchema = true))
     public ListPage<TrainingBookingListItem> trainingBookings(
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         access.tenant();
         var page = queries.list(lists, params);
-        return new ListPage<>(page.items().stream().map(item -> view(item, TrainingBookingListItem.class)).toList(), page.page(), page.size(), page.totalItems(),
-                page.totalPages(), page.appliedFilters());
+        // E5-T22 (CONVENCIONS_API §4): the record would send an unrequested key as null; `fields` leaves it out instead.
+        return com.agilityhub.core.shared.application.lists.SparseItems.apply(mapper, new ListPage<>(page.items().stream().map(item -> view(item, TrainingBookingListItem.class)).toList(),
+                page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters()), params, "id");
     }
 
     @GetMapping("/api/v1/training-bookings/export")

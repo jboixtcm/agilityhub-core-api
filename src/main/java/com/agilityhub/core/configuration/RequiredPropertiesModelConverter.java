@@ -35,6 +35,13 @@ final class RequiredPropertiesModelConverter implements ModelConverter {
         if (model == null || model.getProperties() == null) { return resolved; }
 
         var javaType = mapper.constructType(type.getType());
+        var item = javaType.getRawClass().getAnnotation(com.agilityhub.core.shared.application.contract.SparseListItem.class);
+        if (item != null) {
+            // CONVENCIONS_API §4 (E5-T22): `fields` may leave out any key of a universal list item but its row id.
+            if (!model.getProperties().containsKey(item.rowId())) { throw new IllegalStateException(javaType.getRawClass().getName() + " has no row id " + item.rowId()); }
+            model.setRequired(new ArrayList<>(java.util.List.of(item.rowId())));
+            return resolved;
+        }
         var inputProperties = mapper.getDeserializationConfig().introspect(javaType).findProperties();
         var required = new TreeSet<String>();
         if (model.getRequired() != null) { required.addAll(model.getRequired()); }

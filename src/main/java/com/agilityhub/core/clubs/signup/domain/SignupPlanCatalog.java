@@ -12,7 +12,8 @@ public final class SignupPlanCatalog {
     private SignupPlanCatalog() { }
     public record Offer(String id, Type type, String billingMode, int dogsIncluded,
                         LocalizedText name, LocalizedText description, LocalizedText conditions, LocalizedText offerLabel,
-                        Pack pack, CurrentPrice price, Money entryFee, Money maintenanceFee, List<CurrentPrice> prices) { }
+                        Pack pack, CurrentPrice price, Money entryFee, Money maintenanceFee, List<CurrentPrice> prices,
+                        LocalizedText priceLabel) { }
     /** The public offer of `GET /signup` and of the applicant's `planIdRequested`: `active ∧ showOnSignup ∧ module`. */
     public static List<Offer> list(String clubId, List<SignupPlanData> plans, Set<Module> modules, Money standardEntryFee) {
         return select(clubId, plans, modules, standardEntryFee, true);
@@ -50,7 +51,7 @@ public final class SignupPlanCatalog {
         }
         return new Offer(plan.id(), plan.type(), plan.billingMode(), plan.dogsIncluded(), plan.name(), plan.description(),
                 plan.conditions(), plan.offerLabel(), plan.pack(), price, entry, maintenance == null ? null : maintenance.amount(),
-                billing ? plan.currentPrices() : List.of());
+                billing ? plan.currentPrices() : List.of(), plan.priceLabel());
     }
     private static void checkCurrency(Money amount, Money standard) { SignupValidation.nonnegative(amount).plus(new Money(0, standard.currency())); }
     public static Offer require(List<Offer> offers, String planId) {

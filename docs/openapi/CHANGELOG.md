@@ -43,9 +43,10 @@ gain `x-fields`; 3 operations change their documented errors.** The web must reg
   `/training-bookings`, `/attendances`, `/followup`, `/jobs/{name}/runs`, `/audit-entries` and
   `/members/{id}/audit-entries`. It is every key the list accepts for any role; any other key is `400 INVALID_FILTER`.
   The `fields` parameter's description says so on every paged operation.
-- `GET /activities/{id}/ring-conflicts` documents `400 INVALID_TIME_RANGE` and `422 OUTSIDE_OPENING_HOURS`, the errors the
-  publication gives for the same window (S07 §6). Behaviour: an activity with rings but no date now answers `400
-  INVALID_TIME_RANGE`, not `500`.
+- `GET /activities/{id}/ring-conflicts` documents `400 INVALID_TIME_RANGE` and `422 OUTSIDE_OPENING_HOURS` (S07 §6). The
+  422 is the publication's error for the same window; the 400 means there is no window to block (rings without a date or
+  hours), a case the publication refuses earlier with `422 ACTIVITY_INCOMPLETE` (wording corrected by E5-T22). Behaviour:
+  an activity with rings but no date now answers `400 INVALID_TIME_RANGE`, not `500`.
 - Behaviour, no schema change: `GET /day-grid?view=foo` answers `400 VALIDATION_ERROR` with `details.field = "view"` and
   `details.fieldErrors = [{field: "view", code: "INVALID_VALUE"}]` (before, `details` was empty).
 - Behaviour, no schema change (`GET /parameters`, CATALEG_PARAMETRES 26-09): `learn.baseUrl` and

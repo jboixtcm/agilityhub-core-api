@@ -124,10 +124,15 @@ public final class BookingContracts {
             @Schema(description = "Negative once the class has started") int minutesBefore,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String message) { }
     public record MemberBookings(List<Booking> items) { }
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record BookingListItem(String id, BookingState state, BookingOrigin origin, String classSessionId, Instant classStartsAt,
             String bookingWeekKey, String dogId, String dogName, String memberId, String memberName, Instant bookedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late) { }
-    public record ClassBookings(List<BookingListItem> items) { }
+    /** A row of `GET /class-sessions/{id}/bookings`: always whole, unlike the sparse {@link BookingListItem} of the list (E5-T22). */
+    public record ClassBookingItem(String id, BookingState state, BookingOrigin origin, String classSessionId, Instant classStartsAt,
+            String bookingWeekKey, String dogId, String dogName, String memberId, String memberName, Instant bookedAt,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late) { }
+    public record ClassBookings(List<ClassBookingItem> items) { }
 
     // ---- Waitlist
     public record WaitlistEntry(String id, WaitlistState state, String classSessionId, String dogId,

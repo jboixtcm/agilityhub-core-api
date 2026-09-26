@@ -30,7 +30,8 @@ public class SchedulingLists implements ListProvider {
     }
     public ListPage<Map<String,Object>> list(ListEngine engine,String key,MultiValueMap<String,String> params) {
         var page=engine.list(key,params); var requested=params.getFirst("fields");
-        Set<String> fields=requested==null?null:new HashSet<>(Arrays.asList(requested.split(",")));
+        // The keys as the engine validated them (trimmed), so `fields=id, state` keeps `state` (E5-T22).
+        Set<String> fields=requested==null?null:Set.copyOf(ListQuery.csv(requested));
         var items=page.items().stream().map(row -> {
             var value=key.equals("class-sessions")?projection.session(classes.require(row.get("id").toString()),false,List.of()):projection.block(blocks.require(row.get("id").toString()),projection.member());
             if(fields!=null) value.keySet().removeIf(f -> !f.equals("id") && !fields.contains(f)); return value;

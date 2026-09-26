@@ -5,6 +5,8 @@ import com.agilityhub.core.platform.application.jobs.JobAdminService;
 import com.agilityhub.core.platform.application.jobs.JobContractAccess;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.application.contract.ListContract;
+import com.agilityhub.core.shared.application.lists.SparseItems;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,8 +29,10 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class JobsController {
     static final String ADMIN = "hasRole('ADMIN') and principal.claims['imp'] != true";
     static final String NAME = "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder";
-    private final JobContractAccess access; private final JobAdminService jobs; private final RiskReviewQuery risk;
-    public JobsController(JobContractAccess access, JobAdminService jobs, RiskReviewQuery risk) { this.access = access; this.jobs = jobs; this.risk = risk; }
+    private final JobContractAccess access; private final JobAdminService jobs; private final RiskReviewQuery risk; private final ObjectMapper mapper;
+    public JobsController(JobContractAccess access, JobAdminService jobs, RiskReviewQuery risk, ObjectMapper mapper) {
+        this.access = access; this.jobs = jobs; this.risk = risk; this.mapper = mapper;
+    }
 
     @GetMapping("/api/v1/jobs")
     @PreAuthorize(ADMIN)
@@ -44,14 +48,14 @@ public class JobsController {
     @PreAuthorize(ADMIN)
     @ListContract(filterable = {"status", "scheduledFor", "trigger", "dryRun"}, sortable = {"scheduledFor", "startedAt"},
             columns = {"scheduledForLocal*", "trigger*", "status*", "dryRun*", "durationMs", "counters*", "errorCount*", "skipReason"}, paged = true, exportable = false,
-            fields = {"id"})
+            fields = {"runId", "scheduledFor", "scheduledForLocal", "trigger", "dryRun", "status", "skipReason", "startedAt", "finishedAt", "durationMs", "counters", "errorCount"})
     @ContractErrors(value = {VALIDATION_ERROR, INVALID_FILTER, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED}, omit = 422)
-    @Operation(summary = "jobRuns", description = "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4); unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",
+    @Operation(summary = "jobRuns", description = "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4): without fields every item property is sent; with fields an item has runId and the requested keys only. Unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<JobRunListItem>", useReturnTypeSchema = true))
     public ListPage<JobRunListItem> jobRuns(@PathVariable @Parameter(description = NAME) String name,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
         access.tenant();
-        return jobs.runs(name, params);
+        return SparseItems.apply(mapper, jobs.runs(name, params), params, "runId");
     }
 
     @GetMapping("/api/v1/jobs/{name}/runs/{runId}")

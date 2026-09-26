@@ -17,6 +17,11 @@ public @interface ListContract {
      * for any role; any other key is `400 INVALID_FILTER`. Empty for an operation that is not a universal list.
      */
     String[] fields() default {};
+    /**
+     * False for a list that cannot honour `fields` (E5-T22, CONVENCIONS_API §4), such as a contract-only list: the operation then
+     * publishes neither the `fields` parameter nor `x-fields`.
+     */
+    boolean acceptsFields() default true;
     boolean paged() default false;
     boolean exportable() default false;
 }

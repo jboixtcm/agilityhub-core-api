@@ -73,6 +73,7 @@ public final class TrainingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) TrainingCancelledBy cancelledBy,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) TrainingCancelReason cancelReason) { }
     public record MemberTrainingBookings(List<TrainingBooking> items) { }
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record TrainingBookingListItem(String id, LocalDate date, Instant startsAt, @Schema(example = "08:30") String startsAtLocal,
             String ringId, String ringName, String memberId, String memberName, String dogId, String dogName,
             TrainingBookingState state, TrainingOrigin origin, Instant createdAt) { }

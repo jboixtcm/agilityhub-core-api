@@ -49,6 +49,7 @@ public final class FollowupContracts {
     @Schema(description = "Universal list page (CONVENCIONS_API §4) of D14: unread first (activityAt desc), then the rest (activityAt desc)")
     public record FollowupPage(List<FollowupItem> items, @Schema(minimum = "0") int page, @Schema(minimum = "1") int size,
             @Schema(minimum = "0") long totalItems, @Schema(minimum = "0") int totalPages, List<Filter> appliedFilters) { }
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record FollowupItem(String id, FollowupKind kind, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only TASK") String taskId,
             String dogId, String dogName, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null with levels.enabled = false") String levelCode,
             String memberId, String memberName, String authorName, AuthorRole authorRole, @Schema(description = "At most 120 characters") String textExcerpt,

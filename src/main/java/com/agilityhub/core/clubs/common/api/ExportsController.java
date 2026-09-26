@@ -156,7 +156,7 @@ public class ExportsController {
     @GetMapping("/api/v1/activity-registrations/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @RequiresModule(Module.ACTIVITIES)
-    @ListContract(filterable = {"activityId", "state", "origin", "registeredAt", "memberId"}, sortable = {"registeredAt", "position", "memberLastName"},
+    @ListContract(filterable = {"activityId", "state", "origin", "registeredAt", "memberId", "id"}, sortable = {"registeredAt", "position", "memberLastName"},
             columns = {"member*", "state*", "position*", "origin*", "registeredAt*", "cancelledAt", "cancelReason"}, paged = true, exportable = false)
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export activity registrations",

@@ -108,6 +108,7 @@ public final class InstructorContracts {
     public record AttendanceWindowClosedDetails(@Schema(description = "T1") Instant editableUntil) { }
 
     // ---- GET /attendances (universal list)
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record AttendanceListItem(String id, String bookingId, String classSessionId, LocalDate classDate, Instant classStartsAt,
             String dogId, String dogName, String memberId, String memberName, AttendanceState state,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant markedAt,

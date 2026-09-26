@@ -99,6 +99,7 @@ public final class AuditContracts {
     @Schema(name = "ListPageAuditEntryListItem")
     public record AuditPage(List<AuditEntryListItem> items, int page, int size, long totalItems,
             int totalPages, List<Filter> appliedFilters) { }
+    @com.agilityhub.core.shared.application.contract.SparseListItem
     public record AuditEntryListItem(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = NOT_REQUIRED, format = "uuid") String clubId,

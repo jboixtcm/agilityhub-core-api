@@ -17,7 +17,7 @@ public class SignupPolicy {
     public record PlanPrice(String priceId, Money amount, String periodicity, String concept) { }
     public record Plan(String id, String type, String billingMode, int dogsIncluded, LocalizedText name,
             LocalizedText description, LocalizedText conditions, LocalizedText offerLabel, Map<String,Integer> pack,
-            Price price, Money entryFee, Money maintenanceFee, List<PlanPrice> prices) {
+            Price price, Money entryFee, Money maintenanceFee, List<PlanPrice> prices, LocalizedText priceLabel) {
         /**
          * The price the member is billed on (`Member.priceId`), picked by the plan's billing mode (E3-T08 round 2):
          * `MAINTENANCE` → the current `MAINTENANCE_FEE` price (Teràpia); otherwise the plan's standard price. `price` stays
@@ -80,7 +80,8 @@ public class SignupPolicy {
         return new Plan(offer.id(), offer.type().name(), offer.billingMode(), offer.dogsIncluded(), offer.name(), offer.description(),
                 offer.conditions(), offer.offerLabel(), offer.pack() == null ? null : Map.of("sessions", offer.pack().sessions(), "validityMonths", offer.pack().validityMonths()),
                 price == null ? null : new Price(price.id(), price.amount(), offer.type().name().equals("MONTHLY") ? "MONTHLY" : "ONE_OFF"), offer.entryFee(), offer.maintenanceFee(),
-                offer.prices().stream().map(p -> new PlanPrice(p.id(), p.amount(), periodicity(offer, p.concept().name()), p.concept().name())).toList());
+                offer.prices().stream().map(p -> new PlanPrice(p.id(), p.amount(), periodicity(offer, p.concept().name()), p.concept().name())).toList(),
+                offer.priceLabel());
     }
     private static String periodicity(SignupPlanCatalog.Offer offer, String concept) {
         return concept.equals("MAINTENANCE_FEE") || concept.equals("MONTHLY_FEE") && offer.type().name().equals("MONTHLY") ? "MONTHLY" : "ONE_OFF";

@@ -35,6 +35,7 @@ public final class JobViews {
     public record JobError(@Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null for a job-level failure") String entityId,
             String code, String message, String traceId) { }
 
+    @com.agilityhub.core.shared.application.contract.SparseListItem(rowId = "runId")
     public record JobRunListItem(String runId, Instant scheduledFor, String scheduledForLocal, JobTrigger trigger, boolean dryRun, JobStatus status,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) SkipReason skipReason, Instant startedAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant finishedAt,

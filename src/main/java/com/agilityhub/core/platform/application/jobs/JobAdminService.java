@@ -34,8 +34,12 @@ import static com.agilityhub.core.platform.application.jobs.JobViews.*;
 public class JobAdminService {
     private static final DateTimeFormatter LOCAL = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final Set<SkipReason> NEUTRAL_SKIPS = EnumSet.of(SkipReason.DISABLED, SkipReason.MODULE_OFF, SkipReason.CLUB_INACTIVE, SkipReason.NOT_DUE);
-    /** The `fields` keys `GET /jobs/{name}/runs` accepts (its `x-fields`); a run row is always the whole `JobRunListItem`. */
-    public static final Set<String> RUN_FIELDS = Set.of("id");
+    /**
+     * The `fields` keys `GET /jobs/{name}/runs` accepts, its `x-fields`: the keys of `JobRunListItem`, whose row id is `runId`
+     * (E5-T22, CONVENCIONS_API §4). The controller leaves out the keys that were not requested.
+     */
+    public static final Set<String> RUN_FIELDS = Set.of("runId", "scheduledFor", "scheduledForLocal", "trigger", "dryRun", "status", "skipReason",
+            "startedAt", "finishedAt", "durationMs", "counters", "errorCount");
     private final JobRunner runner; private final JobRunRepository runs; private final JobContractAccess access; private final JobTriggerService triggers;
     private final ParameterSettingsService parameters; private final ClubConfigService configs; private final ClubRepository clubs;
     private final ListEngine lists; private final Clock clock;

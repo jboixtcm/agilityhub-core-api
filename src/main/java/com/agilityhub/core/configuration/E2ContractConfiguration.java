@@ -21,14 +21,14 @@ public class E2ContractConfiguration {
     @Bean OpenApiCustomizer e2ReaderProjections() {
         return api -> {
             var schemas = api.getComponents().getSchemas();
-            for (Class<?> type : List.of(ApiContracts.ListPage.class, CensusResponses.MemberInstructorView.class,
+            for (Class<?> type : List.of(ApiContracts.ListPage.class, CensusResponses.MemberInstructorView.class, CensusResponses.MemberInstructorListItem.class,
                     CatalogResponses.LevelReaderView.class, CatalogResponses.RingReaderView.class,
                     CatalogResponses.InstructorReaderView.class, CatalogResponses.PlanReaderView.class,
                     CatalogResponses.FaqReaderView.class)) {
                 ModelConverters.getInstance(true).readAll(type).forEach(schemas::putIfAbsent);
             }
             for (var entry : java.util.Map.of(
-                    "ListPageMemberListItem", List.of("MemberListItem", "MemberInstructorView"),
+                    "ListPageMemberListItem", List.of("MemberListItem", "MemberInstructorListItem"),
                     "CatalogItemsLevel", List.of("Level", "LevelReaderView"),
                     "CatalogItemsRing", List.of("Ring", "RingReaderView"),
                     "CatalogItemsInstructor", List.of("Instructor", "InstructorReaderView"),

@@ -23,8 +23,11 @@ public class ActivityRegistrationRepository extends TenantRepository<ActivityReg
     public java.util.List<ActivityRegistration> forActivity(String id) { return mongo.find(tenantQuery().addCriteria(Criteria.where("activityId").is(id)),ActivityRegistration.class); }
     public java.util.List<ActivityRegistration> forMember(String id) { return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(id)),ActivityRegistration.class); }
     /** The activity's WAITLISTED registrations, its active waiting entries (E5-T20 `waitlistRank`); served by `registration_club_activity_state_position`. */
-    public java.util.List<ActivityRegistration> waiting(String id) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("activityId").is(id).and("state").is(com.agilityhub.core.clubs.activities.domain.RegistrationState.WAITLISTED)),ActivityRegistration.class);
+    public java.util.List<ActivityRegistration> waiting(String id) { return waiting(java.util.List.of(id)); }
+    /** The WAITLISTED registrations of several activities in one query (E5-T22: `GET /me/activities` ranks each activity once). */
+    public java.util.List<ActivityRegistration> waiting(java.util.Collection<String> ids) {
+        if (ids.isEmpty()) return java.util.List.of();
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("activityId").in(ids).and("state").is(com.agilityhub.core.clubs.activities.domain.RegistrationState.WAITLISTED)),ActivityRegistration.class);
     }
     public java.util.List<ActivityRegistration> live(String id) { return forActivity(id).stream().filter(r -> r.state()!=com.agilityhub.core.clubs.activities.domain.RegistrationState.CANCELLED).toList(); }
     @jakarta.annotation.PostConstruct
