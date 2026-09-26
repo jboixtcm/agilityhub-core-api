@@ -34,11 +34,22 @@ public class AuditListProjection {
                 branch(new Document("$in", List.of("$actorRole", List.of("ADMIN", "PLATFORM", "INSTRUCTOR"))), "BACKOFFICE"),
                 branch(new Document("$eq", List.of("$actorRole", "MEMBER")), "APP"),
                 branch(new Document("$eq", List.of("$actorRole", "WEBHOOK")), "WEBHOOK"))).append("default", "SYSTEM"));
-        result.add(new Document("$set", new Document("origin", ifNull("$origin", origin))
+        // S14 §3: the audit origin is APP · BACKOFFICE · SYSTEM · WEBHOOK · PUBLIC. The writer stores the request's event origin,
+        // where an instructor's action is INSTRUCTOR: it reads as BACKOFFICE, as for an entry without origin (E5-T22).
+        Object stored = new Document("$cond", List.of(new Document("$eq", List.of("$origin", "INSTRUCTOR")), "BACKOFFICE", "$origin"));
+        result.add(new Document("$set", new Document("origin", ifNull(stored, origin))
                 .append("entityLabel", ifNull("$entityLabel", new Document("$concat", List.of("$entityType", " · ", "$entityId"))))
                 .append("impersonatedName", ifNull("$impersonatedName", new Document("$arrayElemAt", List.of("$auditMember.name", 0))))
-                .append("changes", ifNull("$changes", List.of())).append("eventIds", ifNull("$eventIds", List.of()))));
+                .append("changes", changes()).append("eventIds", ifNull("$eventIds", List.of()))));
         return result;
+    }
+    /**
+     * Every change carries `before` and `after`, `null` when there was no value (AuditChange requires both). The writer does not
+     * store a `null`, so a created or cleared value has no key in Mongo (E5-T22, found by ListFieldsContractIT).
+     */
+    private static Document changes() {
+        return new Document("$map", new Document("input", ifNull("$changes", List.of())).append("as", "change")
+                .append("in", new Document("$mergeObjects", List.of(new Document("before", null).append("after", null), "$$change"))));
     }
     private static Document ifNull(Object value, Object fallback) { return new Document("$ifNull", Arrays.asList(value, fallback)); }
     private static Document branch(Object condition, Object value) { return new Document("case", condition).append("then", value); }

@@ -1,0 +1,28 @@
+surefire totals: tests=573 failures=0 errors=0 skipped=0 (126 classes)
+failsafe totals: tests=1012 failures=0 errors=0 skipped=0 (87 classes)
+Classes this task adds or changes (the last two only through the fixture and the snapshot):
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupPlansFollowUpIT: tests=3 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.clubs.activities.application.ActivityApiServiceTest: tests=3 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.activities.application.ActivityRealCoreFollowUpsIT: tests=6 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.ListFieldsContractIT: tests=2 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.platform.api.AuditQueriesIT: tests=8 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.activities.application.ActivityIT: tests=30 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.E4ContractIT: tests=63 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.configuration.E3ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+E5-T22 test methods (added or changed; the last one only through its comment):
+  PASS SignupPlansFollowUpIT#R_05_19_T_04_09_eachPlanCarriesItsPriceLabelInTheReadersLocale
+  PASS SignupPlansFollowUpIT#R_04_09_T_04_21_theFamilyMembersOwnHiddenPlanIsListedAsCurrentInAddDogMode
+  PASS SignupPlansFollowUpIT#R_04_09_aMemberWithoutAPlanGetsTheOfferAndMustChooseOne
+  PASS ActivityApiServiceTest#R_07_08_aRankIsSentOnlyOnARowThePageReadAsWaitlisted
+  PASS ActivityApiServiceTest#R_07_08_withFieldsThePageStillReadsTheStateTheRankNeeds
+  PASS ActivityApiServiceTest#R_07_08_theRanksOfSeveralActivitiesComeFromOneReadOfTheWaitingEntries
+  PASS ActivityRealCoreFollowUpsIT#R_07_08_theMemberViewReadsTheWaitingEntriesOnceForAllItsActivities
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly
+  PASS ListFieldsContractIT#CONVENCIONS_API_4_everyUniversalListPublishesExactlyTheFieldsItAccepts
+  PASS AuditQueriesIT#T_14_13_aChangeWithoutAStoredValueReadsNullAndAnInstructorsOriginReadsBackoffice
+  PASS ActivityRealCoreFollowUpsIT#T_07_21_idIsAFilterBothD7ListsPublish
+  PASS E4ContractIT#T_06_20_T_07_17_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata
+  PASS OpenApiRequiredContractTest#E1_T11_everySnapshotObjectDeclaresItsRequiredProperties
+  PASS ActivityIT#T_07_21_aRegistrationListItemAlwaysSendsCancelReasonNullUntilItIsCancelled

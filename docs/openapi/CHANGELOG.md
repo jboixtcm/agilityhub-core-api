@@ -2,6 +2,64 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T22 · `priceLabel` and `current` on `GET /signup` plans; `fields` honoured on every universal list; `id` filterable on D7's lists
+
+**0 operations added or removed; 4 item schemas added and 2 page schemas renamed; 9 list item schemas narrowed to their row
+id; 2 properties added; 1 property made nullable; 2 `x-fields` and 5 `x-filterable` changed; the `fields` parameter removed
+from 3 contract-only operations.** The web must regenerate its client:
+
+- **`GET /signup`** (S04 §6 and R-04-09, amended 26-09; S05 R-05-19). `SignupPlan` gains two optional properties:
+  - `priceLabel`: the plan's `texts.priceLabel` in the reader's locale, when the plan has one. The Cànic's Teràpia reads
+    «condicions i cost segons cada cas». This is screen 17's price line when the plan has no current price.
+  - `current`: only in add-dog mode (a MEMBER); absent in the public signup.
+    - `true` on the member's own plan. That plan is now listed even when the public offer hides it (M8), in catalog order,
+      for example the family fare `ABONAT_FAMILIAR`. `upfront.planQuotes` quotes the same plans, one each.
+    - `false` on every other plan.
+    - A member without a plan (B34) gets the offer, with `current: false` on every plan. Their `POST /me/dogs/signup` then
+      requires `planIdRequested`: without it, `400 VALIDATION_ERROR` with `fieldErrors: [{field: "planIdRequested",
+      code: "REQUIRED"}]`, and nothing is stored. An empty offer keeps `planIdRequested` optional. The description of
+      `AddDogSignupRequest.planIdRequested` says so.
+- **Narrowed (breaking for generated types; CONVENCIONS_API §4).** These list item schemas now require only their row id,
+  because `fields` may leave out every other key:
+  - `id`: `WeekListItem`, `BookingListItem`, `TrainingBookingListItem`, `DogListItem`, `MemberListItem`,
+    `AttendanceListItem`, `FollowupItem` and `AuditEntryListItem`;
+  - `runId`: `JobRunListItem`.
+  Without `fields`, every property is still sent.
+- **New list item schemas:**
+  - `GET /class-sessions` answers `ListPageClassSessionListItem` (was `ListPageClassSession`). Its items are
+    `ClassSessionListItem`: `ClassSession`'s list keys, requiring only `id`.
+  - `GET /ring-blocks` answers `ListPageRingBlockListItem` (was `ListPageRingBlock`, an `anyOf` of `RingBlock` and
+    `RingBlockMemberView`). Its items are `RingBlockListItem`, requiring only `id`. A MEMBER's rows leave out `note` and
+    `createdByName`, and asking for them in `fields` is `400 INVALID_FILTER`, as before.
+  - `GET /members`: an INSTRUCTOR's items are `MemberInstructorListItem` (the keys of `MemberInstructorView`), requiring only
+    `id`. `GET /members/{id}` keeps `MemberInstructorView`.
+  - `GET /class-sessions/{id}/bookings` answers `ClassBookingItem`: the former `BookingListItem`, unchanged and whole.
+- **Behaviour, `fields` now honoured.** An unrequested key is left out, a requested one keeps its value or its `null`, and
+  the row id always comes:
+  - `GET /bookings` and `GET /jobs/{name}/runs` used to return whole items whatever `fields` said.
+  - `/weeks`, `/class-sessions`, `/ring-blocks` and `/training-bookings` already left keys out, but their schemas required
+    them. `/training-bookings` sent `null` in place of an unrequested key.
+- **`x-fields`:**
+  - `GET /bookings` adds `dogName` and `memberName` (keys of the item it always sent).
+  - `GET /jobs/{name}/runs` is the keys of `JobRunListItem`, from `runId` to `errorCount`, instead of `["id"]`. `fields=id`
+    is now `400 INVALID_FILTER`.
+- **`x-filterable`:** `id` is added on `GET /activities` (and its `filter-values` and `export`), on
+  `GET /activities/{id}/registrations` and on `GET /activity-registrations/export`. These lists already accepted it.
+- **Contract-only lists:** `GET /platform/audit-entries`, `/platform/erasure-requests` and `/platform/security-events` no
+  longer publish the `fields` parameter (they publish no `x-fields`) until they are implemented.
+- **`ClassSession.placementId`** (and `ClassSessionListItem`'s) is `["string", "null"]`. With COURSES, a class without a
+  placement already sent `null`.
+- **Behaviour, no schema change** (found by the new list contract test on the Cànic demo):
+  - `GET /audit-entries`, `GET /members/{id}/audit-entries` and `GET /audit-entries/{id}`: every `changes[]` item sends
+    `before` and `after`, `null` when there was no value. Before, a created value had no `before` key and a cleared one no
+    `after`.
+  - The same three: an instructor's action reads `origin: BACKOFFICE` (S14 §3), also for the `origin` filter. Before, it
+    read `INSTRUCTOR`, which is not in the enum.
+  - `GET /dogs` (ADMIN, BILLING and PACKS on): `pack` is sent only for a dog with a pack, with `PackSummary`'s keys. Before,
+    every row carried an empty `pack: {}`.
+  - `GET /me/activities`: the waiting ranks are read once for all the listed activities.
+  - D7's list sets `waitlistRank` only on a row whose `state` is `WAITLISTED`.
+
 ## 2026-09-26 · E5-T21 · a nullable `ClubUpdate.taxId`; D2's documents edit, described
 
 **0 operations or schemas added or removed; 1 property widened; 2 descriptions.** The web should regenerate its client:

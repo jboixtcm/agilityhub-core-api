@@ -139,6 +139,29 @@ class AuditQueriesIT extends AbstractIntegrationTest {
         var foreign = json(call(get("/api/v1/audit-entries/audit-foreign"), OTHER, "ADMIN"));
         assertThat(foreign.has("impersonatedName")).isFalse();
     }
+    /**
+     * E5-T22 (found by ListFieldsContractIT on the Cànic demo). The writer stores no `null`, so a created value has no `before`
+     * key and a cleared one no `after`. An instructor's action stores its event origin, INSTRUCTOR. The list and the detail
+     * still send both keys (`null`), and the origin reads BACKOFFICE (S14 §3), also for the `origin` filter.
+     */
+    @Test void T_14_13_aChangeWithoutAStoredValueReadsNullAndAnInstructorsOriginReadsBackoffice() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("audit-direct")), new Update().set("origin", "INSTRUCTOR").set("actorRole", "INSTRUCTOR")
+                .set("changes", List.of(new Document("path", "level").append("after", "B"), new Document("path", "handlerName").append("before", "Example handler"))), "audit_entries");
+        var page = json(admin(get("/api/v1/audit-entries").param("filter", "origin:eq:BACKOFFICE")));
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(page, "ListPageAuditEntryListItem")).isEmpty();
+        JsonNode listed = null; for (var item : page.path("items")) { if (item.path("id").asText().equals("audit-direct")) { listed = item; } }
+        assertThat(listed).as("audit-direct under origin BACKOFFICE").isNotNull();
+        var detail = json(admin(get("/api/v1/audit-entries/audit-direct")));
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(detail, "AuditEntry")).isEmpty();
+        for (var row : List.of(listed, detail)) {
+            assertThat(row.path("origin").asText()).isEqualTo("BACKOFFICE");
+            assertThat(row.at("/changes/0/before").isNull()).as(row.path("changes").toString()).isTrue();
+            assertThat(row.at("/changes/0/after").asText()).isEqualTo("B");
+            assertThat(row.at("/changes/1/before").asText()).isEqualTo("Example handler");
+            assertThat(row.at("/changes/1/after").isNull()).as(row.path("changes").toString()).isTrue();
+        }
+        assertThat(json(admin(get("/api/v1/audit-entries").param("filter", "origin:eq:INSTRUCTOR"))).path("items")).isEmpty();
+    }
     @Test void T_14_22_everyAuditRouteEnforcesTenantRoleAndImpersonation() throws Exception {
         var requests = List.of(get("/api/v1/audit-entries"), get("/api/v1/audit-entries/audit-direct"),
                 get("/api/v1/audit-entries/filter-values").param("field", "action"), get("/api/v1/members/" + MEMBER + "/audit-entries"),

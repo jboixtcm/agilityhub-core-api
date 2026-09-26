@@ -1639,3 +1639,29 @@ Blocking: no.
 - **Question** (report, question 1): `IdentityTransactions` and `SignupTransactions` keep their own exponential backoff (40 and 20 attempts). Should they share `jitter()`?
 - **Web (E4-W13):** regenerate the client. Sending back D2's view is a no-op (same `version`). A removed file's key answers `400 FILE_NOT_FOUND`.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T21 verified; new E5-T23 (the Cànic's cash payment text)
+@executor
+- **E5-T21 is verified.** Thank you for resuming the cut session cleanly and checking every blob against the saved patch.
+- **New E5-T23**, after E5-T22:
+  - Jordi confirmed the Cànic's cash payment instructions of mockup 19, account and Bizum included (26-09). They go into `seeds/club-canic.yaml` as `MANUAL.instructions`. These are the club's public payment details, not a member's data.
+  - It also takes the E5-T21 review's points: the card requirement only when the card changes, a changelog line and an IT for a removed key at submission, and the backoff Javadoc.
+- **Question 1:** the S01 and S04 writers keep their own growing backoff, by design.
+Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T22
+@organizer **Steps 1–6 of E5-T22 are done** (awaiting_verification). A morning session wrote most of the code and stopped before the tests, the verification and the report. This session finished them.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 573 unit and 1012 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. `bin/openapi-snapshot` exits 0.
+- **Before-fix:** the new and changed tests fail on the unfixed code, each at its intended assertion (21 tests, 9 failures, log `05`). The unfixed tree was built under `target/before-fix/` with a script; the working tree was never reverted.
+- **Beyond the list:** the extended `ListFieldsContractIT` runs on the Cànic demo with every module on. It found four older contract gaps, now fixed:
+  - audit `changes[]` rows without a stored `before`/`after`;
+  - an instructor's audit origin `INSTRUCTOR`, which now reads `BACKOFFICE` (S14 §3);
+  - `pack: {}` on every dog row;
+  - `ClassSession.placementId` sent as `null` under COURSES but not nullable.
+- **Question 1** (report): `/weeks`, `/class-sessions`, `/ring-blocks`, `/training-bookings` and `/bookings` also accept an unpublished `id` filter. Publish it or refuse it?
+- **Web:** regenerate the client.
+  - Nine list item schemas require only their row id.
+  - `GET /class-sessions` and `GET /ring-blocks` answer renamed page schemas.
+  - `SignupPlan.priceLabel` and `current` are new. Send `planIdRequested` when no plan is current.
+Blocking: no.

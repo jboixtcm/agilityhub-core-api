@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T22: the last E5 follow-ups (web E4-W12, review of E5-T20); the list item schemas narrow to their row id.
+  - S04 §6, R-04-09, S05 R-05-19: `GET /signup` plans carry `priceLabel` (`Plan.texts.priceLabel` in the reader's
+    locale). In add-dog mode they list the member's own plan, `current: true`, even when the public offer hides it (the
+    Cànic's family fare). A member without a plan gets the offer with no current plan, and `POST /me/dogs/signup` then
+    requires `planIdRequested` (`400 VALIDATION_ERROR`).
+  - R-07-08: D7's list sends `waitlistRank` only on a row it read as `WAITLISTED`. `GET /me/activities` reads the waiting
+    ranks once for all its activities.
+  - CONVENCIONS_API §4:
+    - Every universal list with `x-fields` honours `fields` (`/bookings` and `/jobs/{name}/runs` did not), and its item
+      schema requires only the row id.
+    - The three contract-only platform lists no longer publish `fields`.
+    - `ListFieldsContractIT` checks every universal list on the Cànic demo, for ADMIN and INSTRUCTOR.
+  - The same test found four older contract gaps, now fixed:
+    - audit `changes[]` without a stored `before`/`after` now send `null`;
+    - an instructor's audit origin read `INSTRUCTOR` and now reads `BACKOFFICE` (S14 §3);
+    - the dogs list sent `pack: {}` on every row;
+    - `ClassSession.placementId` is nullable with COURSES.
+  - `id` is in the `x-filterable` of D7's two lists. The `ring-conflicts` description, the E5-T20 report and the
+    OpenAPI changelog no longer say the preview answers «like the publication»: the publication refuses those cases
+    earlier, with `422 ACTIVITY_INCOMPLETE`.
+
 - E5-T21: follow-ups of the E5-T19 and E5-T18 reviews; a small contract change (`ClubUpdate.taxId` nullable, two descriptions).
   - R-04-19 / R-04-06: a D2 documents edit, and the validation of a readmission's reused dog, keep the stored rows of
     files removed through S03 (`removedAt`), so the removal stays recorded and P9 still counts the file as referenced. A

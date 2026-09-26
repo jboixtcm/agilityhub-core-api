@@ -14,7 +14,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/** E5-T22 step 3 (review E5-T20 #1): D7's `waitlistRank` follows the row the page read, not the separate rank read. */
+/**
+ * E5-T22 step 3: D7's `waitlistRank` follows the row the page read, not the separate rank read (review E5-T20 #1), and the ranks
+ * of several activities come from one read (review E5-T20 #5).
+ */
 class ActivityApiServiceTest {
     final ListEngine lists = mock(ListEngine.class);
     final ActivityProjection projection = mock(ActivityProjection.class);
@@ -59,5 +62,25 @@ class ActivityApiServiceTest {
         service.registrations("activity-a", params("fields", "state,position"));
         verify(lists).list(eq("activity-registrations"), sent.capture());
         assertThat(sent.getValue().get("fields")).containsExactly("state,position");
+    }
+
+    static com.agilityhub.core.clubs.activities.persistence.ActivityRegistration waiting(String id, String activityId, int position) {
+        return new com.agilityhub.core.clubs.activities.persistence.ActivityRegistration(id, "club-a", activityId, "member-" + id,
+                com.agilityhub.core.clubs.activities.domain.RegistrationState.WAITLISTED, null, null, null, position, null, null, null, null, null, null,
+                1L, null, null, null, null);
+    }
+
+    /** `GET /me/activities` ranks every listed activity from one read of the waiting entries, each activity's ranks apart. */
+    @Test void R_07_08_theRanksOfSeveralActivitiesComeFromOneReadOfTheWaitingEntries() {
+        var repository = mock(com.agilityhub.core.clubs.activities.persistence.ActivityRegistrationRepository.class);
+        var ranks = new ActivityProjection(mock(ActivityContext.class), mock(com.agilityhub.core.clubs.followup.application.AttachmentService.class),
+                mock(com.agilityhub.core.clubs.activities.persistence.ActivityRepository.class), repository);
+        when(repository.waiting(anyCollection())).thenReturn(List.of(waiting("a2", "a", 7), waiting("b1", "b", 2), waiting("a1", "a", 3), waiting("b2", "b", 9)));
+        var result = ranks.waitlistRanks(List.of("a", "b", "a", "c"));
+        assertThat(result).containsOnlyKeys("a", "b");
+        assertThat(result.get("a")).containsExactlyInAnyOrderEntriesOf(Map.of("a1", 1, "a2", 2));
+        assertThat(result.get("b")).containsExactlyInAnyOrderEntriesOf(Map.of("b1", 1, "b2", 2));
+        verify(repository).waiting(Set.of("a", "b", "c"));
+        verifyNoMoreInteractions(repository);
     }
 }

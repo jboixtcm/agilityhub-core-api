@@ -141,8 +141,10 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         Object yearDifference = expr("$subtract", Integer.parseInt(today.substring(0, 4)), new Document("$year", birth));
         Object birthdayLater = expr("$gt", expr("$substrCP", fallback("$birthDate", "0000-00-00"), 5, 5), today.substring(5));
         fields.put("age", expr("$subtract", yearDifference, new Document("$cond", List.of(birthdayLater, 1, 0))));
-        fields.put("pack", new Document("id", "$pack.id").append("remaining", "$pack.remaining").append("total", "$pack.total")
-                .append("expiresAt", "$pack.expiresAt").append("planName", "$pack.planName"));
+        // PackSummary, only for a dog with a pack (E5-T22: an empty `pack: {}` broke the schema). No stage sets `$pack` yet: the
+        // pack balances are not stored before S12, as in the dog's detail.
+        fields.put("pack", new Document("$cond", List.of(expr("$ne", fallback("$pack.id", ""), ""), new Document("id", "$pack.id")
+                .append("remaining", "$pack.remaining").append("total", "$pack.total").append("expiresOn", "$pack.expiresOn"), "$$REMOVE")));
         return fields;
     }
     private Document join(String collection, Object local, String foreign, String as, List<Document> rest) {

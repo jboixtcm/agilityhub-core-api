@@ -86,7 +86,9 @@ class OpenApiRequiredContractTest {
         assertThat(required(schemas, "Sheet")).containsExactlyInAnyOrder("version", "canMarkPresence", "canMarkNotice", "editableUntil", "noShowNoticeTime");
         assertThat(required(schemas, "InstructorDay")).containsExactlyInAnyOrder("date", "timeZone", "instructors", "days", "classes", "ringBlocks");
         assertThat(required(schemas, "MemberHistory")).containsExactlyInAnyOrder("monthsVisible", "from", "showDog", "dogs", "types", "items");
-        assertThat(required(schemas, "FollowupItem")).doesNotContain("taskId", "levelCode", "completedAt").contains("unread", "activityAt");
+        // E5-T22 (CONVENCIONS_API §4): a universal list item requires only its row id, because `fields` may leave out the rest.
+        assertThat(required(schemas, "FollowupItem")).containsExactly("id");
+        assertThat(names(schemas.at("/FollowupItem/properties"))).contains("unread", "activityAt", "taskId", "levelCode", "completedAt");
     }
 
     @Test void E1_T11_javaDefaultsPreserveOptOutsRenamedPropertiesAndSharedReferences() {

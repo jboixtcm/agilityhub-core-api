@@ -138,6 +138,58 @@ class ActivityRealCoreFollowUpsIT extends ActivityFixtures {
         assertThat(strings(openApi().at("/paths/~1api~1v1~1activities~1{id}~1registrations/get/x-filterable"))).doesNotContain("activityId");
     }
 
+    /**
+     * E5-T22 step 3 (review E5-T20 #5, R-07-08): `GET /me/activities` reads the waiting entries once for all the listed
+     * activities, not once per waiting row, and each waiting row still reads its own rank. So a member waiting on three
+     * activities costs as many `find` commands on `activity_registrations` (the driver's command metrics) as one waiting on one.
+     */
+    @Test void R_07_08_theMemberViewReadsTheWaitingEntriesOnceForAllItsActivities() throws Exception {
+        var ids=new ArrayList<String>(); int next=0;
+        for(int i=0;i<3;i++) {
+            String id=published(1,false).path("id").asText(); ids.add(id);
+            register(id,"m"+next++,false,201); for(int ahead=0;ahead<i;ahead++) register(id,"m"+next++,true,201);
+            register(id,"m9",true,201);
+        }
+        String single=published(1,false).path("id").asText(); register(single,"m6",false,201); register(single,"m8",true,201);
+        long three=finds(() -> {
+            var mine=call("GET","/me/activities",null,"m9","MEMBER",200).path("mine");
+            assertThat(mine).hasSize(3);
+            for(int i=0;i<3;i++) assertThat(find(mine,"activityId",ids.get(i)).path("waitlistRank").asInt()).as("rank on activity "+i).isEqualTo(i+1);
+        });
+        long one=finds(() -> assertThat(call("GET","/me/activities",null,"m8","MEMBER",200).at("/mine/0/waitlistRank").asInt()).isEqualTo(1));
+        assertThat(one).as("the member view reads activity_registrations").isPositive();
+        assertThat(three).as("reads of activity_registrations: 3 waiting rows vs 1").isEqualTo(one);
+    }
+
+    /**
+     * E5-T22 step 5 (review E5-T20 #4): both D7 lists accept `filter=id`, so their `x-filterable` publishes it (the query's
+     * `activityId` stays refused on the registrations, where the path gives it).
+     */
+    @Test void T_07_21_idIsAFilterBothD7ListsPublish() throws Exception {
+        String id=published(1,false).path("id").asText(), other=published(1,false).path("id").asText();
+        var kept=register(id,"m0",false,201); register(id,"m1",true,201);
+        var activities=call("GET","/activities?filter=id:eq:"+id,null,"instructor","INSTRUCTOR",200);
+        assertThat(activities.path("items").findValuesAsText("id")).containsExactly(id);
+        assertThat(activities.path("appliedFilters").findValuesAsText("field")).contains("id");
+        assertThat(call("GET","/activities",null,"admin","ADMIN",200).path("items").findValuesAsText("id")).contains(id,other);
+        var registrations=call("GET","/activities/"+id+"/registrations?filter=id:eq:"+kept.path("id").asText(),null,"admin","ADMIN",200);
+        assertThat(registrations.path("items").findValuesAsText("registrationId")).containsExactly(kept.path("id").asText());
+        assertThat(registrations.path("appliedFilters").findValuesAsText("field")).containsExactly("id");
+        for(var api:List.of(openApi(),mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile()))) {
+            assertThat(strings(api.at("/paths/~1api~1v1~1activities/get/x-filterable"))).contains("id");
+            assertThat(strings(api.at("/paths/~1api~1v1~1activities~1{id}~1registrations/get/x-filterable"))).contains("id").doesNotContain("activityId");
+        }
+    }
+
+    interface Call { void run() throws Exception; }
+    @org.springframework.beans.factory.annotation.Autowired io.micrometer.core.instrument.MeterRegistry meters;
+    /** The `find` commands `call` sends to `activity_registrations`. */
+    long finds(Call call) throws Exception { long before=findCount(); call.run(); return findCount()-before; }
+    long findCount() {
+        return meters.find("mongodb.driver.commands").tag("collection","activity_registrations").tag("command","find").timers().stream()
+                .mapToLong(io.micrometer.core.instrument.Timer::count).sum();
+    }
+
     JsonNode openApi() throws Exception {
         return mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
     }

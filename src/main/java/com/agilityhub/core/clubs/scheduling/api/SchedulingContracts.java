@@ -65,7 +65,7 @@ public final class SchedulingContracts {
             ClassState state, ClassCounters counters, boolean atRisk, boolean riskExempt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClassCancellation cancellation,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) ClassOrigin origin,
-            @Schema(requiredMode = NOT_REQUIRED, description = "Only with COURSES") String placementId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only with COURSES; null for a class without a placement") String placementId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") String notes,
             long version, List<String> inconsistencyIds,
             @Schema(requiredMode = NOT_REQUIRED, description = "Only in GET /weeks/{id}/calendar: S10 attendance status from attendanceSummary (NONE before T0, PENDING inside the window with marked < total, DONE, CLOSED after T1)")
@@ -87,7 +87,7 @@ public final class SchedulingContracts {
             ClassState state, ClassCounters counters, boolean atRisk, boolean riskExempt,
             @Schema(nullable = true) ClassCancellation cancellation,
             @Schema(nullable = true) ClassOrigin origin,
-            @Schema(description = "Only with COURSES") String placementId,
+            @Schema(nullable = true, description = "Only with COURSES; null for a class without a placement") String placementId,
             @Schema(nullable = true, description = "ADMIN only; omitted for INSTRUCTOR") String notes,
             long version, List<String> inconsistencyIds) { }
     public record ClassCounters(int booked, int waiting) { }

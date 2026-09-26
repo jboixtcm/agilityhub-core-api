@@ -293,9 +293,10 @@ class E4ContractIT extends AbstractIntegrationTest {
                 assertThat(op.at("/responses/200/headers/ETag").isMissingNode()).isFalse();
             }
         }
+        // E5-T22 step 5: D7's lists publish the `id` filter they accept.
         for (var entry : Map.of("weeks", "startDate,state", "class-sessions", "date,state,ringId,instructorId,levelId,weekId",
-                "ring-blocks", "ringId,kind,reason,state,from,to", "activities", "state,type,date,ringId,levelId,deleted,registrationOpen",
-                "activity-registrations/export", "activityId,state,origin,registeredAt,memberId").entrySet()) {
+                "ring-blocks", "ringId,kind,reason,state,from,to", "activities", "state,type,date,ringId,levelId,deleted,registrationOpen,id",
+                "activity-registrations/export", "activityId,state,origin,registeredAt,memberId,id").entrySet()) {
             assertThat(strings(api.path("paths").path("/api/v1/" + entry.getKey()).at("/get/x-filterable"))).containsExactly(entry.getValue().split(","));
         }
         var schemas = api.at("/components/schemas");

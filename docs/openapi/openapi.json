@@ -1142,6 +1142,7 @@
             "$ref" : "#/components/schemas/SignupDog"
           },
           "planIdRequested" : {
+            "description" : "R-04-09: omitted, the member's own plan. A member without a plan must send one of the offered plans (400 VALIDATION_ERROR, fieldErrors planIdRequested REQUIRED), unless GET /signup offers none",
             "format" : "uuid",
             "type" : "string"
           }
@@ -1405,7 +1406,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bookingId", "classDate", "classSessionId", "classStartsAt", "dogId", "dogName", "id", "memberId", "memberName", "state" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "AttendanceNotice" : {
@@ -1756,7 +1757,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "action", "actorRole", "at", "changes", "entityId", "entityType", "id", "origin" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "AuditSummary" : {
@@ -2250,7 +2251,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bookedAt", "bookingWeekKey", "classSessionId", "classStartsAt", "dogId", "dogName", "id", "memberId", "memberName", "origin", "state" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "BookingRequest" : {
@@ -2812,11 +2813,57 @@
         "required" : [ "seatHoldId" ],
         "type" : "object"
       },
+      "ClassBookingItem" : {
+        "properties" : {
+          "bookedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "bookingWeekKey" : {
+            "type" : "string"
+          },
+          "classSessionId" : {
+            "type" : "string"
+          },
+          "classStartsAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "dogId" : {
+            "type" : "string"
+          },
+          "dogName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "late" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "enum" : [ "APP", "BACKOFFICE", "INSTRUCTOR", "SYSTEM" ],
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "PAYMENT_PENDING", "ACTIVE", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB" ],
+            "type" : "string"
+          }
+        },
+        "required" : [ "bookedAt", "bookingWeekKey", "classSessionId", "classStartsAt", "dogId", "dogName", "id", "memberId", "memberName", "origin", "state" ],
+        "type" : "object"
+      },
       "ClassBookings" : {
         "properties" : {
           "items" : {
             "items" : {
-              "$ref" : "#/components/schemas/BookingListItem"
+              "$ref" : "#/components/schemas/ClassBookingItem"
             },
             "type" : "array"
           }
@@ -3045,8 +3092,8 @@
             } ]
           },
           "placementId" : {
-            "description" : "Only with COURSES",
-            "type" : "string"
+            "description" : "Only with COURSES; null for a class without a placement",
+            "type" : [ "string", "null" ]
           },
           "ring" : {
             "anyOf" : [ {
@@ -3130,6 +3177,110 @@
           }
         },
         "required" : [ "date", "endTime", "instructorIds", "levelIds", "startTime" ],
+        "type" : "object"
+      },
+      "ClassSessionListItem" : {
+        "properties" : {
+          "atRisk" : {
+            "type" : "boolean"
+          },
+          "cancellation" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClassCancellation"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "capacity" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "capacityMode" : {
+            "enum" : [ "AUTO", "MANUAL" ],
+            "type" : "string"
+          },
+          "counters" : {
+            "$ref" : "#/components/schemas/ClassCounters"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "description" : {
+            "type" : [ "string", "null" ]
+          },
+          "displayDescription" : {
+            "type" : "string"
+          },
+          "endTime" : {
+            "type" : "string"
+          },
+          "endsAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "inconsistencyIds" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "instructorIds" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "levelIds" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "notes" : {
+            "description" : "ADMIN only; omitted for INSTRUCTOR",
+            "type" : [ "string", "null" ]
+          },
+          "origin" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClassOrigin"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "placementId" : {
+            "description" : "Only with COURSES; null for a class without a placement",
+            "type" : [ "string", "null" ]
+          },
+          "ringId" : {
+            "type" : [ "string", "null" ]
+          },
+          "riskExempt" : {
+            "type" : "boolean"
+          },
+          "startTime" : {
+            "type" : "string"
+          },
+          "startsAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "DRAFT", "ACTIVE", "FINISHED", "CANCELLED" ],
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          },
+          "weekId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id" ],
         "type" : "object"
       },
       "ClassSessionMemberView" : {
@@ -4580,7 +4731,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "age", "breed", "displayStatus", "id", "licenses", "name", "owner", "pendingDocuments", "registeredAt", "sex", "version" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "DogPatch" : {
@@ -5355,7 +5506,7 @@
             "type" : "boolean"
           }
         },
-        "required" : [ "activityAt", "authorName", "authorRole", "createdAt", "dogId", "dogName", "id", "kind", "memberId", "memberName", "textExcerpt", "unread" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "FollowupPage" : {
@@ -6595,7 +6746,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "counters", "dryRun", "errorCount", "runId", "scheduledFor", "scheduledForLocal", "startedAt", "status", "trigger" ],
+        "required" : [ "runId" ],
         "type" : "object"
       },
       "JobScheduleView" : {
@@ -7336,7 +7487,7 @@
         "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
         "type" : "object"
       },
-      "ListPageClassSession" : {
+      "ListPageClassSessionListItem" : {
         "properties" : {
           "appliedFilters" : {
             "items" : {
@@ -7346,7 +7497,7 @@
           },
           "items" : {
             "items" : {
-              "$ref" : "#/components/schemas/ClassSession"
+              "$ref" : "#/components/schemas/ClassSessionListItem"
             },
             "type" : "array"
           },
@@ -7501,7 +7652,7 @@
               "anyOf" : [ {
                 "$ref" : "#/components/schemas/MemberListItem"
               }, {
-                "$ref" : "#/components/schemas/MemberInstructorView"
+                "$ref" : "#/components/schemas/MemberInstructorListItem"
               } ],
               "description" : "Role-selected projection: ADMIN first, reduced reader second. Exactly one projection is returned per request."
             },
@@ -7531,7 +7682,7 @@
         "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
         "type" : "object"
       },
-      "ListPageRingBlock" : {
+      "ListPageRingBlockListItem" : {
         "properties" : {
           "appliedFilters" : {
             "items" : {
@@ -7541,12 +7692,7 @@
           },
           "items" : {
             "items" : {
-              "anyOf" : [ {
-                "$ref" : "#/components/schemas/RingBlock"
-              }, {
-                "$ref" : "#/components/schemas/RingBlockMemberView"
-              } ],
-              "description" : "ADMIN/INSTRUCTOR receive RingBlock; MEMBER receives RingBlockMemberView without note/createdByName."
+              "$ref" : "#/components/schemas/RingBlockListItem"
             },
             "type" : "array"
           },
@@ -8398,6 +8544,68 @@
         "required" : [ "dogs", "from", "items", "monthsVisible", "showDog", "types" ],
         "type" : "object"
       },
+      "MemberInstructorListItem" : {
+        "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.",
+        "properties" : {
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "bookingBlocked" : {
+            "type" : "boolean"
+          },
+          "contactEmails" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ContactEmail"
+            },
+            "type" : "array"
+          },
+          "displayStatus" : {
+            "$ref" : "#/components/schemas/DisplayStatus"
+          },
+          "dogs" : {
+            "items" : {
+              "$ref" : "#/components/schemas/DogSummary"
+            },
+            "type" : "array"
+          },
+          "firstName" : {
+            "type" : "string"
+          },
+          "fullName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "lastName1" : {
+            "type" : "string"
+          },
+          "lastName2" : {
+            "type" : "string"
+          },
+          "memberNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "phones" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Phone"
+            },
+            "type" : "array"
+          },
+          "status" : {
+            "enum" : [ "PENDING", "ACTIVE", "INACTIVE", "LEFT" ],
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "id" ],
+        "type" : "object"
+      },
       "MemberInstructorView" : {
         "description" : "R-03-31: excludes paymentMethod, nextInvoiceDate, consents, internalNotes and booking-block reason.",
         "properties" : {
@@ -8570,7 +8778,7 @@
             "type" : "array"
           }
         },
-        "required" : [ "bookingBlocked", "displayStatus", "dogs", "fullName", "id", "version" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "MemberListSignup" : {
@@ -11112,6 +11320,66 @@
         "required" : [ "from", "kind", "reason", "ringId", "to" ],
         "type" : "object"
       },
+      "RingBlockListItem" : {
+        "properties" : {
+          "activityId" : {
+            "type" : [ "string", "null" ]
+          },
+          "activityTitle" : {
+            "type" : [ "string", "null" ]
+          },
+          "createdByName" : {
+            "description" : "Not sent to MEMBER",
+            "type" : "string"
+          },
+          "date" : {
+            "format" : "date",
+            "type" : "string"
+          },
+          "from" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "fromLocal" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "enum" : [ "BLOCK", "RESERVATION" ],
+            "type" : "string"
+          },
+          "note" : {
+            "description" : "Not sent to MEMBER",
+            "type" : [ "string", "null" ]
+          },
+          "reason" : {
+            "enum" : [ "MAINTENANCE", "PRIVATE_CLASS", "THERAPY", "PREPARATION", "ACTIVITY", "OTHER" ],
+            "type" : "string"
+          },
+          "ringId" : {
+            "type" : "string"
+          },
+          "state" : {
+            "enum" : [ "ACTIVE", "CANCELLED" ],
+            "type" : "string"
+          },
+          "to" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "toLocal" : {
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "id" ],
+        "type" : "object"
+      },
       "RingBlockMemberView" : {
         "properties" : {
           "activityId" : {
@@ -12757,6 +13025,10 @@
           "conditions" : {
             "type" : "string"
           },
+          "current" : {
+            "description" : "R-04-09: add-dog mode (MEMBER) only. true on the member's own plan, listed even when the public offer hides it (M8); false on the others. A member without a plan gets the offer with no current plan, and POST /me/dogs/signup then requires planIdRequested. Absent in the public signup",
+            "type" : "boolean"
+          },
           "description" : {
             "type" : "string"
           },
@@ -12781,6 +13053,10 @@
           },
           "price" : {
             "$ref" : "#/components/schemas/SignupPrice"
+          },
+          "priceLabel" : {
+            "description" : "R-05-19: the plan's texts.priceLabel in the reader's locale, when the plan has one (the text of screen 17's price line without a current price)",
+            "type" : "string"
           },
           "type" : {
             "enum" : [ "MONTHLY", "PACK", "SINGLE_CLASS" ],
@@ -14042,7 +14318,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "createdAt", "date", "dogId", "dogName", "id", "memberId", "memberName", "origin", "ringId", "ringName", "startsAt", "startsAtLocal", "state" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "TrainingBookingRequest" : {
@@ -15012,7 +15288,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "classCounts", "endDate", "id", "isoWeek", "isoYear", "startDate", "state" ],
+        "required" : [ "id" ],
         "type" : "object"
       },
       "WeekOpensAt" : {
@@ -16028,7 +16304,7 @@
         "x-exportable" : true,
         "x-fields" : [ "id", "title", "typeDisplay", "date", "startTime", "endTime", "rings", "allRings", "location", "registrations", "maxPlaces", "state", "type", "slug", "registrationTo", "createdAt" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen" ],
+        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
       },
       "post" : {
@@ -16434,7 +16710,7 @@
         } ],
         "x-exportable" : false,
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen" ],
+        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
       }
     },
@@ -16668,7 +16944,7 @@
         } ],
         "x-exportable" : true,
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen" ],
+        "x-filterable" : [ "state", "type", "date", "ringId", "levelId", "deleted", "registrationOpen", "id" ],
         "x-sortable" : [ "date", "title", "state", "createdAt" ]
       }
     },
@@ -18402,13 +18678,13 @@
         "x-exportable" : true,
         "x-fields" : [ "registrationId", "member", "state", "position", "waitlistRank", "origin", "registeredAt", "cancelledAt", "cancelReason" ],
         "x-filter-operators" : { },
-        "x-filterable" : [ "state", "origin", "registeredAt", "memberId" ],
+        "x-filterable" : [ "state", "origin", "registeredAt", "memberId", "id" ],
         "x-sortable" : [ "registeredAt", "position", "memberLastName" ]
       }
     },
     "/api/v1/activities/{id}/ring-conflicts" : {
       "get" : {
-        "description" : "Roles: ADMIN. The preview of R-07-05's dialog: a window the publication would refuse answers the same error (400 INVALID_TIME_RANGE without a date or hours, 422 OUTSIDE_OPENING_HOURS). Tenant comes from the JWT. Requires ACTIVITIES.",
+        "description" : "Roles: ADMIN. The preview of R-07-05's dialog. A window outside the opening hours answers 422 OUTSIDE_OPENING_HOURS, as the publication does. Rings without a date or without hours leave no window to block: the preview answers 400 INVALID_TIME_RANGE, while the publication refuses such an activity earlier, with 422 ACTIVITY_INCOMPLETE. Tenant comes from the JWT. Requires ACTIVITIES.",
         "operationId" : "ringConflicts",
         "parameters" : [ {
           "in" : "path",
@@ -18971,7 +19247,7 @@
         } ],
         "x-exportable" : false,
         "x-filter-operators" : { },
-        "x-filterable" : [ "activityId", "state", "origin", "registeredAt", "memberId" ],
+        "x-filterable" : [ "activityId", "state", "origin", "registeredAt", "memberId", "id" ],
         "x-sortable" : [ "registeredAt", "position", "memberLastName" ]
       }
     },
@@ -22104,7 +22380,7 @@
     },
     "/api/v1/bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Without fields every item property is sent; with fields an item has id and the requested keys only. Tenant comes from the JWT.",
         "operationId" : "bookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -22324,7 +22600,7 @@
           "key" : "late"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "memberId", "bookedAt", "late" ],
+        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
         "x-sortable" : [ "classStartsAt", "bookedAt" ]
@@ -23248,7 +23524,7 @@
     },
     "/api/v1/class-sessions" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. MEMBER cannot list classes; use day-grid or class detail. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. MEMBER cannot list classes; use day-grid or class detail. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
         "operationId" : "classes",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -23314,11 +23590,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListPageClassSession"
+                  "$ref" : "#/components/schemas/ListPageClassSessionListItem"
                 }
               }
             },
-            "description" : "ListPage<ClassSession>"
+            "description" : "ListPage<ClassSessionListItem>"
           },
           "400" : {
             "content" : {
@@ -34977,7 +35253,7 @@
     },
     "/api/v1/jobs/{name}/runs" : {
       "get" : {
-        "description" : "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4); unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4): without fields every item property is sent; with fields an item has runId and the requested keys only. Unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",
         "operationId" : "jobRuns",
         "parameters" : [ {
           "description" : "R-15-01 route id: week-opening, risk-review, no-show-notices, reminders, expirations, waitlist-fifo, payment-timeouts, class-finishing, cleanup, billing-reminder",
@@ -35195,7 +35471,7 @@
           "key" : "skipReason"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id" ],
+        "x-fields" : [ "runId", "scheduledFor", "scheduledForLocal", "trigger", "dryRun", "status", "skipReason", "startedAt", "finishedAt", "durationMs", "counters", "errorCount" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "status", "scheduledFor", "trigger", "dryRun" ],
         "x-sortable" : [ "scheduledFor", "startedAt" ]
@@ -40574,7 +40850,7 @@
     },
     "/api/v1/members" : {
       "get" : {
-        "description" : "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorView without financial or internal data. Fields/filters are limited by role. S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields.",
+        "description" : "S03 §6, R-03-22/R-03-31. ADMIN gets MemberListItem; INSTRUCTOR gets MemberInstructorListItem (the keys of MemberInstructorView) without financial or internal data. Fields/filters are limited by role; with fields an item has id and the requested keys only (CONVENCIONS_API §4). S04 reserves ADMIN-only signupPending, pendingDogs, warnings and signup.submittedAt for E3-T03; the current runtime does not yet evaluate these virtual fields.",
         "operationId" : "listMembers",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -46897,7 +47173,7 @@
     },
     "/api/v1/platform/audit-entries" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
         "operationId" : "platformAuditEntries",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -46950,13 +47226,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
-          "in" : "query",
-          "name" : "fields",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -47281,7 +47550,7 @@
     },
     "/api/v1/platform/erasure-requests" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
         "operationId" : "platformErasureRequests",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -47334,13 +47603,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
-          "in" : "query",
-          "name" : "fields",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -47828,7 +48090,7 @@
     },
     "/api/v1/platform/security-events" : {
       "get" : {
-        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented.",
+        "description" : "Contract only; implementation is deferred. Tenant comes from the JWT. Role-reduced projections and ownership checks apply when implemented. No fields parameter until then (CONVENCIONS_API §4).",
         "operationId" : "platformSecurityEvents",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -47881,13 +48143,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Comma-separated item keys, published in the list operation's x-fields; any other key is INVALID_FILTER.",
-          "in" : "query",
-          "name" : "fields",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -49581,7 +49836,7 @@
     },
     "/api/v1/ring-blocks" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER receives RingBlockMemberView without note or createdByName. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
         "operationId" : "blocks",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -49647,11 +49902,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListPageRingBlock"
+                  "$ref" : "#/components/schemas/ListPageRingBlockListItem"
                 }
               }
             },
-            "description" : "ListPage<RingBlock>"
+            "description" : "ListPage<RingBlockListItem>"
           },
           "400" : {
             "content" : {
@@ -54564,7 +54819,7 @@
     },
     "/api/v1/training-bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Requires FREE_TRAINING. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingBookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -57832,7 +58087,7 @@
     },
     "/api/v1/weeks" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
         "operationId" : "weeks",
         "parameters" : [ {
           "description" : "Zero-based page index.",
