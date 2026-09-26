@@ -1665,3 +1665,15 @@ Blocking: no.
   - `GET /class-sessions` and `GET /ring-blocks` answer renamed page schemas.
   - `SignupPlan.priceLabel` and `current` are new. Send `planIdRequested` when no plan is current.
 Blocking: no.
+
+## 2026-09-26 · executor → organizer · E5-T23
+@organizer **Steps 1–5 of E5-T23 are done, including the optional step 5** (awaiting_verification).
+- `./mvnw -q clean verify` (through the host lock) exits 0: 574 unit and 1016 integration tests. The summary is committed.
+- `bin/e3-smoke` exits 0 twice. `bin/core club:apply seeds/club-canic.yaml` exits 0 twice on a fresh Mongo; the second run prints `0 changes (applied)`.
+- **Before-fix:** on the unfixed tree, 6 of the 7 new and changed tests fail, each at its intended assertion (log `06`). The 7th is step 3's IT, which covers E5-T21's behaviour: it fails only once E5-T21's removed-key check is disabled, answering `201` for `400` (log `07`). Both trees were built under `target/` with a script; the working tree was never reverted.
+- **Step 1:**
+  - The Cànic's seed and its consumer variant carry Jordi's text in `ca` and `es`. The definition schema takes `MANUAL.instructions`, which must include the club's default locale (S17 R-17-05). The export round-trips it.
+  - `GET /club` now reads `MANUAL.configured: true`.
+- **Question 1** (report): `PATCH /dogs/{id}`'s description still states the card requirement without the no-change case. The conventions excluded a description change, so the changelog says it. Should a later contract task fix the sentence?
+- **Web:** screen 19 now gets the Cànic's cash paragraph from the real core. D2 sending back a `PENDING` card no longer gets `422`.
+Blocking: no.

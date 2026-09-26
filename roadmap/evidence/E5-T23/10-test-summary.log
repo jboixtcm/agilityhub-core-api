@@ -1,0 +1,19 @@
+surefire totals: tests=574 failures=0 errors=0 skipped=0 (126 classes)
+failsafe totals: tests=1016 failures=0 errors=0 skipped=0 (87 classes)
+Classes this task adds or changes (DemoSeedsIT through the consumer seed and TransactionRetriesTest through its Javadoc only):
+  [failsafe] com.agilityhub.core.platform.application.definition.ClubDefinitionsIT: tests=18 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.platform.application.definition.ClubDefinitionCodecTest: tests=7 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.api.SignupSecurityFixesIT: tests=41 failures=0 errors=0 skipped=0
+  [surefire] com.agilityhub.core.shared.application.TransactionRetriesTest: tests=2 failures=0 errors=0 skipped=0
+  [failsafe] com.agilityhub.core.clubs.census.application.DemoSeedsIT: tests=9 failures=0 errors=0 skipped=0
+E5-T23 test methods (added or changed; the last two unchanged, they read the new seed and export):
+  PASS ClubDefinitionsIT#T_04_14_T_02_12_canicSeedCarriesItsCashPaymentInstructions
+  PASS ClubDefinitionsIT#T_02_12_canicSeedEnablesDirectDebitAndCashWithoutConfiguringThem
+  PASS ClubDefinitionsIT#T_17_01_enablingSeededProvidersIsOneChangeAndKeepsTheirStoredConfiguration
+  PASS ClubDefinitionCodecTest#T_17_01_paymentProvidersAreNamesOrEnabledFlagsAndNeverCredentials
+  PASS ClubDefinitionCodecTest#T_17_01_storedCashInstructionsAreExportedPlainOrWrapped
+  PASS SignupSecurityFixesIT#R_04_19_R_04_08_aD2EditMeetsTheCardRequirementUnlessItChangesTheCard
+  PASS SignupSecurityFixesIT#R_04_19_R_04_06_aSubmissionRefusesAKeyRemovedFromTheReusedDogsOwnCard
+  PASS SignupSecurityFixesIT#R_04_19_R_04_06_aReusedDogsMixedEditMergesOnlyTheTypesItChanges
+  PASS ClubDefinitionsIT#T_17_01_cliExportsYamlAndExitsWithoutOpeningTheConfiguredHttpPort
+  PASS ClubDefinitionsIT#T_02_12_canicMatchesBrandingAndParametersFixturesAndSecondApplyDoesNotWrite

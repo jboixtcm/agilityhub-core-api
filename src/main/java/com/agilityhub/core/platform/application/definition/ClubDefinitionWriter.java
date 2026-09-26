@@ -125,6 +125,12 @@ public class ClubDefinitionWriter {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "club.taxId",
                     "fieldErrors", List.of(Map.of("field", "club.taxId", "code", "INVALID_VALUE"))));
         }
+        // S17 R-17-05 (E5-T23): the cash instructions a definition sets have the club's default locale, as the console's do.
+        var instructions = definition.path("paymentProviders").path("MANUAL").path("instructions");
+        if (instructions.isObject() && !instructions.has(next.defaultLocale())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "paymentProviders.MANUAL.instructions",
+                    "fieldErrors", List.of(Map.of("field", "paymentProviders.MANUAL.instructions", "code", "REQUIRED"))));
+        }
         for (var domain : next.domains()) {
             clubs.findByAnyHost(domain.host()).filter(owner -> !owner.id().equals(id)).ifPresent(owner -> {
                 throw new ApiException(ErrorCode.HOST_ALREADY_USED, Map.of("host", domain.host()));

@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E5-T23 · D2's card requirement only when the card changes
+
+**0 operations, schemas or descriptions changed.** Behaviour only (R-04-19, R-04-08, R-04-06):
+
+- `PATCH /dogs/{id}` with `signup.requireDogDocumentAtSignup`: a `VACCINATION_CARD` without files answers
+  `422 DOG_DOCUMENT_REQUIRED` only when D2's view shows files for it, that is, when the edit changes the card. Sending
+  back a `PENDING` card, alone or with another field, is no documents change (review E5-T21 #1). The description's
+  «Sending back the view's keys is no change» already said so.
+- The reused dog of a pending readmission: a documents edit merges into the request only the types whose keys differ
+  from D2's view, as for a public signup's dog. A type sent back as shown no longer enters the request (review E5-T21 #4).
+- Data, no contract change: the Cànic's seed now sets `paymentProviders.MANUAL.instructions` in `ca` and `es`, so its
+  `GET /signup` sends `paymentMethods[MANUAL].instructions`, and its `GET /club` reads `MANUAL.configured: true`.
+
 ## 2026-09-26 · E5-T22 · `priceLabel` and `current` on `GET /signup` plans; `fields` honoured on every universal list; `id` filterable on D7's lists
 
 **0 operations added or removed; 4 item schemas added and 2 page schemas renamed; 9 list item schemas narrowed to their row
@@ -75,6 +88,9 @@ from 3 contract-only operations.** The web must regenerate its client:
   keep the stored rows of files removed through S03, so a removed file stays removed and P9 still counts it as
   referenced; sending a removed key back is `400 FILE_NOT_FOUND`. An edit that changes no file key of any type writes
   nothing: no new `version`, no `SignupEdited`, no audit entry. A type that already has 10 files takes one more upload.
+- Behaviour, at submission too (E5-T23, review E5-T21 #2): `POST /signup` of a readmission answers `400 FILE_NOT_FOUND`
+  to the key of a file removed through S03 from the reused dog's own documents, and stores nothing. `POST /me/dogs/signup`
+  answers the same to such a key: its dog is always a new one.
 - Text, no schema change: `GET /signup` `paymentMethods[SEPA_DD].mandateText` in `ca` and `es` is word for word the
   approved mockup 19's («Autoritzo a … l'emissió de rebuts …», «Autorizo a … la emisión de recibos …»); `en` is unchanged.
 

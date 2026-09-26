@@ -102,19 +102,20 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     }
     /**
      * E3-T14 (S04 R-04-10): the Cànic collects by direct debit and cash, so its seed enables `SEPA_XML` and `MANUAL`. It has
-     * no creditor data, so neither is `configured`. `GET /club` and `GET /signup` show the same methods.
+     * no creditor data, so `SEPA_XML` is not `configured`. E5-T23: `MANUAL` is, by its instructions. `GET /club` and
+     * `GET /signup` show the same methods.
      */
     @Test void T_02_12_canicSeedEnablesDirectDebitAndCashWithoutConfiguringThem() throws Exception {
         var first = definitions.apply(seed("canic"), false);
         var stored = clubs.findById(first.id()).orElseThrow().paymentProviders();
         assertThat(stored.keySet()).containsExactly("SEPA_XML", "MANUAL");
-        assertThat(stored).isEqualTo(Map.of("SEPA_XML", Map.of("enabled", true), "MANUAL", Map.of("enabled", true)));
+        assertThat(stored).isEqualTo(Map.of("SEPA_XML", Map.of("enabled", true), "MANUAL", Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS)));
         var admin = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt()
                 .jwt(token -> token.subject("seed-admin").claim("clubId", first.id()))
                 .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"));
         var flags = mapper.readTree(mvc.perform(get("/api/v1/club").header("Host", "admin.agilitycanic.cat").with(admin))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("paymentProviders");
-        assertThat(flags).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"configured\":false,\"enabled\":true},\"MANUAL\":{\"configured\":false,\"enabled\":true}}"));
+        assertThat(flags).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"configured\":false,\"enabled\":true},\"MANUAL\":{\"configured\":true,\"enabled\":true}}"));
         // Activation is fixture setup (the seed opens the club in ONBOARDING); the offer then follows the same flags.
         mongo.updateFirst(Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is(first.id())),
                 new org.springframework.data.mongodb.core.query.Update().set("status", "ACTIVE"), Club.class);
@@ -126,8 +127,50 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
                 new org.springframework.data.mongodb.core.query.Update().set("status", "ONBOARDING"), Club.class);
         assertThat(definitions.apply(seed("canic"), false).changes()).isZero();
         var exported = definitions.export("canic");
-        assertThat(exported.path("paymentProviders")).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"enabled\":true},\"MANUAL\":{\"enabled\":true}}"));
+        assertThat(exported.path("paymentProviders")).isEqualTo(mapper.valueToTree(Map.of("SEPA_XML", Map.of("enabled", true),
+                "MANUAL", Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS))));
         codec.validate(exported); assertThat(definitions.apply(exported, false).changes()).isZero();
+    }
+    /** The Cànic's cash payment instructions, word for word as the product owner confirmed them from the approved mockup 19 (26-09). */
+    static final Map<String, String> CASH_INSTRUCTIONS = Map.of(
+            "ca", "El pagament de l'entrada i el mes en curs (o el proper) és necessari per a la validació de l'alta. Pot fer-se per transferència"
+                    + " al compte ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o per Bizum al 607 475 945.",
+            "es", "El pago de la entrada y del mes en curso (o del siguiente) es necesario para la validación del alta. Puede hacerse por transferencia"
+                    + " a la cuenta ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o por Bizum al 607 475 945.");
+    /**
+     * E5-T23 step 1 (S04 §2 row 19, R-04-10; S12 `MANUAL {instructions}`; Jordi, 26-09): the Cànic's seed carries its cash
+     * payment instructions. A club applied from the previous seed gets them as one `paymentProviders` change, then none.
+     * `GET /signup` sends them in `paymentMethods[MANUAL].instructions`, in ca and in es. A definition without them keeps
+     * them, the export round-trips them, and they must have the club's default locale (S17 R-17-05).
+     */
+    @Test void T_04_14_T_02_12_canicSeedCarriesItsCashPaymentInstructions() throws Exception {
+        var previous = activeCanic(); previous.withObject("paymentProviders").withObject("MANUAL").remove("instructions");
+        var id = definitions.apply(previous, false).id();
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true));
+        var preview = definitions.apply(activeCanic(), true);
+        assertThat(preview.changes()).isEqualTo(1);
+        assertThat(preview.render(true)).contains("~ paymentProviders changed",
+                "paymentProviders.MANUAL: {\"enabled\":true} -> {\"enabled\":true,\"instructions\":{\"ca\":\"El pagament de l'entrada");
+        assertThat(definitions.apply(activeCanic(), false).changes()).isEqualTo(1);
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS));
+        var second = definitions.apply(activeCanic(), false);
+        assertThat(second.changes()).isZero(); assertThat(second.render(false)).contains("= paymentProviders unchanged", "0 changes");
+        for (var language : List.of("ca", "es")) {
+            var methods = mapper.readTree(mvc.perform(get("/api/v1/signup").header("Host", "app.agilitycanic.cat").header("Accept-Language", language))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("paymentMethods");
+            var manual = java.util.stream.StreamSupport.stream(methods.spliterator(), false).filter(method -> "MANUAL".equals(method.path("type").asText())).findFirst().orElseThrow();
+            assertThat(manual.path("instructions").asText()).as(language).isEqualTo(CASH_INSTRUCTIONS.get(language));
+        }
+        assertThat(definitions.apply(previous, false).changes()).as("a definition without them keeps them").isZero();
+        var exported = definitions.export("canic"); codec.validate(exported);
+        assertThat(exported.at("/paymentProviders/MANUAL/instructions")).isEqualTo(mapper.valueToTree(CASH_INSTRUCTIONS));
+        assertThat(definitions.apply(exported, false).changes()).isZero();
+        var withoutDefault = activeCanic(); withoutDefault.withObject("paymentProviders").withObject("MANUAL").putObject("instructions").put("es", CASH_INSTRUCTIONS.get("es"));
+        assertThatThrownBy(() -> definitions.apply(withoutDefault, false)).isInstanceOfSatisfying(ApiException.class, error -> {
+            assertThat(error.code()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+            assertThat(error.details()).containsEntry("fieldErrors", List.of(Map.of("field", "paymentProviders.MANUAL.instructions", "code", "REQUIRED")));
+        });
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS));
     }
     /**
      * E3-T16 step 3 (Jordi, 25-09; S02 §3, R-02-02; S17 §3): the Cànic's seed carries its legal identity and registered office,
@@ -303,17 +346,17 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         var preview = definitions.apply(Path.of("seeds/club-canic.yaml"), true);
         assertThat(preview.changes()).isEqualTo(1);
         assertThat(preview.render(true)).contains("~ paymentProviders changed", "paymentProviders.SEPA_XML: {\"enabled\":false} -> {\"enabled\":true}",
-                "paymentProviders.MANUAL: {\"enabled\":false} -> {\"enabled\":true}");
+                "paymentProviders.MANUAL: {\"enabled\":false} -> {\"enabled\":true,\"instructions\":");
         assertThat(clubs.findById(id).orElseThrow().paymentProviders()).isEqualTo(Map.of("SEPA_XML", Map.of("creditorName", "Fictional Creditor"), "MANUAL", Map.of()));
         assertThat(definitions.apply(seed("canic"), false).changes()).isEqualTo(1);
-        assertThat(clubs.findById(id).orElseThrow().paymentProviders())
-                .isEqualTo(Map.of("SEPA_XML", Map.of("creditorName", "Fictional Creditor", "enabled", true), "MANUAL", Map.of("enabled", true)));
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders()).isEqualTo(Map.of("SEPA_XML", Map.of("creditorName", "Fictional Creditor", "enabled", true),
+                "MANUAL", Map.of("enabled", true, "instructions", CASH_INSTRUCTIONS)));
         assertThat(definitions.apply(seed("canic"), false).changes()).isZero();
         assertThat(definitions.apply(legacy, false).changes()).isZero();
         var disabled = seed("canic"); disabled.withObject("paymentProviders").withObject("MANUAL").put("enabled", false);
         var off = definitions.apply(disabled, false);
         assertThat(off.changes()).isEqualTo(1);
-        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", false));
+        assertThat(clubs.findById(id).orElseThrow().paymentProviders().get("MANUAL")).isEqualTo(Map.of("enabled", false, "instructions", CASH_INSTRUCTIONS));
     }
     /** The methods the anonymous `GET /signup` of the Cànic offers, read as a fresh request would (no cache eviction here). */
     List<String> offered() throws Exception {

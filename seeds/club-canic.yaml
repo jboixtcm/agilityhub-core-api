@@ -54,12 +54,17 @@ theme:
   mode: "dark"
 preset: "CANIC"
 # Direct debit and cash (S04 R-04-10: the signup offers the enabled providers, in this order). No creditor data here:
-# `configured` stays false until the club enters it (S12, S17 R-17-05).
+# `SEPA_XML` stays not `configured` until the club enters it (S12, S17 R-17-05).
 paymentProviders:
   SEPA_XML:
     enabled: true
   MANUAL:
     enabled: true
+    # How to pay the initial amount, under the total of screen 19 (S04 §2 row 19; S12 `MANUAL {instructions}`). The club's
+    # public payment details, word for word as the product owner confirmed them from the approved mockup 19 (26-09).
+    instructions:
+      ca: "El pagament de l'entrada i el mes en curs (o el proper) és necessari per a la validació de l'alta. Pot fer-se per transferència al compte ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o per Bizum al 607 475 945."
+      es: "El pago de la entrada y del mes en curso (o del siguiente) es necesario para la validación del alta. Puede hacerse por transferencia a la cuenta ES08 2100 0416 5702 0016 4955 (Club d'Agility Cànic) o por Bizum al 607 475 945."
 parameters:
   signup.enabled: true
   signup.pendingExpiryDays: 30

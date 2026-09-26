@@ -310,7 +310,7 @@
               "$ref": "#/$defs/paymentProvider"
             },
             "MANUAL": {
-              "$ref": "#/$defs/paymentProvider"
+              "$ref": "#/$defs/manualPaymentProvider"
             }
           }
         }
@@ -525,6 +525,22 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "manualPaymentProvider": {
+      "description": "The cash switch and, optionally, its `instructions`: how to pay the initial amount, shown under the signup total (S04 §2 row 19; S12 `MANUAL {instructions: LocalizedText}`). They are the club's public text, never a credential, and must have the club's `defaultLocale` (S17 R-17-05). A definition without them keeps the stored ones.",
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "instructions": {
+          "$ref": "#/$defs/localizedText"
         }
       },
       "additionalProperties": false

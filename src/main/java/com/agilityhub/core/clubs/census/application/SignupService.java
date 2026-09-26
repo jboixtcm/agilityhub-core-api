@@ -470,7 +470,7 @@ public class SignupService implements SignupPaymentAccess {
         return new PreparedDog(dog,fresh,before);
     }
     private Dog storeDog(PreparedDog prepared,Map<String,Object> block,List<Map<String,Object>> files) {
-        var dog=prepared.dog();dog.signup=new LinkedHashMap<>(block);var claimed=claimDocuments(dog,files,true);
+        var dog=prepared.dog();dog.signup=new LinkedHashMap<>(block);var claimed=claimDocuments(dog,files,null);
         // E38 (E3-T17): the documents a readmission sends for its reused dog wait in the request; the dog's own keep their files
         // and states. Round 2: only the types sent with files, the ones its validation applies.
         if(readmissionPending(dog)) putSubmitted(dog,"documents",withFiles(claimed));
@@ -485,17 +485,18 @@ public class SignupService implements SignupPaymentAccess {
      * readmission's reused dog stay in its request (E38), merged by type: a type sent with files replaces the submitted one,
      * a type sent without files withdraws it (the dog keeps its own), and the other submitted types stay.
      * E5-T21: an edit that changes no file key of any type in D2's view is no change: nothing is written, and it returns false.
+     * E5-T23 (review E5-T21 #4): on both paths, only the types whose keys differ from D2's view are written or merged.
      */
     public boolean saveDocuments(Dog dog,List<Map<String,Object>> sent) {
-        var claimed=claimDocuments(dog,sent,false);var shown=shownKeys(dog);
+        var shown=shownKeys(dog);
+        var changed=claimDocuments(dog,sent,shown).stream().filter(row -> !keySet(row).equals(shown.getOrDefault(string(row.get("type")),Set.of()))).toList();
         if(!readmissionPending(dog)) {
-            var changed=claimed.stream().filter(row -> !keySet(row).equals(shown.getOrDefault(string(row.get("type")),Set.of()))).toList();
             writeDocuments(dog,changed);
             return !changed.isEmpty();
         }
         var request=dog.readmissionRequest;var merged=new LinkedHashMap<String,Map<String,Object>>();
         for(var row:rows(submitted(dog).get("documents"))) merged.put(string(row.get("type")),row);
-        for(var row:claimed) { if(rows(row.get("files")).isEmpty()) merged.remove(string(row.get("type")));else merged.put(string(row.get("type")),row); }
+        for(var row:changed) { if(rows(row.get("files")).isEmpty()) merged.remove(string(row.get("type")));else merged.put(string(row.get("type")),row); }
         putSubmitted(dog,"documents",new ArrayList<>(merged.values()));
         if(!shownKeys(dog).equals(shown)) return true;
         dog.readmissionRequest=request;
@@ -517,8 +518,10 @@ public class SignupService implements SignupPaymentAccess {
      * D2's view gave for that type ({@link StoredFiles#current}) keeps its file as it is, and any other key is a new signup
      * upload, so D2 adds or removes one file by sending the type's other keys back. E5-T21: a key whose stored row was removed
      * through S03 is refused (400 FILE_NOT_FOUND), and R-04-08's limit of 10 files counts only the new uploads.
+     * `shown` is D2's view ({@link #shownKeys}) in a D2 edit, and null at submission, which has no view yet.
      */
-    private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted,boolean submission) {
+    private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted,Map<String,Set<String>> shown) {
+        boolean submission=shown==null;
         var types=new HashSet<String>();var all=new ArrayList<>(submitted);var claimed=new ArrayList<Map<String,Object>>();
         if(submission&&all.stream().noneMatch(d -> "VACCINATION_CARD".equals(d.get("type")))) all.add(object("type","VACCINATION_CARD","files",List.of()));
         var sent=new ArrayList<SentDocument>();
@@ -540,7 +543,10 @@ public class SignupService implements SignupPaymentAccess {
                 files.add(object("id",claim.id(),"fileKey",claim.fileKey(),"name",name,"mimeType",claim.mimeType(),"sizeBytes",claim.sizeBytes(),"uploadedAt",claim.uploadedAt()));
             }
             // E5-T19 (R-04-06, R-04-08): a reused dog whose own card is RECEIVED meets the requirement; its card stays at validation.
-            if(type.equals("VACCINATION_CARD")&&files.isEmpty()&&Boolean.TRUE.equals(access.config().get("signup.requireDogDocumentAtSignup",Boolean.class))&&!ownCardReceived(dog))
+            // E5-T23 (review E5-T21 #1): a D2 edit meets it unless it changes the card, so a card without files needs one only
+            // when D2's view shows files; sending back a PENDING card (or echoing it with another edit) is no change.
+            boolean cardChanged=submission||!shown.getOrDefault(type,Set.of()).isEmpty();
+            if(type.equals("VACCINATION_CARD")&&files.isEmpty()&&cardChanged&&Boolean.TRUE.equals(access.config().get("signup.requireDogDocumentAtSignup",Boolean.class))&&!ownCardReceived(dog))
                 throw new ApiException(ErrorCode.DOG_DOCUMENT_REQUIRED);
             claimed.add(object("type",type,"files",files));
         }

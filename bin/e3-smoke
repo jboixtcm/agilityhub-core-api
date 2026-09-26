@@ -309,11 +309,17 @@ class Smoke:
         require("ACCOUNT_NOT_PROVIDED" in review["warnings"] and review["familyGroupClaim"]["status"] == "FOUND", "D2 warning/claim mismatch")
         require(any(doc["state"] == "RECEIVED" for doc in review["dogs"][0]["documents"]), "Uploaded PDF was not claimed")
         # E3-T14 (R-04-10): the seed enables direct debit and cash without creditor data; GET /club, GET /signup and D2 agree.
+        # E5-T23 (S04 §2 row 19): cash is configured by the club's instructions, which GET /signup sends in the default locale.
         offered = [method["type"] for method in config["paymentMethods"]]
         providers = self.call("GET", "/api/v1/club", access=admin)["paymentProviders"]
         require(offered == ["SEPA_DD", "MANUAL"] and providers == {"SEPA_XML": dict(configured=False, enabled=True),
-                                                                   "MANUAL": dict(configured=False, enabled=True)},
+                                                                   "MANUAL": dict(configured=True, enabled=True)},
                 f"GET /club and GET /signup disagree on the payment methods: {providers} vs {offered}")
+        instructions = self.mongo('db.clubs.findOne({slug:"canic"}).paymentProviders.MANUAL.instructions')
+        cash = next(method for method in config["paymentMethods"] if method["type"] == "MANUAL")
+        require(sorted(instructions) == ["ca", "es"] and cash.get("instructions") == instructions["ca"],
+                "GET /signup does not send the seed's cash payment instructions")
+        print("PASS cash payment instructions: the seed's, in ca, under MANUAL", flush=True)
         require([(m["type"], m["current"], m["assignable"], bool(m["label"])) for m in review["paymentMethods"]]
                 == [(t, t == "SEPA_DD", True, True) for t in offered], f"D2 payment methods mismatch: {review['paymentMethods']}")
         print("PASS payment methods: GET /club, GET /signup and D2 offer SEPA_DD and MANUAL", flush=True)

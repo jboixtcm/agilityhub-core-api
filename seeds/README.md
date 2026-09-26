@@ -39,6 +39,10 @@ section creates passwordless accounts and adds ADMIN while preserving other role
 An email cannot appear twice across these sections. Provider names
 are stored as configuration slots; existing configuration remains intact. This E0
 format accepts provider names only, so credential values cannot enter a seed.
+The one exception is `paymentProviders.MANUAL.instructions` (E5-T23): the club's public
+cash payment text, shown under the signup total (S04 §2 row 19). It is a localized text
+with the club's `defaultLocale`, it round-trips through the export, and a definition
+without it keeps the stored one.
 
 `club.legalName`, `club.taxId` and `club.address` (the registered office) are the club's
 public legal identity: `/branding` shows them in the public footer (S02 R-02-02, LSSI

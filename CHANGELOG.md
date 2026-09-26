@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T23: the Cànic's cash payment instructions, and the E5-T21 review's points.
+  - S04 §2 row 19 (Jordi, 26-09): `seeds/club-canic.yaml` (and its consumer variant) sets
+    `paymentProviders.MANUAL.instructions` in `ca` and `es`, word for word as confirmed from the approved mockup 19.
+    `GET /signup` sends them under `MANUAL`, and `GET /club` reads `MANUAL.configured: true`. The club definition schema
+    takes `instructions` on `MANUAL` only, a localized text with the club's default locale (S17 R-17-05). The export
+    round-trips them, and a definition without them keeps the stored ones.
+  - R-04-19, R-04-08: with `signup.requireDogDocumentAtSignup`, a D2 edit gets `422 DOG_DOCUMENT_REQUIRED` only when it
+    changes the card. Sending back a `PENDING` card, alone or with another field, is no change (review E5-T21 #1).
+  - R-04-19, R-04-06: a new submission IT covers E5-T21's refusal of a removed key at a readmission's `POST /signup` and
+    at `POST /me/dogs/signup`. The E5-T21 entry of `docs/openapi/CHANGELOG.md` now says so (review #2).
+  - `TransactionRetriesTest`'s Javadoc names the S05–S09 writers only: the S01 and S04 writers keep their own growing
+    backoff, by design (review #3).
+  - R-04-06: a reused dog's documents edit merges into its request only the types whose keys differ from D2's view, as
+    on the public path (review #4).
 - E5-T22: the last E5 follow-ups (web E4-W12, review of E5-T20); the list item schemas narrow to their row id.
   - S04 §6, R-04-09, S05 R-05-19: `GET /signup` plans carry `priceLabel` (`Plan.texts.priceLabel` in the reader's
     locale). In add-dog mode they list the member's own plan, `current: true`, even when the public offer hides it (the

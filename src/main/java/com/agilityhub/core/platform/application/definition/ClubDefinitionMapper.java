@@ -38,8 +38,13 @@ public class ClubDefinitionMapper {
         root.set("theme", mapper.valueToTree(club.theme())); root.set("pwa", mapper.valueToTree(club.pwa()));
         root.set("modules", mapper.valueToTree(club.modules().stream().map(Enum::name).sorted().toList()));
         // E3-T14: each provider with its switch only, in the configured order; its configuration and secrets never leave.
+        // E5-T23: but cash's instructions, the club's public text of screen 19, so a definition can set them and round-trip.
         var providers = root.putObject("paymentProviders");
-        club.paymentProviders().forEach((name, stored) -> providers.putObject(name).put("enabled", PaymentProviderFlags.enabled(stored)));
+        club.paymentProviders().forEach((name, stored) -> {
+            var provider = providers.putObject(name).put("enabled", PaymentProviderFlags.enabled(stored));
+            var instructions = "MANUAL".equals(name) ? instructions(stored) : Map.<String, String>of();
+            if (!instructions.isEmpty()) { provider.set("instructions", mapper.valueToTree(instructions)); }
+        });
         root.set("legal", mapper.valueToTree(club.legal()));
         removeNulls(root);
         return root;
@@ -94,9 +99,25 @@ public class ClubDefinitionMapper {
         declared.fields().forEachRemaining(provider -> {
             var settings = stored.get(provider.getKey()) instanceof Map<?, ?> kept ? new LinkedHashMap<Object, Object>(kept) : new LinkedHashMap<Object, Object>();
             settings.put("enabled", provider.getValue().path("enabled").asBoolean());
+            // E5-T23 (S04 §2 row 19): the schema takes `instructions` on MANUAL only; without them, the stored ones stay.
+            if (provider.getValue().has("instructions")) { settings.put("instructions", mapper.convertValue(provider.getValue().get("instructions"), Map.class)); }
             providers.put(provider.getKey(), settings);
         });
         return providers;
+    }
+    /**
+     * A stored provider's `instructions` by locale ({@code {values: …}} or the plain map, as `GET /signup` reads them), without
+     * blank ones; empty when it has none (E5-T23).
+     */
+    static Map<String, String> instructions(Object stored) {
+        if (!(stored instanceof Map<?, ?> settings)) { return Map.of(); }
+        Object raw = settings.get("instructions");
+        if (raw instanceof Map<?, ?> text && text.get("values") instanceof Map<?, ?> values) { raw = values; }
+        var result = new LinkedHashMap<String, String>();
+        if (raw instanceof Map<?, ?> values) {
+            values.forEach((locale, value) -> { if (value instanceof String text && !text.isBlank()) { result.put(String.valueOf(locale), text); } });
+        }
+        return result;
     }
     private String value(ObjectNode object, String field) { return object.has(field) ? object.get(field).asText() : null; }
 }

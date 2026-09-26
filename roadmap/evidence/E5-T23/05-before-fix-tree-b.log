@@ -1,0 +1,9 @@
+back to HEAD: seeds/README.md
+back to HEAD: seeds/club-canic-consumer.yaml
+back to HEAD: seeds/club-canic.yaml
+back to HEAD: seeds/club-definition.schema.json
+back to HEAD: src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
+back to HEAD: src/main/java/com/agilityhub/core/platform/application/definition/ClubDefinitionMapper.java
+back to HEAD: src/main/java/com/agilityhub/core/platform/application/definition/ClubDefinitionWriter.java
+disabled in tree B: SignupService removed-key check (E5-T21)
+tree ready: target/before-fix-b

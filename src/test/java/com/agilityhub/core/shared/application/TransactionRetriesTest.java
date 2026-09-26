@@ -10,10 +10,11 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * E5-T17 (review E5-T15 #4): the S05 ring change, the S06 writers and the S09 training writers share one conflict check
- * (`CatalogService`, `SchedulingTransactions`, `TrainingTransactions`). E5-T21 (review E5-T18 #1): every retried writer
+ * (`CatalogService`, `SchedulingTransactions`, `TrainingTransactions`). E5-T21 (review E5-T18 #1): every S05–S09 writer
  * draws its wait from one 50–150 ms range, {@link TransactionRetries#jitter()}: those three, and the S07 and S08 writers
- * (`ActivityTransactions`, R-07-08; `BookingTransactions`, R-08-07). Each test is named after the rules it asserts: the
- * conflicts S09 R-09-06 retries, and the backoff of R-07-08 and R-08-07.
+ * (`ActivityTransactions`, R-07-08; `BookingTransactions`, R-08-07). E5-T23 (review E5-T21 #3): the S01 and S04 writers
+ * (`IdentityTransactions`, `SignupTransactions`) keep their own growing backoff by design: they retry many more times.
+ * Each test is named after the rules it asserts: the conflicts S09 R-09-06 retries, and the backoff of R-07-08 and R-08-07.
  */
 class TransactionRetriesTest {
     private static com.mongodb.MongoException mongo(int code, String label) {

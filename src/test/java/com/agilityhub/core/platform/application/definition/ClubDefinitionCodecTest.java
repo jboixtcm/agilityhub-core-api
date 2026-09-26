@@ -39,9 +39,20 @@ class ClubDefinitionCodecTest {
             fails(definition, ErrorCode.VALIDATION_ERROR);
         }
     }
-    /** E3-T14 (R-04-10): a seed names its providers, or names them with their `enabled` flag; never a credential. */
+    /**
+     * E3-T14 (R-04-10): a seed names its providers, or names them with their `enabled` flag; never a credential. E5-T23: cash
+     * also takes its public `instructions` (S04 §2 row 19), a localized text; no other provider does.
+     */
     @Test void T_17_01_paymentProvidersAreNamesOrEnabledFlagsAndNeverCredentials() throws Exception {
-        assertThat(seed().path("paymentProviders")).isEqualTo(mapper.readTree("{\"SEPA_XML\":{\"enabled\":true},\"MANUAL\":{\"enabled\":true}}"));
+        var providers = seed().path("paymentProviders");
+        assertThat(providers.fieldNames()).toIterable().containsExactly("SEPA_XML", "MANUAL");
+        assertThat(providers.path("SEPA_XML")).isEqualTo(mapper.readTree("{\"enabled\":true}"));
+        assertThat(providers.path("MANUAL").fieldNames()).toIterable().containsExactly("enabled", "instructions");
+        assertThat(providers.at("/MANUAL/instructions").fieldNames()).toIterable().containsExactly("ca", "es");
+        for (String invalid : new String[]{"{\"SEPA_XML\":{\"enabled\":true,\"instructions\":{\"ca\":\"Fictional\"}}}", "{\"MANUAL\":{\"enabled\":true,\"instructions\":\"Fictional\"}}",
+                "{\"MANUAL\":{\"enabled\":true,\"instructions\":{}}}", "{\"MANUAL\":{\"enabled\":true,\"instructions\":{\"fr\":\"Fictional\"}}}", "{\"MANUAL\":{\"enabled\":true,\"instructions\":{\"ca\":\"\"}}}"}) {
+            var definition = seed(); definition.set("paymentProviders", mapper.readTree(invalid)); fails(definition, ErrorCode.VALIDATION_ERROR);
+        }
         for (String seed : new String[]{"canic-consumer", "minim", "fifo", "perf"}) {
             assertThat(codec.read(Path.of("seeds/club-" + seed + ".yaml")).path("paymentProviders").isObject()).as(seed).isTrue();
         }
@@ -51,6 +62,16 @@ class ClubDefinitionCodecTest {
                 "{\"SEPA_XML\":{}}", "{\"MANUAL\":{\"enabled\":\"yes\"}}", "{\"PAYPAL\":{\"enabled\":true}}", "[\"PAYPAL\"]", "[\"MANUAL\",\"MANUAL\"]"}) {
             definition = seed(); definition.set("paymentProviders", mapper.readTree(invalid)); fails(definition, ErrorCode.VALIDATION_ERROR);
         }
+    }
+    /** E5-T23: the export reads the stored cash instructions plain or wrapped (`{values: …}`, as `GET /signup` does), without blank ones. */
+    @Test void T_17_01_storedCashInstructionsAreExportedPlainOrWrapped() {
+        assertThat(ClubDefinitionMapper.instructions(java.util.Map.of("enabled", true, "instructions", java.util.Map.of("ca", "Fictional text"))))
+                .isEqualTo(java.util.Map.of("ca", "Fictional text"));
+        assertThat(ClubDefinitionMapper.instructions(java.util.Map.of("instructions", java.util.Map.of("values", java.util.Map.of("ca", "Fictional text", "es", " ")))))
+                .isEqualTo(java.util.Map.of("ca", "Fictional text"));
+        assertThat(ClubDefinitionMapper.instructions(java.util.Map.of("enabled", true))).isEmpty();
+        assertThat(ClubDefinitionMapper.instructions(java.util.Map.of("instructions", "Fictional plain text"))).isEmpty();
+        assertThat(ClubDefinitionMapper.instructions(null)).isEmpty();
     }
     @Test void T_17_02_normalizesHostsRejectsDuplicatesAndReservedHosts() {
         var definition = seed(); ((ObjectNode) definition.path("domains").get(0)).put("host", "APP.AGILITYCANIC.CAT.").remove("app");
