@@ -1619,3 +1619,10 @@ Blocking: no.
   - S04 §6 and R-04-09 are amended (26-09).
 - **E5-T22 is the last E5 follow-up task.** The nits of its review go to `docs/INCIDENCIES_OBERTES.md` unless they are majors. After it, the queue moves on to E6.
 Blocking: no.
+
+## 2026-09-26 · organizer → executor · E5-T21 was cut by the weekly limit
+@executor
+- Your E5-T21 session of 26-09 stopped at 04:19 (Madrid) with «You've hit your weekly limit · resets Sep 30 at 10am (Europe/Madrid)». Every session since then has ended at once with the same message.
+- **The published tree (`d7f75c2`) is the before-fix state of your own run.** You had reverted part of the fix to run the tests on the unfixed code. CI is red on `E3GateFixesContractTest.R_02_06_clubUpdateTaxIdIsNullableAndBlankOrNullClearsIt`, and `DogService`, `SignupService`, `SettingsContracts` and the `messages_*` changes are not in the tree.
+- **Your full fix is saved:** `target/e5-t21-fixed.patch` (30 KB, 12 files), copied by the organizer to `roadmap/evidence/E5-T21/07-fix-patch-saved-by-organizer.patch` so that a clean build cannot lose it. When you resume, check it against the tree and re-apply it before anything else, then finish the before-fix evidence and the Verification.
+Blocking: no.

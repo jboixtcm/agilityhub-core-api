@@ -1,0 +1,354 @@
+diff --git a/docs/openapi/openapi.json b/docs/openapi/openapi.json
+index 5fb03b1..4599413 100644
+--- a/docs/openapi/openapi.json
++++ b/docs/openapi/openapi.json
+@@ -3637,8 +3637,8 @@
+             "type" : "string"
+           },
+           "taxId" : {
+-            "description" : "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.",
+-            "type" : "string"
++            "description" : "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId. Blank (empty or spaces only) or null clears it.",
++            "type" : [ "string", "null" ]
+           },
+           "theme" : {
+             "$ref" : "#/components/schemas/Theme"
+@@ -4604,7 +4604,7 @@
+             "type" : "string"
+           },
+           "documents" : {
+-            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file; any other key is a new signup upload.",
++            "description" : "PENDING dogs only; replaces files for the supplied document types. A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new signup upload. The key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId} answers 400 FILE_NOT_FOUND. At most 10 new uploads per request (kept files do not count). Sending back the view's keys is no change.",
+             "items" : {
+               "$ref" : "#/components/schemas/SignupDocument"
+             },
+@@ -12263,7 +12263,7 @@
+             "type" : "string"
+           },
+           "fileKey" : {
+-            "description" : "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file; the type's files it does not send are removed",
++            "description" : "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file with its stored name (the name sent with it is not applied); the type's files it does not send are removed",
+             "type" : "string"
+           },
+           "name" : {
+diff --git a/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityTransactions.java b/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityTransactions.java
+index cca52c2..d079b35 100644
+--- a/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityTransactions.java
++++ b/src/main/java/com/agilityhub/core/clubs/activities/application/ActivityTransactions.java
+@@ -2,7 +2,6 @@ package com.agilityhub.core.clubs.activities.application;
+ 
+ import java.util.Collection;
+ import java.util.function.Supplier;
+-import java.util.concurrent.ThreadLocalRandom;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.support.*;
+ import com.agilityhub.core.shared.application.LocalLanes;
+@@ -12,7 +11,7 @@ import com.agilityhub.core.shared.domain.*;
+ /**
+  * R-07-08: one Mongo transaction per write; the `$inc registrationSeq` on the Activity ({@code ActivityRepository.lock})
+  * makes concurrent writers conflict, and a `WriteConflict` / `TransientTransactionError` is retried at most 3 times with
+- * a 50–150 ms randomised backoff, then `409 STALE_VERSION`. The {@link LocalLanes} (one per activity) only bound
++ * the shared 50–150 ms randomised backoff ({@link TransactionRetries#jitter()}), then `409 STALE_VERSION`. The {@link LocalLanes} (one per activity) only bound
+  * contention inside one API instance.
+  */
+ @Service
+@@ -34,7 +33,7 @@ public class ActivityTransactions {
+                 if(!transientConflict(error)) throw error;
+                 if(attempt>=3) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
+                 retries.retried(CONTEXT,error);
+-                try { Thread.sleep(ThreadLocalRandom.current().nextLong(50,151)); }
++                try { Thread.sleep(TransactionRetries.jitter()); }
+                 catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
+             }
+         }
+diff --git a/src/main/java/com/agilityhub/core/clubs/bookings/application/BookingTransactions.java b/src/main/java/com/agilityhub/core/clubs/bookings/application/BookingTransactions.java
+index 7454619..b3aaa5c 100644
+--- a/src/main/java/com/agilityhub/core/clubs/bookings/application/BookingTransactions.java
++++ b/src/main/java/com/agilityhub/core/clubs/bookings/application/BookingTransactions.java
+@@ -5,7 +5,6 @@ import com.agilityhub.core.shared.application.TransactionRetries;
+ import com.agilityhub.core.shared.domain.ApiException;
+ import com.agilityhub.core.shared.domain.ErrorCode;
+ import java.util.*;
+-import java.util.concurrent.ThreadLocalRandom;
+ import java.util.function.Supplier;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.support.TransactionSynchronizationManager;
+@@ -13,7 +12,8 @@ import org.springframework.transaction.support.TransactionTemplate;
+ 
+ /**
+  * S08 §6 booking transactions: one Mongo transaction per operation, retried on `WriteConflict` /
+- * `TransientTransactionError` (at most 3 attempts, 50–150 ms randomised backoff), never after a commit.
++ * `TransientTransactionError` (at most 3 attempts, the shared 50–150 ms randomised backoff of
++ * {@link TransactionRetries#jitter()}), never after a commit.
+  *
+  * <p><b>Lock order</b>: `seat_locks` (the `$inc` on each class touched, R-08-07) → `class_sessions` (counters) →
+  * `bookings` / `seat_holds`. A swap touches two classes; both seat locks are taken new class first. The
+@@ -44,7 +44,7 @@ public class BookingTransactions {
+                 if (!transientConflict(failure)) { throw failure; }
+                 if (attempt >= ATTEMPTS) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
+                 retries.retried(CONTEXT, failure);
+-                try { Thread.sleep(ThreadLocalRandom.current().nextLong(50, 151)); }
++                try { Thread.sleep(TransactionRetries.jitter()); }
+                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
+             }
+         }
+diff --git a/src/main/java/com/agilityhub/core/clubs/census/api/CensusRequests.java b/src/main/java/com/agilityhub/core/clubs/census/api/CensusRequests.java
+index 3750759..22ce06b 100644
+--- a/src/main/java/com/agilityhub/core/clubs/census/api/CensusRequests.java
++++ b/src/main/java/com/agilityhub/core/clubs/census/api/CensusRequests.java
+@@ -76,7 +76,9 @@ public final class CensusRequests {
+             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; YYYY-MM.") String birthMonth,
+             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only.") @Size(max = 1000) String notesToInstructors,
+             @Schema(requiredMode = NOT_REQUIRED, description = "PENDING dogs only; replaces files for the supplied document types. "
+-                    + "A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file; any other key is a new signup upload.") List<SignupRequests.SignupDocument> documents,
++                    + "A file key D2's view (GET /members/{id}/signup) shows for that type keeps its file, with its stored name; any other key is a new signup upload. "
++                    + "The key of a file removed through DELETE /dogs/{id}/documents/{docId}/files/{fileId} answers 400 FILE_NOT_FOUND. "
++                    + "At most 10 new uploads per request (kept files do not count). Sending back the view's keys is no change.") List<SignupRequests.SignupDocument> documents,
+             @Schema(requiredMode = REQUIRED) @NotNull Long version) { }
+     public record DogLevelRequest(
+             @Schema(requiredMode = REQUIRED) @NotBlank String levelId) { }
+diff --git a/src/main/java/com/agilityhub/core/clubs/census/api/SignupResponses.java b/src/main/java/com/agilityhub/core/clubs/census/api/SignupResponses.java
+index d147791..bc44e8e 100644
+--- a/src/main/java/com/agilityhub/core/clubs/census/api/SignupResponses.java
++++ b/src/main/java/com/agilityhub/core/clubs/census/api/SignupResponses.java
+@@ -110,8 +110,8 @@ public final class SignupResponses {
+             @Schema(requiredMode = NOT_REQUIRED, description = "Omitted without BILLING") SignupUpfront upfront, AddDogCheckout checkout) { }
+     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+     public record SignupDocumentFile(String name, @Schema(format = "uri") String downloadUrl,
+-            @Schema(description = "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file; "
+-                    + "the type's files it does not send are removed") String fileKey) { }
++            @Schema(description = "R-04-19 (E5-T19): the file's key. A D2 PATCH /dogs/{id} that sends it back in documents[].files[] keeps this file "
++                    + "with its stored name (the name sent with it is not applied); the type's files it does not send are removed") String fileKey) { }
+     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+     public record SignupDocumentView(String type, DocumentState state, List<SignupDocumentFile> files) { }
+     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+diff --git a/src/main/java/com/agilityhub/core/clubs/census/application/DogService.java b/src/main/java/com/agilityhub/core/clubs/census/application/DogService.java
+index 50a8324..8f8183c 100644
+--- a/src/main/java/com/agilityhub/core/clubs/census/application/DogService.java
++++ b/src/main/java/com/agilityhub/core/clubs/census/application/DogService.java
+@@ -62,7 +62,8 @@ public class DogService {
+             if(target.birthDate.isAfter(clubClock.today(TenantContext.require()))) throw invalid("birthMonth","INVALID_VALUE");
+         }
+         if (request.containsKey("notesToInstructors")) target.instructorNote=object("text",text(request.get("notesToInstructors"),"notesToInstructors",1000,false),"updatedAt",clock.instant());
+-        if (request.containsKey("documents")) signups.getObject().saveDocuments(dog,rows(request.get("documents")));
++        // E5-T21: a documents edit that changes no file key of any type (D2 sending back its view) is no change.
++        boolean documents = request.containsKey("documents") && signups.getObject().saveDocuments(dog, rows(request.get("documents")));
+         if (readmission) { signups.getObject().storeSubmitted(dog, target); }
+         // E3-T17 round 2 (R-04-06): `handlerName` and `licenses` are the record's, not the submission's, so the reused dog's are
+         // frozen as its chip is; sending the value it has is no edit.
+@@ -76,7 +77,7 @@ public class DogService {
+             if (readmission && !licenses.equals(Objects.requireNonNullElse(dog.licenses, List.of()))) { throw CensusAccess.readmissionFrozen(); }
+             dog.licenses = licenses;
+         }
+-        var diff = events.diff(before, fields(target, dog)); if (request.containsKey("documents")) diff.put("documents",object("replaced",true));
++        var diff = events.diff(before, fields(target, dog)); if (documents) diff.put("documents",object("replaced",true));
+         if (diff.isEmpty()) { return; }
+         access.dogs.save(dog); events.emit("PENDING".equals(dog.status)?"SignupEdited":"DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", diff));
+         if ("PENDING".equals(dog.status)) { signups.getObject().refreshDashboard(); } // R-14-01 (M11): the D1 row shows the dog
+diff --git a/src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java b/src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
+index e817c07..151f4d5 100644
+--- a/src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
++++ b/src/main/java/com/agilityhub/core/clubs/census/application/SignupService.java
+@@ -484,33 +484,58 @@ public class SignupService implements SignupPaymentAccess {
+      * The D2 edit of a pending dog's documents (R-04-19): only the types it sends change (E3-T17 round 2). Those of a
+      * readmission's reused dog stay in its request (E38), merged by type: a type sent with files replaces the submitted one,
+      * a type sent without files withdraws it (the dog keeps its own), and the other submitted types stay.
++     * E5-T21: an edit that changes no file key of any type in D2's view is no change: nothing is written, and it returns false.
+      */
+-    public void saveDocuments(Dog dog,List<Map<String,Object>> sent) {
+-        var claimed=claimDocuments(dog,sent,false);
+-        if(!readmissionPending(dog)) { writeDocuments(dog,claimed);return; }
+-        var merged=new LinkedHashMap<String,Map<String,Object>>();
++    public boolean saveDocuments(Dog dog,List<Map<String,Object>> sent) {
++        var claimed=claimDocuments(dog,sent,false);var shown=shownKeys(dog);
++        if(!readmissionPending(dog)) {
++            var changed=claimed.stream().filter(row -> !keySet(row).equals(shown.getOrDefault(string(row.get("type")),Set.of()))).toList();
++            writeDocuments(dog,changed);
++            return !changed.isEmpty();
++        }
++        var request=dog.readmissionRequest;var merged=new LinkedHashMap<String,Map<String,Object>>();
+         for(var row:rows(submitted(dog).get("documents"))) merged.put(string(row.get("type")),row);
+         for(var row:claimed) { if(rows(row.get("files")).isEmpty()) merged.remove(string(row.get("type")));else merged.put(string(row.get("type")),row); }
+         putSubmitted(dog,"documents",new ArrayList<>(merged.values()));
++        if(!shownKeys(dog).equals(shown)) return true;
++        dog.readmissionRequest=request;
++        return false;
++    }
++    /** Each type's file keys in D2's view ({@link #documentRows}, submitted): what a documents edit is compared on (E5-T21). */
++    private Map<String,Set<String>> shownKeys(Dog dog) {
++        var result=new HashMap<String,Set<String>>();
++        for(var row:documentRows(dog,true)) result.put(string(row.get("type")),keySet(row));
++        return result;
++    }
++    private static Set<String> keySet(Map<String,Object> document) {
++        var keys=new HashSet<String>();for(var file:rows(document.get("files"))) keys.add(string(file.get("fileKey")));
++        return keys;
+     }
+     /**
+      * Checks the documents and claims their files (R-04-08); writes no document. A submission (step 17) always has a
+      * VACCINATION_CARD row; a D2 edit has only the types it sends (E3-T17 round 2). E5-T19 (R-04-19): in a D2 edit, a file key
+-     * D2's view gave for that type ({@link #currentFiles}) keeps its file as it is, and any other key is a new signup upload,
+-     * so D2 adds or removes one file by sending the type's other keys back.
++     * D2's view gave for that type ({@link StoredFiles#current}) keeps its file as it is, and any other key is a new signup
++     * upload, so D2 adds or removes one file by sending the type's other keys back. E5-T21: a key whose stored row was removed
++     * through S03 is refused (400 FILE_NOT_FOUND), and R-04-08's limit of 10 files counts only the new uploads.
+      */
+     private List<Map<String,Object>> claimDocuments(Dog dog,List<Map<String,Object>> submitted,boolean submission) {
+-        if(submitted.stream().mapToInt(d -> rows(d.get("files")).size()).sum()>10) throw invalid("documents","TOO_MANY_FILES");
+         var types=new HashSet<String>();var all=new ArrayList<>(submitted);var claimed=new ArrayList<Map<String,Object>>();
+         if(submission&&all.stream().noneMatch(d -> "VACCINATION_CARD".equals(d.get("type")))) all.add(object("type","VACCINATION_CARD","files",List.of()));
++        var sent=new ArrayList<SentDocument>();
+         for(var raw:all) {
+             String type=text(raw.get("type"),"documents.type",80,true);if(!types.add(type)) throw invalid("documents","DUPLICATE");
+             if(rows(access.config().get("census.dogDocumentTypes",List.class)).stream().noneMatch(t -> type.equals(t.get("key")))) throw new ApiException(ErrorCode.DOCUMENT_TYPE_UNKNOWN);
+-            var current=submission?Map.<String,Map<String,Object>>of():currentFiles(dog,type);var keys=new HashSet<String>();
+-            var files=new ArrayList<Map<String,Object>>();for(var file:rows(raw.get("files"))) {
++            sent.add(new SentDocument(type,rows(raw.get("files")),storedFiles(dog,type,submission)));
++        }
++        if(sent.stream().mapToLong(SentDocument::uploads).sum()>10) throw invalid("documents","TOO_MANY_FILES");
++        for(var document:sent) {
++            String type=document.type();var current=document.stored().current();var keys=new HashSet<String>();
++            var files=new ArrayList<Map<String,Object>>();for(var file:document.files()) {
+                 String name=text(file.get("name"),"documents.files.name",80,true);String key=string(file.get("fileKey"));
+                 if(!keys.add(Objects.toString(key,""))) throw invalid("documents.files.fileKey","DUPLICATE");
+                 if(key!=null&&current.containsKey(key)) { files.add(new LinkedHashMap<>(current.get(key)));continue; }
++                // E5-T21 (R-04-19): a removed file stays removed; its key is no upload to claim again, as an S03 key is not.
++                if(document.stored().removed().contains(key)) throw new ApiException(ErrorCode.FILE_NOT_FOUND);
+                 var claim=attachments.claimSignup(key,dog.id+":"+type);
+                 files.add(object("id",claim.id(),"fileKey",claim.fileKey(),"name",name,"mimeType",claim.mimeType(),"sizeBytes",claim.sizeBytes(),"uploadedAt",claim.uploadedAt()));
+             }
+@@ -522,14 +547,22 @@ public class SignupService implements SignupPaymentAccess {
+         return claimed;
+     }
+     /**
+-     * The files D2's view shows for a type, by file key (E5-T19): the dog's own ones (not those removed through S03) and, for a
+-     * readmission's reused dog, the submitted ones. Only these can be kept by sending their key back.
++     * A type's stored files. `current`, by file key, is what D2's view shows (E5-T19): the dog's own files (not those removed
++     * through S03) and, for a readmission's reused dog, the submitted ones; only these can be kept by sending their key back
++     * (none at submission). `removed` holds the keys of the rows removed through S03 (E5-T21).
+      */
+-    private Map<String,Map<String,Object>> currentFiles(Dog dog,String type) {
+-        var result=new LinkedHashMap<String,Map<String,Object>>();
+-        for(var doc:documents.matching(Criteria.where("dogId").is(dog.id).and("type").is(type))) activeFiles(doc.files).forEach(file -> result.put(string(file.get("fileKey")),file));
+-        if(readmissionPending(dog)) rows(submitted(dog).get("documents")).stream().filter(row -> type.equals(row.get("type"))).forEach(row -> rows(row.get("files")).forEach(file -> result.put(string(file.get("fileKey")),file)));
+-        return result;
++    private record StoredFiles(Map<String,Map<String,Object>> current,Set<String> removed) { }
++    /** A type a request sends, with its stored files; `uploads` are its files that are not kept (R-04-08's limit, E5-T21). */
++    private record SentDocument(String type,List<Map<String,Object>> files,StoredFiles stored) {
++        long uploads() { return files.stream().filter(file -> !stored.current().containsKey(string(file.get("fileKey")))).count(); }
++    }
++    private StoredFiles storedFiles(Dog dog,String type,boolean submission) {
++        var current=new LinkedHashMap<String,Map<String,Object>>();var removed=new HashSet<String>();
++        for(var doc:documents.matching(Criteria.where("dogId").is(dog.id).and("type").is(type))) for(var file:rows(doc.files)) {
++            if(file.get("removedAt")!=null) removed.add(string(file.get("fileKey")));else if(!submission) current.put(string(file.get("fileKey")),file);
++        }
++        if(!submission&&readmissionPending(dog)) rows(submitted(dog).get("documents")).stream().filter(row -> type.equals(row.get("type"))).forEach(row -> rows(row.get("files")).forEach(file -> current.put(string(file.get("fileKey")),file)));
++        return new StoredFiles(current,removed);
+     }
+     /** A readmission's reused dog whose own VACCINATION_CARD has a file (E5-T19): it meets `signup.requireDogDocumentAtSignup`. */
+     private boolean ownCardReceived(Dog dog) {
+@@ -537,14 +570,19 @@ public class SignupService implements SignupPaymentAccess {
+     }
+     /** A document's files without those removed through S03 (`removedAt`), as `GET /dogs/{id}/documents` shows them. */
+     private static List<Map<String,Object>> activeFiles(Object files) { return rows(files).stream().filter(file -> file.get("removedAt")==null).toList(); }
+-    /** Writes the claimed documents type by type (the dog's other types stay): RECEIVED with files, PENDING without. */
++    /**
++     * Writes the claimed documents type by type (the dog's other types stay): RECEIVED with files, PENDING without. E5-T21
++     * (R-04-19): the stored rows of files removed through S03 (`removedAt`) stay, so the removal stays recorded and P9 still
++     * counts the file as referenced.
++     */
+     private void writeDocuments(Dog dog,List<Map<String,Object>> claimed) {
+         for(var row:claimed) {
+-            String type=string(row.get("type"));var files=new ArrayList<>(rows(row.get("files")));
++            String type=string(row.get("type"));var files=rows(row.get("files"));
+             var doc=documents.matching(Criteria.where("dogId").is(dog.id).and("type").is(type)).stream().findFirst().orElse(null);
+             boolean fresh=doc==null;if(fresh) { doc=new DogDocument();doc.id=UUID.randomUUID().toString();doc.clubId=TenantContext.require();doc.dogId=dog.id;doc.type=type; }
+             boolean received="RECEIVED".equals(doc.state);
+-            doc.files=files;doc.state=files.isEmpty()?"PENDING":"RECEIVED";if(fresh) documents.insert(doc);else documents.save(doc);
++            var written=new ArrayList<>(rows(doc.files).stream().filter(file -> file.get("removedAt")!=null).toList());written.addAll(files);
++            doc.files=written;doc.state=files.isEmpty()?"PENDING":"RECEIVED";if(fresh) documents.insert(doc);else documents.save(doc);
+             // S03 §7 (E3-T10): `trigger` REGISTRATION for a document missing at signup, FILE_REMOVED when a D2 edit empties a received one.
+             if(files.isEmpty()) events.emit("DogDocumentPending","DogDocument",doc.id,object("dogId",dog.id,"type",type,"state","PENDING","trigger",received?"FILE_REMOVED":"REGISTRATION"));
+         }
+diff --git a/src/main/java/com/agilityhub/core/clubs/training/application/TrainingTransactions.java b/src/main/java/com/agilityhub/core/clubs/training/application/TrainingTransactions.java
+index 03b9550..d0bea71 100644
+--- a/src/main/java/com/agilityhub/core/clubs/training/application/TrainingTransactions.java
++++ b/src/main/java/com/agilityhub/core/clubs/training/application/TrainingTransactions.java
+@@ -5,14 +5,14 @@ import com.agilityhub.core.shared.application.TransactionRetries;
+ import com.agilityhub.core.shared.domain.ApiException;
+ import com.agilityhub.core.shared.domain.ErrorCode;
+ import java.util.*;
+-import java.util.concurrent.ThreadLocalRandom;
+ import java.util.function.Supplier;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.support.TransactionSynchronizationManager;
+ import org.springframework.transaction.support.TransactionTemplate;
+ 
+ /**
+- * S09 R-09-06: one Mongo transaction per mutation, retried whole (at most 3 attempts, 50–150 ms randomised backoff)
++ * S09 R-09-06: one Mongo transaction per mutation, retried whole (at most 3 attempts, the shared 50–150 ms randomised
++ * backoff of {@link TransactionRetries#jitter()})
+  * on `DuplicateKey` (the partial unique seat index) and `WriteConflict` / `TransientTransactionError` (the
+  * `trainingSeq` and ring-slot `$inc`s), never after a commit. Inside an outer transaction (S06/S07 callers, the
+  * idempotency filter) the work joins it and the outer owner retries. The {@link LocalLanes} (`dog:`, `member:`,
+@@ -39,7 +39,7 @@ public class TrainingTransactions {
+                 if (!retryable(failure)) { throw failure; }
+                 if (attempt >= ATTEMPTS) { retries.exhausted(CONTEXT); throw new ApiException(ErrorCode.STALE_VERSION); }
+                 retries.retried(CONTEXT, failure);
+-                try { Thread.sleep(ThreadLocalRandom.current().nextLong(50, 151)); }
++                try { Thread.sleep(TransactionRetries.jitter()); }
+                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
+             }
+         }
+diff --git a/src/main/java/com/agilityhub/core/platform/api/SettingsContracts.java b/src/main/java/com/agilityhub/core/platform/api/SettingsContracts.java
+index fbcf4e8..81a7a41 100644
+--- a/src/main/java/com/agilityhub/core/platform/api/SettingsContracts.java
++++ b/src/main/java/com/agilityhub/core/platform/api/SettingsContracts.java
+@@ -145,7 +145,7 @@ public final class SettingsContracts {
+             @Schema(requiredMode = REQUIRED) @NotNull Long version,
+             @Schema(requiredMode = NOT_REQUIRED) String name,
+             @Schema(requiredMode = NOT_REQUIRED) String legalName,
+-            @Schema(requiredMode = NOT_REQUIRED, description = "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId.") String taxId,
++            @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "Stored normalized: upper case, without spaces or separators (ES: a 7-digit DNI is stored padded to 8 digits); the same id written otherwise is no change. Checked by the club's country profile when it changes (ES: CIF, NIF or NIE with its check character; GENERIC: not validated). A refused one answers 400 VALIDATION_ERROR with details.field = taxId. Blank (empty or spaces only) or null clears it.") String taxId,
+             @Schema(requiredMode = NOT_REQUIRED, description = "The registered office (S02 §3); /branding.legalAddress.") ClubAddress address,
+             @Schema(requiredMode = NOT_REQUIRED, types = {"string", "null"}, description = "The town shown with the club's name (S02 §3); null clears it, and /branding shows address.city.") String displayCity,
+             @Schema(requiredMode = NOT_REQUIRED) String contactEmail,
+diff --git a/src/main/java/com/agilityhub/core/shared/application/TransactionRetries.java b/src/main/java/com/agilityhub/core/shared/application/TransactionRetries.java
+index b96fb87..0d2ca3f 100644
+--- a/src/main/java/com/agilityhub/core/shared/application/TransactionRetries.java
++++ b/src/main/java/com/agilityhub/core/shared/application/TransactionRetries.java
+@@ -52,7 +52,7 @@ public class TransactionRetries {
+     /** The wait before a retry, in milliseconds; injectable so a unit test does not sleep. */
+     @FunctionalInterface
+     public interface Backoff { void pause(long millis) throws InterruptedException; }
+-    /** 50–150 ms, uniformly: the randomised backoff of the retried writers. */
++    /** 50–150 ms, uniformly: the randomised backoff of every retried writer (S05, S06, S07, S08 and S09; E5-T21). */
+     public static long jitter() { return java.util.concurrent.ThreadLocalRandom.current().nextLong(50, 151); }
+ 
+     /** A Mongo `TransientTransactionError` or `WriteConflict` anywhere in the cause chain: the whole unit of work may run again. */
+diff --git a/src/main/resources/messages/messages_ca.properties b/src/main/resources/messages/messages_ca.properties
+index 890fd93..6360bd9 100644
+--- a/src/main/resources/messages/messages_ca.properties
++++ b/src/main/resources/messages/messages_ca.properties
+@@ -354,7 +354,7 @@ notif.N-39.body=Fes servir aquest enllaç per afegir un gos a {club_name}. Caduc
+ signup\:payment.label.SEPA_DD=Domiciliació
+ signup\:payment.label.CARD=Targeta
+ signup\:payment.label.MANUAL=Efectiu
+-signup\:payment.mandate.ES=Autoritzo [[club_legal_name]] a emetre rebuts sobre aquest compte amb caràcter indefinit mentre es mantingui la meva relació amb aquesta entitat (Llei 16/2009, de 13 de novembre, de serveis de pagament).
++signup\:payment.mandate.ES=Autoritzo a [[club_legal_name]] l'emissió de rebuts sobre aquest compte amb caràcter indefinit mentre es mantingui la meva relació amb aquesta entitat (llei 16/2009, de 13 de novembre, de serveis de pagament).
+ signup\:payment.mandate.GENERIC=Autoritzo [[club_legal_name]] a presentar els rebuts al compte indicat.
+ 
+ signup\:payment.concept.ENTRY_FEE=Entrada
+diff --git a/src/main/resources/messages/messages_es.properties b/src/main/resources/messages/messages_es.properties
+index 2f9bd43..2c311c6 100644
+--- a/src/main/resources/messages/messages_es.properties
++++ b/src/main/resources/messages/messages_es.properties
+@@ -354,7 +354,7 @@ notif.N-39.body=Usa este enlace para añadir un perro en {club_name}. Caduca en
+ signup\:payment.label.SEPA_DD=Domiciliación
+ signup\:payment.label.CARD=Tarjeta
+ signup\:payment.label.MANUAL=Efectivo
+-signup\:payment.mandate.ES=Autorizo a [[club_legal_name]] a emitir recibos sobre esta cuenta con carácter indefinido mientras se mantenga mi relación con esta entidad (Ley 16/2009, de 13 de noviembre, de servicios de pago).
++signup\:payment.mandate.ES=Autorizo a [[club_legal_name]] la emisión de recibos sobre esta cuenta con carácter indefinido mientras se mantenga mi relación con esta entidad (ley 16/2009, de 13 de noviembre, de servicios de pago).
+ signup\:payment.mandate.GENERIC=Autorizo a [[club_legal_name]] a presentar los recibos en la cuenta indicada.
+ 
+ signup\:payment.concept.ENTRY_FEE=Entrada
