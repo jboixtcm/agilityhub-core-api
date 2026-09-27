@@ -29,7 +29,9 @@ import org.springframework.util.MultiValueMap;
  */
 @Service
 public class FollowupContractAccess {
-    /** `GET /followup` (S10 §6, R-10-13): the universal list allowlist of CONVENCIONS_API §4. */
+    /** D14 pages hold at most 50 rows (S10 §3): the names of a page are resolved at read time. */
+    public static final int FOLLOWUP_MAX_SIZE = 50;
+    /** `GET /followup` (S10 §6, R-10-13): the universal list allowlist of CONVENCIONS_API §4, pages of 20 or 50 rows. */
     public static final ListDefinition FOLLOWUP = new ListDefinition("followup",
             Map.of("kind", new Field("kind", Type.TEXT), "memberId", new Field("memberId", Type.TEXT), "dogId", new Field("dogId", Type.TEXT),
                     "authorAccountId", new Field("authorAccountId", Type.TEXT), "unread", new Field("unread", Type.BOOLEAN)),
@@ -38,7 +40,7 @@ public class FollowupContractAccess {
             List.of("memberName", "dogName", "levelCode", "activityAt", "authorName", "textExcerpt", "createdAt", "completedAt"),
             List.of("activityAt,desc"),
             Set.of("id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt",
-                    "createdAt", "completedAt", "activityAt", "unread"));
+                    "createdAt", "completedAt", "activityAt", "unread"), FOLLOWUP_MAX_SIZE);
     /** The caller: `memberId` of the member (or of the impersonated member); `staff` = INSTRUCTOR/ADMIN without impersonation. */
     public record Caller(String memberId, boolean staff, boolean impersonated) { }
 
@@ -71,12 +73,16 @@ public class FollowupContractAccess {
         if (owner == null || !owner.equals(caller.memberId())) { throw new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE); }
     }
     /**
-     * A task of another club or of another member's dog is 404 (`memberId` is the dog's owner). A deleted task is 404 for
+     * A task of another club or of another member's dog is 404. The owner is the dog's current one as the census holds it
+     * (R-10-10, amended 27-09, E64), never `Task.memberId`, which the `DogTransferred` consumer refreshes later: right after a
+     * transfer the previous owner no longer reaches the task, its attachments or its completion. A deleted task is 404 for
      * every caller, staff included (R-10-10, E6-T01 round-2 review): only ADMIN's `includeDeleted` list shows it.
      */
     public com.agilityhub.core.clubs.followup.persistence.Task task(Caller caller, String id) {
         var task = tasks.findById(id).filter(found -> found.deletedAt() == null).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        if (!caller.staff() && (caller.memberId() == null || !caller.memberId().equals(task.memberId()))) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        if (!caller.staff() && (caller.memberId() == null || !census.ownerOf(task.dogId()).filter(caller.memberId()::equals).isPresent())) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
         return task;
     }
     /** A visible D14 row of this club (a deleted task's row is hidden: 404). */

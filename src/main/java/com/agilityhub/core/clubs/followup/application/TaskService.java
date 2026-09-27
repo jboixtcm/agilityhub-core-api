@@ -52,8 +52,8 @@ public class TaskService {
         var task = tasks.insert(new Task(UUID.randomUUID().toString(), TenantContext.require(), dogId, dog.memberId(), text, TaskState.PENDING, by, null, null, null,
                 now, now, null, null, 0, 0L));
         for (String key : new LinkedHashSet<>(attachmentIds == null ? List.<String>of() : attachmentIds)) { attachments.add("TASK", task.id(), key, null); }
-        items.task(task.id(), dogId, dog.memberId(), by.accountId(), by.role(), by.displayName(), FollowupRules.excerpt(text), now);
-        events.task(FollowupEvent.Kind.TaskCreated, task, by);
+        items.task(task.id(), dogId, dog.memberId(), by.accountId(), by.role(), by.displayName(), by.gender(), FollowupRules.excerpt(text), now);
+        events.created(task, by);
         dashboard.invalidateCountersAfterCommit(task.clubId());
         return tasks.findById(task.id()).orElseThrow();
     }
@@ -84,18 +84,20 @@ public class TaskService {
     /**
      * PENDING → DONE by the owner (13, also impersonated: audited under DOG_UPDATED, origin BACKOFFICE) or by staff (26):
      * `doneAt`, `doneBy` and the D14 `completedAt`, never its `activityAt`. Already DONE → 422 TASK_ALREADY_DONE; a
-     * concurrent completion finds it DONE on its retry, so there is one `TaskCompleted` and one N-21 (T-10-25).
+     * concurrent completion finds it DONE on its retry, so there is one `TaskCompleted` and one N-21 (T-10-25). The event
+     * and the audit entry name the dog's owner as the census holds it now, not `Task.memberId` (R-10-10, E64).
      */
     @Transactional
     public Task complete(Task task, Task.Actor by) {
         if (task.state() == TaskState.DONE) { throw new ApiException(ErrorCode.TASK_ALREADY_DONE); }
         var now = clock.instant();
         var done = tasks.complete(task.id(), by, now).orElseThrow(() -> gone(task.id(), ErrorCode.TASK_ALREADY_DONE));
+        String owner = census.dog(task.dogId()).map(FollowupCensusAccess.Dog::memberId).orElse(task.memberId());
         items.completed(task.id(), now, now);
-        events.task(FollowupEvent.Kind.TaskCompleted, done, by);
+        events.completed(done, owner, by);
         var user = CurrentUser.current();
         if (user != null && user.impersonation() != null) {
-            audit.write(new AuditCommand(AuditAction.DOG_UPDATED, "Task", task.id(), task.memberId(), auditView(task), auditView(done), null));
+            audit.write(new AuditCommand(AuditAction.DOG_UPDATED, "Task", task.id(), owner, auditView(task), auditView(done), null));
         }
         return done;
     }

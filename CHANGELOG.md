@@ -637,6 +637,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E6-T03 round 2 (ruling E64, S10 R-10-10 amended 27-09): a task belongs to the dog's current owner.
+  - Every owner check of a task, of its attachments and of its completion reads `DogOwnerAccess.ownerOf(task.dogId())`,
+    never `Task.memberId`: right after a transfer, before its consumer runs, the previous owner gets 404 and the new one 200.
+    `TaskCompleted.memberId` and the impersonated completion's audit entry name the census owner too.
+  - The `DogTransferred` consumer moves the tasks and D14 rows to the dog's owner as the census holds it, never to the
+    event's destination: transfers delivered late or out of order end with the last one.
+  - N-20 goes to the event's `memberId` only while the census still holds them as the dog's owner, with the excerpt
+    `TaskCreated` froze at the creation (new payload key `textExcerpt`), never the task's current text.
+  - The D14 author (`authorAccountId`, `authorName`, `authorGender`) is whoever wrote the task or the note, stored with the
+    row as they were then (`FollowupItem.authorGender`); a note event consumed after a transfer still names its writer.
+  - D14 pages hold at most 50 rows (S10 §3): `ListDefinition.maxSize` / `@ListContract(maxSize)`; `GET /followup` publishes
+    `size` `[20, 50]` and answers `size=200`/`1000` with `400 INVALID_FILTER`, as any size the list engine refuses.
 - E6-T02 round 2: the review's two majors and two minors.
   - CONVENCIONS_API §7 (ruling E62): a repeated `Idempotency-Key` is never answered before the route's own authorization.
     `IdempotencyFilter` leaves the answer on the request (the stored response, or `IDEMPOTENCY_KEY_REUSED`) and

@@ -19,9 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * The S03 consumers of S10 follow-up (§7), idempotent by construction: each row has a derived id, so a replayed event
  * writes nothing new. `MemberNoteChanged` upserts the dog's one MEMBER_NOTE row (R-10-12/13): `activityAt` = the change's
- * `occurredAt`, the excerpt of the note's current text, the author = whoever wrote it, and the row leaves every read mark,
- * so it is unread again for everyone but its author; an older replay only refreshes the excerpt. `DogTransferred` moves the
- * dog's tasks and rows to the new owner (the task follows the dog, S03 R-03-14). `DogDeactivated` changes nothing.
+ * `occurredAt`, the excerpt of the note's current text, the author = the member who wrote it (the event's `memberId`, the
+ * owner at that moment: their account, first name and gender, never the dog's current owner, E64), and the row leaves
+ * every read mark, so it is unread again for everyone but its author; an older replay only refreshes the excerpt.
+ * `DogTransferred` moves the dog's tasks and rows to the dog's current owner as the census holds it, never to the event's
+ * destination, so the transfers delivered late or out of order end with the last one (the task follows the dog, S03
+ * R-03-14, E64). `DogDeactivated` changes nothing.
  */
 @Service
 public class FollowupProjection {
@@ -41,9 +44,11 @@ public class FollowupProjection {
             String excerpt = FollowupRules.excerpt(note.text()), rowId = FollowupItemRepository.noteRowId(event.clubId(), dogId);
             var stored = items.findById(rowId).orElse(null);
             if (stored != null && stored.activityAt() != null && !event.occurredAt().isAfter(stored.activityAt())) { items.noteText(dogId, excerpt, clock.instant()); return; }
-            var member = census.members(List.of(dog.memberId())).get(dog.memberId());
-            String author = note.updatedByAccountId() != null ? note.updatedByAccountId() : member == null ? null : member.accountId();
-            items.note(dogId, dog.memberId(), author, member == null ? "" : member.firstName(), excerpt, event.occurredAt(), clock.instant());
+            String writer = event.text("memberId") != null ? event.text("memberId") : dog.memberId();
+            var member = census.members(List.of(writer)).get(writer);
+            String author = member != null && member.accountId() != null ? member.accountId() : note.updatedByAccountId();
+            items.note(dogId, dog.memberId(), author, member == null ? "" : member.firstName(), member == null ? null : member.gender(), excerpt, event.occurredAt(),
+                    clock.instant());
             marks.unreadForEveryone(rowId, clock.instant());
             dashboard.invalidateCountersAfterCommit(event.clubId());
         }
@@ -51,9 +56,10 @@ public class FollowupProjection {
     @Transactional
     public void transferred(CensusForeignEvent event) {
         try (var tenant = TenantContext.open(event.clubId())) {
-            String dogId = event.text("dogId"), to = event.text("toMemberId") != null ? event.text("toMemberId") : event.text("memberId");
-            if (dogId == null || to == null) { return; }
-            tasks.transfer(dogId, to); items.transfer(dogId, to);
+            String dogId = event.text("dogId");
+            String owner = dogId == null ? null : census.dog(dogId).map(FollowupCensusAccess.Dog::memberId).orElse(null);
+            if (owner == null) { return; }
+            tasks.transfer(dogId, owner); items.transfer(dogId, owner);
         }
     }
 

@@ -37,19 +37,39 @@ class FollowupNotificationsTest {
     @Test void T_10_15_n20GoesToTheOwnerByAppAndByEmailAtTheContactAddress() {
         when(tasks.findById("t1")).thenReturn(Optional.of(task("t1", null, new Task.Actor("account-i", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel"))));
         when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", "C")));
-        var n20 = facts.facts(event("TaskCreated", "t1", Map.of("taskId", "t1", "memberId", "member-a")), "N-20").orElseThrow();
+        var n20 = facts.facts(event("TaskCreated", "t1", Map.of("taskId", "t1", "memberId", "member-a", "textExcerpt", "Practiqueu el balancí")), "N-20").orElseThrow();
         assertThat(n20.members()).singleElement().satisfies(subject -> {
             assertThat(subject.memberId()).isEqualTo("member-a"); assertThat(subject.dogId()).isEqualTo("dog-a");
             assertThat(subject.values()).containsEntry("dog_name", "Duna");
             assertThat(subject.subject().taskId()).isEqualTo("t1");
         });
         assertThat(n20.values()).containsEntry("instructor_name", "Estel").containsEntry("task_excerpt", "Practiqueu el balancí").containsEntry("entityId", "dog-a");
-        // The event's member wins over the task's (the owner at creation); no dog and no creator: empty names.
+        // Without memberId in the event, the task's; no creator: an empty name.
         when(tasks.findById("t2")).thenReturn(Optional.of(task("t2", null, null)));
-        when(census.dog("dog-a")).thenReturn(Optional.empty());
-        var bare = facts.facts(event("TaskCreated", "t2", Map.of("taskId", "t2")), "N-20").orElseThrow();
-        assertThat(bare.members()).singleElement().satisfies(subject -> assertThat(subject.values()).containsEntry("dog_name", ""));
+        var bare = facts.facts(event("TaskCreated", "t2", Map.of("taskId", "t2", "textExcerpt", "Pujar la rampa")), "N-20").orElseThrow();
+        assertThat(bare.members()).singleElement().satisfies(subject -> assertThat(subject.memberId()).isEqualTo("member-a"));
         assertThat(bare.values()).containsEntry("instructor_name", "");
+    }
+
+    /**
+     * E6-T03 round 2 (review #3, R-10-10 amended 27-09): N-20 goes to the event's member only while the census still holds
+     * them as the dog's owner, and it carries the excerpt the event froze at the creation, never the task's current text.
+     * Before the fix a late delivery sent the current text to the previous owner.
+     */
+    @Test void R_10_10_n20ReachesOnlyTheCurrentOwnerWithTheExcerptOfTheCreation() {
+        when(tasks.findById("t1")).thenReturn(Optional.of(task("t1", null, new Task.Actor("account-i", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel"))));
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", "C")));
+        var created = Map.<String, Object>of("taskId", "t1", "memberId", "member-a", "textExcerpt", "Treballar l'espera");
+        // The task's text is «Practiqueu el balancí» now; the notice keeps the text of its moment.
+        assertThat(facts.facts(event("TaskCreated", "t1", created), "N-20").orElseThrow().values()).containsEntry("task_excerpt", "Treballar l'espera");
+        // The dog changed hands before the delivery: nothing, to anyone (the task follows the dog; its new owner finds it on 13).
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-b", "C")));
+        assertThat(facts.facts(event("TaskCreated", "t1", created), "N-20")).isEmpty();
+        // A dog the census does not know in the club, or an event without its excerpt (written before 27-09): nothing either.
+        when(census.dog("dog-a")).thenReturn(Optional.empty());
+        assertThat(facts.facts(event("TaskCreated", "t1", created), "N-20")).isEmpty();
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", "C")));
+        assertThat(facts.facts(event("TaskCreated", "t1", Map.of("taskId", "t1", "memberId", "member-a")), "N-20")).isEmpty();
     }
 
     @Test void T_10_33_nothingIsQueuedWithTasksOffForADeletedTaskOrWithoutAMember() {
@@ -89,6 +109,11 @@ class FollowupNotificationsTest {
                 .containsEntry("task_excerpt", "Practiqueu el balancí");
         assertThat(n21.subject().dogId()).isEqualTo("dog-a");
         assertThat(n21.subject().taskId()).isEqualTo("t1");
+        // Round 2: the event's `memberId` (the dog's owner at the completion, from the census) wins over the task's.
+        when(census.members(List.of("member-b"))).thenReturn(Map.of("member-b",
+                new FollowupCensusAccess.Member("member-b", "Joan", "Joan Example", "MALE", "account-j", null, "es")));
+        assertThat(facts.facts(event("TaskCompleted", "t1", Map.of("taskId", "t1", "memberId", "member-b")), "N-21").orElseThrow().values())
+                .containsEntry("member_name", "Joan Example").containsEntry("gender", "MALE");
         when(census.instructorNote("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Note("A veure si treballem el doble", NOW, "account-m")));
         when(census.members(anyCollection())).thenReturn(Map.of());
         var n22 = facts.facts(event("MemberNoteChanged", "dog-a", Map.of("dogId", "dog-a")), "N-22").orElseThrow();

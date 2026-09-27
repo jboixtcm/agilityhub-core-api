@@ -85,7 +85,7 @@ class E6PersistenceIT extends AbstractIntegrationTest {
                     new Task.Actor("account-a", AuthorRole.INSTRUCTOR, "Estel"), null, null, null, now, now, null, null, 1, null));
             assertThat(tasks.findById("e6p-task-a").orElseThrow().createdBy().displayName()).isEqualTo("Estel");
             items.insert(new FollowupItem("e6p-item-a", CLUB, FollowupKind.TASK, "e6p-task-a", "dog-a", "member-a", "account-a", AuthorRole.INSTRUCTOR,
-                    "Estel", "Practiqueu el balancí", now, null, now, false, now));
+                    "Estel", null, "Practiqueu el balancí", now, null, now, false, now));
             marks.insert(new FollowupReadMark("e6p-read-a", CLUB, "account-b", now, List.of("e6p-item-a"), now, now));
             assertThatThrownBy(() -> marks.insert(new FollowupReadMark("e6p-read-b", CLUB, "account-b", now, List.of(), now, now)))
                     .isInstanceOf(DuplicateKeyException.class);

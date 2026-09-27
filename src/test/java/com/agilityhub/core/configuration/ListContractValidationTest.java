@@ -19,13 +19,15 @@ class ListContractValidationTest {
         @ListContract(paged = true, acceptsFields = false, fields = {"id"}) public void refusedWithFields() { }
         @ListContract(paged = true) public void fieldsWithoutKeys() { }
         @ListContract(paged = false, fields = {"id"}) public void keysWithoutParameter() { }
+        @ListContract(paged = true, fields = {"id"}, maxSize = 50) public void smallerPage() { }
+        @ListContract(paged = true, fields = {"id"}, maxSize = 51) public void notAPageSize() { }
         public void notAList() { }
     }
     static HandlerMethod handler(String name) throws Exception { return new HandlerMethod(new Examples(), Examples.class.getMethod(name)); }
 
     @Test void CONVENCIONS_API_4_wellDeclaredListContractsStart() throws Exception {
-        assertThatCode(() -> ListContractValidation.check(List.of(handler("list"), handler("contractOnly"), handler("filterValues"), handler("notAList"))))
-                .doesNotThrowAnyException();
+        assertThatCode(() -> ListContractValidation.check(List.of(handler("list"), handler("contractOnly"), handler("filterValues"), handler("smallerPage"),
+                handler("notAList")))).doesNotThrowAnyException();
     }
 
     @Test void CONVENCIONS_API_4_aMisdeclaredListContractStopsTheStartup() throws Exception {
@@ -35,5 +37,8 @@ class ListContractValidationTest {
                 .hasMessageContaining("Examples.fieldsWithoutKeys: publishes fields without x-fields");
         assertThatThrownBy(() -> ListContractValidation.check(List.of(handler("keysWithoutParameter"))))
                 .hasMessageContaining("Examples.keysWithoutParameter: publishes x-fields without the fields parameter");
+        // E6-T03 round 2: a page limit is one of the four sizes (D14: 50).
+        assertThatThrownBy(() -> ListContractValidation.check(List.of(handler("notAPageSize"))))
+                .hasMessageContaining("Examples.notAPageSize: maxSize is not a page size");
     }
 }

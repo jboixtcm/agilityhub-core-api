@@ -1,0 +1,19 @@
+$ git diff --check -> exit 0
+  (no output)
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/17-openapi-snapshot-round2-run1.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/18-openapi-snapshot-round2-run2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/19-before-fix-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/20-before-fix-round2-soft.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/21-clean-verify-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/22-clean-verify-round2-attempt2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/23-jacoco-check-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/24-test-summary-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/25-coverage-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/26-manual-run-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/27-manual-run-round2-attempt2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/28-manual-run-round2-attempt3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/29-diff-check-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/30-whitespace-check-round2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/before-fix-round2.py -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/sanitize-round2.py -> exit 1 clean
+new files: 16, with whitespace problems: 0

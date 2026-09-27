@@ -1,0 +1,117 @@
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/api/FollowupContracts.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/api/FollowupController.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupContractAccess.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupEvents.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupNotificationFacts.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupProjection.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupService.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/TaskService.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/domain/FollowupEvent.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItem.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItemRepository.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/configuration/ListContractValidation.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/configuration/OpenApiConfiguration.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/application/contract/ListContract.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/application/lists/ListDefinition.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/application/lists/ListQuery.java
+restored HEAD in the copy: src/test/java/com/agilityhub/core/clubs/followup/application/FollowupProjectionTest.java
+restored HEAD in the copy: src/test/java/com/agilityhub/core/clubs/followup/application/FollowupServiceTest.java
+restored HEAD in the copy: src/test/java/com/agilityhub/core/shared/application/lists/ListQueryTest.java
+restored HEAD in the copy: src/test/java/com/agilityhub/core/configuration/ListContractValidationTest.java
+round-1 FollowupItem fixture in the copy: src/test/java/com/agilityhub/core/clubs/followup/application/FollowupContractAccessTest.java
+round-1 FollowupItem fixture in the copy: src/test/java/com/agilityhub/core/configuration/E6ContractIT.java
+round-1 FollowupItem fixture in the copy: src/test/java/com/agilityhub/core/configuration/E6PersistenceIT.java
+$ (cd target/before-fix-e6t03-r2 && ./mvnw -q verify -Dtest=FollowupContractAccessTest,FollowupNotificationsTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT,E6ContractIT#T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 4, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.790 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce -- Time elapsed: 0.089 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting map:
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest.R_10_10_n20ReachesOnlyTheCurrentOwnerWithTheExcerptOfTheCreation -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting map:
+[ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.096 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.application.FollowupContractAccessTest
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupContractAccessTest.R_10_10_theOwnerOfATaskIsTheDogsCurrentOwnerNotTaskMemberId -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting code to raise a throwable.
+[ERROR]   FollowupContractAccessTest.R_10_10_theOwnerOfATaskIsTheDogsCurrentOwnerNotTaskMemberId:119
+Expecting code to raise a throwable.
+[ERROR]   FollowupNotificationsTest.R_10_10_n20ReachesOnlyTheCurrentOwnerWithTheExcerptOfTheCreation:64
+Expecting map:
+[ERROR]   FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce:116
+Expecting map:
+[ERROR] Tests run: 10, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 13.03 s <<< FAILURE! -- in com.agilityhub.core.configuration.E6ContractIT
+[ERROR] com.agilityhub.core.configuration.E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata -- Time elapsed: 3.529 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+Expecting actual:
+[ERROR] Tests run: 15, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 7.910 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_21_d14PagesHoldAtMost50Rows -- Time elapsed: 0.438 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: 400
+ but was: 200
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications -- Time elapsed: 0.209 s <<< FAILURE!
+expected: {"by"={"accountId"="s10f-estel", "role"="INSTRUCTOR"}, "dogId"="s10f-d-duna", "memberId"="s10f-m-laura", "taskId"="5e0ba900-781f-41e6-ba26-3521a475795d", "textExcerpt"="Practiqueu el balancí amb calma: sessions curtes de 5 minuts, i sempre acabant amb un èxit. Demà ho mirem a classe."}
+ but was: {"by"={"accountId"="s10f-estel", "role"="INSTRUCTOR"}, "dogId"="s10f-d-duna", "memberId"="s10f-m-laura", "taskId"="5e0ba900-781f-41e6-ba26-3521a475795d"}
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner -- Time elapsed: 0.910 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: "s10f-m-pau"
+ but was: "s10f-m-laura"
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion -- Time elapsed: 0.319 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: 404
+ but was: 200
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer -- Time elapsed: 0.500 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: "MALE"
+ but was: null
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText -- Time elapsed: 0.245 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting empty but was: [{"_id"="3c429eea-fcec-40b2-a7e9-6038aeca14ac", "accountId"="s10f-joan", "action"={"params"={"dogId"="s10f-d-toby", "taskId"="6610a72d-f2df-4d79-a7a5-26309eca4ce2"}, "type"="OPEN_TASKS"}, "attempts"=0, "audience"="MEMBER", "body"="Estel te ha puesto una tarea para Toby: «Text nou per a la Laura: la rampa, a poc a poc»", "category"="PERSONAL", "channel"="APP", "clubId"="s10
+[ERROR]   FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText:682 [nobody: the event's owner no longer owns the dog]
+Expecting empty but was: [{"_id"="3c429eea-fcec-40b2-a7e9-6038aeca14ac", "accountId"="s10f-joan", "action"={"params"={"dogId"="s10f-d-toby", "taskId"="6610a72d-f2df-4d79-a7a5-26309eca4ce2"}, "type"="OPEN_TASKS"}, "attempts"=0, "audience"="MEMBER", "body"="Estel te ha puesto una tarea para Toby: «Text nou per a la Laura: la rampa, a poc a poc»", "category"="PERSONAL", "channel"="APP", "clubId"="s10
+[ERROR]   FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion:626->call:112->call:119 [GET /tasks/7a41951b-17e9-48a3-b124-c526cea27df1 {"id":"7a41951b-17e9-48a3-b124-c526cea27df1","dogId":"s10f-d-toby","text":"Pujar la rampa a poc a poc","state":"PENDING","createdAt":"2026-08-12T14:00:00Z","createdBy":{"accountId":null,"role":"INSTRUCTOR","displayName"
+expected: 404
+ but was: 200
+[ERROR]   FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner:660
+expected: "s10f-m-pau"
+ but was: "s10f-m-laura"
+[ERROR]   FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications:178
+expected: {"by"={"accountId"="s10f-estel", "role"="INSTRUCTOR"}, "dogId"="s10f-d-duna", "memberId"="s10f-m-laura", "taskId"="5e0ba900-781f-41e6-ba26-3521a475795d", "textExcerpt"="Practiqueu el balancí amb calma: sessions curtes de 5 minuts, i sempre acabant amb un èxit. Demà ho mirem a classe."}
+ but was: {"by"={"accountId"="s10f-estel", "role"="INSTRUCTOR"}, "dogId"="s10f-d-duna", "memberId"="s10f-m-laura", "taskId"="5e0ba900-781f-41e6-ba26-3521a475795d"}
+[ERROR]   FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer:712 [s10f-d-toby]
+expected: "MALE"
+ but was: null
+[ERROR]   FollowupIT.T_10_21_d14PagesHoldAtMost50Rows:727->call:112->call:119 [GET /followup?size=200 {"items":[{"id":"1b3af7dd-1075-3f9e-99a8-3fcc89090331","kind":"TASK","taskId":"6a1faf96-32af-446e-a458-24c3bf5d35a5","dogId":"s10f-d-duna","dogName":"Duna","levelCode":"C","memberId":"s10f-m-laura","memberName":"Laura Example","authorName":"Estel","authorRole":"INSTRUCTOR","authorGender":null,"tex
+expected: 400
+ but was: 200
+[ERROR]   E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata:358
+Expecting actual:
+[ERROR] Tests run: 16, Failures: 7, Errors: 0, Skipped: 0
+--- per test (surefire + failsafe XML of the copy)
+ok     FollowupContractAccessTest.T_10_21_followupAcceptsOnlyTheDeclaredFiltersAndSort
+ok     FollowupContractAccessTest.T_10_15_aDeletedTaskIsNotFoundForStaffToo
+FAILED FollowupContractAccessTest.R_10_10_theOwnerOfATaskIsTheDogsCurrentOwnerNotTaskMemberId
+ok     FollowupContractAccessTest.T_10_15_T_10_22_membersReachOnlyTheirOwnDogsAndTasks
+ok     FollowupContractAccessTest.T_10_16_attachmentRolesFollowTheirEntity
+ok     FollowupContractAccessTest.T_10_22_callerIsTheMemberTheImpersonatedMemberOrUnimpersonatedStaff
+FAILED FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce
+ok     FollowupNotificationsTest.T_10_15_n20GoesToTheOwnerByAppAndByEmailAtTheContactAddress
+ok     FollowupNotificationsTest.T_10_33_nothingIsQueuedWithTasksOffForADeletedTaskOrWithoutAMember
+FAILED FollowupNotificationsTest.R_10_10_n20ReachesOnlyTheCurrentOwnerWithTheExcerptOfTheCreation
+FAILED FollowupIT.T_10_21_d14PagesHoldAtMost50Rows
+FAILED FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications
+FAILED FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner
+ok     FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow
+ok     FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued
+ok     FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21
+ok     FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken
+ok     FollowupIT.R_04_06_observationsOfAPendingReadmissionsReusedDogAnswer409
+FAILED FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion
+FAILED FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer
+ok     FollowupIT.T_10_18_theTaskFollowsATransferredDog
+FAILED FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText
+ok     FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+ok     FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne
+ok     FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles
+FAILED E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata

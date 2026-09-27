@@ -37,6 +37,16 @@ class ListQueryTest {
     // E3-T16 step 4 (CONVENCIONS_API §4, amended 25-09): a size above 1000 is refused too, never cut to 1000.
     @ParameterizedTest @ValueSource(strings = {"size=-1", "size=0", "size=21", "size=1001", "size=9000", "size=no", "page=-1", "page=2147483648", "sort=unknown", "sort=name,down", "sort=name,asc,desc", "sort=", "fields=secret", "fields="})
     void T_03_08_invalidPaginationSortAndProjection(String input) { var pair = input.split("=", -1); invalid(() -> parse(pair)); }
+    /** E6-T03 round 2 (S10 §3): a list with a smaller page (D14: 50) accepts the sizes up to it and refuses the larger ones as any other size. */
+    @Test void T_10_21_aListWithASmallerPageRefusesTheLargerSizes() {
+        var small = DEFINITION.withMaxSize(50);
+        var params = new LinkedMultiValueMap<String, String>();
+        for (String size : List.of("20", "50")) { params.set("size", size); assertThat(ListQuery.parse(small, params).size()).isEqualTo(Integer.parseInt(size)); }
+        params.remove("size"); assertThat(ListQuery.parse(small, params).size()).as("the default page").isEqualTo(50);
+        for (String size : List.of("51", "200", "1000")) { params.set("size", size); invalid(() -> ListQuery.parse(small, params)); }
+        assertThat(DEFINITION.maxSize()).isEqualTo(1000); assertThat(small.withMaxSize(1000)).isEqualTo(DEFINITION);
+        assertThatThrownBy(() -> DEFINITION.withMaxSize(51)).isInstanceOf(IllegalArgumentException.class);
+    }
     @Test void T_03_08_savedJsonFiltersRejectWrongTypesAndMalformedRequests() {
         invalid(() -> parse("page", "0", "page", "1")); invalid(() -> parse("sort", "name", "sort", "name"));
         invalid(() -> DEFINITION.selectColumns("unknown")); invalid(() -> ListQuery.validateSort(DEFINITION, null));

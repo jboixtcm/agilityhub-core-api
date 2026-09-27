@@ -1,0 +1,31 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- jacoco:0.8.14:check (coverage) @ agilityhub-core-api ---
+[INFO] Loading execution data file /Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] Analyzed bundle 'agilityhub-core-api' with 2064 classes
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.ports: lines covered ratio is 0.79, but expected minimum is 0.85
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.ports: branches covered ratio is 0.65, but expected minimum is 0.80
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.integrations: lines covered ratio is 0.13, but expected minimum is 0.85
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.integrations: branches covered ratio is 0.13, but expected minimum is 0.80
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.engine: lines covered ratio is 0.80, but expected minimum is 0.85
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.engine: branches covered ratio is 0.58, but expected minimum is 0.80
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application: lines covered ratio is 0.82, but expected minimum is 0.85
+[WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application: branches covered ratio is 0.60, but expected minimum is 0.80
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.692 s
+[INFO] Finished at: 2026-09-27T20:59:42+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.jacoco:jacoco-maven-plugin:0.8.14:check (coverage) on project agilityhub-core-api: Coverage checks have not been met. See log for details. -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

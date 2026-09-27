@@ -5,10 +5,26 @@ import com.agilityhub.core.shared.domain.ApiException;
 import com.agilityhub.core.shared.domain.ErrorCode;
 import java.util.*;
 
-/** Trusted endpoint allowlist. Paths always come from code, never from a request. */
+/**
+ * Trusted endpoint allowlist. Paths always come from code, never from a request. `maxSize` is the largest page size of
+ * {@link ListQuery#SIZES} the list accepts (1000 unless a resource pages smaller, as D14's 50 rows of S10 §3); a larger
+ * one is `400 INVALID_FILTER`, like any size outside the four, and the operation publishes the same limit in its `size`
+ * enum (`@ListContract(maxSize)`).
+ */
 public record ListDefinition(String key, Map<String, Field> filters, Map<String, String> sorts,
         List<String> searchable, List<String> columns, List<String> defaultColumns,
-        List<String> defaultSort, Set<String> fields) {
+        List<String> defaultSort, Set<String> fields, int maxSize) {
+    public ListDefinition {
+        if (!ListQuery.SIZES.contains(maxSize)) { throw new IllegalArgumentException("maxSize must be one of " + ListQuery.SIZES + ": " + maxSize); }
+    }
+    public ListDefinition(String key, Map<String, Field> filters, Map<String, String> sorts, List<String> searchable, List<String> columns,
+            List<String> defaultColumns, List<String> defaultSort, Set<String> fields) {
+        this(key, filters, sorts, searchable, columns, defaultColumns, defaultSort, fields, ListQuery.SIZES.getLast());
+    }
+    /** The same allowlist with pages of at most {@code maxSize} rows. */
+    public ListDefinition withMaxSize(int maxSize) {
+        return new ListDefinition(key, filters, sorts, searchable, columns, defaultColumns, defaultSort, fields, maxSize);
+    }
     public enum Type { TEXT, NUMBER, BOOLEAN, DATE, INSTANT }
     public record Field(String path, Type type, Set<FilterOperator> operators) {
         public Field(String path, Type type) { this(path, type, allowed(type)); }

@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * E5-T24 (CONVENCIONS_API §4, amended 26-09; review E5-T22 #2 and nit #7): the list contracts are checked when the application
  * starts, so a misdeclared one never reaches the OpenAPI document. An operation publishes the `fields` parameter exactly when it
  * is `paged` and accepts `fields`, and then its `x-fields` must list the keys; `acceptsFields = false` with `fields` is refused.
+ * A `maxSize` must be one of the four page sizes (E6-T03 round 2: D14 publishes 50).
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
@@ -33,6 +34,7 @@ public class ListContractValidation {
             if (!list.acceptsFields() && list.fields().length > 0) { problems.add(name + ": acceptsFields = false with fields"); }
             else if (parameter && list.fields().length == 0) { problems.add(name + ": publishes fields without x-fields"); }
             else if (!parameter && list.fields().length > 0) { problems.add(name + ": publishes x-fields without the fields parameter"); }
+            if (!com.agilityhub.core.shared.application.lists.ListQuery.SIZES.contains(list.maxSize())) { problems.add(name + ": maxSize is not a page size"); }
         }
         if (!problems.isEmpty()) { throw new IllegalStateException("Invalid @ListContract (CONVENCIONS_API §4): " + problems); }
     }

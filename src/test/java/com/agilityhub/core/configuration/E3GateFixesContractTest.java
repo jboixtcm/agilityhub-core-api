@@ -225,18 +225,26 @@ class E3GateFixesContractTest {
         }
     }
 
-    /** Step 4 (CONVENCIONS_API §4, amended 25-09): the shared `size` parameter lists the four page sizes, default 50. */
+    /**
+     * Step 4 (CONVENCIONS_API §4, amended 25-09): the shared `size` parameter lists the four page sizes, default 50. The one
+     * list with a smaller page is D14 (`GET /followup`, S10 §3: at most 50 rows, E6-T03 round 2), which lists 20 and 50.
+     */
     @Test void T_03_08_everyListDocumentsTheFourPageSizes() {
-        var sizes = new ArrayList<JsonNode>();
-        document.path("paths").forEach(operations -> operations.forEach(operation -> operation.path("parameters").forEach(parameter -> {
-            if ("size".equals(parameter.path("name").asText()) && parameter.path("description").asText().startsWith("Requested page size")) { sizes.add(parameter); }
+        var sizes = new java.util.LinkedHashMap<String, JsonNode>();
+        document.path("paths").fields().forEachRemaining(path -> path.getValue().fields().forEachRemaining(operation -> operation.getValue().path("parameters").forEach(parameter -> {
+            if ("size".equals(parameter.path("name").asText()) && parameter.path("description").asText().startsWith("Requested page size")) {
+                sizes.put(operation.getKey().toUpperCase() + " " + path.getKey(), parameter);
+            }
         })));
-        assertThat(sizes).hasSizeGreaterThanOrEqualTo(29).allSatisfy(parameter -> {
-            assertThat(parameter.path("in").asText()).isEqualTo("query");
-            assertThat(texts(parameter.at("/schema/enum"))).containsExactly("20", "50", "200", "1000");
-            assertThat(parameter.at("/schema/default").asInt()).isEqualTo(50);
-            assertThat(parameter.at("/schema/type").asText()).isEqualTo("integer");
-            assertThat(parameter.at("/schema").has("minimum")).isFalse();
+        assertThat(sizes).hasSizeGreaterThanOrEqualTo(29);
+        sizes.forEach((operation, parameter) -> {
+            assertThat(parameter.path("in").asText()).as(operation).isEqualTo("query");
+            assertThat(texts(parameter.at("/schema/enum"))).as(operation)
+                    .containsExactlyElementsOf(operation.equals("GET /api/v1/followup") ? List.of("20", "50") : List.of("20", "50", "200", "1000"));
+            assertThat(parameter.at("/schema/default").asInt()).as(operation).isEqualTo(50);
+            assertThat(parameter.at("/schema/type").asText()).as(operation).isEqualTo("integer");
+            assertThat(parameter.at("/schema").has("minimum")).as(operation).isFalse();
         });
+        assertThat(sizes).containsKey("GET /api/v1/followup");
     }
 }

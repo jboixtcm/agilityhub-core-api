@@ -98,7 +98,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         mongo.insert(new Attachment("e6-att-task", CLUB, "TASK", "e6-task-a", "e6-att-task", "vídeo.mp4", "video/mp4", 4, "e6-INSTRUCTOR", now, now, null, null, 0));
         mongo.insert(new Attachment("e6-att-note", CLUB, "INSTRUCTOR_NOTE", "e6-dog-a", "e6-att-note", "foto.jpg", "image/jpeg", 4, "e6-MEMBER", now, now, null, null, 0));
         mongo.insert(new FollowupItem("e6-item-a", CLUB, FollowupKind.TASK, "e6-task-a", "e6-dog-a", "e6-member-a", "e6-INSTRUCTOR", AuthorRole.INSTRUCTOR,
-                "Estel", "Practiqueu el balancí", now, null, now, false, now));
+                "Estel", null, "Practiqueu el balancí", now, null, now, false, now));
     }
     private void club(String clubId, List<Module> modules) {
         mongo.remove(Query.query(Criteria.where("_id").is(clubId)), Club.class);
@@ -352,6 +352,14 @@ class E6ContractIT extends AbstractIntegrationTest {
         assertThat(strings(api.at("/paths/~1api~1v1~1attendances/get/x-sortable"))).containsExactly("classStartsAt", "classDate");
         assertThat(strings(api.at("/paths/~1api~1v1~1followup/get/x-filterable"))).containsExactly("kind", "memberId", "dogId", "authorAccountId", "unread");
         assertThat(strings(api.at("/paths/~1api~1v1~1followup/get/x-sortable"))).containsExactly("activityAt");
+        // E6-T03 round 2 (review #5, S10 §3): D14 pages hold at most 50 rows, and the operation publishes it; other lists keep the four sizes.
+        var followupSize = Stream.of(mapper.convertValue(api.at("/paths/~1api~1v1~1followup/get/parameters"), JsonNode[].class))
+                .filter(p -> p.path("name").asText().equals("size")).findFirst().orElseThrow();
+        assertThat(Stream.of(mapper.convertValue(followupSize.at("/schema/enum"), Integer[].class)).toList()).containsExactly(20, 50);
+        assertThat(followupSize.path("description").asText()).contains("at most 50 rows");
+        var attendanceSize = Stream.of(mapper.convertValue(api.at("/paths/~1api~1v1~1attendances/get/parameters"), JsonNode[].class))
+                .filter(p -> p.path("name").asText().equals("size")).findFirst().orElseThrow();
+        assertThat(Stream.of(mapper.convertValue(attendanceSize.at("/schema/enum"), Integer[].class)).toList()).containsExactly(20, 50, 200, 1000);
         assertThat(api.at("/paths/~1api~1v1~1instructor~1week~1export/get/responses/200/content").has("application/pdf")).isTrue();
         // E6-T03 step 11 (E6-T01 round-2 review #2, S10 §6): GET /tasks is the whole history (PENDING and DONE) unless the caller asks otherwise.
         var includeDone = Stream.of(mapper.convertValue(api.at("/paths/~1api~1v1~1tasks/get/parameters"), JsonNode[].class))

@@ -81,9 +81,9 @@ class FollowupContractAccessTest {
         assertThatThrownBy(() -> access.task(owner, "task-d")).hasMessage("NOT_FOUND");
         assertThatThrownBy(() -> access.task(staff, "task-x")).hasMessage("NOT_FOUND");
         when(items.findById("item-a")).thenReturn(Optional.of(new FollowupItem("item-a", "club-a", com.agilityhub.core.clubs.followup.domain.FollowupKind.TASK, "task-a",
-                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", "Practiqueu", NOW, null, NOW, false, NOW)));
+                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", null, "Practiqueu", NOW, null, NOW, false, NOW)));
         when(items.findById("item-h")).thenReturn(Optional.of(new FollowupItem("item-h", "club-a", com.agilityhub.core.clubs.followup.domain.FollowupKind.TASK, "task-d",
-                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", "Pujar", NOW, null, NOW, true, NOW)));
+                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", null, "Pujar", NOW, null, NOW, true, NOW)));
         access.followupItem("item-a");
         assertThatThrownBy(() -> access.followupItem("item-x")).hasMessage("NOT_FOUND");
         assertThatThrownBy(() -> access.followupItem("item-h")).as("a deleted task's hidden row").hasMessage("NOT_FOUND");
@@ -104,6 +104,27 @@ class FollowupContractAccessTest {
         }
         when(attachments.findById("a-dead")).thenReturn(Optional.of(attachment("a-dead", "TASK", "task-d", null)));
         assertThatThrownBy(() -> access.removableAttachment(staff, "a-dead")).hasMessage("NOT_FOUND");
+    }
+
+    /**
+     * E6-T03 round 2 (review #1, R-10-10 amended 27-09): the owner of a task is the dog's current owner as the census holds
+     * it, not `Task.memberId`, which the `DogTransferred` consumer refreshes later. Here the census already says member-b
+     * while the task still says member-a: member-a no longer reaches the task, its attachments or (through the same guard)
+     * its completion; member-b does. Before the fix it was the other way round.
+     */
+    @Test void R_10_10_theOwnerOfATaskIsTheDogsCurrentOwnerNotTaskMemberId() {
+        when(census.ownerOf("dog-a")).thenReturn(Optional.of("member-b"));
+        when(tasks.findById("task-a")).thenReturn(Optional.of(task("task-a", null)));
+        for (var previous : List.of(owner, impersonated)) {
+            assertThatThrownBy(() -> access.task(previous, "task-a")).hasMessage("NOT_FOUND");
+            assertThatThrownBy(() -> access.readableEntity(previous, AttachmentEntityType.TASK, "task-a")).hasMessage("NOT_FOUND");
+        }
+        assertThat(access.task(stranger, "task-a").id()).isEqualTo("task-a");
+        access.readableEntity(stranger, AttachmentEntityType.TASK, "task-a");
+        assertThat(access.task(staff, "task-a").id()).isEqualTo("task-a");
+        // A dog the census does not know in this club: no member reaches its tasks.
+        when(census.ownerOf("dog-a")).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> access.task(stranger, "task-a")).hasMessage("NOT_FOUND");
     }
 
     @Test void T_10_16_attachmentRolesFollowTheirEntity() {

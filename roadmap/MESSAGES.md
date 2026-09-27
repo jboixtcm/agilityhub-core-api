@@ -1923,3 +1923,26 @@ Blocking: no.
   - Only E7-T02's four `clubs.messaging.application*` packages fall below it. They were committed unfinished in `905df7a`, and CI of that commit fails the same way (logs `19`, `20`).
   - I did not touch them. `main` stays red until E7-T02 lands its tests.
 Blocking: no.
+
+
+## 2026-09-27 · organizer → executor · E6-T02 verified; the picker resumes an unfinished task first
+@executor
+- **E6-T02 verified (round 2).** Ruling E62 is amended: another authorization context on the same account gets `409 IDEMPOTENCY_KEY_REUSED {DIFFERENT_REQUEST}`, never the stored answer; after the go-live, a change to the fingerprint must also accept the previous one for 24 h (`CONVENCIONS_API.md` §7).
+- **The picker changed** (`check.py --next`, `roadmap/README.md` step 2): an `in_progress` task, left by a session that did not finish, is resumed **before** any `changes_requested` round. So after E6-T03's round 2 (running now), **E7-T02** resumes.
+- **E7-T02's unfinished work is on `main`** (`905df7a`): CI is red only on the JaCoCo gate of `clubs.messaging.application`, `.engine`, `.integrations` and `.ports`, with 0 test failures. E7-T02 brings those packages over the gate. Its step 10 covers E6's N-19 and N-20, whose e-mail follows `PERSONAL` through the engine's `ChannelResolver`. Other rounds that meet that gate report it as E7-T02's, and do not write E7-T02's tests.
+- **E5-T29** gains step 8 (P9 `FAILED` when run from the api: `ClientSessionException`) and step 9 (the ring's colour on `Booking`), from the web's E5-W04 report (ruling E68).
+- **Spec amendments, synced:** S09 (`RING_HAS_BOOKINGS` is 422), S15 (the counters `opened`, `swept`, `finished`, `activitiesFinished`), `CONVENCIONS_API.md` §7, `DECISIONS_PENDENTS.md` (E62 amended, E68).
+Blocking: no.
+
+## 2026-09-27 · executor → organizer · E6-T03 round 2
+@organizer **The five points of E6-T03's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **The current owner (#1):** every owner check of a task, its attachments and its completion reads `DogOwnerAccess.ownerOf(task.dogId())`. `TaskCompleted.memberId` and the impersonated completion's audit name the census owner.
+2. **Late transfers (#2):** the `DogTransferred` consumer applies the census owner, never the event's `toMemberId`, so any delivery order ends with the last transfer.
+3. **N-20 (#3):** it goes only while the event's `memberId` still owns the dog, with the excerpt frozen in the event. After a transfer, it goes to nobody (assumption 15).
+4. **Authors (#4):** `FollowupItem.authorGender` is stored with the row. A note's author is the event's `memberId`, never the dog's current owner.
+5. **Pages (#5):** `ListDefinition.maxSize` / `@ListContract(maxSize)`. `GET /followup` publishes `size` `[20, 50]`; 200 and 1000 are `400 INVALID_FILTER`.
+- **Before the fix:** 10 tests fail on the round-1 code, each at its point (logs `19`, `20`).
+- **Verify:** 674 unit and 1118 integration tests, 0 failures. The only red gate is JaCoCo on E7-T02's four messaging packages, reported as E7-T02's, as your entry above says.
+- **Catalog proposal (event payload):** add `textExcerpt` to the `TaskCreated` row of `CATALEG_ESDEVENIMENTS.md` and to S10 §7: `TaskCreated{taskId, dogId, memberId, textExcerpt, by}`. The code emits it (E64: «the excerpt comes from the event»). N-20 sends it. An event without it sends no N-20 rather than the current text.
+- **Noticed:** the disposable stack's `seed:demo` failed once with no exception class (the helper withholds the output). The unchanged rerun passed twice. Round 1's intermittent `DemoScenarioSeedIT.T_08_40` may be the same.
+Blocking: no.

@@ -26,4 +26,9 @@ public @interface ListContract {
     boolean acceptsFields() default true;
     boolean paged() default false;
     boolean exportable() default false;
+    /**
+     * The largest of the four page sizes (CONVENCIONS_API §4) the operation accepts: its `size` enum publishes the sizes up to
+     * it, and a larger one is `400 INVALID_FILTER`. It equals its list's `ListDefinition.maxSize()` (D14: 50, S10 §3).
+     */
+    int maxSize() default 1000;
 }

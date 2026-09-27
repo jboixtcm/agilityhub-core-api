@@ -142,7 +142,7 @@ public class OpenApiConfiguration {
                     return definition;
                 }).toList());
                 operation.addExtension("x-exportable", list.exportable());
-                if (list.paged()) { addListParameters(operation, list.acceptsFields()); }
+                if (list.paged()) { addListParameters(operation, list.acceptsFields(), list.maxSize()); }
             }
             var errors = handler.getMethodAnnotation(ContractErrors.class);
             if (errors != null) {
@@ -169,7 +169,8 @@ public class OpenApiConfiguration {
         };
     }
 
-    private static void addListParameters(Operation operation, boolean fields) {
+    private static void addListParameters(Operation operation, boolean fields, int maxSize) {
+        var allowed = com.agilityhub.core.shared.application.lists.ListQuery.SIZES.stream().filter(size -> size <= maxSize).toList();
         if (operation.getParameters() == null) { operation.setParameters(new java.util.ArrayList<>()); }
         for (String name : List.of("page", "size", "sort", "q", "filter", "fields")) {
             if (name.equals("fields") && !fields) { continue; }
@@ -177,7 +178,7 @@ public class OpenApiConfiguration {
             Schema<?> schema = switch (name) {
                 case "page" -> new io.swagger.v3.oas.models.media.IntegerSchema()._default(0).minimum(java.math.BigDecimal.ZERO);
                 case "size" -> { var sizes = new io.swagger.v3.oas.models.media.IntegerSchema()._default(50);
-                    sizes.setEnum(new java.util.ArrayList<Number>(com.agilityhub.core.shared.application.lists.ListQuery.SIZES)); yield sizes; }
+                    sizes.setEnum(new java.util.ArrayList<Number>(allowed)); yield sizes; }
                 case "sort", "filter" -> new io.swagger.v3.oas.models.media.ArraySchema()
                         .items(new io.swagger.v3.oas.models.media.StringSchema());
                 default -> new io.swagger.v3.oas.models.media.StringSchema();
@@ -191,7 +192,10 @@ public class OpenApiConfiguration {
                                 + "when columns is absent; none of them is INVALID_FILTER.";
                         case "q" -> "Free-text search within the caller's permitted projection.";
                         case "page" -> "Zero-based page index.";
-                        default -> "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.";
+                        default -> maxSize < 1000
+                                ? "Requested page size: " + allowed.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(" or "))
+                                        + " (CONVENCIONS_API §4; this list's pages hold at most " + maxSize + " rows); any other value is 400 INVALID_FILTER."
+                                : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.";
                     });
             if (name.equals("sort") || name.equals("filter")) { parameter.style(io.swagger.v3.oas.models.parameters.Parameter.StyleEnum.FORM).explode(true); }
             operation.addParametersItem(parameter);

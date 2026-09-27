@@ -33,12 +33,13 @@ public class FollowupItemRepository extends TenantRepository<FollowupItem> {
     private Query row(String id) { return tenantQuery().addCriteria(Criteria.where("_id").is(id)); }
     private void set(String id, Update update, Instant now) { mongo.updateFirst(row(id), update.set("updatedAt", now), FollowupItem.class); }
 
-    /** The row of a new task: unread for everyone but its author (R-10-13). */
-    public void task(String taskId, String dogId, String memberId, String authorAccountId, AuthorRole role, String authorName, String excerpt, Instant createdAt) {
+    /** The row of a new task: unread for everyone but its author (R-10-13), who is stored as they are now (E64). */
+    public void task(String taskId, String dogId, String memberId, String authorAccountId, AuthorRole role, String authorName, String authorGender, String excerpt,
+            Instant createdAt) {
         String id = taskRowId(taskId);
         mongo.upsert(row(id), new Update().setOnInsert("kind", FollowupKind.TASK).setOnInsert("taskId", taskId)
                 .setOnInsert("dogId", dogId).setOnInsert("memberId", memberId).setOnInsert("authorAccountId", authorAccountId).setOnInsert("authorRole", role)
-                .setOnInsert("authorName", authorName).setOnInsert("textExcerpt", excerpt).setOnInsert("createdAt", createdAt)
+                .setOnInsert("authorName", authorName).setOnInsert("authorGender", authorGender).setOnInsert("textExcerpt", excerpt).setOnInsert("createdAt", createdAt)
                 .setOnInsert("activityAt", createdAt).setOnInsert("hidden", false).setOnInsert("updatedAt", createdAt), FollowupItem.class);
     }
     /** A new text refreshes the excerpt only: the row keeps its `activityAt`, so it stays read (R-10-13). */
@@ -51,21 +52,23 @@ public class FollowupItemRepository extends TenantRepository<FollowupItem> {
     public void hide(String taskId, Instant now) { set(taskRowId(taskId), new Update().set("hidden", true), now); }
     /**
      * The one MEMBER_NOTE row of a dog (R-10-12/13): `activityAt` is the change's `occurredAt`, the excerpt the note's
-     * current text; an emptied note hides the row. Returns the row as stored before, null the first time.
+     * current text, the author the member who wrote it (E64); an emptied note hides the row. Returns the row as stored
+     * before, null the first time.
      */
-    public FollowupItem note(String dogId, String memberId, String authorAccountId, String authorName, String excerpt, Instant occurredAt, Instant now) {
+    public FollowupItem note(String dogId, String memberId, String authorAccountId, String authorName, String authorGender, String excerpt, Instant occurredAt,
+            Instant now) {
         String id = noteRowId(tenantClub(), dogId);
         var before = findById(id).orElse(null);
         mongo.upsert(row(id), new Update().setOnInsert("kind", FollowupKind.MEMBER_NOTE).setOnInsert("dogId", dogId)
                 .setOnInsert("createdAt", occurredAt).set("memberId", memberId).set("authorAccountId", authorAccountId).set("authorRole", AuthorRole.MEMBER)
-                .set("authorName", authorName).set("textExcerpt", excerpt).set("activityAt", occurredAt).set("hidden", excerpt.isEmpty()).set("updatedAt", now), FollowupItem.class);
+                .set("authorName", authorName).set("authorGender", authorGender).set("textExcerpt", excerpt).set("activityAt", occurredAt).set("hidden", excerpt.isEmpty()).set("updatedAt", now), FollowupItem.class);
         return before;
     }
     /** An older (replayed) note change: only the excerpt follows the note's current text. */
     public void noteText(String dogId, String excerpt, Instant now) {
         set(noteRowId(tenantClub(), dogId), new Update().set("textExcerpt", excerpt).set("hidden", excerpt.isEmpty()), now);
     }
-    /** S03 R-03-14 `DogTransferred`: the dog's rows follow it to the new owner (idempotent). */
+    /** S03 R-03-14 `DogTransferred`: the dog's rows follow it to its current owner (idempotent); their authors stay. */
     public long transfer(String dogId, String memberId) {
         return mongo.updateMulti(tenantQuery().addCriteria(Criteria.where("dogId").is(dogId).and("memberId").ne(memberId)),
                 new Update().set("memberId", memberId), FollowupItem.class).getModifiedCount();

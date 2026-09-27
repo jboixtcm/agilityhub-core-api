@@ -54,7 +54,7 @@ public final class FollowupContracts {
             String dogId, String dogName, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null with levels.enabled = false") String levelCode,
             String memberId, String memberName, String authorName, AuthorRole authorRole,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, allowableValues = {"MALE", "FEMALE", "OTHER"},
-                    description = "Only MEMBER_NOTE rows: the member's gender, for the author label «Laura (alumna)» (S10 §6, §10)") String authorGender,
+                    description = "Only MEMBER_NOTE rows: the gender of the member who wrote the note, as it was then (never the dog's current owner), for the author label «Laura (alumna)» (S10 §3, §6, §10)") String authorGender,
             @Schema(description = "At most 120 characters") String textExcerpt,
             Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "«—» while pending") Instant completedAt,
             @Schema(description = "Task creation or last note change; completing does not move it") Instant activityAt, boolean unread) { }

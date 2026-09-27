@@ -154,8 +154,12 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
                     checked.put(path + " " + role, List.of("501")); continue;
                 }
                 assertThat(whole.status()).as(path + " " + role + " " + whole.body()).isEqualTo(200);
-                // Up to 200 whole rows conform (the rows of the same instant come in `_id` order, a random UUID).
-                problems.addAll(SnapshotSchemas.violations(read(url, null, canic, role, "200").body(), page).stream().limit(3).map(v -> path + " " + role + " whole rows: " + v).toList());
+                // Up to 200 whole rows conform (the rows of the same instant come in `_id` order, a random UUID); a list with a
+                // smaller page is read with its largest published size (D14: 50, S10 §3, E6-T03 round 2).
+                var published = new ArrayList<Integer>();
+                list.path("parameters").forEach(p -> { if ("size".equals(p.path("name").asText())) { p.at("/schema/enum").forEach(size -> published.add(size.asInt())); } });
+                String largest = String.valueOf(published.stream().filter(size -> size <= 200).max(Integer::compare).orElse(200));
+                problems.addAll(SnapshotSchemas.violations(read(url, null, canic, role, largest).body(), page).stream().limit(3).map(v -> path + " " + role + " whole rows: " + v).toList());
                 if (role.equals("ADMIN")) { assertThat(whole.body().path("items")).as(path + " has rows to check").isNotEmpty(); }
                 // `x-fields` is the union over the roles (E5-T20): a key outside the role's own allowlist is 400 INVALID_FILTER.
                 var allowed = OWN_LISTS.containsKey(path) ? OWN_LISTS.get(path) : allowed(ENGINE_LISTS.get(path), canic, role);

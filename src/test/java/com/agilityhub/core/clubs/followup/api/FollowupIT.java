@@ -49,6 +49,7 @@ class FollowupIT extends AbstractIntegrationTest {
     @Autowired HostTenantResolver hosts; @Autowired OutboxDispatcher dispatcher; @Autowired TransactionTemplate tx; @Autowired EventPublisher events;
     @Autowired EmailSender email; @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.MemberNoteChanged") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> noteConsumer;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.DogTransferred") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> transferConsumer;
 
     @BeforeEach void fixtures() {
         clock.setInstant(NOW); ((FakeEmailSender) email).clear();
@@ -173,8 +174,10 @@ class FollowupIT extends AbstractIntegrationTest {
         assertThat(count("tasks", Criteria.where("dogId").is("s10f-d-duna"))).isEqualTo(1);
         assertThat(task(id).getString("memberId")).isEqualTo("s10f-m-laura");
         var taskCreated = eventsOf("TaskCreated");
+        // Round 2 (E64): the event freezes the owner and the excerpt of the creation, which N-20 sends.
         assertThat(taskCreated).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).isEqualTo(new Document("taskId", id).append("dogId", "s10f-d-duna")
-                .append("memberId", "s10f-m-laura").append("by", new Document("accountId", "s10f-estel").append("role", "INSTRUCTOR"))));
+                .append("memberId", "s10f-m-laura").append("textExcerpt", com.agilityhub.core.clubs.followup.domain.FollowupRules.excerpt(text))
+                .append("by", new Document("accountId", "s10f-estel").append("role", "INSTRUCTOR"))));
         var d14 = row(id);
         assertThat(d14.getString("kind")).isEqualTo("TASK"); assertThat(d14.getString("authorAccountId")).isEqualTo("s10f-estel");
         assertThat(d14.getString("textExcerpt")).hasSizeLessThanOrEqualTo(120).startsWith("Practiqueu el balancí amb calma").doesNotContain("\n");
@@ -223,8 +226,10 @@ class FollowupIT extends AbstractIntegrationTest {
         assertThat(done.path("doneBy").path("gender").asText()).isEqualTo("FEMALE");
         assertThat(code(call(HttpMethod.POST, "/tasks/" + id + "/completion", null, as("estel"), 422))).isEqualTo("TASK_ALREADY_DONE");
         assertThat(row(id).getDate("completedAt").toInstant()).isEqualTo(NOW.plusSeconds(3600)); assertThat(row(id).getDate("activityAt").toInstant()).isEqualTo(NOW);
-        assertThat(eventsOf("TaskCompleted")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).get("by", Document.class))
-                .isEqualTo(new Document("accountId", "s10f-laura").append("role", "MEMBER")));
+        assertThat(eventsOf("TaskCompleted")).singleElement().satisfies(e -> {
+            assertThat(e.get("payload", Document.class).get("by", Document.class)).isEqualTo(new Document("accountId", "s10f-laura").append("role", "MEMBER"));
+            assertThat(e.get("payload", Document.class).getString("memberId")).isEqualTo("s10f-m-laura");
+        });
         // N-21 to every active instructor (the former one has no account in the club), each in their own language.
         dispatch();
         var n21 = notifications("N-21");
@@ -592,6 +597,146 @@ class FollowupIT extends AbstractIntegrationTest {
         publishCensus("DogDeactivated", "s10f-d-toby", Map.of("dogId", "s10f-d-toby", "memberId", "s10f-m-laura", "reason", "CLUB"));
         dispatch();
         assertThat(task(id).get("deletedAt")).isNull(); assertThat(row(id).getBoolean("hidden")).isFalse();
+    }
+
+    // ---------------------------------------------------------------- round 2 (review of 27-09, ruling E64): the dog's current owner
+
+    /** The real S03 transfer (ADMIN), which emits `DogTransferred`; the outbox is not dispatched here. */
+    void transfer(String dogId, String toMemberId) throws Exception {
+        call(HttpMethod.POST, "/dogs/" + dogId + "/transfer", Map.of("toMemberId", toMemberId, "reason", "Fictional S10 transfer"), as("admin"), 200);
+    }
+    com.agilityhub.core.clubs.followup.domain.CensusForeignEvent envelope(Document event) throws Exception {
+        return mapper.readValue(event.getString("eventJson"), com.agilityhub.core.clubs.followup.domain.CensusForeignEvent.class);
+    }
+
+    /**
+     * Review #1 (R-10-10 amended 27-09): with the outbox paused right after the transfer, `Task.memberId` still names Joan,
+     * yet Joan gets 404 on the task, on its attachments and on its completion, and Laura, the new owner, 200. The completion
+     * names Laura in `TaskCompleted` and N-21.
+     */
+    @Test void R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion() throws Exception {
+        String video = upload(as("estel"), "TASK", "rampa.mp4", "video/mp4", "%PDF fictional".getBytes());
+        var id = createTask("estel", "s10f-d-toby", "Pujar la rampa a poc a poc", List.of(video), 201).path("id").asText();
+        dispatch();
+        String attachments = "/attachments?entityType=TASK&entityId=" + id;
+        assertThat(call(HttpMethod.GET, attachments, null, as("joan"), 200).path("items").findValuesAsText("id")).containsExactly(video);
+        transfer("s10f-d-toby", "s10f-m-laura");
+        assertThat(task(id).getString("memberId")).as("the consumer has not run").isEqualTo("s10f-m-joan");
+        assertThat(row(id).getString("memberId")).isEqualTo("s10f-m-joan");
+        assertThat(code(call(HttpMethod.GET, "/tasks/" + id, null, as("joan"), 404))).isEqualTo("NOT_FOUND");
+        assertThat(code(call(HttpMethod.GET, attachments, null, as("joan"), 404))).isEqualTo("NOT_FOUND");
+        assertThat(code(call(HttpMethod.POST, "/tasks/" + id + "/completion", null, as("joan"), 404))).isEqualTo("NOT_FOUND");
+        assertThat(code(call(HttpMethod.GET, "/tasks?dogId=s10f-d-toby", null, as("joan"), 404))).isEqualTo("DOG_NOT_ACCESSIBLE");
+        assertThat(call(HttpMethod.GET, "/tasks/" + id, null, as("laura"), 200).path("id").asText()).isEqualTo(id);
+        assertThat(call(HttpMethod.GET, attachments, null, as("laura"), 200).path("items").findValuesAsText("id")).containsExactly(video);
+        assertThat(call(HttpMethod.GET, "/tasks?dogId=s10f-d-toby", null, as("laura"), 200).path("items")).extracting(task -> task.path("id").asText()).containsExactly(id);
+        var done = call(HttpMethod.POST, "/tasks/" + id + "/completion", null, as("laura"), 200);
+        assertThat(done.path("state").asText()).isEqualTo("DONE"); assertThat(done.path("doneBy").path("displayName").asText()).isEqualTo("Laura");
+        assertThat(eventsOf("TaskCompleted")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).getString("memberId")).isEqualTo("s10f-m-laura"));
+        assertThat(task(id).getString("memberId")).as("still paused").isEqualTo("s10f-m-joan");
+        dispatch();
+        assertThat(task(id).getString("memberId")).isEqualTo("s10f-m-laura"); assertThat(row(id).getString("memberId")).isEqualTo("s10f-m-laura");
+        assertThat(notifications("N-21")).hasSize(3).allSatisfy(n -> assertThat(n.get("variables", Document.class).getString("member_name")).isEqualTo("Laura Example"));
+    }
+
+    /**
+     * Review #2 (S03 R-03-14, R-10-10): Joan → Laura, then Laura → Pau, with the second `DogTransferred` delivered first and
+     * the first one late: the tasks and the D14 rows end with Pau, the dog's owner in the census, whatever the order.
+     */
+    @Test void R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner() throws Exception {
+        person("pau", "MEMBER", "Pau", "MALE", "ca");
+        var id = createTask("estel", "s10f-d-toby", "Pujar la rampa", null, 201).path("id").asText();
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-toby/instructor-note", Map.of("text", "En Toby s'espanta dels túnels"), as("joan"), 200);
+        dispatch();
+        String noteRow = com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.noteRowId(CLUB, "s10f-d-toby");
+        clock.setInstant(NOW.plusSeconds(60)); transfer("s10f-d-toby", "s10f-m-laura");
+        clock.setInstant(NOW.plusSeconds(120)); transfer("s10f-d-toby", "s10f-m-pau");
+        var transfers = eventsOf("DogTransferred").stream().sorted(java.util.Comparator.comparing((Document e) -> e.getDate("occurredAt"))).toList();
+        assertThat(transfers).extracting(e -> e.get("payload", Document.class).getString("toMemberId")).containsExactly("s10f-m-laura", "s10f-m-pau");
+        // The second event first, then the first one, late.
+        transferConsumer.handle(transfers.get(1).getString("_id"), envelope(transfers.get(1)));
+        assertThat(task(id).getString("memberId")).isEqualTo("s10f-m-pau");
+        transferConsumer.handle(transfers.get(0).getString("_id"), envelope(transfers.get(0)));
+        assertThat(task(id).getString("memberId")).isEqualTo("s10f-m-pau");
+        assertThat(row(id).getString("memberId")).isEqualTo("s10f-m-pau");
+        assertThat(mongo.findById(noteRow, Document.class, "followup_items").getString("memberId")).isEqualTo("s10f-m-pau");
+        // The dispatcher's own deliveries (in any order) change nothing more.
+        dispatch();
+        assertThat(task(id).getString("memberId")).isEqualTo("s10f-m-pau"); assertThat(row(id).getString("memberId")).isEqualTo("s10f-m-pau");
+        assertThat(mongo.findById(noteRow, Document.class, "followup_items").getString("memberId")).isEqualTo("s10f-m-pau");
+        assertThat(call(HttpMethod.GET, "/tasks/" + id, null, as("pau"), 200).path("id").asText()).isEqualTo(id);
+        assertThat(code(call(HttpMethod.GET, "/tasks/" + id, null, as("laura"), 404))).isEqualTo("NOT_FOUND");
+    }
+
+    /**
+     * Review #3 (R-10-10): a task for Joan's dog, the dog transferred to Laura, the task edited, and only then the delayed
+     * `TaskCreated` delivered: no N-20 to Joan, and no N-20 carries the new text. Without a transfer, a task edited before
+     * the delivery still notifies its owner with the text of the creation.
+     */
+    @Test void R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText() throws Exception {
+        String first = "Pujar la rampa amb en Joan", edit = "Text nou per a la Laura: la rampa, a poc a poc";
+        var id = createTask("estel", "s10f-d-toby", first, null, 201).path("id").asText();
+        transfer("s10f-d-toby", "s10f-m-laura");
+        call(HttpMethod.PATCH, "/tasks/" + id, Map.of("text", edit, "version", 0), as("estel"), 200);
+        dispatch();
+        assertThat(notifications("N-20")).as("nobody: the event's owner no longer owns the dog").isEmpty();
+        // The same flow without a transfer: N-20 to the owner with the excerpt the event froze, not the edited text.
+        var duna = createTask("estel", "s10f-d-duna", first, null, 201).path("id").asText();
+        call(HttpMethod.PATCH, "/tasks/" + duna, Map.of("text", edit, "version", 0), as("estel"), 200);
+        dispatch();
+        assertThat(notifications("N-20")).extracting(n -> n.getString("channel") + " " + n.getString("accountId")).containsExactly("APP s10f-laura", "EMAIL s10f-laura");
+        assertThat(notifications("N-20")).allSatisfy(n -> assertThat(n.get("variables", Document.class).getString("task_excerpt")).isEqualTo(first));
+        assertThat(notifications("N-20")).noneSatisfy(n -> assertThat(n.getString("accountId")).isEqualTo("s10f-joan"));
+        assertThat(((FakeEmailSender) email).lastTo("s10f-laura@example.test").text()).contains(first).doesNotContain(edit);
+        assertThat(((FakeEmailSender) email).messages()).filteredOn(m -> m.to().equalsIgnoreCase("s10f-joan@example.test"))
+                .noneSatisfy(m -> assertThat(m.text()).contains("rampa"));
+    }
+
+    /**
+     * Review #4 (S10 §3): Joan writes the note of Toby and the dog moves to Laura. Whether the note's event is consumed before
+     * the transfer (Toby) or only after it (Nit), the D14 row still reads Joan, with Joan's account and gender; the row's
+     * member is Laura, the dog's owner.
+     */
+    @Test void T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer() throws Exception {
+        dog("s10f-d-nit", "s10f-m-joan", "Nit", "ACTIVE");
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-toby/instructor-note", Map.of("text", "En Toby s'espanta dels túnels"), as("joan"), 200);
+        dispatch();
+        transfer("s10f-d-toby", "s10f-m-laura");
+        dispatch();
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-nit/instructor-note", Map.of("text", "La Nit no vol saltar"), as("joan"), 200);
+        transfer("s10f-d-nit", "s10f-m-laura");
+        dispatch();
+        // Soft: every wrong field of both rows is reported (the stored row, then the page D14 reads).
+        var soft = new org.assertj.core.api.SoftAssertions();
+        for (String dogId : List.of("s10f-d-toby", "s10f-d-nit")) {
+            var row = mongo.findById(com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.noteRowId(CLUB, dogId), Document.class, "followup_items");
+            soft.assertThat(row.getString("authorAccountId")).as(dogId + " authorAccountId").isEqualTo("s10f-joan");
+            soft.assertThat(row.getString("authorName")).as(dogId + " authorName").isEqualTo("Joan");
+            soft.assertThat(row.getString("authorGender")).as(dogId + " authorGender").isEqualTo("MALE");
+            soft.assertThat(row.getString("memberId")).as(dogId + " memberId").isEqualTo("s10f-m-laura");
+        }
+        var items = followup("estel", "filter", "kind:eq:MEMBER_NOTE").path("items");
+        soft.assertThat(items).hasSize(2);
+        for (var item : items) {
+            String dogName = item.path("dogName").asText();
+            soft.assertThat(item.path("authorName").asText()).as(dogName + " GET authorName").isEqualTo("Joan");
+            soft.assertThat(item.path("authorGender").asText()).as(dogName + " GET authorGender").isEqualTo("MALE");
+            soft.assertThat(item.path("memberName").asText()).as(dogName + " GET memberName").isEqualTo("Laura Example");
+        }
+        soft.assertAll();
+    }
+
+    /** Review #5 (S10 §3): D14 pages hold at most 50 rows; 51, 200 and 1000 are the list engine's 400 INVALID_FILTER. */
+    @Test void T_10_21_d14PagesHoldAtMost50Rows() throws Exception {
+        createTask("estel", "s10f-d-duna", "Tasca de l'Estel", null, 201);
+        for (String size : List.of("20", "50")) { assertThat(followup("marc", "size", size).path("size").asInt()).isEqualTo(Integer.parseInt(size)); }
+        assertThat(followup("marc").path("size").asInt()).as("the default page").isEqualTo(50);
+        for (String size : List.of("51", "200", "1000")) {
+            var refused = call(HttpMethod.GET, "/followup?size=" + size, null, as("marc"), 400);
+            assertThat(code(refused)).as(size).isEqualTo("INVALID_FILTER");
+        }
+        // Another universal list keeps the four sizes.
+        assertThat(call(HttpMethod.GET, "/attendances?size=200", null, as("admin"), 200).path("size").asInt()).isEqualTo(200);
     }
 
     // ---------------------------------------------------------------- the port of the sheet and the card, TASKS off (T-10-33)

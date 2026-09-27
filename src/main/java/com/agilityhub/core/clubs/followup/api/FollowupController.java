@@ -59,10 +59,11 @@ public class FollowupController {
     @GetMapping("/api/v1/followup")
     @ListContract(filterable = {"kind", "memberId", "dogId", "authorAccountId", "unread"}, sortable = {"activityAt"},
             columns = {"memberName*", "dogName*", "levelCode*", "activityAt*", "authorName*", "textExcerpt*", "createdAt*", "completedAt*"}, paged = true, exportable = false,
+            maxSize = FollowupContractAccess.FOLLOWUP_MAX_SIZE,
             fields = {"id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt", "createdAt",
                     "completedAt", "activityAt", "unread"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
-    @Operation(summary = "followup", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName, dogName, levelCode (null with levels.enabled = false) and the note author's authorGender are read at request time. An undeclared filter or sort is 400 INVALID_FILTER." + GUARDS,
+    @Operation(summary = "followup", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER." + GUARDS,
             responses = @ApiResponse(responseCode = "200", description = "FollowupPage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = FollowupPage.class))))
     public Object followup(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {

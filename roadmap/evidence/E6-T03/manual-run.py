@@ -6,7 +6,8 @@ Cànic with its demo, and then, as the seeded staff and member: a 20 MB video/qu
 attached to a new task (201, AttachmentAdded, N-20), a 30 MB file, an .exe, an eleventh attachment and a DOG_DOCUMENT key
 (the four refusals), the owner's completion (N-21 to the instructors), the member's note (one MEMBER_NOTE row, N-22), the
 D14 page and unread counts of two accounts before and after one read-all, and the TaskReopened / AttachmentRemoved rows.
-Ids are truncated to 8 characters in the output.
+Round 2 (27-09): the note row and the D14 page show `authorGender`, `TaskCreated` shows its `textExcerpt`, and the D14 page
+limit (size 50 → 200, size 200 → 400 INVALID_FILTER). Ids are truncated to 8 characters in the output.
 """
 import importlib.machinery
 import importlib.util
@@ -73,16 +74,21 @@ def main():
             task = s.call("POST", "/api/v1/tasks", 201, access=instructor, idempotent=True,
                           body=dict(dogId=dog["id"], text="Practiqueu el balancí amb calma: sessions curtes, i sempre acabant amb un èxit.", attachmentIds=[video]))
             show("201 Task", {k: task[k] for k in ("id", "dogId", "state", "createdBy", "attachments", "version")})
-            outbox = lambda types: s.mongo('db.domain_events.find({clubId:' + club + ',type:{$in:' + json.dumps(types) + '}}).sort({occurredAt:1,type:1}).toArray()'
-                                           '.map(e=>({type:e.type,status:e.status,payload:e.payload}))')
-            rows = e5.wait(lambda: (lambda r: r if len(r) == 2 and all(x["status"] == "PUBLISHED" for x in r) else None)(outbox(["TaskCreated", "AttachmentAdded"])),
+            # Round 2: the E6-T04 demo seed has its own tasks, attachments and notes, so the rows are this run's (by aggregate / event id).
+            outbox = lambda types, aggregates: s.mongo('db.domain_events.find({clubId:' + club + ',type:{$in:' + json.dumps(types) + '},aggregateId:{$in:' + json.dumps(aggregates)
+                                                       + '}}).sort({occurredAt:1,type:1}).toArray().map(e=>({type:e.type,status:e.status,payload:e.payload}))')
+            event_id = lambda type, aggregate: s.mongo('db.domain_events.find({clubId:' + club + ',type:' + json.dumps(type) + ',aggregateId:' + json.dumps(aggregate)
+                                                       + '}).sort({occurredAt:-1}).limit(1).toArray().map(e=>e._id)')[0]
+            rows = e5.wait(lambda: (lambda r: r if len(r) == 2 and all(x["status"] == "PUBLISHED" for x in r) else None)(outbox(["TaskCreated", "AttachmentAdded"], [task["id"], video])),
                            "TaskCreated/AttachmentAdded were not dispatched")
             for row in rows:
                 show("outbox", row)
             owner = s.account_of(s.mongo('db.dogs.findOne({_id:' + json.dumps(dog["id"]) + '}).memberId'))
-            notifications = lambda code: s.mongo('db.notifications.find({clubId:' + club + ',code:' + json.dumps(code) + '}).sort({accountId:1,channel:1}).toArray()'
-                                                 '.map(n=>({code:n.code,channel:n.channel,status:n.status,account:n.accountId.substring(0,8)+"…",locale:n.locale,variables:n.variables}))')
-            n20 = e5.wait(lambda: (lambda r: r if len(r) == 2 else None)(notifications("N-20")), "N-20 APP+EMAIL missing")
+            # Round 2: since E7-T01/E7-T02 a notification is one S11 document per recipient (`recipient.accountId`), one entry per channel in `deliveries`.
+            notifications = lambda code, event: s.mongo('db.notifications.find({clubId:' + club + ',code:' + json.dumps(code) + ',eventId:' + json.dumps(event)
+                                                        + '}).sort({"recipient.accountId":1}).toArray().flatMap(n=>n.deliveries.map(d=>({code:n.code,channel:d.channel,'
+                                                        'status:d.status,account:String(n.recipient.accountId).substring(0,8)+"…",locale:n.locale,variables:n.variables})))')
+            n20 = e5.wait(lambda: (lambda r: r if len(r) == 2 else None)(notifications("N-20", event_id("TaskCreated", task["id"]))), "N-20 APP+EMAIL missing")
             for row in n20:
                 show("notification", row)
             e5.require(all(r["account"] == short(owner) for r in n20), "N-20 goes to the owner only")
@@ -114,7 +120,8 @@ def main():
             show("200 Task", {k: done[k] for k in ("state", "doneAt", "doneBy", "version")})
             instructors = s.mongo('db.instructors.find({clubId:' + club + ',active:true}).toArray().map(i=>i.memberId)')
             accounts = [a for a in (s.account_of(m) for m in instructors) if a]
-            n21 = e5.wait(lambda: (lambda r: r if len(r) == len(accounts) else None)(notifications("N-21")), f"N-21 rows for the {len(accounts)} instructors missing")
+            n21 = e5.wait(lambda: (lambda r: r if len(r) == len(accounts) else None)(notifications("N-21", event_id("TaskCompleted", task["id"]))),
+                          f"N-21 rows for the {len(accounts)} instructors missing")
             for row in n21:
                 show("notification", row)
             print(f"PASS N-21: {len(n21)} APP rows for the {len(instructors)} active instructors ({len(accounts)} with an account)", flush=True)
@@ -122,17 +129,17 @@ def main():
             # 4. The member changes the note: one MEMBER_NOTE row, unread for everyone but the author, N-22.
             s.call("PUT", "/api/v1/me/dogs/" + dog["id"] + "/instructor-note", access=member, body=dict(text="A veure si treballem una mica el doble a classe"))
             note = e5.wait(lambda: s.mongo('db.followup_items.find({clubId:' + club + ',kind:"MEMBER_NOTE",dogId:' + json.dumps(dog["id"]) + '}).toArray()'
-                                           '.map(r=>({kind:r.kind,authorRole:r.authorRole,authorName:r.authorName,textExcerpt:r.textExcerpt,activityAt:r.activityAt,hidden:r.hidden}))') or None,
+                                           '.map(r=>({kind:r.kind,authorRole:r.authorRole,authorName:r.authorName,authorGender:r.authorGender,textExcerpt:r.textExcerpt,activityAt:r.activityAt,hidden:r.hidden}))') or None,
                            "No MEMBER_NOTE row")
             e5.require(len(note) == 1, "exactly one MEMBER_NOTE row")
             show("followup_items MEMBER_NOTE", note)
-            n22 = e5.wait(lambda: (lambda r: r if len(r) == len(accounts) else None)(notifications("N-22")), "N-22 rows missing")
+            n22 = e5.wait(lambda: (lambda r: r if len(r) == len(accounts) else None)(notifications("N-22", event_id("MemberNoteChanged", dog["id"]))), "N-22 rows missing")
             for row in n22:
                 show("notification", row)
 
             # 5. D14 for two accounts, the counts before and after one read-all.
             def page(access):
-                return [{k: i.get(k) for k in ("kind", "dogName", "authorName", "textExcerpt", "unread")} for i in s.call("GET", "/api/v1/followup?size=20", access=access)["items"]]
+                return [{k: i.get(k) for k in ("kind", "dogName", "authorName", "authorGender", "textExcerpt", "unread")} for i in s.call("GET", "/api/v1/followup?size=20", access=access)["items"]]
             show("GET /followup (instructor) first page", page(instructor))
             show("GET /followup (admin) first page", page(admin))
             before = {n: s.call("GET", "/api/v1/followup/unread-count", access=a)["count"] for n, a in (("instructor", instructor), ("admin", admin))}
@@ -145,12 +152,19 @@ def main():
             # 6. TaskReopened and AttachmentRemoved.
             s.call("POST", "/api/v1/tasks/" + task["id"] + "/reopening", access=instructor)
             s.call("DELETE", "/api/v1/attachments/" + video, 204, access=instructor, idempotent=True)
-            rows = e5.wait(lambda: (lambda r: r if len(r) == 3 and all(x["status"] == "PUBLISHED" for x in r) else None)(outbox(["TaskCompleted", "TaskReopened", "AttachmentRemoved"])),
+            rows = e5.wait(lambda: (lambda r: r if len(r) == 3 and all(x["status"] == "PUBLISHED" for x in r) else None)(
+                               outbox(["TaskCompleted", "TaskReopened", "AttachmentRemoved"], [task["id"], video])),
                            "TaskCompleted/TaskReopened/AttachmentRemoved were not dispatched")
             for row in rows:
                 show("outbox", row)
             removed = s.mongo('db.attachments.findOne({_id:' + json.dumps(video) + '},{removedAt:1,removedByAccountId:1,_id:0})')
             show("attachment after DELETE", {"removedAt": removed["removedAt"], "removedByAccountId": short(removed["removedByAccountId"])})
+
+            # 7. Round 2 (review #5, S10 §3): D14 pages hold at most 50 rows; 200 is the list engine's INVALID_FILTER.
+            fifty = s.call("GET", "/api/v1/followup?size=50", access=instructor)
+            print(f"  GET /followup?size=50 -> 200, size {fifty['size']}, {len(fifty['items'])} items", flush=True)
+            refused = s.call("GET", "/api/v1/followup?size=200", 400, access=instructor, error="INVALID_FILTER")
+            show("400", {k: refused[k] for k in ("code", "message", "details")})
             print("PASS E6-T03 manual run", flush=True)
         finally:
             s.cleanup()

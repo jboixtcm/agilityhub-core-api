@@ -2,6 +2,16 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-27 · E6-T03 round 2 · D14 pages and authors (ruling E64)
+
+**0 operations added or removed, 1 changed; 0 schemas added or removed, 1 description changed.**
+- `GET /followup`: the `size` parameter publishes `enum: [20, 50]` (was `[20, 50, 200, 1000]`): D14 pages hold at most 50
+  rows (S10 §3); `size=200` or `1000` is now `400 INVALID_FILTER`, as any size the list engine does not allow. The
+  description says that `authorAccountId`, `authorName` and `authorGender` are whoever wrote the task or the note, as
+  they were then, never the dog's current owner.
+- `FollowupItem.authorGender`: description only (the writer's gender, stored with the row); same type, same enum.
+- Not in the document: `TaskCreated` (outbox) now carries `textExcerpt`, the excerpt N-20 sends (see the task report).
+
 ## 2026-09-27 · E7-T01 · S11 communications contract (templates, log, feed, preferences, push, unsubscribe)
 
 **20 operations added, 1 changed, 50 schemas added, 0 removed.** Every new operation answers `501 NOT_IMPLEMENTED` after

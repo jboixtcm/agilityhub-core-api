@@ -23,7 +23,8 @@ import org.springframework.util.MultiValueMap;
  * D14 «Seguiment alumnes» (S10 R-10-13, E6-T03). The rows are the visible {@link FollowupItem}s; `unread` is computed per
  * account in the query (`activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me`), so the universal filters can use it
  * and the order is «unread first (activityAt desc), then the rest (activityAt desc)» in Mongo, not in the front. Member
- * and dog names, the owner's gender and the level code are resolved at read time, one `$in` per page. The read marks are
+ * and dog names and the level code are resolved at read time, one `$in` per page; the author (name, gender) is the row's
+ * own, stored when it was written (E64). Pages hold at most 50 rows (S10 §3, {@link FollowupContractAccess#FOLLOWUP}). The read marks are
  * single-document writes: read-all is O(1). Every write drops the dashboard counters after its commit, whose
  * `followUpUnread` ({@link FollowupUnreadCounter}, S14 R-14-08) is the same count as `GET /followup/unread-count`.
  */
@@ -61,8 +62,8 @@ public class FollowupService {
         var result = rows.stream().map(item -> {
             var dog = dogs.get(item.dogId()); var member = members.get(item.memberId());
             return new Item(item.id(), item.kind().name(), item.taskId(), item.dogId(), dog == null ? null : dog.name(), dog == null ? null : dog.levelCode(),
-                    item.memberId(), member == null ? null : member.fullName(), item.authorName(), item.authorRole(),
-                    item.authorRole() == AuthorRole.MEMBER && member != null ? member.gender() : null, item.textExcerpt(), item.createdAt(), item.completedAt(),
+                    item.memberId(), member == null ? null : member.fullName(), item.authorName(), item.authorRole(), item.authorGender(), item.textExcerpt(),
+                    item.createdAt(), item.completedAt(),
                     item.activityAt(), FollowupRules.unread(item.id(), item.activityAt(), item.authorAccountId(), readAllAt, read, me));
         }).toList();
         return new ListPage<>(result, page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters());

@@ -17,7 +17,8 @@ public record ListQuery(int page, int size, List<String> sort, String q, List<Fi
             int page = Integer.parseInt(single(params, "page", "0"));
             int size = Integer.parseInt(single(params, "size", "50"));
             // CONVENCIONS_API §4 (amended 25-09): one of the four page sizes; any other value, above 1000 too, is INVALID_FILTER.
-            if (page < 0 || !SIZES.contains(size)) { throw invalid(); }
+            // So is a size above the list's own limit (D14 pages hold at most 50 rows, S10 §3).
+            if (page < 0 || !SIZES.contains(size) || size > definition.maxSize()) { throw invalid(); }
             var sort = validateSort(definition, params.getOrDefault("sort", definition.defaultSort()));
             String q = single(params, "q", "").strip();
             var filters = new ArrayList<Filter>();

@@ -41,7 +41,8 @@ class FollowupServiceTest {
     @AfterEach void close() { tenant.close(); }
 
     private static FollowupItem item(String id, FollowupKind kind, String dogId, String memberId, String author, AuthorRole role, Instant activityAt) {
-        return new FollowupItem(id, "club-a", kind, kind == FollowupKind.TASK ? "task-" + id : null, dogId, memberId, author, role, "Estel", "Text", NOW, null, activityAt, false, NOW);
+        return new FollowupItem(id, "club-a", kind, kind == FollowupKind.TASK ? "task-" + id : null, dogId, memberId, author, role, kind == FollowupKind.TASK ? "Estel" : "Joan",
+                kind == FollowupKind.TASK ? null : "MALE", "Text", NOW, null, activityAt, false, NOW);
     }
 
     @Test void T_10_06_T_10_18_theListComputesUnreadInTheQueryAndResolvesNamesAtReadTime() {
@@ -58,7 +59,9 @@ class FollowupServiceTest {
         var page = service.list(new LinkedMultiValueMap<>(), "me");
         assertThat(page.items()).extracting(FollowupService.Item::id).containsExactly("f1", "f2", "f3");
         var note = page.items().get(0);
-        assertThat(note.unread()).isTrue(); assertThat(note.authorGender()).isEqualTo("FEMALE"); assertThat(note.dogName()).isEqualTo("Duna");
+        // Round 2 (review #4): the note's author is its writer as stored (Joan, MALE), never the dog's current owner (Laura, FEMALE).
+        assertThat(note.unread()).isTrue(); assertThat(note.authorName()).isEqualTo("Joan"); assertThat(note.authorGender()).isEqualTo("MALE");
+        assertThat(note.dogName()).isEqualTo("Duna");
         assertThat(note.levelCode()).isNull(); assertThat(note.memberName()).isEqualTo("Laura Example"); assertThat(note.kind()).isEqualTo("MEMBER_NOTE");
         assertThat(page.items().get(1).unread()).as("clicked").isFalse(); assertThat(page.items().get(1).authorGender()).isNull();
         var unknown = page.items().get(2);

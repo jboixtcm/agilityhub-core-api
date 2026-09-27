@@ -5752,7 +5752,7 @@
             "type" : "string"
           },
           "authorGender" : {
-            "description" : "Only MEMBER_NOTE rows: the member's gender, for the author label «Laura (alumna)» (S10 §6, §10)",
+            "description" : "Only MEMBER_NOTE rows: the gender of the member who wrote the note, as it was then (never the dog's current owner), for the author label «Laura (alumna)» (S10 §3, §6, §10)",
             "enum" : [ "MALE", "FEMALE", "OTHER", null ],
             "type" : [ "string", "null" ]
           },
@@ -34321,7 +34321,7 @@
     },
     "/api/v1/followup" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName, dogName, levelCode (null with levels.enabled = false) and the note author's authorGender are read at request time. An undeclared filter or sort is 400 INVALID_FILTER. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "followup",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -34334,12 +34334,12 @@
             "type" : "integer"
           }
         }, {
-          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
+          "description" : "Requested page size: 20 or 50 (CONVENCIONS_API §4; this list's pages hold at most 50 rows); any other value is 400 INVALID_FILTER.",
           "in" : "query",
           "name" : "size",
           "schema" : {
             "default" : 50,
-            "enum" : [ 20, 50, 200, 1000 ],
+            "enum" : [ 20, 50 ],
             "format" : "int32",
             "type" : "integer"
           }

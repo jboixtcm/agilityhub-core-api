@@ -145,11 +145,13 @@ def validate(tasks):
 
 def next_for_executor(tasks):
     ordered = sorted(tasks.values(), key=lambda t: (stage_key(t["stage"]), t["order"]))
-    for t in ordered:
-        if t["status"] == "changes_requested":
-            return t
+    # 27-09 (organizer): a session that did not finish has already published its work on main (the publish commits the
+    # whole tree), so the next session resumes it before any changes_requested round; then the first ready task.
     for t in ordered:          # a previous session that did not finish: resume it
         if t["status"] == "in_progress":
+            return t
+    for t in ordered:
+        if t["status"] == "changes_requested":
             return t
     for t in ordered:
         if t["status"] != "ready":
