@@ -8,6 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E7-T01: the S11 communications contract (WP-11-A).
+  - `NotificationCatalog` (`clubs.messaging.domain`): every row of `CATALEG_NOTIFICACIONS.md` as code, 43 main + 18 Annex A
+    = 61 codes (N-12 does not exist). Per code: events, category, audiences, caps (R-11-12, with N-15's SMS exception),
+    default channels, push audiences (N-13, N-15, N-24, N-33), action per audience, variables, required variables,
+    mandatory, seed icon/colour, `dedupKeyFn` (N-13 per booking, N-24 per batch and member), `stillRelevantFn` (N-13),
+    module guards and stage (N-44, N-45, N-48 `LATER`). Lookups `byCode`, `specsFor(eventType)`, `codes()`.
+  - `NotificationCatalogContractTest` proves the catalog equals the document row by row in both directions, and that every
+    event and variable comes from the catalogs (14 row variables no list declares are the catalog proposal).
+  - Documents with the S11 §3 indexes: `MessageTemplate` (`message_templates`), `Notification` in its S11 shape
+    (`deliveries[]`, `dedupKey` unique per club, `recipient`, `subject`, `action`), `PushSubscription`
+    (`push_subscriptions`, unique per club by the endpoint's SHA-256), the typed `NotificationPreference` over
+    `Member.notificationPreferences` (absent = product defaults) and the SMS counter keys `smsSentMonth`/`smsMonthKey` of
+    `Club.usage` (`SmsMonthlyUsage`, club-local month).
+  - The E1–E6 helpers of `SystemNotificationService`/`NotificationFanout` keep their signatures and behaviour and now write
+    one S11 notification with a single delivery each (`dedupKey` = their id), plus the flat E1 fields, moved together.
+  - CLI `messaging:migrate-notifications [--dry-run | --apply]` (dry run by default) converts the flat rows written before
+    E7-T01 into that shape (local/staging databases; R1 is not live).
+  - 20 S11 §6 operations answering `501 NOT_IMPLEMENTED` behind their role, tenant, impersonation, module (PUSH) and
+    resource guards: `/message-templates*`, `/notifications*`, `/me/notifications*`, `/me/notification-preferences`,
+    `/members/{id}/notification-preferences`, `/push-subscriptions*`, `POST /email-unsubscribes` (anonymous, a S11 §13
+    proposal). `GET /notifications/export` now publishes the log's list contract. Typed forms and nine enums published
+    once; fixtures `e7-*.json` include S11 §6's two JSON extracts.
+  - Events `MessagingEvent` (`MessageTemplateChanged`, `AnnouncementSent`, `PushSubscribed/Unsubscribed`, `EmailBounced`,
+    `SmsCapReached`, `NotificationPreferencesChanged`, `EmailUnsubscribed`); `NotificationQueued/Sent/Failed` carry the
+    delivery's `channel`. Audit action `ANNOUNCEMENT_SENT` (written by E7-T04).
+  - `DeliveryStatus` adds `SKIPPED_NO_CONTACT`, `SKIPPED_CAP`, `SKIPPED_STALE` (S11 §13 proposals).
+  - ArchUnit `E7_T01_messagingImportsNoOtherClubsContext`.
 - E6-T04: S15 P3 and P8 on the E5 framework, and the E6 integration (S10 WP-10-G, back half).
   - P3 `no-show-notices` (`NoShowNoticesJob`, R-15-13): daily at `messaging.noShowNoticeTime` in the club's time zone,
     catch-up unlimited, no module guard. The plan is the read-only twin of `claimForNoShowNotice`

@@ -54,4 +54,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E6_T03_followupImportsNeitherCensusNorBookings = ArchitectureRules.FOLLOWUP_WITHOUT_CENSUS_OR_BOOKINGS;
+
+    @ArchTest
+    static final ArchRule E7_T01_messagingImportsNoOtherClubsContext = ArchitectureRules.MESSAGING_WITHOUT_OTHER_CLUBS;
 }

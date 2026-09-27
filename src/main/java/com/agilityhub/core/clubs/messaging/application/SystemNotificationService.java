@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.messaging.application;
 
+import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.domain.NotificationEvent;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.clubs.messaging.persistence.NotificationRepository;
@@ -19,6 +20,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * The E1 SYSTEM e-mail path and the row helpers E3–E6 call. Since E7-T01 every row is one S11 `Notification` with a single
+ * delivery and the E1 compatibility block, `dedupKey` = the id the caller passes; signatures and semantics are unchanged.
+ * E7-T02 replaces the callers with the outbox consumer and removes the helpers.
+ */
 public class SystemNotificationService {
     private final NotificationAccounts accounts;
     private final ClubEmailSettings clubs;
@@ -123,21 +129,21 @@ public class SystemNotificationService {
         var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant(),variant));
         notifications.appContent(id,variables);
-        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant(),NotificationChannel.APP));
     }
     private void sms(String id,String code,String accountId,String locale,java.util.List<String> phones,String body,boolean enabled,Map<String,Object> variables) {
         if(notifications.findScoped(id).isPresent()) return;
         notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"SMS",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
                 null,null,null,null,locale,clock.instant(),null));
         notifications.smsContent(id,phones,body,variables);
-        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant(),NotificationChannel.SMS));
     }
     private void push(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
         if(notifications.findScoped(id).isPresent()) return;
         notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"PUSH",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
                 null,null,null,null,locale,clock.instant(),null));
         notifications.content(id,"PUSH",variables);
-        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant()));
+        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant(),NotificationChannel.PUSH));
     }
     private String deliverTo(String id,String code,NotificationAccounts.Recipient account,Map<String,?> variables) {
         return deliverTo(id,code,null,account,variables);

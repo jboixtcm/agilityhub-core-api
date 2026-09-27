@@ -65,14 +65,11 @@ public class EmailConfiguration {
     }
     @Bean ApplicationRunner emailCollections(MongoTemplate mongo) {
         return args -> {
-            // Collections must exist before their first transactional insert.
-            for (Class<?> type : java.util.List.of(Notification.class, SendGridWebhookReceipt.class)) {
+            // Collections must exist before their first transactional insert. The S11 §3 indexes of the three S11 collections
+            // are the repositories' (E7-T01), on `recipient.accountId` instead of the E1 `accountId`.
+            for (Class<?> type : java.util.List.of(Notification.class, SendGridWebhookReceipt.class, MessageTemplate.class, PushSubscription.class)) {
                 if (!mongo.collectionExists(type)) { mongo.createCollection(type); }
             }
-            mongo.indexOps(Notification.class).ensureIndex(new org.springframework.data.mongodb.core.index.Index()
-                    .on("clubId", org.springframework.data.domain.Sort.Direction.ASC)
-                    .on("accountId", org.springframework.data.domain.Sort.Direction.ASC)
-                    .on("createdAt", org.springframework.data.domain.Sort.Direction.DESC).named("notification_account_history"));
         };
     }
 }

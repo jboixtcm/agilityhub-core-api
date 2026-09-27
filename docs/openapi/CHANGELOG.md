@@ -2,6 +2,42 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-27 · E7-T01 · S11 communications contract (templates, log, feed, preferences, push, unsubscribe)
+
+**20 operations added, 1 changed, 50 schemas added, 0 removed.** Every new operation answers `501 NOT_IMPLEMENTED` after
+its role, tenant, impersonation, module and resource guards (E7-T02/E7-T03/E7-T04 serve them). Error statuses are
+CATALEG_ERRORS' (rule 0): `CHANNEL_NOT_ALLOWED`, `INVALID_REMINDER_OPTION`, `PUSH_SUBSCRIPTION_INVALID`,
+`UNSUBSCRIBE_TOKEN_INVALID`, `TEMPLATE_MANDATORY`, `TEMPLATE_NOT_CATALOG`, `TEMPLATE_NOT_CUSTOM`,
+`TEMPLATE_NOT_SENDABLE` and `NO_RECIPIENTS` are **422** although S11 §6 writes 400/409 for most of them.
+- D9 templates, ADMIN only (impersonation → 403): `GET /message-templates` (`category?`, `kind?`, `includeArchived?`) →
+  `MessageTemplateList {items[MessageTemplateListItem], countsByCategory}` · `POST /message-templates` (201, CUSTOM) ·
+  `GET /message-templates/{id}` → `MessageTemplateDetail` · `PUT /message-templates/{id}` · `POST …/{id}/preview` →
+  `TemplatePreview` · `POST …/{id}/reset` · `DELETE …/{id}` (204, CUSTOM → ARCHIVED) · `POST …/{id}/send`
+  (`Idempotency-Key` required; 202 `AnnouncementResult`, 200 on `dryRun`). A missing required variable is
+  `400 VALIDATION_ERROR` with `details.missingVariables[]` (`MissingVariablesDetails`) until the catalog has S11's
+  `TEMPLATE_MISSING_VARIABLE` (proposal).
+- The log, ADMIN only: `GET /notifications` — universal list, `x-filterable: code, category, channel, status, memberId,
+  createdAt`, `x-sortable: createdAt`, `x-columns: createdAt*, code*, recipient*, channels*, readAt`, `x-fields: id,
+  createdAt, code, category, audience, recipient, channels, readAt`, `x-exportable: true`, default sort `createdAt desc`;
+  `NotificationPage` of `NotificationListItem` (only `id` required) · `GET /notifications/filter-values` ·
+  `GET /notifications/{id}` → `NotificationDetail` (frozen texts, `subject`, `deliveries[]` with `providerRef`/`lastError`).
+- **Changed:** `GET /notifications/export` (E2-T01) now publishes the log's list contract (the same `x-filterable`,
+  `x-sortable`, `x-columns`, `x-fields` and the `fields` parameter) and checks the query before its 501.
+- Feed 11 (MEMBER, INSTRUCTOR, ADMIN; the impersonation token reads the member's feed): `GET /me/notifications`
+  (`page`, `size`, `audience?`) → `MeNotifications {items[MeNotification], page, size, totalItems, unreadCount}` ·
+  `POST /me/notifications/{id}/read` and `POST /me/notifications/read-all` → `ReadResult {unreadCount}`.
+- «Avisos» of 12/D10: `GET /me/notification-preferences` → `NotificationPreferences` and `PUT` (MEMBER, also impersonated),
+  `PUT /members/{id}/notification-preferences` (ADMIN). The request is partial: an absent key keeps its value and
+  `reminderMinutesBefore: null` is «Mai».
+- Push (PUSH module, impersonation → 403): `POST /push-subscriptions` (201 `PushSubscriptionCreated`),
+  `DELETE /push-subscriptions/{id}` (204, own subscription only).
+- `POST /email-unsubscribes` (anonymous, signed token; S11 §13 proposal) → `EmailUnsubscribeResult {category: CLUB_NEWS}`.
+- Enums published once as components: `NotificationCategory`, `NotificationAudience`, `NotificationChannel`,
+  `DeliveryStatus` (the catalog's six + `SKIPPED_NO_CONTACT`, `SKIPPED_CAP`, `SKIPPED_STALE`, S11 §13 proposals),
+  `NotificationActionType`, `TemplateIcon`, `TemplateColor`, `TemplateKind`, `TemplateStatus`.
+- The two S11 §6 JSON extracts (`GET /me/notifications`, `GET /me/notification-preferences`) are the contract fixtures
+  `e7-me-notifications.json` and `e7-notification-preferences.json`; the web can build its MSW mocks from them.
+
 ## 2026-09-26 · E6-T03 · S10 tasks, attachments, observations and D14 follow-up are served
 
 **0 operations added or removed; 1 optional property added; 15 descriptions changed; 1 parameter default changed; 4 error

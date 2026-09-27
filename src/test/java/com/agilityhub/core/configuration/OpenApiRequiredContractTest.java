@@ -24,7 +24,10 @@ class OpenApiRequiredContractTest {
     private static final Set<String> ALL_OPTIONAL = Set.of("AccountPatchRequest", "ClassOrigin", "EmptyRequest", "PublicationRequest", "RegistrationCancellationRequest", "ClubAddress",
             "BookingCancellationRequest", "TrainingCancellationRequest",
             "ConsentPatch", "ErasureInput", "ImpersonationRequest", "OnboardingFields",
-            "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch");
+            "PlanTexts", "PlanTextsInput", "PublicPlanTexts", "ReasonRequest", "RevokeRequest", "SepaInput", "SignupPlanPatch",
+            // E7-T01 (S11 §6): the partial preference save (T-11-20), the recipients «selection or filters» of an announcement and
+            // the log's subject, whose every key is nullable (sent as null when it does not apply).
+            "NotificationPreferencesRequest", "EmailByCategoryPatch", "AnnouncementRecipients", "NotificationSubject");
 
     @Test void E1_T11_everySnapshotObjectDeclaresItsRequiredProperties() throws Exception {
         var schemas = new ObjectMapper().readTree(Path.of("docs/openapi/openapi.json").toFile()).at("/components/schemas");
@@ -89,6 +92,26 @@ class OpenApiRequiredContractTest {
         // E5-T22 (CONVENCIONS_API §4): a universal list item requires only its row id, because `fields` may leave out the rest.
         assertThat(required(schemas, "FollowupItem")).containsExactly("id");
         assertThat(names(schemas.at("/FollowupItem/properties"))).contains("unread", "activityAt", "taskId", "levelCode", "completedAt");
+        // E7-T01: S11 §6 forms, required by default; optional = nullable (sent as null) or partial.
+        assertThat(required(schemas, "MessageTemplateCreateRequest")).containsExactlyInAnyOrder("category", "title", "body", "icon", "color", "matrix");
+        assertThat(required(schemas, "MessageTemplateUpdateRequest")).containsExactlyInAnyOrder("title", "body", "icon", "color", "matrix", "enabled", "version");
+        assertThat(required(schemas, "TemplatePreviewRequest")).containsExactly("locale");
+        assertThat(required(schemas, "AnnouncementRequest")).containsExactlyInAnyOrder("recipients", "dryRun");
+        assertThat(required(schemas, "AnnouncementResult")).containsExactly("recipientCount");
+        assertThat(required(schemas, "PushSubscriptionRequest")).containsExactlyInAnyOrder("endpoint", "keys");
+        assertThat(required(schemas, "EmailUnsubscribeRequest")).containsExactly("token");
+        assertThat(required(schemas, "MessageTemplateListItem")).containsExactlyInAnyOrder("id", "kind", "category", "name", "icon", "color", "enabled", "customized",
+                "matrix", "caps", "push", "variables");
+        assertThat(required(schemas, "MessageTemplateDetail")).contains("titleI18n", "bodyI18n", "mandatory", "status", "version").doesNotContain("code", "lastChange",
+                "smsBodyI18n", "seedDefault");
+        assertThat(required(schemas, "TemplatePreview")).containsExactlyInAnyOrder("title", "body", "emailSubject", "emailHtml", "warnings");
+        assertThat(required(schemas, "MeNotification")).containsExactlyInAnyOrder("id", "code", "category", "icon", "color", "title", "body", "createdAt", "channels");
+        assertThat(required(schemas, "MeNotifications")).containsExactlyInAnyOrder("items", "page", "size", "totalItems", "unreadCount");
+        assertThat(required(schemas, "NotificationPreferences")).containsExactlyInAnyOrder("emailByCategory", "smsFixed", "reminderOptionsMinutes", "pushClubNews",
+                "locale", "availableLocales", "modules");
+        assertThat(required(schemas, "NotificationDetail")).contains("id", "code", "audience", "recipient", "subject", "deliveries", "title", "body", "locale")
+                .doesNotContain("readAt", "smsBody", "templateId", "templateVersion", "eventType");
+        assertThat(required(schemas, "NotificationListItem")).containsExactly("id");
     }
 
     @Test void E1_T11_javaDefaultsPreserveOptOutsRenamedPropertiesAndSharedReferences() {

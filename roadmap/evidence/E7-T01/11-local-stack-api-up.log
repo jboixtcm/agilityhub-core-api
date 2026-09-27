@@ -1,0 +1,114 @@
+ Image agilityhub-core-api-api Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 560B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.73kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#4 DONE 0.8s
+
+#3 [internal] load metadata for docker.io/library/maven:3.9-eclipse-temurin-21
+#3 DONE 1.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 218B done
+#5 DONE 0.0s
+
+#6 [stage-1  1/12] FROM docker.io/library/eclipse-temurin:21-jre@sha256:d7051a45dd955e4d5d1db4d3f4269fe13d1c6dff8cc6b7ef89fc8577b96c1982
+#6 resolve docker.io/library/eclipse-temurin:21-jre@sha256:d7051a45dd955e4d5d1db4d3f4269fe13d1c6dff8cc6b7ef89fc8577b96c1982 done
+#6 DONE 0.0s
+
+#7 [build 1/8] FROM docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+#7 resolve docker.io/library/maven:3.9-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 562.60kB 0.1s done
+#8 DONE 0.1s
+
+#9 [build 2/8] RUN apt-get update     && apt-get install -y --no-install-recommends unzip     && rm -rf /var/lib/apt/lists/*
+#9 CACHED
+
+#10 [build 3/8] WORKDIR /workspace
+#10 CACHED
+
+#11 [build 4/8] COPY .mvn/ .mvn/
+#11 CACHED
+
+#12 [build 5/8] COPY mvnw pom.xml ./
+#12 CACHED
+
+#13 [build 6/8] COPY src/ src/
+#13 DONE 0.2s
+
+#14 [build 7/8] COPY seeds/club-definition.schema.json seeds/club-definition.schema.json
+#14 DONE 0.0s
+
+#15 [build 8/8] RUN ./mvnw -B -q -DskipTests package
+#15 DONE 35.5s
+
+#16 [stage-1  2/12] RUN apt-get update     && apt-get install -y --no-install-recommends curl     && rm -rf /var/lib/apt/lists/*     && useradd --system --uid 10001 --user-group --create-home agilityhub     && install -d -m 0700 -o agilityhub -g agilityhub /app/mailbox /app/exports /app/attachments
+#16 CACHED
+
+#17 [stage-1  3/12] WORKDIR /app
+#17 CACHED
+
+#18 [stage-1  4/12] COPY --from=build --chown=agilityhub:agilityhub /workspace/target/*.jar app.jar
+#18 DONE 0.1s
+
+#19 [stage-1  5/12] COPY --chown=agilityhub:agilityhub seeds/club-canic-consumer.yaml seeds/club-canic.yaml
+#19 DONE 0.0s
+
+#20 [stage-1  6/12] COPY --chown=agilityhub:agilityhub seeds/club-minim.yaml seeds/club-minim.yaml
+#20 DONE 0.0s
+
+#21 [stage-1  7/12] COPY --chown=agilityhub:agilityhub seeds/demo-canic.yaml seeds/demo-canic.yaml
+#21 DONE 0.0s
+
+#22 [stage-1  8/12] COPY --chown=agilityhub:agilityhub seeds/club-fifo.yaml seeds/club-fifo.yaml
+#22 DONE 0.0s
+
+#23 [stage-1  9/12] COPY --chown=agilityhub:agilityhub seeds/demo-fifo.yaml seeds/demo-fifo.yaml
+#23 DONE 0.0s
+
+#24 [stage-1 10/12] COPY --chown=agilityhub:agilityhub seeds/club-perf.yaml seeds/club-perf.yaml
+#24 DONE 0.0s
+
+#25 [stage-1 11/12] COPY --chown=agilityhub:agilityhub seeds/demo-perf.yaml seeds/demo-perf.yaml
+#25 DONE 0.0s
+
+#26 [stage-1 12/12] COPY --chown=agilityhub:agilityhub seeds/pages/ seeds/pages/
+#26 DONE 0.0s
+
+#27 exporting to image
+#27 exporting layers
+#27 exporting layers 1.6s done
+#27 exporting manifest sha256:f36b9027e685893a3d53baea4808aa3cccfff34d6f306a31f02255236de5d7c7 done
+#27 exporting config sha256:c6663261f74eca42e3644c81bf29920d885340f3e85382691818813a3292b179 done
+#27 exporting attestation manifest sha256:f9a9e52a050ab3ba83b7f5039401570a53fb9acfad36a517bfd1134769c5e90a done
+#27 exporting manifest list sha256:910bdb2e824de9378ada19d0cd4963daf0c3e8c287cceabeba85860beabea5ae done
+#27 naming to docker.io/library/agilityhub-core-api-api:latest done
+#27 unpacking to docker.io/library/agilityhub-core-api-api:latest
+#27 unpacking to docker.io/library/agilityhub-core-api-api:latest 0.4s done
+#27 DONE 2.0s
+
+#28 resolving provenance for metadata file
+#28 DONE 0.0s
+ Image agilityhub-core-api-api Built 
+ Container agilityhub-core-api-mongo-1 Running 
+ Container agilityhub-core-api-api-1 Recreate 
+ Container agilityhub-core-api-api-1 Recreated 
+ Container agilityhub-core-api-mongo-1 Waiting 
+ Container agilityhub-core-api-mongo-1 Healthy 
+ Container agilityhub-core-api-api-1 Starting 
+ Container agilityhub-core-api-api-1 Started 
+ Container agilityhub-core-api-mongo-1 Waiting 
+ Container agilityhub-core-api-api-1 Waiting 
+ Container agilityhub-core-api-mongo-1 Healthy 
+ Container agilityhub-core-api-api-1 Healthy 

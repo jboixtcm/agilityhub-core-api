@@ -1,0 +1,15 @@
+rs0 [direct: primary] test> 
+rs0 [direct: primary] test> 
+rs0 [direct: primary] test> 
+rs0 [direct: primary] test> 
+rs0 [direct: primary] test> { acknowledged: true, deletedCount: 0 }
+rs0 [direct: primary] test> | | | | | {
+  acknowledged: true,
+  insertedIds: { '0': 'e7-legacy-email', '1': 'e7-legacy-sms' }
+}
+rs0 [direct: primary] test> {
+  club: '00e8166e-77ce-4a13-bff0-98c178c0082d',
+  legacy: 2
+}
+
+rs0 [direct: primary] test> 

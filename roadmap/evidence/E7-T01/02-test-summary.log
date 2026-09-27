@@ -1,0 +1,92 @@
+unit/contract (surefire): tests=687 failures=0 errors=0 skipped=0
+integration (failsafe): tests=1105 failures=0 errors=0 skipped=0
+Added by E7-T01:
+  NotificationCatalogContractTest    tests=4   failures=0 errors=0 skipped=0
+  NotificationSpecTest               tests=6   failures=0 errors=0 skipped=0
+  MessagingDocumentsTest             tests=5   failures=0 errors=0 skipped=0
+  E7ContractIT                       tests=27  failures=0 errors=0 skipped=0
+  E7PersistenceIT                    tests=5   failures=0 errors=0 skipped=0
+  E7ResponseContractTest             tests=5   failures=0 errors=0 skipped=0
+Changed by E7-T01:
+  EventCatalogContractTest           tests=2   failures=0 errors=0 skipped=0
+  ErrorCatalogContractTest           tests=5   failures=0 errors=0 skipped=0
+  OpenApiRequiredContractTest        tests=3   failures=0 errors=0 skipped=0
+  ListFieldsContractIT               tests=4   failures=0 errors=0 skipped=0
+  ArchitectureTest                   tests=14  failures=0 errors=0 skipped=0
+Unchanged suites that read or write notifications:
+  AuditContractTest                  tests=1   failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest                tests=10  failures=0 errors=0 skipped=0
+  OpenApiNullableEnumContractTest    tests=3   failures=0 errors=0 skipped=0
+  E2ContractIT                       tests=15  failures=0 errors=0 skipped=0
+  SystemNotificationServiceIT        tests=16  failures=0 errors=0 skipped=0
+  SendGridWebhookIT                  tests=10  failures=0 errors=0 skipped=0
+  MemberAggregatesIT                 tests=7   failures=0 errors=0 skipped=0
+  WaitlistIT                         tests=18  failures=0 errors=0 skipped=0
+  BookingsIT                         tests=18  failures=0 errors=0 skipped=0
+  CalendarIT                         tests=17  failures=0 errors=0 skipped=0
+  TrainingIT                         tests=23  failures=0 errors=0 skipped=0
+  ActivityIT                         tests=31  failures=0 errors=0 skipped=0
+  SignupIT                           tests=33  failures=0 errors=0 skipped=0
+  SignupGateFixesIT                  tests=23  failures=0 errors=0 skipped=0
+  SignupFollowUpFixesIT              tests=14  failures=0 errors=0 skipped=0
+  SignupSecurityFixesIT              tests=49  failures=0 errors=0 skipped=0
+  SignupMinorFixesIT                 tests=18  failures=0 errors=0 skipped=0
+  FollowupIT                         tests=10  failures=0 errors=0 skipped=0
+  RiskReviewJobIT                    tests=8   failures=0 errors=0 skipped=0
+  NoShowNoticesJobIT                 tests=2   failures=0 errors=0 skipped=0
+  WeekOpeningJobIT                   tests=4   failures=0 errors=0 skipped=0
+  BookingJobsIT                      tests=3   failures=0 errors=0 skipped=0
+  JobFrameworkIT                     tests=16  failures=0 errors=0 skipped=0
+  IdentityCoreIT                     tests=26  failures=0 errors=0 skipped=0
+  SingleClassCheckoutIT              tests=11  failures=0 errors=0 skipped=0
+  BookingConcurrencyIT               tests=5   failures=0 errors=0 skipped=0
+  AttendanceIT                       tests=11  failures=0 errors=0 skipped=0
+  ClassFinishingJobIT                tests=3   failures=0 errors=0 skipped=0
+  DemoAttendanceSeedIT               tests=1   failures=0 errors=0 skipped=0
+Spec-id test methods of the added/changed classes (parameterized cases collapsed):
+  T-11-03  NotificationSpecTest.T_11_03_T_11_20_absentPreferencesReadAsTheProductDefaultsAndUnknownKeysSurviveAWrite ok
+  T-11-07  NotificationSpecTest.T_11_07_T_11_15_theSmsCounterCountsTheClubLocalMonthAndRestartsWithANewOne ok
+  T-11-08  E7PersistenceIT.T_11_08_T_11_29_documentsRoundTripInTheirTenantAndTheUniqueKeysHold ok
+  T-11-08  NotificationSpecTest.T_11_08_dedupKeysAreStablePerEventRecipientAndDogAndFollowTheN13AndN24Exceptions ok
+  T-11-13  NotificationSpecTest.T_11_13_aReminderIsOnlyRelevantForAnActiveBookingThatStillLiesAhead ok
+  T-11-15  NotificationSpecTest.T_11_07_T_11_15_theSmsCounterCountsTheClubLocalMonthAndRestartsWithANewOne ok
+  T-11-16  E7ContractIT.WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce ok
+  T-11-16  E7ResponseContractTest.T_11_16_T_11_19_T_11_26_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-11-16  ErrorCatalogContractTest.T_11_16_T_11_21_messagingErrorsFollowTheLiteralCatalogStatusRule ok
+  T-11-18  E7PersistenceIT.T_11_18_announcementSentIsAnAuditActionOfTheClub ok
+  T-11-19  E7ContractIT.T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound ok
+  T-11-19  E7PersistenceIT.T_11_19_T_11_26_collectionsDeclareTheS11IndexesAndUniqueGuards ok
+  T-11-19  E7ResponseContractTest.T_11_16_T_11_19_T_11_26_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-11-19  E7ResponseContractTest.T_11_19_T_11_20_theTwoS11JsonExtractsAreTheFixturesAndRoundTrip ok
+  T-11-19  E7ResponseContractTest.T_11_19_theFeedFormExposesNoDeliveryDataAndTheLogFormDoes ok
+  T-11-20  E7ResponseContractTest.T_11_19_T_11_20_theTwoS11JsonExtractsAreTheFixturesAndRoundTrip ok
+  T-11-20  E7ResponseContractTest.T_11_20_anAbsentReminderKeyIsNotTheNullOfMai ok
+  T-11-20  NotificationSpecTest.T_11_03_T_11_20_absentPreferencesReadAsTheProductDefaultsAndUnknownKeysSurviveAWrite ok
+  T-11-21  E7ContractIT.T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound ok
+  T-11-21  E7ContractIT.T_11_21_T_11_27_pushOffHidesTheDevicesAndFaqOffHidesTheFaq ok
+  T-11-21  ErrorCatalogContractTest.T_11_16_T_11_21_messagingErrorsFollowTheLiteralCatalogStatusRule ok
+  T-11-26  E7ContractIT.T_11_26_theLogAndItsExportValidateTheUniversalListQueryBeforeTheStub ok
+  T-11-26  E7PersistenceIT.T_11_19_T_11_26_collectionsDeclareTheS11IndexesAndUniqueGuards ok
+  T-11-26  E7ResponseContractTest.T_11_16_T_11_19_T_11_26_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-11-27  E7ContractIT.T_11_21_T_11_27_pushOffHidesTheDevicesAndFaqOffHidesTheFaq ok
+  T-11-28  E7ContractIT.T_11_28_T_11_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501 ok
+  T-11-28  E7ContractIT.T_11_28_impersonationReadsAndMarksTheFeedAndSavesPreferencesButNeverReachesTheRest ok
+  T-11-29  E7ContractIT.T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound ok
+  T-11-29  E7ContractIT.T_11_28_T_11_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501 ok
+  T-11-29  E7PersistenceIT.T_11_08_T_11_29_documentsRoundTripInTheirTenantAndTheUniqueKeysHold ok
+  WP-11-A  E7ContractIT.WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce ok
+  WP-11-A  E7ContractIT.WP_11_A_theStubsWriteNothing ok
+  WP-11-A  E7PersistenceIT.WP_11_A_aRowWrittenBeforeE7MovesItsFlatFieldsOnlyAndTheCommandConvertsIt ok
+  WP-11-A  E7PersistenceIT.WP_11_A_theHelpersWriteOneS11NotificationWithASingleDeliveryAndMoveItWithTheFlatFields ok
+  WP-11-A  E7ResponseContractTest.WP_11_A_eventsHaveExactlyTheS11PayloadFieldsAndEnvelope ok
+  WP-11-A  MessagingDocumentsTest.WP_11_A_aHelperRowStatesItsAudienceOnlyWhenItKnowsIt ok
+  WP-11-A  MessagingDocumentsTest.WP_11_A_aPushSubscriptionIsUniqueByTheEndpointHashAndNeverPrintsItsSecrets ok
+  WP-11-A  MessagingDocumentsTest.WP_11_A_legacyRowsGainTheS11FieldsAndKeepTheirFlatOnes ok
+  WP-11-A  MessagingDocumentsTest.WP_11_A_templatesKeepTheS11MatrixShapeAndKindRules ok
+  WP-11-A  MessagingDocumentsTest.WP_11_A_theE1RowIsOneS11DocumentWithASingleDeliveryAndItsFlatMirror ok
+  WP-11-A  NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections ok
+  WP-11-A  NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs ok
+  WP-11-A  NotificationCatalogContractTest.WP_11_A_theCodeRulesOfS11MatchTheCatalog ok
+  WP-11-A  NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseTheRowVariablesOrAProposedOne ok
+  WP-11-A  NotificationSpecTest.WP_11_A_aSpecRejectsChannelsOutsideItsCapsAndMisplacedAudiences ok
+  WP-11-A  NotificationSpecTest.WP_11_A_lookupsReturnTheRegisteredCodesAndOnlyR1CodesPerEvent ok

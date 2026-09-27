@@ -1,0 +1,88 @@
+rs0 [direct: primary] test> 
+rs0 [direct: primary] test> 
+rs0 [direct: primary] test> | | | | | | {
+  _id: 'e7-legacy-email',
+  clubId: '00e8166e-77ce-4a13-bff0-98c178c0082d',
+  accountId: 'e7-legacy-account',
+  code: 'N-04',
+  channel: 'EMAIL',
+  status: 'SENT',
+  providerMessageId: 'fake-legacy-1',
+  sentAt: ISODate('2026-09-20T08:00:00.000Z'),
+  error: null,
+  recipientEmail: 'l…@example.test',
+  locale: 'ca',
+  createdAt: ISODate('2026-09-20T08:00:00.000Z'),
+  audience: 'MEMBER',
+  category: 'OPERATIONAL',
+  color: 'OK',
+  dedupKey: 'e7-legacy-email',
+  deliveries: [
+    {
+      channel: 'EMAIL',
+      target: 'l…@example.test',
+      status: 'SENT',
+      attempts: 1,
+      providerRef: 'fake-legacy-1',
+      lastError: null,
+      sentAt: ISODate('2026-09-20T08:00:00.000Z'),
+      deliveredAt: null,
+      failedAt: null
+    }
+  ],
+  icon: 'check',
+  recipient: {
+    accountId: 'e7-legacy-account',
+    email: 'l…@example.test'
+  }
+}
+{
+  _id: 'e7-legacy-sms',
+  clubId: '00e8166e-77ce-4a13-bff0-98c178c0082d',
+  accountId: 'e7-legacy-account',
+  code: 'N-08a',
+  channel: 'SMS',
+  status: 'QUEUED',
+  recipientPhones: [
+    '+34…'
+  ],
+  body: 'Club: la classe queda anul.lada',
+  action: {
+    type: 'CHANGE_CLASS',
+    params: {
+      entityId: 'e7-legacy-dog'
+    }
+  },
+  entityId: 'e7-legacy-dog',
+  locale: 'ca',
+  createdAt: ISODate('2026-09-20T08:00:00.000Z'),
+  category: 'CLUB_CHANGES',
+  color: 'ERROR',
+  dedupKey: 'e7-legacy-sms',
+  deliveries: [
+    {
+      channel: 'SMS',
+      target: null,
+      status: 'QUEUED',
+      attempts: 0,
+      providerRef: null,
+      lastError: null,
+      sentAt: null,
+      deliveredAt: null,
+      failedAt: null
+    }
+  ],
+  icon: 'x',
+  recipient: {
+    accountId: 'e7-legacy-account',
+    email: null
+  },
+  smsBody: 'Club: la classe queda anul.lada'
+}
+
+rs0 [direct: primary] test> {
+  notifications: 633,
+  legacy: 0
+}
+
+rs0 [direct: primary] test> 

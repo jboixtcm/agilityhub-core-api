@@ -57,6 +57,8 @@ public class TenantFilter extends OncePerRequestFilter {
                     || path.startsWith("/api/v1/public/") || path.equals("/api/v1/country-profile") || path.startsWith("/api/v1/country-profile/postal-codes/")
                     || path.equals("/api/v1/signup") || path.startsWith("/api/v1/signup/")
                     || path.equals("/api/v1/checkout-sessions") || path.startsWith("/oauth2/") || optionalHost
+                    // S11 R-11-08 (E7-T01): the anonymous CLUB_NEWS unsubscribe takes its club from the host, like signup.
+                    || path.equals("/api/v1/email-unsubscribes")
                     || path.matches("/api/v1/bookings/[^/]+/calendar\\.ics");
             if (!global) {
                 var authentication = SecurityContextHolder.getContext().getAuthentication();

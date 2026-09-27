@@ -1,0 +1,3 @@
+{ "emailByCategory": {"OPERATIONAL": false, "PERSONAL": true, "CLUB_CHANGES": true, "CLUB_NEWS": true},
+  "smsFixed": true, "reminderMinutesBefore": null, "reminderOptionsMinutes": [60, 120, 240, 360, 720, 1440],
+  "pushClubNews": true, "locale": "ca", "availableLocales": ["ca", "es"], "modules": {"sms": true, "push": true} }

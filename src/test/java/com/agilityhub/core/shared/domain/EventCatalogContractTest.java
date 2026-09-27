@@ -97,6 +97,10 @@ class EventCatalogContractTest {
         samples.put(com.agilityhub.core.clubs.followup.domain.FollowupEvent.class,
                 () -> new com.agilityhub.core.clubs.followup.domain.FollowupEvent(com.agilityhub.core.clubs.followup.domain.FollowupEvent.Kind.TaskCreated,
                         "club-a", "task-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("taskId", "task-a", "dogId", "dog-a"), "account-a", null, DomainEvent.Origin.BACKOFFICE));
+        // E7-T01: the S11 §7 events (MessageTemplateChanged, AnnouncementSent, PushSubscribed/Unsubscribed and the four §13 proposals of Annex A).
+        samples.put(com.agilityhub.core.clubs.messaging.domain.MessagingEvent.class,
+                () -> new com.agilityhub.core.clubs.messaging.domain.MessagingEvent(com.agilityhub.core.clubs.messaging.domain.MessagingEvent.Kind.MessageTemplateChanged,
+                        "club-a", "template-a", Instant.parse("2030-01-01T00:00:00Z"), Map.of("id", "template-a", "diff", Map.of()), "account-a", null, DomainEvent.Origin.BACKOFFICE));
         Set<Class<?>> implementations = new HashSet<>();
         for (var type : classes) {
             if (!type.isInterface() && type.isAssignableTo(DomainEvent.class)) {
@@ -175,6 +179,9 @@ class EventCatalogContractTest {
             } else if (event instanceof com.agilityhub.core.clubs.census.domain.CensusEvent
                     || event instanceof com.agilityhub.core.clubs.dashboard.application.DashboardEvents.Event) {
                 assertThat(event.aggregateType()).isEqualTo("Member"); assertThat(event.payload()).containsKeys("memberId", "diff");
+            } else if (event instanceof com.agilityhub.core.clubs.messaging.domain.MessagingEvent) {
+                for (var kind : com.agilityhub.core.clubs.messaging.domain.MessagingEvent.Kind.values()) { assertThat(catalog).contains(kind.name()); }
+                assertThat(event.aggregateType()).isEqualTo("MessageTemplate"); assertThat(event.payload()).containsKeys("id", "diff");
             } else if (event instanceof com.agilityhub.core.clubs.followup.domain.AttachmentAdded) {
                 assertThat(event.aggregateType()).isEqualTo("Attachment"); assertThat(event.payload()).containsKeys("attachmentId", "entityType", "entityId");
             } else if (event instanceof com.agilityhub.core.clubs.catalogs.domain.CatalogEvent changed) {

@@ -1,0 +1,105 @@
+{
+  "MessageTemplateList": {
+    "items": [
+      {"id": "template-n08a", "code": "N-08a", "kind": "CATALOG", "category": "CLUB_CHANGES", "name": "Classe anul·lada pel club", "icon": "x", "color": "ERROR",
+       "enabled": true, "customized": true,
+       "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": true}, "INSTRUCTORS": {"APP": true, "EMAIL": true, "SMS": false}, "ADMINS": {"APP": true, "EMAIL": false, "SMS": false}},
+       "caps": {"MEMBER": ["APP", "EMAIL", "SMS"], "INSTRUCTORS": ["APP", "EMAIL"], "ADMINS": ["APP", "EMAIL"]},
+       "push": [],
+       "variables": [{"key": "dog_name", "label": "gos_nom"}, {"key": "class_date", "label": "classe_data"}, {"key": "admin_text", "label": "text_admin"}],
+       "lastChange": {"at": "2026-09-20T10:00:00Z", "actorName": "Example Admin", "action": "CATALOG_CHANGED"}},
+      {"id": "template-custom", "code": null, "kind": "CUSTOM", "category": "CLUB_NEWS", "name": "Festa de fi de temporada", "icon": "flag", "color": "ACCENT",
+       "enabled": true, "customized": false,
+       "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": false}, "INSTRUCTORS": {"APP": false, "EMAIL": false, "SMS": false}, "ADMINS": {"APP": false, "EMAIL": false, "SMS": false}},
+       "caps": {"MEMBER": ["APP", "EMAIL"], "INSTRUCTORS": [], "ADMINS": []},
+       "push": ["MEMBER"],
+       "variables": [{"key": "member_first_name", "label": "persona_nom"}, {"key": "club_name", "label": "entitat_nom"}],
+       "lastChange": null}
+    ],
+    "countsByCategory": {"OPERATIONAL": 16, "PERSONAL": 16, "CLUB_CHANGES": 6, "CLUB_NEWS": 3}
+  },
+  "MessageTemplateDetail": {
+    "id": "template-n08a", "code": "N-08a", "kind": "CATALOG", "category": "CLUB_CHANGES", "name": "Classe anul·lada pel club", "icon": "x", "color": "ERROR",
+    "enabled": true, "customized": true,
+    "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": true}, "INSTRUCTORS": {"APP": true, "EMAIL": true, "SMS": false}, "ADMINS": {"APP": true, "EMAIL": false, "SMS": false}},
+    "caps": {"MEMBER": ["APP", "EMAIL", "SMS"], "INSTRUCTORS": ["APP", "EMAIL"], "ADMINS": ["APP", "EMAIL"]},
+    "push": [],
+    "variables": [{"key": "dog_name", "label": "gos_nom"}, {"key": "class_date", "label": "classe_data"}, {"key": "admin_text", "label": "text_admin"}],
+    "lastChange": {"at": "2026-09-20T10:00:00Z", "actorName": "Example Admin", "action": "CATALOG_CHANGED"},
+    "titleI18n": {"ca": "Classe anul·lada pel club", "es": "Clase anulada por el club"},
+    "bodyI18n": {"ca": "[[class_date]] · [[class_time]], amb [[dog_name]]. «[[admin_text]]»", "es": "[[class_date]] · [[class_time]], con [[dog_name]]. «[[admin_text]]»"},
+    "smsBodyI18n": {"ca": "La classe de [[class_date]] queda anul·lada. [[admin_text]]", "es": "La clase de [[class_date]] queda anulada. [[admin_text]]"},
+    "seedDefault": {"titleI18n": {"ca": "Classe anul·lada pel club"}, "bodyI18n": {"ca": "[[class_date]] · [[class_time]], amb [[dog_name]]."}, "smsBodyI18n": null},
+    "mandatory": true, "status": "ACTIVE", "version": 3
+  },
+  "MessageTemplateDetail#custom": {
+    "id": "template-custom", "code": null, "kind": "CUSTOM", "category": "CLUB_NEWS", "name": "Festa de fi de temporada", "icon": "flag", "color": "ACCENT",
+    "enabled": true, "customized": false,
+    "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": false}, "INSTRUCTORS": {"APP": false, "EMAIL": false, "SMS": false}, "ADMINS": {"APP": false, "EMAIL": false, "SMS": false}},
+    "caps": {"MEMBER": ["APP", "EMAIL"], "INSTRUCTORS": [], "ADMINS": []},
+    "push": ["MEMBER"],
+    "variables": [{"key": "member_first_name", "label": "persona_nom"}],
+    "lastChange": null,
+    "titleI18n": {"ca": "Festa de fi de temporada"}, "bodyI18n": {"ca": "Hola [[member_first_name]], us esperem dissabte."}, "smsBodyI18n": null,
+    "seedDefault": null, "mandatory": false, "status": "ACTIVE", "version": 0
+  },
+  "MessageTemplateCreateRequest": {
+    "category": "CLUB_NEWS", "title": {"ca": "Festa de fi de temporada"}, "body": {"ca": "Hola [[member_first_name]], us esperem dissabte."}, "smsBody": null,
+    "icon": "flag", "color": "ACCENT",
+    "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": false}, "INSTRUCTORS": {"APP": false, "EMAIL": false, "SMS": false}, "ADMINS": {"APP": false, "EMAIL": false, "SMS": false}}
+  },
+  "MessageTemplateUpdateRequest": {
+    "title": {"ca": "Classe anul·lada pel club"}, "body": {"ca": "[[class_date]], amb [[dog_name]]. «[[admin_text]]»"},
+    "smsBody": {"ca": "La classe de [[class_date]] queda anul·lada. [[admin_text]]"}, "icon": "x", "color": "ERROR",
+    "matrix": {"MEMBER": {"APP": true, "EMAIL": true, "SMS": true}, "INSTRUCTORS": {"APP": true, "EMAIL": true, "SMS": false}, "ADMINS": {"APP": true, "EMAIL": false, "SMS": false}},
+    "enabled": true, "version": 3, "category": null
+  },
+  "TemplatePreviewRequest": {"locale": "es", "draft": {"title": "Clase anulada", "body": "[[class_date]], con [[dog_name]].", "smsBody": null}, "sendTest": false},
+  "TemplatePreview": {
+    "title": "Classe anul·lada pel club", "body": "Dimecres 12 · 18:50, amb Duna. «La classe queda anul·lada per la pluja.»",
+    "emailSubject": "Classe anul·lada pel club", "emailHtml": "<html lang=\"ca\"><body><p>Dimecres 12 · 18:50, amb Duna.</p></body></html>",
+    "sms": {"text": "La classe de dimecres 12 queda anul.lada. La classe queda anul.lada per la pluja.", "length": 80, "segments": 1, "truncated": false},
+    "warnings": [{"code": "TEMPLATE_UNKNOWN_VARIABLE", "variable": "dog_nam"}]
+  },
+  "TemplatePreview#noSms": {"title": "Canvi de nivell", "body": "La Duna ja ha pujat a nivell C.", "emailSubject": "Canvi de nivell",
+    "emailHtml": "<html lang=\"ca\"><body><p>La Duna ja ha pujat a nivell C.</p></body></html>", "sms": null, "warnings": []},
+  "AnnouncementRequest": {"recipients": {"memberIds": ["member-a", "member-b"], "filters": null, "q": null}, "dryRun": true},
+  "AnnouncementRequest#filters": {"recipients": {"memberIds": null, "filters": ["planId:eq:plan-pack-10"], "q": "Laura"}, "dryRun": false},
+  "AnnouncementResult": {"batchId": "batch-a", "recipientCount": 37},
+  "AnnouncementResult#dryRun": {"batchId": null, "recipientCount": 37},
+  "MissingVariablesDetails": {"missingVariables": ["admin_text"]},
+  "NotificationPage": {
+    "items": [
+      {"id": "notification-a", "createdAt": "2026-08-10T15:58:00Z", "code": "N-08a", "category": "CLUB_CHANGES", "audience": "MEMBER",
+       "recipient": {"displayName": "Laura Example", "memberId": "member-a", "email": null},
+       "channels": [{"channel": "APP", "status": "DELIVERED"}, {"channel": "EMAIL", "status": "SENT"}, {"channel": "SMS", "status": "SENT"}, {"channel": "SMS", "status": "SKIPPED_CAP"}],
+       "readAt": null},
+      {"id": "notification-b", "createdAt": "2026-08-10T15:00:00Z", "code": "N-03", "category": "PERSONAL", "audience": "APPLICANT",
+       "recipient": {"displayName": "applicant@example.test", "memberId": null, "email": "applicant@example.test"},
+       "channels": [{"channel": "EMAIL", "status": "DELIVERED"}], "readAt": null}
+    ],
+    "page": 0, "size": 50, "totalItems": 2, "totalPages": 1, "appliedFilters": [{"field": "createdAt", "op": "between", "value": ["2026-08-01T00:00:00Z", "2026-08-31T23:59:59Z"]}]
+  },
+  "NotificationDetail": {
+    "id": "notification-a", "createdAt": "2026-08-10T15:58:00Z", "code": "N-08a", "category": "CLUB_CHANGES", "audience": "MEMBER",
+    "recipient": {"displayName": "Laura Example", "memberId": "member-a", "email": null},
+    "channels": [{"channel": "APP", "status": "DELIVERED"}, {"channel": "SMS", "status": "FAILED"}], "readAt": "2026-08-10T16:10:00Z",
+    "title": "Classe anul·lada pel club", "body": "Dimecres 12 · 18:50, amb Duna.", "smsBody": "La classe de dimecres 12 queda anul.lada.", "locale": "ca",
+    "templateId": "template-n08a", "templateVersion": 3, "eventType": "ClassCancelledByClub",
+    "subject": {"dogId": "dog-a", "bookingId": "booking-a", "classSessionId": "class-a", "waitlistEntryId": null, "trainingBookingId": null, "invoiceId": null,
+                "activityId": null, "taskId": null, "memberId": "member-a"},
+    "deliveries": [
+      {"channel": "APP", "target": null, "status": "DELIVERED", "attempts": 0, "nextAttemptAt": null, "providerRef": null, "lastError": null,
+       "sentAt": null, "deliveredAt": "2026-08-10T15:58:00Z", "failedAt": null},
+      {"channel": "SMS", "target": "+34600000001", "status": "FAILED", "attempts": 5, "nextAttemptAt": null, "providerRef": "SM-example", "lastError": "HTTP 503",
+       "sentAt": null, "deliveredAt": null, "failedAt": "2026-08-10T20:00:00Z"}
+    ]
+  },
+  "ReadResult": {"unreadCount": 1},
+  "NotificationPreferencesRequest": {"emailByCategory": {"OPERATIONAL": null, "PERSONAL": null, "CLUB_CHANGES": null, "CLUB_NEWS": false}, "reminderMinutesBefore": 120, "pushClubNews": null},
+  "NotificationPreferencesRequest#never": {"emailByCategory": null, "reminderMinutesBefore": null, "pushClubNews": false},
+  "PushSubscriptionRequest": {"endpoint": "https://push.example.test/send/abc123", "keys": {"p256dh": "BExamplePublicKey", "auth": "ExampleAuth"}, "deviceLabel": "iPhone · Safari"},
+  "PushSubscriptionCreated": {"id": "subscription-a"},
+  "EmailUnsubscribeRequest": {"token": "eyJ-example-token"},
+  "EmailUnsubscribeResult": {"category": "CLUB_NEWS"}
+}

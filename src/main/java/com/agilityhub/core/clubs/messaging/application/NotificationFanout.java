@@ -75,7 +75,8 @@ public class NotificationFanout {
                 variables.put(row.id(), row.variables());
             }
             notifications.insertBatch(fresh, variables);
-            fresh.forEach(n -> events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued, club, n.id(), now)));
+            fresh.forEach(n -> events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued, club, n.id(), now,
+                    com.agilityhub.core.clubs.messaging.domain.NotificationChannel.valueOf(channel))));
             return fresh.size();
         });
     }

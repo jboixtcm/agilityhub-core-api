@@ -63,6 +63,8 @@ public class SecurityConfiguration {
             authorize.requestMatchers(HttpMethod.POST, "/api/v1/auth/magic-link", "/oauth2/token", "/webhooks/email/sendgrid",
                     "/api/v1/signup", "/api/v1/signup/identity-checks", "/api/v1/signup/upload-urls",
                     "/api/v1/signup/family-group-lookups", "/api/v1/checkout-sessions").permitAll();
+            // S11 R-11-08 (E7-T01): the CLUB_NEWS unsubscribe link authorises itself with its signed token; the club comes from the host.
+            authorize.requestMatchers(HttpMethod.POST, "/api/v1/email-unsubscribes").permitAll();
             if (environment.acceptsProfiles(Profiles.of("local", "test"))
                     && !environment.acceptsProfiles(Profiles.of("staging", "prod"))) {
                 authorize.requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll();

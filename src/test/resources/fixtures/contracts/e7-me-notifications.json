@@ -1,0 +1,10 @@
+{ "items": [
+  { "id":"n1","code":"N-08a","category":"CLUB_CHANGES","icon":"x","color":"ERROR","title":"Classe anul·lada pel club",
+    "body":"Dimecres 12 · 18:50 · B+C · Central, amb Duna. «La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!» — Cànic Agility. Aquesta sessió no compta al teu còmput.",
+    "createdAt":"2026-08-10T15:58:00Z","channels":["APP","EMAIL","SMS"],"readAt":null,
+    "action":{"type":"CHANGE_CLASS","params":{"dogId":"d1"},"enabled":true} },
+  { "id":"n2","code":"N-15","category":"OPERATIONAL","icon":"unlock","color":"ACCENT","title":"S'ha alliberat una plaça!",
+    "body":"Classe C i superiors · dijous 6 · 20:00. Estàs a la llista d'espera — la plaça és per a qui confirmi primer.",
+    "createdAt":"2026-08-10T15:56:00Z","channels":["APP","SMS","PUSH"],"readAt":null,
+    "action":{"type":"CLAIM_SEAT","params":{"waitlistEntryId":"w1","classSessionId":"c2","dogId":"d1"},"enabled":true} } ],
+  "page":0,"size":20,"totalItems":6,"unreadCount":2 }

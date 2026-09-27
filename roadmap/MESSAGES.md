@@ -1828,3 +1828,27 @@ Blocking: no.
 - **Other deviations** (report): the run book is the root `README.md` (`docs/README.md` is a synced copy); CI has no smoke list, so nothing to add; the class's instructor login varies per stack (member ids derive from the club id), so the smoke finds Berta by `shortName`.
 - **Catalog rows still without a bean:** `reminders` (P4), `expirations` (P5), `billing-reminder` (P10).
 Blocking: no.
+
+## 2026-09-27 · executor → organizer · E7-T01
+@organizer **Steps 1–9 of E7-T01 are done** (awaiting_verification). E6-T04 was `awaiting_verification` when I started.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 687 unit and 1105 integration tests. The summary and the coverage table are committed (logs `01`–`03`).
+- `NotificationCatalog` registers **61 codes** (43 main rows + 18 Annex A; N-12 does not exist). `NotificationCatalogContractTest` proves the equality row by row, both directions.
+- 20 S11 §6 operations answer 501 behind their guards; `GET /notifications/export` now carries the log's list contract. `bin/openapi-snapshot` twice is byte-identical.
+- The E1–E6 helpers keep their signatures and write one S11 `Notification` with a single delivery each; no existing test changed its expectations.
+- `bin/core messaging:migrate-notifications --dry-run` after `seed:demo` exits 0 with 0 legacy rows: the CLI seed dispatches no outbox event, and every row the new code writes is already S11-shaped. Two synthetic flat rows then showed the dry run, `--apply` and the re-run (logs `12`–`17`).
+- **Catalog proposals** (report, «Questions»):
+  1. `TEMPLATE_MISSING_VARIABLE` (400, S11): meanwhile `400 VALIDATION_ERROR` with `details.missingVariables[]` (`MissingVariablesDetails`).
+  2. Delivery statuses `SKIPPED_NO_CONTACT`, `SKIPPED_CAP`, `SKIPPED_STALE` (S11 §13): implemented in `DeliveryStatus`. Please add them to rule 7 of CATALEG_NOTIFICACIONS.
+  3. `POST /email-unsubscribes` (anonymous, signed token; S11 §13): published.
+  4. Variables named by rows but by no variable list: `plan_name`, `requested_date`, `level`, `actor`, `period`, `pending_count`, `job_name`, `error_count`, `host`, `challenge_title`, `score`, `role`, `execute_date`, `inviter_name`. Please add them to «Variables disponibles».
+  5. S11 §8 seed texts use variables their rows lack: N-08a `ring_name`, `club_name`; N-13 `class_description`; N-15 `class_description`, `club_name`; N-16 `class_description`; N-28 `member_first_name`, `club_name`, `dog_name`. Please add them to the rows, or make `club_name` a variable of every code. This is the same case as E6-T04's N-19.
+  6. Event payloads: `EmailBounced` adds `type` and `SmsCapReached` adds `cap` (S11 §7). The Annex A row lists only `{memberId, email}` and `{month}`.
+- **Questions** (report):
+  1. The model's Annex B names `channelsByAudience`, `translations`, `channelStates[].state` and PushSubscription `state`. The task's step 3 and S11 §3 name `matrix`, `LocalizedText` title/body, `deliveries[].status` and `status`. I followed the task and S11, and the model's own §2 lists `MessageTemplate.title/body` as `LocalizedText`. Please align Annex B.
+  2. Audiences written in words: «compte» → `MEMBER`, «compte convidat» (N-53) → `APPLICANT`, «admins de plataforma» (N-43) → `ADMINS`. Correct?
+  3. `MessageTemplateChanged` payload: I used the catalog's `{id, diff}` (S11 §7 agrees), not the task's `templateId`.
+  4. A helper row of a code with several audiences (e.g. N-08a to a member or to the class's instructor) has `audience: null` until E7-T02 replaces the helpers. E7-T03's log must cope with it.
+  5. `/message-templates*` is ADMIN only, as E2's `/parameters`, although MATRIU gives AGILITYHUB_ADMIN RW on «plantilles de comunicat». Keep it?
+  6. The Playoff migration writes `notificationPreferences: {essentialOnly}`. The typed view keeps that key but reads the product defaults. Should `essentialOnly = true` mean CLUB_NEWS e-mail and push off?
+- **Web:** regenerate the client. The MSW mocks can start from `e7-me-notifications.json` and `e7-notification-preferences.json` (S11 §6's extracts, byte for byte).
+Blocking: no.

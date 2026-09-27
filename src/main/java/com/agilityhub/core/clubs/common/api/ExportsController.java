@@ -177,16 +177,24 @@ public class ExportsController {
 
     @GetMapping("/api/v1/notifications/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
-    @ListContract(filterable = {}, sortable = {},
-            columns = {}, paged = true, exportable = false, acceptsFields = false)
+    @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},
+            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, exportable = false,
+            fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export notifications",
-            description = "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+            description = "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T01): the same q/filter/sort, fields and selected columns; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Contract only; returns 501 NOT_IMPLEMENTED after the role, tenant and query checks until E7-T03 serves the log.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Disposition", schema = @Schema(type = "string")),
                             content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),
                                     @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema = @Schema(type = "string", format = "binary"))}),
                     @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
-    public org.springframework.http.ResponseEntity<byte[]> exportNotifications(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns) { throw new UnsupportedOperationException(); }
+    public org.springframework.http.ResponseEntity<byte[]> exportNotifications(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        var list = com.agilityhub.core.clubs.messaging.application.MessagingContractAccess.NOTIFICATIONS;
+        var query = new org.springframework.util.LinkedMultiValueMap<>(params); query.remove("format"); query.remove("columns");
+        com.agilityhub.core.shared.application.lists.ListQuery.parse(list, query);
+        if (columns != null) { list.selectColumns(columns); }
+        throw new UnsupportedOperationException();
+    }
 
 }

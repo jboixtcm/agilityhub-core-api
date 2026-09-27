@@ -175,6 +175,19 @@ final class ArchitectureRules {
             .should().dependOnClassesThat().resideInAnyPackage(BASE_PACKAGE + "clubs.census..", BASE_PACKAGE + "clubs.bookings..")
             .because("E6-T03: census → followup and bookings → census; follow-up reaches the census through FollowupCensusAccess");
 
+    /**
+     * E7-T01 (S11 fixed conventions): every club context calls `clubs.messaging`, so messaging reads them only through shared
+     * ports (E7-T02 defines the engine's), never a `clubs.*` package of theirs; the reverse direction stays open.
+     */
+    static final ArchRule MESSAGING_WITHOUT_OTHER_CLUBS = noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + "clubs.messaging..")
+            .should().dependOnClassesThat(new DescribedPredicate<>("belong to another clubs context") {
+                @Override public boolean test(JavaClass type) {
+                    return type.getPackageName().startsWith(BASE_PACKAGE + "clubs.") && !type.getPackageName().startsWith(BASE_PACKAGE + "clubs.messaging");
+                }
+            })
+            .because("E7-T01: census, bookings, scheduling… → messaging; messaging reaches them through shared ports");
+
     /** E6-T01 (ADR-001): the platform (jobs framework, configuration of clubs) knows no club context. */
     static final ArchRule PLATFORM_WITHOUT_CLUBS = noClasses()
             .that().resideInAPackage(BASE_PACKAGE + "platform..")

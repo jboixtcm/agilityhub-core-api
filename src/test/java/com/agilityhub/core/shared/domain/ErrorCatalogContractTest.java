@@ -94,6 +94,42 @@ class ErrorCatalogContractTest {
             expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
         }
     }
+    /**
+     * E7-T01 step 6: every S11 §6 code with CATALEG_ERRORS' status (rule 0 is literal and beats S11 §6, which writes 400 for
+     * INVALID_REMINDER_OPTION, PUSH_SUBSCRIPTION_INVALID, UNSUBSCRIBE_TOKEN_INVALID, CHANNEL_NOT_ALLOWED and 409 for four TEMPLATE_*
+     * codes). S11's TEMPLATE_MISSING_VARIABLE is in neither: VALIDATION_ERROR + details.missingVariables meanwhile (proposal).
+     */
+    @Test void T_11_16_T_11_21_messagingErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
+        var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
+        var expected = new java.util.LinkedHashMap<String, Integer>();
+        for (String names : java.util.List.of(
+                "422:CHANNEL_NOT_ALLOWED,INVALID_REMINDER_OPTION,NO_RECIPIENTS,PUSH_SUBSCRIPTION_INVALID,TEMPLATE_MANDATORY,TEMPLATE_NOT_CATALOG,TEMPLATE_NOT_CUSTOM,TEMPLATE_NOT_SENDABLE,UNSUBSCRIBE_TOKEN_INVALID",
+                "400:SMS_BODY_REQUIRED,SMS_BODY_TOO_LONG,TEMPLATE_SYNTAX_ERROR,TEMPLATE_UNKNOWN_VARIABLE,VALIDATION_ERROR,INVALID_FILTER", "401:WEBHOOK_SIGNATURE_INVALID",
+                "404:NOT_FOUND,MODULE_DISABLED", "409:STALE_VERSION,INVALID_STATE,IDEMPOTENCY_KEY_REUSED")) {
+            String[] pair = names.split(":");
+            for (String name : pair[1].split(",")) { expected.put(name, Integer.parseInt(pair[0])); }
+        }
+        assertThat(expected).hasSize(21);
+        expected.forEach((name, status) -> {
+            assertThat(catalog).contains("`" + name + "`");
+            assertThat(ErrorCode.valueOf(name).httpStatus()).as(name).isEqualTo(status);
+        });
+        // The S11 row of §2 lists exactly the vertical's fourteen own codes.
+        String row = catalog.lines().filter(line -> line.startsWith("| S11 |")).findFirst().orElseThrow();
+        var own = new java.util.TreeSet<String>();
+        var matcher = Pattern.compile("`([A-Z][A-Z_]+)`").matcher(row);
+        while (matcher.find()) { own.add(matcher.group(1)); }
+        assertThat(own).containsExactlyInAnyOrder("CHANNEL_NOT_ALLOWED", "INVALID_REMINDER_OPTION", "NO_RECIPIENTS", "PUSH_SUBSCRIPTION_INVALID", "SMS_BODY_REQUIRED",
+                "SMS_BODY_TOO_LONG", "TEMPLATE_MANDATORY", "TEMPLATE_NOT_CATALOG", "TEMPLATE_NOT_CUSTOM", "TEMPLATE_NOT_SENDABLE", "TEMPLATE_SYNTAX_ERROR",
+                "TEMPLATE_UNKNOWN_VARIABLE", "UNSUBSCRIBE_TOKEN_INVALID", "WEBHOOK_SIGNATURE_INVALID");
+        assertThat(catalog).doesNotContain("TEMPLATE_MISSING_VARIABLE");
+        assertThat(Arrays.stream(ErrorCode.values()).map(Enum::name)).doesNotContain("TEMPLATE_MISSING_VARIABLE");
+        for (String locale : java.util.List.of("ca", "es", "en")) {
+            var messages = new java.util.Properties();
+            try (var input = Files.newBufferedReader(Path.of("src/main/resources/messages/messages_" + locale + ".properties"))) { messages.load(input); }
+            expected.keySet().forEach(name -> assertThat(messages.getProperty("error." + name)).as(locale + ":" + name).isNotBlank());
+        }
+    }
     @Test void T_06_20_T_07_17_schedulingAndActivityErrorsFollowTheLiteralCatalogStatusRule() throws Exception {
         var catalog = Files.readString(Path.of("docs/specs/00-transversal/CATALEG_ERRORS.md"));
         var expected = new java.util.LinkedHashMap<String, Integer>();

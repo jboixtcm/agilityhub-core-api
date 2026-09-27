@@ -1261,6 +1261,58 @@
         "required" : [ "version" ],
         "type" : "object"
       },
+      "AnnouncementRecipients" : {
+        "description" : "Either the selection (memberIds) or the list's query (filters + q, the semantics of GET /members), as D5/D15 opened the dialog",
+        "properties" : {
+          "filters" : {
+            "description" : "field:op:value, the filters of GET /members",
+            "items" : {
+              "minLength" : 1,
+              "type" : "string"
+            },
+            "type" : [ "array", "null" ]
+          },
+          "memberIds" : {
+            "items" : {
+              "minLength" : 1,
+              "type" : "string"
+            },
+            "type" : [ "array", "null" ]
+          },
+          "q" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ ],
+        "type" : "object"
+      },
+      "AnnouncementRequest" : {
+        "properties" : {
+          "dryRun" : {
+            "description" : "true: count only («S'enviarà a {n} abonats»), 200 and nothing written",
+            "type" : "boolean"
+          },
+          "recipients" : {
+            "$ref" : "#/components/schemas/AnnouncementRecipients"
+          }
+        },
+        "required" : [ "dryRun", "recipients" ],
+        "type" : "object"
+      },
+      "AnnouncementResult" : {
+        "properties" : {
+          "batchId" : {
+            "description" : "null on dryRun",
+            "type" : [ "string", "null" ]
+          },
+          "recipientCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "recipientCount" ],
+        "type" : "object"
+      },
       "ApiError" : {
         "properties" : {
           "code" : {
@@ -1590,6 +1642,22 @@
           }
         },
         "required" : [ "editableUntil" ],
+        "type" : "object"
+      },
+      "AudienceChannels" : {
+        "description" : "The three matrix columns of one audience (S11 §3): APP · EMAIL · SMS. PUSH is fixed by the code (`push`).",
+        "properties" : {
+          "APP" : {
+            "type" : "boolean"
+          },
+          "EMAIL" : {
+            "type" : "boolean"
+          },
+          "SMS" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "APP", "EMAIL", "SMS" ],
         "type" : "object"
       },
       "AuditAction" : {
@@ -2781,6 +2849,82 @@
           }
         },
         "required" : [ "items", "totalItems" ],
+        "type" : "object"
+      },
+      "CategoryCounts" : {
+        "description" : "Templates per category, the card «Plantilles per categoria» of D9 (archived ones excluded)",
+        "properties" : {
+          "CLUB_CHANGES" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "CLUB_NEWS" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "OPERATIONAL" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "PERSONAL" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "CLUB_CHANGES", "CLUB_NEWS", "OPERATIONAL", "PERSONAL" ],
+        "type" : "object"
+      },
+      "ChannelCaps" : {
+        "description" : "Per audience, the matrix cells the code lets the template activate (R-11-12); empty for an audience of no row of the code",
+        "properties" : {
+          "ADMINS" : {
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChannel"
+            },
+            "type" : "array"
+          },
+          "INSTRUCTORS" : {
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChannel"
+            },
+            "type" : "array"
+          },
+          "MEMBER" : {
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChannel"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "ADMINS", "INSTRUCTORS", "MEMBER" ],
+        "type" : "object"
+      },
+      "ChannelMatrix" : {
+        "description" : "«Canals per públic — aquesta plantilla» (D9): every row is present; a cell outside `caps` is always false and inert",
+        "properties" : {
+          "ADMINS" : {
+            "$ref" : "#/components/schemas/AudienceChannels"
+          },
+          "INSTRUCTORS" : {
+            "$ref" : "#/components/schemas/AudienceChannels"
+          },
+          "MEMBER" : {
+            "$ref" : "#/components/schemas/AudienceChannels"
+          }
+        },
+        "required" : [ "ADMINS", "INSTRUCTORS", "MEMBER" ],
+        "type" : "object"
+      },
+      "ChannelState" : {
+        "properties" : {
+          "channel" : {
+            "$ref" : "#/components/schemas/NotificationChannel"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/DeliveryStatus"
+          }
+        },
+        "required" : [ "channel", "status" ],
         "type" : "object"
       },
       "CheckoutSession" : {
@@ -4436,6 +4580,54 @@
         "required" : [ "createdByName", "fromLocal", "id", "kind", "reason", "ringName", "toLocal" ],
         "type" : "object"
       },
+      "DeliveryStatus" : {
+        "enum" : [ "QUEUED", "SENT", "DELIVERED", "FAILED", "SKIPPED_BY_PREFERENCE", "SKIPPED_MODULE_OFF", "SKIPPED_NO_CONTACT", "SKIPPED_CAP", "SKIPPED_STALE" ],
+        "type" : "string"
+      },
+      "DeliveryView" : {
+        "properties" : {
+          "attempts" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "channel" : {
+            "$ref" : "#/components/schemas/NotificationChannel"
+          },
+          "deliveredAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "failedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "lastError" : {
+            "description" : "The provider's last error",
+            "type" : [ "string", "null" ]
+          },
+          "nextAttemptAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "providerRef" : {
+            "description" : "The provider's message id",
+            "type" : [ "string", "null" ]
+          },
+          "sentAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/DeliveryStatus"
+          },
+          "target" : {
+            "description" : "The address, phone (E.164) or push subscription id; null for APP",
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "attempts", "channel", "status" ],
+        "type" : "object"
+      },
       "DisplayStatus" : {
         "description" : "Derived presentation status; includes ERASED under S14.",
         "properties" : {
@@ -4913,6 +5105,65 @@
           }
         },
         "required" : [ "id", "name", "rightSource" ],
+        "type" : "object"
+      },
+      "EmailByCategory" : {
+        "description" : "E-mail per category; the fourth row CLUB_NEWS exists although mockup 12 does not show it (S11 §13-2)",
+        "properties" : {
+          "CLUB_CHANGES" : {
+            "type" : "boolean"
+          },
+          "CLUB_NEWS" : {
+            "type" : "boolean"
+          },
+          "OPERATIONAL" : {
+            "type" : "boolean"
+          },
+          "PERSONAL" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "CLUB_CHANGES", "CLUB_NEWS", "OPERATIONAL", "PERSONAL" ],
+        "type" : "object"
+      },
+      "EmailByCategoryPatch" : {
+        "description" : "Partial: an absent category keeps its value",
+        "properties" : {
+          "CLUB_CHANGES" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "CLUB_NEWS" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "OPERATIONAL" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "PERSONAL" : {
+            "type" : [ "boolean", "null" ]
+          }
+        },
+        "required" : [ ],
+        "type" : "object"
+      },
+      "EmailUnsubscribeRequest" : {
+        "properties" : {
+          "token" : {
+            "description" : "The signed token of the «Deixar de rebre aquests comunicats» link (30 days)",
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "token" ],
+        "type" : "object"
+      },
+      "EmailUnsubscribeResult" : {
+        "properties" : {
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory",
+            "description" : "The category whose e-mail was turned off: always CLUB_NEWS"
+          }
+        },
+        "required" : [ "category" ],
         "type" : "object"
       },
       "EmptyRequest" : {
@@ -5402,6 +5653,25 @@
           }
         },
         "required" : [ "active", "answer", "category", "id", "order", "question", "version" ],
+        "type" : "object"
+      },
+      "FeedAction" : {
+        "description" : "The native action (R-11-11): CHANGE_CLASS and CLAIM_SEAT are buttons, the rest open on tapping the card; enabled is computed on reading",
+        "properties" : {
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "params" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/NotificationActionType"
+          }
+        },
+        "required" : [ "enabled", "params", "type" ],
         "type" : "object"
       },
       "FileKeyRequest" : {
@@ -8164,6 +8434,90 @@
         "required" : [ "dogs", "history", "limits", "member", "notifications", "reservations" ],
         "type" : "object"
       },
+      "MeNotification" : {
+        "properties" : {
+          "action" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/FeedAction"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "null when the code has no action («—»)"
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          },
+          "channels" : {
+            "description" : "Channels that reached the member; SMS only when SENT or DELIVERED («i per SMS»)",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationChannel"
+            },
+            "type" : "array"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "color" : {
+            "$ref" : "#/components/schemas/TemplateColor"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "icon" : {
+            "$ref" : "#/components/schemas/TemplateIcon"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "readAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "body", "category", "channels", "code", "color", "createdAt", "icon", "id", "title" ],
+        "type" : "object"
+      },
+      "MeNotifications" : {
+        "properties" : {
+          "items" : {
+            "description" : "createdAt desc; only notifications with an APP delivery",
+            "items" : {
+              "$ref" : "#/components/schemas/MeNotification"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "unreadCount" : {
+            "description" : "The same count as GET /me/home notifications.unreadCount",
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "items", "page", "size", "totalItems", "unreadCount" ],
+        "type" : "object"
+      },
       "MeProfile" : {
         "properties" : {
           "address" : {
@@ -9061,6 +9415,279 @@
         "required" : [ "clubId", "profiles", "rememberProfile", "roles" ],
         "type" : "object"
       },
+      "MessageTemplateCreateRequest" : {
+        "description" : "[＋ Nova plantilla]: a CUSTOM template (category PERSONAL · CLUB_NEWS · CLUB_CHANGES)",
+        "properties" : {
+          "body" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "minProperties" : 1,
+            "type" : "object"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          },
+          "color" : {
+            "$ref" : "#/components/schemas/TemplateColor"
+          },
+          "icon" : {
+            "$ref" : "#/components/schemas/TemplateIcon"
+          },
+          "matrix" : {
+            "$ref" : "#/components/schemas/ChannelMatrix"
+          },
+          "smsBody" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Required when an SMS cell is active (SMS_BODY_REQUIRED); ≤ 160 GSM-7 rendered (SMS_BODY_TOO_LONG)",
+            "type" : [ "object", "null" ]
+          },
+          "title" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "minProperties" : 1,
+            "type" : "object"
+          }
+        },
+        "required" : [ "body", "category", "color", "icon", "matrix", "title" ],
+        "type" : "object"
+      },
+      "MessageTemplateDetail" : {
+        "properties" : {
+          "bodyI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Body (≤ 2000) per club locale; the text of the MEMBER audience (staff texts are product copy, §13-3)",
+            "type" : "object"
+          },
+          "caps" : {
+            "$ref" : "#/components/schemas/ChannelCaps"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          },
+          "code" : {
+            "type" : [ "string", "null" ]
+          },
+          "color" : {
+            "$ref" : "#/components/schemas/TemplateColor"
+          },
+          "customized" : {
+            "type" : "boolean"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "icon" : {
+            "$ref" : "#/components/schemas/TemplateIcon"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "$ref" : "#/components/schemas/TemplateKind"
+          },
+          "lastChange" : {
+            "$ref" : "#/components/schemas/LastChange"
+          },
+          "mandatory" : {
+            "type" : "boolean"
+          },
+          "matrix" : {
+            "$ref" : "#/components/schemas/ChannelMatrix"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "push" : {
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationAudience"
+            },
+            "type" : "array"
+          },
+          "seedDefault" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TemplateTexts"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "The seed texts; null for CUSTOM"
+          },
+          "smsBodyI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "«SMS (text curt)» per club locale; null when no SMS cell may be active",
+            "type" : [ "object", "null" ]
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/TemplateStatus"
+          },
+          "titleI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Title per club locale (the `ca`/`es` tabs of D9)",
+            "type" : "object"
+          },
+          "variables" : {
+            "items" : {
+              "$ref" : "#/components/schemas/TemplateVariable"
+            },
+            "type" : "array"
+          },
+          "version" : {
+            "description" : "PUT optimistic lock (STALE_VERSION)",
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "bodyI18n", "caps", "category", "color", "customized", "enabled", "icon", "id", "kind", "mandatory", "matrix", "name", "push", "status", "titleI18n", "variables", "version" ],
+        "type" : "object"
+      },
+      "MessageTemplateList" : {
+        "properties" : {
+          "countsByCategory" : {
+            "$ref" : "#/components/schemas/CategoryCounts"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MessageTemplateListItem"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "countsByCategory", "items" ],
+        "type" : "object"
+      },
+      "MessageTemplateListItem" : {
+        "properties" : {
+          "caps" : {
+            "$ref" : "#/components/schemas/ChannelCaps"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          },
+          "code" : {
+            "description" : "N-xx of a CATALOG template; null for CUSTOM",
+            "type" : [ "string", "null" ]
+          },
+          "color" : {
+            "$ref" : "#/components/schemas/TemplateColor"
+          },
+          "customized" : {
+            "type" : "boolean"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "icon" : {
+            "$ref" : "#/components/schemas/TemplateIcon"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "$ref" : "#/components/schemas/TemplateKind"
+          },
+          "lastChange" : {
+            "$ref" : "#/components/schemas/LastChange",
+            "description" : "Last audited change (CATALOG_CHANGED, R-14-11); null when never edited"
+          },
+          "matrix" : {
+            "$ref" : "#/components/schemas/ChannelMatrix"
+          },
+          "name" : {
+            "description" : "The title in the admin's language",
+            "type" : "string"
+          },
+          "push" : {
+            "description" : "Audiences with a web push (fixed by the code; the Push column of D9 is informative, PUSH module)",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationAudience"
+            },
+            "type" : "array"
+          },
+          "variables" : {
+            "description" : "The code's variables only (CUSTOM: the member ones, R-11-12)",
+            "items" : {
+              "$ref" : "#/components/schemas/TemplateVariable"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "caps", "category", "color", "customized", "enabled", "icon", "id", "kind", "matrix", "name", "push", "variables" ],
+        "type" : "object"
+      },
+      "MessageTemplateUpdateRequest" : {
+        "properties" : {
+          "body" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "minProperties" : 1,
+            "type" : "object"
+          },
+          "category" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/NotificationCategory"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "CUSTOM only (the category of a CATALOG template is the code's)"
+          },
+          "color" : {
+            "$ref" : "#/components/schemas/TemplateColor"
+          },
+          "enabled" : {
+            "description" : "false = DISABLED; a mandatory template cannot (TEMPLATE_MANDATORY)",
+            "type" : "boolean"
+          },
+          "icon" : {
+            "$ref" : "#/components/schemas/TemplateIcon"
+          },
+          "matrix" : {
+            "$ref" : "#/components/schemas/ChannelMatrix"
+          },
+          "smsBody" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "A full replacement: absent or null removes it (then no SMS cell may be active)",
+            "type" : [ "object", "null" ]
+          },
+          "title" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "minProperties" : 1,
+            "type" : "object"
+          },
+          "version" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "body", "color", "enabled", "icon", "matrix", "title", "version" ],
+        "type" : "object"
+      },
+      "MissingVariablesDetails" : {
+        "properties" : {
+          "missingVariables" : {
+            "description" : "requiredVariables absent from the text (N-02 link, N-08a admin_text)",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "missingVariables" ],
+        "type" : "object"
+      },
       "ModuleSettings" : {
         "properties" : {
           "modules" : {
@@ -9196,6 +9823,283 @@
           }
         },
         "required" : [ "id", "mimeType", "name", "sizeBytes", "uploadedAt", "url" ],
+        "type" : "object"
+      },
+      "NotificationActionType" : {
+        "enum" : [ "CHANGE_CLASS", "CLAIM_SEAT", "OPEN_BOOKING", "OPEN_DOG", "OPEN_TASKS", "OPEN_INVOICES", "OPEN_ACTIVITY", "OPEN_SETUP", "OPEN_SIGNUP", "OPEN_MEMBER", "OPEN_JOBS", "OPEN_EXPORT", "OPEN_CHALLENGE" ],
+        "type" : "string"
+      },
+      "NotificationAudience" : {
+        "enum" : [ "MEMBER", "INSTRUCTORS", "ADMINS", "APPLICANT" ],
+        "type" : "string"
+      },
+      "NotificationCategory" : {
+        "enum" : [ "OPERATIONAL", "PERSONAL", "CLUB_CHANGES", "CLUB_NEWS", "SYSTEM" ],
+        "type" : "string"
+      },
+      "NotificationChannel" : {
+        "enum" : [ "APP", "EMAIL", "SMS", "PUSH" ],
+        "type" : "string"
+      },
+      "NotificationDetail" : {
+        "properties" : {
+          "audience" : {
+            "$ref" : "#/components/schemas/NotificationAudience"
+          },
+          "body" : {
+            "description" : "Rendered and frozen",
+            "type" : "string"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          },
+          "channels" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ChannelState"
+            },
+            "type" : "array"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "deliveries" : {
+            "items" : {
+              "$ref" : "#/components/schemas/DeliveryView"
+            },
+            "type" : "array"
+          },
+          "eventType" : {
+            "description" : "null for a direct send (N-50, N-53, a test send)",
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "locale" : {
+            "description" : "The locale it was rendered in",
+            "type" : "string"
+          },
+          "readAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "recipient" : {
+            "$ref" : "#/components/schemas/NotificationRecipient"
+          },
+          "smsBody" : {
+            "type" : [ "string", "null" ]
+          },
+          "subject" : {
+            "$ref" : "#/components/schemas/NotificationSubject"
+          },
+          "templateId" : {
+            "description" : "null for SYSTEM codes (no template)",
+            "type" : [ "string", "null" ]
+          },
+          "templateVersion" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "title" : {
+            "description" : "Rendered and frozen",
+            "type" : "string"
+          }
+        },
+        "required" : [ "audience", "body", "category", "channels", "code", "createdAt", "deliveries", "id", "locale", "recipient", "subject", "title" ],
+        "type" : "object"
+      },
+      "NotificationListItem" : {
+        "properties" : {
+          "audience" : {
+            "$ref" : "#/components/schemas/NotificationAudience"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          },
+          "channels" : {
+            "description" : "One per delivery",
+            "items" : {
+              "$ref" : "#/components/schemas/ChannelState"
+            },
+            "type" : "array"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "readAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "recipient" : {
+            "$ref" : "#/components/schemas/NotificationRecipient"
+          }
+        },
+        "required" : [ "id" ],
+        "type" : "object"
+      },
+      "NotificationPage" : {
+        "description" : "Universal list page (CONVENCIONS_API §4) of the notification log, createdAt desc by default",
+        "properties" : {
+          "appliedFilters" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Filter"
+            },
+            "type" : "array"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationListItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "minimum" : 1,
+            "type" : "integer"
+          },
+          "totalItems" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          },
+          "totalPages" : {
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "appliedFilters", "items", "page", "size", "totalItems", "totalPages" ],
+        "type" : "object"
+      },
+      "NotificationPreferences" : {
+        "properties" : {
+          "availableLocales" : {
+            "description" : "club.locales",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "emailByCategory" : {
+            "$ref" : "#/components/schemas/EmailByCategory"
+          },
+          "locale" : {
+            "description" : "Account.locale (PATCH /me, S01)",
+            "type" : "string"
+          },
+          "modules" : {
+            "$ref" : "#/components/schemas/PreferenceModules"
+          },
+          "pushClubNews" : {
+            "type" : "boolean"
+          },
+          "reminderMinutesBefore" : {
+            "description" : "null = «Mai»",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "reminderOptionsMinutes" : {
+            "description" : "messaging.reminderOptionsMinutes",
+            "items" : {
+              "format" : "int32",
+              "type" : "integer"
+            },
+            "type" : "array"
+          },
+          "smsFixed" : {
+            "description" : "Always true: the SMS of CLUB_CHANGES cannot be removed («+SMS», Josep 18-08)",
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "availableLocales", "emailByCategory", "locale", "modules", "pushClubNews", "reminderOptionsMinutes", "smsFixed" ],
+        "type" : "object"
+      },
+      "NotificationPreferencesRequest" : {
+        "description" : "Partial save (T-11-20): an absent key keeps its value",
+        "properties" : {
+          "emailByCategory" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/EmailByCategoryPatch"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "pushClubNews" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "reminderMinutesBefore" : {
+            "description" : "Absent keeps the value; null = «Mai»; otherwise one of messaging.reminderOptionsMinutes (INVALID_REMINDER_OPTION)",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          }
+        },
+        "required" : [ ],
+        "type" : "object"
+      },
+      "NotificationRecipient" : {
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "description" : "APPLICANT rows: the only recipient data",
+            "type" : [ "string", "null" ]
+          },
+          "memberId" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "displayName" ],
+        "type" : "object"
+      },
+      "NotificationSubject" : {
+        "description" : "The action parameters and the log filter (S11 §3); null keys do not apply",
+        "properties" : {
+          "activityId" : {
+            "type" : [ "string", "null" ]
+          },
+          "bookingId" : {
+            "type" : [ "string", "null" ]
+          },
+          "classSessionId" : {
+            "type" : [ "string", "null" ]
+          },
+          "dogId" : {
+            "type" : [ "string", "null" ]
+          },
+          "invoiceId" : {
+            "type" : [ "string", "null" ]
+          },
+          "memberId" : {
+            "type" : [ "string", "null" ]
+          },
+          "taskId" : {
+            "type" : [ "string", "null" ]
+          },
+          "trainingBookingId" : {
+            "type" : [ "string", "null" ]
+          },
+          "waitlistEntryId" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ ],
         "type" : "object"
       },
       "Observations" : {
@@ -10451,6 +11355,33 @@
         "required" : [ "region", "town" ],
         "type" : "object"
       },
+      "PreferenceModules" : {
+        "properties" : {
+          "push" : {
+            "description" : "PUSH module: the push toggle shown",
+            "type" : "boolean"
+          },
+          "sms" : {
+            "description" : "SMS module: «+SMS» shown",
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "push", "sms" ],
+        "type" : "object"
+      },
+      "PreviewWarning" : {
+        "properties" : {
+          "code" : {
+            "description" : "Catalog code, e.g. TEMPLATE_UNKNOWN_VARIABLE (rendered empty, R-11-05)",
+            "type" : "string"
+          },
+          "variable" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "code" ],
+        "type" : "object"
+      },
       "Price" : {
         "properties" : {
           "amount" : {
@@ -10976,6 +11907,61 @@
           }
         },
         "required" : [ ],
+        "type" : "object"
+      },
+      "PushKeys" : {
+        "properties" : {
+          "auth" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "p256dh" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "auth", "p256dh" ],
+        "type" : "object"
+      },
+      "PushSubscriptionCreated" : {
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id" ],
+        "type" : "object"
+      },
+      "PushSubscriptionRequest" : {
+        "properties" : {
+          "deviceLabel" : {
+            "description" : "Derived from the User-Agent when absent («iPhone · Safari»)",
+            "maxLength" : 120,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "endpoint" : {
+            "format" : "uri",
+            "maxLength" : 2048,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "keys" : {
+            "$ref" : "#/components/schemas/PushKeys"
+          }
+        },
+        "required" : [ "endpoint", "keys" ],
+        "type" : "object"
+      },
+      "ReadResult" : {
+        "properties" : {
+          "unreadCount" : {
+            "format" : "int64",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "unreadCount" ],
         "type" : "object"
       },
       "ReadmissionConsent" : {
@@ -13688,6 +14674,28 @@
         "required" : [ "freeRings", "reason", "ringId", "startsAt" ],
         "type" : "object"
       },
+      "SmsPreview" : {
+        "description" : "The SMS after transliteration to GSM-7 (R-11-06)",
+        "properties" : {
+          "length" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "segments" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "truncated" : {
+            "description" : "Cut with «…» at 160 characters",
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "length", "segments", "text", "truncated" ],
+        "type" : "object"
+      },
       "StaleAttendanceDetails" : {
         "properties" : {
           "current" : {
@@ -14037,6 +15045,134 @@
           }
         },
         "required" : [ "version" ],
+        "type" : "object"
+      },
+      "TemplateColor" : {
+        "enum" : [ "NEUTRAL", "OK", "WARNING", "ERROR", "ACCENT" ],
+        "type" : "string"
+      },
+      "TemplateDraft" : {
+        "description" : "An unsaved draft of one locale",
+        "properties" : {
+          "body" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "smsBody" : {
+            "type" : [ "string", "null" ]
+          },
+          "title" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        },
+        "required" : [ "body", "title" ],
+        "type" : "object"
+      },
+      "TemplateIcon" : {
+        "enum" : [ "check", "x", "unlock", "warn", "up", "heart", "bell", "doc", "flag", "mail", "cal", "clock", "info", "paw", "cone", "lock" ],
+        "type" : "string"
+      },
+      "TemplateKind" : {
+        "enum" : [ "CATALOG", "CUSTOM" ],
+        "type" : "string"
+      },
+      "TemplatePreview" : {
+        "description" : "Rendered with the fictional data of the locale («Laura», «Duna», «dimecres 12 · 18:50 · B+C · Central», R-11-12)",
+        "properties" : {
+          "body" : {
+            "type" : "string"
+          },
+          "emailHtml" : {
+            "type" : "string"
+          },
+          "emailSubject" : {
+            "type" : "string"
+          },
+          "sms" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/SmsPreview"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "null when the template has no SMS text"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "warnings" : {
+            "items" : {
+              "$ref" : "#/components/schemas/PreviewWarning"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "body", "emailHtml", "emailSubject", "title", "warnings" ],
+        "type" : "object"
+      },
+      "TemplatePreviewRequest" : {
+        "properties" : {
+          "draft" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TemplateDraft"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "Without a draft, the saved texts"
+          },
+          "locale" : {
+            "description" : "One of club.locales",
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "sendTest" : {
+            "description" : "«envia prova»: one delivery of the rendered draft to the acting admin only (E7-T03)",
+            "type" : [ "boolean", "null" ]
+          }
+        },
+        "required" : [ "locale" ],
+        "type" : "object"
+      },
+      "TemplateStatus" : {
+        "enum" : [ "ACTIVE", "DISABLED", "ARCHIVED" ],
+        "type" : "string"
+      },
+      "TemplateTexts" : {
+        "description" : "The seed texts of a CATALOG template, for «Restaura el text per defecte»",
+        "properties" : {
+          "bodyI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          },
+          "smsBodyI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : [ "object", "null" ]
+          },
+          "titleI18n" : {
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "type" : "object"
+          }
+        },
+        "required" : [ "bodyI18n", "titleI18n" ],
+        "type" : "object"
+      },
+      "TemplateVariable" : {
+        "description" : "A template variable: the code key written `[[key]]` in the text, and its D9 label in the admin's language (notif.variable.<key>)",
+        "properties" : {
+          "key" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "key", "label" ],
         "type" : "object"
       },
       "Theme" : {
@@ -31018,6 +32154,155 @@
         "tags" : [ "clubs.census" ]
       }
     },
+    "/api/v1/email-unsubscribes" : {
+      "post" : {
+        "description" : "Roles: ANON (any caller; the token authorises). A valid token (signed, 30 days) turns emailByCategory.CLUB_NEWS off for its member and publishes EmailUnsubscribed{memberId}; an expired, tampered or another club's token → UNSUBSCRIBE_TOKEN_INVALID (422). Transactional e-mails never carry the link. The club comes from the host. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "unsubscribeEmail",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EmailUnsubscribeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EmailUnsubscribeResult"
+                }
+              }
+            },
+            "description" : "EmailUnsubscribeResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "UNSUBSCRIBE_TOKEN_INVALID"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "unsubscribeEmail",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
     "/api/v1/exports" : {
       "get" : {
         "description" : "Up to 100 recent caller-owned jobs, newest first. Tenant comes from the JWT. ADMIN endpoints reject impersonation.",
@@ -39283,6 +40568,743 @@
         "tags" : [ "clubs.bookings" ]
       }
     },
+    "/api/v1/me/notification-preferences" : {
+      "get" : {
+        "description" : "Roles: MEMBER, and the impersonation token (INSTRUCTOR, ADMIN without MEMBER → 403). The member's NotificationPreference, the product defaults when the block is absent (OPERATIONAL e-mail off, the rest on, no reminder, push of club news on), with the reminder options, the account's locale and the club's locales and SMS/PUSH modules. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "myNotificationPreferences",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPreferences"
+                }
+              }
+            },
+            "description" : "NotificationPreferences"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "myNotificationPreferences",
+        "tags" : [ "clubs.messaging" ]
+      },
+      "put" : {
+        "description" : "Roles: MEMBER, and the impersonation token (audited as MEMBER_UPDATED with the impersonated member). Partial save (debounced by 12): an absent key keeps its value; reminderMinutesBefore outside messaging.reminderOptionsMinutes → INVALID_REMINDER_OPTION (422). NotificationPreferencesChanged{memberId, diff, byAccountId}; a changed reminder never resends a reminder already sent (R-11-16). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "saveMyNotificationPreferences",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NotificationPreferencesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPreferences"
+                }
+              }
+            },
+            "description" : "NotificationPreferences"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_REMINDER_OPTION"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "saveMyNotificationPreferences",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/me/notifications" : {
+      "get" : {
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token (the member's feed). Feed 11 (R-11-10): the caller's notifications with an APP delivery, of any audience (audience filters one), createdAt desc, 20 per page; channels lists SMS only when an SMS delivery is SENT or DELIVERED («i per SMS»); action.enabled is computed on reading (CLAIM_SEAT: the entry is still NOTIFIED and, in FIFO, confirmBy > now); unreadCount = GET /me/home notifications.unreadCount. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "meNotifications",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "audience",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/NotificationAudience"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeNotifications"
+                }
+              }
+            },
+            "description" : "MeNotifications"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "meNotifications",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/me/notifications/read-all" : {
+      "post" : {
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Entering screen 11 marks every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "readAllNotifications",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description" : "ReadResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "readAllNotifications",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/me/notifications/{id}/read" : {
+      "post" : {
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Marks one of the caller's notifications read (idempotent: readAt kept); another account's or club's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "readNotification",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description" : "ReadResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "readNotification",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
     "/api/v1/me/onboarding" : {
       "get" : {
         "description" : "Any valid account token. S01 §14, T-01-26. Platform consent first, then the current club policy.",
@@ -43868,6 +45890,163 @@
         "tags" : [ "identity" ]
       }
     },
+    "/api/v1/members/{id}/notification-preferences" : {
+      "put" : {
+        "description" : "Roles: ADMIN (impersonation → 403). The same block from D10, audited as MEMBER_UPDATED (changes[].path = notificationPreferences, the actor's actorAccountId). Another club's member → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "saveMemberNotificationPreferences",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NotificationPreferencesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPreferences"
+                }
+              }
+            },
+            "description" : "NotificationPreferences"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MEMBER_ERASED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_REMINDER_OPTION"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "saveMemberNotificationPreferences",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
     "/api/v1/members/{id}/overview" : {
       "get" : {
         "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
@@ -44802,9 +46981,1456 @@
         "tags" : [ "clubs.census" ]
       }
     },
+    "/api/v1/message-templates" : {
+      "get" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). D9 list with the counts per category: every CATALOG template of the club (the seed of a code without one is created on first use, R-11-01) and its CUSTOM ones; ARCHIVED only with includeArchived. The SMS column follows the SMS module (cells kept, R-11-17). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "messageTemplates",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/NotificationCategory"
+          }
+        }, {
+          "in" : "query",
+          "name" : "kind",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/TemplateKind"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeArchived",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageTemplateList"
+                }
+              }
+            },
+            "description" : "MessageTemplateList"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "messageTemplates",
+        "tags" : [ "clubs.messaging" ]
+      },
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [＋ Nova plantilla]: a CUSTOM template of PERSONAL, CLUB_NEWS or CLUB_CHANGES (SYSTEM or OPERATIONAL → VALIDATION_ERROR) with member variables only; matrix cells outside the category's caps → CHANNEL_NOT_ALLOWED; an active SMS cell needs smsBody. MessageTemplateChanged and CATALOG_CHANGED audit. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "createMessageTemplate",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MessageTemplateCreateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageTemplateDetail"
+                }
+              }
+            },
+            "description" : "MessageTemplateDetail"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE, SMS_BODY_REQUIRED, SMS_BODY_TOO_LONG"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CHANNEL_NOT_ALLOWED"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "createMessageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/message-templates/{id}" : {
+      "delete" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Elimina»: a CUSTOM template becomes ARCHIVED (nothing is deleted, invisible in D9 and in the send dialog); a CATALOG one → TEMPLATE_NOT_CUSTOM (422). No body. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "archiveMessageTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TEMPLATE_NOT_CUSTOM"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "archiveMessageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      },
+      "get" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The editor of D9: the texts per club locale, the seed texts (CATALOG) and lastChange. Another club's template → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "messageTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageTemplateDetail"
+                }
+              }
+            },
+            "description" : "MessageTemplateDetail"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "messageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      },
+      "put" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [DESA] (R-11-12): texts, icon, colour, matrix within caps, enabled (not a mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized. A missing required variable (N-02 link, N-08a admin_text) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails) until the catalog has S11's TEMPLATE_MISSING_VARIABLE. A stale version → STALE_VERSION. MessageTemplateChanged, CATALOG_CHANGED audit, club cache evicted. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "updateMessageTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MessageTemplateUpdateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageTemplateDetail"
+                }
+              }
+            },
+            "description" : "MessageTemplateDetail"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE, SMS_BODY_REQUIRED, SMS_BODY_TOO_LONG"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "STALE_VERSION"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "CHANNEL_NOT_ALLOWED, TEMPLATE_MANDATORY"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "updateMessageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/message-templates/{id}/preview" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [Vista prèvia] of the saved texts or of an unsaved draft, in one locale, with the fictional data of that locale; SMS length and segments after transliteration; an unknown variable is a warning (rendered empty). sendTest (E7-T03) delivers the rendered draft to the acting admin only. Writes nothing else. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "previewMessageTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TemplatePreviewRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TemplatePreview"
+                }
+              }
+            },
+            "description" : "TemplatePreview"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, TEMPLATE_SYNTAX_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "previewMessageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/message-templates/{id}/reset" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Restaura el text per defecte»: the seed texts, icon, colour and matrix back, customized = false; a CUSTOM template → TEMPLATE_NOT_CATALOG (422). MessageTemplateChanged, CATALOG_CHANGED audit. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "resetMessageTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageTemplateDetail"
+                }
+              }
+            },
+            "description" : "MessageTemplateDetail"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TEMPLATE_NOT_CATALOG"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "resetMessageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/message-templates/{id}/send" : {
+      "post" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Enviar comunicat» (R-11-13, N-24): N-24 or a CUSTOM template only (TEMPLATE_NOT_SENDABLE, 422); recipients = the members of the selection or of the filters (the semantics of GET /members, any status the list shows; NO_RECIPIENTS, 422). dryRun → 200 with the count and nothing written; otherwise 202, AnnouncementSent{templateId, batchId, recipientCount, filters}, one MEMBER notification per member (dedupKey {batchId}:{memberId}) and ANNOUNCEMENT_SENT audit. The same Idempotency-Key replays the same batchId. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "sendMessageTemplate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Idempotency-Key",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnnouncementRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementResult"
+                }
+              }
+            },
+            "description" : "AnnouncementResult (dryRun)"
+          },
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AnnouncementResult"
+                }
+              }
+            },
+            "description" : "AnnouncementResult"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IDEMPOTENCY_KEY_REUSED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "TEMPLATE_NOT_SENDABLE, NO_RECIPIENTS"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "sendMessageTemplate",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/notifications" : {
+      "get" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "notifications",
+        "parameters" : [ {
+          "description" : "Zero-based page index.",
+          "in" : "query",
+          "name" : "page",
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "minimum" : 0,
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Requested page size: 20, 50, 200 or 1000 (CONVENCIONS_API §4); any other value is 400 INVALID_FILTER.",
+          "in" : "query",
+          "name" : "size",
+          "schema" : {
+            "default" : 50,
+            "enum" : [ 20, 50, 200, 1000 ],
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Repeat field,asc or field,desc; only x-sortable fields.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "sort",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Free-text search within the caller's permitted projection.",
+          "in" : "query",
+          "name" : "q",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
+          "explode" : true,
+          "in" : "query",
+          "name" : "filter",
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "style" : "form"
+        }, {
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPage"
+                }
+              }
+            },
+            "description" : "NotificationPage"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "notifications",
+        "tags" : [ "clubs.messaging" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "createdAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "code"
+        }, {
+          "defaultVisible" : true,
+          "key" : "recipient"
+        }, {
+          "defaultVisible" : true,
+          "key" : "channels"
+        }, {
+          "defaultVisible" : false,
+          "key" : "readAt"
+        } ],
+        "x-exportable" : true,
+        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt" ],
+        "x-filter-operators" : { },
+        "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
+        "x-sortable" : [ "createdAt" ]
+      }
+    },
     "/api/v1/notifications/export" : {
       "get" : {
-        "description" : "S14 §6, R-14-12. Same q/filter/sort and selected columns as the list. 200 binary file or 202 ExportAccepted. Sensitive values are masked; implementation and future-vertical field allowlists are deferred.",
+        "description" : "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T01): the same q/filter/sort, fields and selected columns; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Contract only; returns 501 NOT_IMPLEMENTED after the role, tenant and query checks until E7-T03 serves the log.",
         "operationId" : "exportNotifications",
         "parameters" : [ {
           "in" : "query",
@@ -44872,6 +48498,13 @@
             "type" : "array"
           },
           "style" : "form"
+        }, {
+          "description" : "Comma-separated keys of this operation's x-fields; any other key is INVALID_FILTER. A list sends the row id and the requested keys only. An export takes the requested keys that are columns (x-columns) as its columns when columns is absent; none of them is INVALID_FILTER.",
+          "in" : "query",
+          "name" : "fields",
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {
@@ -45031,11 +48664,343 @@
         },
         "summary" : "Export notifications",
         "tags" : [ "clubs.common" ],
+        "x-columns" : [ {
+          "defaultVisible" : true,
+          "key" : "createdAt"
+        }, {
+          "defaultVisible" : true,
+          "key" : "code"
+        }, {
+          "defaultVisible" : true,
+          "key" : "recipient"
+        }, {
+          "defaultVisible" : true,
+          "key" : "channels"
+        }, {
+          "defaultVisible" : false,
+          "key" : "readAt"
+        } ],
+        "x-exportable" : false,
+        "x-fields" : [ "id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt" ],
+        "x-filter-operators" : { },
+        "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
+        "x-sortable" : [ "createdAt" ]
+      }
+    },
+    "/api/v1/notifications/filter-values" : {
+      "get" : {
+        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4); another field → INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "notificationFilterValues",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "field",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FilterValues"
+                }
+              }
+            },
+            "description" : "FilterValues"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "notificationFilterValues",
+        "tags" : [ "clubs.messaging" ],
         "x-columns" : [ ],
         "x-exportable" : false,
         "x-filter-operators" : { },
-        "x-filterable" : [ ],
+        "x-filterable" : [ "code", "category", "channel", "status", "memberId", "createdAt" ],
         "x-sortable" : [ ]
+      }
+    },
+    "/api/v1/notifications/{id}" : {
+      "get" : {
+        "description" : "Roles: ADMIN (impersonation → 403). The log's detail: the frozen rendered texts, every delivery with the provider's reference and last error. Another club's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "notification",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationDetail"
+                }
+              }
+            },
+            "description" : "NotificationDetail"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "notification",
+        "tags" : [ "clubs.messaging" ]
       }
     },
     "/api/v1/parameters" : {
@@ -49863,6 +53828,295 @@
         "x-filter-operators" : { },
         "x-filterable" : [ ],
         "x-sortable" : [ "order" ]
+      }
+    },
+    "/api/v1/push-subscriptions" : {
+      "post" : {
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Asked in context from 12 (the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (unique per club through its hash), ACTIVE again if it had expired; PushSubscribed{accountId, endpoint = its SHA-256}. An endpoint that is no https URL or keys that are no base64url → PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey. Requires PUSH. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "subscribePush",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PushSubscriptionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PushSubscriptionCreated"
+                }
+              }
+            },
+            "description" : "PushSubscriptionCreated"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "PUSH_SUBSCRIPTION_INVALID"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "subscribePush",
+        "tags" : [ "clubs.messaging" ]
+      }
+    },
+    "/api/v1/push-subscriptions/{id}" : {
+      "delete" : {
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, the caller's own subscription (impersonation → IMPERSONATION_DENIED). Logout of the device: EXPIRED + expiredAt, PushUnsubscribed; another account's or club's → 404. No body. Requires PUSH. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "operationId" : "unsubscribePush",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "void"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND, MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "unsubscribePush",
+        "tags" : [ "clubs.messaging" ]
       }
     },
     "/api/v1/ring-blocks" : {
