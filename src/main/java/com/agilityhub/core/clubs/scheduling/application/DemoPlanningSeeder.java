@@ -102,7 +102,7 @@ public class DemoPlanningSeeder implements DemoSeedStep {
             counts.merge("ringBlocks", 1, Integer::sum);
         }
         // The E5 scenario belongs to the seed login accounts of the first run: a re-anchored run never repeats it.
-        if (!input.reanchor()) { counts.putAll(scenarioBlocks(input, rings, instructors, zone)); }
+        if (!input.reanchor()) { counts.putAll(scenarioBlocks(input, rings, instructors, zone)); counts.putAll(historyClasses(input, rings)); }
         var text = messages.format("scheduling.autoCancel.text", Map.of("minDogs", context.config().get("classes.minDogs", Integer.class)), Locale.forLanguageTag(context.config().club().defaultLocale()));
         for (var r : spec.riskCancellations()) {
             if (!dated.test(r.week())) { continue; }
@@ -126,6 +126,39 @@ public class DemoPlanningSeeder implements DemoSeedStep {
                     day.atTime(LocalTime.parse(b.to())).atZone(zone).toInstant(), b.kind(), b.reason(), b.note(), false));
         }
         return Map.of("scenarioRingBlocks", specs.size());
+    }
+    /** E6-T04 `scenario.attendance`: the week-0 sheet class and the past classes (`history.classes`, weeks before 0) that copy it. */
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public record AttendanceSpec(SheetSlot sheet, HistorySpec history) { }
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public record SheetSlot(DayOfWeek day, String start, String ring) { }
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public record HistorySpec(String end, List<PastSlot> classes) {
+        public HistorySpec { classes = classes == null ? List.of() : List.copyOf(classes); }
+    }
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public record PastSlot(int week, DayOfWeek day) { }
+    /**
+     * The past classes of the E6 demo (S10 WP-10-G: 22/D13's 30-day metrics, 25's badges): on the sheet class's ring, hour,
+     * levels and instructor, until `history.end`, created through S06 (their weeks start PENDING) and then validated, so they
+     * are ACTIVE when the S08 step books them «as of» their booking week. Only with the scenario (its anchor week still ahead).
+     */
+    private Map<String, Integer> historyClasses(Input input, Map<String, String> rings) {
+        var section = input.scenario().get("attendance");
+        if (section == null) { return Map.of("attendanceHistoryClasses", 0); }
+        var spec = mapper.convertValue(section, AttendanceSpec.class);
+        var slot = sessions.slot(date(input.weekStart(), 0, spec.sheet().day()), spec.sheet().start(), require(rings, spec.sheet().ring()))
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, Map.of("slot", spec.sheet().day() + " " + spec.sheet().start())));
+        var model = sessions.require(slot.id());
+        var weeks = new LinkedHashSet<String>(); int count = 0;
+        for (var past : spec.history().classes()) {
+            if (past.week() >= 0) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "scenario.attendance.history.classes.week")); }
+            var created = sessions.create(date(input.weekStart(), past.week(), past.day()), model.startTime(), spec.history().end(), model.ringId(),
+                    model.levelIds(), model.instructorIds(), null, null, false);
+            weeks.add(created.weekId()); count++;
+        }
+        for (String week : weeks) { validation.validate(week); }
+        return Map.of("attendanceHistoryClasses", count);
     }
     private static String instructor(List<String> instructors, int index) {
         if (index < 0 || index >= instructors.size()) { throw new ApiException(ErrorCode.NOT_FOUND, Map.of("instructor", index)); }

@@ -208,3 +208,58 @@ scenario:
     - {instructor: 0, day: TUESDAY, from: '11:00', to: '12:00', ring: PET, kind: RESERVATION, reason: PRIVATE_CLASS, note: 'Classe particular (fictícia)'}
   activityRegistrations:
     - {member: 5, title: "Torneig d'Estiu 2026"}       # 03 ACTIVITY row
+  # E6-T04 (S10 WP-10-G: screens 20-26, D12-D14, bin/e6-smoke). The cast gets invented names through the admin's S03/S05 edits
+  # (never the mockups' first names, the T-06-28 guard; seeds/README.md maps each one to the mockup person whose role it plays).
+  # `member` = census ordinal (12 = member.8@example.test, a login;
+  # 70/75/80/85 each own one level B dog). The logins own CAD and E dogs only, so Rita's CAD dog moves up to A first
+  # (`dogLevel` -> `level`). `sheet` = the week-0 class of R-10-02's example (4 booked + 1 waiting on a 5-seat class).
+  # `history` = past classes (weeks before 0) that copy it on the same ring, hour, levels and instructor (S06 step), booked at
+  # their booking week's opening and marked by the instructor (S08/S10 step; NOTIFIED at noticeAt, in time; each NO_SHOW taken
+  # by the next morning's P3 claim). At demoNow Mel's 30 days hold present 6, no-show 1, notified in time 1 (R-10-08: 86 %,
+  # 7 classes) and ten free trainings (2.3 a week); the two older weeks give screen 25 its «anul·lada tard» and «cancel·lada
+  # pel club» rows. All names and texts are fictional.
+  attendance:
+    instructor: {index: 0, name: Berta}
+    cast:
+      - {name: Rita, member: 12, dog: Mel, dogLevel: CAD, level: A}
+      - {name: Martí, member: 70, dog: Sorra, level: B}
+      - {name: Alba, member: 75, dog: Pinya, level: B}
+      - {name: Nil, member: 80, dog: Trufa, level: B}
+      - {name: Iu, member: 85, dog: Gira, level: B}
+    sheet: {day: MONDAY, start: '08:30', ring: CEN, booked: [Rita, Martí, Alba, Nil], waiting: [Iu]}
+    history:
+      end: '09:30'
+      markedAt: '09:40'
+      noticeAt: '03:00'
+      classes:
+        - {week: -6, day: MONDAY, booked: [Rita, Martí, Alba], cancelledByClub: {at: '07:00', text: "La pista Central queda tancada aquest matí per manteniment (text fictici)."}}
+        - {week: -5, day: MONDAY, booked: [Rita], lateCancellation: {who: Rita, at: '07:00'}, marks: {Martí: PRESENT, Alba: PRESENT}}
+        - {week: -4, day: MONDAY, marks: {Rita: PRESENT, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -4, day: WEDNESDAY, marks: {Rita: NO_SHOW, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -3, day: MONDAY, marks: {Rita: PRESENT, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -3, day: WEDNESDAY, marks: {Rita: NOTIFIED, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -2, day: MONDAY, marks: {Rita: PRESENT, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -2, day: WEDNESDAY, marks: {Rita: PRESENT, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -1, day: MONDAY, marks: {Rita: PRESENT, Martí: PRESENT, Alba: PRESENT}}
+        - {week: -1, day: WEDNESDAY, marks: {Rita: PRESENT, Martí: PRESENT, Alba: PRESENT}}
+    training:
+      by: Rita
+      ring: MUN
+      start: '11:00'
+      bookedDaysBefore: 1
+      sessions:
+        - {week: -4, day: TUESDAY}
+        - {week: -4, day: THURSDAY}
+        - {week: -4, day: SATURDAY}
+        - {week: -3, day: TUESDAY}
+        - {week: -3, day: THURSDAY}
+        - {week: -3, day: SATURDAY}
+        - {week: -2, day: TUESDAY}
+        - {week: -2, day: THURSDAY}
+        - {week: -2, day: SATURDAY}
+        - {week: -1, day: TUESDAY}
+    memberNote: {by: Rita, text: "La Mel s'espanta amb el túnel llarg: si us plau, comenceu amb el túnel recollit (text fictici)."}
+    tasks:
+      - {text: "Practiqueu el balancí a casa amb calma: sessions curtes, i sempre acabant amb un èxit (vídeo adjunt).", attachment: {name: balanci-mel.mp4, mimeType: video/mp4, sizeBytes: 4096}}
+      - {text: "Tres sessions de quiets d'un minut abans de la classe de dilluns.", completedBy: Rita}
+    observation: "Bona progressió en contactes; cal reforçar la sortida del túnel (observació fictícia)."

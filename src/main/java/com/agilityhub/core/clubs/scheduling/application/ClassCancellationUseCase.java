@@ -21,6 +21,8 @@ public class ClassCancellationUseCase {
         this.sessions=sessions; this.classes=classes; this.bookings=bookings; this.recipients=recipients; this.context=context;
         this.transactions=transactions; this.events=events; this.audit=audit; this.clock=clock;
     }
+    /** The admin's own cancellation (reason CLUB_MANUAL) for callers outside S06, which hold no S06 domain type (the E6-T04 demo seed). */
+    public void cancelByClub(String id,String adminText,String actor) { cancel(id,ClassCancellationReason.CLUB_MANUAL,adminText,actor); }
     public ClassSession cancel(String id,ClassCancellationReason reason,String adminText,String actor) {
         return transactions.write(() -> {
             var before=sessions.require(id);
@@ -28,7 +30,7 @@ public class ClassCancellationUseCase {
             var live=bookings.activeBookings(id); var waiting=bookings.liveWaitlist(id);
             if((before.counters().booked()>0 || before.counters().waiting()>0 || !live.isEmpty() || !waiting.isEmpty())
                     && (adminText==null || adminText.isBlank() || adminText.length()>500)) throw new ApiException(ErrorCode.ADMIN_TEXT_REQUIRED);
-            var effects=bookings.cancelAllByClub(id,reason.name(),actor); var now=clock.instant();
+            var effects=bookings.cancelAllByClub(id,reason.name(),adminText,actor); var now=clock.instant();
             var edit=new SessionEdit(before); edit.state=ClassState.CANCELLED; edit.counters=new ClassSession.Counters(0,0);
             edit.cancellation=new ClassSession.Cancellation(reason,adminText,actor,now,effects.bookings().size(),effects.waitlist().size());
             var after=classes.update(edit.snapshot(now,actor),before.version());

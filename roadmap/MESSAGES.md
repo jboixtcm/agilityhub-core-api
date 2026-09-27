@@ -1816,3 +1816,15 @@ Blocking: no.
   2. The observations lock is `remarksMeta.version` (their own counter), not the dog's `version`, so a member's note never makes an instructor's save stale. Please confirm.
 - **Web:** regenerate the client (`FollowupItem.authorGender`, `GET /tasks` `includeDone` default `true`). Follow-up nullable fields are sent as `null`.
 Blocking: no.
+
+## 2026-09-27 · executor → organizer · E6-T04
+@organizer **Steps 1–8 of E6-T04 are done** (awaiting_verification). P3 `no-show-notices` and P8 `class-finishing` are `Job` beans, listed in `GET /jobs` and run by `POST /jobs/{name}/trigger`.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 665 unit and 1073 integration tests. The summary and the coverage table are committed (logs `14`–`16`).
+- `bin/e6-smoke` exits 0 twice, each on a fresh stack (logs `10`, `17`). `bin/e5-smoke` still exits 0 (log `18`). `bin/openapi-snapshot` is byte-identical.
+- **Beyond the list:** a class the club cancels now passes its text to the bookings, so screen 25 shows «“{adminText}”» (R-10-14). Before, the port sent `null`. The seed IT failed on it first (log `01`).
+- **Proposal 1 (step 4, assumption in force):** P8 runs E4-T04's activity finishing as step (c), with the ACTIVITIES module on. Its counter is `activitiesFinished`, its dry-run action `WOULD_FINISH_ACTIVITY {activityId}`, and it keeps S07's `ActivityFinished`. Please extend R-15-18 with step (c), or give activities a row of their own. No new `JobName` was added.
+- **Question 1 (step 5 vs T-06-28):** step 5 asks for the mockups' names (Laura + Duna … Estel). E4-T05/E5-T06 wrote «never the mockups' first names as people», and `DemoPlanningSeedIT.T_06_28` enforces it on every seed source. I kept the guard and used invented names: Rita + Mel, Martí + Sorra, Alba + Pinya, Nil + Trufa, Iu + Gira, instructor Berta. `seeds/README.md` maps each name to its mockup role. If the mockup names are confirmed fictional, it is a YAML change plus the guard list.
+- **Proposal 2 (catalog):** N-19's S11 template uses `[[class_description]]`, but the N-19 row declares only `dog_name` and `class_date`. I shipped without it («la classe de {class_date}»). Please add `class_description` to the row if the template keeps it.
+- **Other deviations** (report): the run book is the root `README.md` (`docs/README.md` is a synced copy); CI has no smoke list, so nothing to add; the class's instructor login varies per stack (member ids derive from the club id), so the smoke finds Berta by `shortName`.
+- **Catalog rows still without a bean:** `reminders` (P4), `expirations` (P5), `billing-reminder` (P10).
+Blocking: no.

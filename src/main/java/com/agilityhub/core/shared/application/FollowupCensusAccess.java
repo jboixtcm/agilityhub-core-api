@@ -29,6 +29,8 @@ public interface FollowupCensusAccess {
 
     Map<String, Dog> dogs(Collection<String> dogIds);
     default Optional<Dog> dog(String dogId) { return Optional.ofNullable(dogs(List.of(dogId)).get(dogId)); }
+    /** The dogs a member owns, any status (the E6-T04 demo seed finds the holder's dog by its name). */
+    Map<String, Dog> dogsOf(String memberId);
     Map<String, Member> members(Collection<String> memberIds);
     Optional<Note> instructorNote(String dogId);
     Optional<Remarks> remarks(String dogId);

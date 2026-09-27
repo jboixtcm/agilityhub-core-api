@@ -52,15 +52,24 @@ public class ActivityLifecycleService {
         });
     }
     public RingBlockService.Conflicts conflicts(String id) { return service.blocks.conflictsFor(service.context.blockRequest(service.require(id))); }
+    /** `bin/core activities:finish-ended`: every activity {@link #endedBy} {@code now}, one transaction each (S15 P8 step (c) does one per item). */
     public int finishEnded(Instant now) {
         if(!service.context.enabled(Module.ACTIVITIES)) return 0;
         int count=0;
-        for(var candidate:service.activities.findPublished()) count+=service.transactions.write(List.of(candidate.id()),() -> {
-            var before=service.activities.lock(candidate.id());
-            if(before.state()!=ActivityState.PUBLISHED || !service.context.times(before).endsAt().isBefore(now)) return 0;
-            var edit=new ActivityEdit(before); edit.state=ActivityState.FINISHED; edit.finishedAt=now; service.save(edit,before.version());
-            service.events.publish(ActivityEvent.Kind.ActivityFinished,before.id(),Map.of("activityId",before.id())); return 1;
-        });
+        for(String id:endedBy(now)) if(finish(id,now)) count++;
         return count;
+    }
+    /** Ids of the PUBLISHED activities whose end is before {@code now}, by id; nothing written. */
+    public List<String> endedBy(Instant now) {
+        return service.activities.findPublished().stream().filter(a -> service.context.times(a).endsAt().isBefore(now)).map(Activity::id).sorted().toList();
+    }
+    /** PUBLISHED → FINISHED + `ActivityFinished`, in the caller's transaction when there is one; idempotent by state. */
+    public boolean finish(String id,Instant now) {
+        return service.transactions.write(List.of(id),() -> {
+            var before=service.activities.lock(id);
+            if(before.state()!=ActivityState.PUBLISHED || !service.context.times(before).endsAt().isBefore(now)) return false;
+            var edit=new ActivityEdit(before); edit.state=ActivityState.FINISHED; edit.finishedAt=now; service.save(edit,before.version());
+            service.events.publish(ActivityEvent.Kind.ActivityFinished,before.id(),Map.of("activityId",before.id())); return true;
+        });
     }
 }

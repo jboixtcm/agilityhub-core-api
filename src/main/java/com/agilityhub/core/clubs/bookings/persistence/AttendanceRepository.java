@@ -88,10 +88,27 @@ public class AttendanceRepository extends TenantRepository<Attendance> {
         }
         return claimed;
     }
+    /**
+     * The read-only twin of {@link #claimForNoShowNotice} (S15 R-15-13 `plan`, E6-T04): the same scope and order, nothing
+     * written, so a dry run lists exactly what the claim would take.
+     */
+    public List<Attendance> dueForNoShowNotice(String clubId, LocalDate today) {
+        return mongo.find(tenantQuery(clubId).addCriteria(Criteria.where("state").is(AttendanceState.NO_SHOW).and("noShowNotice.queuedAt").is(null)
+                .and("classDate").lt(today)).with(Sort.by("classDate", "_id")), Attendance.class);
+    }
     /** Replaces the claim's batch token with the id of the `NoShowNoticeDue` the claim published (same transaction). */
     public void noticeEvent(String batchToken, String eventId) {
         mongo.updateMulti(tenantQuery().addCriteria(Criteria.where("noShowNotice.eventId").is(batchToken)), new Update().set("noShowNotice.eventId", eventId),
                 Attendance.class);
+    }
+    /**
+     * S10 §7 «avís ja enviat»: the N-19 of this batch reached the member, so `noShowNotice.sentAt` is set once (a redelivered
+     * event, or a mark changed after the batch, keeps the first instant). False when it was already set or belongs to another batch.
+     */
+    public boolean noticeSent(String attendanceId, String eventId, Instant at) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(attendanceId).and("noShowNotice.eventId").is(eventId)
+                .and("noShowNotice.sentAt").is(null)), new Update().set("noShowNotice.sentAt", at).set("updatedAt", at).inc("version", 1),
+                Attendance.class).getModifiedCount() == 1;
     }
     /** `ClassSessionUpdated` (S10 §7): the denormalised class times and date of the class's attendances; idempotent. */
     public long refreshClass(String classSessionId, LocalDate classDate, Instant classStartsAt, Instant classEndsAt) {

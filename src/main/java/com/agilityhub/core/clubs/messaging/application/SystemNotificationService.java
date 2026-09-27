@@ -46,6 +46,10 @@ public class SystemNotificationService {
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }
+    /** Whether the row reached the member: SENT (an APP row on insertion, an email once the provider accepted it) or DELIVERED. */
+    public boolean sent(String id) {
+        return notifications.findScoped(id).filter(item -> item.status() == Notification.Status.SENT || item.status() == Notification.Status.DELIVERED).isPresent();
+    }
     @Transactional(propagation = Propagation.NEVER)
     public String sendOnce(String id, String code, String accountId, Map<String, ?> variables) {
         if (completed(id)) { return id; }

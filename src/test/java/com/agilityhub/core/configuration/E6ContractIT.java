@@ -288,13 +288,15 @@ class E6ContractIT extends AbstractIntegrationTest {
         served(as(delete("/api/v1/attachments/e6-att-note").header("Idempotency-Key", UUID.randomUUID().toString()), "MEMBER"), 204);
     }
 
-    @Test void T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreCatalogRowsWithoutAJobBeanYet() throws Exception {
+    /** E6-T04 flips E6-T01's interim `404 JOB_UNKNOWN`: both rows have their `Job` bean, are listed and run on demand. */
+    @Test void T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand() throws Exception {
         var admin = jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_ADMIN");
         var jobs = mvc.perform(get("/api/v1/jobs").header("Host", HOST).with(admin)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        assertThat(jobs).contains("RISK_REVIEW").doesNotContain("NO_SHOW_NOTICES", "CLASS_FINISHING");
+        assertThat(jobs).contains("RISK_REVIEW", "NO_SHOW_NOTICES", "CLASS_FINISHING");
         for (String route : List.of("no-show-notices", "class-finishing")) {
-            error(post("/api/v1/jobs/" + route + "/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin), 404, "JOB_UNKNOWN");
-            mvc.perform(get("/api/v1/jobs/" + route + "/runs").header("Host", HOST).with(admin)).andExpect(status().isOk()).andExpect(jsonPath("$.items").isEmpty());
+            mvc.perform(post("/api/v1/jobs/" + route + "/trigger").contentType("application/json").content("{\"dryRun\":true}").header("Host", HOST).with(admin))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.dryRun").value(true)).andExpect(jsonPath("$.status").value("SUCCEEDED"));
+            mvc.perform(get("/api/v1/jobs/" + route + "/runs").header("Host", HOST).with(admin)).andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1));
         }
     }
 

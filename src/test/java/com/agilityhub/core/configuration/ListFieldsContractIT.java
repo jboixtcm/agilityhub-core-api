@@ -206,8 +206,11 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
         clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(canic);
         mvc.perform(post("/api/v1/jobs/cleanup/trigger").header("Host", CANIC_HOST).contentType("application/json").content("{\"dryRun\":true}")
                 .with(jwt().jwt(j -> j.subject("list-fields-admin").claim("clubId", canic)).authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))).andExpect(status().isOk());
-        // E6-T02: `GET /attendances` is served; one mark of a demo booking gives it a row to check.
-        var booking = mongo.findOne(Query.query(Criteria.where("clubId").is(canic).and("state").is("ACTIVE")), org.bson.Document.class, "bookings");
+        // E6-T02: `GET /attendances` is served; one mark of a demo booking gives it a row to check (E6-T04: the demo marks some
+        // bookings itself, so the fixture takes one without a mark).
+        var marked = mongo.find(Query.query(Criteria.where("clubId").is(canic)), org.bson.Document.class, "attendances").stream()
+                .map(a -> a.getString("bookingId")).toList();
+        var booking = mongo.findOne(Query.query(Criteria.where("clubId").is(canic).and("state").is("ACTIVE").and("_id").nin(marked)), org.bson.Document.class, "bookings");
         var session = mongo.findById(booking.getString("classSessionId"), org.bson.Document.class, "class_sessions");
         mongo.save(new org.bson.Document("_id", "list-fields-attendance").append("clubId", canic).append("bookingId", booking.getString("_id"))
                 .append("classSessionId", session.getString("_id")).append("classDate", session.getString("date")).append("classStartsAt", booking.getDate("classStartsAt"))

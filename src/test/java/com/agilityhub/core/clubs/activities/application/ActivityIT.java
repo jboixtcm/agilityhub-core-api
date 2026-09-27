@@ -185,6 +185,34 @@ class ActivityIT extends ActivityFixtures {
             assertThat(queries.historyRowsFor("m0",end.minusSeconds(86400),clock.instant()).getFirst()).containsEntry("state","DONE");
         }
     }
+    /**
+     * E6-T04 (assumption in force, proposal filed): S15 P8 `class-finishing` step (c) runs E4-T04's finishing through the
+     * `ActivityFinishingPort` adapter — with ACTIVITIES on only, `WOULD_FINISH_ACTIVITY` in a dry run, `activitiesFinished` counted.
+     */
+    @Autowired com.agilityhub.core.platform.application.jobs.JobRunner jobs;
+    @Test void T_15_26_classFinishingFinishesEndedActivitiesOnlyWithTheActivitiesModule() throws Exception {
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)),"job_runs");
+        String id=published(5,false).path("id").asText(); register(id,"m0",false,201);
+        Instant end; try(var tenant=TenantContext.open(CLUB)) { end=activities.require(id).endsAt(); }
+        clock.setInstant(end.plusSeconds(60));
+        var name=com.agilityhub.core.platform.application.jobs.JobName.CLASS_FINISHING;
+        var off=EnumSet.allOf(Module.class); off.remove(Module.ACTIVITIES); modules(off);
+        assertThat(jobs.manual(CLUB,name,true,"s07-admin").items()).noneMatch(item -> item.entityType().equals("Activity"));
+        modules(EnumSet.allOf(Module.class));
+        var dry=jobs.manual(CLUB,name,true,"s07-admin");
+        assertThat(dry.items()).filteredOn(item -> item.entityType().equals("Activity")).singleElement().satisfies(item -> {
+            assertThat(item.entityId()).isEqualTo(id); assertThat(item.action()).isEqualTo("WOULD_FINISH_ACTIVITY");
+            assertThat(item.detail()).containsExactly(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("activityId",id));
+        });
+        try(var tenant=TenantContext.open(CLUB)) { assertThat(activities.require(id).state()).isEqualTo(ActivityState.PUBLISHED); }
+        var run=jobs.manual(CLUB,name,false,"s07-admin");
+        assertThat(run.items()).filteredOn(item -> item.entityType().equals("Activity")).extracting(item -> item.action()).containsExactly("FINISH_ACTIVITY");
+        assertThat(run.counters()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("activitiesFinished",1L));
+        try(var tenant=TenantContext.open(CLUB)) { assertThat(activities.require(id).state()).isEqualTo(ActivityState.FINISHED); }
+        assertThat(count("domain_events","type","ActivityFinished")).isEqualTo(1);
+        clock.setInstant(end.plusSeconds(120));
+        assertThat(jobs.manual(CLUB,name,false,"s07-admin").items()).noneMatch(item -> item.entityType().equals("Activity"));
+    }
     @Test void T_07_19_systemCancellationHonorsIntervalsAndMemberLeftIsSilent() throws Exception {
         String id=published(1,false).path("id").asText();register(id,"m0",false,201);register(id,"m1",true,201);
         try(var tenant=TenantContext.open(CLUB)) {

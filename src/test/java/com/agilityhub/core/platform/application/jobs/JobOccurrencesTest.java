@@ -105,6 +105,27 @@ class JobOccurrencesTest {
         assertThat(JobOccurrences.next(at("2026-10-04T18:00:00Z"), OPENING, MADRID)).contains(at("2026-10-11T18:00:00Z"));
     }
 
+    /**
+     * E6-T04 (T-15-26 over R-15-02): P8 is continuous, so across Sunday 25-10-2026's fold (03:00 CEST → 02:00 CET) its ticks are
+     * the plain UTC minutes: 120 distinct ticks in the two UTC hours 00:00–02:00Z although the local clock shows 02:00–02:59 twice,
+     * each always on time; P3's daily 08:00 is one occurrence per local date on both sides of the fold.
+     */
+    @Test void T_15_26_T_15_16_continuousTicksCrossTheOctoberFoldMinuteByMinuteAndTheDailyBatchStaysAtEightLocal() {
+        var continuous = JobSchedule.resolve(JobCatalog.definition(JobName.CLASS_FINISHING), key -> null);
+        var ticks = new java.util.TreeSet<java.time.Instant>();
+        for (var now = at("2026-10-25T00:00:30Z"); now.isBefore(at("2026-10-25T02:00:00Z")); now = now.plusSeconds(60)) {
+            var due = JobOccurrences.lastDue(now, continuous, MADRID).orElseThrow();
+            assertThat(due).isEqualTo(now.truncatedTo(java.time.temporal.ChronoUnit.MINUTES));
+            assertThat(JobOccurrences.triggerFor(now, due, CatchUpWindow.CONTINUOUS, MADRID)).isEqualTo(SCHEDULE);
+            ticks.add(due);
+        }
+        assertThat(ticks).hasSize(120);
+        var daily = new JobSchedule(Cadence.DAILY, LocalTime.of(8, 0), null, null);
+        assertThat(JobOccurrences.lastDue(at("2026-10-25T07:00:00Z"), daily, MADRID)).contains(at("2026-10-25T07:00:00Z"));
+        assertThat(JobOccurrences.lastDue(at("2026-10-25T06:59:00Z"), daily, MADRID)).contains(at("2026-10-24T06:00:00Z"));
+        assertThat(JobOccurrences.next(at("2026-10-24T06:00:00Z"), daily, MADRID)).contains(at("2026-10-25T07:00:00Z"));
+    }
+
     @Test void T_15_01_catalogHasTheTenR1ProcessesWithTheirRowsAndResolvesClubSchedules() {
         assertThat(JobCatalog.all()).extracting(JobDefinition::routeId).containsExactly("week-opening", "risk-review", "no-show-notices", "reminders",
                 "expirations", "waitlist-fifo", "payment-timeouts", "class-finishing", "cleanup", "billing-reminder");

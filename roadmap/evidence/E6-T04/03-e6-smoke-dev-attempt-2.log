@@ -1,0 +1,6 @@
+heavy.sh: 10:21 waiting for the host lock, held by: 10:21 agilityhub-core-web: pnpm --filter clubs exec vitest run src/training src/instructor
+heavy.sh: 10:21 got the host lock after 0 min 30 s
+Starting disposable development build Compose stack
+Building the current working tree image
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: docker build failed (exit 1; exception classes: none; codes: none; private output withheld)

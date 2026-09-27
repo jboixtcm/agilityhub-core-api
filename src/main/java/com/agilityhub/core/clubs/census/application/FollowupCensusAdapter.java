@@ -16,6 +16,9 @@ public class FollowupCensusAdapter implements FollowupCensusAccess {
     private final CensusAccess access; private final DogService dogs;
     public FollowupCensusAdapter(CensusAccess access, DogService dogs) { this.access = access; this.dogs = dogs; }
 
+    @Override public Map<String, Dog> dogsOf(String memberId) {
+        return memberId == null ? Map.of() : dogs(access.dogs.matching(Criteria.where("memberId").is(memberId)).stream().map(dog -> dog.id).toList());
+    }
     @Override public Map<String, Dog> dogs(Collection<String> dogIds) {
         var result = new LinkedHashMap<String, Dog>(); if (dogIds.isEmpty()) { return result; }
         boolean levels = access.levels(); var codes = new HashMap<String, String>();

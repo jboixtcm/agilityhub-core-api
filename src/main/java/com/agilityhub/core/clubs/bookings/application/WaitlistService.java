@@ -177,7 +177,7 @@ public class WaitlistService {
         events.publish(BookingEvent.Kind.WaitlistNotified, classSessionId, payload, actor);
     }
 
-    /** R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a — scheduled by E6): live entries of started classes, silently. */
+    /** R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a): live entries of started classes, silently, one transaction per class. */
     public int sweepStarted(Instant now) {
         var byClass = waitlist.liveStartedBy(now).stream().collect(Collectors.groupingBy(WaitlistEntry::classSessionId, LinkedHashMap::new, Collectors.toList()));
         int count = 0;
@@ -185,6 +185,17 @@ public class WaitlistService {
             count += transactions.write(List.of(group.getKey()), () -> cancelLocked(group.getKey(), group.getValue(), WaitlistCancelReason.CLASS_STARTED, now));
         }
         return count;
+    }
+    /** The entries {@link #sweepStarted(Instant)} would cancel, in its order; nothing written (the P8 plan, E6-T04). */
+    public List<WaitlistEntry> startedBy(Instant now) { return waitlist.liveStartedBy(now); }
+    /**
+     * One entry of {@link #sweepStarted(Instant)} (the P8 item, E6-T04), in the caller's transaction when there is one:
+     * `CANCELLED{CLASS_STARTED}` with no event and no notification. False when it is no longer live or its class has not started.
+     */
+    public boolean sweepStarted(String entryId, Instant now) {
+        var entry = waitlist.findById(entryId).orElse(null);
+        if (entry == null || !WaitlistEntryRepository.LIVE.contains(entry.state()) || entry.classStartsAt().isAfter(now)) { return false; }
+        return transactions.write(List.of(entry.classSessionId()), () -> cancelLocked(entry.classSessionId(), List.of(entry), WaitlistCancelReason.CLASS_STARTED, now)) > 0;
     }
     /** S15 P5c / S13 leave handling, inside the caller's transaction when there is one: every live entry of the member's dogs, silently. */
     public int cancelByMember(String memberId, WaitlistCancelReason reason) {

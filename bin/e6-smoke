@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""Rehearse the E6 backend gate (S10 attendance and follow-up, S15 P3 and P8) with curl on a disposable local Compose stack.
+
+Seeds the Cànic with the E6 demo on a week 8+ days ahead (the Monday 08:30 class on Central: 4 booked + 1 waiting, a past
+month for the holder's dog, tasks with an attachment, a member note), moves the test clock (POST /api/v1/test/clock) through
+that Monday and Tuesday, and asserts the sheet, «ha avisat», the stale save, P8 class-finishing and P3 no-show-notices run by
+hand (their switches off, so the scheduler never races the manual runs), the member histories, tasks, D14 unread counts and the
+week agenda PDF. Re-runnable: every run builds its own stack and removes it at the end. Reuses bin/e5-smoke's stack helpers.
+"""
+import argparse
+import datetime
+import importlib.machinery
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import zlib
+
+ROOT = Path(__file__).resolve().parents[1]
+SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", "--week-start"))
+# The E6 cast of seeds/demo-canic.yaml `scenario.attendance` (invented names, never the mockups').
+HOLDER, BOOKED, WAITING = "Rita", ["Rita", "Martí", "Alba", "Nil"], "Iu"
+DOGS = {"Rita": "Mel", "Martí": "Sorra", "Alba": "Pinya", "Nil": "Trufa", "Iu": "Gira"}
+
+
+def load_smoke():
+    loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin" / "e5-smoke"))
+    spec = importlib.util.spec_from_loader("e5smoke", loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+class E6:
+    def __init__(self, smoke_module, private, image):
+        self.m = smoke_module
+        self.s = smoke_module.Smoke(private, image)
+        self.private = private
+        # A project name of its own (the stack is still disposable and private to this run).
+        self.s.project = "e6-smoke-" + secrets.token_hex(6)
+        args = self.s.compose_args
+        args[args.index("--project-name") + 1] = self.s.project
+        self.s.sign_in = self.sign_in
+
+    def require(self, condition, message):
+        self.m.require(condition, message)
+
+    def call(self, *args, **kwargs):
+        return self.s.call(*args, **kwargs)
+
+    def mongo(self, script):
+        return self.s.mongo(script)
+
+    def record(self, step, status, values=""):
+        self.s.record(step, status, values)
+
+    def sign_in(self):
+        """Access tokens live 15 min on the API's moved clock: every clock move needs fresh ones."""
+        s = self.s
+        self.admin = s.login("admin@example.test", "clubs-admin")
+        self.app = s.login(self.instructor_email, "clubs-app")      # screen 21 (mobile)
+        self.desk = s.login(self.instructor_email, "clubs-admin")   # D12 (backoffice)
+        self.other = s.login(self.other_email, "clubs-admin")
+        self.holder = s.login("member.8@example.test", "clubs-app")
+
+    def logins(self):
+        """The seed login of the class's instructor (renamed by the demo) and of another instructor, from the database."""
+        c = json.dumps(self.club)
+        self.instructor_email = self.mongo('(()=>{const i=db.instructors.findOne({clubId:' + c + ',shortName:"Berta"});'
+                                           'return db.accounts.findOne({_id:db.members.findOne({_id:i.memberId}).accountId}).email})()')
+        self.other_email = next(e for e in ("instructor@example.test", "instructor.2@example.test", "instructor.3@example.test")
+                                if e != self.instructor_email)
+        self.require(self.instructor_email.endswith("@example.test"), "The demo instructor has no seed login")
+
+    def raw(self, path, access):
+        """GET a binary body (the PDF): status, content type and bytes; the token stays in stdin."""
+        body = self.private / "raw"
+        headers = ["User-Agent: AgilityHub-E6-Smoke", "Host: " + self.s.host, "Authorization: Bearer " + access]
+        config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(self.s.base + path)
+        result = subprocess.run(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--output", str(body),
+                                 "--write-out", "%{http_code} %{content_type}", "--config", "-"], input=config, cwd=ROOT, env=self.s.env,
+                                text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.require(result.returncode == 0, f"curl GET {path.split('?')[0]} failed (exit {result.returncode})")
+        status, _, kind = result.stdout.partition(" ")
+        print(f"curl GET {path.split('?')[0]} -> {status}", flush=True)
+        return int(status), kind, body.read_bytes()
+
+    def events(self, kind, field, value):
+        return self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:' + json.dumps(kind)
+                          + ',' + json.dumps(field) + ':' + json.dumps(value) + '})')
+
+    def notes(self, code, account, channel=None):
+        query = '{clubId:' + json.dumps(self.club) + ',code:' + json.dumps(code) + ',accountId:' + json.dumps(account)
+        return self.mongo('db.notifications.find(' + query + (',channel:' + json.dumps(channel) if channel else '') + '})'
+                          '.toArray().map(n=>({id:n._id,channel:n.channel,status:n.status,locale:n.locale,vars:n.variables||{}}))')
+
+    # ---- fixture lookup
+    def lookup(self):
+        c = json.dumps(self.club)
+        names = json.dumps(list(DOGS))
+        people = self.mongo('db.members.find({clubId:' + c + ',firstName:{$in:' + names + '}}).toArray()'
+                            '.map(m=>({name:m.firstName,id:m._id,account:m.accountId,dog:(db.dogs.findOne({memberId:m._id,name:{$in:'
+                            + json.dumps(list(DOGS.values())) + '}})||{})._id}))')
+        self.people = {p["name"]: p for p in people}
+        self.require(set(self.people) == set(DOGS), f"E6 cast missing: {sorted(set(DOGS) - set(self.people))}")
+        self.require(all(p["dog"] for p in people), "E6 cast dogs missing")
+        date = str(self.s.week_start)
+        self.class_id = self.mongo('db.class_sessions.findOne({clubId:' + c + ',date:' + json.dumps(date) + ',startTime:"08:30",'
+                                   'ringId:db.rings.findOne({clubId:' + c + ',shortName:"CEN"})._id})._id')
+        rows = self.mongo('db.bookings.find({classSessionId:' + json.dumps(self.class_id) + '}).toArray().map(b=>({id:b._id,dog:b.dogId,state:b.state}))')
+        self.bookings = {name: next(b["id"] for b in rows if b["dog"] == self.people[name]["dog"]) for name in BOOKED}
+        self.entry = self.mongo('db.waitlist_entries.findOne({classSessionId:' + json.dumps(self.class_id) + '})._id')
+        self.record("E6 demo cast (seeds/demo-canic.yaml scenario.attendance)", "found",
+                    f"class Mon {date} 08:30 CEN {self.m.short(self.class_id)}; " + ", ".join(f"{n} + {DOGS[n]}" for n in DOGS)
+                    + f"; instructor Berta = {self.instructor_email}; holder Rita = member.8@example.test")
+
+    # ---- scenario
+    def scenario(self):
+        s = self.s
+        self.club = s.canic
+        self.logins()
+        self.sign_in()
+        self.lookup()
+        for job in ("class-finishing", "no-show-notices", "risk-review"):
+            self.call("PUT", "/api/v1/jobs/" + job + "/switch", access=self.admin, body=dict(enabled=False))
+        self.record("PUT /jobs/{class-finishing,no-show-notices,risk-review}/switch {enabled:false}", "200",
+                    "the scheduler records SKIPPED{DISABLED}; the manual runs below still run (R-15-09)")
+
+        # (1) Monday 04:25, four hours and five minutes before the class: the instructor's day.
+        s.set_clock(s.local("MONDAY", "04:25"), "Monday 04:25")
+        day = self.call("GET", f"/api/v1/instructor/day?date={s.week_start}", access=self.app)
+        row = next((c for c in day["classes"] if c["id"] == self.class_id), None)
+        self.require(row is not None, "The 08:30 class is not on the instructor's day")
+        self.require(row["attendance"] == {"status": "PENDING", "marked": 0, "total": 4}, f"Day attendance: {row['attendance']}")
+        self.record("(1) GET /instructor/day (instructor, app)", "200", f"08:30 {row['displayDescription']} {row['booked']}/{row['capacity']} "
+                    f"· waiting {row.get('waiting')} · attendance PENDING 0/4 («passar llista pendent»)")
+
+        # (2) The sheet: four rows and one waiting.
+        sheet = self.call("GET", f"/api/v1/class-sessions/{self.class_id}/attendance", access=self.app)
+        dogs = [r["dogName"] for r in sheet["rows"]]
+        self.require(dogs == [DOGS[n] for n in BOOKED], f"Sheet rows: {dogs}")
+        self.require([e["dogName"] for e in sheet["waitlist"]["entries"]] == [DOGS[WAITING]], "Sheet waitlist mismatch")
+        version = sheet["sheet"]["version"]
+        self.record("(2) GET /class-sessions/{id}/attendance", "200", f"rows {', '.join(r['memberFirstName'] + ' + ' + r['dogName'] for r in sheet['rows'])}"
+                    f" · waiting {WAITING} + {DOGS[WAITING]} · version {version} · canMarkPresence {sheet['sheet']['canMarkPresence']}")
+
+        # (3) One save (screen 21's contract): present, no-show and «ha avisat» four hours before the class.
+        items = [dict(bookingId=self.bookings["Rita"], state="PRESENT"), dict(bookingId=self.bookings["Nil"], state="NO_SHOW"),
+                 dict(bookingId=self.bookings["Alba"], state="NOTIFIED")]
+        saved = self.call("PUT", f"/api/v1/class-sessions/{self.class_id}/attendance", access=self.app, body=dict(version=version, items=items), idempotent=True)
+        notice = next(r for r in saved["rows"] if r["bookingId"] == self.bookings["Alba"])["notice"]
+        self.require(notice["late"] is False and notice["seatReleased"] is True and notice["waitlistNotified"] is True, f"notice {notice}")
+        self.require(sorted(saved["applied"]) == sorted(i["bookingId"] for i in items), "applied mismatch")
+        # BookingCancelled and SeatReleased commit with the save; WaitlistNotified follows from S08's SeatReleased consumer.
+        for kind, field, value in (("BookingCancelled", "aggregateId", self.bookings["Alba"]), ("SeatReleased", "payload.classId", self.class_id)):
+            self.require(self.events(kind, field, value) == 1, f"{kind} outbox row missing")
+        self.m.wait(lambda: self.events("WaitlistNotified", "payload.classId", self.class_id) == 1, "WaitlistNotified outbox row missing")
+        alba, iu = self.people["Alba"]["account"], self.people[WAITING]["account"]
+        n15 = self.m.wait(lambda: self.notes("N-15", iu, "APP") or None, "N-15 to the waiting member missing")
+        n05 = self.m.wait(lambda: self.notes("N-05", alba) or None, "N-05 to Alba missing")
+        self.require(len(n15) == 1, f"N-15 rows: {len(n15)}")
+        self.require([n["channel"] for n in n05] == ["APP"], f"N-05 channels: {[n['channel'] for n in n05]} (no SMS: the notice is the member's own)")
+        self.require(not self.notes("N-36", alba), "N-36 must not reach the member")
+        self.record("(3) PUT /class-sessions/{id}/attendance (app): Rita PRESENT, Nil NO_SHOW, Alba NOTIFIED", "200",
+                    f"notice {{late: false, seatReleased: true, waitlistNotified: true}}; outbox BookingCancelled + SeatReleased + WaitlistNotified; "
+                    f"N-15 ×1 to {WAITING} (APP); N-05 ×1 to Alba (APP, no SMS)")
+
+        # (4) A second save with the stale version: 409 with the current sheet.
+        stale = self.call("PUT", f"/api/v1/class-sessions/{self.class_id}/attendance", 409, access=self.desk,
+                          body=dict(version=version, items=[dict(bookingId=self.bookings["Martí"], state="PRESENT")]), idempotent=True, error="STALE_VERSION")
+        current = stale["details"]["current"]
+        self.require(current["sheet"]["version"] == version + 1, "details.current is not the current sheet")
+        self.require({r["dogName"]: r["state"] for r in current["rows"]} == {"Mel": "PRESENT", "Sorra": "PENDING", "Pinya": "NOTIFIED", "Trufa": "NO_SHOW"},
+                     "details.current rows mismatch")
+        self.record("(4) PUT with the stale version (D12)", "409 STALE_VERSION", f"details.current = the sheet at version {version + 1}")
+
+        # (5) P8 after endsAt + 15 min: dry run, then the real run; the sheet is still markable.
+        s.set_clock(s.local("MONDAY", "09:46"), "Monday 09:46 (09:30 + 15 min)")
+        offers = len(self.notes("N-15", iu))
+        dry = self.call("POST", "/api/v1/jobs/class-finishing/trigger", access=self.admin, body=dict(dryRun=True))
+        planned = sorted((i["entityId"], i["action"]) for i in dry["effects"]["items"])
+        self.require((self.class_id, "WOULD_FINISH") in planned and (self.entry, "WOULD_SWEEP") in planned, f"P8 plan: {planned}")
+        self.require(self.mongo('db.class_sessions.findOne({_id:' + json.dumps(self.class_id) + '}).state') == "ACTIVE", "The dry run wrote")
+        run = self.call("POST", "/api/v1/jobs/class-finishing/trigger", access=self.admin, body=dict(dryRun=False))
+        done = sorted((i["entityId"], "WOULD_" + i["action"]) for i in run["effects"]["items"])
+        self.require(done == planned, f"P8 effects differ from the plan: {done} vs {planned}")
+        state = self.mongo('db.class_sessions.findOne({_id:' + json.dumps(self.class_id) + '},{state:1,finishedAt:1})')
+        entry = self.mongo('db.waitlist_entries.findOne({_id:' + json.dumps(self.entry) + '},{state:1,cancelReason:1})')
+        self.require(state["state"] == "FINISHED" and state.get("finishedAt"), "The class is not FINISHED")
+        self.require(entry["state"] == "CANCELLED" and entry["cancelReason"] == "CLASS_STARTED", f"Waiting entry {entry}")
+        sweep_events = self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',aggregateId:' + json.dumps(self.entry)
+                                  + ',occurredAt:{$gte:new Date(' + json.dumps(s.utc(s.local("MONDAY", "09:46"))) + ')}})')
+        self.require(sweep_events == 0, "The sweep published an event for the waiting entry")
+        self.require(len(self.notes("N-15", iu)) == offers and not self.notes("N-46", iu), "The sweep notified the waiting member")
+        after = self.call("GET", f"/api/v1/class-sessions/{self.class_id}/attendance", access=self.desk)
+        self.require(after["sheet"]["canMarkPresence"] is True, "The FINISHED class's sheet is not markable")
+        marked = self.call("PUT", f"/api/v1/class-sessions/{self.class_id}/attendance", access=self.desk,
+                           body=dict(version=after["sheet"]["version"], items=[dict(bookingId=self.bookings["Martí"], state="PRESENT")]), idempotent=True)
+        self.require(marked["applied"] == [self.bookings["Martí"]], "D12 save on the FINISHED class failed")
+        self.record("(5) POST /jobs/class-finishing/trigger {dryRun: true} then {dryRun: false}", "200",
+                    f"plan = effects ({len(planned)} items, counters {run['effects']['counters']}); class FINISHED; {WAITING}'s entry "
+                    f"CANCELLED{{CLASS_STARTED}} with no notification; D12 PUT Martí PRESENT on the FINISHED class → 200")
+
+        # (6) P3 the next morning at 08:00 local: one batch, one N-19 to Nil with the class's own date; a second run: nothing.
+        s.set_clock(s.local("TUESDAY", "08:00"), "Tuesday 08:00")
+        batches = self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:"NoShowNoticeDue"})')
+        p3 = self.call("POST", "/api/v1/jobs/no-show-notices/trigger", access=self.admin, body=dict(dryRun=False))
+        nil_attendance = self.mongo('db.attendances.findOne({bookingId:' + json.dumps(self.bookings["Nil"]) + '})._id')
+        self.require([i["entityId"] for i in p3["effects"]["items"]] == [nil_attendance], f"P3 items: {p3['effects']['items']}")
+        self.require(p3["effects"]["counters"] == {"notices": 1, "late": 0}, f"P3 counters {p3['effects']['counters']}")
+        self.require(self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:"NoShowNoticeDue"})') == batches + 1,
+                     "NoShowNoticeDue missing")
+        nil = self.people["Nil"]["account"]
+        n19 = self.m.wait(lambda: (lambda rows: rows if len(rows) == 2 else None)(self.notes("N-19", nil)), "N-19 to Nil missing")
+        app = next(n for n in n19 if n["channel"] == "APP")
+        self.require(app["vars"].get("dog_name") == DOGS["Nil"] and str(s.week_start.day) in app["vars"].get("class_date", ""), f"N-19 variables {app['vars']}")
+        again = self.call("POST", "/api/v1/jobs/no-show-notices/trigger", access=self.admin, body=dict(dryRun=False))
+        self.require(again["effects"]["items"] == [], "A second P3 run claimed again")
+        self.require(self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:"NoShowNoticeDue"})') == batches + 1,
+                     "A second P3 run emitted a batch")
+        self.require(len(self.notes("N-19", nil)) == 2, "A second P3 run notified again")
+        sent = self.m.wait(lambda: next((r["noShowNotice"] for r in self.call("GET", f"/api/v1/class-sessions/{self.class_id}/attendance",
+                                                                                 access=self.desk, quiet=True)["rows"]
+                                         if r["bookingId"] == self.bookings["Nil"] and r["noShowNotice"].get("sentAt")), None), "sentAt missing")
+        self.record("(6) POST /jobs/no-show-notices/trigger at Tuesday 08:00, twice", "200 · 200",
+                    f"run 1: counters {{notices: 1, late: 0}}, 1 NoShowNoticeDue, N-19 to Nil ({', '.join(sorted(n['channel'] + ' ' + n['locale'] for n in n19))}), "
+                    f"class_date «{app['vars']['class_date']}»; sheet «avís ja enviat» (sentAt {sent['sentAt'][:16]}Z); run 2: 0 items, 0 new events")
+
+        # (7) Histories: the holder signs in; Alba and Nil are read through the admin's impersonation (screen 25 contract).
+        history = self.call("GET", "/api/v1/me/history?dogId=" + self.people[HOLDER]["dog"], access=self.holder)
+        classes = [i for i in history["items"] if i["type"] == "CLASS"]
+        monday = next(i for i in classes if i["date"] == str(s.week_start))
+        self.require(monday["state"] == "DONE", f"The holder's Monday class is {monday['state']}")
+        badges = sorted({i["state"] for i in classes})
+        self.require(badges == ["CANCELLED", "CANCELLED_BY_CLUB", "CANCELLED_LATE", "DONE", "NO_SHOW"], f"Holder badges {badges}")
+        details = {}
+        for name, expected in (("Alba", ("CANCELLED", "INSTRUCTOR_NOTICE_IN_TIME")), ("Nil", ("NO_SHOW", "NO_SHOW"))):
+            token = self.call("POST", f"/api/v1/members/{self.people[name]['id']}/impersonation-token", 201, access=self.admin,
+                              body=dict(reason="E6 fictional smoke"), quiet=True)["token"]
+            rows = self.call("GET", "/api/v1/me/history", access=token)["items"]
+            item = next(i for i in rows if i["type"] == "CLASS" and i["date"] == str(s.week_start))
+            self.require((item["state"], (item.get("detail") or {}).get("kind")) == expected, f"{name}'s Monday: {item}")
+            details[name] = f"{item['state']} ({item['detail']['kind']})"
+        self.record("(7) GET /me/history (holder; Alba and Nil impersonated)", "200",
+                    f"{HOLDER} + {DOGS[HOLDER]}: Monday DONE («feta»), badges {', '.join(badges)}; Alba: {details['Alba']} «ha avisat»; Nil: {details['Nil']}")
+
+        # (8) Tasks with their attachment, for the member (13/26) and for the instructor.
+        mine = self.call("GET", "/api/v1/tasks?dogId=" + self.people[HOLDER]["dog"], access=self.holder)["items"]
+        self.require(sorted(t["state"] for t in mine) == ["DONE", "PENDING"], f"Tasks {[t['state'] for t in mine]}")
+        pending = next(t for t in mine if t["state"] == "PENDING")
+        self.require(len(pending["attachments"]) == 1 and pending["attachments"][0]["mimeType"] == "video/mp4", "Task attachment missing")
+        for who, access in ((HOLDER, self.holder), ("instructor", self.desk)):
+            files = self.call("GET", f"/api/v1/attachments?entityType=TASK&entityId={pending['id']}", access=access)["items"]
+            self.require(len(files) == 1 and "signature=" in files[0]["url"], f"Signed URL missing for {who}")
+        self.record("(8) GET /tasks?dogId + GET /attachments?entityType=TASK", "200 · 200 · 200",
+                    f"2 tasks (PENDING by {pending['createdBy']['displayName']}, DONE by {next(t for t in mine if t['state'] == 'DONE')['doneBy']['displayName']}); "
+                    f"{pending['attachments'][0]['name']} {pending['attachments'][0]['sizeBytes']} B video/mp4 with a signed URL for the member and the instructor")
+
+        # (9) D14 per account: the holder's note is unread for both instructors; one reads all, the other still has it.
+        mine_count = self.call("GET", "/api/v1/followup/unread-count", access=self.desk)["count"]
+        theirs = self.call("GET", "/api/v1/followup/unread-count", access=self.other)["count"]
+        page = self.call("GET", "/api/v1/followup", access=self.desk)["items"]
+        note = [i for i in page if i["kind"] == "MEMBER_NOTE" and i["dogName"] == DOGS[HOLDER]]
+        self.require(mine_count >= 1 and theirs >= 1 and len(note) == 1 and note[0]["unread"], "The member note is not unread")
+        self.call("POST", "/api/v1/followup/read-all", 204, access=self.desk, body={}, idempotent=True)
+        self.require(self.call("GET", "/api/v1/followup/unread-count", access=self.desk)["count"] == 0, "read-all left unread items")
+        self.require(self.call("GET", "/api/v1/followup/unread-count", access=self.other)["count"] == theirs, "read-all changed another account")
+        self.record("(9) GET /followup/unread-count · POST /followup/read-all", "200 · 204",
+                    f"instructor {mine_count} → 0 (MEMBER_NOTE on {DOGS[HOLDER]} unread before); instructor.2 {theirs} → {theirs}")
+
+        # (10) D12's PDF of the week: a landscape A4.
+        status, kind, pdf = self.raw(f"/api/v1/instructor/week/export?format=pdf&date={s.week_start}", self.desk)
+        self.require(status == 200 and kind.startswith("application/pdf"), f"Week PDF: {status} {kind}")
+        self.require(pdf.startswith(b"%PDF"), "The week export is not a PDF")
+        # PDFBox keeps the page dictionaries in compressed object streams: inflate every Flate stream before looking.
+        chunks = [pdf]
+        for match in re.finditer(rb"stream\r?\n(.*?)endstream", pdf, re.S):
+            try:
+                chunks.append(zlib.decompressobj().decompress(match.group(1)))
+            except zlib.error:
+                pass
+        box = next((b for b in (re.search(rb"/MediaBox\s*\[\s*([-0-9.]+)\s+([-0-9.]+)\s+([-0-9.]+)\s+([-0-9.]+)\s*\]", c) for c in chunks) if b), None)
+        self.require(box is not None, "The week PDF has no readable MediaBox")
+        width, height = float(box.group(3)) - float(box.group(1)), float(box.group(4)) - float(box.group(2))
+        self.require(width > height, f"Week PDF is not landscape: {width}x{height}")
+        self.record("(10) GET /instructor/week/export?format=pdf", "200 application/pdf", f"{len(pdf)} bytes, MediaBox {width:.0f}x{height:.0f} (landscape)")
+
+    def report(self):
+        width = max(len(s[0]) for s in self.s.summary)
+        print("\nSUMMARY (step · status · key values)", flush=True)
+        for step, status, values in self.s.summary:
+            print(f"  {step.ljust(width)} · {status}" + (f" · {values}" if values else ""), flush=True)
+        print("PASS E6 backend gate: the sheet from the app and from D12 (same PUT), «ha avisat» releasing the seat and telling the "
+              "waiting list, P8 and P3 by hand with the clock advanced, histories, tasks with attachments, D14 per account and the week PDF", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--image", nargs="?", const=None, help="Use the consumer Compose image instead of building the working tree")
+    options = parser.parse_args()
+    os.umask(0o077)
+    signal.signal(signal.SIGTERM, lambda number, frame: sys.exit(128 + number))
+    module = load_smoke()
+    with tempfile.TemporaryDirectory(prefix="agilityhub-e6-") as directory:
+        smoke = E6(module, Path(directory), options.image)
+        try:
+            smoke.s.start(seeds=SEEDS, label="Cànic")
+            smoke.scenario()
+            smoke.report()
+        finally:
+            smoke.s.cleanup()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (AssertionError, OSError, subprocess.SubprocessError, StopIteration, KeyError, TypeError, IndexError) as error:
+        # Subprocess exceptions can contain private arguments; print only controlled assertions.
+        print("FAIL: " + (str(error) if isinstance(error, AssertionError) else type(error).__name__ + " " + str(error)[:160]), file=sys.stderr)
+        sys.exit(1)

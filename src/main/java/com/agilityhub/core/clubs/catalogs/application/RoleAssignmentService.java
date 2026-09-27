@@ -118,6 +118,11 @@ public class RoleAssignmentService {
             apply(member, toggle(member.roles(), "INSTRUCTOR", enabled), next, member.adminProfile(), false, null); return null;
         });
     }
+    /** A new short name for an instructor, keeping colour and state (the E6-T04 demo seed names the class's instructor). */
+    public void renameInstructor(String id, String name) {
+        var old = instructor(id);
+        if (!old.shortName().equals(name)) { updateInstructor(id, name, null, null, old.version()); }
+    }
     public void deleteInstructor(String id) {
         write(() -> {
             var old = instructor(id);

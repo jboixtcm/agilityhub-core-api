@@ -32,5 +32,13 @@ public interface ClassBookingsPort {
     }
     @Transactional(propagation = Propagation.MANDATORY)
     CancellationEffects cancelAllByClub(String classId, String reason, String actorAccountId);
+    /**
+     * {@link #cancelAllByClub(String, String, String)} with the club's text on each cancelled booking (E6-T04: S10 R-10-14,
+     * the member history's «“{adminText}”» of a class the club cancelled). Adapters without a booking store ignore it.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    default CancellationEffects cancelAllByClub(String classId, String reason, String adminText, String actorAccountId) {
+        return cancelAllByClub(classId, reason, actorAccountId);
+    }
     default List<String> bookedDogs(String classId) { return activeBookings(classId).stream().map(BookingRef::dogId).toList(); }
 }

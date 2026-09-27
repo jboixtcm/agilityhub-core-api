@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E6-T04: S15 P3 and P8 on the E5 framework, and the E6 integration (S10 WP-10-G, back half).
+  - P3 `no-show-notices` (`NoShowNoticesJob`, R-15-13): daily at `messaging.noShowNoticeTime` in the club's time zone,
+    catch-up unlimited, no module guard. The plan is the read-only twin of `claimForNoShowNotice`
+    (`WOULD_NOTIFY {attendanceId, bookingId, memberId, dogName, classDate}`); the first item in scope claims the whole
+    set in one transaction with a single `NoShowNoticeDue` (R-15-10's documented exception); counters `{notices, late}`.
+  - N-19 (`notifications.N-19` ← `NoShowNoticeDue`): one per booking to the dog's owner, APP + EMAIL, `dog_name` and
+    `class_date` (the class's own date, never «ahir»), keys in ca/es/en; `noShowNotice.sentAt` once a channel is SENT
+    (the sheet's «avís ja enviat»). N-19 is sendable by email.
+  - P8 `class-finishing` (`ClassFinishingJob`, R-15-18): every minute, (a) silent sweep of the waiting entries of started
+    classes (`WaitlistService.sweepStarted(entryId, now)`), (b) `ACTIVE` classes with `endsAt + classes.finishGraceMinutes`
+    ≤ now → `FINISHED` over the index `{clubId, state, endsAt}` (`ClassSessionService.endedBy/finish`), (c) with ACTIVITIES,
+    ended activities → `FINISHED` through the new `ActivityFinishingPort` (assumption in force, proposal filed); counters
+    `{swept, finished, activitiesFinished}`, dry-run actions `WOULD_SWEEP`, `WOULD_FINISH`, `WOULD_FINISH_ACTIVITY`.
+  - Both rows now appear in `GET /jobs` and run on `POST /jobs/{name}/trigger` (E6-T01's interim `404 JOB_UNKNOWN` is gone).
+  - Demo seed `scenario.attendance` (`seeds/demo-canic.yaml`): the week-0 Monday 08:30 class (4 booked + 1 waiting), a
+    past month of marked classes and ten free trainings for the holder's dog (86 %, 7 classes, 2.3 a week), a late
+    cancellation, a club-cancelled class, two tasks (one with a fictional `video/mp4`), the member's note and an
+    observation, through new `Demo*Seeder` steps in census, bookings, follow-up and training (invented names; the
+    T-06-28 guard keeps the mockups' names out).
+  - `bin/e6-smoke`: the gate E6 (back) scenario on a disposable stack with the clock moved; re-runnable.
 - E6-T03: S10 WP-10-C, tasks, attachments, observations and the D14 follow-up.
   - Tasks (R-10-10, §5): create (dog ACTIVE, text 1–2000, TASK uploads registered in the same transaction,
     `Idempotency-Key`), edit with `version`, logical delete (also DONE), completion by the owner (also impersonated,
@@ -517,6 +537,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E6-T04: a class the club cancels (S06) now passes its text to each cancelled booking (`cancelMessage`), so the member
+  history (R-10-14) shows «“{adminText}”» on «cancel·lada pel club» and `GET /bookings/{id}` carries it as
+  `cancellation.message`. `ClassSessionService.finishEnded` reads the ended classes through the `{clubId, state, endsAt}`
+  index instead of every class of the club.
 - E6-T01: `TASK_ALREADY_DONE` is 422 (was 409), as `CATALEG_ERRORS.md` §3 rule 0 says. The OpenAPI schema
   `AttachmentResponse` is now `Attachment`. `ATTACHMENT_LIMIT_REACHED` carries `details.max`.
 - E6-T01 round 2 (organizer review):

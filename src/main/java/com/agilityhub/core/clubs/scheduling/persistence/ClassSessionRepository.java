@@ -60,6 +60,11 @@ public class ClassSessionRepository extends TenantRepository<ClassSession> {
                 ClassSession.class);
         if (result.getMatchedCount() != 1) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.NOT_FOUND); }
     }
+    /** S15 R-15-18b: ACTIVE classes with `endsAt ≤ cutoff`, oldest end first, over the index `{clubId, state, endsAt}`. */
+    public java.util.List<ClassSession> findActiveEndedBy(java.time.Instant cutoff) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").is("ACTIVE").and("endsAt").lte(cutoff))
+                .with(org.springframework.data.domain.Sort.by("endsAt", "_id")), ClassSession.class);
+    }
     public void finishedAt(String id, java.time.Instant now) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().set("finishedAt", now), ClassSession.class);
     }

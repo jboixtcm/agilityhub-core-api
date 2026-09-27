@@ -42,7 +42,11 @@ public class ClassBookingsAdapter implements ClassBookingsPort {
     }
     @Override @Transactional(propagation = Propagation.MANDATORY)
     public CancellationEffects cancelAllByClub(String classId, String reason, String actorAccountId) {
-        var result = cancellations.cancelByClub(classId, reason, null, actorAccountId);
+        return cancelAllByClub(classId, reason, null, actorAccountId);
+    }
+    /** The club's text travels to each booking's `cancelMessage` (R-10-14: 25's «“{adminText}”»). */
+    @Override public CancellationEffects cancelAllByClub(String classId, String reason, String adminText, String actorAccountId) {
+        var result = cancellations.cancelByClub(classId, reason, adminText, actorAccountId);
         return new CancellationEffects(result.bookings().stream().map(ClassBookingsAdapter::ref).toList(), result.waitlist().stream().map(ClassBookingsAdapter::ref).toList());
     }
     private static BookingRef ref(Booking b) { return new BookingRef(b.id(), b.memberId(), b.dogId(), b.packMovementId() != null); }

@@ -340,6 +340,37 @@ stack (`compose.yaml` or `docker-compose.consumer.yml`, local/test profile, so `
 
 The table above then holds at `demoNow`; select rows by account and state, never by date or by generated first names.
 
+### E6 attendance and follow-up (`scenario.attendance`, E6-T04)
+
+Applied with the E5 scenario (same `--week-start` rule), after it, through the real services: the census step renames
+the cast and the class instructor (S03/S05 edits by the admin; a login's CAD dog moves up to A first), the S06 step creates
+and validates the past classes, the S08/S10 step books and marks them «as of» each instant and books the week-0 class,
+the follow-up step writes the tasks and the observation, the S09 step books the free trainings. The names are invented;
+the T-06-28 guard keeps the mockups' first names out of every seed source, so each one plays a mockup person's role:
+
+| Seed (invented) | Role in the mockups and in S10's examples | Who |
+|---|---|---|
+| Rita + Mel (A) | Laura + Duna, the holder: sheet row «present», screens 22/25/26, D13/D14 | `member.8@example.test` (census ordinal 12) |
+| Martí + Sorra (B) | Marc + Chun-li: «pendent» | ordinal 70 |
+| Alba + Pinya (B) | Anna + Nass: «ha avisat» | ordinal 75 |
+| Nil + Trufa (B) | Eva + Fish: «no presentat» → N-19 | ordinal 80 |
+| Iu + Gira (B) | Pau + Blat: the waiting one → N-15 | ordinal 85 |
+| Berta | Estel, the class instructor (instructor index 0: its login varies with the club id; find it by `shortName`) | an `instructor*@example.test` |
+
+At `demoNow` (Monday 07:00 of week 0):
+
+| Screen | State |
+|---|---|
+| 20 / 21 / D12 | Monday 08:30 A+B on Central, 4/5 + 1 waiting (Iu + Gira), sheet version 0, every row PENDING |
+| 22 / D13 (Mel) | 30 days: present 6, no-show 1, notified in time 1 → **86 %, 7 classes**; 10 free trainings → **2.3 a week**; last 5 classes; tasks 1 pending + 1 done; the member note; the private observation |
+| 25 (Rita, Mel) | classes of weeks −1…−6: «feta», «no presentat», «anul·lada» («Vas avisar el club, dins termini»), «anul·lada tard» (Rita, week −5) and «cancel·lada pel club» (week −6, with the club's text); 10 trainings «fet» |
+| 26 / 13 | two tasks on Mel by Berta: one PENDING with `balanci-mel.mp4` (4 KB fictional `video/mp4`), one DONE by Rita |
+| D14 | Rita's note (MEMBER_NOTE, unread for every instructor) and the two tasks (authored by Berta: not unread for her) |
+
+The past no-show of week −4 was already taken by that week's P3 claim (its N-19 goes out with the outbox), so the
+first P3 run of week 0 notifies only the no-shows marked in week 0. `bin/e6-smoke` drives the rest of the gate
+scenario from this state.
+
 The Cànic parameter catalog values are all product defaults, so its seed has an
 empty override map. Its theme comes from the approved `01-acces.html` tokens.
 The generic AgilityHub theme is a neutral blue/light seed preset; all example

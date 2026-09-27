@@ -87,10 +87,18 @@ class JobsApiIT extends BookingFixtures {
         assertThat(eventsOf("ParameterChanged")).isNotEmpty();
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("PARAMETER_CHANGED")), "audit_entries")).isEqualTo(1);
         call(PUT, "/jobs/risk-review/switch", Map.of("enabled", false), as("admin"), 200);
-        // GET /jobs: implemented processes whose module is on (waitlist-fifo needs FIFO; P3, P4, P5, P8, P10 have no implementation yet).
+        // GET /jobs: implemented processes whose module is on (waitlist-fifo needs FIFO; P4, P5 and P10 have no implementation yet; P3 and P8 since E6-T04).
         call(POST, "/jobs/risk-review/trigger", Map.of("dryRun", false), as("admin"), 200);
         var jobs = call(GET, "/jobs", null, as("admin"), 200).path("items");
-        assertThat(jobs).extracting(j -> j.path("name").asText()).containsExactly("week-opening", "risk-review", "payment-timeouts", "cleanup");
+        assertThat(jobs).extracting(j -> j.path("name").asText()).containsExactly("week-opening", "risk-review", "no-show-notices", "payment-timeouts",
+                "class-finishing", "cleanup");
+        // E6-T04: P3 «cada dia a les 8:00» with its switch, P8 «continu».
+        assertThat(jobs.get(2).at("/schedule/kind").asText()).isEqualTo("DAILY"); assertThat(jobs.get(2).at("/schedule/localTime").asText()).isEqualTo("08:00");
+        assertThat(jobs.get(2).path("jobName").asText()).isEqualTo("NO_SHOW_NOTICES"); assertThat(jobs.get(2).path("enabled").asBoolean()).isTrue();
+        assertThat(jobs.get(2).path("nextScheduledForLocal").asText()).isEqualTo("2026-10-07T08:00");
+        assertThat(jobs.get(4).at("/schedule/kind").asText()).isEqualTo("CONTINUOUS"); assertThat(jobs.get(4).path("jobName").asText()).isEqualTo("CLASS_FINISHING");
+        assertThat(jobs.get(4).has("nextScheduledForLocal") && !jobs.get(4).path("nextScheduledForLocal").isNull()).isFalse();
+        System.out.println("E6-T04 GET /jobs " + jobs);
         var review = jobs.get(1);
         assertThat(review.path("jobName").asText()).isEqualTo("RISK_REVIEW");
         assertThat(review.path("enabled").asBoolean()).isFalse();
@@ -101,8 +109,8 @@ class JobsApiIT extends BookingFixtures {
         assertThat(review.at("/lastRun/status").asText()).isEqualTo("SUCCEEDED");
         assertThat(jobs.get(0).at("/schedule/dayOfWeek").asText()).isEqualTo("SUNDAY");
         assertThat(jobs.get(0).path("nextScheduledForLocal").asText()).isEqualTo("2026-10-11T20:00");
-        assertThat(jobs.get(2).at("/schedule/kind").asText()).isEqualTo("CONTINUOUS");
-        assertThat(jobs.get(2).path("module").asText()).isEqualTo("SINGLE_CLASS");
+        assertThat(jobs.get(3).at("/schedule/kind").asText()).isEqualTo("CONTINUOUS");
+        assertThat(jobs.get(3).path("module").asText()).isEqualTo("SINGLE_CLASS");
         parameter("waitlist.mode", "FIFO");
         assertThat(call(GET, "/jobs", null, as("admin"), 200).path("items")).extracting(j -> j.path("name").asText()).contains("waitlist-fifo");
         // Runs: universal list of the tenant only, with filters; the run sheet; another club's run is 404.
@@ -195,7 +203,7 @@ class JobsApiIT extends BookingFixtures {
         assertThat(sheet.at("/effects/counters/domainEventsDeleted").isNumber()).isTrue();
         var history = call(GET, "/jobs/cleanup/runs", null, as("admin"), 200).path("items");
         assertThat(history).hasSize(3).allSatisfy(row -> assertClubOnly(row.path("counters"), null));
-        var cleanupRow = call(GET, "/jobs", null, as("admin"), 200).path("items").get(3);
+        var cleanupRow = call(GET, "/jobs", null, as("admin"), 200).path("items").get(5);
         assertThat(cleanupRow.path("name").asText()).isEqualTo("cleanup");
         assertThat(cleanupRow.at("/lastRun/runId").asText()).isEqualTo(runId);
         assertClubOnly(cleanupRow.at("/lastRun/counters"), null);

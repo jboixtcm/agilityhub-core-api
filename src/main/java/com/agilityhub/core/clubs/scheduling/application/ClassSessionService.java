@@ -118,15 +118,31 @@ public class ClassSessionService {
             }
         }
     }
+    /** `bin/core scheduling:finish-ended`: every class {@link #endedBy} {@code now}, finished in one transaction (the P8 job finishes one per item). */
     public int finishEnded(Instant now) {
+        var cutoff = finishCutoff(now);
         return transactions.write(() -> {
-            var cutoff = now.minusSeconds(context.config().get("classes.finishGraceMinutes", Integer.class) * 60L); int count = 0;
-            for (var before : classes.findAll()) {
-                if (before.state() != ClassState.ACTIVE || before.endsAt().isAfter(cutoff)) { continue; }
-                var edit = new SessionEdit(before); edit.state = ClassState.FINISHED;
-                classes.update(edit.snapshot(now, events.actor()), before.version()); classes.finishedAt(before.id(), now); count++;
-            }
+            int count = 0;
+            for (String id : endedBy(cutoff)) { if (finish(id, now, cutoff)) { count++; } }
             return count;
+        });
+    }
+    /** S15 R-15-18b: a class ends for good `classes.finishGraceMinutes` after its `endsAt` (18:50–19:50 → the 20:05 tick). */
+    public Instant finishCutoff(Instant now) { return now.minusSeconds(context.config().get("classes.finishGraceMinutes", Integer.class) * 60L); }
+    /** Ids of the ACTIVE classes with `endsAt ≤ cutoff` (index `{clubId, state, endsAt}`), oldest end first; nothing written. */
+    public List<String> endedBy(Instant cutoff) { return classes.findActiveEndedBy(cutoff).stream().map(ClassSession::id).toList(); }
+    /**
+     * ACTIVE → FINISHED with `finishedAt` (S06; terminal: afterwards only `notes` is editable), in the caller's transaction
+     * when there is one. Idempotent by state: false for a class that is not ACTIVE any more or no longer ended by {@code cutoff}.
+     * No business event (R-15-18).
+     */
+    public boolean finish(String id, Instant now, Instant cutoff) {
+        return transactions.write(() -> {
+            var before = classes.findById(id).orElse(null);
+            if (before == null || before.state() != ClassState.ACTIVE || before.endsAt().isAfter(cutoff)) { return false; }
+            var edit = new SessionEdit(before); edit.state = ClassState.FINISHED;
+            classes.update(edit.snapshot(now, events.actor()), before.version()); classes.finishedAt(before.id(), now);
+            return true;
         });
     }
 }

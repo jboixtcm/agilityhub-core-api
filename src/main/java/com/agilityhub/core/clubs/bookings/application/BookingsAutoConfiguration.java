@@ -63,6 +63,14 @@ public class BookingsAutoConfiguration {
     TrainingStatsQuery noTrainingStats() { return (dogId, from, to) -> 0; }
     @Bean @ConditionalOnMissingBean(ActivityHistoryQuery.class)
     ActivityHistoryQuery noActivityHistory() { return (memberId, from) -> java.util.List.of(); }
+    /** S15 P8 step (c) (E6-T04): replaced by the S07 adapter; without it no activity is ever in scope. */
+    @Bean @ConditionalOnMissingBean(ActivityFinishingPort.class)
+    ActivityFinishingPort noActivityFinishing() {
+        return new ActivityFinishingPort() {
+            public java.util.List<String> endedBy(java.time.Instant now) { return java.util.List.of(); }
+            public boolean finish(String activityId, java.time.Instant now) { return false; }
+        };
+    }
     @Bean @ConditionalOnMissingBean(SingleClassChargePort.class)
     SingleClassChargePort singleClassCharges(BookingMemberAccess census, CheckoutService checkouts, ObjectProvider<PaymentProvider> gateways,
             BookingContext context, CensusClubSettings clubs) {

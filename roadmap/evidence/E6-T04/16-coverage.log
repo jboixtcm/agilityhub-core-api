@@ -1,0 +1,14 @@
+com.agilityhub.core.clubs.activities.application             lines 99.2%  branches 84.9%
+com.agilityhub.core.clubs.bookings.application               lines 99.1%  branches 83.6%
+com.agilityhub.core.clubs.bookings.application.jobs          lines 100.0%  branches 97.1%
+com.agilityhub.core.clubs.bookings.application.ports         lines 100.0%  branches 100.0%
+com.agilityhub.core.clubs.catalogs.application               lines 98.7%  branches 90.9%
+com.agilityhub.core.clubs.census.application                 lines 98.9%  branches 86.0%
+com.agilityhub.core.clubs.followup.application               lines 99.6%  branches 85.7%
+com.agilityhub.core.clubs.messaging.application              lines 99.2%  branches 87.0%
+com.agilityhub.core.clubs.scheduling.application             lines 99.0%  branches 85.5%
+com.agilityhub.core.clubs.scheduling.application.ports       lines 92.6%  branches 100.0%
+com.agilityhub.core.clubs.training.application               lines 99.5%  branches 84.1%
+com.agilityhub.core.clubs.training.application.ports         lines 100.0%  branches 100.0%
+com.agilityhub.core.platform.application.jobs                lines 96.3%  branches 87.9%
+packages below their thresholds: 0

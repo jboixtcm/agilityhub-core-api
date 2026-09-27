@@ -555,6 +555,19 @@ at the Sunday opening. **E5-T06 adds no environment variable**: the aggregates, 
 use the existing settings. E5's only new variable remains `BOOKING_CALENDAR_KEY` (E5-T02, table above). k6 needs no
 secret: the harness mints short-lived impersonation tokens on the disposable stack.
 
+**E6 processes (E6-T04):** the same single scheduler instance runs P8 `class-finishing` **every minute** and P3
+`no-show-notices` **once a day per club**, at `messaging.noShowNoticeTime` (08:00) in the club's own `timeZone` (a club on
+another time zone gets its batch at its own 08:00). Their switches are `jobs.classFinishing.enabled` and
+`jobs.noShowNotices.enabled` (on by default). P3's catch-up is unlimited: after a stop it notifies every pending
+no-show in one late run. P8 records at most one `SKIPPED{DISABLED}` per hour while switched off. No new environment
+variable. In staging, check that `GET /jobs` lists both rows and that `job_runs` records a `SCHEDULE` run of P8 every
+minute and of P3 at 08:00 local. The gate E6 (back) is rehearsed locally with the clock moved:
+
+```sh
+bin/e6-smoke
+bin/e6-smoke     # a fresh stack per run: re-runnable
+```
+
 **One API instance and the local lanes (E5-T07):** R1 runs a single API instance (ADR-003). The local lanes only
 bound contention inside one process; with more than one instance they protect nothing and the Mongo mechanisms below
 are the guarantee. `core.concurrency.local-lanes` (default `true` in `application.yml`; Spring's relaxed binding also reads the

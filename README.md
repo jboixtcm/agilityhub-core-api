@@ -452,9 +452,10 @@ by club (`ACTIVE` and `ONBOARDING`; `SUSPENDED` records `SKIPPED{CLUB_INACTIVE}`
 every registered `Job` bean in the R-15-01 catalog order. Runs are traced in
 `job_runs` (also `SKIPPED` and dry runs) and leased in `job_locks`. E5-T05 ships
 P1 `week-opening`, P2 `risk-review`, P6 `waitlist-fifo`, P7 `payment-timeouts` and
-P9 `cleanup`; P3/P8 arrive with E6, P4 with E7, P5/P10 with E8 (their `GET /jobs`
-rows stay absent until then). The same code runs from the CLI, without the
-scheduler, under the same lock (a manual run, `actorAccountId` empty):
+P9 `cleanup`; E6-T04 adds P3 `no-show-notices` and P8 `class-finishing` (below); P4
+arrives with E7, P5/P10 with E8 (their `GET /jobs` rows stay absent until then). The
+same code runs from the CLI, without the scheduler, under the same lock (a manual
+run, `actorAccountId` empty):
 
 ```sh
 bin/core jobs:run risk-review --club=canic --dry-run   # the plan only (WOULD_* items), nothing written but the JobRun
@@ -463,10 +464,11 @@ bin/core jobs:run week-opening                         # every ACTIVE club
 bin/core jobs:run cleanup --club=canic                 # also waitlist-fifo, payment-timeouts (module permitting)
 ```
 
-`<route-id>` is the R-15-01 id (`week-opening`, `risk-review`, `waitlist-fifo`,
-`payment-timeouts`, `cleanup`); an unknown id or a process whose module is off
-fails with `JOB_UNKNOWN` / `MODULE_DISABLED`. Each run prints its id, status and
-counters. `scheduling:finish-ended` (above) stays the E4 command until P8 lands.
+`<route-id>` is the R-15-01 id (`week-opening`, `risk-review`, `no-show-notices`,
+`waitlist-fifo`, `payment-timeouts`, `class-finishing`, `cleanup`); an unknown id or a
+process whose module is off fails with `JOB_UNKNOWN` / `MODULE_DISABLED`. Each run
+prints its id, status and counters. `scheduling:finish-ended`, `activities:finish-ended`
+and `attendance:claim-no-show` stay as maintenance commands; the scheduler runs P8 and P3.
 
 Under the `test` and `local` profiles only, the application clock can be moved for
 end-to-end sessions (S15 WP-15-E); the endpoint does not exist elsewhere and is not
@@ -514,3 +516,41 @@ codes, Mongo documents, outbox events and notification rows, with the scheduler 
 P6/P7 on the FIFO club at the first tick, P2 on Tuesday 07:30 and P1 on Sunday 20:00
 (P9 from `bin/core jobs:run`). It prints a summary table, exits non-zero on the
 first failed assertion, and never prints `SEED_PASSWORD`, tokens or full ids.
+
+## E6 attendance, follow-up and the P3 / P8 processes (demo and gate)
+
+Two more scheduled processes run on the E5 framework (S15 R-15-13, R-15-18):
+
+| Process | Cadence | What it does | Parameters |
+|---|---|---|---|
+| P3 `no-show-notices` | daily at `messaging.noShowNoticeTime` (08:00), club-local, catch-up unlimited | one transaction claims every `NO_SHOW` not yet queued whose class date is before today (late marks included) and publishes a single `NoShowNoticeDue`; the outbox consumer sends one N-19 per booking (APP + EMAIL, the class's own date) and marks `noShowNotice.sentAt` («avís ja enviat») | `jobs.noShowNotices.enabled`, `messaging.noShowNoticeTime` |
+| P8 `class-finishing` | every minute | (a) waiting entries of started classes → `CANCELLED{CLASS_STARTED}` silently; (b) `ACTIVE` classes with `endsAt + classes.finishGraceMinutes` (15) ≤ now → `FINISHED`; (c) with `ACTIVITIES`, ended activities → `FINISHED` (assumption in force, see E6-T04) | `jobs.classFinishing.enabled`, `classes.finishGraceMinutes` |
+
+Counters: P3 `{notices, late}`; P8 `{swept, finished, activitiesFinished}`. No business event of P8's own
+(only `SchedulerRun`; step (c) keeps S07's `ActivityFinished`). Simulate or run them by hand like the others:
+
+```sh
+bin/core jobs:run no-show-notices --club=canic --dry-run   # WOULD_NOTIFY {attendanceId, bookingId, memberId, dogName, classDate}
+bin/core jobs:run class-finishing --club=canic --dry-run   # WOULD_SWEEP {entryId}, WOULD_FINISH {classId}, WOULD_FINISH_ACTIVITY {activityId}
+curl -fsS -X POST localhost:8080/api/v1/jobs/no-show-notices/trigger -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"dryRun":false}'
+curl -fsS -X PUT  localhost:8080/api/v1/jobs/class-finishing/switch  -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"enabled":false}'
+```
+
+A manual run (`[Executa ara]`, the CLI) also runs with the switch off (R-15-09); a second run right after the
+scheduled one finds nothing. The E6 demo lives in `scenario.attendance` of `seeds/demo-canic.yaml` (applied with the
+E5 scenario, so `--week-start` on the run's Monday or later): the week-0 Monday 08:30 class on Central with four booked
+and one waiting, a past month of marked classes and ten free trainings for the holder's dog (R-10-08: 86 %, 7 classes,
+2.3 a week), a club-cancelled class and a late cancellation (screen 25's badges), two tasks (one with a fictional
+`video/mp4`), the member's note and a private observation. The names are invented (seeds/README.md maps them to the
+mockups' roles).
+
+```sh
+bin/e6-smoke            # gate E6 (back) on a disposable Compose stack; fresh stack per run, so re-runnable
+```
+
+`bin/e6-smoke [--image]` seeds the Cànic twice (the second run must report 0 changes), switches P3, P8 and P2 off so
+the scheduler never races the manual runs, and moves the test clock: Monday 04:25 (the day, the sheet, one save with
+present / no-show / «ha avisat» four hours before, the stale save), 09:46 (P8 dry run then real run, the sheet still
+markable), Tuesday 08:00 (P3 twice: one N-19, then nothing), then the histories (the holder signs in; two members
+through the admin's impersonation), the tasks with their attachment, the D14 unread counts per account and the week
+PDF. It prints a summary table and exits non-zero on the first failed assertion.

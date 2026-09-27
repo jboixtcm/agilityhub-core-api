@@ -1,0 +1,4 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: docker build failed (exit 1; exception classes: none; codes: none; private output withheld)
