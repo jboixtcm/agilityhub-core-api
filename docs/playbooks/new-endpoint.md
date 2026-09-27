@@ -74,18 +74,29 @@ global requests without club membership. Follow the endpoint's spec if it needs
 a mandatory key or different scope, and report any missing mechanism.
 
 Keys are scoped by club/account for 24 hours. Matching method, target, query,
-content type and body replay status/body and selected headers (including original
-`Content-Language`); a changed request or concurrent in-progress claim conflicts:
+content type, body and the caller's roles/impersonating actor replay status/body and
+selected headers (including original `Content-Language`); a changed request or
+concurrent in-progress claim conflicts. The filter never answers a repeated key itself
+(CONVENCIONS_API §7, ruling E62, E6-T02 round 2): it leaves the answer on the request and
+lets it reach the handler, and `IdempotentReplayAspect` answers in place of the handler
+method, after the MVC interceptors (impersonation, modules) and `@PreAuthorize` accepted
+the current token. A new handler needs nothing extra: `IdempotentReplayContractIT` fails
+if a handler method of the api is not behind the aspect.
 
-Source: [src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java](../../src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java#L89-L94).
+Source: [src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java](../../src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java#L132-L142).
 
 ```java
+            IdempotentReplay replay;
             if (!record.requestHash().equals(hash)) {
-                throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "DIFFERENT_REQUEST"));
+                replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "DIFFERENT_REQUEST")));
+            } else if (record.status() == com.agilityhub.core.shared.persistence.IdempotencyRecord.Status.IN_PROGRESS) {
+                replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")));
+            } else {
+                replay = IdempotentReplay.stored(record.responseStatus(), record.responseHeaders(),
+                        anonymous ? capabilities.open(record.responseBody(), record.id()) : record.responseBody());
             }
-            if (record.status() == com.agilityhub.core.shared.persistence.IdempotencyRecord.Status.IN_PROGRESS) {
-                throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS"));
-            }
+            replay.pending(request);
+            chain.doFilter(new BufferedRequest(request, body), response);
 ```
 
 Keep the application mutation transactional even when a caller omits the key.

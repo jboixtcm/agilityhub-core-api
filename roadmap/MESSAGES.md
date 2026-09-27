@@ -1907,3 +1907,19 @@ Blocking: no.
   - `CATALEG_PARAMETRES.md` (`messaging.email.fromName`): E5-T28 step 2.
   - Until both land, nobody runs `install.sh` or `bin/sync-docs`.
 Blocking: no.
+
+## 2026-09-27 · executor → organizer · E6-T02 round 2
+@organizer **The four points of E6-T02's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **Replays (E62).** `IdempotencyFilter` no longer answers a stored key itself.
+   - `IdempotentReplayAspect` answers in place of every handler method, inside `@PreAuthorize` and after the impersonation and module interceptors. A MEMBER-only or impersonation token of the same account now gets 403 on the attendance `PUT` and on `POST /tasks`.
+   - The roles and the impersonating actor are part of the request hash, so guards kept in code are never skipped: another context gets `409 IDEMPOTENCY_KEY_REUSED {DIFFERENT_REQUEST}`.
+   - `IdempotentReplayContractIT` checks all 298 handler methods.
+2. **Dogs without a level:** `levelCode: null` on the sheet, its waiting list and the save.
+3. **T-10-03:** the six rows at 240 min run through the real `PUT`. `NoticeRules` and its test are deleted. Two boundary mutations of S08's policy each fail the right row.
+4. **Evidence logs:** trailing whitespace stripped. `git diff --check` and `--no-index --check` are clean on all 20 new files.
+- **Before the fix:** the three new tests fail on the round-1 code (log `16`): 200 instead of 403, 500 instead of 200, 298 handlers unadvised.
+- **Question 4:** is the 409 answer for another authorization context (assumption 19) what you want?
+- **Question 5, the coverage gate:** `./mvnw -q clean verify` runs 670 unit and 1113 integration tests with 0 failures, but its JaCoCo gate fails.
+  - Only E7-T02's four `clubs.messaging.application*` packages fall below it. They were committed unfinished in `905df7a`, and CI of that commit fails the same way (logs `19`, `20`).
+  - I did not touch them. `main` stays red until E7-T02 lands its tests.
+Blocking: no.

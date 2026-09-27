@@ -5,6 +5,8 @@ Reuses bin/e5-smoke's `Smoke` helper (private tokens in stdin, random ports, `co
 Cànic with its demo scenario, picks a seeded class that is full and has a waiting list, moves the test clock to four
 hours before it and, as the seeded instructor: GET the sheet, PUT PRESENT + NOTIFIED, shows the released seat, the
 outbox rows and the N-05 / N-15 notification rows, a stale PUT's 409, and downloads the D12 week PDF.
+Round 2: the same PUT is repeated with its Idempotency-Key (the replay now answers from inside the route's authorization,
+CONVENCIONS_API §7, E62) and the PDF goes to agenda-round2.pdf (round 1's agenda.pdf is kept).
 """
 import datetime
 import importlib.machinery
@@ -61,7 +63,8 @@ def main():
                   f"{len(sheet['rows'])} rows; waitlist mode {sheet['waitlist']['mode']} with {len(sheet['waitlist']['entries'])} entries", flush=True)
             before = sheet["sheet"]["version"]
             body = dict(version=before, items=[dict(bookingId=present["bookingId"], state="PRESENT"), dict(bookingId=notified["bookingId"], state="NOTIFIED")])
-            saved = s.call("PUT", path, access=instructor, body=body, idempotent=True)
+            key = str(uuid.uuid4())
+            saved = s.call("PUT", path, access=instructor, body=body, key=key)
             row = next(r for r in saved["rows"] if r["bookingId"] == notified["bookingId"])
             print(f"  PUT applied {[short(a) for a in saved['applied']]}; version {before} → {saved['sheet']['version']}; "
                   f"notice {json.dumps(row['notice'])}", flush=True)
@@ -80,14 +83,20 @@ def main():
                 print("    " + ids(json.dumps(event, ensure_ascii=False)), flush=True)
             member_account = s.account_of(s.mongo('db.bookings.findOne({_id:' + json.dumps(notified["bookingId"]) + '}).memberId'))
             waiting_accounts = s.mongo('db.waitlist_entries.find({classSessionId:' + json.dumps(target["id"]) + ',state:"NOTIFIED"}).toArray().map(e=>e.accountId)')
-            n05 = e5.wait(lambda: s.mongo('db.notifications.find({clubId:' + json.dumps(canic) + ',code:"N-05",accountId:' + json.dumps(member_account)
-                                          + '}).toArray().map(n=>({code:n.code,channel:n.channel,status:n.status}))') or None, "N-05 missing")
-            n15 = e5.wait(lambda: s.mongo('db.notifications.find({clubId:' + json.dumps(canic) + ',code:"N-15",accountId:{$in:' + json.dumps(waiting_accounts)
-                                          + '}}).toArray().map(n=>({code:n.code,channel:n.channel,status:n.status,account:n.accountId.substring(0,8)+"…"}))') or None,
-                          "N-15 missing")
+            # Round 2: E7-T01 stores S11 notifications (one document per recipient, `recipient.accountId`, one entry per channel in `deliveries`).
+            n05 = e5.wait(lambda: s.mongo('db.notifications.find({clubId:' + json.dumps(canic) + ',code:"N-05","recipient.accountId":' + json.dumps(member_account)
+                                          + '}).toArray().flatMap(n=>n.deliveries.map(d=>({code:n.code,channel:d.channel,status:d.status})))') or None, "N-05 missing")
+            n15 = e5.wait(lambda: s.mongo('db.notifications.find({clubId:' + json.dumps(canic) + ',code:"N-15","recipient.accountId":{$in:' + json.dumps(waiting_accounts)
+                                          + '}}).toArray().flatMap(n=>n.deliveries.map(d=>({code:n.code,channel:d.channel,status:d.status,'
+                                          'account:n.recipient.accountId.substring(0,8)+"…"})))') or None, "N-15 missing")
             print(f"  notifications N-05 (member {short(member_account)}): {json.dumps(n05)}", flush=True)
             print(f"  notifications N-15 ({len(waiting_accounts)} waiting entries now NOTIFIED): {json.dumps(n15)}", flush=True)
             e5.require(all(n["channel"] != "SMS" for n in n05), "N-05 must have no SMS row")
+            replayed = s.call("PUT", path, access=instructor, body=body, key=key)
+            marked = s.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(canic) + ',type:"AttendanceMarked",occurredAt:{$gte:' + since + '}})')
+            e5.require(replayed == saved and marked == 2, "The same Idempotency-Key must replay the same 200 and emit nothing")
+            print(f"  same Idempotency-Key and body again -> 200, identical body (version {replayed['sheet']['version']}); AttendanceMarked rows still {marked}",
+                  flush=True)
             stale = s.call("PUT", path, 409, access=instructor, body=dict(version=before, items=[dict(bookingId=present["bookingId"], state="NO_SHOW")]),
                            idempotent=True, error="STALE_VERSION")
             current = stale["details"]["current"]
@@ -95,7 +104,7 @@ def main():
                                                    "details": {"current": {"sheet": current["sheet"], "classSession": current["classSession"],
                                                                            "rows": [{k: r.get(k) for k in ("bookingId", "dogName", "state", "final", "notice")}
                                                                                     for r in current["rows"]]}}}, ensure_ascii=False)), flush=True)
-            pdf = EVIDENCE / "agenda.pdf"
+            pdf = EVIDENCE / "agenda-round2.pdf"
             config = "\n".join("header = " + json.dumps(h) for h in ["Authorization: Bearer " + instructor, "Host: " + s.host, "Accept-Language: ca"]) \
                 + "\nurl = " + json.dumps(s.base + "/api/v1/instructor/week/export?format=pdf&date=" + target["date"])
             result = subprocess.run(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--output", str(pdf),
@@ -104,7 +113,7 @@ def main():
             status, content_type = result.stdout.split(" ", 1)
             disposition = next((line.strip() for line in (Path(directory) / "headers").read_text().splitlines() if line.lower().startswith("content-disposition")), "")
             print(f"curl GET /api/v1/instructor/week/export?format=pdf&date={target['date']} -> {status} {content_type}; {disposition}; "
-                  f"{pdf.stat().st_size} bytes saved to roadmap/evidence/E6-T02/agenda.pdf", flush=True)
+                  f"{pdf.stat().st_size} bytes saved to roadmap/evidence/E6-T02/{pdf.name}", flush=True)
             e5.require(status == "200" and content_type == "application/pdf", "The PDF export failed")
             print("PASS E6-T02 manual run", flush=True)
         finally:

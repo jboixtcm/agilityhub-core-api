@@ -6,12 +6,12 @@
 20:23:53.474 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 20:23:53.921 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 20:23:53.925 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-20:23:53.956 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+20:23:53.956 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.7.2
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 20:23:54.490 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 20:23:54.582 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/

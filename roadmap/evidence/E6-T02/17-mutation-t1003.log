@@ -1,0 +1,30 @@
+mutation 1: the threshold itself becomes late (> → ≥)
+$ (cd target/mutation-t1003 && ./mvnw -q verify -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=AttendanceIT#T_10_03* -Djacoco.skip=true)
+exit 1
+  T-10-03 14:00:00 → minutesBefore 290, late false, booking CANCELLED, pack refunded true, waiting list told true, afterClassEnd false
+  T-10-03 14:50:00 → minutesBefore 240, late true, booking CANCELLED_LATE, pack refunded false, waiting list told true, afterClassEnd false
+  T-10-03 14:50:01 → minutesBefore 239, late true, booking CANCELLED_LATE, pack refunded false, waiting list told true, afterClassEnd false
+  T-10-03 18:20:00 → minutesBefore 30, late true, booking CANCELLED_LATE, pack refunded false, waiting list told false, afterClassEnd false
+  T-10-03 19:05:00 → minutesBefore -15, late true, booking CANCELLED_LATE, pack refunded false, waiting list told false, afterClassEnd false
+  T-10-03 20:30:00 → minutesBefore —, late true, booking ACTIVE, pack refunded false, waiting list told false, afterClassEnd true
+  [ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 9.359 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.AttendanceIT
+  [ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.T_10_03_theSixRowsOfTheHaAvisatTableThroughTheSave(String, Integer, boolean, String, boolean, boolean, boolean)[2] -- Time elapsed: 0.263 s <<< FAILURE!
+  expected: false
+   but was: true
+  expected: false
+   but was: true
+mutation 2: the waiting list is told at exactly 30 minutes (> → ≥)
+$ (cd target/mutation-t1003 && ./mvnw -q verify -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=AttendanceIT#T_10_03* -Djacoco.skip=true)
+exit 1
+  T-10-03 14:00:00 → minutesBefore 290, late false, booking CANCELLED, pack refunded true, waiting list told true, afterClassEnd false
+  T-10-03 14:50:00 → minutesBefore 240, late false, booking CANCELLED, pack refunded true, waiting list told true, afterClassEnd false
+  T-10-03 14:50:01 → minutesBefore 239, late true, booking CANCELLED_LATE, pack refunded false, waiting list told true, afterClassEnd false
+  T-10-03 18:20:00 → minutesBefore 30, late true, booking CANCELLED_LATE, pack refunded false, waiting list told true, afterClassEnd false
+  T-10-03 19:05:00 → minutesBefore -15, late true, booking CANCELLED_LATE, pack refunded false, waiting list told false, afterClassEnd false
+  T-10-03 20:30:00 → minutesBefore —, late true, booking ACTIVE, pack refunded false, waiting list told false, afterClassEnd true
+  [ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.757 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.AttendanceIT
+  [ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.T_10_03_theSixRowsOfTheHaAvisatTableThroughTheSave(String, Integer, boolean, String, boolean, boolean, boolean)[4] -- Time elapsed: 0.220 s <<< FAILURE!
+  expected: false
+   but was: true
+  expected: false
+   but was: true

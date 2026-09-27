@@ -17,6 +17,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -142,11 +144,11 @@ class AttendanceIT extends BookingFixtures {
         join(as("c0"), "thu", "s08-d-c0", 201); join(as("c1"), "thu", "s08-d-c1", 201);
         assertThat(booking(duna).getString("packMovementId")).isNotNull();
 
-        // Thu 15:00 → 14:50:00 is exactly 240 minutes before 18:50: still in time (catalog value; the spec table uses 120).
-        clock.setInstant(local("2026-10-08T14:50"));
+        // Thu 14:00, 290 minutes before 18:50: in time (bookings.lateCancelThreshold = 240; the boundary rows are T-10-03's).
+        clock.setInstant(local("2026-10-08T14:00"));
         var saved = save("thu", as("inst"), 200, 0, duna, "NOTIFIED");
         var notice = row(saved, duna).path("notice");
-        assertThat(notice.path("late").asBoolean()).isFalse(); assertThat(notice.path("minutesBefore").asInt()).isEqualTo(240);
+        assertThat(notice.path("late").asBoolean()).isFalse(); assertThat(notice.path("minutesBefore").asInt()).isEqualTo(290);
         assertThat(notice.path("seatReleased").asBoolean()).isTrue(); assertThat(notice.path("waitlistNotified").asBoolean()).isTrue();
         assertThat(notice.path("afterClassEnd").asBoolean()).isFalse(); assertThat(notice.path("bookingState").asText()).isEqualTo("CANCELLED");
         var cancelled = booking(duna);
@@ -199,6 +201,120 @@ class AttendanceIT extends BookingFixtures {
         assertThat(code(save("mon", as("inst"), 422, 0, other, "NOTIFIED"))).isEqualTo("INSTRUCTOR_NOTICE_DISABLED");
         assertThat(booking(other).getString("state")).isEqualTo("ACTIVE"); assertThat(attendance(other)).isNull();
         assertThat(summary("mon")).containsEntry("version", 0).containsEntry("marked", 0);
+    }
+
+    /**
+     * R-10-05's table through the real save path (`PUT` → {@link com.agilityhub.core.clubs.bookings.application.AttendanceSheetService}
+     * → S08's cancellation): Thu 15-10 18:50–19:50 Madrid, `bookings.lateCancelThresholdMinutes = 240`, WAITLIST on with one
+     * live entry, Duna's booking paid with a pack. `minutesBefore` is empty on the row saved after the class end.
+     */
+    @ParameterizedTest(name = "saved at {0}")
+    @CsvSource({
+            "14:00:00, 290, false, CANCELLED,      true,  true,  false",
+            "14:50:00, 240, false, CANCELLED,      true,  true,  false",
+            "14:50:01, 239, true,  CANCELLED_LATE, false, true,  false",
+            "18:20:00, 30,  true,  CANCELLED_LATE, false, false, false",
+            "19:05:00, -15, true,  CANCELLED_LATE, false, false, false",
+            "20:30:00,    , true,  ACTIVE,         false, false, true"})
+    void T_10_03_theSixRowsOfTheHaAvisatTableThroughTheSave(String savedAt, Integer minutesBefore, boolean late, String bookingState, boolean packRefunded,
+            boolean notifyWaitlist, boolean afterClassEnd) throws Exception {
+        session("t1003", "2026-10-15T18:50", 1, List.of());
+        openPack("s08-m-laura", "s08-d-duna", 10, 0, LocalDate.of(2026, 12, 31));
+        var duna = id(book(as("laura"), "t1003", "s08-d-duna"));
+        join(as("c0"), "t1003", "s08-d-c0", 201);
+        assertThat(booking(duna).getString("packMovementId")).isNotNull();
+
+        clock.setInstant(local("2026-10-15T" + savedAt));
+        var notice = row(save("t1003", as("inst"), 200, 0, duna, "NOTIFIED"), duna).path("notice");
+        var stored = booking(duna);
+        var released = eventsOf("SeatReleased");
+        System.out.printf("T-10-03 %s → minutesBefore %s, late %s, booking %s, pack refunded %s, waiting list told %s, afterClassEnd %s%n", savedAt,
+                notice.path("minutesBefore").isNull() ? "—" : notice.path("minutesBefore").asText(), notice.path("late").asBoolean(), stored.getString("state"),
+                stored.getString("packRefundMovementId") != null, released.stream().anyMatch(e -> Boolean.TRUE.equals(e.get("payload", Document.class).getBoolean("notifyWaitlist"))),
+                notice.path("afterClassEnd").asBoolean());
+        if (minutesBefore == null) { assertThat(notice.path("minutesBefore").isNull()).isTrue(); }
+        else { assertThat(notice.path("minutesBefore").asInt()).isEqualTo(minutesBefore); }
+        assertThat(notice.path("late").asBoolean()).isEqualTo(late);
+        assertThat(notice.path("afterClassEnd").asBoolean()).isEqualTo(afterClassEnd);
+        assertThat(notice.path("bookingState").asText()).isEqualTo(bookingState);
+        assertThat(stored.getString("state")).isEqualTo(bookingState);
+        assertThat(stored.getString("packRefundMovementId") != null).as("R-08-17: the pack session is given back only in time").isEqualTo(packRefunded);
+        assertThat(notice.path("seatReleased").asBoolean()).isEqualTo(!afterClassEnd);
+        assertThat(notice.path("waitlistNotified").asBoolean()).isEqualTo(notifyWaitlist);
+        // R-08-11: SeatReleased only while the class has not started, with notifyWaitlist as the table says.
+        if (local("2026-10-15T" + savedAt).isBefore(local("2026-10-15T18:50"))) {
+            assertThat(released).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("notifyWaitlist", notifyWaitlist));
+        } else { assertThat(released).isEmpty(); }
+        assertThat(events("BookingCancelled")).isEqualTo(afterClassEnd ? 0 : 1);
+        dispatch();
+        assertThat(events("WaitlistNotified")).isEqualTo(notifyWaitlist ? 1 : 0);
+        assertThat(notifications("N-15", "APP")).isEqualTo(notifyWaitlist ? 1 : 0);
+        assertThat(notifications("N-05", null)).as("§13-4: nobody is told after the end").isEqualTo(afterClassEnd ? 0 : 1);
+    }
+
+    /** T-10-33 (review #2): a dog without a level has `levelCode: null` on the sheet, its waiting list and the save's answer, with levels on or off. */
+    @Test void T_10_33_dogsWithoutALevelHaveANullLevelCodeOnTheSheetTheWaitingListAndTheSave() throws Exception {
+        var duna = id(book(as("laura"), "last", "s08-d-duna"));
+        join(as("c0"), "last", "s08-d-c0", 201);
+        mongo.updateMulti(Query.query(Criteria.where("_id").in("s08-d-duna", "s08-d-c0")), new Update().unset("levelId"), "dogs");
+        clock.setInstant(local("2026-10-08T20:30"));
+        for (boolean levels : List.of(false, true)) {
+            parameter("levels.enabled", levels);
+            var sheet = sheet("last", as("inst"));
+            assertThat(row(sheet, duna).has("levelCode")).isTrue(); assertThat(row(sheet, duna).path("levelCode").isNull()).as("levels " + levels).isTrue();
+            assertThat(sheet.path("waitlist").path("entries")).singleElement().satisfies(e -> {
+                assertThat(e.path("dogName").asText()).isEqualTo("Dog0"); assertThat(e.has("levelCode")).isTrue(); assertThat(e.path("levelCode").isNull()).isTrue();
+            });
+        }
+        parameter("levels.enabled", false);
+        var saved = save("last", as("inst"), 200, 0, duna, "PRESENT");
+        assertThat(row(saved, duna).path("state").asText()).isEqualTo("PRESENT"); assertThat(row(saved, duna).path("levelCode").isNull()).isTrue();
+        assertThat(saved.path("waitlist").path("entries").get(0).path("levelCode").isNull()).isTrue();
+        assertThat(attendance(duna).getString("state")).isEqualTo("PRESENT");
+    }
+
+    /**
+     * CONVENCIONS_API §7 (ruling E62, review #1): a stored response is replayed only after the route's own authorization
+     * accepted the current token. Mar is an instructor and a member (one account); her saved sheet and her task are not
+     * replayed to a MEMBER-only token or an impersonation token of that same account, nor to another role set.
+     */
+    @Test void T_10_22_aStoredAnswerIsNeverReplayedToAMemberOnlyOrAnImpersonationTokenOfTheSameAccount() throws Exception {
+        account("dual", "INSTRUCTOR", "s08-m-dual"); member("s08-m-dual", "dual", "Mar", "ca");
+        mongo.save(new com.agilityhub.core.identity.persistence.Membership("s08-dual", "s08-dual", CLUB, "s08-m-dual",
+                Set.of(com.agilityhub.core.identity.domain.Role.INSTRUCTOR, com.agilityhub.core.identity.domain.Role.MEMBER),
+                com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.INSTRUCTOR));
+        var staff = dual("ROLE_INSTRUCTOR", "ROLE_MEMBER"); var memberOnly = dual("ROLE_MEMBER"); var instructorOnly = dual("ROLE_INSTRUCTOR");
+        var duna = id(book(as("laura"), "wed", "s08-d-duna"));
+        clock.setInstant(local("2026-10-07T19:00"));
+        var impersonated = impersonating("admin", "s08-m-dual"); // the admin «enters as» Mar: the same account, as a member
+
+        String key = UUID.randomUUID().toString(); String path = "/class-sessions/s08-wed/attendance";
+        var saved = call(HttpMethod.PUT, path, body(0, duna, "PRESENT"), staff, 200, key);
+        var member = call(HttpMethod.PUT, path, body(0, duna, "PRESENT"), memberOnly, 403, key);
+        assertThat(code(member)).isEqualTo("FORBIDDEN"); assertThat(member.has("rows")).isFalse(); assertThat(member.has("sheet")).isFalse();
+        var imp = call(HttpMethod.PUT, path, body(0, duna, "PRESENT"), impersonated, 403, key);
+        assertThat(code(imp)).isEqualTo("IMPERSONATION_DENIED"); assertThat(imp.has("rows")).isFalse();
+        // Authorised by the route, but not the stored authorization context: the key belongs to another request.
+        var other = call(HttpMethod.PUT, path, body(0, duna, "PRESENT"), instructorOnly, 409, key);
+        assertThat(code(other)).isEqualTo("IDEMPOTENCY_KEY_REUSED"); assertThat(other.path("details").path("reason").asText()).isEqualTo("DIFFERENT_REQUEST");
+        assertThat(call(HttpMethod.PUT, path, body(0, duna, "PRESENT"), staff, 200, key)).as("the same token still replays").isEqualTo(saved);
+        assertThat(events("AttendanceMarked")).isEqualTo(1);
+
+        // The same for a keyed POST.
+        String taskKey = UUID.randomUUID().toString(); var task = Map.of("dogId", "s08-d-duna", "text", "Balancí de dues passes");
+        var created = call(HttpMethod.POST, "/tasks", task, staff, 201, taskKey);
+        var memberTask = call(HttpMethod.POST, "/tasks", task, memberOnly, 403, taskKey);
+        assertThat(code(memberTask)).isEqualTo("FORBIDDEN"); assertThat(memberTask.has("id")).isFalse();
+        var impTask = call(HttpMethod.POST, "/tasks", task, impersonated, 403, taskKey);
+        assertThat(code(impTask)).isEqualTo("IMPERSONATION_DENIED"); assertThat(impTask.has("id")).isFalse();
+        assertThat(call(HttpMethod.POST, "/tasks", task, staff, 201, taskKey)).isEqualTo(created);
+        assertThat(count("tasks", Criteria.where("dogId").is("s08-d-duna"))).isEqualTo(1);
+    }
+    RequestPostProcessor dual(String... authorities) {
+        return org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(j -> j.subject("s08-dual").claim("clubId", CLUB).claim("memberId", "s08-m-dual").claim("name", "Mar Example"))
+                .authorities(Arrays.stream(authorities).map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                        .toArray(org.springframework.security.core.GrantedAuthority[]::new));
     }
 
     @Test void T_10_12_anInvalidItemRollsBackTheWholeSaveAStaleVersionGetsTheCurrentSheetAndTheSameKeyReplays() throws Exception {

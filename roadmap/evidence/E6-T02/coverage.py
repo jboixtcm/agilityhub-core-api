@@ -3,11 +3,12 @@ import csv
 
 PACKAGES = ["clubs.bookings.domain", "clubs.bookings.application", "clubs.bookings.application.ports", "clubs.bookings.api",
             "clubs.bookings.persistence", "clubs.scheduling.application", "clubs.census.application", "clubs.catalogs.application",
-            "clubs.training.application", "clubs.activities.application", "shared.api"]
+            "clubs.training.application", "clubs.activities.application", "shared.api", "shared.application"]
 CLASSES = ["AttendanceSheetService", "AttendanceSheetQuery", "InstructorDayQuery", "WeekAgendaQuery", "WeekAgendaPdf", "InstructorCardQuery", "HistoryQuery",
            "AttendanceListQuery", "AttendanceConsumers", "AttendanceStates", "AttendanceCallers", "NoShowNoticeClaims", "ClaimNoShowCommand",
-           "AttendanceTransitions", "NoticeRules", "AttendanceMetrics", "HistoryRules", "AttendanceWindow", "InstructorScheduleAccess",
-           "AttendanceCensusAccess", "TrainingHistory", "ActivityHistory", "InstructorController", "BookingCancellationService"]
+           "AttendanceTransitions", "AttendanceMetrics", "HistoryRules", "AttendanceWindow", "InstructorScheduleAccess",
+           "AttendanceCensusAccess", "TrainingHistory", "ActivityHistory", "InstructorController", "BookingCancellationService",
+           "IdempotencyFilter", "IdempotentReplay", "IdempotentReplayAspect", "ApiExceptionHandler"]
 totals = {}
 classes = {}
 with open("target/site/jacoco/jacoco.csv", encoding="utf-8") as source:
@@ -29,6 +30,12 @@ def pct(covered, missed):
 for package in PACKAGES:
     lc, lm, bc, bm = totals[package]
     print("%-36s lines %5.1f%%  branches %5.1f%%" % (package, pct(lc, lm), pct(bc, bm)))
+# Round 2: the packages below the gate, committed by E7-T02's unfinished session (905df7a) and not touched by E6-T02.
+print("Below the gate (not E6-T02's):")
+for package in ["clubs.messaging.application", "clubs.messaging.application.engine", "clubs.messaging.application.integrations",
+                "clubs.messaging.application.ports"]:
+    lc, lm, bc, bm = totals[package]
+    print("  %-40s lines %5.1f%%  branches %5.1f%%" % (package, pct(lc, lm), pct(bc, bm)))
 print("New or changed classes:")
 for name in CLASSES:
     lc, lm, bc, bm = classes.get(name, [0, 0, 0, 0])

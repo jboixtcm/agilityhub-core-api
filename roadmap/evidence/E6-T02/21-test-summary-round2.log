@@ -1,0 +1,132 @@
+  ArchitectureTest                 tests=14  failures=0 errors=0 skipped=0
+  AttendanceMetricsTest            tests=5   failures=0 errors=0 skipped=0
+  AttendanceTransitionsTest        tests=18  failures=0 errors=0 skipped=0
+  AttendanceWindowTest             tests=3   failures=0 errors=0 skipped=0
+  HistoryRulesTest                 tests=14  failures=0 errors=0 skipped=0
+  E6ResponseContractTest           tests=5   failures=0 errors=0 skipped=0
+  OpenApiRequiredContractTest      tests=3   failures=0 errors=0 skipped=0
+  AuditContractTest                tests=1   failures=0 errors=0 skipped=0
+  ApiExceptionHandlerTest          tests=8   failures=0 errors=0 skipped=0
+  MessageParityTest                tests=1   failures=0 errors=0 skipped=0
+  EventCatalogContractTest         tests=2   failures=0 errors=0 skipped=0
+unit/contract (surefire): tests=670 failures=0 errors=0 skipped=0
+  ActivityIT                       tests=31  failures=0 errors=0 skipped=0
+  AttendanceIT                     tests=19  failures=0 errors=0 skipped=0
+  BookingConcurrencyIT             tests=5   failures=0 errors=0 skipped=0
+  BookingsIT                       tests=18  failures=0 errors=0 skipped=0
+  InstructorAggregatesIT           tests=7   failures=0 errors=0 skipped=0
+  MemberFlowContractIT             tests=6   failures=0 errors=0 skipped=0
+  WaitlistIT                       tests=18  failures=0 errors=0 skipped=0
+  SignupIT                         tests=33  failures=0 errors=0 skipped=0
+  FollowupIT                       tests=10  failures=0 errors=0 skipped=0
+  CalendarIT                       tests=17  failures=0 errors=0 skipped=0
+  TrainingIT                       tests=23  failures=0 errors=0 skipped=0
+  E6ContractIT                     tests=30  failures=0 errors=0 skipped=0
+  ListFieldsContractIT             tests=4   failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest              tests=10  failures=0 errors=0 skipped=0
+  IdempotentReplayContractIT       tests=1   failures=0 errors=0 skipped=0
+  IdempotencyIT                    tests=9   failures=0 errors=0 skipped=0
+integration (failsafe): tests=1113 failures=0 errors=0 skipped=0
+T-10 test methods (parameterized cases collapsed):
+  E62  IdempotentReplayContractIT.E62_everyHandlerMethodOfTheApiAnswersAReplayOnlyInsideItsOwnAuthorization ok
+  R-08-10  AttendanceIT.R_08_10_aMarkedBookingIsNoLongerCancellableAndANoShowReadsNoPresentat ok
+  R-08-10  MemberFlowContractIT.R_08_10_T_08_06_everyBookingCarriesTheThresholdAndTheInTimeDeadline ok
+  R-08-10  S08MemberFlowContractTest.R_08_10_T_08_18_bookingNotCancellableIsPublishedAs422Only ok
+  R-08-10  S08MemberFlowContractTest.R_08_10_T_08_42_aBookingCarriesTheThresholdAndTheInTimeDeadline ok
+  T-10-01  AttendanceIT.T_10_01_anAdminMarksOutsideTheWindowAuditedAndAnInstructorIsRefused ok
+  T-10-01  AttendanceTransitionsTest.T_10_01_instructorWindowInMadridOpensAtLocalMidnightAndClosesAtTheEndOfTheNextDay ok
+  T-10-01  AttendanceTransitionsTest.T_10_01_sheetFlagsPaintTheCircles ok
+  T-10-01  AttendanceTransitionsTest.T_10_01_theSameInstantsInBuenosAiresHitDifferentLimits ok
+  T-10-01  AttendanceWindowTest.T_10_01_windowFollowsTheDstChangeOfTheClubZone ok
+  T-10-01  AttendanceWindowTest.T_10_01_windowRunsFromLocalMidnightToTheEndOfClassDatePlusEditDays ok
+  T-10-02  AttendanceTransitionsTest.T_10_02_everyTransitionOfTheTable(AttendanceState, AttendanceState, Effect) ok
+  T-10-02  AttendanceTransitionsTest.T_10_02_notifiedBeforeTheClassEndCancelsAfterItOnlyRecordsAndAfterT1IsRefusedForEveryRole ok
+  T-10-02  AttendanceTransitionsTest.T_10_02_notifiedIsFinalAndEveryRefusalIsTheCatalogCode ok
+  T-10-03  AttendanceIT.T_10_03_theSixRowsOfTheHaAvisatTableThroughTheSave(String, Integer, boolean, String, boolean, boolean, boolean) ok
+  T-10-04  AttendanceMetricsTest.T_10_04_nothingToCountGivesNullAndClubCancellationsOrUnmarkedPastClassesCountNowhere ok
+  T-10-04  AttendanceMetricsTest.T_10_04_presentSixNoShowOneNotifiedOneIs86PercentOverSeven ok
+  T-10-04  AttendanceMetricsTest.T_10_04_tenTrainingsInThirtyDaysAre2Point3PerWeek ok
+  T-10-04  AttendanceMetricsTest.T_10_04_theWindowIsThirtyClubDaysUpToNowExcluded ok
+  T-10-04  DemoAttendanceSeedIT.T_10_04_T_10_19_theE6DemoHoldsTheMondayClassTheHoldersMetricsAndEveryHistoryBadge ok
+  T-10-05  AttendanceMetricsTest.T_10_05_lastClassesAreTheFiveNewestStartedWithTheirBadge ok
+  T-10-06  FollowupRulesTest.T_10_06_pruningKeepsOnlyTheClicksReadAllDoesNotCover ok
+  T-10-06  FollowupRulesTest.T_10_06_unreadIsNewerThanReadAllNotClickedAndNotMine ok
+  T-10-06  FollowupServiceTest.T_10_06_T_10_18_theListComputesUnreadInTheQueryAndResolvesNamesAtReadTime ok
+  T-10-06  FollowupServiceTest.T_10_06_aClickPrunesTheIdsReadAllCoversAndReadAllIsOneWrite ok
+  T-10-07  HistoryRulesTest.T_10_07_activeBookingsAppearOnceStartedAndLiveOnesNever ok
+  T-10-07  HistoryRulesTest.T_10_07_everyCancelReasonAndRoleMapsToTheScreen25Row(BookingState, BookingCancelReason, boolean, State, boolean, DetailKind) ok
+  T-10-08  AttendanceIT.T_10_08_claimForNoShowNoticeTakesEarlierNoShowsOnceAndLeavesTodaysAndUnmarkedOnes ok
+  T-10-08  E6PersistenceIT.T_10_08_T_10_22_attendanceTasksAndReadMarksRoundTripWithinTheTenant ok
+  T-10-09  AttendanceContractAccessTest.T_10_09_T_10_20_instructorAndRingFiltersMustBelongToTheClub ok
+  T-10-09  AttendanceStatusCalculatorTest.T_10_09_statusUsesTheClubZoneAndAttendanceEditDays ok
+  T-10-09  AttendanceStatusCalculatorTest.T_10_09_totalCountsEveryNotifiedRowOnce ok
+  T-10-09  AttendanceWindowTest.T_10_09_statusIsNoneBeforeT0PendingWhileUnmarkedDoneWhenCompleteAndClosedAfterT1 ok
+  T-10-09  CalendarIT.T_10_09_calendarAndInstructorGridExposeTheS10AttendanceStatus ok
+  T-10-09  CalendarIT.T_10_09_notifiedAfterTheClassEndIsCountedOnceInCalendarAndDayGrid ok
+  T-10-09  InstructorAggregatesIT.T_10_09_theDayPreselectsTheCallerListsOnlyTheirClassesAndEveryBlock ok
+  T-10-10  AttendanceIT.T_10_10_consumersRefreshTheClassTimesAndRecordAContradictingCancellationOnce ok
+  T-10-10  AttendanceIT.T_10_10_theSheetIsTheLiveBookingsPlusTheNotifiedOnesByBookedAt ok
+  T-10-11  AttendanceIT.T_10_11_haAvisatInTimeCancelsReleasesTheSeatAndTellsTheWaitingListOnceThenLateThenAfterTheEnd ok
+  T-10-12  AttendanceIT.T_10_12_anInvalidItemRollsBackTheWholeSaveAStaleVersionGetsTheCurrentSheetAndTheSameKeyReplays ok
+  T-10-12  E6PersistenceIT.T_10_12_classSessionReadsTheEmptySummaryBeforeS10AndKeepsTheOneS10Wrote ok
+  T-10-13  AttendanceIT.T_10_13_attendanceMarkedReachesTheS12ConsumerOnceWithItsPreviousStateWithTheModuleOnOrOff ok
+  T-10-14  E6ResponseContractTest.T_10_14_T_10_17_privateObservationsNeverReachTheMemberForms ok
+  T-10-14  FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued ok
+  T-10-14  InstructorAggregatesIT.T_10_14_theCardComputesTheThirtyDayMetricsTheLastClassesAndTheModuleBlocks ok
+  T-10-15  E6ContractIT.T_10_15_T_10_19_T_10_22_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs ok
+  T-10-15  FollowupContractAccessTest.T_10_15_T_10_22_membersReachOnlyTheirOwnDogsAndTasks ok
+  T-10-15  FollowupContractAccessTest.T_10_15_aDeletedTaskIsNotFoundForStaffToo ok
+  T-10-15  FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken ok
+  T-10-15  FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications ok
+  T-10-15  FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne ok
+  T-10-15  FollowupNotificationTextsTest.T_10_15_n20AndN21RenderInTheRecipientsLanguage ok
+  T-10-15  FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce ok
+  T-10-15  FollowupNotificationsTest.T_10_15_n20GoesToTheOwnerByAppAndByEmailAtTheContactAddress ok
+  T-10-16  AttachmentServiceTest.T_10_16_registrationChecksTheOwnerThePurposeTheLimitAndDedupesTheKey ok
+  T-10-16  AttachmentServiceTest.T_10_16_removalMarksTheAttachmentAndEmitsAttachmentRemoved ok
+  T-10-16  AttachmentServiceTest.T_10_16_taskAndObservationPurposesFollowTheS10FilePolicy ok
+  T-10-16  E6ContractIT.T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration ok
+  T-10-16  FollowupContractAccessTest.T_10_16_attachmentRolesFollowTheirEntity ok
+  T-10-16  FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles ok
+  T-10-17  FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember ok
+  T-10-18  FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow ok
+  T-10-18  FollowupIT.T_10_18_theTaskFollowsATransferredDog ok
+  T-10-18  FollowupNotificationTextsTest.T_10_18_n22NamesTheStudentByGenderInEachLanguage ok
+  T-10-18  FollowupProjectionTest.T_10_18_aNewNoteChangeUpsertsTheRowAndMakesItUnreadForEveryoneButTheAuthor ok
+  T-10-18  FollowupProjectionTest.T_10_18_aTransferredDogTakesItsTasksAndRowsToTheNewOwner ok
+  T-10-18  FollowupRulesTest.T_10_18_excerptIsOneLineOfAtMost120CharactersAndNeverCutsACodePoint ok
+  T-10-19  InstructorAggregatesIT.T_10_19_theHistoryListsOwnAndGroupDogsWithTheR1014StatesAndTheModuleTypes ok
+  T-10-20  InstructorAggregatesIT.T_10_20_theIsoWeekIsTheClubsInMadridAndBuenosAires ok
+  T-10-20  InstructorAggregatesIT.T_10_20_theWeekIsTheIsoWeekWithClassesTrainingsAndBlocksAndItsFiltersAndPdf ok
+  T-10-21  AttendanceContractAccessTest.T_10_21_attendancesAcceptOnlyTheDeclaredFiltersAndSorts ok
+  T-10-21  CensusIT.T_10_21_attachmentRegistrationReplaysTheSame201ForTheSameIdempotencyKey ok
+  T-10-21  E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata ok
+  T-10-21  E6ContractIT.T_10_21_theStubsWriteNothing ok
+  T-10-21  E6ContractIT.T_10_21_undeclaredFiltersAndSortsAreInvalidBeforeTheStub ok
+  T-10-21  E6PersistenceIT.T_10_21_collectionsDeclareTheS10IndexesAndUniqueGuards ok
+  T-10-21  E6ResponseContractTest.T_10_21_eventsHaveExactlyTheS10PayloadFieldsAndEnvelope ok
+  T-10-21  E6ResponseContractTest.T_10_21_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-10-21  E6ResponseContractTest.T_10_21_notificationsCarryExactlyTheCatalogVariables ok
+  T-10-21  E6ResponseContractTest.T_10_21_theFiveS10FormsCarryTheirExampleFieldsAndModuleOffShapesDropTheirBlocks ok
+  T-10-21  ErrorCatalogContractTest.T_10_21_attendanceAndFollowupErrorsFollowTheLiteralCatalogStatusRule ok
+  T-10-21  FollowupContractAccessTest.T_10_21_followupAcceptsOnlyTheDeclaredFiltersAndSort ok
+  T-10-21  InstructorAggregatesIT.T_10_21_attendancesIsAUniversalListWithItsDeclaredFiltersOnly ok
+  T-10-22  AttendanceContractAccessTest.T_10_22_resourcesOfAnotherClubAreNotFoundAndHistoryDogsMustBeAccessible ok
+  T-10-22  AttendanceIT.T_10_22_aStoredAnswerIsNeverReplayedToAMemberOnlyOrAnImpersonationTokenOfTheSameAccount ok
+  T-10-22  AttendanceIT.T_10_22_rolesImpersonationAndGlobalVisionOnBothAttendanceVerbs ok
+  T-10-22  E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route) ok
+  T-10-22  E6ContractIT.T_10_22_impersonationIsAcceptedOnlyOnHistoryTaskListCompletionAndTheMemberAttachments ok
+  T-10-22  FollowupContractAccessTest.T_10_22_callerIsTheMemberTheImpersonatedMemberOrUnimpersonatedStaff ok
+  T-10-23  AttendanceIT.T_10_23_twoInstructorsSavingTheSameVersionGiveOne200AndOne409ThatReappliesItsOwnRow ok
+  T-10-24  AttendanceIT.T_10_24_haAvisatAndWaitingListClaimsOnTheSameClassNeverOverbook ok
+  T-10-25  FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21 ok
+  T-10-25  FollowupTransactionsTest.T_10_25_aConflictIsRetriedWholeAndOtherFailuresAreNot ok
+  T-10-25  FollowupTransactionsTest.T_10_25_insideAnotherTransactionTheWorkRunsOnceAsIs ok
+  T-10-26  E6ContractIT.T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand ok
+  T-10-26  JobCatalogContractTest.T_10_26_T_15_13_noShowNoticesIsTheDailyP3RowAtMessagingNoShowNoticeTime ok
+  T-10-26  NoShowNoticesJobIT.T_10_26_T_15_16_aBuenosAiresClubGetsItsBatchAtItsOwnEightOClockWithItsOwnClassDate ok
+  T-10-26  NoShowNotificationTextsTest.T_10_26_n19NamesTheClassDateInTheRecipientsLanguageNeverYesterday ok
+  T-10-33  AttendanceIT.T_10_33_dogsWithoutALevelHaveANullLevelCodeOnTheSheetTheWaitingListAndTheSave ok
+  T-10-33  E6ContractIT.T_10_33_disabledTasksAnswers404BeforeTheStubOnEveryTasksRouteAndPurpose ok
+  T-10-33  FollowupNotificationsTest.T_10_33_nothingIsQueuedWithTasksOffForADeletedTaskOrWithoutAMember ok
+  T-10-33  InstructorAggregatesIT.T_10_33_clubVariantsLevelsOffFifoSharedClassesAndTheMinimalClub ok

@@ -123,24 +123,23 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         } catch (IllegalArgumentException | NullPointerException invalid) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("field", "Idempotency-Key"));
         }
-        String hash = hash(request, body);
+        String hash = hash(request, body, authentication);
         var claim = records.claim(clubId, accountId, key, hash, clock.instant());
         var record = claim.record();
         if (!claim.acquired()) {
+            // CONVENCIONS_API §7 (E62): nothing of the stored record is answered here. The request goes on to its handler,
+            // whose interceptors and @PreAuthorize judge the current token; IdempotentReplayAspect then answers in its place.
+            IdempotentReplay replay;
             if (!record.requestHash().equals(hash)) {
-                throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "DIFFERENT_REQUEST"));
+                replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "DIFFERENT_REQUEST")));
+            } else if (record.status() == com.agilityhub.core.shared.persistence.IdempotencyRecord.Status.IN_PROGRESS) {
+                replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")));
+            } else {
+                replay = IdempotentReplay.stored(record.responseStatus(), record.responseHeaders(),
+                        anonymous ? capabilities.open(record.responseBody(), record.id()) : record.responseBody());
             }
-            if (record.status() == com.agilityhub.core.shared.persistence.IdempotencyRecord.Status.IN_PROGRESS) {
-                throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS"));
-            }
-            response.setStatus(record.responseStatus());
-            record.responseHeaders().forEach((name, values) -> {
-                if (!values.isEmpty()) {
-                    response.setHeader(name, values.getFirst());
-                    values.stream().skip(1).forEach(value -> response.addHeader(name, value));
-                }
-            });
-            response.getOutputStream().write(anonymous ? capabilities.open(record.responseBody(),record.id()) : record.responseBody());
+            replay.pending(request);
+            chain.doFilter(new BufferedRequest(request, body), response);
             return;
         }
         // S07 executes serialization inside its retryable use-case transaction. Other routes keep
@@ -227,11 +226,24 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         catch(IOException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
     }
 
-    private String hash(HttpServletRequest request, byte[] body) {
+    /**
+     * CONVENCIONS_API §7 (E62): the caller's roles and the impersonating actor are part of the request. Guards that a
+     * handler keeps in code (for example the attachments' purpose) cannot run before a replay, so a stored answer is only
+     * replayed to the same authorization context; any other one gets `IDEMPOTENCY_KEY_REUSED {reason: DIFFERENT_REQUEST}`
+     * once the route's own authorization has accepted it.
+     */
+    static String authorization(org.springframework.security.core.Authentication authentication) {
+        if (!(authentication instanceof JwtAuthenticationToken jwt)) { return ""; }
+        var roles = jwt.getAuthorities().stream().map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .filter(authority -> authority.startsWith("ROLE_")).sorted().toList();
+        return String.join(",", roles) + ";" + java.util.Objects.toString(jwt.getToken().getClaimAsString("actorAccountId"), "");
+    }
+
+    private String hash(HttpServletRequest request, byte[] body, org.springframework.security.core.Authentication authentication) {
         try {
             var digest = MessageDigest.getInstance("SHA-256");
             String target = request.getMethod() + "\n" + request.getRequestURI() + "\n"
-                    + request.getQueryString() + "\n" + request.getContentType() + "\n";
+                    + request.getQueryString() + "\n" + request.getContentType() + "\n" + authorization(authentication) + "\n";
             digest.update(target.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(digest.digest(body));
         } catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }

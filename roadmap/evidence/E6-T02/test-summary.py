@@ -4,9 +4,10 @@ import glob
 import re
 import xml.etree.ElementTree as ET
 
-CLASSES = ["AttendanceTransitionsTest", "NoticeRulesTest", "AttendanceMetricsTest", "HistoryRulesTest", "AttendanceWindowTest",
+CLASSES = ["AttendanceTransitionsTest", "AttendanceMetricsTest", "HistoryRulesTest", "AttendanceWindowTest",
            "ArchitectureTest", "AuditContractTest", "EventCatalogContractTest", "MessageParityTest", "OpenApiRequiredContractTest",
-           "E6ResponseContractTest", "AttendanceIT", "InstructorAggregatesIT", "E6ContractIT", "ListFieldsContractIT", "OpenApiSnapshotTest",
+           "E6ResponseContractTest", "ApiExceptionHandlerTest", "AttendanceIT", "InstructorAggregatesIT", "E6ContractIT", "ListFieldsContractIT",
+           "OpenApiSnapshotTest", "IdempotentReplayContractIT", "IdempotencyIT", "FollowupIT", "MemberFlowContractIT", "SignupIT",
            "BookingsIT", "WaitlistIT", "BookingConcurrencyIT", "CalendarIT", "TrainingIT", "ActivityIT"]
 methods = {}
 for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TEST-*.xml"), ("integration (failsafe)", "target/failsafe-reports/TEST-*.xml")]:
@@ -22,7 +23,7 @@ for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TES
         if name in CLASSES:
             print("  %-32s tests=%-3d failures=%d errors=%d skipped=%d" % (name, *values))
         for case in suite.iter("testcase"):
-            match = re.match(r"(T_10_\d\d|R_08_10)", case.get("name"))
+            match = re.match(r"(T_10_\d\d|R_08_10|E62)", case.get("name"))
             if match:
                 ok = case.find("failure") is None and case.find("error") is None and case.find("skipped") is None
                 methods.setdefault(match.group(1).replace("_", "-"), []).append("%s.%s %s" % (name, re.sub(r"\[.*", "", case.get("name")), "ok" if ok else "FAILED"))

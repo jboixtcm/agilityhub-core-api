@@ -1,0 +1,12 @@
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:16:02.0086736Z [INFO] Tests run: 687, Failures: 0, Errors: 0, Skipped: 0
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:52.3326773Z [INFO] Tests run: 1104, Failures: 0, Errors: 0, Skipped: 0
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1251742Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.ports: lines covered ratio is 0.79, but expected minimum is 0.85
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1253005Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.ports: branches covered ratio is 0.65, but expected minimum is 0.80
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1254354Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.integrations: lines covered ratio is 0.13, but expected minimum is 0.85
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1255728Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.integrations: branches covered ratio is 0.13, but expected minimum is 0.80
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1256975Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.engine: lines covered ratio is 0.80, but expected minimum is 0.85
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1258134Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application.engine: branches covered ratio is 0.58, but expected minimum is 0.80
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1268455Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application: lines covered ratio is 0.82, but expected minimum is 0.85
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1275616Z [WARNING] Rule violated for package com.agilityhub.core.clubs.messaging.application: branches covered ratio is 0.60, but expected minimum is 0.80
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1276841Z [INFO] BUILD FAILURE
+Build and tests	Build, test, and enforce coverage	2026-09-27T17:24:54.1279834Z [ERROR] Failed to execute goal org.jacoco:jacoco-maven-plugin:0.8.14:check (coverage) on project agilityhub-core-api: Coverage checks have not been met. See log for details. -> [Help 1]

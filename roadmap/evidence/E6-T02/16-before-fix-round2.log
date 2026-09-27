@@ -1,0 +1,31 @@
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/api/ApiExceptionHandler.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/application/SharedConfiguration.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/bookings/application/AttendanceSheetQuery.java
+removed in the copy: src/main/java/com/agilityhub/core/shared/api/IdempotentReplay.java
+removed in the copy: src/main/java/com/agilityhub/core/shared/api/IdempotentReplayAspect.java
+$ (cd target/before-fix-r2 && ./mvnw -q verify -Dtest=NONE -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=AttendanceIT#T_10_22_aStoredAnswer*+T_10_33_dogsWithoutALevel*,IdempotentReplayContractIT -Djacoco.skip=true)
+exit 1
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 7.218 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.AttendanceIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.T_10_22_aStoredAnswerIsNeverReplayedToAMemberOnlyOrAnImpersonationTokenOfTheSameAccount -- Time elapsed: 1.024 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: 403
+ but was: 200
+[ERROR] com.agilityhub.core.clubs.bookings.api.AttendanceIT.T_10_33_dogsWithoutALevelHaveANullLevelCodeOnTheSheetTheWaitingListAndTheSave -- Time elapsed: 0.267 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: 200
+ but was: 500
+E62 handler methods behind the replay aspect: 298, missing 298
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.921 s <<< FAILURE! -- in com.agilityhub.core.shared.api.IdempotentReplayContractIT
+[ERROR] com.agilityhub.core.shared.api.IdempotentReplayContractIT.E62_everyHandlerMethodOfTheApiAnswersAReplayOnlyInsideItsOwnAuthorization -- Time elapsed: 0.014 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting empty but was: ["com.agilityhub.core.clubs.messaging.api.NotificationPreferencesController#saveMyNotificationPreferences(NotificationPreferencesRequest) (replay -1, method security -1)",
+[ERROR]   AttendanceIT.T_10_22_aStoredAnswerIsNeverReplayedToAMemberOnlyOrAnImpersonationTokenOfTheSameAccount:293->BookingFixtures.call:136 [PUT /class-sessions/s08-wed/attendance {"classSession":{"id":"s08-wed","date":"2026-10-07","startTime":"18:50","endTime":"19:50","displayDescription":"Classe wed","ring":{"id":"s08-ring","name":"Central","color":"#8FCE8F"},"instructorName":"Estela","state":"
+expected: 403
+ but was: 200
+[ERROR]   AttendanceIT.T_10_33_dogsWithoutALevelHaveANullLevelCodeOnTheSheetTheWaitingListAndTheSave:263->sheet:54->BookingFixtures.call:129->BookingFixtures.call:136 [GET /class-sessions/s08-last/attendance {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi 96687cda-eaf6-4356-ad61-9de11372b875 al club.","details":{},"traceId":"966
+expected: 200
+ but was: 500
+[ERROR]   IdempotentReplayContractIT.E62_everyHandlerMethodOfTheApiAnswersAReplayOnlyInsideItsOwnAuthorization:47
+Expecting empty but was: ["com.agilityhub.core.clubs.messaging.api.NotificationPreferencesController#saveMyNotificationPreferences(NotificationPreferencesRequest) (replay -1, method security -1)",
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0

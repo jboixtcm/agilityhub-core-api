@@ -1,0 +1,40 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  376 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+Target class d5ec9b0e… 2026-10-06 17:40 (Madrid) capacity 4, booked 4, waiting 3
+PASS POST /test/clock: 200 · four hours (and 5 minutes) before the class: in time (Tue 06-10 11:35 Europe/Madrid; server now 2026-10-06T11:35Z)
+curl GET /api/v1/class-sessions/<id>/attendance -> 200
+  sheet: version 0, canMarkPresence True, canMarkNotice True, editableUntil 2026-10-07T21:59:59Z; classSession booked 4/4, waiting 3; 4 rows; waitlist mode ALL_AT_ONCE with 3 entries
+curl PUT /api/v1/class-sessions/<id>/attendance -> 200
+  PUT applied ['617a51db…', '33a1669b…']; version 0 → 1; notice {"atLocal": "13:35", "at": "2026-10-06T11:35:00.929Z", "late": false, "minutesBefore": 244, "seatReleased": true, "waitlistNotified": true, "afterClassEnd": false, "bookingState": "CANCELLED"}
+curl GET /api/v1/class-sessions/<id>/attendance -> 200
+  released seat: classSession booked 4 → 3 of 4; booking 33a1669b… is CANCELLED
+  outbox rows after the save (dispatched by the scheduler):
+    {"type": "AttendanceMarked", "status": "PUBLISHED", "payload": {"bookingId": "617a51db…", "classSessionId": "d5ec9b0e…", "dogId": "a0fe66a5…", "memberId": "a03d430d…", "state": "PRESENT", "previousState": "PENDING", "by": {"accountId": "93a8f180…", "role": "INSTRUCTOR"}}}
+    {"type": "AttendanceMarked", "status": "PUBLISHED", "payload": {"bookingId": "33a1669b…", "classSessionId": "d5ec9b0e…", "dogId": "4f94468a…", "memberId": "88c7fcbc…", "state": "NOTIFIED", "previousState": "PENDING", "by": {"accountId": "93a8f180…", "role": "INSTRUCTOR"}, "late": false, "afterClassEnd": false}}
+    {"type": "BookingCancelled", "status": "PUBLISHED", "payload": {"bookingId": "33a1669b…", "by": "INSTRUCTOR", "late": false, "minutesBefore": 244, "origin": "INSTRUCTOR", "reason": "INSTRUCTOR_NOTICE"}}
+    {"type": "SeatReleased", "status": "PUBLISHED", "payload": {"classId": "d5ec9b0e…", "freeSeats": 1, "minutesBefore": 244, "notifyWaitlist": true}}
+    {"type": "WaitlistNotified", "status": "PUBLISHED", "payload": {"entryIds": ["bbabdabd…", "ed576fb6…", "7a2cfcb9…"], "classId": "d5ec9b0e…", "mode": "ALL_AT_ONCE"}}
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: N-05 missing

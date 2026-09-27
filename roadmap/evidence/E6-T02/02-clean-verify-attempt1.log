@@ -786,12 +786,12 @@ Anonymized Playoff files written; no input values or key logged.
 19:53:21.759 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 19:53:22.216 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 19:53:22.218 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-19:53:22.242 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+19:53:22.242 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.7.2
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 19:53:22.557 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 19:53:22.673 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -937,8 +937,8 @@ OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader clas
 E5-T07 outbox backlog discarded before ListFieldsContractIT: 728 PENDING records (more than one dispatch() batch)
 [ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 28.19 s <<< FAILURE! -- in com.agilityhub.core.configuration.ListFieldsContractIT
 [ERROR] com.agilityhub.core.configuration.ListFieldsContractIT.CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly -- Time elapsed: 22.74 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-[/api/v1/attendances] 
+org.opentest4j.AssertionFailedError:
+[/api/v1/attendances]
 expected: 501
  but was: 200
 	at com.agilityhub.core.configuration.ListFieldsContractIT.CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly(ListFieldsContractIT.java:150)
@@ -6003,19 +6003,19 @@ E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 158 PENDING records (more than one dispatch() batch)
 E5-T07 outbox backlog discarded before PlayoffMigrationIT: 159 PENDING records (more than one dispatch() batch)
-[ERROR] Failures: 
-[ERROR]   ListFieldsContractIT.CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly:150 [/api/v1/attendances] 
+[ERROR] Failures:
+[ERROR]   ListFieldsContractIT.CONVENCIONS_API_4_withFieldsEveryUniversalListSendsTheRowIdAndTheRequestedKeysOnly:150 [/api/v1/attendances]
 expected: 501
  but was: 200
 [ERROR] Tests run: 1056, Failures: 1, Errors: 0, Skipped: 0
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
-[ERROR] 
+[ERROR]
 [ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
 [ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
 [ERROR] -> [Help 1]
-[ERROR] 
+[ERROR]
 [ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
 [ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
+[ERROR]
 [ERROR] For more information about the errors and possible solutions, please read the following articles:
 [ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

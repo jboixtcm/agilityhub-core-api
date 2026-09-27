@@ -1,4 +1,5 @@
-"""Truncate tokens, hashes and Mongo cluster ids in the E6-T02 evidence logs (AGENTS.md rule 6), as E6-T01's helper did."""
+"""Truncate tokens, hashes and Mongo cluster ids in the E6-T02 evidence logs (AGENTS.md rule 6), as E6-T01's helper did.
+Round 2 (review #5): also strip the trailing whitespace of every line, so `git diff --check` is clean on the logs."""
 import glob
 import re
 
@@ -12,5 +13,7 @@ for path in sorted(glob.glob("roadmap/evidence/E6-T02/*.log")):
     text = open(path, encoding="utf-8").read()
     for pattern, replacement in RULES:
         text = pattern.sub(replacement, text)
+    text = re.sub(r"[ \t\r]+$", "", text, flags=re.MULTILINE)
+    text = text.rstrip("\n") + "\n" if text.strip() else text
     open(path, "w", encoding="utf-8").write(text)
     print(path, "sanitized")

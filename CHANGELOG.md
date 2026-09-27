@@ -637,6 +637,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E6-T02 round 2: the review's two majors and two minors.
+  - CONVENCIONS_API §7 (ruling E62): a repeated `Idempotency-Key` is never answered before the route's own authorization.
+    `IdempotencyFilter` leaves the answer on the request (the stored response, or `IDEMPOTENCY_KEY_REUSED`) and
+    `IdempotentReplayAspect` gives it in place of the handler method, after the MVC interceptors (impersonation, modules)
+    and `@PreAuthorize`. Every keyed route is covered, POSTs included; `IdempotentReplayContractIT` fails if a handler
+    method of the api is outside the aspect. The caller's roles and impersonating actor are part of the request hash, so a
+    stored answer is never replayed to another authorization context (`409 IDEMPOTENCY_KEY_REUSED {DIFFERENT_REQUEST}`).
+  - R-10-16: the attendance sheet and its waiting list no longer fail on a dog without a level with `levels.enabled = false`
+    (`levelCode: null`).
+  - T-10-03 runs R-10-05's six rows at 240 min through the real `PUT` and S08's cancellation; the parallel `NoticeRules`
+    and its unit test are removed. T-10-11 saves at 14:00 (290 min), as the amended spec says.
 - E5-T16: follow-ups of the E3-T16 round-2 review (contract nulls, the tax id, test names, one nullable helper).
   - INC-08: `GET /club` declares every `null` it sends (`ClubSettings` and the records it reaches, `Theme` and
     `LastChange.actorName` included); D1's null blocks (`Dashboard`, `DashboardKpis`) and the training booking's

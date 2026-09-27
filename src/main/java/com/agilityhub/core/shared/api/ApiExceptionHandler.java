@@ -77,6 +77,12 @@ public class ApiExceptionHandler {
         return response.body(body(exception, request));
     }
 
+    /** CONVENCIONS_API §7 (E62): the stored response of a repeated `Idempotency-Key`, once the route's authorization accepted the token. */
+    @ExceptionHandler(IdempotentReplay.class)
+    public void replay(IdempotentReplay replay, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        replay.writeTo(response);
+    }
+
     @ExceptionHandler(UnsupportedOperationException.class)
     public ResponseEntity<ApiError> notImplemented(HttpServletRequest request) {
         return handle(new ApiException(ErrorCode.NOT_IMPLEMENTED), request);

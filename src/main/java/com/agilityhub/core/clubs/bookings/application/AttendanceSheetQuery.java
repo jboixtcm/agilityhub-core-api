@@ -76,7 +76,7 @@ public class AttendanceSheetQuery {
             if (pair != null && pair.handlerName() != null && !pair.handlerName().isBlank() && !pair.handlerName().equals(pair.memberFirstName())) {
                 row.put("memberFullName", pair.memberFullName()); // R-10-00: «(abonat: {nom i cognom})» when someone else handles the dog
             }
-            row.put("levelCode", pair == null ? null : levels.get(pair.levelId()));
+            row.put("levelCode", levelCode(levels, pair));
             row.put("state", r.state()); row.put("final", r.state() == AttendanceState.NOTIFIED);
             row.put("markedAt", a == null ? null : a.markedAt()); row.put("markedByName", a == null || a.markedBy() == null ? null : a.markedBy().displayName());
             if (tasks) { row.put("pendingTasksCount", pending.getOrDefault(b.dogId(), 0)); }
@@ -92,6 +92,10 @@ public class AttendanceSheetQuery {
         if (!context.flag("levels.enabled")) { return Map.of(); } // R-10-16: no level chip anywhere
         var codes = new HashMap<String, String>(); catalogs.levelRefs().forEach((id, level) -> codes.put(id, level.code()));
         return codes;
+    }
+    /** A dog without a level (valid with or without `levels.enabled`, MODEL_DADES_PLATAFORMA §3) has no chip: `null`. */
+    private static String levelCode(Map<String, String> levels, AttendanceCensusAccess.Pair pair) {
+        return pair == null || pair.levelId() == null ? null : levels.get(pair.levelId());
     }
     private static Map<String, Object> notice(Attendance.Notice n, ZoneId zone) {
         return map("atLocal", n.at().atZone(zone).toLocalTime().withSecond(0).withNano(0).toString(), "at", n.at(), "late", n.late(), "minutesBefore", n.minutesBefore(),
@@ -121,7 +125,7 @@ public class AttendanceSheetQuery {
                 "entries", entries.stream().map(e -> {
                     var pair = pairs.get(e.dogId());
                     return map("entryId", e.id(), "dogName", pair == null ? null : pair.dogName(), "memberFirstName", pair == null ? null : pair.memberFirstName(),
-                            "handlerName", pair == null ? null : pair.handlerName(), "levelCode", pair == null ? null : levels.get(pair.levelId()),
+                            "handlerName", pair == null ? null : pair.handlerName(), "levelCode", levelCode(levels, pair),
                             "joinedAt", e.joinedAt(), "state", e.state());
                 }).toList());
     }

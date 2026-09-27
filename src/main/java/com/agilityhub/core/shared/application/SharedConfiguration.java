@@ -2,6 +2,7 @@ package com.agilityhub.core.shared.application;
 
 import com.agilityhub.core.shared.api.ApiExceptionHandler;
 import com.agilityhub.core.shared.api.IdempotencyFilter;
+import com.agilityhub.core.shared.api.IdempotentReplayAspect;
 import com.agilityhub.core.shared.persistence.IdempotencyRepository;
 import com.agilityhub.core.shared.persistence.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,9 @@ public class SharedConfiguration {
                                              Clock clock, ApiExceptionHandler errors, ObjectMapper mapper) {
         return new IdempotencyFilter(records, new TransactionTemplate(transactions), clock, errors, mapper);
     }
+
+    /** CONVENCIONS_API §7 (E62): the replay answers only once the handler's own authorization accepted the token. */
+    @Bean IdempotentReplayAspect idempotentReplayAspect() { return new IdempotentReplayAspect(); }
 
     @Bean OutboxDispatcher outboxDispatcher(OutboxRepository records, Map<String, DomainEventHandler<?>> handlers,
                                             MongoTransactionManager transactions, ObjectMapper mapper,
