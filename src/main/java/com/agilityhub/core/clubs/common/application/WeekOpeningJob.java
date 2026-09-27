@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * single item): invalidate the club's configuration and grid caches ({@link ClubGridCaches}), warm the bookable-classes base cache (S08
  * {@link BookableClassesCache}), `targetWeek.openedAt = opensAt`, `WeekOpened` and, with FREE_TRAINING,
  * `TrainingCounterReset` (S09 invalidates its grid cache). N-33 goes out now when `messaging.notifyWeekOpening` and the
- * target week has an ACTIVE class; otherwise it is deferred to the `WeekValidated` consumer ({@link WeekOpeningNotifications}).
+ * target week has an ACTIVE class; otherwise it is deferred to the `WeekValidated` consumer ({@link CommonNotificationFacts}, `notifications.N-33.deferred`).
  */
 @Component
 public class WeekOpeningJob implements Job {

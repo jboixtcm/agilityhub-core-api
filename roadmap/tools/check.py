@@ -99,9 +99,15 @@ def section(body, title):
     return m.group(1) if m else ""
 
 
+def stage_key(stage):
+    """Numeric stage order: E2 < E10 (a string sort put E10 between E1 and E2 — organizer 26-09)."""
+    m = re.search(r"(\d+)", stage or "")
+    return (int(m.group(1)) if m else 0, stage)
+
+
 def validate(tasks):
     errors, warnings = [], []
-    for tid, t in sorted(tasks.items(), key=lambda kv: (kv[1]["stage"], kv[1]["order"])):
+    for tid, t in sorted(tasks.items(), key=lambda kv: (stage_key(kv[1]["stage"]), kv[1]["order"])):
         st = t["status"]
         deps = t["depends_on"]
         for d in deps:
@@ -138,7 +144,7 @@ def validate(tasks):
 
 
 def next_for_executor(tasks):
-    ordered = sorted(tasks.values(), key=lambda t: (t["stage"], t["order"]))
+    ordered = sorted(tasks.values(), key=lambda t: (stage_key(t["stage"]), t["order"]))
     for t in ordered:
         if t["status"] == "changes_requested":
             return t
@@ -171,7 +177,7 @@ def render(tasks, errors, warnings):
         out.write("**Validation errors** (fix before committing):\n\n" + "".join(f"- {e}\n" for e in errors) + "\n")
     if warnings:
         out.write("**Warnings**:\n\n" + "".join(f"- {w}\n" for w in warnings) + "\n")
-    stages = sorted({t["stage"] for t in tasks.values()})
+    stages = sorted({t["stage"] for t in tasks.values()}, key=stage_key)
     for s in stages:
         out.write(f"## {s}\n\n| ID | Title | Thread | Status | Depends on | Branch / PR | Updated | Next action |\n|---|---|---|---|---|---|---|---|\n")
         for t in sorted([t for t in tasks.values() if t["stage"] == s], key=lambda t: t["order"]):

@@ -26,6 +26,13 @@ public class ClubEmailSettings {
                 verified ? address : platformAddress, config.get("messaging.email.fromName", String.class), reply,
                 club.defaultLocale(), config.get("auth.magicLinkMinutes", Integer.class));
     }
+    /** `https://{host}` of the club's verified member app domain (the links of a notification e-mail), or empty. */
+    public java.util.Optional<String> appOrigin(String clubId) {
+        return clubs.findById(clubId).flatMap(club -> club.domains().stream()
+                .filter(candidate -> "clubs".equals(candidate.app()) && candidate.status() == Club.DomainStatus.VERIFIED)
+                .sorted(java.util.Comparator.comparing(Club.Domain::primary).reversed().thenComparing(Club.Domain::host))
+                .findFirst().map(candidate -> "https://" + candidate.host()));
+    }
     private String domain(String address) {
         if (address == null || !address.contains("@")) { return ""; }
         return address.substring(address.lastIndexOf('@') + 1).toLowerCase(Locale.ROOT);

@@ -94,7 +94,7 @@ class BookingsIT extends BookingFixtures {
         assertThat(eventsOf("BookingCreated").getFirst().get("payload", Document.class)).containsEntry("origin", "APP").containsEntry("classId", "s08-wed")
                 .containsKey("packMovementId").doesNotContainKey("swapFromBookingId");
         dispatch();
-        var n04 = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-04")), Document.class, "notifications");
+        var n04 = com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-04"));
         assertThat(n04).extracting(n -> n.getString("channel") + ":" + n.getString("accountId")).containsExactly("APP:s08-laura");
         // .ics: signed token, text/calendar, class data and the dog name only; wrong or expired token → 404.
         String path = ics.substring(ics.indexOf("/api/v1"));
@@ -331,7 +331,7 @@ class BookingsIT extends BookingFixtures {
         assertThat(line(failingId)).containsEntry("status", "CANCELLED");
         assertThat(eventsOf("UpfrontPaymentFailed")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("bookingId", failingId));
         assertThat(eventsOf("SeatReleased")).hasSize(1); assertThat(session("wed").get("counters", Document.class)).containsEntry("booked", 1);
-        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-40")), Document.class, "notifications"))
+        assertThat(com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-40")))
                 .extracting(n -> n.getString("channel")).containsExactlyInAnyOrder("APP", "EMAIL");
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-plan")), new Update().set("singleClass.chargeMode", "CHARGE_ON_ATTENDANCE"), "plans");
         var attendance = book(as("laura"), "thu", "s08-d-duna");
@@ -393,9 +393,9 @@ class BookingsIT extends BookingFixtures {
         assertThat(count("audit_entries", Criteria.where("action").is("BOOKING_CANCELLED_LATE"))).isEqualTo(1);
         assertThat(eventsOf("BookingCancelled").getFirst().get("payload", Document.class)).containsEntry("origin", "BACKOFFICE").containsEntry("by", "ADMIN");
         dispatch();
-        var n36 = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-36")), Document.class, "notifications");
+        var n36 = com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-36"));
         assertThat(n36).extracting(n -> n.getString("channel") + ":" + n.getString("status")).containsExactlyInAnyOrder(
-                "APP:SENT", "EMAIL:SENT", "SMS:QUEUED", "APP:SENT", "EMAIL:SENT", "SMS:QUEUED");
+                "APP:DELIVERED", "EMAIL:SENT", "SMS:SENT", "APP:DELIVERED", "EMAIL:SENT", "SMS:SENT");
         assertThat(count("notifications", Criteria.where("code").in("N-04", "N-05"))).isZero();
         call(GET, "/bookings", null, impersonating("admin", "s08-m-laura"), 403);
         // SMS off: the intent is recorded as SKIPPED_MODULE_OFF.
@@ -417,7 +417,7 @@ class BookingsIT extends BookingFixtures {
         }
         assertThat(eventsOf("BookingCancelled")).extracting(e -> e.get("payload", Document.class).getString("origin")).containsOnly("INSTRUCTOR");
         dispatch();
-        var n05 = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-05")), Document.class, "notifications");
+        var n05 = com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-05"));
         assertThat(n05).extracting(n -> n.getString("channel")).containsExactly("APP", "APP");
         assertThat(count("notifications", Criteria.where("channel").is("SMS"))).isZero();
         assertThat(n05).extracting(n -> n.get("variables", Document.class).getBoolean("late")).containsExactlyInAnyOrder(false, true);

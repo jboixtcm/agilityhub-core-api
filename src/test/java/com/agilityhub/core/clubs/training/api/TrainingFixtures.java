@@ -205,7 +205,11 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
         for (var day : grid.path("days")) for (var slot : day.path("slots")) { if (slot.path("startsAt").asText().equals(local(localStart).toString())) { return slot; } }
         throw new AssertionError("no slot " + localStart);
     }
-    long count(String collection, Criteria criteria) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection); }
+    long count(String collection, Criteria criteria) {
+        // E7-T02: the S11 notifications are counted as the E1–E6 rows, one per delivery.
+        if ("notifications".equals(collection)) { return com.agilityhub.core.support.NotificationRows.count(mongo, new Criteria().andOperator(Criteria.where("clubId").is(CLUB), criteria)); }
+        return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection);
+    }
     List<Document> eventsOf(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }
     Document training(String id) { return mongo.findById(id, Document.class, "training_bookings"); }
     void dispatch() { for (int i = 0; i < 6; i++) { dispatcher.dispatch(); } }
@@ -214,6 +218,6 @@ abstract class TrainingFixtures extends AbstractIntegrationTest {
     }
     String code(JsonNode error) { return error.path("code").asText(); }
     List<Document> notifications(String code) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code)), Document.class, "notifications");
+        return com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is(code));
     }
 }

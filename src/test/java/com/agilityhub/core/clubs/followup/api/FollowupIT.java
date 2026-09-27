@@ -137,7 +137,8 @@ class FollowupIT extends AbstractIntegrationTest {
     long count(String collection, Criteria criteria) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection); }
     List<Document> eventsOf(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }
     List<Document> notifications(String code) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code)).with(org.springframework.data.domain.Sort.by("accountId", "channel")), Document.class, "notifications");
+        return com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is(code)).stream()
+                .sorted(java.util.Comparator.comparing((Document n) -> String.valueOf(n.getString("accountId"))).thenComparing(n -> n.getString("channel"))).toList();
     }
     Document task(String id) { return mongo.findById(id, Document.class, "tasks"); }
     Document row(String taskId) { return mongo.findById(com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.taskRowId(taskId), Document.class, "followup_items"); }

@@ -331,6 +331,28 @@ export signatures over restarts; otherwise it is ephemeral. Attachment signature
 are always ephemeral, so obtain fresh links after a restart. Retain these volumes
 when recreating containers; removing volumes deletes their stored files.
 
+## Notifications: SMS, web push and unsubscribe links (E7-T02)
+
+The S11 engine sends every notice through three providers, selected like the
+e-mail sender (decision E13): `staging`/`prod` refuse to start without their
+credentials, `test` uses in-memory doubles, `local` without credentials logs each
+SMS (never the number or the text) and keeps pushes in memory. All values come
+from the environment ([.env.example](../.env.example)); none is ever logged.
+
+| Variable | Use |
+|---|---|
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio Messages API (HTTP basic). Required in staging/prod. |
+| `TWILIO_MESSAGING_SERVICE_SID` | Optional: send through a Messaging Service instead of the club's `messaging.sms.senderId`. |
+| `SMS_ALLOWED_NUMBERS` | Outside `prod` only: comma-separated E.164 numbers that may receive a real SMS. Any other is recorded as `SKIPPED_NOT_ALLOWED`; empty = nobody. The demo seeds use real-format Spanish mobile numbers, so keep it to the testers' phones on staging. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | The product's P-256 key pair, base64url (uncompressed public point, 32-byte private scalar). The public key is published on `GET /branding` as `pushPublicKey`. Required in staging/prod. Generate once, e.g. `npx web-push generate-vapid-keys`; rotating it invalidates every browser subscription. |
+| `VAPID_SUBJECT` | `mailto:` or `https:` contact sent to the push services. |
+| `EMAIL_UNSUBSCRIBE_KEY` | HMAC key (base64, 32 bytes) of the signed 30-day «Deixar de rebre aquests comunicats» links of `CLUB_NEWS` mails (`List-Unsubscribe`). Required in staging/prod. |
+
+The dispatcher sends right after each notice is stored and polls every 5 s for
+retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS state
+(no Twilio delivery callback at R1). The real Twilio and VAPID sends are verified
+on staging once the accounts exist.
+
 ## E3 signup and dashboard gate (backend)
 
 Run from the API checkout with Docker, Compose, Python 3 and curl:

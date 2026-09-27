@@ -22,7 +22,12 @@ import org.springframework.web.context.request.WebRequest;
 public class BrandingController {
     private final ClubConfigService configs;
     private final ObjectMapper mapper;
-    public BrandingController(ClubConfigService configs, ObjectMapper mapper) { this.configs = configs; this.mapper = mapper; }
+    private final String pushPublicKey;
+    /** @param pushPublicKey `VAPID_PUBLIC_KEY` (S11 R-11-07): the product's web-push key, public by design; blank without one */
+    public BrandingController(ClubConfigService configs, ObjectMapper mapper,
+            @org.springframework.beans.factory.annotation.Value("${notifications.push.vapid-public-key:}") String pushPublicKey) {
+        this.configs = configs; this.mapper = mapper; this.pushPublicKey = pushPublicKey == null || pushPublicKey.isBlank() ? null : pushPublicKey.strip();
+    }
     @GetMapping("/api/v1/branding")
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK", useReturnTypeSchema = true),
@@ -30,7 +35,7 @@ public class BrandingController {
                 content = @io.swagger.v3.oas.annotations.media.Content)
     })
     public ResponseEntity<BrandingResponse> branding(WebRequest request) throws JsonProcessingException {
-        return response(BrandingResponse.from(configs.get(TenantContext.require())), request);
+        return response(BrandingResponse.from(configs.get(TenantContext.require()), pushPublicKey), request);
     }
     @GetMapping(value = "/api/v1/manifest.webmanifest", produces = "application/manifest+json")
     @io.swagger.v3.oas.annotations.responses.ApiResponses({

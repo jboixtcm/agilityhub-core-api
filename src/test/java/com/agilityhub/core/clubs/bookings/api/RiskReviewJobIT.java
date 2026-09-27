@@ -40,7 +40,7 @@ class RiskReviewJobIT extends BookingFixtures {
         return runner.scheduled(CLUB, true, job, at).orElseThrow();
     }
     private List<Document> notifications(String code) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code)), Document.class, "notifications");
+        return com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is(code));
     }
     private Map<String, Long> counters(JobRun run) {
         var map = new TreeMap<String, Long>(); run.counters().forEach(e -> map.put(e.key(), ((Number) e.value()).longValue())); return map;
@@ -111,7 +111,7 @@ class RiskReviewJobIT extends BookingFixtures {
         assertThat(notifications("N-16")).extracting(n -> n.getString("accountId") + ":" + n.getString("channel"))
                 .containsExactlyInAnyOrder("s08-pere:APP", "s08-pere:EMAIL", "s08-admin:APP", "s08-admin:APP");
         var pere = notifications("N-16").stream().filter(n -> n.getString("accountId").equals("s08-pere") && n.getString("channel").equals("APP")).findFirst().orElseThrow();
-        assertThat(pere.get("variables", Document.class)).containsEntry("dog_name", "Nit").containsEntry("review_time", "07:30").containsEntry("auto_cancel", "true")
+        assertThat(pere.get("variables", Document.class)).containsEntry("dog_name", "Nit").containsEntry("review_time", "7:30").containsEntry("auto_cancel", "true")
                 .containsEntry("class_time", "20:00").containsEntry("audience", "MEMBER");
         assertThat(pere.get("variables", Document.class).getString("review_day")).isEqualTo("dijous");
         // The admins' copy uses the staff wording: no dog phrase (RiskNotificationTextsTest renders both texts in ca/es/en).

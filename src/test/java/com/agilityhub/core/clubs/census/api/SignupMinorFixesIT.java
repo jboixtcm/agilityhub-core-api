@@ -79,7 +79,11 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
     JsonNode submit(Object body) throws Exception { return submit(body,201); }
     Document member(String id) {return mongo.getCollection("members").find(new Document("_id",id).append("clubId",club)).first();}
     Document dogDocument(String id) {return mongo.getCollection("dogs").find(new Document("_id",id).append("clubId",club)).first();}
-    List<Document> collection(String name) {return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());}
+    /** E7-T02: `notifications` reads as the E1–E6 rows, one per delivery (`NotificationRows`). */
+    List<Document> collection(String name) {
+        if("notifications".equals(name)) return com.agilityhub.core.support.NotificationRows.rows(mongo,club,(org.springframework.data.mongodb.core.query.Criteria)null);
+        return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());
+    }
     List<Document> rows(String memberId) {return mongo.getCollection("upfront_payments").find(new Document("clubId",club).append("memberId",memberId)).into(new ArrayList<>());}
     List<Document> events(String type) { return collection("domain_events").stream().filter(e -> type.equals(e.getString("type"))).toList(); }
     String pendingDog(String id) {return collection("dogs").stream().filter(d->id.equals(d.getString("memberId"))&&"PENDING".equals(d.getString("status"))).findFirst().orElseThrow().getString("_id");}

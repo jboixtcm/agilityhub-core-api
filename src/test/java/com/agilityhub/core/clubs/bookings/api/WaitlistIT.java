@@ -20,13 +20,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 /** S08 WP-08-C over real Mongo: join, limits, leave, both offer modes, claim, demotion, N-15/N-46, silent cancellations, roles. */
 class WaitlistIT extends BookingFixtures {
-    @Autowired WaitlistService waitlist; @Autowired WaitlistNotifications waitlistNotifications;
+    @Autowired WaitlistService waitlist; @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationEngine engine;
+    @Autowired org.springframework.transaction.PlatformTransactionManager notificationTransactions;
     @Autowired com.agilityhub.core.clubs.bookings.persistence.WaitlistEntryRepository waitlistEntries;
 
     static String id(JsonNode node) { return node.path("id").asText(); }
-    long notifications(String code, String channel) { return count("notifications", Criteria.where("code").is(code).and("channel").is(channel)); }
+    long notifications(String code, String channel) { return notificationsOf(code, channel).size(); }
     List<Document> notificationsOf(String code, String channel) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code).and("channel").is(channel)), Document.class, "notifications");
+        return com.agilityhub.core.support.NotificationRows.live(mongo, CLUB, code, channel);
     }
     Document latest(String type) {
         return eventsOf(type).stream().max(Comparator.comparing((Document e) -> e.getDate("occurredAt")).thenComparing(e -> e.getString("_id"))).orElseThrow();
@@ -136,12 +137,14 @@ class WaitlistIT extends BookingFixtures {
         assertThat(notificationsOf("N-15", "APP")).allSatisfy(n -> assertThat(n.get("variables", Document.class)).containsEntry("action", "CLAIM_SEAT")
                 .containsEntry("mode", "ALL_AT_ONCE").containsKeys("dog_name", "class_date", "class_time", "entityId").doesNotContainKey("confirm_by"));
         assertThat(notificationsOf("N-15", "SMS")).hasSize(3).allSatisfy(n -> {
-            assertThat(n.getString("status")).isEqualTo("QUEUED"); assertThat(n.getString("body")).hasSizeLessThanOrEqualTo(160).matches("[\\x20-\\x7E\\r\\n]*");
+            assertThat(n.getString("status")).isEqualTo("SENT"); assertThat(n.getString("body")).hasSizeLessThanOrEqualTo(160).matches(com.agilityhub.core.support.NotificationRows::gsm7);
         });
-        assertThat(notificationsOf("N-15", "PUSH")).hasSize(3).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("QUEUED"));
+        // PUSH (R-11-03): one delivery per ACTIVE subscription; the fixture members subscribed none.
+        assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-15").stream().filter(n -> "PUSH".equals(n.getString("channel"))))
+                .hasSize(3).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("SKIPPED_NO_CONTACT"));
         // Redelivery: the consumer and the notification find nothing new.
         try (var t = TenantContext.open(CLUB)) { assertThat(waitlist.offerSeats("s08-last", 1)).isZero(); }
-        waitlistNotifications.offered(notified.getFirst().getString("_id"), new BookingEvent(BookingEvent.Kind.WaitlistNotified, CLUB, "s08-last", NOW,
+        com.agilityhub.core.support.NotificationRows.deliver(engine, notificationTransactions, notified.getFirst().getString("_id"), new BookingEvent(BookingEvent.Kind.WaitlistNotified, CLUB, "s08-last", NOW,
                 Map.of("entryIds", List.of(duna, toby, c0), "classId", "s08-last", "mode", "ALL_AT_ONCE"), null, null, DomainEvent.Origin.SYSTEM));
         dispatch();
         assertThat(events("WaitlistNotified")).isEqualTo(1); assertThat(notifications("N-15", "APP")).isEqualTo(3); assertThat(notifications("N-15", "SMS")).isEqualTo(3);
@@ -161,7 +164,7 @@ class WaitlistIT extends BookingFixtures {
         dispatch(); dispatch();
         assertThat(notificationsOf("N-46", "APP")).extracting(n -> n.getString("accountId")).containsExactlyInAnyOrder("s08-laura", "s08-c0");
         assertThat(notificationsOf("N-46", "APP")).allSatisfy(n -> assertThat(n.get("variables", Document.class)).containsKeys("dog_name", "class_date", "class_time"));
-        assertThat(count("notifications", Criteria.where("code").is("N-46").and("channel").ne("APP"))).as("N-46 is APP only").isZero();
+        assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-46").stream().filter(n -> !"APP".equals(n.getString("channel")))).as("N-46 is APP only").isEmpty();
         assertThat(notificationsOf("N-04", "APP")).extracting(n -> n.getString("accountId")).contains("s08-joan");
         // A new release notifies them again (a new offer, new N-15; the old N-46 is not repeated).
         clock.advance(Duration.ofMinutes(1));
@@ -409,13 +412,13 @@ class WaitlistIT extends BookingFixtures {
         book(as("joan"), "last", "s08-d-toby"); // the seat is taken first: both entries are demoted
         var notified = eventsOf("WaitlistNotified").getFirst();
         // The N-15 consumer runs late (directly, then again through the outbox): the conditional update misses.
-        waitlistNotifications.offered(notified.getString("_id"), new BookingEvent(BookingEvent.Kind.WaitlistNotified, CLUB, "s08-last", NOW,
+        com.agilityhub.core.support.NotificationRows.deliver(engine, notificationTransactions, notified.getString("_id"), new BookingEvent(BookingEvent.Kind.WaitlistNotified, CLUB, "s08-last", NOW,
                 Map.of("entryIds", List.of(duna, c0), "classId", "s08-last", "mode", "ALL_AT_ONCE"), null, null, DomainEvent.Origin.SYSTEM));
         dispatch(); dispatch();
         for (String entry : List.of(duna, c0)) {
             assertThat(entry(entry)).containsEntry("state", "ACTIVE"); assertThat(entry(entry).get("offerNotifiedAt")).isNull();
         }
-        assertThat(count("notifications", Criteria.where("code").is("N-15"))).as("no late N-15 on any channel").isZero();
+        assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-15")).as("no late N-15 on any channel").isEmpty();
         assertThat(notifications("N-46", "APP")).isZero();
         try (var t = TenantContext.open(CLUB)) {
             assertThat(waitlistEntries.markOfferNotified(duna, NOW)).as("a demoted entry is never marked").isFalse();
@@ -433,7 +436,8 @@ class WaitlistIT extends BookingFixtures {
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-m-c0")), new Update().set("accountId", null).set("phones", List.of()), "members");
         cancel(as("pere"), id(pere), 200); dispatch();
         assertThat(entry(c0)).containsEntry("state", "NOTIFIED"); assertThat(entry(c0).get("offerNotifiedAt")).as("no N-15 row, no mark").isNull();
-        assertThat(count("notifications", Criteria.where("code").is("N-15").and("_id").regex(":" + c0 + ":"))).isZero();
+        assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo, CLUB, "N-15").stream().filter(n -> c0.equals(n.get("subject", Document.class).getString("waitlistEntryId"))
+                && !"SKIPPED_NO_CONTACT".equals(n.getString("status")))).as("c0 is reached on no channel").isEmpty();
         assertThat(instant(entry(duna), "offerNotifiedAt")).isEqualTo(instant(entry(duna), "notifiedAt"));
         assertThat(notificationsOf("N-15", "APP")).extracting(n -> n.getString("accountId")).containsExactly("s08-laura");
         book(as("joan"), "last", "s08-d-toby"); dispatch();

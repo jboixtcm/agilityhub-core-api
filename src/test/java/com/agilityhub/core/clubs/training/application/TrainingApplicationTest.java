@@ -67,25 +67,30 @@ class TrainingApplicationTest {
     }
     @Test void T_09_16_T_09_21_eachEventMapsToTheRightCatalogNotification() {
         var booked = event(TrainingEvent.Kind.TrainingBooked, "APP", null, null);
-        assertThat(TrainingNotifications.code("N-06", booked)).contains("N-06");
-        assertThat(TrainingNotifications.code("N-47", booked)).isEmpty();
-        assertThat(TrainingNotifications.code("N-07", booked)).isEmpty();
+        assertThat(TrainingNotificationFacts.applies("N-06", trigger(booked))).isTrue();
+        assertThat(TrainingNotificationFacts.applies("N-47", trigger(booked))).isFalse();
+        assertThat(TrainingNotificationFacts.applies("N-07", trigger(booked))).isFalse();
         var byClub = event(TrainingEvent.Kind.TrainingBooked, "BACKOFFICE", null, null);
-        assertThat(TrainingNotifications.code("N-06", byClub)).contains("N-06"); assertThat(TrainingNotifications.code("N-47", byClub)).contains("N-47");
+        assertThat(TrainingNotificationFacts.applies("N-06", trigger(byClub))).isTrue(); assertThat(TrainingNotificationFacts.applies("N-47", trigger(byClub))).isTrue();
         var member = event(TrainingEvent.Kind.TrainingCancelled, "APP", "MEMBER", "MEMBER_REQUEST");
-        assertThat(TrainingNotifications.code("N-07", member)).contains("N-07"); assertThat(TrainingNotifications.code("N-47", member)).isEmpty();
-        assertThat(TrainingNotifications.code("N-06", member)).isEmpty();
+        assertThat(TrainingNotificationFacts.applies("N-07", trigger(member))).isTrue(); assertThat(TrainingNotificationFacts.applies("N-47", trigger(member))).isFalse();
+        assertThat(TrainingNotificationFacts.applies("N-06", trigger(member))).isFalse();
         var ringBlock = event(TrainingEvent.Kind.TrainingCancelled, "BACKOFFICE", "ADMIN", "RING_BLOCK");
-        assertThat(TrainingNotifications.code("N-47", ringBlock)).contains("N-47"); assertThat(TrainingNotifications.code("N-07", ringBlock)).as("N-47 replaces N-07").isEmpty();
+        assertThat(TrainingNotificationFacts.applies("N-47", trigger(ringBlock))).isTrue(); assertThat(TrainingNotificationFacts.applies("N-07", trigger(ringBlock))).as("N-47 replaces N-07").isFalse();
         var impersonated = event(TrainingEvent.Kind.TrainingCancelled, "BACKOFFICE", "MEMBER", "MEMBER_REQUEST");
-        assertThat(TrainingNotifications.code("N-47", impersonated)).contains("N-47"); assertThat(TrainingNotifications.code("N-07", impersonated)).isEmpty();
+        assertThat(TrainingNotificationFacts.applies("N-47", trigger(impersonated))).isTrue(); assertThat(TrainingNotificationFacts.applies("N-07", trigger(impersonated))).isFalse();
         var left = event(TrainingEvent.Kind.TrainingCancelled, "SYSTEM", "SYSTEM", "MEMBER_LEFT");
-        assertThat(TrainingNotifications.code("N-07", left)).isEmpty(); assertThat(TrainingNotifications.code("N-47", left)).isEmpty();
+        assertThat(TrainingNotificationFacts.applies("N-07", trigger(left))).isFalse(); assertThat(TrainingNotificationFacts.applies("N-47", trigger(left))).isFalse();
         var inactivity = event(TrainingEvent.Kind.TrainingCancelled, "SYSTEM", "SYSTEM", "INACTIVITY");
-        assertThat(TrainingNotifications.code("N-07", inactivity)).contains("N-07");
-        assertThat(TrainingNotifications.code("N-99", inactivity)).isEmpty();
-        assertThat(TrainingNotifications.code("N-07", new TrainingEvent(TrainingEvent.Kind.TrainingCancelled, "club-a", "tb", Instant.EPOCH, Map.of(), null, null, null)))
-                .as("a payload without origin/by is a member cancellation").contains("N-07");
+        assertThat(TrainingNotificationFacts.applies("N-07", trigger(inactivity))).isTrue();
+        assertThat(TrainingNotificationFacts.applies("N-99", trigger(inactivity))).isFalse();
+        assertThat(TrainingNotificationFacts.applies("N-07", trigger(new TrainingEvent(TrainingEvent.Kind.TrainingCancelled, "club-a", "tb", Instant.EPOCH, Map.of(), null, null, null))))
+                .as("a payload without origin/by is a member cancellation").isTrue();
+    }
+    /** The event as the S11 engine reads it from the outbox (E7-T02). */
+    private static com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger trigger(TrainingEvent e) {
+        return new com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger("event-1", e.type(), e.clubId(), e.aggregateType(), e.aggregateId(),
+                e.occurredAt(), e.payload(), e.actorAccountId(), e.impersonatedMemberId(), e.origin());
     }
 
     @Test void T_09_28_theCallerReasonMapsToTheCatalogCancelReason() {

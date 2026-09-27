@@ -103,7 +103,7 @@ class MemberAggregatesIT extends BookingFixtures {
         assertThat(activity.path("state").asText()).isEqualTo("REGISTERED"); assertThat(activity.path("title").asText()).isEqualTo("Torneig fictici");
         assertThat(activity.path("ringName").asText()).isEqualTo("totes les pistes"); assertThat(activity.path("dogId").isNull()).isTrue();
         assertThat(all.at("/history/monthsVisible").asInt()).isEqualTo(2);
-        long unread = mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("accountId").is("s08-laura").and("channel").is("APP")), "notifications");
+        long unread = com.agilityhub.core.support.NotificationRows.count(mongo,Criteria.where("clubId").is(CLUB).and("accountId").is("s08-laura").and("channel").is("APP"));
         assertThat(unread).isPositive(); assertThat(all.at("/notifications/unreadCount").asLong()).isEqualTo(unread);
         assertThat(all.path("impersonation").isNull()).isTrue();
         // In another locale the titles come localized from the back.

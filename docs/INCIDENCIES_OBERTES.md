@@ -1,12 +1,12 @@
 # Incidències obertes — registre de defectes
 
-**v1.4 · 26-09-2026** (v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v1.6 · 27-09-2026** (v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
 **Com funciona.** Cada incidència té ID `INC-nn`, la reproducció exacta, què s'espera i on mirar. Quan s'obri com a tasca del roadmap s'hi anota l'ID de la tasca i passa a `resolta` quan l'organitzador la verifica. Res d'això és una tasca `ready`: l'executora no les veu fins que no les obrim.
 
-**Quan es corregeixen.** Fase de correccions al final del desenvolupament, abans de la porta d'E10 (desplegament) — les de gravetat **alta** bloquegen aquella porta, no les etapes intermèdies.
+**Quan es corregeixen.** Fase de correccions al final del desenvolupament, abans de la porta d'E11 (el release és E12; revisió global del 26-09) — les de gravetat **alta** bloquegen aquella porta, no les etapes intermèdies.
 
 | ID | Data | Àmbit | Títol | Gravetat | Estat |
 |---|---|---|---|---|---|
@@ -24,7 +24,36 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
 | INC-13 | 26-09 | api · definició de club | Revisió d'E5-T23: les instruccions d'`MANUAL` en blanc passen la validació, la regla R-17-05 només es comprova quan la definició les declara, noms i abast de dos tests | Baixa | oberta — passada de correccions |
 | INC-14 | 26-09 | api · fitxers | Revisió d'E5-T24: la ruta signada es reconeix pel camí cru, P9 no neteja els fitxers `DOG_DOCUMENT` orfes de l'ADMIN, el test de T-05-07 no la cobreix sencera | Baixa | oberta — passada de correccions |
-| INC-15 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | oberta — passada de correccions, abans de cap migració real |
+| INC-15 | 26-09 | api · web (autenticació) | «Entra com l'abonat»: `launchUrl` sempre `null` (E17); el web obre l'origen de l'admin amb el JWT al fragment, i `apps/clubs` no té cap consumidor de `/entrar?handoff=` | **Alta** | oberta — E5-T27 pas 2 · E4-W16 pas 1 (E47) |
+| INC-16 | 26-09 | api (autenticació) | Els comptes amb dos rols (abonat i instructor o admin) reben `403` a totes les rutes d'abonat; `E5ContractIT` ho fixa | **Alta** | oberta — E5-T27 pas 1 (E41) |
+| INC-17 | 26-09 | api (cens) | El `PATCH` SEPA→SEPA del mètode de pagament esborra l'IBAN desat quan no s'envia; T-03-13 ho fixa | **Alta** | oberta — E5-T28 pas 1 (E42) |
+| INC-18 | 26-09 | web (autenticació) | Una sessió impersonada es renova en tornar a la pestanya amb un token que no es pot renovar: cau, o passa a ser la sessió d'abonat de l'admin | **Alta** | oberta — E4-W16 pas 2 |
+| INC-19 | 26-09 | web (autenticació) | Una fallada transitòria de la renovació (sense xarxa, 5xx) tanca la sessió de l'abonat; la cookie es renova a cada focus | Mitjana | oberta — E4-W16 pas 3 |
+| INC-20 | 26-09 | web (build) | El món de mocks (MSW) va dins dels bundles de producció i a la precàrrega del service worker | Mitjana | oberta — E4-W16 pas 4 |
+| INC-21 | 26-09 | web · api (exportacions) | Les exportacions en cua (`202`) no es poden baixar des del calaix: la llista no porta l'enllaç i un `<a href>` no pot enviar el bearer | Mitjana | oberta — E4-W16 pas 5 |
+| INC-22 | 26-09 | web | El diàleg «＋ DOC.» queda desactivat després de la primera pujada | Mitjana | oberta — E4-W16 pas 6 |
+| INC-23 | 26-09 | api · web (contracte) | `Idempotency-Key` s'ignora a les rutes PUT i DELETE que el declaren (el filtre de l'api i el middleware del web només miren POST) | Mitjana | oberta — E5-T27 pas 4 · E6-W01 pas 0 (E46) |
+| INC-24 | 26-09 | api · web (autenticació) | La recuperació de contrasenya no es pot acabar si el compte ja en té: es demana `current` després d'un enllaç `RESET` | Mitjana | oberta — E5-T27 pas 3 · E4-W16 pas 10 (E49) |
+| INC-25 | 26-09 | api (catàleg) | El valor per defecte de `messaging.email.fromName` és el literal «Club Agility Cànic» (marca blanca) | Mitjana | oberta — E5-T28 pas 2 (E48) |
+| INC-26 | 26-09 | web | La pantalla 13 mostra un comptador en lloc de les files de tasques (R-03-18) | Mitjana | oberta — E4-W16 pas 11 |
+| INC-27 | 26-09 | web | D10 sense `BILLING` perd «Bloqueja les reserves», «Inactivitat», «Baixa» i «Tota l'auditoria ›» (R-03-30) | Mitjana | oberta — E4-W16 pas 7 |
+| INC-28 | 26-09 | web | D8 «Nou preu» proposa un 21 % d'impost per defecte (el Cànic no aplica IVA; una constant de país al codi) | Mitjana | oberta — E4-W16 pas 8 |
+| INC-29 | 26-09 | web | D7: [DESA] amb `STALE_VERSION` recarrega el formulari i perd les edicions de l'admin | Mitjana | oberta — E4-W16 pas 9 |
+| INC-30 | 26-09 | api (SEPA) | Els abonats nous reben un `mandateRef` de 39 caràcters (pain.008 en permet 35), i el seed de demostració no té mandats | Mitjana | oberta — E5-T28 pas 3 (E43) |
+| INC-31 | 26-09 | api (privacitat) | Dues formes d'IBAN: en clar (entrat per l'api) i xifrat (migrat); cap tasca d'E8 no ho sabia | Mitjana | oberta — E8-T01 (`BankAccountVault`, E43) + E11-T02 (xifrar els IBAN en clar abans del llançament, A37 ✓ Jordi 27-09) |
+| INC-32 | 26-09 | api (alta) | Rebutjar una alta amb un checkout obert no tanca la sessió del proveïdor; un pagament tardà es perd | Mitjana | oberta — E5-T28 pas 4 |
+| INC-33 | 26-09 | api (alta) | D1 i el llistat d'abonats jutgen una readmissió pendent per la fitxa de baixa, no per la sol·licitud (E38) | Baixa | oberta — E5-T28 pas 7 |
+| INC-34 | 26-09 | api (planificació) | Es pot crear una classe `DRAFT` solta mentre es valida la setmana; `409` no declarats a les rutes de validació i de classe | Baixa | oberta — E5-T28 pas 5 |
+| INC-35 | 26-09 | api (cens) | El `PATCH` d'un gos actiu desa el xip sense normalitzar | Baixa | oberta — E5-T28 pas 6 |
+| INC-36 | 26-09 | api (autenticació) | Causa d'INC-07: reutilitzar un refresh token ja rotat revoca el fill viu, sense cap gràcia, i dues renovacions concurrents competeixen a `Account.sessionSequence` | **Alta** (= INC-07) | oberta — E11-T02 (`auth.refreshReuseGraceSeconds` = 30) |
+| INC-37 | 26-09 | api (identitat, menors) | Menors d'identitat: esdeveniments, auditoria, temps de resposta, importació de Learn, rotació de claus | Baixa | oberta — E11-T02 |
+| INC-38 | 26-09 | api (cens i catàlegs, menors) | Menors de cens i catàlegs: emmascarament de les exportacions, exportació asíncrona amb filtre numèric, auditoria sense `entityLabel`, … | Baixa | oberta — E11-T02 (la regla del grup familiar, a E8-T02) |
+| INC-39 | 26-09 | api (alta, menors) | Menors d'alta: rutes de D10 no congelades durant una readmissió, codi mort, … | Baixa | oberta — E11-T02 (part a E8-T04) |
+| INC-40 | 26-09 | api (planificació, reserves i processos, menors) | Menors: text del risc, finestra de bloqueig no alineada, `instructorIds` buit, nivell inactiu, cursa de l'slug, … | Baixa | oberta — E11-T02 · E11-T03 |
+| INC-41 | 26-09 | web (fonaments i pantalles, menors) | Menors del web: `apps/id` en fallar la renovació, logout amb bearer refusat, pàgina en blanc si `/branding` falla, esquemes de `pending.json` ja publicats, tema `auto`, … | Baixa (la llista de traspàs, un botó mort i el router: Mitjana) | oberta — E4-W16 pas 12 · E8-W03 · E11-W02 (el router, A38 ✓ Jordi 27-09) |
+| INC-42 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | oberta — passada de correccions, abans de cap migració real |
+| INC-43 | 27-09 | api · fitxers | Revisió d'E5-T26: l'IT de les descàrregues locals no descarrega cap `DOG_PHOTO` ni `ACTIVITY_IMAGE` i els seus camins de reserva no tenen test; les descàrregues locals no admeten `Range` | Baixa | oberta — passada de correccions |
+| INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -230,6 +259,7 @@ Solució probable:
 - 01: «Recupera-la» no es veu com un enllaç, i «Encara no hi ets? Apunta-t'hi →» és tot taronja (el mockup té la pregunta en gris).
 - D1 a 1280 px: les etiquetes dels KPI en negreta i en una línia pròpia; les files de risc i de preinscripcions ocupen dues línies o més; la llegenda del gràfic no té mostres de color; el fons de la barra lateral s'acaba abans del final de la pàgina.
 - D2: el xip de WhatsApp en una línia pròpia; «Modalitat i tarifa» és un select natiu (el mockup té una píndola taronja); la icona dels botons (✎, ✓) i la de l'avís d'imatge queden damunt del text.
+- 10 a 375 px (captura d'E4-W15 al core real): el títol de la classe del seed «Obed. u…» acaba amb punts suspensius (afegit el 27-09).
 
 **On mirar**: les captures d'`roadmap/evidence/E3-W09/` al costat de `docs/pantalles/`.
 
@@ -295,7 +325,7 @@ Solució probable:
 
 ---
 
-## INC-15 · Revisió d'E5-T25: el sexe dels gossos migrats i detalls del contracte de reserves (api)
+## INC-42 · Revisió d'E5-T25: el sexe dels gossos migrats i detalls del contracte de reserves (api)
 
 **Gravetat**: **mitjana** per al sexe: s'ha de corregir abans de cap migració real (E11/E12). Baixa per a la resta. Avui no afecta res: encara no s'ha migrat cap club, i les dades locals són de demostració.
 
@@ -312,3 +342,42 @@ Solució probable:
 - **Noms de tests** (AGENTS, regla 5). `S08MemberFlowContractTest` fa servir T-08-42 i T-08-27 per a comprovacions que no són les d'aquests tests. Les esmenes d'S08 del 26-09 no tenen T-ids propis. Proposta: afegir-los a S08 §12 i canviar els noms.
 
 **On mirar**: `PlayoffPlanner.java`, `MappingConfig`, `BookingViews.java`, `BookingsController.java`, `S08MemberFlowContractTest.java`, `MemberFlowContractIT.java`.
+
+---
+
+## INC-43 · Detalls de la revisió d'E5-T26 (api, fitxers)
+
+**Gravetat**: baixa. Avui no fallen. La revisió independent d'E5-T26 (26-09) els ha trobat. El menor de la mateixa revisió (un SVG es mostrava `inline` a l'origen de l'api) i el detall de CORS van a la tasca E5-T27 (pas 8, E61).
+
+**Origen**: `roadmap/reviews/E5-T26-20260926-1759-claude.md` (api), detalls #3 i #6.
+
+**Llista**:
+- **Tests de les descàrregues locals.** `SignupSecurityFixesIT.CONVENCIONS_API_5_localDownloadsAnswerTheStoredTypeAndNameAndShowImagesInline` fa servir un PNG de `DOG_DOCUMENT`: no descarrega cap `DOG_PHOTO` ni cap `ACTIVITY_IMAGE` per `/attachments/files/{id}`. Els dos camins de reserva tampoc no tenen test: un tipus desat que no es pot llegir respon `application/octet-stream`, i el comodí `image/*` (que `validate()` accepta com a tipus) respon `attachment`.
+- **`Range` a les descàrregues locals.** Les descàrregues locals no responen a les peticions HTTP `Range`. Un `ACTIVITY_DOCUMENT` `video/mp4` (el permet `files.allowedTypes`) no es reprodueix a Safari des de la pila local, que és la que funciona fins al release (A31). A S3 no passa.
+
+**On mirar**: `AttachmentsController.download`, `AttachmentService.openLocal`, `SignupSecurityFixesIT.java`.
+
+---
+
+## INC-44 · Preguntes de l'informe d'E5-W02 (web i api, entrenaments)
+
+**Gravetat**: baixa. Avui funciona amb una alternativa: els formularis de 24 i D12 ofereixen selectors d'hora i l'api valida el tram.
+
+**Origen**: `roadmap/tasks/E5-W02.md` (web), preguntes 1–3 de l'informe; verificació de l'organitzador del 27-09 (decisió E67).
+
+**Llista**:
+- **Pistes sense entrenament lliure a 24 i D12.** `GET /training-slots?ringId=` només inclou les pistes amb `active ∧ allowsFreeTraining`, també per a l'instructor (`TrainingSlotService.bookableRings`). Per això Petita i Cadells (el mockup 24 reserva Petita) no tenen graella, i el formulari ofereix els selectors d'hora. Proposta: una projecció del personal que inclogui les pistes actives sense entrenament lliure (classes i bloquejos, sense capacitat).
+- **`FREE_TRAINING` desactivat.** `/training-slots` respon 404, i cap ruta que l'instructor pugui llegir porta `club.openingHours`: 24 i D12 no tenen graella. Proposta: la mateixa projecció sense el mòdul, o l'horari a `/branding`.
+- **«18:50 classe».** Una cel·la ocupada per una classe mostra l'hora de la fila, no la de la classe (S09 §13-3). Proposta: `SlotCell.classStartsAtLocal`.
+
+**On mirar**: `TrainingSlotService.java` (api), `apps/clubs/src/training/*`, `apps/clubs/src/instructor/RingBlockPage.tsx`, `apps/clubs-admin/src/training/RingBlockCard.tsx` (web).
+
+---
+
+## INC-15…INC-41 · Revisió global del 26-09
+
+**Origen**: la revisió global que Jordi va demanar el 26-09 («verificación en detalle de todo lo realizado» i «verificar el roadmap y todas las tareas futuras»): tretze auditories independents del codi (api E0–E5, web E0–E4) i del roadmap. L'informe és `backlog/revisio-26-09/REVISIO_GLOBAL_26-09.md`. El §2 hi té el registre complet, amb l'evidència fitxer:línia, i `reports/` té les tretze auditories.
+
+**Com es corregeixen** (decisió E51, avançar correccions; A33 ✓ Jordi 27-09): els deu majors es corregeixen ara, a les tasques E5-T27 i E5-T28 (api) i E4-W16 (web), abans que la resta d'E6, d'E8 i d'E5-W04. La resta espera la passada de correccions (E11-T02 i E11-W02), o va plegada dins la tasca d'E8 que toca el mateix codi.
+
+**Numeració:** la revisió va reservar INC-15…INC-41. La incidència de la revisió d'E5-T25 que s'havia escrit com a INC-15 el mateix dia és ara **INC-42**.

@@ -57,7 +57,7 @@ class WeekOpeningJobIT extends BookingFixtures {
                 .findFirst().orElseThrow().health();
     }
     private List<Document> n33(String channel) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-33").and("channel").is(channel)), Document.class, "notifications");
+        return com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-33").and("channel").is(channel));
     }
 
     @Test void T_15_11_theOpeningRecordsTheWeekEmitsWeekOpenedAndQueuesN33OnceForTheRightMembers() throws Exception {
@@ -81,7 +81,8 @@ class WeekOpeningJobIT extends BookingFixtures {
         dispatch();
         assertThat(n33("APP")).hasSize(23).extracting(n -> n.getString("accountId")).contains("s08-laura", "s08-joan", "s08-pere", "s08-c0")
                 .doesNotContain("s08-pending", "s08-left", "s08-idle", "s08-admin", "s08-inst");
-        assertThat(n33("PUSH")).hasSize(23).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("QUEUED"));
+        // S11 R-11-03 (E7-T02): the intent is kept per recipient; nobody in this fixture has a push subscription.
+        assertThat(n33("PUSH")).hasSize(23).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("SKIPPED_NO_CONTACT"));
         var laura = n33("APP").stream().filter(n -> n.getString("accountId").equals("s08-laura")).findFirst().orElseThrow();
         assertThat(laura.get("variables", Document.class).getString("week_start")).contains("12").contains("octubre");
         assertThat(laura.get("variables", Document.class)).containsEntry("action", "OPEN_BOOKING");

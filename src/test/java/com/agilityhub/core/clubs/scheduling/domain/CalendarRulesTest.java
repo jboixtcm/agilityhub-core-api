@@ -53,10 +53,5 @@ class CalendarRulesTest {
         }
         for(var state:ClassState.values()) { ClassSessionRules.editable(state,Set.of("notes")); if(state==ClassState.CANCELLED || state==ClassState.FINISHED) invalid(() -> ClassSessionRules.editable(state,Set.of("ringId"))); else ClassSessionRules.editable(state,Set.of("ringId")); }
     }
-    @Test void T_06_14_smsUsesAtMost160BasicGsmSeptetsIncludingTruncation() {
-        assertThat(SchedulingSms.compact("Àgil … anul·lada!" )).isEqualTo("Agil ... anul lada!");
-        assertThat(SchedulingSms.compact("é".repeat(200))).hasSize(160).endsWith("...").matches("[a-z.]+");
-        assertThat(SchedulingSms.compact("Normal text")).isEqualTo("Normal text");
-    }
     private void invalid(Runnable action) { assertThatThrownBy(action::run).isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.INVALID_STATE)); }
 }

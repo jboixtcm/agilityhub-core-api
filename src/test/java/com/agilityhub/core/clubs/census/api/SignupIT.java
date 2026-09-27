@@ -57,7 +57,11 @@ class SignupIT extends AbstractIntegrationTest {
     }
     JsonNode submit(Object body) throws Exception {return result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()),201);}
     Document member(String id) {return mongo.getCollection("members").find(new Document("_id",id).append("clubId",club)).first();}
-    List<Document> collection(String name) {return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());}
+    /** E7-T02: `notifications` reads as the E1–E6 rows, one per delivery (`NotificationRows`). */
+    List<Document> collection(String name) {
+        if("notifications".equals(name)) return com.agilityhub.core.support.NotificationRows.rows(mongo,club,(org.springframework.data.mongodb.core.query.Criteria)null);
+        return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());
+    }
     Map<String,Object> validation(String member,String dog,long version) {return Map.of("version",version,"dogs",List.of(Map.of("dogId",dog,"levelId",level)),"nextInvoiceDate","2026-02-01","upfrontAmountPaid",Map.of("amountMinor",16000,"currency","EUR"));}
     @com.agilityhub.core.support.AuditCovers({com.agilityhub.core.platform.application.audit.AuditAction.MEMBER_VALIDATED,com.agilityhub.core.platform.application.audit.AuditAction.DOG_LEVEL_CHANGED})
     @Test void T_04_17_publicSignupAndValidationAreAtomicOnRealCensusEntities() throws Exception {

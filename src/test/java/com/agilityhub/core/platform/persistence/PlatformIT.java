@@ -123,7 +123,9 @@ class PlatformIT extends AbstractIntegrationTest {
                 .andExpect(header().string("Cache-Control", "max-age=60, public")).andReturn().getResponse();
         assertThat(first.getContentAsString()).doesNotContain("paymentProviders", "secretKeyEnc", "PRIVATE_FIXTURE", "iban", "parameters", "lateCancel", "legalTextsVersion");
         var json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(first.getContentAsString());
-        assertThat(json.size()).isEqualTo(11);
+        assertThat(json.size()).isEqualTo(12);
+        // E7-T02 (S11 R-11-07): the VAPID public key, null without a product key (the `test` profile has none).
+        assertThat(json.path("pushPublicKey").isNull()).isTrue();
         // R-02-02 (amended 24-09, E3-T10 step 12): the club's legal identity is public (LSSI art. 10) and always present, null when unset.
         assertThat(json.path("club").fieldNames()).toIterable().containsExactlyInAnyOrder("slug", "name", "city", "legalName", "taxId", "legalAddress");
         assertThat(json.at("/club/legalName").asText()).isEqualTo("Example Club Association");

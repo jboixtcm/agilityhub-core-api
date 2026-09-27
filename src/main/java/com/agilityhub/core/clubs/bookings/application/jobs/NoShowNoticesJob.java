@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  * batch counters `{notices, late}`; the following items find their row already queued by that batch (the job lease
  * keeps any other run out) and only trace it. A mark changed to `PRESENT`/`NOTIFIED` before the claim is out of scope
  * and never notified. A second run, scheduled or manual, finds nothing (R-15-04). N-19 is S11's, one per booking
- * ({@link com.agilityhub.core.clubs.bookings.application.NoShowNotifications}).
+ * (the S11 engine, with {@link com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts}).
  */
 @Component
 public class NoShowNoticesJob implements Job {

@@ -58,6 +58,17 @@ public final class NotificationCatalog {
         return BY_CODE.values().stream().filter(spec -> spec.stage() == Stage.R1 && spec.eventTypes().contains(eventType)).toList();
     }
 
+    /**
+     * A variant of the Annex A «Variants» line (N-32b with `origin = BACKOFFICE` → `CLUB_CHANGES`, S07): the same code with the
+     * other category, whose caps are also its channels for every audience (a variant has no template of its own); push unchanged.
+     */
+    public static NotificationSpec variant(NotificationSpec spec, NotificationCategory category) {
+        var caps = new EnumMap<NotificationAudience, Set<NotificationChannel>>(NotificationAudience.class);
+        for (var audience : spec.audiences()) { caps.put(audience, caps(category, audience)); }
+        return new NotificationSpec(spec.code(), spec.eventTypes(), category, spec.audiences(), caps, caps, spec.push(), spec.actions(), spec.variables(),
+                spec.requiredVariables(), spec.mandatory(), spec.icon(), spec.color(), spec.dedupKeyFn(), spec.stillRelevantFn(), spec.moduleGuards(), spec.stage());
+    }
+
     /** R-11-12 caps: `OPERATIONAL`/`PERSONAL`/`CLUB_NEWS` → APP+EMAIL; `CLUB_CHANGES` → +SMS for `MEMBER`; `SYSTEM` and `APPLICANT` → EMAIL. */
     static Set<NotificationChannel> caps(NotificationCategory category, NotificationAudience audience) {
         if (category == SYSTEM || audience == APPLICANT) { return EnumSet.of(EMAIL); }

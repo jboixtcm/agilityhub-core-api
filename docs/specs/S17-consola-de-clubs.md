@@ -39,7 +39,7 @@ paymentProviders:
   STRIPE: { secretKey: { env: CANIC_STRIPE_SK }, webhookSecret: { env: CANIC_STRIPE_WH }, publishableKey: pk_live_…, mode: live }
   MANUAL: { instructions: { ca: "…", es: "…" } }
 legal: { privacyPolicyUrl: https://agilitycanic.cat/ca/politica-de-privacidad/, imageConsentText: { ca: "…" } }
-parameters: { club.openingHours: {…}, club.holidays: [...], bookings.lateCancelThresholdMinutes: 120 }   # només overrides
+parameters: { club.openingHours: {…}, club.holidays: [...], bookings.lateCancelThresholdMinutes: 240 }   # només overrides
 catalogs: { levels: [...], rings: [...], plans: [...], prices: [...], faq: [...], messageTemplates: [...] }   # o `fromTemplate: club-template-default`
 admins: [ { email: admin@exemple.cat, name: … } ]
 ```

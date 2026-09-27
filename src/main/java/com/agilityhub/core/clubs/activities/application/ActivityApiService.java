@@ -15,11 +15,11 @@ import static com.agilityhub.core.clubs.activities.application.ActivityProjectio
 @Service
 public class ActivityApiService {
     private final ActivityService service; private final ActivityLifecycleService lifecycle; private final ActivityRegistrationService registrations;
-    private final ActivityProjection projection; private final ActivityQueryService queries; private final ActivityNotifications notifications;
+    private final ActivityProjection projection; private final ActivityQueryService queries;
     private final SchedulingRecipients recipients; private final ListEngine lists;
     public ActivityApiService(ActivityService service,ActivityLifecycleService lifecycle,ActivityRegistrationService registrations,ActivityProjection projection,
-            ActivityQueryService queries,ActivityNotifications notifications,SchedulingRecipients recipients,ListEngine lists) {
-        this.service=service; this.lifecycle=lifecycle; this.registrations=registrations; this.projection=projection; this.queries=queries; this.notifications=notifications; this.recipients=recipients; this.lists=lists;
+            ActivityQueryService queries,SchedulingRecipients recipients,ListEngine lists) {
+        this.service=service; this.lifecycle=lifecycle; this.registrations=registrations; this.projection=projection; this.queries=queries; this.recipients=recipients; this.lists=lists;
     }
     public Map<String,Object> activity(String id,boolean admin) { return projection.activity(service.require(id),admin); }
     public Map<String,Object> create(Map<String,String> title,ActivityType type) { return projection.activity(service.create(title,type),true); }
@@ -35,7 +35,7 @@ public class ActivityApiService {
     }
     public Map<String,Object> preview(String id) {
         var a=service.require(id); var rows=registrations.registrations.live(id).stream().map(r -> {
-            var m=recipients.member(r.memberId()).orElseThrow(); return object("registrationId",r.id(),"memberName",m.name(),"state",r.state(),"channels",notifications.channels(m.id(),m.email()!=null,service.context.enabled(com.agilityhub.core.platform.application.Module.SMS) && !m.phones().isEmpty(),"CLUB_CHANGES"),"phoneCount",m.phones().size());
+            var m=recipients.member(r.memberId()).orElseThrow(); return object("registrationId",r.id(),"memberName",m.name(),"state",r.state(),"channels",com.agilityhub.core.clubs.messaging.application.NotificationPreferences.clubChangesChannels(service.context.members.notificationPreferences(m.id()),m.email()!=null,service.context.enabled(com.agilityhub.core.platform.application.Module.SMS) && !m.phones().isEmpty()),"phoneCount",m.phones().size());
         }).toList(); return object("registrations",rows,"activeCount",a.counters().active(),"waitingCount",a.counters().waiting());
     }
     public Map<String,Object> register(String id,boolean waitlist) { var r=registrations.register(id,waitlist); return projection.registration(r,service.require(r.activityId())); }

@@ -123,6 +123,6 @@ class DemoAttendanceSeedIT extends AbstractIntegrationTest {
         assertThat(get("/api/v1/followup/unread-count", instructor, "INSTRUCTOR").path("count").asInt()).isGreaterThanOrEqualTo(1);
         // The P3 batch of the morning after the history no-show was claimed by the seed (its N-19 went out through the outbox).
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("state").is("NO_SHOW").and("noShowNotice.queuedAt").ne(null)), "attendances")).isEqualTo(1);
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("code").is("N-19").and("accountId").is(holder.getString("accountId"))), "notifications")).isEqualTo(2);
+        assertThat(com.agilityhub.core.support.NotificationRows.count(mongo,Criteria.where("clubId").is(club).and("code").is("N-19").and("accountId").is(holder.getString("accountId")))).isEqualTo(2);
     }
 }

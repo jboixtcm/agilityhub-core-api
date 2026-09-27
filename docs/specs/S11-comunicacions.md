@@ -157,6 +157,8 @@ stateDiagram-v2
 
 ## 6. API
 
+Estats HTTP: mana `CATALEG_ERRORS.md` §1 i §3 (revisió global del 26-09).
+
 Totes sota `/api/v1`; tenant pel JWT. `I` = `Idempotency-Key`.
 
 | Mètode | Ruta | Rol(s) | Mòdul | I | Descripció | Cos / paràmetres clau | Respostes i errors |
@@ -404,3 +406,4 @@ Ordre: A → B0 (E1) → (B ∥ C ∥ D/E) → F. Tres fils: **B** (motor + prov
 - 03-09-2026 · v0.1 · esborrany inicial.
 - 03-09-2026 · catàleg tancat: «Límit mensual d'SMS assolit» = **N-49**, «Correu rebotat» = **N-51** (abans N-41/N-42, que queden per a S15).
 - 05-09-2026 · la pantalla **30 «Info»** guanya pestanyes: **FAQ · Normes · [altres `ClubPage` actives]** (`GET /club-pages?active=true`); la pàgina `RULES` també s'enllaça des de l'alta (19: «Normes del club: consulta-les aquí», sense acceptació) i des del web del club.
+- 27-09-2026 · verificació d'E7-T01 (decisió E66): la plantilla de N-08a del §8 no fa servir `ring_name` (mana el catàleg, com a S15 §8); `club_name` és una variable general (CATALEG_NOTIFICACIONS).

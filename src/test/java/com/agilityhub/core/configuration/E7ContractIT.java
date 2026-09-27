@@ -36,7 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * E7-T01 contract (S11 WP-11-A): every S11 §6 route is published with typed forms and answers 501 NOT_IMPLEMENTED behind its
  * role, tenant, impersonation, module and resource guards (T-11-28 role matrix, T-11-29 cross-tenant 404); the notification
  * log validates its universal-list query first (T-11-26), PUSH off hides the devices and FAQ off the FAQ (T-11-21, R-11-17),
- * and no stub writes anything.
+ * and no stub writes anything. E7-T02 implements `POST /email-unsubscribes`: behind the same guards it rejects the fixture's
+ * token with 422 (its behaviour is T-11-23, `EmailUnsubscribeIT`).
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class E7ContractIT extends AbstractIntegrationTest {
@@ -55,6 +56,10 @@ class E7ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
+        /** E7-T02 implements the unsubscribe link: the fixture's token is not valid → 422, never the stub's 501. */
+        boolean implemented() { return label().equals("POST /api/v1/email-unsubscribes"); }
+        int allowedStatus() { return implemented() ? 422 : 501; }
+        String allowedCode() { return implemented() ? "UNSUBSCRIBE_TOKEN_INVALID" : "NOT_IMPLEMENTED"; }
         String label() { return method + " " + path; }
     }
     static Stream<Route> routes() throws Exception {
@@ -123,8 +128,8 @@ class E7ContractIT extends AbstractIntegrationTest {
     void T_11_28_T_11_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
         for (String role : ROLES) {
             boolean allowed = route.roles().contains(role);
-            error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
-                    allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
+            error(call(route, CLUB, role), allowed ? route.allowedStatus() : role.equals("ANON") ? 401 : 403,
+                    allowed ? route.allowedCode() : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
         }
         if (route.club()) {
             String role = route.roles().getFirst();
@@ -229,7 +234,8 @@ class E7ContractIT extends AbstractIntegrationTest {
     @Test void WP_11_A_theStubsWriteNothing() throws Exception {
         var before = database();
         for (Route route : routes().toList()) {
-            for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().isNotImplemented()); }
+            // The implemented unsubscribe route rejects the fixture's token without writing either.
+            for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().is(route.allowedStatus())); }
         }
         assertThat(database()).isEqualTo(before);
     }
@@ -240,8 +246,9 @@ class E7ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
-            assertThat(op.path("description").asText()).as(route.label()).contains("501", "Roles:");
-            if (!route.path().endsWith("/export")) { assertThat(op.path("description").asText()).as(route.label()).contains("guards"); }
+            assertThat(op.path("description").asText()).as(route.label()).contains("Roles:");
+            if (!route.implemented()) { assertThat(op.path("description").asText()).as(route.label()).contains("501"); }
+            if (!route.path().endsWith("/export") && !route.implemented()) { assertThat(op.path("description").asText()).as(route.label()).contains("guards"); }
             assertThat(op.path("responses").has(Integer.toString(route.success()))).as(route.label()).isTrue();
             assertThat(op.path("operationId").asText()).as(route.label()).doesNotContain("_");
             assertThat(op.path("parameters").findValuesAsText("name")).doesNotContain("clubId");
@@ -276,11 +283,11 @@ class E7ContractIT extends AbstractIntegrationTest {
         var schemas = api.at("/components/schemas");
         assertThat(strings(schemas.at("/NotificationListItem/required"))).containsExactly("id");
         // Enums published once, as components referenced by the forms.
-        Map<String, Integer> enums = Map.of("NotificationCategory", 5, "NotificationAudience", 4, "NotificationChannel", 4, "DeliveryStatus", 9,
+        Map<String, Integer> enums = Map.of("NotificationCategory", 5, "NotificationAudience", 4, "NotificationChannel", 4, "DeliveryStatus", 10,
                 "NotificationActionType", 13, "TemplateIcon", 16, "TemplateColor", 5, "TemplateKind", 2, "TemplateStatus", 3);
         enums.forEach((name, size) -> assertThat(schemas.path(name).path("enum")).as(name).hasSize(size));
         assertThat(strings(schemas.at("/DeliveryStatus/enum"))).containsExactly("QUEUED", "SENT", "DELIVERED", "FAILED", "SKIPPED_BY_PREFERENCE", "SKIPPED_MODULE_OFF",
-                "SKIPPED_NO_CONTACT", "SKIPPED_CAP", "SKIPPED_STALE");
+                "SKIPPED_NO_CONTACT", "SKIPPED_CAP", "SKIPPED_STALE", "SKIPPED_NOT_ALLOWED"); // E7-T02: the non-prod SMS guard (catalog proposal)
         assertThat(schemas.at("/MessageTemplateListItem/properties/category/$ref").asText()).isEqualTo("#/components/schemas/NotificationCategory");
         assertThat(schemas.at("/ChannelState/properties/status/$ref").asText()).isEqualTo("#/components/schemas/DeliveryStatus");
         assertThat(schemas.at("/MeNotification/properties/icon/$ref").asText()).isEqualTo("#/components/schemas/TemplateIcon");

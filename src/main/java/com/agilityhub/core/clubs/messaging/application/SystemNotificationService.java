@@ -1,6 +1,5 @@
 package com.agilityhub.core.clubs.messaging.application;
 
-import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.domain.NotificationEvent;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.clubs.messaging.persistence.NotificationRepository;
@@ -21,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * The E1 SYSTEM e-mail path and the row helpers E3–E6 call. Since E7-T01 every row is one S11 `Notification` with a single
- * delivery and the E1 compatibility block, `dedupKey` = the id the caller passes; signatures and semantics are unchanged.
- * E7-T02 replaces the callers with the outbox consumer and removes the helpers.
+ * The SYSTEM e-mail path (S11 R-11-01, T-11-25): product copy from `messages_*`, no template, preferences ignored, always
+ * e-mail, in the account's language — N-25, N-26, N-27, N-39, N-43, N-52, N-53, and N-02's welcome e-mail, whose S01
+ * magic link is a credential that never goes through the engine (E7-T02). Each row is one `Notification` with a single
+ * EMAIL delivery and the E1 compatibility block, `dedupKey` = its id. Every other notice is the S11 engine's
+ * (`NotificationEngine`); E7-T02 removed the E3–E6 row helpers.
  */
 public class SystemNotificationService {
     private final NotificationAccounts accounts;
@@ -52,7 +53,7 @@ public class SystemNotificationService {
     public boolean completed(String id) {
         return notifications.findScoped(id).filter(item -> item.status() != Notification.Status.QUEUED).isPresent();
     }
-    /** Whether the row reached the member: SENT (an APP row on insertion, an email once the provider accepted it) or DELIVERED. */
+    /** Whether the row reached the provider: SENT once the provider accepted it, or DELIVERED. */
     public boolean sent(String id) {
         return notifications.findScoped(id).filter(item -> item.status() == Notification.Status.SENT || item.status() == Notification.Status.DELIVERED).isPresent();
     }
@@ -62,93 +63,15 @@ public class SystemNotificationService {
         return deliver(id, code, accountId, variables);
     }
     @Transactional(propagation = Propagation.NEVER)
-    public String sendOnceLocalized(String id,String code,String accountId,String locale,Map<String,?> variables) {
-        if(completed(id)) return id;
-        var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        return deliverTo(id,code,new NotificationAccounts.Recipient(account.id(),account.email(),locale==null?account.locale():locale,account.emailStatus()),variables);
+    public String sendOnceLocalized(String id, String code, String accountId, String locale, Map<String, ?> variables) {
+        if (completed(id)) { return id; }
+        var account = accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return deliverTo(id, code, new NotificationAccounts.Recipient(account.id(), account.email(), locale == null ? account.locale() : locale, account.emailStatus()), variables);
     }
     private String deliver(String id, String code, String accountId, Map<String, ?> variables) {
-        return deliverTo(id,code,accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)),variables);
+        return deliverTo(id, code, accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), variables);
     }
-    /** {@link #sendOnce} with another copy (`variant`) of the same catalog code, e.g. the admins' N-01 (E3-T08). */
-    @Transactional(propagation = Propagation.NEVER)
-    public String sendOnceVariant(String id,String code,String variant,String accountId,Map<String,?> variables) {
-        if(completed(id)) return id;
-        return deliverTo(id,code,variant,accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)),variables);
-    }
-    @Transactional(propagation = Propagation.NEVER)
-    public String sendApplicantOnce(String id,String code,String email,String locale,Map<String,?> variables) {
-        return sendApplicantOnce(id,code,null,email,locale,variables);
-    }
-    @Transactional(propagation = Propagation.NEVER)
-    public String sendApplicantOnce(String id,String code,String variant,String email,String locale,Map<String,?> variables) {
-        if(completed(id)) return id;
-        return deliverTo(id,code,variant,new NotificationAccounts.Recipient(null,email,locale,null),variables);
-    }
-    /**
-     * The APP row and the SMS/PUSH intents only write rows (no network call), each in its own transaction: like the email
-     * methods they refuse to run inside the caller's transaction, so a business transaction never joins them by mistake
-     * (E5-T14). A consumer that must commit the rows together with its own write uses the `…InTransaction` variants.
-     */
-    @Transactional(propagation = Propagation.NEVER)
-    public void appOnce(String id,String code,String accountId,Map<String,Object> variables) {
-        appOnceVariant(id,code,null,accountId,variables);
-    }
-    /** {@link #appOnce} with another copy (`variant`) of the same catalog code, stored on the row (E3-T08: the N-01 copies). */
-    @Transactional(propagation = Propagation.NEVER)
-    public void appOnceVariant(String id,String code,String variant,String accountId,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> app(id,code,variant,accountId,variables));
-    }
-    @Transactional(propagation = Propagation.NEVER)
-    public void smsIntentOnce(String id,String code,String accountId,String locale,java.util.List<String> phones,
-            String body,boolean enabled,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> sms(id,code,accountId,locale,phones,body,enabled,variables));
-    }
-    /** A PUSH intent row (QUEUED, or SKIPPED_MODULE_OFF without PUSH); no push sender exists before E7. */
-    @Transactional(propagation = Propagation.NEVER)
-    public void pushIntentOnce(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
-        transactions.executeWithoutResult(tx -> push(id,code,accountId,locale,enabled,variables));
-    }
-    /**
-     * {@link #appOnce} inside the caller's transaction, which must exist: the S08 N-15 rows commit together with the
-     * entry's `offerNotifiedAt` (E5-T11/E5-T14). The same holds for the SMS and PUSH variants below.
-     */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void appOnceInTransaction(String id,String code,String accountId,Map<String,Object> variables) { app(id,code,null,accountId,variables); }
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void smsIntentOnceInTransaction(String id,String code,String accountId,String locale,java.util.List<String> phones,
-            String body,boolean enabled,Map<String,Object> variables) {
-        sms(id,code,accountId,locale,phones,body,enabled,variables);
-    }
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void pushIntentOnceInTransaction(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
-        push(id,code,accountId,locale,enabled,variables);
-    }
-    private void app(String id,String code,String variant,String accountId,Map<String,Object> variables) {
-        if(notifications.findScoped(id).isPresent()) return;
-        var account=accounts.find(accountId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"APP",Notification.Status.SENT,null,clock.instant(),null,null,account.locale(),clock.instant(),variant));
-        notifications.appContent(id,variables);
-        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant(),NotificationChannel.APP));
-    }
-    private void sms(String id,String code,String accountId,String locale,java.util.List<String> phones,String body,boolean enabled,Map<String,Object> variables) {
-        if(notifications.findScoped(id).isPresent()) return;
-        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"SMS",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
-                null,null,null,null,locale,clock.instant(),null));
-        notifications.smsContent(id,phones,body,variables);
-        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant(),NotificationChannel.SMS));
-    }
-    private void push(String id,String code,String accountId,String locale,boolean enabled,Map<String,Object> variables) {
-        if(notifications.findScoped(id).isPresent()) return;
-        notifications.queue(new Notification(id,TenantContext.require(),accountId,code,"PUSH",enabled?Notification.Status.QUEUED:Notification.Status.SKIPPED_MODULE_OFF,
-                null,null,null,null,locale,clock.instant(),null));
-        notifications.content(id,"PUSH",variables);
-        events.publish(new NotificationEvent(NotificationEvent.Kind.NotificationQueued,TenantContext.require(),id,clock.instant(),NotificationChannel.PUSH));
-    }
-    private String deliverTo(String id,String code,NotificationAccounts.Recipient account,Map<String,?> variables) {
-        return deliverTo(id,code,null,account,variables);
-    }
-    private String deliverTo(String id,String code,String variant,NotificationAccounts.Recipient account,Map<String,?> variables) {
+    private String deliverTo(String id, String code, NotificationAccounts.Recipient account, Map<String, ?> variables) {
         String clubId = TenantContext.current();
         var settings = clubId == null ? new ClubEmailSettings.Settings("AgilityHub", null, "#2563eb", "#ffffff",
                 platformFrom, "AgilityHub", null, "ca", parameters.defaultInteger("auth.magicLinkMinutes"))
@@ -158,9 +81,9 @@ public class SystemNotificationService {
         var tags = new java.util.HashMap<String, String>();
         tags.put("notificationId", id);
         if (clubId != null) { tags.put("clubId", clubId); }
-        var email = renderer.render(code, variant, account.email(), locale, variables, settings, tags);
+        var email = renderer.render(code, account.email(), locale, variables, settings, tags);
         var notification = new Notification(id, clubId, account.id(), code, "EMAIL", Notification.Status.QUEUED,
-                null, null, null, account.email(), locale.toLanguageTag(), clock.instant(), variant);
+                null, null, null, account.email(), locale.toLanguageTag(), clock.instant(), null);
         transactions.executeWithoutResult(tx -> {
             if (notifications.findScoped(id).isEmpty()) {
                 notifications.queue(notification);

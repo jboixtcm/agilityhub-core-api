@@ -50,7 +50,7 @@ Col·leccions pròpies: `inactivity_periods`, `leave_requests` (context `clubs/c
 ### `LeaveRequest` (`leave_requests`) — SOL_LICITUD_BAIXA
 | Camp | Tipus | Oblig. | Validació / notes |
 |---|---|---|---|
-| `memberId`, `source` | UUID, enum `MEMBER`·`ADMIN`·`PACK_EXPIRED` | sí | índex `{clubId, memberId, state}` |
+| `memberId`, `source` | UUID, enum `MEMBER`·`ADMIN`·`PACK_EXPIRED`·`MIGRATED` (proposta d'E8-T06, revisió global del 26-09) | sí | índex `{clubId, memberId, state}` |
 | `origin`, `requestedAt`, `requestedBy` | com a `InactivityPeriod` (+ `SYSTEM` per a `PACK_EXPIRED`) | sí | |
 | `requestedDate` | date | sí | data desitjada; `≥ avui` local (`422 LEAVE_DATE_INVALID`) |
 | `reasonKey` | string | MEMBER: sí · ADMIN: no | clau de `leave.reasons` (`400 LEAVE_REASON_UNKNOWN`); `PACK_EXPIRED` per a la baixa automàtica |
@@ -148,6 +148,8 @@ stateDiagram-v2
 | `Member` `LEFT` → `ACTIVE` | ADMIN | R-13-16 | `leaveHistory`, `Membership` | `MemberStatusChanged` |
 
 ## 6. API
+
+Estats HTTP: mana `CATALEG_ERRORS.md` §1 i §3 (revisió global del 26-09).
 
 Tenant pel JWT; `403` per rol no permès; `404` per recurs d'un altre club o mòdul desactivat; `MEMBER` inclou el token d'impersonació als `/me/*`. `I` = accepta `Idempotency-Key`. Mòdul `INACTIVITY` a tots els `*inactivity*`.
 
@@ -314,3 +316,4 @@ Ordre: A → (B ∥ C) i (D ∥ E) → F. **Dos fils**: fil 1 = A + B + D (inact
 - 03-09-2026 · v0.1 · esborrany inicial a partir dels mockups V8 (12, 14, 15) i V7 (D10, D5, D6), model v1.6 (E20, SOL_LICITUD_BAIXA, ABONAT) + PLATAFORMA v1.7-ext, DETALL_FUNCIONAL K5/K6, spec RF-ABO-09/13, BR-07/16, F7 i catàlegs transversals v1.0.
 - 03-09-2026 · revisió: `IMPERSONATION_NOT_ALLOWED` → `IMPERSONATION_DENIED` (codi únic, CATALEG_ERRORS).
 - 08-09-2026 · respostes del Josep (B12): els plans `PACK` **no poden demanar inactivitat** (`422 INACTIVITY_NOT_APPLICABLE`, R-13-02); canvis de període aprovats s'apliquen sols; reactivació sense entrada. Dubtes §13-2, §13-3 i §13-8 tancats.
+- 27-09-2026 · revisió global del 26-09: §3, `LeaveRequest.source` guanya `MIGRATED` (proposta d'E8-T06); §6, els estats HTTP els mana el catàleg d'errors; `MEMBER_LEAVING` (422) ja és al catàleg i a l'enum (E50).

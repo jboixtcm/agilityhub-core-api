@@ -30,6 +30,7 @@ public final class SendGridEmailSender implements EmailSender {
         body.put("content", List.of(Map.of("type", "text/plain", "value", message.text()),
                 Map.of("type", "text/html", "value", message.html())));
         body.put("custom_args", message.tags());
+        if (!message.headers().isEmpty()) { body.put("headers", message.headers()); }
         // Magic links must not be rewritten or tracked by the provider.
         body.put("tracking_settings", Map.of("click_tracking", Map.of("enable", false, "enable_text", false),
                 "open_tracking", Map.of("enable", false)));

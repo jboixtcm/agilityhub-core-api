@@ -67,7 +67,12 @@ class EmailConfigurationTest {
                 .withBean(SendGridWebhookReceiptRepository.class, () -> mock(SendGridWebhookReceiptRepository.class))
                 .withBean(EventPublisher.class, () -> mock(EventPublisher.class))
                 .withBean(PlatformTransactionManager.class, () -> mock(PlatformTransactionManager.class))
-                .withBean(MongoTemplate.class, () -> mock(MongoTemplate.class)).withBean(Clock.class, Clock::systemUTC);
+                .withBean(MongoTemplate.class, () -> mock(MongoTemplate.class)).withBean(Clock.class, Clock::systemUTC)
+                // E7-T02: the webhook marks bounced contact addresses through the census ports.
+                .withBean(com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort.class,
+                        () -> mock(com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort.class))
+                .withBean(com.agilityhub.core.clubs.messaging.application.ports.MemberContactsWriterPort.class,
+                        () -> mock(com.agilityhub.core.clubs.messaging.application.ports.MemberContactsWriterPort.class));
     }
     @ParameterizedTest @ValueSource(strings = {"staging", "prod"})
     void T_11_25_productionStartupFailsClearlyWithoutApiKey(String profile) {

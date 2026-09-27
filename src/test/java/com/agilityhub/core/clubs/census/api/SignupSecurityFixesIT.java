@@ -84,7 +84,11 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     }
     JsonNode submit(Object body) throws Exception { return submit(body,201); }
     Document member(String id) {return mongo.getCollection("members").find(new Document("_id",id).append("clubId",club)).first();}
-    List<Document> collection(String name) {return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());}
+    /** E7-T02: `notifications` reads as the E1–E6 rows, one per delivery (`NotificationRows`). */
+    List<Document> collection(String name) {
+        if("notifications".equals(name)) return com.agilityhub.core.support.NotificationRows.rows(mongo,club,(org.springframework.data.mongodb.core.query.Criteria)null);
+        return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());
+    }
     JsonNode review(String id) throws Exception { return result(admin(get("/api/v1/members/"+id+"/signup").header("Host",host)),200); }
     JsonNode validate(String id) throws Exception {
         var review=review(id);var body=new LinkedHashMap<String,Object>();body.put("version",review.path("version").asLong());
@@ -1288,11 +1292,11 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
         for(int i=0;i<5;i++) result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name","Capped Dog "+i,"sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000003"+String.format("%06d",++sequence)),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),id),201);
         dispatch();
         // The signup's own N-01 counts too: 1 + 2 of the 5 added dogs within the hour.
-        assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code"))&&email.equals(n.getString("recipientEmail")))).as("applicant N-01 per recipient and hour").hasSize(3);
+        assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel"))&&email.equals(n.getString("recipientEmail")))).as("applicant N-01 per recipient and hour").hasSize(3);
         clock.advance(Duration.ofHours(1));
         result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name","Next Hour Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000003"+String.format("%06d",++sequence)),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),id),201);
         dispatch();
-        assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code"))&&email.equals(n.getString("recipientEmail")))).as("a new hour, a new allowance").hasSize(4);
+        assertThat(collection("notifications").stream().filter(n->"N-01".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel"))&&email.equals(n.getString("recipientEmail")))).as("a new hour, a new allowance").hasSize(4);
     }
 
     // ---- Step 4.3: consents under impersonation record the actor ----

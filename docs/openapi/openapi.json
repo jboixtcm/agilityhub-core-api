@@ -2387,6 +2387,10 @@
             },
             "type" : "array"
           },
+          "pushPublicKey" : {
+            "description" : "S11 R-11-07 (E7-T02): the VAPID public key (base64url) the browser subscribes with (`PushManager.subscribe`); null when the club has no PUSH module or the product has no key.",
+            "type" : [ "string", "null" ]
+          },
           "signup" : {
             "$ref" : "#/components/schemas/Signup"
           },
@@ -2400,7 +2404,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "club", "countryProfile", "currency", "defaultLocale", "legal", "locales", "modules", "signup", "status", "theme", "timeZone" ],
+        "required" : [ "club", "countryProfile", "currency", "defaultLocale", "legal", "locales", "modules", "pushPublicKey", "signup", "status", "theme", "timeZone" ],
         "type" : "object"
       },
       "CalendarLinks" : {
@@ -4581,7 +4585,7 @@
         "type" : "object"
       },
       "DeliveryStatus" : {
-        "enum" : [ "QUEUED", "SENT", "DELIVERED", "FAILED", "SKIPPED_BY_PREFERENCE", "SKIPPED_MODULE_OFF", "SKIPPED_NO_CONTACT", "SKIPPED_CAP", "SKIPPED_STALE" ],
+        "enum" : [ "QUEUED", "SENT", "DELIVERED", "FAILED", "SKIPPED_BY_PREFERENCE", "SKIPPED_MODULE_OFF", "SKIPPED_NO_CONTACT", "SKIPPED_CAP", "SKIPPED_STALE", "SKIPPED_NOT_ALLOWED" ],
         "type" : "string"
       },
       "DeliveryView" : {
@@ -13182,6 +13186,10 @@
             "type" : "string"
           },
           "sg_event_id" : {
+            "type" : "string"
+          },
+          "type" : {
+            "description" : "A bounce's kind: `bounce` (hard) or `blocked` (soft, S11 R-11-08: no mark)",
             "type" : "string"
           }
         },
@@ -32156,7 +32164,7 @@
     },
     "/api/v1/email-unsubscribes" : {
       "post" : {
-        "description" : "Roles: ANON (any caller; the token authorises). A valid token (signed, 30 days) turns emailByCategory.CLUB_NEWS off for its member and publishes EmailUnsubscribed{memberId}; an expired, tampered or another club's token → UNSUBSCRIBE_TOKEN_INVALID (422). Transactional e-mails never carry the link. The club comes from the host. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ANON (any caller; the token authorises). A valid token (signed, 30 days) turns emailByCategory.CLUB_NEWS off for its member and publishes EmailUnsubscribed{memberId}; using it again changes nothing. An expired, tampered or another club's token → UNSUBSCRIBE_TOKEN_INVALID (422). Transactional e-mails never carry the link. The club comes from the host.",
         "operationId" : "unsubscribeEmail",
         "requestBody" : {
           "content" : {

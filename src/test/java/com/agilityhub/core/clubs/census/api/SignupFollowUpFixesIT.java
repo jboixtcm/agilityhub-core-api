@@ -38,7 +38,8 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
     @Autowired com.agilityhub.core.shared.application.OutboxDispatcher dispatcher;
     @Autowired com.agilityhub.core.clubs.messaging.application.EmailSender sender;
     @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway fake;
-    @Autowired com.agilityhub.core.clubs.census.application.SignupNotifications notifications;
+    @Autowired com.agilityhub.core.clubs.census.application.SignupRecipientCap notifications;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
     @Autowired com.agilityhub.core.clubs.census.persistence.SignupNotificationAdmissionRepository admissions;
     String club,host,plan,level;
     int sequence;
@@ -80,7 +81,11 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         return result(postJson("/signup",body).header("Idempotency-Key",UUID.randomUUID()).with(r->{r.setRemoteAddr(ip);return r;}),201);
     }
     Document member(String id) {return mongo.getCollection("members").find(new Document("_id",id).append("clubId",club)).first();}
-    List<Document> collection(String name) {return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());}
+    /** E7-T02: `notifications` reads as the E1–E6 rows, one per delivery (`NotificationRows`). */
+    List<Document> collection(String name) {
+        if("notifications".equals(name)) return com.agilityhub.core.support.NotificationRows.rows(mongo,club,(org.springframework.data.mongodb.core.query.Criteria)null);
+        return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());
+    }
     String pendingDog(String id) {return collection("dogs").stream().filter(d->id.equals(d.getString("memberId"))&&"PENDING".equals(d.getString("status"))).findFirst().orElseThrow().getString("_id");}
     JsonNode review(String id) throws Exception { return result(admin(get("/api/v1/members/"+id+"/signup")),200); }
     Map<String,Object> validation(String id,String planId) throws Exception {
@@ -147,23 +152,23 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         String email=unique("retried");mailbox().failNextTo(email);
         String id=submit(withEmail(request(),email)).path("memberId").asText();
         dispatch();
-        // The first attempt was admitted, then the provider failed: nothing sent, the consumer not processed, a retry pending.
+        // The event was admitted and its N-01 stored (the consumer is processed, E7-T02); the provider failed: nothing sent, a retry pending.
         var event=events("SignupSubmitted").stream().filter(e -> id.equals(e.get("payload",Document.class).getString("memberId"))).findFirst().orElseThrow();
         assertThat(mailsTo(email)).isEmpty();
-        assertThat(event.getString("status")).isEqualTo("PENDING");assertThat(event.getInteger("attempts")).isEqualTo(1);
-        assertThat(event.get("processedAt",Document.class)).doesNotContainKey(consumer("signupSubmittedMail"));
-        assertThat(collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&email.equals(n.getString("recipientEmail"))).map(n -> n.getString("status"))).containsExactly("QUEUED");
-        clock.advance(Duration.ofSeconds(2));dispatch();
-        // The retry reuses its admission: the mail leaves, and only then is the consumer marked processed.
+        assertThat(event.getString("status")).isEqualTo("PUBLISHED");
+        assertThat(event.get("processedAt",Document.class)).containsKey(consumer("notifications.SignupSubmitted"));
+        var pending=applicant(event.getString("_id"));
+        assertThat(pending.getString("status")).isEqualTo("QUEUED");assertThat(pending.getInteger("attempts")).isEqualTo(1);
+        retrySends();
+        // The retry is the delivery's: it reuses the stored admission, and the mail leaves once.
         assertThat(mailsTo(email)).hasSize(1);
-        var retried=mongo.getCollection("domain_events").find(new Document("_id",event.get("_id"))).first();
-        assertThat(retried.getString("status")).isEqualTo("PUBLISHED");assertThat(retried.get("processedAt",Document.class)).containsKey(consumer("signupSubmittedMail"));
-        assertThat(collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&email.equals(n.getString("recipientEmail"))).map(n -> n.getString("status"))).containsExactly("SENT");
+        assertThat(applicant(event.getString("_id")).getString("status")).isEqualTo("SENT");
+        assertThat(decisions()).containsExactly(event.getString("_id")+":N-01=true");
         // Only new events count: the next N-01 to the same address within the hour is capped.
         validate(id);dispatch();
         result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name","Capped Dog","sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000004"+String.format("%06d",++sequence)),"documents",List.of())).header("Idempotency-Key",UUID.randomUUID()),id),201);
         dispatch();
-        assertThat(collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&email.equals(n.getString("recipientEmail")))).as("one N-01 an hour").hasSize(1);
+        assertThat(com.agilityhub.core.support.NotificationRows.rows(mongo,club,"N-01").stream().filter(n -> email.equals(n.getString("target")))).as("one N-01 an hour").hasSize(1);
         assertThat(collection("domain_events").stream().filter(e -> !"PUBLISHED".equals(e.getString("status")))).isEmpty();
     }
 
@@ -179,6 +184,13 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         assertThat(ids).hasSize(1);return ids.getFirst();
     }
     Document byId(String collection,String id) { return mongo.getCollection(collection).find(new Document("_id",id)).first(); }
+    /** The applicant's N-01 e-mail of an event (the S11 engine's delivery row, E7-T02), or null when the cap refused it. */
+    Document applicant(String eventId) {
+        return com.agilityhub.core.support.NotificationRows.rows(mongo,club,org.springframework.data.mongodb.core.query.Criteria.where("code").is("N-01")
+                .and("eventId").is(eventId).and("audience").is("APPLICANT")).stream().filter(r -> "EMAIL".equals(r.getString("channel"))).findFirst().orElse(null);
+    }
+    /** S11 R-11-09: a provider failure is retried by the notification dispatcher (1 min, then its 5-second poll), not by the outbox. */
+    void retrySends() { clock.advance(Duration.ofMinutes(1));notificationDispatcher.poll(); }
     String addDog(String memberId,String name) throws Exception {
         return result(asMember(postJson("/me/dogs/signup",Map.of("dog",Map.of("name",name,"sex","MALE","breed","Example breed","birthMonth","2023-02","chip","941000007"+String.format("%06d",++sequence)),"documents",List.of()))
                 .header("Idempotency-Key",UUID.randomUUID()),memberId),201).path("dogId").asText();
@@ -187,10 +199,11 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         parameter("signup.rateLimit",cap(1));
         String email=unique("restart");mailbox().failNextTo(email);
         String id=submit(withEmail(request(),email)).path("memberId").asText();
-        dispatch();
-        // A is admitted, then its delivery fails: nothing sent, a retry pending.
-        String a=newSubmitted(id);Instant processed;
-        assertThat(mailsTo(email)).isEmpty();assertThat(byId("domain_events",a).getString("status")).isEqualTo("PENDING");
+        dispatch();Instant processed=clock.instant();
+        // A is admitted and its event processed, then its delivery fails: nothing sent, the delivery's retry pending (E7-T02).
+        String a=newSubmitted(id);
+        assertThat(mailsTo(email)).isEmpty();assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
+        assertThat(applicant(a).getString("status")).isEqualTo("QUEUED");
         // The application restarts: the per-instance buckets start empty.
         Object target=org.springframework.test.util.AopTestUtils.getUltimateTargetObject(notifications);
         Object before=org.springframework.test.util.ReflectionTestUtils.getField(target,"limits");
@@ -200,17 +213,16 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
             // B, a new event to the same address, takes the only allowance of the fresh bucket before A's retry is due.
             validate(id);addDog(id,"Second Dog");dispatch();
             b=newSubmitted(id,a);
-            assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
-            assertThat(byId("notifications",a+":applicant").getString("status")).as("A not retried yet").isEqualTo("QUEUED");
-            // A's retry keeps its stored admission and sends; only then is its consumer processed.
-            clock.advance(Duration.ofSeconds(2));dispatch();processed=clock.instant();
-            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
-            assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
-            assertThat(byId("domain_events",a).get("processedAt",Document.class)).containsKey(consumer("signupSubmittedMail"));
+            assertThat(applicant(b).getString("status")).isEqualTo("SENT");
+            assertThat(applicant(a).getString("status")).as("A not retried yet").isEqualTo("QUEUED");
+            // A's retry (the delivery's) keeps its stored admission and sends.
+            retrySends();
+            assertThat(applicant(a).getString("status")).isEqualTo("SENT");
+            assertThat(byId("domain_events",a).get("processedAt",Document.class)).containsKey(consumer("notifications.SignupSubmitted"));
             // A third event is still counted: capped on the fresh bucket.
             addDog(id,"Third Dog");dispatch();
             c=newSubmitted(id,a,b);
-            assertThat(byId("notifications",c+":applicant")).as("C capped").isNull();
+            assertThat(applicant(c)).as("C capped").isNull();
             assertThat(mailsTo(email).stream().filter(m -> m.text().contains("Second Dog")||m.text().contains("Third Dog"))).as("B's N-01 only").hasSize(1);
             assertThat(collection("domain_events").stream().filter(e -> !"PUBLISHED".equals(e.getString("status")))).isEmpty();
         } finally { org.springframework.test.util.ReflectionTestUtils.setField(target,"limits",before); }
@@ -418,7 +430,7 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
             clock.advance(Duration.ofSeconds(2));dispatch();
             // The retry decides on an untouched bucket: admitted, sent exactly once, and no refusal recorded.
             assertThat(mailsTo(email)).hasSize(1);
-            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(applicant(a).getString("status")).isEqualTo("SENT");
             assertThat(decisions()).containsExactly(a+":N-01=true");
             assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
         });
@@ -430,13 +442,13 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
             String id=submit(withEmail(request(),email)).path("memberId").asText();
             dispatch();clock.advance(Duration.ofSeconds(2));dispatch();
             String a=newSubmitted(id);
-            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(applicant(a).getString("status")).isEqualTo("SENT");
             // With a cap of 2, A's failed write and its retry took one allowance: B, within the hour, takes the second; C is refused.
             validate(id);addDog(id,"Second Dog");dispatch();String b=newSubmitted(id,a);
             addDog(id,"Third Dog");dispatch();String c=newSubmitted(id,a,b);
-            assertThat(byId("notifications",b+":applicant")).as("B admitted").isNotNull();
-            assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
-            assertThat(byId("notifications",c+":applicant")).as("C refused").isNull();
+            assertThat(applicant(b)).as("B admitted").isNotNull();
+            assertThat(applicant(b).getString("status")).isEqualTo("SENT");
+            assertThat(applicant(c)).as("C refused").isNull();
             assertThat(decisions()).containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
         });
     }
@@ -449,31 +461,30 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
         parameter("signup.rateLimit",cap(1));
         String email=unique("pending");mailbox().failNextTo(email);
         String id=submit(withEmail(request(),email)).path("memberId").asText();
-        dispatch();
-        // A is admitted, then its delivery fails: nothing sent, a retry pending.
+        dispatch();Instant processed=clock.instant();
+        // A is admitted and its event processed (E7-T02: the provider failure is its delivery's, retried by the notification
+        // dispatcher): nothing sent, the delivery's retry pending.
         String a=newSubmitted(id);
-        var whilePending=byId("signup_notification_admissions",a+":N-01");
-        assertThat(whilePending).containsEntry("admitted",true);
-        assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("QUEUED");
-        // More than a day passes with A still pending (an outage, a dispatch backlog); the TTL monitor runs meanwhile.
+        var decided=byId("signup_notification_admissions",a+":N-01");
+        assertThat(decided).containsEntry("admitted",true);
+        assertThat(applicant(a).getString("status")).isEqualTo("QUEUED");
+        // More than a day passes with A's delivery still pending (a provider outage); the TTL monitor runs meanwhile.
         clock.advance(Duration.ofDays(1).plusHours(1));ttlMonitor();
-        // The backlog: A's retry comes due after the next events of this address.
-        mongo.getCollection("domain_events").updateOne(new Document("_id",a),new Document("$set",new Document("nextAttemptAt",Date.from(clock.instant().plus(Duration.ofMinutes(5))))));
         // B, a competing event to the same address, takes this hour's only allowance; C arrives while the cap is full and is refused.
         validate(id);addDog(id,"Competing Dog");dispatch();String b=newSubmitted(id,a);
         addDog(id,"Refused Dog");dispatch();String c=newSubmitted(id,a,b);
-        assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
-        assertThat(byId("notifications",c+":applicant")).as("C refused while the cap is full").isNull();
-        assertThat(byId("notifications",a+":applicant").getString("status")).as("A not retried yet").isEqualTo("QUEUED");
-        // A's retry still sends: its decision outlived the day.
-        clock.advance(Duration.ofMinutes(5));dispatch();Instant processed=clock.instant();
-        assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+        assertThat(applicant(b).getString("status")).isEqualTo("SENT");
+        assertThat(applicant(c)).as("C refused while the cap is full").isNull();
+        assertThat(applicant(a).getString("status")).as("A not retried yet").isEqualTo("QUEUED");
+        // A's retry still sends: its decision outlived the day (it expires 90 days after its event was processed).
+        notificationDispatcher.poll();dispatch(); // the outbox then publishes its NotificationSent
+        assertThat(applicant(a).getString("status")).isEqualTo("SENT");
         assertThat(mailsTo(email).stream().filter(m -> m.text().contains("Refused Dog"))).isEmpty();
         assertThat(byId("domain_events",a).getString("status")).isEqualTo("PUBLISHED");
         assertThat(decisions()).containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
         assertThat(collection("domain_events").stream().filter(e -> !"PUBLISHED".equals(e.getString("status")))).isEmpty();
-        // No expiry while pending; once processed, the event's own retention (`jobs.retention.domainEventsDays`, 90 by default).
-        assertThat(whilePending.get("expiresAt")).as("no expiry while pending").isNull();
+        // The event's own retention (`jobs.retention.domainEventsDays`, 90 by default), from the moment it was processed.
+        assertThat(decided.getDate("expiresAt").toInstant()).isEqualTo(processed.plus(Duration.ofDays(90)));
         assertThat(byId("signup_notification_admissions",a+":N-01").getDate("expiresAt").toInstant()).isEqualTo(processed.plus(Duration.ofDays(90)));
         parameter("jobs.retention.domainEventsDays",7);
         addDog(id,"Short Retention Dog");clock.advance(Duration.ofHours(1));dispatch();String d=newSubmitted(id,a,b,c);
@@ -508,15 +519,15 @@ class SignupFollowUpFixesIT extends AbstractIntegrationTest {
             dispatch();
             // A uses the stored decision (admitted) and sends; the allowance is untouched, because this delivery did not store it.
             String a=newSubmitted(id);
-            assertThat(byId("notifications",a+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(applicant(a).getString("status")).isEqualTo("SENT");
             assertThat(decisions()).containsExactly(a+":N-01=true");
             // With a cap of 1, B, the next event to the same address within the hour, is still admitted.
             validate(id);addDog(id,"Second Dog");dispatch();String b=newSubmitted(id,a);
-            assertThat(byId("notifications",b+":applicant")).as("B admitted: A charged nothing").isNotNull();
-            assertThat(byId("notifications",b+":applicant").getString("status")).isEqualTo("SENT");
+            assertThat(applicant(b)).as("B admitted: A charged nothing").isNotNull();
+            assertThat(applicant(b).getString("status")).isEqualTo("SENT");
             // B charged the allowance: C is refused.
             addDog(id,"Third Dog");dispatch();String c=newSubmitted(id,a,b);
-            assertThat(byId("notifications",c+":applicant")).as("C refused").isNull();
+            assertThat(applicant(c)).as("C refused").isNull();
             assertThat(decisions()).containsExactlyInAnyOrder(a+":N-01=true",b+":N-01=true",c+":N-01=false");
         });
     }

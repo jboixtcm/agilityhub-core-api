@@ -34,6 +34,14 @@ class SecurityHeadersIT extends IdentityIntegrationSupport {
         registry.add("exports.s3.bucket", () -> "fictional-security-test");
         registry.add("exports.s3.access-key", () -> java.util.UUID.randomUUID().toString());
         registry.add("exports.s3.secret-key", () -> java.util.UUID.randomUUID().toString());
+        // E7-T02: `prod` refuses to start without the SMS, web push and unsubscribe-link credentials (MessagingConfiguration).
+        String unsubscribeKey=Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
+        registry.add("notifications.unsubscribe-key", () -> unsubscribeKey);
+        registry.add("notifications.sms.twilio-account-sid", () -> "AC" + java.util.UUID.randomUUID().toString().replace("-", ""));
+        registry.add("notifications.sms.twilio-auth-token", () -> java.util.UUID.randomUUID().toString());
+        registry.add("notifications.push.vapid-public-key", () -> "fictional-public-key");
+        registry.add("notifications.push.vapid-private-key", () -> "fictional-private-key");
+        registry.add("notifications.push.vapid-subject", () -> "mailto:push@example.test");
         registry.add("spring.data.mongodb.host", () -> "localhost");
         registry.add("spring.data.mongodb.database", () -> "agilityhub_test");
         registry.add("spring.data.mongodb.username", () -> "fixture");

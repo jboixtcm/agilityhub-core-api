@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.bookings.api;
 
-import com.agilityhub.core.clubs.bookings.application.NoShowNotifications;
+import com.agilityhub.core.clubs.messaging.application.engine.NotificationEngine;
+import com.agilityhub.core.support.NotificationRows;
 import com.agilityhub.core.clubs.bookings.application.jobs.NoShowNoticesJob;
 import com.agilityhub.core.clubs.bookings.domain.AttendanceEvent;
 import com.agilityhub.core.clubs.messaging.application.EmailSender;
@@ -31,7 +32,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 class NoShowNoticesJobIT extends BookingFixtures {
     static final ZoneId BUENOS_AIRES = ZoneId.of("America/Argentina/Buenos_Aires");
-    @Autowired JobRunner runner; @Autowired NoShowNoticesJob job; @Autowired NoShowNotifications n19; @Autowired EmailSender email;
+    @Autowired JobRunner runner; @Autowired NoShowNoticesJob job; @Autowired NotificationEngine engine; @Autowired org.springframework.transaction.PlatformTransactionManager notificationTransactions; @Autowired EmailSender email;
 
     @BeforeEach void jobs() {
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs");
@@ -49,7 +50,7 @@ class NoShowNoticesJobIT extends BookingFixtures {
         var map = new TreeMap<String, Object>(); run.counters().forEach(e -> map.put(e.key(), ((Number) e.value()).longValue())); return map;
     }
     List<Document> n19Rows(String eventId) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-19").and("_id").regex("^" + eventId + ":")), Document.class, "notifications");
+        return NotificationRows.rows(mongo, CLUB, Criteria.where("code").is("N-19").and("eventId").is(eventId));
     }
     long allEvents() { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "domain_events"); }
     static String fullDate(LocalDate date, String language) { return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.forLanguageTag(language))); }
@@ -131,11 +132,11 @@ class NoShowNoticesJobIT extends BookingFixtures {
         var rows = n19Rows(eventId);
         assertThat(rows).extracting(n -> n.getString("channel") + " " + n.getString("accountId")).containsExactlyInAnyOrder(
                 "APP s08-c2", "EMAIL s08-c2", "APP s08-laura", "EMAIL s08-laura", "APP s08-joan", "EMAIL s08-joan", "APP s08-pere", "EMAIL s08-pere");
-        assertThat(rows).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("SENT"));
-        var laura = rows.stream().filter(n -> n.getString("_id").equals(eventId + ":" + duna + ":app")).findFirst().orElseThrow().get("variables", Document.class);
+        assertThat(rows).allSatisfy(n -> assertThat(n.getString("status")).isEqualTo("APP".equals(n.getString("channel")) ? "DELIVERED" : "SENT"));
+        var laura = rows.stream().filter(n -> "APP".equals(n.getString("channel")) && duna.equals(n.get("subject", Document.class).getString("bookingId"))).findFirst().orElseThrow().get("variables", Document.class);
         assertThat(laura.getString("dog_name")).isEqualTo("Duna"); assertThat(laura.getString("entityId")).isEqualTo(duna);
         assertThat(laura.getString("class_date")).isEqualTo(fullDate(LocalDate.of(2026, 10, 8), "ca"));
-        var crowd = rows.stream().filter(n -> n.getString("_id").equals(eventId + ":" + tue + ":app")).findFirst().orElseThrow().get("variables", Document.class);
+        var crowd = rows.stream().filter(n -> "APP".equals(n.getString("channel")) && tue.equals(n.get("subject", Document.class).getString("bookingId"))).findFirst().orElseThrow().get("variables", Document.class);
         assertThat(crowd.getString("class_date")).as("a late mark keeps its own class date").isEqualTo(fullDate(LocalDate.of(2026, 10, 6), "ca"));
         var mail = (FakeEmailSender) email;
         assertThat(mail.lastTo("s08-laura@example.test").subject()).isEqualTo("T'hem trobat a faltar");
@@ -151,7 +152,7 @@ class NoShowNoticesJobIT extends BookingFixtures {
         Instant sentAt = attendance(duna).get("noShowNotice", Document.class).getDate("sentAt").toInstant();
         // A redelivered batch notifies nobody twice and keeps the first sentAt.
         clock.setInstant(local("2026-10-09T09:00"));
-        n19.deliver(eventId, new AttendanceEvent(AttendanceEvent.Kind.NoShowNoticeDue, CLUB, CLUB, clock.instant(), friday.get("payload", Document.class), null, null,
+        NotificationRows.deliver(engine, notificationTransactions, eventId, new AttendanceEvent(AttendanceEvent.Kind.NoShowNoticeDue, CLUB, CLUB, clock.instant(), friday.get("payload", Document.class), null, null,
                 DomainEvent.Origin.SYSTEM));
         assertThat(n19Rows(eventId)).hasSize(8);
         assertThat(attendance(duna).get("noShowNotice", Document.class).getDate("sentAt").toInstant()).isEqualTo(sentAt);
@@ -160,7 +161,7 @@ class NoShowNoticesJobIT extends BookingFixtures {
         assertThat(attendance(duna).getString("state")).isEqualTo("PRESENT");
         assertThat(attendance(duna).get("noShowNotice", Document.class)).containsEntry("eventId", eventId);
         dispatch();
-        assertThat(count("notifications", Criteria.where("code").is("N-19"))).isEqualTo(10);
+        assertThat(NotificationRows.rows(mongo, CLUB, "N-19")).hasSize(10);
     }
 
     /** A class on the club's own calendar (not the fixture's Madrid one). */
@@ -200,7 +201,7 @@ class NoShowNoticesJobIT extends BookingFixtures {
         assertThat(run.items()).singleElement().satisfies(item -> assertThat(item.detail()).contains(new JobRun.Entry("classDate", "2026-10-08")));
         assertThat(counters(run)).isEqualTo(Map.of("notices", 1L, "late", 0L));
         dispatch();
-        var rows = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-19").and("channel").is("APP")), Document.class, "notifications");
+        var rows = NotificationRows.rows(mongo, CLUB, "N-19").stream().filter(n -> "APP".equals(n.getString("channel"))).toList();
         assertThat(rows).singleElement().satisfies(n -> assertThat(n.get("variables", Document.class).getString("class_date")).isEqualTo(fullDate(LocalDate.of(2026, 10, 8), "ca")));
         System.out.println("E6-T04 no-show-notices Buenos Aires JobRun " + mongo.findById(run.id(), Document.class, "job_runs").toJson());
     }

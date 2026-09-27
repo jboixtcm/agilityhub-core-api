@@ -371,7 +371,7 @@ class TrainingIT extends TrainingFixtures {
         assertThat(eventsOf("TrainingCancelled").getFirst().getString("actorAccountId")).isEqualTo("s09-admin");
         assertThat(count("ring_blocks", new Criteria())).isEqualTo(1);
         dispatch(); dispatch();
-        assertThat(notifications("N-47")).extracting(n -> n.getString("channel") + ":" + n.getString("status")).containsExactlyInAnyOrder("APP:SENT", "EMAIL:SENT", "SMS:QUEUED");
+        assertThat(notifications("N-47")).extracting(n -> n.getString("channel") + ":" + n.getString("status")).containsExactlyInAnyOrder("APP:DELIVERED", "EMAIL:SENT", "SMS:SENT");
         assertThat(notifications("N-07")).isEmpty();
         assertThat(cell(slots(as("pau"), "2026-10-06", "2026-10-06", null), "2026-10-06T17:00", CAR).path("reason").asText()).isEqualTo("RING_BLOCK");
     }
@@ -411,8 +411,8 @@ class TrainingIT extends TrainingFixtures {
         // Booked by the club: N-06 + N-47 (two bookings); cancelled by the club: N-47 only, never N-07.
         assertThat(count("notifications", Criteria.where("code").is("N-47").and("channel").is("SMS"))).isEqualTo(3);
         assertThat(notifications("N-07")).isEmpty();
-        var sms = mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-47").and("channel").is("SMS")), Document.class, "notifications");
-        assertThat(sms.getString("status")).isEqualTo("QUEUED");
+        var sms = com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-47").and("channel").is("SMS")).stream().findFirst().orElse(null);
+        assertThat(sms.getString("status")).isEqualTo("SENT");
         // SMS off: the intent is recorded as SKIPPED_MODULE_OFF.
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.SMS).toArray(Module[]::new));
         var kira = book(impersonating("admin", "s09-m-maria"), "s09-d-kira", "2026-10-06T12:00", MUN, 201); dispatch();

@@ -77,5 +77,6 @@
   "status": "ONBOARDING",
   "legal": {
     "privacyPolicyUrl": "https://agilitycanic.cat/ca/politica-de-privacidad/"
-  }
+  },
+  "pushPublicKey": null
 }

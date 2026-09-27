@@ -115,7 +115,8 @@ class CalendarIT extends AbstractIntegrationTest {
         clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(CLUB);
     }
     void counts(String id,int booked,int waiting) { mongo.updateFirst(Query.query(Criteria.where("_id").is(id)),new Update().set("counters",Map.of("booked",booked,"waiting",waiting)),"class_sessions"); }
-    List<Document> notifications(String code) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code)),Document.class,"notifications"); }
+    /** E7-T02: one row per delivery of the S11 notifications (the E1–E6 row view). */
+    List<Document> notifications(String code) { return com.agilityhub.core.support.NotificationRows.rows(mongo,CLUB,code); }
     long events(String type) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)),"domain_events"); }
     void audit(AuditAction action) { assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is(action.name())),"audit_entries")).isPositive(); }
     @Test @AuditCovers(AuditAction.WEEK_VALIDATED)
@@ -144,7 +145,8 @@ class CalendarIT extends AbstractIntegrationTest {
         error("PATCH","/class-sessions/"+id,Map.of("version",version,"date","2026-08-26"),ErrorCode.VALIDATION_ERROR);
         patch(id,Map.of("startTime","18:10","endTime","19:10","description","Manual","capacity",4));
         error("PATCH","/class-sessions/"+id,Map.of("version",version,"notes","stale"),ErrorCode.STALE_VERSION);
-        dispatcher.dispatch();assertThat(notifications("N-08b")).hasSize(10);assertThat(notifications("N-08a")).isEmpty();
+        // 3 bookings × (APP + EMAIL + SMS to each of 2 phones) + the instructor's APP (R-11-03: one SMS delivery per phone).
+        dispatcher.dispatch();assertThat(notifications("N-08b")).hasSize(13);assertThat(notifications("N-08a")).isEmpty();
         assertThat(notifications("N-08b").stream().filter(n -> n.getString("channel").equals("APP")).toList().toString()).contains("18:00","18:10","Time");
         var reset=new LinkedHashMap<String,Object>();reset.put("capacity",null);reset.put("description",null);reset.put("ringId",null);reset.put("notes",null);
         var changed=patch(id,reset);assertThat(changed.path("capacityMode").asText()).isEqualTo("AUTO");assertThat(changed.path("displayDescription").asText()).isEqualTo("D i sup.");
@@ -238,10 +240,12 @@ class CalendarIT extends AbstractIntegrationTest {
         var repeat=mvc.perform(call("POST","/class-sessions/"+id+"/cancellation",body).with(r -> {r.removeHeader("Idempotency-Key");r.addHeader("Idempotency-Key",key);return r;})).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();assertThat(repeat).isEqualTo(first);
         assertThat(session(id).at("/counters/booked").asInt()).isZero();assertThat(session(id).at("/cancellation/affectedBookings").asInt()).isEqualTo(4);assertThat(session(id).at("/cancellation/affectedWaitlist").asInt()).isEqualTo(2);
         assertThat(events("PackRefunded")).isEqualTo(2);assertThat(events("ClassCancelledByClub")).isEqualTo(1);assertThat(doubles.activeBookings(id)).isEmpty();assertThat(doubles.liveWaitlist(id)).isEmpty();assertThat(doubles.holds).doesNotContainKey(id);
-        dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(21);dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(21);
-        var sms=notifications("N-08a").stream().filter(n -> n.getString("channel").equals("SMS")).toList();assertThat(sms).hasSize(6).allSatisfy(n -> {assertThat(n.getString("status")).isEqualTo("QUEUED");assertThat(n.getString("body").length()).isLessThanOrEqualTo(160);assertThat(n.getList("recipientPhones",String.class)).hasSize(2);});
+        // 6 dogs × (APP + EMAIL + SMS to each of 2 phones) + the instructor (APP + EMAIL) + the admin (APP); a second dispatch adds nothing.
+        dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(27);dispatcher.dispatch();assertThat(notifications("N-08a")).hasSize(27);
+        var sms=notifications("N-08a").stream().filter(n -> n.getString("channel").equals("SMS")).toList();assertThat(sms).hasSize(12).allSatisfy(n -> {assertThat(n.getString("status")).isEqualTo("SENT");assertThat(n.getString("body").length()).isLessThanOrEqualTo(160);assertThat(n.getString("target")).startsWith("+");});
         var english=((FakeEmailSender)sender).messages().stream().filter(m -> m.to().equals("student-0@example.test")).findFirst().orElseThrow();
-        assertThat(english.text()).contains("D and up","Tuesday","Rain: please choose another class.");audit(AuditAction.CLASS_CANCELLED);
+        // R-11-05: the class is the next day of the club, so «Tomorrow» (capitalised), in the recipient's language.
+        assertThat(english.text()).contains("D and up","Tomorrow","Rain: please choose another class.");audit(AuditAction.CLASS_CANCELLED);
     }
     @Test void T_06_14_deletedDraftApplicantAndSmsOffAreDistinctDeliveryCases() throws Exception {
         modules(Module.WAITLIST);String id=session("2026-08-25","18:00",null);validate(id);audience(id,1,1);
@@ -406,7 +410,7 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         assertThat(events("ClassCancelledByClub")).isEqualTo(1);
     }
-    @Test void T_06_25_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithoutN08a() throws Exception {
+    @Test void T_06_25_T_11_24_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithN08aToMembersOnly() throws Exception {
         String id=session("2026-08-25","18:00","plan-ring");validate(id);
         try(var tenant=TenantContext.open(CLUB)) {
             var c=sessions.findById(id).orElseThrow();assertThat(service.finishEnded(c.endsAt().plusSeconds(899))).isZero();assertThat(service.finishEnded(c.endsAt().plusSeconds(900))).isEqualTo(1);assertThat(service.finishEnded(c.endsAt().plusSeconds(900))).isZero();
@@ -415,7 +419,9 @@ class CalendarIT extends AbstractIntegrationTest {
         error("PATCH","/class-sessions/"+id,Map.of("version",session(id).path("version").asLong(),"capacity",3),ErrorCode.INVALID_STATE);
         String risk=session("2026-08-26","18:00","plan-ring");audience(risk,1,0);
         try(var tenant=TenantContext.open(CLUB)) { cancellations.cancel(risk,ClassCancellationReason.RISK_REVIEW,"Minimum not reached",null); }
-        dispatcher.dispatch();assertThat(notifications("N-08a")).isEmpty();assertThat(session(risk).at("/cancellation/reason").asText()).isEqualTo("RISK_REVIEW");
+        // S11 §7 / T-11-24: a RISK_REVIEW cancellation notifies the registrants only (the staff get N-17 from ClassAutoCancelled).
+        dispatcher.dispatch();assertThat(notifications("N-08a")).isNotEmpty().allSatisfy(n -> assertThat(n.getString("audience")).isEqualTo("MEMBER"));
+        assertThat(session(risk).at("/cancellation/reason").asText()).isEqualTo("RISK_REVIEW");
     }
     @Autowired com.agilityhub.core.clubs.dashboard.application.ports.RiskReviewSource dashboardRisk;
     @Autowired com.agilityhub.core.clubs.dashboard.application.ports.ClassOccupancyQuery occupancy;

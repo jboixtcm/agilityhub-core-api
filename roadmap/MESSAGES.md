@@ -1852,3 +1852,58 @@ Blocking: no.
   6. The Playoff migration writes `notificationPreferences: {essentialOnly}`. The typed view keeps that key but reads the product defaults. Should `essentialOnly = true` mean CLUB_NEWS e-mail and push off?
 - **Web:** regenerate the client. The MSW mocks can start from `e7-me-notifications.json` and `e7-notification-preferences.json` (S11 §6's extracts, byte for byte).
 Blocking: no.
+
+## 2026-09-27 · organizer → executor · global review of 26-09 integrated
+@executor Jordi asked for a global review of everything verified so far (E0–E5) and of the roadmap ahead. It was done on 26-09, and the organizer integrated it today. It lives in `backlog/revisio-26-09/REVISIO_GLOBAL_26-09.md` on the Dropbox; you do not need to read it.
+- **New tasks, ready** (A33 ✓ Jordi 27-09, ruling E51). They pull forward the ten majors the review confirmed, and run after E7-T02:
+  - **E5-T27** (order 270): dual-role member routes, the impersonation `launchUrl` with a handoff code, password recovery without `current`, `Idempotency-Key` on keyed PUT/DELETE routes, health with a Mongo ping, the test-clock guard, the P2 write-conflict retry.
+  - **E5-T28** (order 280): the SEPA→SEPA PATCH keeps the IBAN, the white-label `fromName`, new members' mandate reference, rejection with an open checkout, the week create-vs-validate race, chip normalisation, D1 on a pending readmission.
+- **Corrected task files:** E7-T03, E7-T04 and E8-T01…E8-T06 were rewritten from the review's corrections. They had not started, so read them as they are now.
+  - E8 would have failed as written: `MEMBER_LEAVING`, the two IBAN shapes, the cash first fraction, P10 before A28, and the audit placeholders.
+  - E6-T02…E6-T04, E7-T01 and E7-T02 already ran with the old text. The organizer checks the review's corrections for those when verifying them.
+- **Done by the organizer in this working tree** (ruling E50): `ErrorCode.MEMBER_LEAVING(422)`, `error.MEMBER_LEAVING` in the three `messages_*.properties`, and `docs/specs/00-transversal/CATALEG_ERRORS.md` (`MEMBER_LEAVING` plus the explicit 409 list), all at once. Keep them together.
+- **Spec amendments, synced to `docs/`:**
+  - S01: R-01-05 (E49), R-01-07 (E41), R-01-09 and D10 (E47);
+  - S03: R-03-07 and T-03-13 (E42);
+  - S08: rows 07/§10 at 4 h, R-08-19 (E41), `INACTIVITY` as a waitlist cancel reason;
+  - S10: R-10-05, T-10-03 and T-10-11 at 240 min;
+  - S12: R-12-05 and T-12-03 (E44), §6 invoice PDF and plan change, §7 mandate (E43);
+  - S13: §3 `MIGRATED`, §6;
+  - S14 (6-year retention);
+  - S15: R-15-20 and T-15-28 (E45), N-08a without `ring_name`;
+  - S17 example 240;
+  - `CATALEG_NOTIFICACIONS` (closing note: `decision`, `source`);
+  - `CONVENCIONS_API.md` §7 (E46);
+  - `MODEL_DADES_PLATAFORMA.md`;
+  - `DECISIONS_PENDENTS.md` v2.0;
+  - `INCIDENCIES_OBERTES.md` v1.5 (INC-15…INC-41 from the review; the former INC-15 of the E5-T25 review is now INC-42).
+- **Not synced yet:** the `messaging.email.fromName` row of `CATALEG_PARAMETRES.md` (default `""`). E5-T28 step 2 changes the `docs/` copy together with `catalog.yaml`, so `T-02-03` stays green. Until then nobody runs `install.sh` or `bin/sync-docs`.
+- **Kit (ruling E52):**
+  - `openapi.next.json` is staged from the api's committed HEAD, with `openapi.next.sha`;
+  - `check.py` sorts stages numerically;
+  - `install.sh` no longer overwrites `ROADMAP.md`;
+  - the executor rule for `external:api:` dependencies is in `roadmap/README.md` step 2.
+- **Gates** (review §4.3), recorded here:
+  - GATE E1: passed with deferrals; GATE E2: passed; GATE E3: passed 26-09; GATE E4 (back): passed.
+  - E0-T13 (staging) is superseded: it is re-scoped into E11-T04 and E12-T01 (A31).
+  - E1-T08 is post-R1.
+Blocking: no.
+
+
+## 2026-09-27 · organizer → executor · verifications of E5-T26, E6-T02…E6-T04 and E7-T01
+@executor
+- **E5-T26 verified.** Its review's minor (an SVG shown `inline` on the API origin) and the CORS nit go to **E5-T27 step 8**, which has not started (ruling E61). E5-T27 step 4 now says the filter is already method-aware through two hand-kept patterns; replace them with the set read from the contract.
+- **Round 2 for E6-T02, E6-T03, E6-T04 and E7-T01** (`changes_requested`). Each task file lists what to fix under «### Round 2: fix these». They run before E5-T27, by the picker's order.
+  - E6-T02: a replay never skips the route's authorization, for every keyed route (ruling E62, `CONVENCIONS_API.md` §7); dogs without a level; T-10-03 at 240 min through the real save path.
+  - E6-T03: a task belongs to the dog's current owner; a late transfer event undoes nothing; N-20 reaches only the current owner; the author of a D14 row; pages of at most 50 rows (ruling E64).
+  - E6-T04: P8 by the class's own start and never without `WAITLIST`; N-19 follows `PERSONAL`; P3 as one item per club and day; `class_description` on N-19; the default seed invocation (ruling E65).
+  - E7-T01: `security: []` on the anonymous unsubscribe; old SMS rows before the migration; the migration race; the catalog alignment of item 4 (ruling E66).
+- **New task E5-T29** (ready, order 290, after E5-T28): the back office's contract gaps that the web found, and `nextBookableAt` as the start of the next booking week (ruling E67). The web adopts it in E5-W05.
+- **E7-T04 step 2:** `ANNOUNCEMENT_SENT` is already in `AuditAction` with a placeholder test; replace that test with the real one on the send.
+- **For E7-T02 (running now):** step 10 also covers E6's dispatchers (`NoShowNotifications`, `FollowupNotifications`). N-19 and N-20 then follow the `PERSONAL` preference through `ChannelResolver`; E6-T03 and E6-T04 round 2 check it.
+- **Spec amendments, synced to `docs/`:** S04 R-04-27 (the signed signup upload takes the grant's club); S09 (`DOG_ALREADY_BOOKED` and `TRAINING_CANCEL_TOO_LATE` are 422); S10 (§3 `authorGender`, `remarksMeta.version`; §6 `handlerName`, `memberFullName`; R-10-05's «Paràmetres» at 240; R-10-10, the dog's current owner; R-10-15, the PDF's logo); S15 R-15-18 (step (c)); `CONVENCIONS_API.md` §5 (downloads) and §7 (replays); `CATALEG_NOTIFICACIONS.md` rule 7 and the N-12 note; `MODEL_DADES_PLATAFORMA.md` Annex B (S11's names); `MAPATGE_CAMPS_PLAYOFF.md` row 30; `INCIDENCIES_OBERTES.md` v1.6 (INC-43, INC-44); `DECISIONS_PENDENTS.md` v2.1 (E61–E67).
+- **Not synced yet in this repo:**
+  - `CATALEG_NOTIFICACIONS.md` (its two variable lines), S11 §8 (N-08a's template) and `CATALEG_ESDEVENIMENTS.md` (the S11 row of Annex A): E7-T01 round 2 item 4 changes them together with the code, so the parity tests stay green.
+  - `CATALEG_PARAMETRES.md` (`messaging.email.fromName`): E5-T28 step 2.
+  - Until both land, nobody runs `install.sh` or `bin/sync-docs`.
+Blocking: no.

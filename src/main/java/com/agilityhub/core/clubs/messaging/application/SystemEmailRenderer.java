@@ -22,20 +22,17 @@ public final class SystemEmailRenderer {
     public SystemEmailRenderer(IcuMessageSource messages, TemplateEngine templates) {
         this.messages = messages; this.templates = templates; this.formats = new ClubFormats(ZoneOffset.UTC, messages);
     }
+    /**
+     * The SYSTEM codes (S11 R-11-01: product copy of `messages_*`, never a template) and N-02's welcome e-mail, whose S01
+     * magic link is a credential (E7-T02). Any other code belongs to the engine: `TEMPLATE_NOT_SENDABLE`.
+     */
+    static final Set<String> CODES = Set.of("N-02", "N-25", "N-26", "N-27", "N-39", "N-43", "N-52", "N-53");
     public EmailMessage render(String code, String to, Locale locale, Map<String, ?> variables,
                                ClubEmailSettings.Settings settings, Map<String, String> tags) {
-        return render(code, null, to, locale, variables, settings, tags);
-    }
-    /**
-     * `variant` selects another copy of the same catalog notification (`notif.{code}.{variant}.title|body`), e.g. the
-     * admins' N-01 (E3-T08, M9); the notification row keeps the catalog code.
-     */
-    public EmailMessage render(String code, String variant, String to, Locale locale, Map<String, ?> variables,
-                               ClubEmailSettings.Settings settings, Map<String, String> tags) {
-        if (!Set.of("N-01", "N-02", "N-03", "N-08a", "N-08b", "N-32a", "N-32b", "N-32c", "N-32d", "N-25", "N-26", "N-27", "N-39", "N-42", "N-36", "N-40", "N-47", "N-16", "N-17", "N-54", "N-19", "N-20").contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
+        if (!CODES.contains(code)) { throw new ApiException(ErrorCode.TEMPLATE_NOT_SENDABLE); }
         String link = null;
         String expiry = null;
-        if (Set.of("N-02","N-25","N-27","N-39").contains(code)) {
+        if (Set.of("N-02","N-25","N-27","N-39","N-53").contains(code)) {
             Object value = variables.get("link");
             try {
                 var uri = URI.create(value instanceof String text ? text : "");
@@ -49,7 +46,7 @@ public final class SystemEmailRenderer {
             expiry = messages.format("email.layout.expiry", Map.of("duration",
                     formats.formatDuration(Duration.ofMinutes(Set.of("N-02","N-39").contains(code) && variables.get("expires_minutes") instanceof Number minutes ? minutes.longValue() : settings.magicLinkMinutes()), locale)), locale);
         }
-        String key = "notif." + code + (variant == null ? "" : "." + variant);
+        String key = "notif." + code;
         String title = messages.format(key + ".title", variables, locale);
         String body = messages.format(key + ".body", variables, locale);
         String action = messages.format("email.layout.signIn", Map.of(), locale);

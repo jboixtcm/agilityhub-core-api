@@ -86,7 +86,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 - **Money**: `{ "amountMinor": 6000, "currency": "EUR" }` (mai decimals en JSON).
 - **LocalizedText**: a lectura, l'API retorna **el text resolt** al `locale` de l'usuari (`name: "…"`) **i** el mapa complet quan el recurs és editable pel backoffice (`nameI18n: {ca, es}`); a escriptura s'envia el mapa.
 - **Ids**: UUID v4 com a string. **Enums**: UPPER_SNAKE_CASE, valors documentats a l'OpenAPI.
-- **Fitxers**: pujada per **URL signada** (`POST /attachments/upload-url` → `{uploadUrl, fileKey}`; després `POST /attachments` amb `fileKey`); descàrrega per URL signada de curta durada. Una URL signada s'autoritza sola, també al perfil local (A31): el client no hi envia mai el bearer, i una signatura dolenta o caducada → `403` (organitzador 26-09, informe d'E4-W13). **Excepció:** l'enllaç de descàrrega d'una exportació (S14 R-14-12) també demana la sessió de qui l'ha demanada, perquè porta dades personals durant set dies; el client el baixa amb el seu bearer (organitzador 26-09, revisió d'E5-T24). Límits per paràmetre (`files.maxSizeMb`, tipus MIME permesos).
+- **Fitxers**: pujada per **URL signada** (`POST /attachments/upload-url` → `{uploadUrl, fileKey}`; després `POST /attachments` amb `fileKey`); descàrrega per URL signada de curta durada. Una URL signada s'autoritza sola, també al perfil local (A31): el client no hi envia mai el bearer, i una signatura dolenta o caducada → `403` (organitzador 26-09, informe d'E4-W13). **Excepció:** l'enllaç de descàrrega d'una exportació (S14 R-14-12) també demana la sessió de qui l'ha demanada, perquè porta dades personals durant set dies; el client el baixa amb el seu bearer (organitzador 26-09, revisió d'E5-T24). Una descàrrega respon el tipus MIME desat i el nom desat (`Content-Disposition`, exposat per CORS); les imatges s'hi mostren `inline`, excepte `image/svg+xml`, que sempre és `attachment`, i cada descàrrega porta `Content-Security-Policy: sandbox` (organitzador 27-09, revisió d'E5-T26, E61). Límits per paràmetre (`files.maxSizeMb`, tipus MIME permesos).
 
 ## 6. Errors
 
@@ -99,7 +99,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 
 ## 7. Idempotència i concurrència
 
-- Mutacions que poden repetir-se per reintents del mòbil (`POST /bookings`, `/training-bookings`, `/waitlist-entries/{id}/claim`, `/checkout-sessions`) accepten `Idempotency-Key` (UUID del client, 24 h); la segona crida retorna la mateixa resposta.
+- Mutacions que poden repetir-se per reintents del mòbil (`POST /bookings`, `/training-bookings`, `/waitlist-entries/{id}/claim`, `/checkout-sessions`) accepten `Idempotency-Key` (UUID del client, 24 h); la segona crida retorna la mateixa resposta. La clau s'aplica a **tota ruta que la declara**, sigui quin sigui el mètode (PUT i DELETE inclosos): el filtre del servidor i el middleware del web tenen en compte el mètode (organitzador 26-09, decisió E46). Una resposta desada només es reprodueix després que l'autorització de la ruta (rols i impersonació) hagi acceptat el token actual; si no, es respon el que respongui aquesta autorització (organitzador 27-09, revisió d'E6-T02, decisió E62).
 - Recursos editables al backoffice porten `version` (optimistic locking, `409 STALE_VERSION`).
 - Transaccions Mongo als fluxos: reserva amb SeatHold, consolidació de plaça, anul·lació de classe amb inscrits, validació de setmana, generació i retrocés de remesa, alta→validació.
 

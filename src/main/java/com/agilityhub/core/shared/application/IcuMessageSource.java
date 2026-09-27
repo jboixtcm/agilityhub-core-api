@@ -45,6 +45,13 @@ public final class IcuMessageSource implements MessageSource {
         return bundles.containsKey(locale) || bundles.containsKey(Locale.forLanguageTag(locale.getLanguage()));
     }
 
+    /** The unformatted pattern of the key in exactly this locale's bundle (no fallback), or `null` (S11 product seeds, E7-T02). */
+    public String patternIn(String code, Locale locale) {
+        Properties localized = bundles.get(locale);
+        if (localized == null) { localized = bundles.get(Locale.forLanguageTag(locale.getLanguage())); }
+        return localized == null ? null : localized.getProperty(code);
+    }
+
     public String format(String code, Map<String, ?> arguments, Locale locale) {
         return new MessageFormat(requiredPattern(code, locale), locale).format(arguments);
     }

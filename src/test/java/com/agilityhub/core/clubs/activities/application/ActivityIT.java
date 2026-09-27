@@ -156,8 +156,8 @@ class ActivityIT extends ActivityFixtures {
         var envelope=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("ActivityRegistrationChanged").and("payload.memberId").is("m1")
                 .and("payload.promoted").is(true)),Document.class,"domain_events");
         assertThat(envelope).containsEntry("origin","SYSTEM"); assertThat(envelope.get("actorAccountId")).isNull(); assertThat(envelope.get("impersonatedMemberId")).isNull();
-        String promotion=envelope.getString("_id"); // notification ids are eventId:memberId:channel
-        assertThat(notices("m1","N-32b")).filteredOn(n -> n.getString("_id").contains(promotion))
+        String promotion=envelope.getString("_id");
+        assertThat(notices("m1","N-32b")).filteredOn(n -> promotion.equals(n.getString("eventId")))
                 .as("the promotion is the system's: APP only").extracting(n -> n.getString("channel")).containsExactly("APP");
     }
     @Test void T_07_16_memberViewsFilterSelectedDogAndShowOwnRegistrationAndHistory() throws Exception {
@@ -356,18 +356,18 @@ class ActivityIT extends ActivityFixtures {
     @Test void T_07_28_notificationsUseAudienceRecipientLocaleAndGsmLimit() throws Exception {
         var a=ready(40,false);String id=a.path("id").asText();a=call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"levelIds",List.of("s07-D")),"admin","ADMIN",200);
         call("POST","/activities/"+id+"/publication",Map.of("notifyEmail",true),"admin","ADMIN",200);dispatch();
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-32a").and("accountId").is("s07-m31")),"notifications")).isZero();
+        assertThat(com.agilityhub.core.support.NotificationRows.count(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-32a").and("accountId").is("s07-m31"))).isZero();
         assertThat(count("notifications","code","N-32a")).isEqualTo(66);
         register(id,"m1",false,201); var current=call("GET","/activities/"+id,null,"admin","ADMIN",200);
         call("PATCH","/activities/"+id,Map.of("version",current.path("version").asLong(),"startTime","18:30"),"admin","ADMIN",200);dispatch();assertThat(count("notifications","code","N-32d")).isEqualTo(3);
         var enabled=EnumSet.allOf(Module.class);enabled.remove(Module.SMS);modules(enabled);
         assertThat(call("GET","/activities/"+id+"/cancellation-preview",null,"admin","ADMIN",200).path("registrations").get(0).path("channels").toString()).doesNotContain("SMS");
         call("POST","/activities/"+id+"/cancellation",Map.of("reason","CLUB_MANUAL","adminText","Pluja àèíòú 🙂 ".repeat(25)),"admin","ADMIN",200);dispatch();
-        var sms=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-32c").and("channel").is("SMS")),Document.class,"notifications");
+        var sms=com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-32c").and("channel").is("SMS")).stream().findFirst().orElse(null);
         assertThat(sms).isNotNull();assertThat(sms.getString("status")).isEqualTo("SKIPPED_MODULE_OFF");assertThat(sms.getString("body")).hasSizeLessThanOrEqualTo(160).doesNotContain("🙂");
     }
     @Test void T_07_17_T_07_28_publicPastCacheAndNotificationPreferences() throws Exception {
-        mongo.updateFirst(Query.query(Criteria.where("_id").is("m0")),new Update().set("notificationPreferences",Map.of("CLUB_CHANGES",Map.of("email",false,"sms",false))),"members");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("m0")),new Update().set("notificationPreferences",Map.of("emailByCategory",Map.of("CLUB_CHANGES",false))),"members");
         var a=published(5,false);String id=a.path("id").asText();register(id,"m0",false,201);register(id,"m1",false,201);dispatch();
         mvc.perform(get("/api/v1/public/"+CLUB+"/activities").param("scope","invalid").header("X-Api-Key",KEY)).andExpect(status().isBadRequest());
         var path="/api/v1/public/"+CLUB+"/activities/"+a.path("slug").asText();
@@ -375,9 +375,9 @@ class ActivityIT extends ActivityFixtures {
         mvc.perform(get(path).header("X-Api-Key",KEY)).andExpect(status().isOk());
         a=call("GET","/activities/"+id,null,"admin","ADMIN",200);
         call("PATCH","/activities/"+id,Map.of("version",a.path("version").asLong(),"date","2026-09-16","startTime","18:30","endTime","20:30","location",Map.of("atClub",false,"name","Example park")),"admin","ADMIN",200);dispatch();
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("accountId").is("s07-m0").and("code").is("N-32d")),"notifications")).isEqualTo(1);
-        assertThat(count("notifications","code","N-32d")).isEqualTo(4);
-        var app=mongo.findOne(Query.query(Criteria.where("clubId").is(CLUB).and("accountId").is("s07-m1").and("code").is("N-32d").and("channel").is("APP")),Document.class,"notifications");
+        assertThat(notices("m0","N-32d")).as("S11 R-11-02: the e-mail switched off, APP and SMS fixed").extracting(n -> n.getString("channel")+":"+n.getString("status")).containsExactlyInAnyOrder("APP:DELIVERED","EMAIL:SKIPPED_BY_PREFERENCE","SMS:SENT");
+        assertThat(count("notifications","code","N-32d")).isEqualTo(6);
+        var app=com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("accountId").is("s07-m1").and("code").is("N-32d").and("channel").is("APP")).stream().findFirst().orElse(null);
         assertThat(app.getString("locale")).isEqualTo("en");assertThat(app.get("variables",Document.class).getString("activity_title")).isEqualTo("Example activity");
         try(var tenant=TenantContext.open(CLUB)) {
             var end=activities.require(id).endsAt();clock.setInstant(end.plusSeconds(1));assertThat(lifecycle.finishEnded(clock.instant())).isEqualTo(1);
@@ -393,7 +393,7 @@ class ActivityIT extends ActivityFixtures {
                 .stream().map(e -> e.get("payload",Document.class)).toList();
     }
     List<Document> notices(String member,String code) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("accountId").is("s07-"+member).and("code").is(code)),Document.class,"notifications");
+        return com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("accountId").is("s07-"+member).and("code").is(code));
     }
     @Test void T_07_17_apiKeyIsCheckedBeforeTheClubAndTheModule() throws Exception {
         String slug=published(5,false).path("slug").asText(); var enabled=EnumSet.allOf(Module.class); enabled.remove(Module.ACTIVITIES); modules(enabled);

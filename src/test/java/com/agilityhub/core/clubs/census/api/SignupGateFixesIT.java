@@ -94,7 +94,11 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
     }
     JsonNode submit(Object body) throws Exception { return submit(body,201); }
     Document member(String id) {return mongo.getCollection("members").find(new Document("_id",id).append("clubId",club)).first();}
-    List<Document> collection(String name) {return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());}
+    /** E7-T02: `notifications` reads as the E1–E6 rows, one per delivery (`NotificationRows`). */
+    List<Document> collection(String name) {
+        if("notifications".equals(name)) return com.agilityhub.core.support.NotificationRows.rows(mongo,club,(org.springframework.data.mongodb.core.query.Criteria)null);
+        return mongo.getCollection(name).find(new Document("clubId",club)).into(new ArrayList<>());
+    }
     List<Document> rows(String memberId) {return mongo.getCollection("upfront_payments").find(new Document("clubId",club).append("memberId",memberId)).into(new ArrayList<>());}
     String pendingDog(String id) {return collection("dogs").stream().filter(d->id.equals(d.getString("memberId"))&&"PENDING".equals(d.getString("status"))).findFirst().orElseThrow().getString("_id");}
     JsonNode review(String id) throws Exception { return result(admin(get("/api/v1/members/"+id+"/signup").header("Host",host)),200); }
@@ -204,30 +208,30 @@ class SignupGateFixesIT extends AbstractIntegrationTest {
         var appRows=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"APP".equals(n.getString("channel"))).toList();
         // Round 2, point 5: the admins' APP row is the admin copy, with its own variables.
         assertThat(appRows).hasSize(1).allSatisfy(n -> {
-            assertThat(n.getString("accountId")).isEqualTo(admin);assertThat(n.getString("variant")).isEqualTo("admin");
+            assertThat(n.getString("accountId")).isEqualTo(admin);assertThat(n.getString("audience")).isEqualTo("ADMINS");assertThat(n.get("variables",Document.class).getString("audience")).isEqualTo("STAFF");
             var variables=n.get("variables",Document.class);
             assertThat(variables.getString("action")).isEqualTo("OPEN_SIGNUP");assertThat(variables.getString("entityId")).isEqualTo(id);
             assertThat(variables.getString("member_name")).isEqualTo("Example "+body.at("/person/lastName1").asText());
             assertThat(variables.getString("dogs")).isEqualTo(body.at("/dog/name").asText());assertThat(variables.getString("plan_name")).isEqualTo("Example");
             assertThat(variables).doesNotContainKeys("upfront_total","payment_instructions");
         });
-        assertThat(collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel"))).map(n -> n.getString("variant")))
-                .containsExactlyInAnyOrder("upfront","admin");
+        assertThat(collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"EMAIL".equals(n.getString("channel"))).map(n -> n.getString("audience")))
+                .containsExactlyInAnyOrder("APPLICANT","ADMINS");
         // The add-dog N-01 (§8: the member gets APP+EMAIL, the admins their own copy with OPEN_SIGNUP; the member's never).
         validate(id);dispatch();mailbox.clear();String account=member(id).getString("accountId");
         result(asMember(postJson("/me/dogs/signup",addDog("941000009000001")).header("Idempotency-Key",UUID.randomUUID()),id),201);dispatch();
         assertThat(mailbox.lastTo(email).text()).contains("Hem rebut la teva sol·licitud per a Added Dog 001","130,00",instructions.get("ca"));
         assertThat(mailbox.lastTo(admin+"@example.test").text()).contains("ha enviat una sol·licitud per a Added Dog 001 (Example)");
-        var memberApp=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&account.equals(n.getString("accountId"))).findFirst().orElseThrow();
+        var memberApp=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"APP".equals(n.getString("channel"))&&account.equals(n.getString("accountId"))).findFirst().orElseThrow();
         // The member's APP row is the applicant copy: the total and the instructions, never the D2 action.
-        assertThat(memberApp.getString("channel")).isEqualTo("APP");assertThat(memberApp.getString("variant")).isEqualTo("upfront");
+        assertThat(memberApp.getString("channel")).isEqualTo("APP");assertThat(memberApp.getString("audience")).isEqualTo("APPLICANT");
         var memberVariables=memberApp.get("variables",Document.class);
         assertThat(memberVariables).doesNotContainKeys("action","entityId");
         assertThat(memberVariables.getString("upfront_total")).contains("130,00");assertThat(memberVariables.getString("payment_instructions")).isEqualTo(instructions.get("ca"));
         assertThat(memberVariables.getString("dogs")).isEqualTo("Added Dog 001");
         var adminApp=collection("notifications").stream().filter(n -> "N-01".equals(n.getString("code"))&&"APP".equals(n.getString("channel"))&&admin.equals(n.getString("accountId"))
                 &&"Added Dog 001".equals(n.get("variables",Document.class).getString("dogs"))).findFirst().orElseThrow();
-        assertThat(adminApp.getString("variant")).isEqualTo("admin");assertThat(adminApp.get("variables",Document.class).getString("action")).isEqualTo("OPEN_SIGNUP");
+        assertThat(adminApp.getString("audience")).isEqualTo("ADMINS");assertThat(adminApp.get("variables",Document.class).getString("action")).isEqualTo("OPEN_SIGNUP");
         assertThat(adminApp.get("variables",Document.class)).doesNotContainKeys("upfront_total","payment_instructions");
     }
 

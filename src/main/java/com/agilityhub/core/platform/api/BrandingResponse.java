@@ -7,15 +7,22 @@ import java.util.List;
 /** Explicit public allowlist: never serialize the persistence Club or resolved parameter map. */
 public record BrandingResponse(ClubSummary club, Theme theme, List<String> locales, String defaultLocale,
                                String timeZone, String currency, Country countryProfile, List<String> modules,
-                               Signup signup, String status, Legal legal) {
-    public static BrandingResponse from(ClubConfig config) {
+                               Signup signup, String status, Legal legal,
+                               @io.swagger.v3.oas.annotations.media.Schema(requiredMode = io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED,
+                                       types = {"string", "null"}, description = "S11 R-11-07 (E7-T02): the VAPID public key (base64url) the browser "
+                                       + "subscribes with (`PushManager.subscribe`); null when the club has no PUSH module or the product has no key.")
+                               String pushPublicKey) {
+    /** Without a push key (E0–E6 callers). */
+    public static BrandingResponse from(ClubConfig config) { return from(config, null); }
+    public static BrandingResponse from(ClubConfig config, String pushPublicKey) {
         var club = config.club(); var profile = config.countryProfile();
         var office = club.legalAddress();
         return new BrandingResponse(new ClubSummary(club.slug(), club.name(), club.city(), blankToNull(club.legalName()), blankToNull(club.taxId()),
                 office == null ? null : new LegalAddress(office.street(), office.postalCode(), office.city())), club.theme(), club.locales(), club.defaultLocale(),
                 club.timeZone(), club.currency(), new Country(profile.code(), profile.idDocumentTypes(), profile.defaultPhonePrefix()),
                 config.modules().stream().map(Enum::name).sorted().toList(), new Signup(Boolean.TRUE.equals(config.get("signup.enabled", Boolean.class))),
-                club.status(), new Legal(club.privacyPolicyUrl()));
+                club.status(), new Legal(club.privacyPolicyUrl()),
+                pushPublicKey != null && config.modules().contains(com.agilityhub.core.platform.application.Module.PUSH) ? pushPublicKey : null);
     }
     /**
      * R-02-02 (amended 24-09): `legalName` and `taxId` are the club's public business identifiers, which LSSI art. 10 asks

@@ -182,9 +182,7 @@ class TrainingRulesTest {
         assertThat(TrainingRules.bookable(false, madrid("2026-10-05T09:00"), clock.instant(), today, today, 3)).as("not free").isFalse();
     }
 
-    @Test void smsBodiesAreGsm7AndAtMost160Characters() {
-        assertThat(TrainingSms.compact("Club: el club ha anul·lat l’entrenament de Rock del dilluns, 5 d’octubre de 2026 de 8:30–9:00 (Muntanya).").chars().allMatch(c -> c < 128)).isTrue();
-        assertThat(TrainingSms.compact("x".repeat(200))).hasSize(160).endsWith("...");
+    @Test void slotIdsAreRingAndInstant() {
         assertThat(TrainingGrid.Slot.slotId("r", Instant.parse("2026-10-05T06:30:00Z"))).isEqualTo("r_2026-10-05T06:30:00Z");
     }
 }

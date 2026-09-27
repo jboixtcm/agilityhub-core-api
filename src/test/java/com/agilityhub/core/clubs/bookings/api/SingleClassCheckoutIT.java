@@ -182,7 +182,7 @@ class SingleClassCheckoutIT extends BookingFixtures {
         assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
         // E30 changes nothing on the timeout path: N-40 is sent.
         assertThat(eventsOf("BookingCancelled")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).doesNotContainKey("checkoutFailed"));
-        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-40")), Document.class, "notifications"))
+        assertThat(com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-40")))
                 .extracting(n -> n.getString("accountId")).containsOnly("s08-laura").isNotEmpty();
     }
 
@@ -273,7 +273,7 @@ class SingleClassCheckoutIT extends BookingFixtures {
             assertThat(eventsOf("UpfrontPaymentSucceeded")).isEmpty();
             assertThat(events("BookingCreated")).isZero();
             assertThat(events("BookingCancelled")).isEqualTo(1);
-            assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-40")), Document.class, "notifications"))
+            assertThat(com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is("N-40")))
                     .extracting(n -> n.getString("accountId")).containsOnly("s08-laura").isNotEmpty();
             // A provider retry keeps the first mark and logs nothing more.
             clock.setInstant(NOW.plus(Duration.ofMinutes(40)));

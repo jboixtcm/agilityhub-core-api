@@ -130,6 +130,14 @@ public class CensusRepository<T extends CensusEntity> extends TenantRepository<T
     public void increment(String id, String field) {
         mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id)), new Update().inc(field, 1), mongo.getCollectionName(type));
     }
+    /**
+     * A conditional write of the tenant owned by another vertical that is a census change (S11 R-11-08: the bounced mark and
+     * the unsubscribe of `CLUB_NEWS`): the entity-class update bumps `@Version`, so a D10 form saved on the old version gets
+     * `STALE_VERSION` instead of silently undoing it. Returns whether a document changed.
+     */
+    public boolean updateFirst(Criteria criteria, Update update) {
+        return mongo.updateFirst(tenantQuery().addCriteria(criteria), update, type).getModifiedCount() == 1;
+    }
     public void lock() {
         mongo.upsert(tenantQuery().addCriteria(Criteria.where("_id").is(com.agilityhub.core.shared.application.TenantContext.require() + ":census")), new Update().inc("sequence", 1), "census_write_locks");
     }

@@ -143,38 +143,8 @@ class E7PersistenceIT extends AbstractIntegrationTest {
         }
     }
 
-    /** The helpers keep their signatures and semantics; each row is now one S11 document with a single delivery (dedupKey = the id). */
-    @Test void WP_11_A_theHelpersWriteOneS11NotificationWithASingleDeliveryAndMoveItWithTheFlatFields() {
-        try (var scope = TenantContext.open(CLUB)) {
-            service.appOnce("e7p-app", "N-15", "e7p-account", Map.of("dog_name", "Duna", "action", "CLAIM_SEAT", "entityId", "entry-a"));
-            service.smsIntentOnce("e7p-sms", "N-15", "e7p-account", "ca", List.of("+34600000001", "+34600000002"), "Plaça lliure", true,
-                    Map.of("action", "CLAIM_SEAT", "entityId", "entry-a"));
-            service.pushIntentOnce("e7p-push", "N-15", "e7p-account", "ca", false, Map.of("dog_name", "Duna"));
-            service.appOnce("e7p-app", "N-15", "e7p-account", Map.of());
-            assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB)), "notifications")).isEqualTo(3);
-            var app = raw("e7p-app");
-            assertThat(app).containsEntry("dedupKey", "e7p-app").containsEntry("code", "N-15").containsEntry("category", "OPERATIONAL")
-                    .containsEntry("audience", "MEMBER").containsEntry("icon", "unlock").containsEntry("color", "ACCENT")
-                    .containsEntry("accountId", "e7p-account").containsEntry("channel", "APP").containsEntry("status", "SENT");
-            assertThat(app.get("recipient", Document.class)).containsEntry("accountId", "e7p-account");
-            assertThat(app.getList("deliveries", Document.class)).singleElement().satisfies(delivery -> assertThat(delivery)
-                    .containsEntry("channel", "APP").containsEntry("target", "e7p-account").containsEntry("status", "SENT"));
-            assertThat(app.get("variables", Document.class)).containsEntry("dog_name", "Duna");
-            var sms = raw("e7p-sms");
-            assertThat(sms.getList("recipientPhones", String.class)).containsExactly("+34600000001", "+34600000002");
-            assertThat(sms).containsEntry("body", "Plaça lliure").containsEntry("smsBody", "Plaça lliure").containsEntry("status", "QUEUED");
-            assertThat(sms.get("action", Document.class)).isEqualTo(new Document("type", "CLAIM_SEAT").append("params", new Document("entityId", "entry-a")));
-            assertThat(sms.getList("deliveries", Document.class)).singleElement().satisfies(delivery -> assertThat(delivery)
-                    .containsEntry("channel", "SMS").containsEntry("status", "QUEUED"));
-            assertThat(notifications.findById("e7p-sms").orElseThrow().action()).isEqualTo(new Notification.Action(NotificationActionType.CLAIM_SEAT, Map.of("entityId", "entry-a")));
-            assertThat(raw("e7p-push").getList("deliveries", Document.class).getFirst()).containsEntry("status", "SKIPPED_MODULE_OFF");
-            // Feed 11 / the bell: one APP delivery unread.
-            assertThat(notifications.unreadApp("e7p-account")).isEqualTo(1);
-            // NotificationQueued carries each row's channel.
-            var channels = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is("NotificationQueued")), Document.class, "domain_events")
-                    .stream().map(e -> e.get("payload", Document.class).getString("channel")).toList();
-            assertThat(channels).containsExactlyInAnyOrder("APP", "SMS", "PUSH");
-        }
+    /** The SYSTEM path (E7-T02 removed the E3–E6 row helpers): each row is one S11 document with a single delivery (dedupKey = the id). */
+    @Test void WP_11_A_theSystemPathWritesOneS11NotificationWithASingleDeliveryAndMovesItWithTheFlatFields() {
         // The SYSTEM e-mail (clubId null): QUEUED then SENT, the delivery and the flat fields together.
         String id = service.send("N-26", "e7p-account", Map.of());
         var email = mongo.getCollection("notifications").find(new Document("_id", id)).first();

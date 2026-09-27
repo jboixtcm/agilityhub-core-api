@@ -1,6 +1,7 @@
 package com.agilityhub.core.platform.application.jobs;
 
-import com.agilityhub.core.clubs.common.application.JobFailureNotifications;
+import com.agilityhub.core.clubs.messaging.application.engine.NotificationEngine;
+import com.agilityhub.core.support.NotificationRows;
 import com.agilityhub.core.identity.domain.Role;
 import com.agilityhub.core.identity.persistence.Account;
 import com.agilityhub.core.identity.persistence.Membership;
@@ -53,7 +54,7 @@ class JobFrameworkIT extends AbstractIntegrationTest {
     @Autowired TestNoopJob job;
     @Autowired JobTriggerService triggers;
     @Autowired JobLockRepository locks;
-    @Autowired JobFailureNotifications alerts;
+    @Autowired NotificationEngine engine; @Autowired org.springframework.transaction.PlatformTransactionManager notificationTransactions;
     @Autowired MongoTemplate mongo;
     @Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs;
@@ -93,6 +94,10 @@ class JobFrameworkIT extends AbstractIntegrationTest {
     private List<Document> events(String type) {
         return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type))
                 .with(org.springframework.data.domain.Sort.by("occurredAt", "_id")), Document.class, "domain_events");
+    }
+    /** A stored `JobFailed` handed to the S11 engine as its outbox consumer does (`notifications.JobFailed`, E7-T02). */
+    private void alert(Document event) throws Exception {
+        NotificationRows.deliver(engine, notificationTransactions, event.getString("_id"), mapper.readValue(event.getString("eventJson"), SchedulerEvent.class));
     }
     private Map<String, Long> counts() {
         var result = new TreeMap<String, Long>();
@@ -383,19 +388,19 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         var jobFailed = events("JobFailed");
         assertThat(jobFailed).hasSize(2);
         assertThat(((Document) jobFailed.getFirst().get("payload"))).containsEntry("job", "TEST_NOOP").containsEntry("status", "FAILED").containsEntry("errorCount", 1);
-        for (var event : jobFailed) { alerts.deliver(mapper.readValue(event.getString("eventJson"), SchedulerEvent.class)); }
-        var n42 = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-42")), Document.class, "notifications");
+        for (var event : jobFailed) { alert(event); }
+        var n42 = NotificationRows.rows(mongo, CLUB, "N-42");
         assertThat(n42).extracting(n -> n.getString("channel")).containsExactlyInAnyOrder("APP", "EMAIL");
         // A failure on the next local day alerts again; with jobs.alertAdminsOnFailure=false nothing is sent.
         clock.setInstant(at("2026-10-05T22:30:00Z"));
         runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN);
-        alerts.deliver(mapper.readValue(events("JobFailed").getLast().getString("eventJson"), SchedulerEvent.class));
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-42")), "notifications")).isEqualTo(4);
+        alert(events("JobFailed").getLast());
+        assertThat(NotificationRows.rows(mongo, CLUB, "N-42")).hasSize(4);
         parameter("jobs.alertAdminsOnFailure", false);
         clock.setInstant(at("2026-10-06T22:30:00Z"));
         runner.manual(CLUB, JobName.TEST_NOOP, false, ADMIN);
-        alerts.deliver(mapper.readValue(events("JobFailed").getLast().getString("eventJson"), SchedulerEvent.class));
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-42")), "notifications")).isEqualTo(4);
+        alert(events("JobFailed").getLast());
+        assertThat(NotificationRows.rows(mongo, CLUB, "N-42")).hasSize(4);
         // Micrometer names of R-15-10.
         assertThat(metrics.find("jobs.run.duration").tags("job", "TEST_NOOP", "status", "PARTIAL").timer()).isNotNull();
         assertThat(metrics.find("jobs.run.duration").tags("job", "TEST_NOOP", "status", "FAILED").timer().count()).isGreaterThanOrEqualTo(3);
@@ -415,8 +420,8 @@ class JobFrameworkIT extends AbstractIntegrationTest {
         assertThat(missed.skipReason()).isEqualTo(SkipReason.MISSED_WINDOW);
         assertThat(missed.trigger()).isEqualTo(JobTrigger.CATCH_UP);
         assertThat(events("JobFailed")).singleElement().satisfies(event -> assertThat(((Document) event.get("payload"))).containsEntry("status", "SKIPPED"));
-        alerts.deliver(mapper.readValue(events("JobFailed").getFirst().getString("eventJson"), SchedulerEvent.class));
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-42")), "notifications")).isPositive();
+        alert(events("JobFailed").getFirst());
+        assertThat(NotificationRows.rows(mongo, CLUB, "N-42")).isNotEmpty();
         assertThat(job.applied()).isEqualTo(1);
         var caughtUp = runner.scheduled(CLUB, true, job, at("2026-10-07T21:00:00Z")).orElseThrow();
         assertThat(caughtUp.trigger()).isEqualTo(JobTrigger.CATCH_UP);

@@ -165,7 +165,11 @@ abstract class BookingFixtures extends AbstractIntegrationTest {
         return claim(auth, entryId, holdId, swapId, expected, UUID.randomUUID().toString());
     }
     Document entry(String id) { return mongo.findById(id, Document.class, "waitlist_entries"); }
-    long count(String collection, Criteria criteria) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection); }
+    long count(String collection, Criteria criteria) {
+        // E7-T02: the S11 notifications are counted as the E1–E6 rows, one per delivery.
+        if ("notifications".equals(collection)) { return com.agilityhub.core.support.NotificationRows.count(mongo, new Criteria().andOperator(Criteria.where("clubId").is(CLUB), criteria)); }
+        return mongo.count(Query.query(Criteria.where("clubId").is(CLUB)).addCriteria(criteria), collection);
+    }
     long events(String type) { return count("domain_events", Criteria.where("type").is(type)); }
     List<Document> eventsOf(String type) { return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("type").is(type)), Document.class, "domain_events"); }
     Document booking(String id) { return mongo.findById(id, Document.class, "bookings"); }

@@ -1,7 +1,6 @@
 package com.agilityhub.core.clubs.bookings.application;
 
 import com.agilityhub.core.clubs.bookings.application.jobs.NoShowNoticesJob;
-import com.agilityhub.core.clubs.bookings.persistence.Attendance;
 import com.agilityhub.core.shared.application.IcuMessageSource;
 import java.time.LocalDate;
 import java.util.Locale;
@@ -11,17 +10,16 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * S10 §8 / R-10-06 (E6-T04): N-19 renders in the recipient's language with the class's own date written out in full,
- * never «ahir»/«ayer»/«yesterday» (the batch can be days late). Prints the rendered texts (the evidence of three languages).
+ * never «ahir»/«ayer»/«yesterday» (the batch can be days late). Since E7-T02 the engine formats that date
+ * (`NotificationValues.AbsoluteDate` → `ClubFormats.formatFullDate`). Prints the rendered texts (the evidence of three languages).
  */
 class NoShowNotificationTextsTest {
     private final IcuMessageSource messages = new IcuMessageSource();
     NoShowNotificationTextsTest() throws java.io.IOException { }
-    private static Attendance on(LocalDate date) {
-        return new Attendance("a", "club", "b", "c", date, null, null, "d", "m", null, null, null, null, null, java.util.List.of(), 0L, null, null);
-    }
     private String render(String language) {
         var locale = Locale.forLanguageTag(language);
-        var variables = Map.<String, Object>of("dog_name", "Mel", "class_date", NoShowNotifications.classDate(on(LocalDate.of(2026, 10, 12)), locale));
+        var formats = new com.agilityhub.core.platform.application.ClubFormats(java.time.ZoneId.of("Europe/Madrid"), messages);
+        var variables = Map.<String, Object>of("dog_name", "Mel", "class_date", formats.formatFullDate(LocalDate.of(2026, 10, 12), locale));
         String text = messages.format("notif.N-19.title", variables, locale) + " | " + messages.format("notif.N-19.body", variables, locale);
         System.out.println("E6-T04 N-19 " + language + ": " + text);
         return text;

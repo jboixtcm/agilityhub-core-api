@@ -22,7 +22,7 @@ class ActivityApiServiceTest {
     final ListEngine lists = mock(ListEngine.class);
     final ActivityProjection projection = mock(ActivityProjection.class);
     final ActivityApiService service = new ActivityApiService(mock(ActivityService.class), mock(ActivityLifecycleService.class),
-            mock(ActivityRegistrationService.class), projection, mock(ActivityQueryService.class), mock(ActivityNotifications.class),
+            mock(ActivityRegistrationService.class), projection, mock(ActivityQueryService.class),
             mock(SchedulingRecipients.class), lists);
 
     static Map<String, Object> row(String id, String state) { var row = new LinkedHashMap<String, Object>(); row.put("id", id); if (state != null) row.put("state", state); return row; }

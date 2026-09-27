@@ -23,6 +23,19 @@ email:
     api-key: ${SENDGRID_API_KEY:}
     webhook-public-key: ${SENDGRID_WEBHOOK_PUBLIC_KEY:}
 
+# S11 notification engine (E7-T02): SMS (Twilio), web push (VAPID) and the signed CLUB_NEWS unsubscribe links.
+notifications:
+  unsubscribe-key: ${EMAIL_UNSUBSCRIBE_KEY:}
+  sms:
+    twilio-account-sid: ${TWILIO_ACCOUNT_SID:}
+    twilio-auth-token: ${TWILIO_AUTH_TOKEN:}
+    twilio-messaging-service-sid: ${TWILIO_MESSAGING_SERVICE_SID:}
+    allowed-numbers: ${SMS_ALLOWED_NUMBERS:}
+  push:
+    vapid-public-key: ${VAPID_PUBLIC_KEY:}
+    vapid-private-key: ${VAPID_PRIVATE_KEY:}
+    vapid-subject: ${VAPID_SUBJECT:}
+
 identity:
   issuer: ${AUTH_ISSUER:https://id.agilitydoghub.com}
   seed-password: ${SEED_PASSWORD:}

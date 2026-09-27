@@ -49,7 +49,7 @@ Ompliment = files informades **sobre les 184 altes** (entre parèntesis, sobre l
 | 27 | Data baixa | (1.245) | `Member.leaveDate` + `leftAt` + `leftReason = MIGRATED` | |
 | 28 | IBAN | 158 | `Member.paymentMethod.SEPA_DD.iban` (xifrat) | **26 altes amb domiciliació i sense IBAN** → incidència `NO_BANK_ACCOUNT` («Compte no informat») |
 | 29 | Titular banc | 118 | `paymentMethod.SEPA_DD.holderName` | buit → nom de l'abonat |
-| 30 | App+Notificacions | 184 | `Member.notificationPreferences` | `No` (una tercera part) → només avisos essencials; `Sí` → per defecte del club |
+| 30 | App+Notificacions | 184 | `Member.notificationPreferences` | `No` (una tercera part) → només avisos essencials (`emailByCategory.CLUB_NEWS = false` i `pushClubNews = false`; la resta, els valors per defecte del producte; organitzador 27-09, E66); `Sí` → per defecte del club |
 | 31 | Observacions | 9 | `Member.internalNotes` | notes internes (ADMIN) |
 | 32–36 | Impagats · Import impagats · Data impagat · Pendents · Import pendents | **0 / 0 €** | — | confirma la resposta B8 del Josep: **no hi ha cap impagat** |
 | 37 | Mètode pagament | 184 | `Member.paymentMethod.type` | `Domiciliació bancària → SEPA_DD` (177) · `Transferència → MANUAL{TRANSFER}` (1) · `Paga en efectiu → MANUAL{CASH}` (6) |

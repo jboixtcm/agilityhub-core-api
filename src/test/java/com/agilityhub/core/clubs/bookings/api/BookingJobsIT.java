@@ -38,7 +38,7 @@ class BookingJobsIT extends BookingFixtures {
         var map = new TreeMap<String, Long>(); run.counters().forEach(e -> map.put(e.key(), ((Number) e.value()).longValue())); return map;
     }
     private List<Document> notifications(String code) {
-        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("code").is(code)), Document.class, "notifications");
+        return com.agilityhub.core.support.NotificationRows.find(mongo,Criteria.where("clubId").is(CLUB).and("code").is(code));
     }
 
     @Test void T_15_24_T_08_34_aFifoOfferExpiresAtConfirmByIntoTheNextEntryOnce() throws Exception {

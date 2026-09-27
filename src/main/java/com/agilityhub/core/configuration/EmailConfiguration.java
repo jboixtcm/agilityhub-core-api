@@ -60,8 +60,10 @@ public class EmailConfiguration {
                 new TransactionTemplate(manager), messages, clock, from.isBlank() ? "no-reply@example.test" : from);
     }
     @Bean SendGridWebhookService sendGridWebhooks(NotificationRepository notifications, SendGridWebhookReceiptRepository receipts,
-            NotificationAccounts accounts, EventPublisher events, PlatformTransactionManager manager, Clock clock) {
-        return new SendGridWebhookService(notifications, receipts, accounts, events, new TransactionTemplate(manager), clock);
+            NotificationAccounts accounts, EventPublisher events, PlatformTransactionManager manager, Clock clock,
+            com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort members,
+            com.agilityhub.core.clubs.messaging.application.ports.MemberContactsWriterPort writer) {
+        return new SendGridWebhookService(notifications, receipts, accounts, events, new TransactionTemplate(manager), clock, members, writer);
     }
     @Bean ApplicationRunner emailCollections(MongoTemplate mongo) {
         return args -> {

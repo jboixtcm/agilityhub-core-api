@@ -266,8 +266,6 @@ class BookingRulesTest {
                 .startsWith("BEGIN:VCALENDAR\r\n").endsWith("END:VCALENDAR\r\n");
         assertThat(BookingCalendar.google(event)).startsWith("https://calendar.google.com/").contains("dates=20261015T165000Z/20261015T175000Z");
         assertThat(BookingCalendar.outlook(event)).startsWith("https://outlook.live.com/").contains("startdt=2026-10-15T16%3A50%3A00Z");
-        assertThat(BookingSms.compact("Àlex ha reservat «B+C» — prova")).isEqualTo("Alex ha reservat  B+C    prova");
-        assertThat(BookingSms.compact("x".repeat(200))).hasSize(160).endsWith("...");
     }
 
     private static BookingEligibility.Person person(String status, boolean blocked, String reason) { return new BookingEligibility.Person(status, blocked, reason, null); }

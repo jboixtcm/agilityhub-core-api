@@ -32,8 +32,8 @@ Order: T01 → T02 → T03 → T04 → T05 → T06 → T07 → T08 → T09 → T
 - [x] Password login with `admin@example.test` at the Cànic host → `/me` with `roles [ADMIN]`; same account at the minimal host → `403 NO_MEMBERSHIP` (E0-T09/E1 ITs, `bin/e1-smoke`).
 - [x] CI green with T-02-01/02/03/04/06/07/12, tenant-repository test, `RequiresModuleIT`, `AuditContractTest`, `OutboxIT`, `IdempotencyIT`, `RateLimitIT`, message parity (`061671a`: 349 unit + 430 IT).
 - [x] `docs/openapi/openapi.json` committed and the CI diff proven (E0-T12; snapshot job in `ci.yml`).
-- [ ] Staging answers (`/health`) and one backup has been restored — **deferred by Jordi** (E0-T13 waits for SSH/DNS); not a blocker for the tag.
-- [ ] Playbooks written — `docs/DEPLOY.md` covers compose, proxy, storage and the gate check; backup/restore playbook lands with E0-T13.
+- [~] Staging answers (`/health`) and one backup has been restored — **deferred to the release** (A31, 24-09: everything is proven on the local Docker stack until the release; E0-T13 is re-scoped into E11-T04 (deploy assets provable locally) + E12-T01 (release deployment)); not a blocker for the tag (organizer 26-09).
+- [x] Playbooks written — `docs/playbooks/` (E0-T14, verified 06-09); the backup/restore playbook lands with E11-T04 (organizer 26-09).
 
 ## E1 · AgilityHub ID (thread C) — OPENED 2026-09-06 (E1-T01 ready; the rest open in order as their dependencies are verified; E0-T13 staging deferred until Jordi provides SSH/DNS)
 Decisions needed first: A1 (applied), A2, A3, A4 of `docs/DECISIONS_PENDENTS.md`; SendGrid account.
@@ -43,7 +43,7 @@ Added 06-09: **E1-T11** OpenAPI required-by-default for DTO schemas (springdoc c
 
 Added 09-09: **E1-T13** A1 cookie delivery of the refresh token for browser clients (`tokenDelivery = COOKIE`) + A3 platform-roles API/CLI; DEPLOY proxy recipe.
 
-**Gate E1 checklist (organizer, 2026-09-09)** — backend side: [x] E1-T01…T07, T09, T10, T11, T13 verified · [x] `bin/e1-smoke` green locally (magic link, cookie sessions, lockout, impersonation, handoff, OIDC, Learn dry-run) · [ ] staging smoke + real SendGrid N-25 (needs E0-T13: SSH/DNS from Jordi) · [ ] E1-T08 Learn adapter + `POST /platform/accounts` / `PUT /accounts/{id}/password` implemented (currently 501; needs the Laravel repo) · [ ] web E1-W07 (cookie mode) + E1-W04 (front integration) verified. E2 work continues in parallel; the gate closes when the four open boxes are ticked.
+**Gate E1 checklist (organizer, 2026-09-09)** — backend side: [x] E1-T01…T07, T09, T10, T11, T13 verified · [x] `bin/e1-smoke` green locally (magic link, cookie sessions, lockout, impersonation, handoff, OIDC, Learn dry-run) · [~] staging smoke + real SendGrid N-25 — deferred to the release (A31) → E12-T01 (organizer 26-09) · [~] E1-T08 Learn adapter + `POST /platform/accounts` / `PUT /accounts/{id}/password` — post-R1 by A30 (prepared, not linked; organizer 26-09) · [x] web E1-W07 (cookie mode) + E1-W04 (front integration) verified (09-09). **GATE E1: passed with deferrals** (organizer 26-09: the two remaining boxes are release/post-R1 items, not gate blockers).
 
 Added 09-09: **E1-T14** CI publishes the api image to GHCR + `docker-compose.consumer.yml` (web integration E1-W04 and staging run the published image).
 
@@ -55,7 +55,7 @@ Planned tasks: E2-T01 contracts (S02-B, S03, S05, S14) · E2-T02 parameters API 
 - [x] Catalogs (levels, rings, FAQ, plans/prices, team) and parameters generated from the catalog with `lastChange`; club pages (E2-T02…T05, T09, T12).
 - [x] `migration:playoff --dry-run` on anonymised fixtures: report without errors, no real data in the repo (E2-T10).
 - [x] `club:apply` + `seed:demo` idempotent: 184 active / 194 members, 242 dogs (E2-T11) — local stack; the staging load waits for E0-T13.
-- [ ] D5/D15 < 500 ms with two filters on the demo seed — measured by the web integration task E2-W07.
+- [x] D5/D15 < 500 ms with two filters on the demo seed — measured by E2-W07 (verified 19-09): 45.5–57.7 ms on the local stack with the 184-member seed. **GATE E2: passed** (organizer 26-09).
 
 ## E3 · Public signup + dashboard (thread A) — task files installed 09-09 (`not_open`; the organizer opens E3-T01 at gate E2)
 Planned tasks: E3-T01 contract S04 (`/signup*`, `/checkout-sessions`, `/me/dogs/signup`, `/members/{id}/signup|validation|rejection`, virtual list fields) + dashboard schema check against S14 §6 · E3-T02 signup domain (id documents/phones/postal codes per country profile, `FirstMonthCalculator`, `UpfrontAllocator`, `FamilyHolderMatcher`, `SignupPlanCatalog`, upfront lines, state machines; T-04-01…10) · E3-T03 signup endpoints (public flow, identity checks, uploads, family lookups, D2 validation/rejection, add-dog, `PaymentProvider` + `FakeCheckoutGateway`, rate limits, N-01/02/03/37/39, seeds; T-04-11…28) · E3-T04 dashboard back (`DashboardQuery` + cache/invalidation, `RiskCardBuilder` over S06 ports, `DogActivityQuery`, `/dashboard`, `/dashboard/counters`; T-14-01…06, 11, 22, 23) · E3-T05 integration (`bin/e3-smoke`, D1 seed values, DEPLOY, gate checklist).
@@ -77,14 +77,43 @@ Decisions in force: A21 (activities: type enum + label, drafts do not block ring
 Planned tasks: E4-T01 contracts S06 + S07 (OpenAPI forms A–D / A–C, documents + indexes, status audit, purposes, 501 stubs) · E4-T02 planning domain (templates, `DescriptionResolver`, `InconsistencyDetector`, `CoverageCalculator`, `WeekGenerationUseCase`, P2 endpoints) · E4-T03 calendar, classes, cancellation, ring blocks, day grids (ports with null-objects for E5/E6) · E4-T04 activities (lifecycle, registrations with FIFO promotion, public API, consumers, N-32a…d) · E4-T05 integration (demo seed with templates A/B + Saturdays, validated week, block, inconsistency, 4 activities; `bin/e4-smoke`; gate evidence).
 
 ### Gate E4 (back — checked by the organizer)
-- [ ] `bin/e4-smoke` green twice on the local stack: week generated from «Setmana A» + «Dissabtes» (holiday skipped, inconsistent template refused with `TEMPLATE_INCONSISTENT`) → validated as a whole → the Wednesday 18:50 class with 4 fictional registrants cancelled in one transaction (`ClassCancelledByClub` in the outbox, N-08a APP/EMAIL rows + SMS intents) → an activity published blocks its ring (conflict dialog lists the class) and is listed for the member; public API answers with the key and refuses without it.
-- [ ] Day grids: `view=member` without counts; `view=instructor` with counts and cancelled classes dimmed; coverage table per level with the D3 vocabulary.
-- [ ] CI green; OpenAPI snapshot staged for the web (E4-W01…W05).
+- [x] `bin/e4-smoke` green twice on the local stack: week generated from «Setmana A» + «Dissabtes» (holiday skipped, inconsistent template refused with `TEMPLATE_INCONSISTENT`) → validated as a whole → the Wednesday 18:50 class with 4 fictional registrants cancelled in one transaction (`ClassCancelledByClub` in the outbox, N-08a APP/EMAIL rows + SMS intents) → an activity published blocks its ring (conflict dialog lists the class) and is listed for the member; public API answers with the key and refuses without it. — **organizer 26-09:** E4-T05 verified 24-09 (`bin/e4-smoke` ×2 in `roadmap/evidence/E4-T05/`: cancellation of the Wednesday class with its registrants, `ClassCancelledByClub` + N-08a rows, activity publication `409 → {cancelClasses} 200`, public API with/without key).
+- [x] Day grids: `view=member` without counts; `view=instructor` with counts and cancelled classes dimmed; coverage table per level with the D3 vocabulary. — **organizer 26-09:** T-06-28 on the real core (E4-W05, verified 26-09): `view=member` without counts, `view=instructor` with counts; coverage vocabulary per E4-W01/E4-W06.
+- [x] CI green (`e663872`); OpenAPI snapshot `d791361` adopted by E4-W05; E4-T06 read models adopted by E4-W05/E4-W12. **GATE E4 (back): passed** (organizer 26-09) — the front gate closes with E4-W13…W16.
 
 ## E5 · E6 · E7 · E8 — INSTALLED 2026-09-19 (organizer-less mode: all tasks `ready`, chained by `depends_on`; the queue advances on `awaiting_verification` deps)
-E5 bookings + training + job framework (E5-T01 contracts + `JobCatalog`/`Job`/`SchedulerTick`, T02 bookings/seat holds, T03 waitlist, T04 free training + ring blocks, T05 jobs P1/P2/P6/P7/P9 + N-54, T06 `/me/home` + seed + `bin/e5-smoke` + k6) · E6 attendance + follow-up (T01 contract, T02 attendance sheet + day/week queries + PDF, T03 tasks/attachments/follow-up, T04 jobs P3/P8 + seed + `bin/e6-smoke`) · E7 communications, thread C (T01 contract + `NotificationCatalog`, T02 engine + Twilio/VAPID with fake senders when credentials are absent, T03 templates/log/preferences, T04 P4 reminders + announcements + matrix test + `bin/e7-smoke`) · E8 billing (T01 contracts S12+S13, T02 invoicing/simulation/run/rollback, T03 SEPA pain.008, T04 Stripe/providers, T05 packs/inactivity/leave, T06 jobs P5/P10 + billing importer + accounting export + `bin/e8-smoke`). Catalog amendments 19-09: `INACTIVITY_NOT_APPLICABLE` (422), S14 audit actions `JOB_TRIGGERED`, `PACK_ADJUSTED`, `INVOICE_CREATED_MANUAL`, `REMITTANCE_SUBMITTED`, `CARD_CHARGES_STARTED`. Gates E5–E8: the integration task of each stage pastes the gate evidence in its report; the organizer ticks the checklists when back.
+E5 bookings + training + job framework (E5-T01 contracts + `JobCatalog`/`Job`/`SchedulerTick`, T02 bookings/seat holds, T03 waitlist, T04 free training + ring blocks, T05 jobs P1/P2/P6/P7/P9 + N-54, T06 `/me/home` + seed + `bin/e5-smoke` + k6) · E6 attendance + follow-up (T01 contract, T02 attendance sheet + day/week queries + PDF, T03 tasks/attachments/follow-up, T04 jobs P3/P8 + seed + `bin/e6-smoke`) · E7 communications, thread C (T01 contract + `NotificationCatalog`, T02 engine + Twilio/VAPID with fake senders when credentials are absent, T03 templates/log/preferences, T04 P4 reminders + announcements + matrix test + `bin/e7-smoke`) · E8 billing (T01 contracts S12+S13, T02 invoicing/simulation/run/rollback, T03 SEPA pain.008, T04 Stripe/providers, T05 packs/inactivity/leave, T06 jobs P5/P10 + billing importer + accounting export + `bin/e8-smoke`). Catalog amendments 19-09: `INACTIVITY_NOT_APPLICABLE` (422), S14 audit actions `JOB_TRIGGERED`, `PACK_ADJUSTED`, `INVOICE_CREATED_MANUAL`, `REMITTANCE_SUBMITTED`, `CARD_CHARGES_STARTED`. Gates E5–E8: the integration task of each stage pastes the gate evidence in its report; the organizer ticks the checklists below.
 
-## E9 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md` and the Catalan backlog `docs/backlog` when synced)
+Added 26-09 (global audit of E0–E5 and of the E5–E8 task files; `docs/INCIDENCIES_OBERTES.md` v1.4, `docs/DECISIONS_PENDENTS.md` v2.0, rulings E41–E52): **E5-T27** and **E5-T28** (corrections pulled forward: dual-role member routes, impersonation `launchUrl`, password recovery, keyed PUT/DELETE idempotency, health with Mongo, test-clock guard, P2 retry; SEPA PATCH keeping the IBAN, white-label sender name, mandate references, rejection with an open checkout, the week create-vs-validate race, chip normalisation, D1 on a pending readmission) run after E5-T26 (E5-T23…E5-T26 were added by the organizer during the same day); E6-T02 depends on E5-T27 and E8-T01 on E5-T28. E7-T01 no longer waits for E6-T04 (E7-T02 does), so thread C can run E7 alongside E6/E8.
+
+Added 27-09 (verifications of E5-T26…E7-T01 and of the web's E5-W01…E5-W03, rulings E61–E67): **E5-T29** (the back office's contract gaps found by the web — the registrants' `displayState` and level, the staff waitlist's «{guia} + {gos}», a training booking's end and member number, a class booking's description and ring, a block's ring, `filter-values` for three lists — and `nextBookableAt` as the start of the next booking week) runs after E5-T28; the web adopts it in E5-W05.
+
+### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
+- [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
+- [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
+- [x] E5-T01…T20 verified; CI green at `924303e`…`be2f4a8`.
+- [ ] E5-T21…E5-T29 verified, CI green, snapshot staged for the web (E4-W13…W17, E5-W01…W05).
+- [ ] Front: E5-W04 (T-08-40, T-09-40 on the real core with the E5 seed and the moved clock).
+
+### Gate E6 (back — organizer)
+- [ ] `bin/e6-smoke` green twice: the sheet from 21 and from D12 (same `PUT`, replayed with the same `Idempotency-Key`), «ha avisat» frees the seat and notifies the waitlist (N-15), a no-show → N-19 once (P3), `class-finishing` at +15 min (P8), the history states on 25.
+- [ ] Tasks with attachments readable by the member and the instructor; D14 unread per account; the week-agenda PDF.
+- [ ] E6-T01…T04 verified, CI green, snapshot staged (E6-W01…W04).
+
+### Gate E7 (back — organizer; real SMS and push on devices are release items, A31)
+- [ ] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report).
+- [ ] An announcement to 10 fictional members with log + `ANNOUNCEMENT_SENT` audit; a template edited at D9 reflected in the next notice in each recipient's language; P4 reminders at the configured lead.
+- [ ] Legacy SMS/PUSH intents converted to `SKIPPED_STALE`; `SMS_ALLOWED_NUMBERS` guard proven outside `prod`.
+- [ ] E7-T01…T04 verified, CI green, snapshot staged (E7-W01…W03).
+
+### Gate E8 (back — organizer; bank acceptance of the pain.008, the bookkeeper's acceptance of the accounting export and daily backups are release items, @jordi)
+- [ ] `bin/e8-smoke` green twice: simulation → run → XSD-valid XML equal to the golden file → mark returned → rollback → re-run with the same numbers; both `billing.cashInvoicing` branches and both `collectionDayOfMonth` semantics tested (A28/A29).
+- [ ] Stripe test charge + signed webhook, or the fake path with the line marked blocked (@jordi keys).
+- [ ] Pack consumed / returned / expired, inactivity and leave visible on the receipt; the plan change with the 40 % discount; the «Inactivitats i baixes» badge counts.
+- [ ] Accounting export produced (R-12-26 columns); the billing importer reconciled on the anonymised fixtures.
+- [ ] E8-T01…T06 verified, CI green, snapshot staged (E8-W01…W04).
+
+## E9 → E12 (summary; details in `docs/PLA_DESENVOLUPAMENT.md`; the Catalan backlog lives in the source folder `05-desenvolupament/backlog/`, not in the repo — the 26-09 review proposes the E9–E12 task files in `backlog/revisio-26-09/REVISIO_GLOBAL_26-09.md`)
 - **E5** Bookings + free training + scheduler framework (S08, S09, S15 P1/P6/P7/P9) — gate: full booking/cancel/waitlist/training cycle on the local Docker stack with jobs running (staging only at release: A31, 24-09); k6 peak test passes; zero overbooking under concurrency.
 - **E6** Attendance + follow-up (S10, S15 P3/P8).
 - **E7** Communications (S11: engine, templates, SMS Twilio, push, email bounces, mass communications; S15 P4).

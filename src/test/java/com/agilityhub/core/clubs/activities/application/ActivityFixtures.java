@@ -92,7 +92,11 @@ abstract class ActivityFixtures extends AbstractIntegrationTest {
     }
     JsonNode published(int max,boolean rings) throws Exception { var a=ready(max,rings); return call("POST","/activities/"+a.path("id").asText()+"/publication",Map.of(),"admin","ADMIN",200); }
     JsonNode register(String id,String member,boolean wait,int expected) throws Exception { return call("POST","/activity-registrations",Map.of("activityId",id,"joinWaitlist",wait),member,"MEMBER",expected); }
-    long count(String collection,String field,Object value) { return mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and(field).is(value)),collection); }
+    long count(String collection,String field,Object value) {
+        // E7-T02: the S11 notifications are counted as the E1–E6 rows, one per delivery.
+        if("notifications".equals(collection)) return com.agilityhub.core.support.NotificationRows.count(mongo,Criteria.where("clubId").is(CLUB).and(field).is(value));
+        return mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and(field).is(value)),collection);
+    }
     void dispatch() { for(int i=0;i<5;i++) dispatcher.dispatch(); }
     void modules(Set<Module> enabled) {
         var tree=(ObjectNode)mapper.valueToTree(clubs.findById(CLUB).orElseThrow());tree.set("modules",mapper.valueToTree(enabled));clubs.save(mapper.convertValue(tree,Club.class));configs.invalidate(CLUB);publicApi.invalidate(CLUB);

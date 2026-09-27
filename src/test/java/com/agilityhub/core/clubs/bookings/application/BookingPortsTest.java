@@ -103,12 +103,18 @@ class BookingPortsTest {
         cases.put("N-04", List.of(createdApp, createdInstructor)); cases.put("N-05", List.of(byMember, byInstructor));
         cases.put("N-36", List.of(createdClub, byClub, clubAsMember)); cases.put("N-40", List.of(timeout, memberTimeout));
         var all = List.of(createdApp, createdInstructor, createdClub, byMember, byInstructor, byClub, bySystem, timeout, memberTimeout, clubAsMember);
-        cases.forEach((code, expected) -> assertThat(all.stream().filter(e -> BookingNotifications.code(code, e).isPresent()).toList()).as(code).isEqualTo(expected));
-        assertThat(BookingNotifications.code("N-15", createdApp)).isEmpty();
+        cases.forEach((code, expected) -> assertThat(all.stream().filter(e -> BookingNotificationFacts.applies(code, trigger(e))).toList()).as(code).isEqualTo(expected));
+        assertThat(BookingNotificationFacts.applies("N-15", trigger(createdApp))).isFalse();
         // E30: a checkout the provider failed to open is cancelled without N-40 (nor N-05).
         var checkoutFailed = event.apply(BookingEvent.Kind.BookingCancelled, Map.of("origin", "SYSTEM", "by", "SYSTEM", "reason", "PAYMENT_TIMEOUT", "checkoutFailed", true));
-        for (String code : List.of("N-04", "N-05", "N-36", "N-40")) { assertThat(BookingNotifications.code(code, checkoutFailed)).as(code).isEmpty(); }
-        assertThat(BookingNotifications.code("N-05", event.apply(BookingEvent.Kind.BookingCancelled, Map.of()))).isEmpty();
+        for (String code : List.of("N-04", "N-05", "N-36", "N-40")) { assertThat(BookingNotificationFacts.applies(code, trigger(checkoutFailed))).as(code).isFalse(); }
+        assertThat(BookingNotificationFacts.applies("N-05", trigger(event.apply(BookingEvent.Kind.BookingCancelled, Map.of())))).isFalse();
+    }
+
+    /** The event as the S11 engine reads it from the outbox (E7-T02). */
+    private static com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger trigger(BookingEvent e) {
+        return new com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger("event-1", e.type(), e.clubId(), e.aggregateType(), e.aggregateId(),
+                e.occurredAt(), e.payload(), e.actorAccountId(), e.impersonatedMemberId(), e.origin());
     }
 
     @Test void transactionsRetryWriteConflictsAtMostThreeTimesAndNeverOtherFailures() {

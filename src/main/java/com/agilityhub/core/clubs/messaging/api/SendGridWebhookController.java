@@ -50,10 +50,14 @@ public class SendGridWebhookController {
         catch (IOException invalid) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         if (events == null) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
         for (var event : events) {
-            if (event != null) { service.accept(event.id(), event.event(), event.notificationId(), event.clubId(), event.email()); }
+            if (event != null) { service.accept(event.id(), event.event(), event.notificationId(), event.clubId(), event.email(), event.type()); }
         }
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record SendGridEvent(@JsonProperty("sg_event_id") String id, String event, String notificationId,
-            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED) String clubId, String email) { }
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED) String clubId, String email,
+            @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "A bounce's kind: `bounce` (hard) or `blocked` (soft, S11 R-11-08: no mark)")
+            String type) {
+        public SendGridEvent(String id, String event, String notificationId, String clubId, String email) { this(id, event, notificationId, clubId, email, null); }
+    }
 }
