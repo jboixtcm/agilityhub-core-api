@@ -51,4 +51,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule E6_T01_platformImportsNoClubsPackage = ArchitectureRules.PLATFORM_WITHOUT_CLUBS;
+
+    @ArchTest
+    static final ArchRule E6_T03_followupImportsNeitherCensusNorBookings = ArchitectureRules.FOLLOWUP_WITHOUT_CENSUS_OR_BOOKINGS;
 }

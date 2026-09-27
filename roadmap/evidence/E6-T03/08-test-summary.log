@@ -1,0 +1,75 @@
+  ArchitectureTest                 tests=13  failures=0 errors=0 skipped=0
+  AttachmentServiceTest            tests=14  failures=0 errors=0 skipped=0
+  FollowupContractAccessTest       tests=5   failures=0 errors=0 skipped=0
+  FollowupNotificationTextsTest    tests=2   failures=0 errors=0 skipped=0
+  FollowupNotificationsTest        tests=3   failures=0 errors=0 skipped=0
+  FollowupProjectionTest           tests=2   failures=0 errors=0 skipped=0
+  FollowupServiceTest              tests=2   failures=0 errors=0 skipped=0
+  FollowupTransactionsTest         tests=2   failures=0 errors=0 skipped=0
+  FollowupRulesTest                tests=3   failures=0 errors=0 skipped=0
+  E2ResponseContractTest           tests=2   failures=0 errors=0 skipped=0
+  E6ResponseContractTest           tests=5   failures=0 errors=0 skipped=0
+  OpenApiRequiredContractTest      tests=3   failures=0 errors=0 skipped=0
+  AuditContractTest                tests=1   failures=0 errors=0 skipped=0
+  MessageParityTest                tests=1   failures=0 errors=0 skipped=0
+  EventCatalogContractTest         tests=2   failures=0 errors=0 skipped=0
+unit/contract (surefire): tests=660 failures=0 errors=0 skipped=0
+  AttendanceIT                     tests=11  failures=0 errors=0 skipped=0
+  InstructorAggregatesIT           tests=7   failures=0 errors=0 skipped=0
+  CensusIT                         tests=41  failures=0 errors=0 skipped=0
+  DemoScenarioSeedIT               tests=5   failures=0 errors=0 skipped=0
+  DashboardIT                      tests=11  failures=0 errors=0 skipped=0
+  FollowupIT                       tests=10  failures=0 errors=0 skipped=0
+  E6ContractIT                     tests=30  failures=0 errors=0 skipped=0
+  ListFieldsContractIT             tests=4   failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest              tests=10  failures=0 errors=0 skipped=0
+integration (failsafe): tests=1066 failures=0 errors=0 skipped=0
+Spec-id test methods of this task (FollowupIT, the follow-up unit tests, E6ContractIT, AttendanceIT; parameterized cases collapsed):
+  R-04-06  FollowupIT.R_04_06_observationsOfAPendingReadmissionsReusedDogAnswer409 ok
+  T-10-06  FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow ok
+  T-10-06  FollowupRulesTest.T_10_06_pruningKeepsOnlyTheClicksReadAllDoesNotCover ok
+  T-10-06  FollowupRulesTest.T_10_06_unreadIsNewerThanReadAllNotClickedAndNotMine ok
+  T-10-06  FollowupServiceTest.T_10_06_T_10_18_theListComputesUnreadInTheQueryAndResolvesNamesAtReadTime ok
+  T-10-06  FollowupServiceTest.T_10_06_aClickPrunesTheIdsReadAllCoversAndReadAllIsOneWrite ok
+  T-10-14  FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued ok
+  T-10-15  E6ContractIT.T_10_15_T_10_19_T_10_22_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs ok
+  T-10-15  FollowupContractAccessTest.T_10_15_T_10_22_membersReachOnlyTheirOwnDogsAndTasks ok
+  T-10-15  FollowupContractAccessTest.T_10_15_aDeletedTaskIsNotFoundForStaffToo ok
+  T-10-15  FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken ok
+  T-10-15  FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications ok
+  T-10-15  FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne ok
+  T-10-15  FollowupNotificationTextsTest.T_10_15_n20AndN21RenderInTheRecipientsLanguage ok
+  T-10-15  FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce ok
+  T-10-15  FollowupNotificationsTest.T_10_15_n20GoesToTheOwnerByAppAndByEmailAtTheContactAddress ok
+  T-10-16  AttachmentServiceTest.T_10_16_registrationChecksTheOwnerThePurposeTheLimitAndDedupesTheKey ok
+  T-10-16  AttachmentServiceTest.T_10_16_removalMarksTheAttachmentAndEmitsAttachmentRemoved ok
+  T-10-16  AttachmentServiceTest.T_10_16_taskAndObservationPurposesFollowTheS10FilePolicy ok
+  T-10-16  E6ContractIT.T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration ok
+  T-10-16  FollowupContractAccessTest.T_10_16_attachmentRolesFollowTheirEntity ok
+  T-10-16  FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles ok
+  T-10-17  FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember ok
+  T-10-18  FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow ok
+  T-10-18  FollowupIT.T_10_18_theTaskFollowsATransferredDog ok
+  T-10-18  FollowupNotificationTextsTest.T_10_18_n22NamesTheStudentByGenderInEachLanguage ok
+  T-10-18  FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce ok
+  T-10-18  FollowupProjectionTest.T_10_18_aNewNoteChangeUpsertsTheRowAndMakesItUnreadForEveryoneButTheAuthor ok
+  T-10-18  FollowupProjectionTest.T_10_18_aTransferredDogTakesItsTasksAndRowsToTheNewOwner ok
+  T-10-18  FollowupRulesTest.T_10_18_excerptIsOneLineOfAtMost120CharactersAndNeverCutsACodePoint ok
+  T-10-18  FollowupServiceTest.T_10_06_T_10_18_theListComputesUnreadInTheQueryAndResolvesNamesAtReadTime ok
+  T-10-21  E6ContractIT.T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata ok
+  T-10-21  E6ContractIT.T_10_21_theStubsWriteNothing ok
+  T-10-21  E6ContractIT.T_10_21_undeclaredFiltersAndSortsAreInvalidBeforeTheStub ok
+  T-10-21  FollowupContractAccessTest.T_10_21_followupAcceptsOnlyTheDeclaredFiltersAndSort ok
+  T-10-22  AttendanceIT.T_10_22_rolesImpersonationAndGlobalVisionOnBothAttendanceVerbs ok
+  T-10-22  E6ContractIT.T_10_15_T_10_19_T_10_22_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs ok
+  T-10-22  E6ContractIT.T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501 ok
+  T-10-22  E6ContractIT.T_10_22_impersonationIsAcceptedOnlyOnHistoryTaskListCompletionAndTheMemberAttachments ok
+  T-10-22  FollowupContractAccessTest.T_10_15_T_10_22_membersReachOnlyTheirOwnDogsAndTasks ok
+  T-10-22  FollowupContractAccessTest.T_10_22_callerIsTheMemberTheImpersonatedMemberOrUnimpersonatedStaff ok
+  T-10-22  FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken ok
+  T-10-25  FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21 ok
+  T-10-25  FollowupTransactionsTest.T_10_25_aConflictIsRetriedWholeAndOtherFailuresAreNot ok
+  T-10-25  FollowupTransactionsTest.T_10_25_insideAnotherTransactionTheWorkRunsOnceAsIs ok
+  T-10-33  E6ContractIT.T_10_33_disabledTasksAnswers404BeforeTheStubOnEveryTasksRouteAndPurpose ok
+  T-10-33  FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued ok
+  T-10-33  FollowupNotificationsTest.T_10_33_nothingIsQueuedWithTasksOffForADeletedTaskOrWithoutAMember ok

@@ -1,0 +1,19 @@
+operations: before=276 after=276 added=0 removed=0
+operations changed: 15
+  ~ GET    /api/v1/attachments                      description
+  ~ POST   /api/v1/attachments                      description, responses(+[] -[] ~['400'])
+  ~ DELETE /api/v1/attachments/{id}                 description
+  ~ PUT    /api/v1/dogs/{id}/observations           description, responses(+[] -[] ~['409'])
+  ~ GET    /api/v1/followup                         description, x-fields
+  ~ POST   /api/v1/followup/read-all                description
+  ~ GET    /api/v1/followup/unread-count            description
+  ~ POST   /api/v1/followup/{id}/read               description
+  ~ GET    /api/v1/tasks                            description, parameters(+[] -[] ~['includeDone']), responses(+[] -[] ~['404'])
+  ~ POST   /api/v1/tasks                            description, responses(+[] -[] ~['400'])
+  ~ DELETE /api/v1/tasks/{id}                       description
+  ~ GET    /api/v1/tasks/{id}                       description
+  ~ PATCH  /api/v1/tasks/{id}                       description
+  ~ POST   /api/v1/tasks/{id}/completion            description
+  ~ POST   /api/v1/tasks/{id}/reopening             description
+schemas: before=565 after=565 added=[] removed=[]
+  ~ FollowupItem: properties +['authorGender'] -[] ~[]; required +[] -[]

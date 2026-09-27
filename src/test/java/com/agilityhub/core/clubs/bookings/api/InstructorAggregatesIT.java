@@ -251,8 +251,11 @@ class InstructorAggregatesIT extends BookingFixtures {
         assertThat(card.path("dog").path("photoUrl").asText()).isNotBlank();
         assertThat(card.path("member").path("fullName").asText()).isEqualTo("Laura Example");
         assertThat(card.path("member").path("displayStatus").path("kind").asText()).isEqualTo("ACTIVE");
-        assertThat(card.has("instructorNote") || card.has("tasks") || card.has("observations")).as("E6-T03 serves the follow-up blocks").isFalse();
-        assertThat(card.toString()).doesNotContain("private-observation-text");
+        // E6-T03 serves the three TASKS blocks through the follow-up port: the private observations reach the staff card only (R-10-12).
+        assertThat(card.path("observations").path("text").asText()).isEqualTo("private-observation-text");
+        assertThat(card.path("observations").path("version").isIntegralNumber()).isTrue();
+        assertThat(card.path("tasks").path("pendingCount").asInt()).isZero(); assertThat(card.path("tasks").path("latest").isNull()).isTrue();
+        assertThat(card.has("instructorNote")).isTrue();
         assertThat(call(HttpMethod.GET, "/me/dogs", null, as("laura"), 200).toString()).doesNotContain("private-observation-text");
         // + a late cancellation and a «ha avisat» after the end: both count as cancelledLate → 6/9.
         session("q1", "2026-10-02T18:50", 5, List.of()); session("q2", "2026-10-03T18:50", 5, List.of());

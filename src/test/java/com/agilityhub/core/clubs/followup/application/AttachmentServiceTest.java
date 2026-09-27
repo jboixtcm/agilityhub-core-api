@@ -21,7 +21,8 @@ class AttachmentServiceTest {
     private final ClubConfigService configs = mock(ClubConfigService.class);
     private final DogOwnerAccess dogs = mock(DogOwnerAccess.class);
     private final EventPublisher events = mock(EventPublisher.class);
-    private final AttachmentService service = new AttachmentService(grants, attachments, storage, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events);
+    private final TaskRepository tasks = mock(TaskRepository.class);
+    private final AttachmentService service = new AttachmentService(grants, attachments, storage, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events, tasks);
     private TenantContext.Scope tenant;
     private CurrentUser.Scope user;
     @BeforeEach void prepare() {
@@ -112,15 +113,15 @@ class AttachmentServiceTest {
         }
     }
     @Test void T_03_25_noteAttachmentsCannotBeReboundOrAddedWhenDisabled() {
-        config(Set.of()); assertThatThrownBy(() -> service.addNote("INSTRUCTOR_NOTE", "dog", key, "Example")).hasMessage("MODULE_DISABLED");
+        config(Set.of()); assertThatThrownBy(() -> service.add("INSTRUCTOR_NOTE", "dog", key, "Example")).hasMessage("MODULE_DISABLED");
         config(Set.of(Module.TASKS));
         for (String name : Arrays.asList(null, "", "x".repeat(81))) {
-            assertThatThrownBy(() -> service.addNote("INSTRUCTOR_NOTE", "dog", key, name)).hasMessage("VALIDATION_ERROR");
+            assertThatThrownBy(() -> service.add("INSTRUCTOR_NOTE", "dog", key, name)).hasMessage("VALIDATION_ERROR");
         }
         for (var pair : List.of(List.of("other-dog", "example-account"), List.of("dog", "other-account"))) {
             when(attachments.forKey(key)).thenReturn(Optional.of(new Attachment(key, "example-club", "INSTRUCTOR_NOTE", pair.get(0), key,
                     "Example", "text/plain", 4, pair.get(1), now, now, null, null, 0)));
-            assertThatThrownBy(() -> service.addNote("INSTRUCTOR_NOTE", "dog", key, "Example")).hasMessage("ATTACHMENT_ENTITY_MISMATCH");
+            assertThatThrownBy(() -> service.add("INSTRUCTOR_NOTE", "dog", key, "Example")).hasMessage("ATTACHMENT_ENTITY_MISMATCH");
         }
         verifyNoInteractions(events);
     }
@@ -163,7 +164,7 @@ class AttachmentServiceTest {
     @Test void CONVENCIONS_API_5_localSignedUrlsAuthoriseThemselves(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
         tenant.close();
         var local = new LocalAttachmentStorage(directory, "fictional-signing-key-0123456789".getBytes(java.nio.charset.StandardCharsets.UTF_8), Clock.fixed(now, ZoneOffset.UTC));
-        var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events);
+        var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events, tasks);
         var upload = java.net.URI.create(local.uploadUrl(key, "text/plain", 4, now.plusSeconds(300)));
         long expires = now.plusSeconds(300).getEpochSecond(); String signature = upload.getQuery().substring(upload.getQuery().indexOf("signature=") + 10);
         assertThatThrownBy(() -> signed.putLocal(key, expires, "wrong", "text/plain", new ByteArrayInputStream(new byte[4]))).hasMessage("FORBIDDEN");
@@ -199,7 +200,7 @@ class AttachmentServiceTest {
         var tenants = new ArrayList<String>();
         doAnswer(call -> { tenants.add(TenantContext.current()); return call.callRealMethod(); }).when(local).put(anyString(), anyString(), anyLong(), any());
         doAnswer(call -> { tenants.add(TenantContext.current()); return call.callRealMethod(); }).when(local).open(anyString());
-        var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events);
+        var signed = new AttachmentService(grants, attachments, local, configs, dogs, Clock.fixed(now, ZoneOffset.UTC), events, tasks);
         Instant until = now.plusSeconds(300); long expires = until.getEpochSecond();
         java.util.function.Function<String, String> signature = url -> url.substring(url.indexOf("signature=") + 10);
         when(grants.signed(key)).thenReturn(Optional.of(new UploadGrant(key, "another-club", "another-account", "DOG_DOCUMENT", "Vacunes Blau.png", "image/png", 4, now, until, null)));
@@ -252,5 +253,63 @@ class AttachmentServiceTest {
         assertThat(claimed.id()).doesNotContain("/").isEqualTo(UUID.fromString(claimed.id()).toString());
         assertThat(service.claimSignup(signupKey, "dog:VACCINATION_CARD").id()).as("the same key, the same id").isEqualTo(claimed.id());
         assertThat(AttachmentService.signupFileId(signupKey.replace("card.txt", "other.txt"))).isNotEqualTo(claimed.id());
+    }
+    private Attachment stored(String id, String type, String entityId) {
+        return new Attachment(id, "example-club", type, entityId, id, "Example.txt", "text/plain", 4, "example-account", now, now, null, null, 0);
+    }
+    private Task task(String id, Instant deletedAt) {
+        return new Task(id, "example-club", "dog", "member", "Practiqueu el balancí", com.agilityhub.core.clubs.followup.domain.TaskState.PENDING,
+                null, null, null, null, now, now, null, deletedAt, 0, 0L);
+    }
+    /**
+     * T-10-16 (R-10-11, E6-T03): the registration generalized from the member note to TASK and DOG_OBSERVATIONS: a live owner,
+     * the upload's purpose = the entity type (a DOG_DOCUMENT key fails), the per-entity limit with `details.max`, the
+     * original file name by default (≤ 80), and the same key again returns the same attachment without a second event.
+     */
+    @Test void T_10_16_registrationChecksTheOwnerThePurposeTheLimitAndDedupesTheKey() {
+        when(tasks.findById("task-a")).thenReturn(Optional.of(task("task-a", null)));
+        when(tasks.findById("task-d")).thenReturn(Optional.of(task("task-d", now)));
+        assertThatThrownBy(() -> service.add("TASK", "task-d", key, "a.txt")).as("a deleted task").hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> service.add("TASK", "task-x", key, "a.txt")).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> service.add("OTHER", "task-a", key, "a.txt")).hasMessage("ATTACHMENT_ENTITY_MISMATCH");
+        grant("example-account", "DOG_DOCUMENT", null, now.plusSeconds(300));
+        assertThatThrownBy(() -> service.add("TASK", "task-a", key, "a.txt")).as("a DOG_DOCUMENT key").hasMessage("ATTACHMENT_ENTITY_MISMATCH");
+        grant("example-account", "TASK", null, now.plusSeconds(300));
+        when(attachments.forEntity("TASK", "task-a")).thenReturn(Collections.nCopies(10, stored("other", "TASK", "task-a")));
+        assertThatThrownBy(() -> service.add("TASK", "task-a", key, "a.txt")).hasMessage("ATTACHMENT_LIMIT_REACHED")
+                .extracting(error -> ((ApiException) error).details()).isEqualTo(Map.of("max", 10));
+        verifyNoInteractions(events); verify(grants, never()).bind(anyString(), anyString());
+
+        when(attachments.forEntity("TASK", "task-a")).thenReturn(List.of());
+        when(attachments.insert(any())).thenAnswer(call -> call.getArgument(0));
+        var added = service.add("TASK", "task-a", key, null);
+        assertThat(added).containsEntry("id", key).containsEntry("name", "Example.txt").containsEntry("sizeBytes", 4L).containsKey("url");
+        verify(grants).bind(key, "task-a"); verify(tasks).countAttachments("task-a", 1);
+        verify(events).publish(argThat(event -> event.type().equals("AttachmentAdded") && event.payload().equals(Map.of("attachmentId", key, "entityType", "TASK", "entityId", "task-a"))));
+        when(attachments.forKey(key)).thenReturn(Optional.of(stored(key, "TASK", "task-a")));
+        assertThat(service.add("TASK", "task-a", key, null)).containsEntry("id", key);
+        verify(events, times(1)).publish(any()); verify(tasks, times(1)).countAttachments("task-a", 1);
+        assertThatThrownBy(() -> service.add("DOG_OBSERVATIONS", "dog", key, "a.txt")).as("the same key for another entity").hasMessage("ATTACHMENT_ENTITY_MISMATCH");
+        verify(dogs).requireDog("dog", false, true);
+
+        assertThat(AttachmentService.clipped("x".repeat(100) + ".mp4")).hasSize(80).endsWith(".mp4");
+        assertThat(AttachmentService.clipped("y".repeat(90))).hasSize(80);
+        assertThat(AttachmentService.clipped("vídeo_balancí.mov")).isEqualTo("vídeo_balancí.mov");
+    }
+    /** T-10-16 (R-10-11): removal marks `removedAt`, gives the task's count back and emits `AttachmentRemoved` (Annex A); twice → 404. */
+    @Test void T_10_16_removalMarksTheAttachmentAndEmitsAttachmentRemoved() {
+        when(attachments.remove("att-task", "example-account", now)).thenReturn(true);
+        service.remove(stored("att-task", "TASK", "task-a"));
+        verify(tasks).countAttachments("task-a", -1);
+        verify(events).publish(argThat(event -> event.type().equals("AttachmentRemoved") && event.aggregateType().equals("Attachment")
+                && event.payload().equals(Map.of("attachmentId", "att-task", "entityType", "TASK", "entityId", "task-a"))));
+        assertThatThrownBy(() -> service.remove(stored("att-gone", "TASK", "task-a"))).hasMessage("NOT_FOUND");
+        when(attachments.remove("att-note", "example-account", now)).thenReturn(true);
+        service.remove(stored("att-note", "INSTRUCTOR_NOTE", "dog"));
+        verify(dogs).requireDog("dog", true, true);
+        when(attachments.remove("att-obs", "example-account", now)).thenReturn(true);
+        service.remove(stored("att-obs", "DOG_OBSERVATIONS", "dog"));
+        verify(dogs).requireDog("dog", false, true);
+        verify(tasks, times(1)).countAttachments(anyString(), anyInt());
     }
 }

@@ -164,6 +164,17 @@ final class ArchitectureRules {
             .should().dependOnClassesThat().resideInAPackage(BASE_PACKAGE + "clubs.followup..")
             .because("E6-T01: clubs.followup → clubs.bookings.application, never the other way round");
 
+    /**
+     * E6-T03: `clubs.census` depends on `clubs.followup` for the attachments, so follow-up reads and writes the census only
+     * through `shared.application.FollowupCensusAccess` (the observations through `DogService`), never the `dogs` or
+     * `members` documents; and it cannot implement `clubs.bookings`' `DogFollowupPort` (bookings → census → followup), which
+     * the composition root adapts instead.
+     */
+    static final ArchRule FOLLOWUP_WITHOUT_CENSUS_OR_BOOKINGS = noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + "clubs.followup..")
+            .should().dependOnClassesThat().resideInAnyPackage(BASE_PACKAGE + "clubs.census..", BASE_PACKAGE + "clubs.bookings..")
+            .because("E6-T03: census → followup and bookings → census; follow-up reaches the census through FollowupCensusAccess");
+
     /** E6-T01 (ADR-001): the platform (jobs framework, configuration of clubs) knows no club context. */
     static final ArchRule PLATFORM_WITHOUT_CLUBS = noClasses()
             .that().resideInAPackage(BASE_PACKAGE + "platform..")

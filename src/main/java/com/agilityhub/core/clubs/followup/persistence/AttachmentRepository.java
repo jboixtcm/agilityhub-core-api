@@ -12,6 +12,17 @@ public class AttachmentRepository extends TenantRepository<Attachment> {
     public List<Attachment> forEntity(String type, String id) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("entityType").is(type).and("entityId").is(id).and("removedAt").is(null)), Attachment.class);
     }
+    /** The live attachments of many entities of one type (the task list of `GET /tasks`, S10 §6), in one query. */
+    public List<Attachment> forEntities(String type, Collection<String> ids) {
+        if (ids.isEmpty()) { return List.of(); }
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("entityType").is(type).and("entityId").in(ids).and("removedAt").is(null))
+                .with(org.springframework.data.domain.Sort.by("createdAt", "_id")), Attachment.class);
+    }
+    /** R-10-11 removal: `removedAt` + `removedByAccountId` on a live attachment (the file stays until the S14 erasure); false if it was removed already. */
+    public boolean remove(String id, String accountId, java.time.Instant now) {
+        return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("removedAt").is(null)),
+                new Update().set("removedAt", now).set("removedByAccountId", accountId).set("updatedAt", now).inc("version", 1), Attachment.class).getModifiedCount() == 1;
+    }
     public Optional<Attachment> forKey(String key) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("fileKey").is(key)), Attachment.class));
     }

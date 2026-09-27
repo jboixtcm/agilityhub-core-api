@@ -139,7 +139,7 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         return value;
     }
     private Document sort(ListDataset data, ListQuery query) {
-        var sort = new Document();
+        var sort = new Document(data.leadingSort());
         for (String term : query.sort()) {
             var parts = term.split(",");
             sort.put(data.definition().sorts().get(parts[0]), parts[1].equals("desc") ? -1 : 1);

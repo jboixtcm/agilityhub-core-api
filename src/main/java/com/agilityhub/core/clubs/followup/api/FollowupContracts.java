@@ -15,8 +15,8 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIR
 
 /**
  * S10 §6 wire forms of screens 26, 13 (tasks), D14 and the observations of 22/D13, field by field from the examples.
- * Instants are UTC; nullable fields are optional and omitted when null. `Attachment` is the schema of
- * {@link AttachmentsController.AttachmentResponse}.
+ * Instants are UTC; nullable fields are optional, and the api sends them as `null` (E6-T03), like the attendance rows of
+ * E6-T02 (`levelCode: null`, R-10-16). `Attachment` is the schema of {@link AttachmentsController.AttachmentResponse}.
  */
 public final class FollowupContracts {
     private FollowupContracts() { }
@@ -52,7 +52,10 @@ public final class FollowupContracts {
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record FollowupItem(String id, FollowupKind kind, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Only TASK") String taskId,
             String dogId, String dogName, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null with levels.enabled = false") String levelCode,
-            String memberId, String memberName, String authorName, AuthorRole authorRole, @Schema(description = "At most 120 characters") String textExcerpt,
+            String memberId, String memberName, String authorName, AuthorRole authorRole,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, allowableValues = {"MALE", "FEMALE", "OTHER"},
+                    description = "Only MEMBER_NOTE rows: the member's gender, for the author label «Laura (alumna)» (S10 §6, §10)") String authorGender,
+            @Schema(description = "At most 120 characters") String textExcerpt,
             Instant createdAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "«—» while pending") Instant completedAt,
             @Schema(description = "Task creation or last note change; completing does not move it") Instant activityAt, boolean unread) { }
     public record FollowupUnreadCount(int count) { }

@@ -33,8 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * E6-T01 contract (S10 WP-10-A): every S10 route is published with typed forms (T-10-21) behind its tenant, role,
- * impersonation, module and resource guards (the role matrix half of T-10-22); the routes E6-T02 serves (`implemented` in
- * `e6-routes.json`) answer their success status there, the others still 501. The S10 attachment purposes, the S06
+ * impersonation, module and resource guards (the role matrix half of T-10-22); since E6-T02 (attendance and instructor
+ * routes) and E6-T03 (tasks, attachments, observations, D14) every route is served (`implemented` in `e6-routes.json`)
+ * and answers its success status to each allowed role, on a fresh fixture. The S10 attachment purposes, the S06
  * attendance status and the P3/P8 catalog rows behave as the contract says.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
@@ -91,6 +92,9 @@ class E6ContractIT extends AbstractIntegrationTest {
                 .append("classStartsAt", Instant.parse("2026-08-03T06:30:00Z")).append("classEndsAt", Instant.parse("2026-08-03T07:30:00Z")).append("version", 0), "bookings");
         mongo.insert(new Task("e6-task-a", CLUB, "e6-dog-a", "e6-member-a", "Practiqueu el balancí", TaskState.PENDING,
                 new Task.Actor("e6-INSTRUCTOR", AuthorRole.INSTRUCTOR, "Estel"), null, null, null, now, now, null, null, 1, 1L));
+        // E6-T03: a DONE task for the reopening of the matrix (the completion takes the PENDING one).
+        mongo.insert(new Task("e6-task-done", CLUB, "e6-dog-a", "e6-member-a", "Treballar l'espera", TaskState.DONE,
+                new Task.Actor("e6-INSTRUCTOR", AuthorRole.INSTRUCTOR, "Estel"), null, new Task.Actor("e6-MEMBER", AuthorRole.MEMBER, "Example"), null, now, now, now, null, 0, 1L));
         mongo.insert(new Attachment("e6-att-task", CLUB, "TASK", "e6-task-a", "e6-att-task", "vídeo.mp4", "video/mp4", 4, "e6-INSTRUCTOR", now, now, null, null, 0));
         mongo.insert(new Attachment("e6-att-note", CLUB, "INSTRUCTOR_NOTE", "e6-dog-a", "e6-att-note", "foto.jpg", "image/jpeg", 4, "e6-MEMBER", now, now, null, null, 0));
         mongo.insert(new FollowupItem("e6-item-a", CLUB, FollowupKind.TASK, "e6-task-a", "e6-dog-a", "e6-member-a", "e6-INSTRUCTOR", AuthorRole.INSTRUCTOR,
@@ -112,7 +116,8 @@ class E6ContractIT extends AbstractIntegrationTest {
     }
 
     private String path(Route r, String clubId) {
-        String id = r.path().contains("class-sessions") ? "e6-class-a" : r.path().contains("/dogs/") ? "e6-dog-a" : r.path().contains("/tasks/") ? "e6-task-a"
+        String id = r.path().contains("class-sessions") ? "e6-class-a" : r.path().contains("/dogs/") ? "e6-dog-a" : r.path().endsWith("/reopening") ? "e6-task-done"
+                : r.path().contains("/tasks/") ? "e6-task-a"
                 : r.path().contains("/attachments/") ? "e6-att-task" : "e6-item-a";
         return r.path().replace("{id}", id);
     }
@@ -150,7 +155,8 @@ class E6ContractIT extends AbstractIntegrationTest {
     void T_10_22_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
         for (String role : ROLES) {
             boolean allowed = route.roles().contains(role);
-            if (allowed && route.implemented()) { served(call(route, CLUB, role), route.success()); continue; }
+            // A served write changes the fixture (a completed or deleted task, a new version): each allowed role starts afresh.
+            if (allowed && route.implemented()) { prepare(); served(call(route, CLUB, role), route.success()); continue; }
             error(call(route, CLUB, role), allowed ? 501 : role.equals("ANON") ? 401 : 403,
                     allowed ? "NOT_IMPLEMENTED" : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
         }
@@ -172,9 +178,9 @@ class E6ContractIT extends AbstractIntegrationTest {
         assertThat(routes().filter(Route::impersonation).map(r -> r.method() + " " + r.path()).toList()).containsExactly("GET /api/v1/me/history",
                 "GET /api/v1/tasks", "POST /api/v1/tasks/{id}/completion", "GET /api/v1/attachments");
         var token = jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER");
-        // The member's own INSTRUCTOR_NOTE: listed and removed as the member (501 until E6-T03); staff entities are IMPERSONATION_DENIED.
-        error(delete("/api/v1/attachments/e6-att-note").header("Host", HOST).header("Idempotency-Key", UUID.randomUUID().toString()).with(token), 501, "NOT_IMPLEMENTED");
-        error(get("/api/v1/attachments").param("entityType", "INSTRUCTOR_NOTE").param("entityId", "e6-dog-a").header("Host", HOST).with(token), 501, "NOT_IMPLEMENTED");
+        // The member's own INSTRUCTOR_NOTE: listed and removed as the member (served since E6-T03); staff entities are IMPERSONATION_DENIED.
+        served(get("/api/v1/attachments").param("entityType", "INSTRUCTOR_NOTE").param("entityId", "e6-dog-a").header("Host", HOST).with(token), 200);
+        served(delete("/api/v1/attachments/e6-att-note").header("Host", HOST).header("Idempotency-Key", UUID.randomUUID().toString()).with(token), 204);
         error(get("/api/v1/attachments").param("entityType", "DOG_OBSERVATIONS").param("entityId", "e6-dog-a").header("Host", HOST).with(token), 404, "NOT_FOUND");
         error(post("/api/v1/attachments/upload-url").contentType("application/json").content("{\"purpose\":\"TASK\",\"fileName\":\"a.pdf\",\"mimeType\":\"application/pdf\",\"sizeBytes\":4}")
                 .header("Host", HOST).with(token), 403, "IMPERSONATION_DENIED");
@@ -204,11 +210,11 @@ class E6ContractIT extends AbstractIntegrationTest {
         }
         // GET /tasks?dogId: another member's dog (also a family-group one, S10 §13-13) → 404 DOG_NOT_ACCESSIBLE; staff see every dog of the club.
         error(as(get("/api/v1/tasks").param("dogId", "e6-dog-b"), "MEMBER"), 404, "DOG_NOT_ACCESSIBLE");
-        error(as(get("/api/v1/tasks").param("dogId", "e6-dog-b"), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/tasks").param("dogId", "e6-dog-b"), "INSTRUCTOR"), 200);
         error(as(get("/api/v1/tasks").param("dogId", "e6-dog-x"), "INSTRUCTOR"), 404, "NOT_FOUND");
         error(as(get("/api/v1/tasks").param("dogId", "e6-dog-a").param("includeDeleted", "true"), "INSTRUCTOR"), 403, "FORBIDDEN");
         error(as(get("/api/v1/tasks").param("dogId", "e6-dog-a").param("includeDeleted", "true"), "MEMBER"), 403, "FORBIDDEN");
-        error(as(get("/api/v1/tasks").param("dogId", "e6-dog-a").param("includeDeleted", "true"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/tasks").param("dogId", "e6-dog-a").param("includeDeleted", "true"), "ADMIN"), 200);
         error(as(get("/api/v1/tasks"), "ADMIN"), 400, "VALIDATION_ERROR");
         // Global vision (MATRIU rule 1): any instructor reaches any class, dog, task, item of the club.
         error(as(put("/api/v1/class-sessions/e6-class-a/attendance").contentType("application/json").content("{\"version\":0,\"items\":[{\"bookingId\":\"b\",\"state\":\"LATE\"}]}")
@@ -231,8 +237,8 @@ class E6ContractIT extends AbstractIntegrationTest {
             }
         }
         served(as(get("/api/v1/attendances").param("filter", "classDate:between:2026-08-01,2026-08-31").param("filter", "dogId:in:e6-dog-a,e6-dog-b"), "INSTRUCTOR"), 200);
-        error(as(get("/api/v1/followup").param("filter", "kind:eq:MEMBER_NOTE").param("filter", "authorAccountId:eq:e6-INSTRUCTOR").param("filter", "memberId:eq:e6-member-a")
-                .param("filter", "dogId:eq:e6-dog-a").param("sort", "activityAt,desc"), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/followup").param("filter", "kind:eq:MEMBER_NOTE").param("filter", "authorAccountId:eq:e6-INSTRUCTOR").param("filter", "memberId:eq:e6-member-a")
+                .param("filter", "dogId:eq:e6-dog-a").param("sort", "activityAt,desc"), "INSTRUCTOR"), 200);
     }
 
     @Test void T_10_33_disabledTasksAnswers404BeforeTheStubOnEveryTasksRouteAndPurpose() throws Exception {
@@ -252,7 +258,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         served(as(get("/api/v1/me/history"), "MEMBER"), 200);
     }
 
-    @Test void T_10_16_taskAndObservationPurposesAreStaffOnlyAndStubbedAtRegistration() throws Exception {
+    @Test void T_10_16_taskAndObservationPurposesAreStaffOnlyAtRegistration() throws Exception {
         for (String purpose : List.of("TASK", "DOG_OBSERVATIONS")) {
             String upload = "{\"purpose\":\"" + purpose + "\",\"fileName\":\"vídeo_balancí.mov\",\"mimeType\":\"video/quicktime\",\"sizeBytes\":" + 20L * 1024 * 1024 + "}";
             mvc.perform(as(post("/api/v1/attachments/upload-url").contentType("application/json").content(upload), "INSTRUCTOR"))
@@ -264,7 +270,8 @@ class E6ContractIT extends AbstractIntegrationTest {
                     400, "FILE_TYPE_NOT_ALLOWED");
             String entity = purpose.equals("TASK") ? "e6-task-a" : "e6-dog-a";
             String register = "{\"entityType\":\"" + purpose + "\",\"entityId\":\"" + entity + "\",\"fileKey\":\"k\",\"name\":\"vídeo.mov\"}";
-            error(as(post("/api/v1/attachments").contentType("application/json").content(register), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
+            // Served since E6-T03: past the guards, a key that was never uploaded is not found.
+            error(as(post("/api/v1/attachments").contentType("application/json").content(register), "INSTRUCTOR"), 404, "NOT_FOUND");
             error(as(post("/api/v1/attachments").contentType("application/json").content(register), "MEMBER"), 403, "FORBIDDEN");
             error(as(post("/api/v1/attachments").contentType("application/json").content(register.replace(entity, "e6-missing")), "ADMIN"), 404, "NOT_FOUND");
         }
@@ -275,10 +282,10 @@ class E6ContractIT extends AbstractIntegrationTest {
                 .content("{\"entityType\":\"INSTRUCTOR_NOTE\",\"entityId\":\"e6-dog-a\",\"fileKey\":\"k\",\"name\":\"a.pdf\"}"), "MEMBER", "ADMIN"), 403, "FORBIDDEN");
         // Reading: DOG_OBSERVATIONS never for the member (404); removal of a member note by staff → 403.
         error(as(get("/api/v1/attachments").param("entityType", "DOG_OBSERVATIONS").param("entityId", "e6-dog-a"), "MEMBER"), 404, "NOT_FOUND");
-        error(as(get("/api/v1/attachments").param("entityType", "DOG_OBSERVATIONS").param("entityId", "e6-dog-a"), "INSTRUCTOR"), 501, "NOT_IMPLEMENTED");
+        served(as(get("/api/v1/attachments").param("entityType", "DOG_OBSERVATIONS").param("entityId", "e6-dog-a"), "INSTRUCTOR"), 200);
         error(as(get("/api/v1/attachments").param("entityType", "OTHER").param("entityId", "e6-dog-a"), "INSTRUCTOR"), 400, "VALIDATION_ERROR");
         error(as(delete("/api/v1/attachments/e6-att-note").header("Idempotency-Key", UUID.randomUUID().toString()), "ADMIN"), 403, "FORBIDDEN");
-        error(as(delete("/api/v1/attachments/e6-att-note").header("Idempotency-Key", UUID.randomUUID().toString()), "MEMBER"), 501, "NOT_IMPLEMENTED");
+        served(as(delete("/api/v1/attachments/e6-att-note").header("Idempotency-Key", UUID.randomUUID().toString()), "MEMBER"), 204);
     }
 
     @Test void T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreCatalogRowsWithoutAJobBeanYet() throws Exception {
@@ -301,6 +308,8 @@ class E6ContractIT extends AbstractIntegrationTest {
         return result;
     }
     @Test void T_10_21_theStubsWriteNothing() throws Exception {
+        // E6-T03: no S10 route is a stub any more (the loop below stays for any route a later contract adds as one).
+        assertThat(routes().filter(r -> !r.implemented()).toList()).isEmpty();
         var before = database();
         for (Route route : routes().filter(r -> !r.implemented()).toList()) {
             for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().isNotImplemented()); }
@@ -342,6 +351,11 @@ class E6ContractIT extends AbstractIntegrationTest {
         assertThat(strings(api.at("/paths/~1api~1v1~1followup/get/x-filterable"))).containsExactly("kind", "memberId", "dogId", "authorAccountId", "unread");
         assertThat(strings(api.at("/paths/~1api~1v1~1followup/get/x-sortable"))).containsExactly("activityAt");
         assertThat(api.at("/paths/~1api~1v1~1instructor~1week~1export/get/responses/200/content").has("application/pdf")).isTrue();
+        // E6-T03 step 11 (E6-T01 round-2 review #2, S10 §6): GET /tasks is the whole history (PENDING and DONE) unless the caller asks otherwise.
+        var includeDone = Stream.of(mapper.convertValue(api.at("/paths/~1api~1v1~1tasks/get/parameters"), JsonNode[].class))
+                .filter(p -> p.path("name").asText().equals("includeDone")).findFirst().orElseThrow();
+        assertThat(includeDone.at("/schema/default").isBoolean()).isTrue(); assertThat(includeDone.at("/schema/default").asBoolean()).isTrue();
+        assertThat(api.at("/paths/~1api~1v1~1tasks/get/description").asText()).contains("PENDING and DONE by default (includeDone=true");
         // The attachment routes of E3-T03, extended with the S10 purposes.
         assertThat(strings(api.at("/components/schemas/UploadRequest/properties/purpose/enum"))).containsExactly("DOG_DOCUMENT", "DOG_PHOTO", "INSTRUCTOR_NOTE",
                 "ACTIVITY_IMAGE", "ACTIVITY_DOCUMENT", "TASK", "DOG_OBSERVATIONS");

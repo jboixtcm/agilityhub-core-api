@@ -33,8 +33,14 @@ public class AttachmentConfiguration {
     @Bean com.agilityhub.core.platform.application.audit.AuditableLoader attachmentAudit(AttachmentRepository repo) {
         return new com.agilityhub.core.platform.application.audit.AuditableLoader() {
             public String entityType() { return "Attachment"; }
+            /** E6-T03: `removedAt` too, so the removal of an attachment (R-10-11) is a change the audit records. */
             public Object load(String id) {
-                return repo.findById(id).map(item -> java.util.Map.of("name", item.name(), "fileKey", item.fileKey(), "entityType", item.entityType(), "entityId", item.entityId())).orElse(null);
+                return repo.findById(id).map(item -> {
+                    var view = new java.util.LinkedHashMap<String, Object>();
+                    view.put("name", item.name()); view.put("fileKey", item.fileKey()); view.put("entityType", item.entityType()); view.put("entityId", item.entityId());
+                    view.put("removedAt", item.removedAt());
+                    return view;
+                }).orElse(null);
             }
         };
     }

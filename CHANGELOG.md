@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E6-T03: S10 WP-10-C, tasks, attachments, observations and the D14 follow-up.
+  - Tasks (R-10-10, §5): create (dog ACTIVE, text 1–2000, TASK uploads registered in the same transaction,
+    `Idempotency-Key`), edit with `version`, logical delete (also DONE), completion by the owner (also impersonated,
+    audited `DOG_UPDATED`) or staff, reopening by staff. `TaskCreated/Updated/Deleted/Completed` and `TaskReopened`
+    (Annex A) through the outbox; the D14 row in the same transaction. A deleted task is 404 for every caller, and
+    `GET /tasks` shows the whole history by default (E6-T01 round-2 review).
+  - Attachments (R-10-11): `AttachmentService.add` generalizes the member note's registration to TASK and
+    DOG_OBSERVATIONS (purpose = entity type, `files.maxAttachmentsPerEntity` with `details.max`, the same key = the same
+    attachment, `attachmentCount`); `GET /attachments` with 5-minute signed URLs; `DELETE /attachments/{id}` =
+    `removedAt` + `AttachmentRemoved` (Annex A). DOG_OBSERVATIONS is never readable by a member (404).
+  - Observations (R-10-12): `PUT /dogs/{id}/observations` writes `Dog.remarks` + `remarksMeta` through `DogService`
+    (new shared port `FollowupCensusAccess`, census-owned), `DogUpdated{diff: remarks}`, audited, own version
+    (`remarksMeta.version`), frozen during a pending readmission (409 `READMISSION_PENDING`).
+  - D14 (R-10-13): `GET /followup` universal list with the per-account `unread` computed in the query and «unread first»
+    ordering (`ListDataset.leadingSort`), names and level resolved at read time, `unread-count`, `read`, O(1)
+    `read-all`; the same count is `GET /dashboard/counters.followUpUnread` (evicted after each follow-up commit).
+  - Consumers: `MemberNoteChanged` → the dog's one MEMBER_NOTE row (unread again for all but its author), `DogTransferred`
+    → tasks and rows follow the dog. N-20 (owner, APP + EMAIL), N-21 and N-22 (active instructors, APP) with keys in
+    ca/es/en; nothing with TASKS off.
+  - `DogFollowupPort` is served (the sheet's `pendingTasksCount`, the card's three blocks), adapted at the composition
+    root (`FollowupPortConfiguration`); ArchUnit rule: `clubs.followup` imports neither `clubs.census` nor `clubs.bookings`.
+  - The idempotency filter also keys `PUT /dogs/{id}/observations`, `DELETE /tasks/{id}` and `DELETE /attachments/{id}`.
+
 - E6-T02: S10 WP-10-B, attendance and the instructor aggregates.
   - `PUT /class-sessions/{id}/attendance` (R-10-04): one Mongo transaction serialised by the class's `seat_locks` row,
     `409 STALE_VERSION{current}`, items equal to the stored state are no-ops, all-or-nothing, the `Idempotency-Key`

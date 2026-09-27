@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.followup.application;
 
+import com.agilityhub.core.clubs.followup.domain.AttachmentEntityType;
 import com.agilityhub.core.clubs.followup.persistence.*;
 import com.agilityhub.core.platform.application.*;
 import com.agilityhub.core.platform.application.Module;
@@ -18,10 +19,11 @@ public class AttachmentService {
     /** A local signed download (E5-T26): the stored file with its stored name and MIME type, as S3 answers its object. */
     public record Download(String name, String mimeType, long sizeBytes, InputStream content) { }
     private final UploadGrantRepository grants; private final AttachmentRepository attachments; private final AttachmentStorage storage;
-    private final EventPublisher events;
+    private final EventPublisher events; private final TaskRepository tasks; private final FollowupEvents followupEvents;
     private final ClubConfigService configs; private final DogOwnerAccess dogs; private final Clock clock;
-    public AttachmentService(UploadGrantRepository grants, AttachmentRepository attachments, AttachmentStorage storage, ClubConfigService configs, DogOwnerAccess dogs, Clock clock, EventPublisher events) {
-        this.events = events;
+    public AttachmentService(UploadGrantRepository grants, AttachmentRepository attachments, AttachmentStorage storage, ClubConfigService configs, DogOwnerAccess dogs, Clock clock,
+            EventPublisher events, TaskRepository tasks) {
+        this.events = events; this.tasks = tasks; this.followupEvents = new FollowupEvents(events, clock);
         this.grants = grants; this.attachments = attachments; this.storage = storage; this.configs = configs; this.dogs = dogs; this.clock = clock;
     }
     private ClubConfig config() { return configs.get(TenantContext.require()); }
@@ -172,35 +174,86 @@ public class AttachmentService {
             return new Download(grant.fileName(), stored.mimeType(), stored.sizeBytes(), local.open(id));
         });
     }
+    /**
+     * `POST /attachments` (R-10-11), generalized from the member note's registration (E3-T03 `addNote`) to the three S10
+     * owners: INSTRUCTOR_NOTE (the dog's owner, the caller's guard), TASK and DOG_OBSERVATIONS (INSTRUCTOR/ADMIN). Under the
+     * entity's lock: the same `fileKey` again is the same attachment (no second event); at most
+     * `files.maxAttachmentsPerEntity` live ones (ATTACHMENT_LIMIT_REACHED{max}); the upload grant's purpose must be the
+     * entity type (ATTACHMENT_ENTITY_MISMATCH, e.g. a DOG_DOCUMENT key) and the stored object must match it; `name` ≤ 80, by
+     * default the uploaded file's name. `AttachmentAdded`, and a task's `attachmentCount` + 1, in the caller's transaction.
+     */
     @Transactional
     @com.agilityhub.core.platform.application.audit.Audited(action = com.agilityhub.core.platform.application.audit.AuditAction.DOG_UPDATED,
             entityType = "'Attachment'", entity = "#key")
-    public Map<String,Object> addNote(String entityType, String dogId, String key, String name) {
-        if (!"INSTRUCTOR_NOTE".equals(entityType)) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
-        dogs.requireDog(dogId, true, true);
+    public Map<String,Object> add(String entityType, String entityId, String key, String name) {
+        var type = entityType(entityType);
+        switch (type) {
+            case INSTRUCTOR_NOTE -> dogs.requireDog(entityId, true, true);
+            case DOG_OBSERVATIONS -> dogs.requireDog(entityId, false, true);
+            case TASK -> tasks.findById(entityId).filter(task -> task.deletedAt() == null).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        }
         if (!config().modules().contains(Module.TASKS)) { throw new ApiException(ErrorCode.MODULE_DISABLED); }
-        if (name == null || name.isBlank() || name.length() > 80) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
-        attachments.lock(entityType, dogId);
+        String label = name != null ? name : grants.findById(key).map(grant -> clipped(grant.fileName())).orElse(null);
+        if (label == null || label.isBlank() || label.length() > 80) { throw new ApiException(ErrorCode.VALIDATION_ERROR); }
+        attachments.lock(entityType, entityId);
         var existing = attachments.forKey(key).orElse(null);
         if (existing != null) {
-            if (!dogId.equals(existing.entityId()) || !account().equals(existing.uploadedByAccountId())) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
+            if (!entityType.equals(existing.entityType()) || !entityId.equals(existing.entityId()) || !account().equals(existing.uploadedByAccountId())
+                    || existing.removedAt() != null) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
             return view(existing);
         }
         int limit = config().get("files.maxAttachmentsPerEntity", Integer.class);
-        if (attachments.forEntity(entityType, dogId).size() >= limit) { throw new ApiException(ErrorCode.ATTACHMENT_LIMIT_REACHED, Map.of("max", limit)); }
-        var file = claim(key, entityType, dogId);
-        var saved = attachments.insert(new Attachment(key, TenantContext.require(), entityType, dogId, key,
-                name, file.mimeType(), file.sizeBytes(), account(), clock.instant(), clock.instant(), null, null, 0));
+        if (attachments.forEntity(entityType, entityId).size() >= limit) { throw new ApiException(ErrorCode.ATTACHMENT_LIMIT_REACHED, Map.of("max", limit)); }
+        var file = claim(key, entityType, entityId);
+        var saved = attachments.insert(new Attachment(key, TenantContext.require(), entityType, entityId, key,
+                label, file.mimeType(), file.sizeBytes(), account(), clock.instant(), clock.instant(), null, null, 0));
+        if (type == AttachmentEntityType.TASK) { tasks.countAttachments(entityId, 1); }
         var user = CurrentUser.current();
         events.publish(new com.agilityhub.core.clubs.followup.domain.AttachmentAdded(TenantContext.require(), saved.id(), clock.instant(),
-                Map.of("attachmentId", saved.id(), "entityType", entityType, "entityId", dogId),
+                Map.of("attachmentId", saved.id(), "entityType", entityType, "entityId", entityId),
                 user.impersonation() == null ? user.accountId() : user.impersonation().actorAccountId(),
                 user.impersonation() == null ? null : user.impersonation().memberId(), user.origin()));
         return view(saved);
     }
-    public List<Map<String,Object>> noteAttachments(String dogId) { return attachments.forEntity("INSTRUCTOR_NOTE", dogId).stream().map(this::view).toList(); }
+    /**
+     * `DELETE /attachments/{id}` (R-10-11): `removedAt` + `removedByAccountId`, never the file (the S14 erasure deletes it);
+     * `AttachmentRemoved` (CATALEG_ESDEVENIMENTS Annex A) and a task's `attachmentCount` − 1. Audited like the registration.
+     */
+    @Transactional
+    @com.agilityhub.core.platform.application.audit.Audited(action = com.agilityhub.core.platform.application.audit.AuditAction.DOG_UPDATED,
+            entityType = "'Attachment'", entity = "#attachment.id()")
+    public void remove(Attachment attachment) {
+        // The dog's own data, as at registration: an erased member's is MEMBER_ERASED, a frozen reused dog's 409 READMISSION_PENDING.
+        switch (entityType(attachment.entityType())) {
+            case INSTRUCTOR_NOTE -> dogs.requireDog(attachment.entityId(), true, true);
+            case DOG_OBSERVATIONS -> dogs.requireDog(attachment.entityId(), false, true);
+            case TASK -> { }
+        }
+        if (!attachments.remove(attachment.id(), account(), clock.instant())) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        if (AttachmentEntityType.TASK.name().equals(attachment.entityType())) { tasks.countAttachments(attachment.entityId(), -1); }
+        followupEvents.publish(com.agilityhub.core.clubs.followup.domain.FollowupEvent.Kind.AttachmentRemoved, attachment.id(),
+                Map.of("attachmentId", attachment.id(), "entityType", attachment.entityType(), "entityId", attachment.entityId()));
+    }
+    /** `GET /attachments`: the entity's live attachments, oldest first, each with a 5-minute signed `url`. */
+    public List<Map<String,Object>> list(String entityType, String entityId) { return attachments.forEntity(entityType, entityId).stream().map(this::view).toList(); }
+    /** The live attachments of many entities of one type (the tasks of a list), by entity id. */
+    public Map<String, List<Map<String,Object>>> byEntity(String entityType, Collection<String> entityIds) {
+        var result = new HashMap<String, List<Map<String,Object>>>();
+        attachments.forEntities(entityType, entityIds).forEach(attachment -> result.computeIfAbsent(attachment.entityId(), id -> new ArrayList<>()).add(view(attachment)));
+        return result;
+    }
+    public List<Map<String,Object>> noteAttachments(String dogId) { return list("INSTRUCTOR_NOTE", dogId); }
     private Map<String,Object> view(Attachment attachment) {
         return Map.of("id", attachment.id(), "name", attachment.name(), "mimeType", attachment.mimeType(), "sizeBytes", attachment.sizeBytes(),
                 "url", url(attachment.fileKey(), attachment.name()), "uploadedAt", attachment.createdAt());
+    }
+    private static AttachmentEntityType entityType(String value) {
+        try { return AttachmentEntityType.valueOf(value); } catch (IllegalArgumentException | NullPointerException other) { throw new ApiException(ErrorCode.ATTACHMENT_ENTITY_MISMATCH); }
+    }
+    /** S10 §3 «`name` ≤ 80 (per defecte el nom original)»: a longer original name keeps its extension. */
+    static String clipped(String name) {
+        if (name == null || name.length() <= 80) { return name; }
+        int dot = name.lastIndexOf('.'); String extension = dot > 0 && name.length() - dot <= 10 ? name.substring(dot) : "";
+        return name.substring(0, 80 - extension.length()) + extension;
     }
 }

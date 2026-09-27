@@ -63,8 +63,8 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     /** Operation path → the allowlist of a list that is not a `ListEngine` provider. */
     static final Map<String, Set<String>> OWN_LISTS = Map.of("/api/v1/followup", FollowupContractAccess.FOLLOWUP.fields(),
             "/api/v1/attendances", AttendanceContractAccess.ATTENDANCES.fields(), "/api/v1/jobs/{name}/runs", JobAdminService.RUN_FIELDS);
-    /** The universal lists that are still stubs (S10 follow-up, E6-T03): they validate the query, `fields` included, and then answer 501. */
-    static final Set<String> STUBS = Set.of("/api/v1/followup");
+    /** The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (none since E6-T03 served `/followup`). */
+    static final Set<String> STUBS = Set.of();
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -214,6 +214,15 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
                 .append("classEndsAt", booking.getDate("classEndsAt")).append("dogId", booking.getString("dogId")).append("memberId", booking.getString("memberId"))
                 .append("state", "PRESENT").append("markedAt", clock.instant()).append("markedBy", new org.bson.Document("accountId", "list-fields-admin")
                         .append("role", "ADMIN").append("displayName", "Admin")).append("history", List.of()).append("version", 0), "attendances");
+        // E6-T03: `GET /followup` is served; a task row and a member-note row (no taskId, no completedAt: the nullable keys) for a demo dog.
+        var now = java.util.Date.from(clock.instant());
+        mongo.save(new org.bson.Document("_id", "list-fields-task-row").append("clubId", canic).append("kind", "TASK").append("taskId", "list-fields-task")
+                .append("dogId", booking.getString("dogId")).append("memberId", booking.getString("memberId")).append("authorAccountId", "list-fields-other")
+                .append("authorRole", "INSTRUCTOR").append("authorName", "Estel").append("textExcerpt", "Practiqueu el balancí").append("createdAt", now)
+                .append("completedAt", now).append("activityAt", now).append("hidden", false), "followup_items");
+        mongo.save(new org.bson.Document("_id", "list-fields-note-row").append("clubId", canic).append("kind", "MEMBER_NOTE").append("dogId", booking.getString("dogId"))
+                .append("memberId", booking.getString("memberId")).append("authorAccountId", "list-fields-member").append("authorRole", "MEMBER").append("authorName", "Laura")
+                .append("textExcerpt", "A veure si treballem el doble").append("createdAt", now).append("activityAt", now).append("hidden", false), "followup_items");
         return canic;
     }
     String registeredActivity(String club) {

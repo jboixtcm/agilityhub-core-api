@@ -98,11 +98,20 @@ public class DashboardQuery {
         dashboards.invalidate(clubId);
         counters.asMap().keySet().removeIf(key -> key.clubId().equals(clubId));
     }
-    public void invalidateAfterCommit(String clubId) {
+    public void invalidateAfterCommit(String clubId) { afterCommit(() -> invalidate(clubId)); }
+    /**
+     * E6-T03 (S10 R-10-13): the `followUpUnread` of a club's counters changes with every D14 write (a new task or note, a
+     * read, a read-all), so only the counters are dropped, once the write commits: the next read sees it.
+     */
+    public void invalidateCountersAfterCommit(String clubId) {
+        if (clubId == null) { return; }
+        afterCommit(() -> counters.asMap().keySet().removeIf(key -> key.clubId().equals(clubId)));
+    }
+    private static void afterCommit(Runnable eviction) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override public void afterCommit() { invalidate(clubId); }
+                @Override public void afterCommit() { eviction.run(); }
             });
-        } else { invalidate(clubId); }
+        } else { eviction.run(); }
     }
 }

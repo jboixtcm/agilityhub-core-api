@@ -2,6 +2,29 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-26 · E6-T03 · S10 tasks, attachments, observations and D14 follow-up are served
+
+**0 operations added or removed; 1 optional property added; 15 descriptions changed; 1 parameter default changed; 4 error
+lists extended.** The 14 follow-up routes of E6-T01 (`/tasks*`, `/followup*`, `PUT /dogs/{id}/observations`, `GET
+/attachments`, `DELETE /attachments/{id}`) and the TASK / DOG_OBSERVATIONS registration of `POST /attachments` no longer
+answer `501 NOT_IMPLEMENTED`: their descriptions lose the «Contract only» sentence and say what the api decides. The web
+must regenerate its client.
+- **`FollowupItem.authorGender`** (optional, nullable, `MALE|FEMALE|OTHER`; S10 §6 «Creador = Laura (alumna), per
+  `gender`»): the member's gender on MEMBER_NOTE rows, for D14's «{nom} (alumne/alumna)»; `null` on TASK rows. It is in
+  `x-fields` of `GET /followup`.
+- **`GET /tasks` `includeDone` defaults to `true`** (S10 §6; E6-T01 round-2 review #2): the history shows PENDING and
+  DONE unless `includeDone=false`; `state` picks one state and wins over it. `404 NOT_FOUND` is now listed (a staff
+  caller's unknown dog).
+- Error lists: `POST /tasks` + `FILE_TOO_LARGE`, `FILE_TYPE_NOT_ALLOWED` (the stored object of an `attachmentIds` key);
+  `POST /attachments` + `VALIDATION_ERROR` (`name`); `PUT /dogs/{id}/observations` + `INVALID_STATE` (409
+  `READMISSION_PENDING`, S04 R-04-06).
+- Nullable fields of `Task`, `Actor` and `FollowupItem` are sent as `null` (not left out), like E6-T02's rows. A
+  member reading a task gets `createdBy.accountId` and `doneBy.accountId` as `null`.
+- `Observations.version` / the card's `observations.version` count the observation changes (`remarksMeta.version`),
+  so a member's note or another write of the dog never makes an instructor's observations stale.
+- `GET /followup` with `fields=` answers the page cut to `id` and the requested keys (CONVENCIONS_API §4), as every
+  universal list; without it, the whole `FollowupPage`.
+
 ## 2026-09-26 · E6-T02 · S10 attendance, instructor day and week (with its PDF), student card, member history and `/attendances` are served
 
 **0 operations added or removed; 2 optional properties added; 8 descriptions changed.** The 8 routes of E6-T01 that

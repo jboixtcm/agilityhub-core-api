@@ -55,11 +55,18 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     /** S10 R-10-04 (E6-T02): the attendance save is a keyed PUT that replays the same response for the same key. */
     static final java.util.regex.Pattern KEYED_PUT = java.util.regex.Pattern.compile("/api/v1/class-sessions/[^/]+/attendance");
+    /**
+     * S10 §6 (E6-T03): the other keyed writes that are no POST — the observations `PUT` and the two `DELETE`s of follow-up.
+     * They run in the filter's own transaction, like the keyed POSTs, and replay the same 200/204 for the same key.
+     */
+    static final java.util.regex.Pattern KEYED_FOLLOWUP = java.util.regex.Pattern.compile("PUT /api/v1/dogs/[^/]+/observations|DELETE /api/v1/(tasks|attachments)/[^/]+");
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
         boolean keyedMethod = "POST".equals(request.getMethod())
-                || "PUT".equals(request.getMethod()) && KEYED_PUT.matcher(request.getRequestURI().substring(request.getContextPath().length())).matches();
+                || "PUT".equals(request.getMethod()) && KEYED_PUT.matcher(path).matches()
+                || KEYED_FOLLOWUP.matcher(request.getMethod() + " " + path).matches();
         return HealthRequests.matches(request) || !keyedMethod || (request.getHeader("Idempotency-Key") == null && !request.getRequestURI().equals("/api/v1/signup"));
     }
 

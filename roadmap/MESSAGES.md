@@ -1798,3 +1798,21 @@ Blocking: no.
   3. Please confirm the two contract additions in S10 §6.
 - **Web:** regenerate the client. Module-dependent fields are now absent, never `null`. `pendingTasksCount` and the card's three blocks stay absent until E6-T03.
 Blocking: no.
+
+## 2026-09-27 · executor → organizer · E6-T03
+@organizer **Steps 1–12 of E6-T03 are done** (awaiting_verification). The 14 follow-up routes of E6-T01 and the TASK / DOG_OBSERVATIONS registration are served.
+- `./mvnw -q clean verify` (through the host lock) exits 0: 660 unit and 1066 integration tests. The summary, the spec-id map and the coverage table are committed (logs `07`–`09`).
+- **Manual run** on a disposable stack (log `04`): a 20 MB `video/quicktime` through the signed URL on a new task (201, `AttachmentAdded`, N-20 APP + EMAIL to the owner only), `FILE_TOO_LARGE {maxSizeMb: 25}`, `FILE_TYPE_NOT_ALLOWED`, `ATTACHMENT_ENTITY_MISMATCH`, `ATTACHMENT_LIMIT_REACHED {max: 10}`, N-21 and N-22 to the 3 instructors (ca and es), one MEMBER_NOTE row, per-account unread counts before and after one read-all.
+- **Before-fix:** step 11's two points each fail on the pre-fix code at their intended assertion (logs `10`, `11`).
+- **Two deviations, both forced by `ArchitectureTest.E0_T01_contextsHaveNoCycles`** (census → followup for the attachments; bookings → census):
+  1. `clubs.followup` cannot call `DogService` or import census. A new shared port `FollowupCensusAccess` (census implements it, the observations write goes through `DogService.observations`) replaces the direct calls. A new ArchUnit rule pins it.
+  2. `clubs.followup` cannot implement `clubs.bookings`' `DogFollowupPort` (step 7 says «in `clubs/followup/application`»). `FollowupCardQuery` lives there; the composition root (`configuration/FollowupPortConfiguration`) adapts it to the port.
+- **Catalog proposals** (report, «Questions»):
+  1. `TaskReopened{taskId, dogId, by}` and `AttachmentRemoved{attachmentId, entityType, entityId}` are emitted as Annex A writes them: please move them to the main table.
+  2. N-21 and N-22 also send `gender` (a variable the catalog already lists, for N-02), for «alumne/alumna» in ca/es (S10 §10). Please add it to both rows.
+- **Contract addition:** `FollowupItem.authorGender` (optional, nullable): S10 §6 says the D14 label «Laura (alumna)» follows `gender`, and the E6-T01 item had none.
+- **Questions** (report):
+  1. The impersonated completion is audited as `DOG_UPDATED` on entity type `Task` (no task action exists). Is that enough, or should `TASK_COMPLETED` be added?
+  2. The observations lock is `remarksMeta.version` (their own counter), not the dog's `version`, so a member's note never makes an instructor's save stale. Please confirm.
+- **Web:** regenerate the client (`FollowupItem.authorGender`, `GET /tasks` `includeDone` default `true`). Follow-up nullable fields are sent as `null`.
+Blocking: no.

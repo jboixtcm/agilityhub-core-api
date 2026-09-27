@@ -173,4 +173,30 @@ public class DogService {
         dog.instructorNote = object("text", text, "updatedAt", clock.instant(), "updatedByAccountId", CurrentUser.current().accountId());
         access.dogs.save(dog); events.emit("MemberNoteChanged", "Dog", id, object("dogId", id, "memberId", dog.memberId));
     }
+    /**
+     * S10 R-10-12 (E6-T03): the instructors' private observations, `Dog.remarks` (≤ 2000, stored as written; empty clears
+     * it) and `remarksMeta`, called by S10 follow-up through {@code FollowupCensusAccess}. `remarksMeta.version` counts the
+     * observation changes and is their optimistic lock (STALE_VERSION): another write of the dog (the member's note, a level)
+     * does not make an instructor's observations stale. A frozen reused dog is 409 READMISSION_PENDING (S04 R-04-06), an
+     * erased member's dog MEMBER_ERASED. A change emits `DogUpdated{diff: {remarks}}` and is audited; the same text again
+     * changes nothing.
+     */
+    @Transactional
+    @Audited(action = AuditAction.DOG_UPDATED, entityType = "'Dog'", entity = "#id", member = "owner(#id)")
+    public Dog observations(String id, String text, long version, String updatedByName) {
+        var dog = CensusAccess.unfrozen(access.mutableDog(id));
+        if (text == null || text.length() > 2000) { throw invalid("text", "INVALID_VALUE"); }
+        long current = remarksVersion(dog);
+        version(current, version);
+        String after = text.isEmpty() ? null : text, before = dog.remarks;
+        if (Objects.equals(before, after)) { return dog; }
+        dog.remarks = after;
+        dog.remarksMeta = object("updatedAt", clock.instant(), "updatedByAccountId", CurrentUser.current().accountId(), "updatedByName", updatedByName,
+                "version", current + 1);
+        access.dogs.save(dog);
+        events.emit("DogUpdated", "Dog", id, object("dogId", id, "memberId", dog.memberId, "diff", events.diff(object("remarks", before), object("remarks", after))));
+        return dog;
+    }
+    /** The observations' own version (`remarksMeta.version`), 0 before the first change. */
+    public static long remarksVersion(Dog dog) { return number(map(dog.remarksMeta).get("version")); }
 }

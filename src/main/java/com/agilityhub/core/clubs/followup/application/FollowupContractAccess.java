@@ -37,7 +37,7 @@ public class FollowupContractAccess {
             List.of("memberName", "dogName", "levelCode", "activityAt", "authorName", "textExcerpt", "createdAt", "completedAt"),
             List.of("memberName", "dogName", "levelCode", "activityAt", "authorName", "textExcerpt", "createdAt", "completedAt"),
             List.of("activityAt,desc"),
-            Set.of("id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "textExcerpt",
+            Set.of("id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt",
                     "createdAt", "completedAt", "activityAt", "unread"));
     /** The caller: `memberId` of the member (or of the impersonated member); `staff` = INSTRUCTOR/ADMIN without impersonation. */
     public record Caller(String memberId, boolean staff, boolean impersonated) { }
@@ -70,14 +70,17 @@ public class FollowupContractAccess {
         if (caller.staff()) { if (owner == null) { throw new ApiException(ErrorCode.NOT_FOUND); } return; }
         if (owner == null || !owner.equals(caller.memberId())) { throw new ApiException(ErrorCode.DOG_NOT_ACCESSIBLE); }
     }
-    /** A task of another club or of another member's dog is 404 (`memberId` is the dog's owner). */
-    public void task(Caller caller, String id) {
-        var task = tasks.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        if (!caller.staff() && (caller.memberId() == null || !caller.memberId().equals(task.memberId()) || task.deletedAt() != null)) {
-            throw new ApiException(ErrorCode.NOT_FOUND);
-        }
+    /**
+     * A task of another club or of another member's dog is 404 (`memberId` is the dog's owner). A deleted task is 404 for
+     * every caller, staff included (R-10-10, E6-T01 round-2 review): only ADMIN's `includeDeleted` list shows it.
+     */
+    public com.agilityhub.core.clubs.followup.persistence.Task task(Caller caller, String id) {
+        var task = tasks.findById(id).filter(found -> found.deletedAt() == null).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        if (!caller.staff() && (caller.memberId() == null || !caller.memberId().equals(task.memberId()))) { throw new ApiException(ErrorCode.NOT_FOUND); }
+        return task;
     }
-    public void followupItem(String id) { items.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
+    /** A visible D14 row of this club (a deleted task's row is hidden: 404). */
+    public void followupItem(String id) { items.findById(id).filter(item -> !item.hidden()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
     /** An undeclared filter or sort is 400 INVALID_FILTER before anything else (T-10-21). */
     public void followup(MultiValueMap<String, String> params) { ListQuery.parse(FOLLOWUP, params); }
 
@@ -93,12 +96,13 @@ public class FollowupContractAccess {
         entity(caller, type, entityId);
     }
     /** `DELETE /attachments/{id}`: live attachment of this club; TASK/DOG_OBSERVATIONS by staff, INSTRUCTOR_NOTE by the owner (also impersonated). */
-    public void removableAttachment(Caller caller, String id) {
+    public com.agilityhub.core.clubs.followup.persistence.Attachment removableAttachment(Caller caller, String id) {
         var attachment = attachments.findById(id).filter(a -> a.removedAt() == null).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         var type = type(attachment.entityType());
         if (type.staffOnly()) { staffWriter(caller); }
         else if (caller.staff()) { throw new ApiException(ErrorCode.FORBIDDEN); }
         entity(caller, type, attachment.entityId());
+        return attachment;
     }
     private void entity(Caller caller, AttachmentEntityType type, String entityId) {
         if (type == AttachmentEntityType.TASK) { task(caller, entityId); return; }

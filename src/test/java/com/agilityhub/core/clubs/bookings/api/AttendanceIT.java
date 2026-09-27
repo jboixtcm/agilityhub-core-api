@@ -76,6 +76,11 @@ class AttendanceIT extends BookingFixtures {
         join(as("c0"), "wed", "s08-d-c0", 201);
         cancel(as("pere"), nit, 200); // the member's own cancellation released the seat: out of the sheet
         mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-d-duna")), new Update().set("handlerName", "Marta"), "dogs");
+        // E6-T03: Duna's live PENDING task counts; a DONE one and a deleted one do not.
+        for (var task : List.of(List.of("s08-task-pending", "PENDING", false), List.of("s08-task-done", "DONE", false), List.of("s08-task-deleted", "PENDING", true))) {
+            mongo.save(new Document("_id", task.get(0)).append("clubId", CLUB).append("dogId", "s08-d-duna").append("memberId", "s08-m-laura").append("text", "Balancí")
+                    .append("state", task.get(1)).append("createdAt", NOW).append("deletedAt", (Boolean) task.get(2) ? NOW : null).append("attachmentCount", 0).append("version", 0), "tasks");
+        }
         clock.setInstant(local("2026-10-07T18:00"));
         var before = sheet("wed", as("inst"));
         assertThat(before.path("rows").findValuesAsText("bookingId")).containsExactly(duna, toby);
@@ -93,8 +98,9 @@ class AttendanceIT extends BookingFixtures {
         assertThat(first.path("handlerName").asText()).isEqualTo("Marta"); assertThat(first.path("memberFullName").asText()).isEqualTo("Laura Example");
         assertThat(row(before, toby).has("memberFullName")).isFalse();
         assertThat(first.path("levelCode").asText()).isEqualTo("C");
-        // E6-T03 has not implemented the follow-up port yet: no pendingTasksCount, as with TASKS off.
-        assertThat(first.has("pendingTasksCount")).isFalse();
+        // E6-T03 serves the follow-up port: live PENDING tasks per dog (R-10-02), 0 for a dog without any.
+        assertThat(first.path("pendingTasksCount").asInt()).isEqualTo(1);
+        assertThat(row(before, toby).path("pendingTasksCount").isInt()).isTrue(); assertThat(row(before, toby).path("pendingTasksCount").asInt()).isZero();
         assertThat(before.path("waitlist").path("mode").asText()).isEqualTo("ALL_AT_ONCE");
         assertThat(before.path("waitlist").path("entries").findValuesAsText("dogName")).containsExactly("Dog0");
 

@@ -16,5 +16,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public record Task(@Id String id, String clubId, String dogId, String memberId, String text, TaskState state,
         Actor createdBy, Actor updatedBy, Actor doneBy, Actor deletedBy, Instant createdAt, Instant updatedAt, Instant doneAt, Instant deletedAt,
         int attachmentCount, @Version Long version) implements TenantEntity {
-    public record Actor(String accountId, AuthorRole role, String displayName) { }
+    /** `gender` only for a MEMBER (the owner's, for «feta per la Laura», §6); null for staff. */
+    public record Actor(String accountId, AuthorRole role, String displayName, String gender) {
+        public Actor(String accountId, AuthorRole role, String displayName) { this(accountId, role, displayName, null); }
+    }
 }

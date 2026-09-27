@@ -74,7 +74,7 @@ class FollowupContractAccessTest {
         assertThatThrownBy(() -> access.dog(new FollowupContractAccess.Caller(null, false, false), "dog-a")).hasMessage("DOG_NOT_ACCESSIBLE");
         when(tasks.findById("task-a")).thenReturn(Optional.of(task("task-a", null)));
         when(tasks.findById("task-d")).thenReturn(Optional.of(task("task-d", NOW)));
-        access.task(staff, "task-a"); access.task(owner, "task-a"); access.task(staff, "task-d");
+        assertThat(access.task(staff, "task-a").id()).isEqualTo("task-a"); assertThat(access.task(owner, "task-a").id()).isEqualTo("task-a");
         for (var caller : List.of(stranger, new FollowupContractAccess.Caller(null, false, false))) {
             assertThatThrownBy(() -> access.task(caller, "task-a")).hasMessage("NOT_FOUND");
         }
@@ -82,8 +82,28 @@ class FollowupContractAccessTest {
         assertThatThrownBy(() -> access.task(staff, "task-x")).hasMessage("NOT_FOUND");
         when(items.findById("item-a")).thenReturn(Optional.of(new FollowupItem("item-a", "club-a", com.agilityhub.core.clubs.followup.domain.FollowupKind.TASK, "task-a",
                 "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", "Practiqueu", NOW, null, NOW, false, NOW)));
+        when(items.findById("item-h")).thenReturn(Optional.of(new FollowupItem("item-h", "club-a", com.agilityhub.core.clubs.followup.domain.FollowupKind.TASK, "task-d",
+                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", "Pujar", NOW, null, NOW, true, NOW)));
         access.followupItem("item-a");
         assertThatThrownBy(() -> access.followupItem("item-x")).hasMessage("NOT_FOUND");
+        assertThatThrownBy(() -> access.followupItem("item-h")).as("a deleted task's hidden row").hasMessage("NOT_FOUND");
+    }
+
+    /**
+     * E6-T03 step 11 (E6-T01 round-2 review #1, R-10-10): a deleted task is 404 for every caller, staff included — its GET,
+     * edit, deletion, completion, reopening and attachments all go through this guard; only ADMIN's `includeDeleted` list
+     * shows it. Before the fix, staff reached it.
+     */
+    @Test void T_10_15_aDeletedTaskIsNotFoundForStaffToo() {
+        dogs();
+        when(tasks.findById("task-d")).thenReturn(Optional.of(task("task-d", NOW)));
+        for (var caller : List.of(staff, owner, impersonated)) { assertThatThrownBy(() -> access.task(caller, "task-d")).hasMessage("NOT_FOUND"); }
+        assertThatThrownBy(() -> access.readableEntity(staff, AttachmentEntityType.TASK, "task-d")).hasMessage("NOT_FOUND");
+        try (var tenant = TenantContext.open("club-a")) {
+            assertThatThrownBy(() -> access.writableEntity(staff, AttachmentEntityType.TASK, "task-d")).hasMessage("NOT_FOUND");
+        }
+        when(attachments.findById("a-dead")).thenReturn(Optional.of(attachment("a-dead", "TASK", "task-d", null)));
+        assertThatThrownBy(() -> access.removableAttachment(staff, "a-dead")).hasMessage("NOT_FOUND");
     }
 
     @Test void T_10_16_attachmentRolesFollowTheirEntity() {

@@ -1,0 +1,42 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  279 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3}
+  0 changes (demo planning, week start 2026-10-05)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-05 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-05 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+curl GET /api/v1/me/dogs -> 200
+Member's dog a1f67e11… Taca 6 (ACTIVE)
+PASS signed PUT of 20 971 520 bytes video/quicktime -> 204 (fileKey 1b979ddc…)
+curl POST /api/v1/tasks -> 201
+  201 Task: {"id": "8b3aba28…", "dogId": "a1f67e11…", "state": "PENDING", "createdBy": {"accountId": "3a9f8b94…", "role": "INSTRUCTOR", "displayName": "Aina", "gender": null}, "attachments": [{"id": "1b979ddc…", "name": "vídeo_balancí.mov", "mimeType": "video/quicktime", "sizeBytes": 20971520, "url": "/api/v1/attachments/files/1b979ddc…?expires=1790463754&signature=…[truncated]", "uploadedAt": "2026-09-26T22:57:34.285Z"}], "version": 0}
+  outbox: {"type": "AttachmentAdded", "status": "PUBLISHED", "payload": {"entityType": "TASK", "attachmentId": "1b979ddc…", "entityId": "8b3aba28…"}}
+  outbox: {"type": "TaskCreated", "status": "PUBLISHED", "payload": {"taskId": "8b3aba28…", "dogId": "a1f67e11…", "memberId": "b25e58d8…", "by": {"accountId": "3a9f8b94…", "role": "INSTRUCTOR"}}}
+  notification: {"code": "N-20", "channel": "APP", "status": "SENT", "account": "ca6d8db8…", "locale": "ca", "variables": {"club_name": "Club Agility Cànic", "dog_name": "Taca 6", "entityId": "a1f67e11…", "action": "OPEN_TASKS", "instructor_name": "Aina", "task_excerpt": "Practiqueu el balancí amb calma: sessions curtes, i sempre acabant amb un èxit."}}
+  notification: {"code": "N-20", "channel": "EMAIL", "status": "SENT", "account": "ca6d8db8…", "locale": "ca"}
+curl POST /api/v1/attachments/upload-url -> 400 FILE_TOO_LARGE
+  400: {"code": "FILE_TOO_LARGE", "message": "El fitxer és massa gran.", "details": {"maxSizeMb": 25}}
+curl POST /api/v1/attachments/upload-url -> 400 FILE_TYPE_NOT_ALLOWED
+  400: {"code": "FILE_TYPE_NOT_ALLOWED", "message": "Aquest tipus de fitxer no està permès.", "details": {}}
+PASS attachments 2..10 registered (201 each)
+curl POST /api/v1/attachments -> 422 ATTACHMENT_LIMIT_REACHED
+  422: {"code": "ATTACHMENT_LIMIT_REACHED", "message": "S'ha arribat al límit d'adjunts.", "details": {"max": 10}}
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL: Expected ATTACHMENT_ENTITY_MISMATCH, got ATTACHMENT_LIMIT_REACHED

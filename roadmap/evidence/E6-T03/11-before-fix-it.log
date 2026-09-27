@@ -1,0 +1,94 @@
+01:58:49.501 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.followup.api.FollowupIT]: FollowupIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:58:49.592 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.followup.api.FollowupIT
+01:58:49.641 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+01:58:49.642 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+01:58:49.644 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+01:58:49.706 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+01:58:49.809 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+01:58:49.810 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+01:58:49.821 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+01:58:49.981 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+01:58:50.070 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+01:58:50.131 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 370557f03577400dc2fc694347e366330d19d2179caf7f24efc8fad57983f9c5
+01:58:50.261 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.279513S
+01:58:50.264 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+01:58:50.264 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+01:58:50.264 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+01:58:50.264 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+01:58:50.295 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 067092b8bcbdac1570312b39b080a0ac311130558b851c330a14c19638eb5df7
+01:58:50.740 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.476049S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-27T01:58:51.286+02:00  INFO 50946 --- [agilityhub-core-api] [           main] c.a.core.clubs.followup.api.FollowupIT   : Starting FollowupIT using Java 21.0.12.1 with PID 50946 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-27T01:58:51.286+02:00  INFO 50946 --- [agilityhub-core-api] [           main] c.a.core.clubs.followup.api.FollowupIT   : The following 1 profile is active: "test"
+2026-09-27T01:58:51.875+02:00  INFO 50946 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-27T01:58:51.906+02:00  INFO 50946 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-09-27T01:58:52.186+02:00  INFO 50946 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@4687c184], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@65f3f9e2, com.mongodb.Jep395RecordCodecProvider@394950ad, com.mongodb.KotlinCodecProvider@73dd3a46]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:50520], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@bae5e58], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-27T01:58:52.193+02:00  INFO 50946 --- [agilityhub-core-api] [localhost:50520] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:50520, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10726916, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=067092b8bcbd:27017, hosts=[067092b8bcbd:27017], passives=[], arbiters=[], primary='067092b8bcbd:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6ab85c3aeeb1b177e23aa181, counter=6}, lastWriteDate=Sun Sep 27 01:58:51 CEST 2026, lastUpdateTimeNanos=259454257959833}
+2026-09-27T01:58:54.124+02:00  INFO 50946 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-27T01:58:54.124+02:00  INFO 50946 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-27T01:58:54.124+02:00  INFO 50946 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-27T01:58:54.149+02:00  INFO 50946 --- [agilityhub-core-api] [           main] c.a.core.clubs.followup.api.FollowupIT   : Started FollowupIT in 2.972 seconds (process running for 4.887)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-27T01:58:55.044+02:00  WARN 50946 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=332d34aa-78f7-4feb-b28a-7dbdb3cf2d1c
+2026-09-27T01:58:55.060+02:00  WARN 50946 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=3da15551-b31a-4ec1-a7a8-e83bd743d410
+2026-09-27T01:58:56.813+02:00  WARN 50946 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected code=VALIDATION_ERROR traceId=32dcb7ea-852a-4810-b563-9c95dbcad783
+[ERROR] Tests run: 10, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 7.918 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications -- Time elapsed: 0.957 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expected size: 1 but was: 0 in:
+[]
+	at com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications(FollowupIT.java:255)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne -- Time elapsed: 0.075 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[createdAt desc, DONE included] 
+Expecting actual:
+  ["55090bcb-072e-47e7-9417-1424f6f69a02"]
+to contain exactly (and in same order):
+  ["55090bcb-072e-47e7-9417-1424f6f69a02", "c2eebf2f-8c0f-4859-b5ad-ea1fc94953f2"]
+but could not find the following elements:
+  ["c2eebf2f-8c0f-4859-b5ad-ea1fc94953f2"]
+
+	at com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne(FollowupIT.java:269)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications:255 
+Expected size: 1 but was: 0 in:
+[]
+[ERROR]   FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne:269 [createdAt desc, DONE included] 
+Expecting actual:
+  ["55090bcb-072e-47e7-9417-1424f6f69a02"]
+to contain exactly (and in same order):
+  ["55090bcb-072e-47e7-9417-1424f6f69a02", "c2eebf2f-8c0f-4859-b5ad-ea1fc94953f2"]
+but could not find the following elements:
+  ["c2eebf2f-8c0f-4859-b5ad-ea1fc94953f2"]
+
+[ERROR] Tests run: 10, Failures: 2, Errors: 0, Skipped: 0

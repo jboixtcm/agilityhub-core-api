@@ -5477,6 +5477,11 @@
             "format" : "date-time",
             "type" : "string"
           },
+          "authorGender" : {
+            "description" : "Only MEMBER_NOTE rows: the member's gender, for the author label «Laura (alumna)» (S10 §6, §10)",
+            "enum" : [ "MALE", "FEMALE", "OTHER", null ],
+            "type" : [ "string", "null" ]
+          },
           "authorName" : {
             "type" : "string"
           },
@@ -20204,7 +20209,7 @@
     },
     "/api/v1/attachments" : {
       "get" : {
-        "description" : "Roles: TASK and INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token), INSTRUCTOR, ADMIN; DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (the member gets 404, R-10-11). Live attachments of the entity with a short-lived signed url; another club's or member's entity → 404. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: TASK and INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token), INSTRUCTOR, ADMIN; DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (the member gets 404, R-10-11). The entity's live attachments, oldest first, each with a signed url valid for 5 minutes; another club's or member's entity, or a deleted task → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "listAttachments",
         "parameters" : [ {
           "in" : "query",
@@ -20357,7 +20362,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token; staff → 403); TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: at most files.maxAttachmentsPerEntity per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey of another purpose → ATTACHMENT_ENTITY_MISMATCH. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING. TASK and DOG_OBSERVATIONS: contract only, 501 NOT_IMPLEMENTED after the tenant, role, module and entity guards until E6-T03.",
+        "description" : "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; staff → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
         "operationId" : "add",
         "parameters" : [ {
           "in" : "header",
@@ -20397,7 +20402,7 @@
                 }
               }
             },
-            "description" : "FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
+            "description" : "FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED, VALIDATION_ERROR"
           },
           "401" : {
             "content" : {
@@ -20664,7 +20669,7 @@
     },
     "/api/v1/attachments/{id}" : {
       "delete" : {
-        "description" : "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token; staff → 403). R-10-11: removal = removedAt (AttachmentRemoved); the file stays until the GDPR erasure. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token, audited; staff → 403). R-10-11: removal = removedAt + removedByAccountId (AttachmentRemoved, a task's attachmentCount − 1); the file stays until the GDPR erasure; the attachment leaves the lists. Same Idempotency-Key → the same 204; a removed one → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "removeAttachment",
         "parameters" : [ {
           "in" : "path",
@@ -30379,7 +30384,7 @@
     },
     "/api/v1/dogs/{id}/observations" : {
       "put" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). R-10-12: Dog.remarks (≤ 2000) + remarksMeta with version (STALE_VERSION); DogUpdated{diff: remarks} and an audit entry (DOG_UPDATED); no notification and no D14 row; never returned by /me/*. The dog of an erased member is MEMBER_ERASED (S14). Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). R-10-12: Dog.remarks (≤ 2000, stored as written; empty clears it) + remarksMeta, with the version of the card's observations block (the observations' own count of changes, which other writes of the dog leave alone; STALE_VERSION); DogUpdated{diff: remarks} and an audit entry (DOG_UPDATED); no notification and no D14 row; never returned by /me/*. The same text changes nothing. The reused dog of a pending readmission (S04 R-04-06) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING; the dog of an erased member is MEMBER_ERASED (S14). Same Idempotency-Key → the same 200. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "saveObservations",
         "parameters" : [ {
           "in" : "path",
@@ -30466,7 +30471,7 @@
                 }
               }
             },
-            "description" : "STALE_VERSION, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
+            "description" : "STALE_VERSION, INVALID_STATE, MEMBER_ERASED, IDEMPOTENCY_KEY_REUSED"
           },
           "422" : {
             "content" : {
@@ -33023,7 +33028,7 @@
     },
     "/api/v1/followup" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): visible FollowupItem rows, unread first; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. An undeclared filter or sort is 400 INVALID_FILTER. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName, dogName, levelCode (null with levels.enabled = false) and the note author's authorGender are read at request time. An undeclared filter or sort is 400 INVALID_FILTER. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "followup",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -33243,7 +33248,7 @@
           "key" : "completedAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "textExcerpt", "createdAt", "completedAt", "activityAt", "unread" ],
+        "x-fields" : [ "id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt", "createdAt", "completedAt", "activityAt", "unread" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "kind", "memberId", "dogId", "authorAccountId", "unread" ],
         "x-sortable" : [ "activityAt" ]
@@ -33251,7 +33256,7 @@
     },
     "/api/v1/followup/read-all" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «Marcar-ho tot com a llegit»: readAllAt = now, readItemIds = [] in one Mongo transaction. No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «Marcar-ho tot com a llegit»: readAllAt = now, readItemIds = [] for the caller only, one document in one Mongo transaction whatever the number of rows. No body. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "readAllFollowup",
         "parameters" : [ {
           "in" : "header",
@@ -33392,7 +33397,7 @@
     },
     "/api/v1/followup/unread-count" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Menu counter «Seguiment alumnes» of the caller (refetched on focus and every 60 s). Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Menu counter «Seguiment alumnes» of the caller (refetched on focus and every 60 s): the caller's unread D14 rows, the same count as GET /dashboard/counters.followUpUnread (S14 R-14-08). Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "followupUnreadCount",
         "responses" : {
           "200" : {
@@ -33531,7 +33536,7 @@
     },
     "/api/v1/followup/{id}/read" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Adds the item to the caller's readItemIds. No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Adds the row to the caller's readItemIds (pruning the ids readAllAt already covers); another club's row or a hidden one → 404. No body. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "readFollowupItem",
         "parameters" : [ {
           "in" : "path",
@@ -53758,7 +53763,7 @@
     },
     "/api/v1/tasks" : {
       "get" : {
-        "description" : "Roles: MEMBER for their own dogs (also the impersonation token; not the family group's → 404 DOG_NOT_ACCESSIBLE), INSTRUCTOR, ADMIN. Task history of a dog (26, 13): PENDING by default, includeDone=true adds DONE; includeDeleted only for ADMIN (otherwise 403). Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER for their own dogs (also the impersonation token; not the family group's → 404 DOG_NOT_ACCESSIBLE), INSTRUCTOR, ADMIN (another club's or an unknown dog → 404). Task history of a dog (26, 13), createdAt desc, each with its live attachments and a 5-minute signed url: PENDING and DONE by default (includeDone=true, S10 §6); includeDone=false keeps PENDING; state picks one state and wins over includeDone; includeDeleted adds the deleted tasks, ADMIN only (otherwise 403). page ≥ 0, size 1–200. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "tasks",
         "parameters" : [ {
           "in" : "query",
@@ -53780,7 +53785,7 @@
           "name" : "includeDone",
           "required" : false,
           "schema" : {
-            "default" : false,
+            "default" : true,
             "type" : "boolean"
           }
         }, {
@@ -53859,7 +53864,7 @@
                 }
               }
             },
-            "description" : "MODULE_DISABLED, DOG_NOT_ACCESSIBLE"
+            "description" : "MODULE_DISABLED, DOG_NOT_ACCESSIBLE, NOT_FOUND"
           },
           "409" : {
             "content" : {
@@ -53945,7 +53950,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachments of purpose TASK registered in the same Mongo transaction; TaskCreated → N-20 to the owner and a D14 row. Same Idempotency-Key → same response. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). «＋ Afegir» (R-10-10): the dog must be ACTIVE (DOG_NOT_ACTIVE); text 1–2000; attachmentIds are the fileKeys of the caller's TASK uploads, registered in the same Mongo transaction as the task, its D14 row and TaskCreated (→ N-20 to the owner): a refused one (ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, …) leaves no task. Same Idempotency-Key → same 201. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "createTask",
         "parameters" : [ {
           "in" : "header",
@@ -53985,7 +53990,7 @@
                 }
               }
             },
-            "description" : "VALIDATION_ERROR"
+            "description" : "VALIDATION_ERROR, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED"
           },
           "401" : {
             "content" : {
@@ -54103,7 +54108,7 @@
     },
     "/api/v1/tasks/{id}" : {
       "delete" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Logical deletion (deletedAt, also DONE tasks); TaskDeleted hides the D14 row. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Logical deletion (deletedAt, deletedBy; also DONE tasks, BR-12): TaskDeleted, the D14 row hidden, gone from GET /tasks unless includeDeleted (ADMIN). Same Idempotency-Key → the same 204; a deleted task → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "deleteTask",
         "parameters" : [ {
           "in" : "path",
@@ -54249,7 +54254,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "get" : {
-        "description" : "Roles: MEMBER (own dog), INSTRUCTOR, ADMIN; impersonation → IMPERSONATION_DENIED. Another member's or club's task → 404. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own dog), INSTRUCTOR, ADMIN; impersonation → IMPERSONATION_DENIED. Another member's or club's task, or a deleted one → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "task",
         "parameters" : [ {
           "in" : "path",
@@ -54394,7 +54399,7 @@
         "tags" : [ "clubs.followup" ]
       },
       "patch" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Edits the text (R-10-10) with version (STALE_VERSION); TaskUpdated, no notification; refreshes the D14 excerpt. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Edits the text (R-10-10, also of a DONE task) with the version read (STALE_VERSION); TaskUpdated, no notification; refreshes the D14 excerpt, which stays read. The same text changes nothing. A deleted task → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "updateTask",
         "parameters" : [ {
           "in" : "path",
@@ -54551,7 +54556,7 @@
     },
     "/api/v1/tasks/{id}/completion" : {
       "post" : {
-        "description" : "Roles: MEMBER owner of the dog (also the impersonation token, audited; a family-group dog → 404), INSTRUCTOR, ADMIN. PENDING → DONE with doneBy; TaskCompleted → N-21 to every active instructor; already DONE → TASK_ALREADY_DONE (422); deleted → 404. No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER owner of the dog (also the impersonation token, audited DOG_UPDATED with origin BACKOFFICE; a family-group dog → 404), INSTRUCTOR, ADMIN. PENDING → DONE with doneAt and doneBy {role, displayName, gender}; the D14 row gets completedAt (not activityAt); TaskCompleted → N-21 to every active instructor. Already DONE → TASK_ALREADY_DONE (422), also for the second of two simultaneous calls; deleted → 404. No body. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "completeTask",
         "parameters" : [ {
           "in" : "path",
@@ -54698,7 +54703,7 @@
     },
     "/api/v1/tasks/{id}/reopening" : {
       "post" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). DONE → PENDING (S10 §13-12), clears doneAt/doneBy and the D14 completedAt; TaskReopened; not DONE → TASK_NOT_DONE (422). No body. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). DONE → PENDING (S10 §13-12), clears doneAt/doneBy and the D14 completedAt; TaskReopened (CATALEG_ESDEVENIMENTS Annex A), no notification; not DONE → TASK_NOT_DONE (422). No body. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "reopenTask",
         "parameters" : [ {
           "in" : "path",

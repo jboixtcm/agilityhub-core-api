@@ -36,7 +36,10 @@ public class Dog extends CensusEntity {
     public Boolean freeTrainingOverride;
     public Boolean freeTrainingAllowed;
     public Map<String,Object> instructorNote;
+    /** S10 R-10-12: the private observations of the instructors and admins; never on `/me/*`. Written by `DogService.observations`. */
     public String remarks;
+    /** S10 §3: `{updatedAt, updatedByAccountId, updatedByName}` of the last observations change; null before the first one. */
+    public Map<String,Object> remarksMeta;
     public List<Map<String,Object>> licenses;
     public String status;
     public Instant registeredAt;

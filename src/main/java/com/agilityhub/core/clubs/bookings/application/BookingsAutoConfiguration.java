@@ -42,8 +42,9 @@ public class BookingsAutoConfiguration {
         };
     }
     /**
-     * S10 follow-up (E6-T03) starts empty: no tasks, notes or observations, and not {@link DogFollowupPort#available()},
-     * so the sheet and the card leave `pendingTasksCount` and the three card blocks out, the TASKS-off shape (E6-T02).
+     * Without S10 follow-up (the composition root's `FollowupPortConfiguration` registers it since E6-T03): no tasks, notes or
+     * observations, and not {@link DogFollowupPort#available()}, so the sheet and the card leave `pendingTasksCount` and the
+     * three card blocks out, the TASKS-off shape (E6-T02).
      */
     @Bean @ConditionalOnMissingBean(DogFollowupPort.class)
     DogFollowupPort noFollowup() {

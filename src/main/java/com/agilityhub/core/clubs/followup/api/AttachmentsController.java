@@ -26,10 +26,10 @@ import org.springframework.web.bind.annotation.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
- * Signed-URL attachments (CONVENCIONS_API §5). S03/S07 purposes and the member's INSTRUCTOR_NOTE (E2-T06/E3-T03)
- * are served; the S10 purposes TASK and DOG_OBSERVATIONS (INSTRUCTOR/ADMIN, TASKS) get their upload URL, while their
- * registration, the entity list and the removal answer 501 NOT_IMPLEMENTED behind the real guards until E6-T03.
- * The impersonation token acts as the member: accepted where the member may act (R-10-11), IMPERSONATION_DENIED on the staff entities.
+ * Signed-URL attachments (CONVENCIONS_API §5): the S03/S07 purposes, the member's INSTRUCTOR_NOTE (E2-T06/E3-T03) and,
+ * since E6-T03, the S10 purposes TASK and DOG_OBSERVATIONS (INSTRUCTOR/ADMIN, TASKS): registration, the entity list and
+ * the removal (R-10-11), all on the same {@link AttachmentService}. The impersonation token acts as the member: accepted
+ * where the member may act, IMPERSONATION_DENIED on the staff entities.
  */
 @RestController
 public class AttachmentsController {
@@ -71,42 +71,44 @@ public class AttachmentsController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ContractErrors({NOT_FOUND, MODULE_DISABLED, MEMBER_ERASED, ATTACHMENT_LIMIT_REACHED, ATTACHMENT_ENTITY_MISMATCH, FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED,
-            IMPERSONATION_DENIED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE})
-    @Operation(summary = "Register an uploaded attachment", description = "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token; staff → 403); TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: at most files.maxAttachmentsPerEntity per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey of another purpose → ATTACHMENT_ENTITY_MISMATCH. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING. TASK and DOG_OBSERVATIONS: contract only, 501 NOT_IMPLEMENTED after the tenant, role, module and entity guards until E6-T03.",
+            IMPERSONATION_DENIED, IDEMPOTENCY_KEY_REUSED, INVALID_STATE, VALIDATION_ERROR})
+    @Operation(summary = "Register an uploaded attachment", description = "Roles: INSTRUCTOR_NOTE → the dog's owner, MEMBER (also the impersonation token, audited; staff → 403); TASK (a live task) and DOG_OBSERVATIONS (a dog) → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED), TASKS required. R-10-11: the same fileKey again → the same attachment and no second AttachmentAdded; at most files.maxAttachmentsPerEntity live ones per entity → ATTACHMENT_LIMIT_REACHED{max}; a fileKey whose upload purpose is not the entityType (e.g. DOG_DOCUMENT) or another account's → ATTACHMENT_ENTITY_MISMATCH; the stored object must match the upload (FILE_TOO_LARGE, FILE_TYPE_NOT_ALLOWED); name ≤ 80. AttachmentAdded, and a task's attachmentCount + 1. An optional Idempotency-Key (S10 §6, CONVENCIONS_API §7) replays the same 201 body; the same key with another body → IDEMPOTENCY_KEY_REUSED. The reused dog of a pending readmission (S04 R-04-06, E38) is frozen: 409 INVALID_STATE with details.reason = READMISSION_PENDING.",
             responses = @ApiResponse(responseCode = "201", description = "Attachment with signed download URL", content = @io.swagger.v3.oas.annotations.media.Content(schema = @Schema(implementation = AttachmentResponse.class))))
     public Map<String,Object> add(@Valid @RequestBody AttachmentRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) @Schema(format = "uuid") java.util.UUID idempotencyKey, @AuthenticationPrincipal Jwt jwt) {
         if (STAFF_PURPOSES.contains(request.entityType())) {
             access.writableEntity(access.caller(jwt.getClaimAsString("memberId")), AttachmentEntityType.valueOf(request.entityType()), request.entityId());
-            throw new UnsupportedOperationException();
-        }
-        if (access.caller(jwt.getClaimAsString("memberId")).staff()) { throw new ApiException(FORBIDDEN); }
-        return transactions.run(() -> attachments.addNote(request.entityType(), request.entityId(), request.fileKey(), request.name()));
+        } else if (access.caller(jwt.getClaimAsString("memberId")).staff()) { throw new ApiException(FORBIDDEN); }
+        return transactions.run(() -> attachments.add(request.entityType(), request.entityId(), request.fileKey(), request.name()));
     }
     @GetMapping("/api/v1/attachments")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @RequiresModule(Module.TASKS)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED})
-    @Operation(summary = "attachments", description = "Roles: TASK and INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token), INSTRUCTOR, ADMIN; DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (the member gets 404, R-10-11). Live attachments of the entity with a short-lived signed url; another club's or member's entity → 404. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+    @Operation(summary = "attachments", description = "Roles: TASK and INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token), INSTRUCTOR, ADMIN; DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (the member gets 404, R-10-11). The entity's live attachments, oldest first, each with a signed url valid for 5 minutes; another club's or member's entity, or a deleted task → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "AttachmentList", useReturnTypeSchema = true))
     public FollowupContracts.AttachmentList listAttachments(@RequestParam AttachmentEntityType entityType, @RequestParam String entityId,
             @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
         access.readableEntity(access.caller(jwt.getClaimAsString("memberId")), entityType, entityId);
-        throw new UnsupportedOperationException();
+        return new FollowupContracts.AttachmentList(attachments.list(entityType.name(), entityId).stream().map(AttachmentsController::response).toList());
     }
     @DeleteMapping("/api/v1/attachments/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @RequiresModule(Module.TASKS)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED, IMPERSONATION_DENIED})
-    @Operation(summary = "removeAttachment", description = "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token; staff → 403). R-10-11: removal = removedAt (AttachmentRemoved); the file stays until the GDPR erasure. Requires TASKS. Contract only; returns 501 NOT_IMPLEMENTED after tenant, role, module and resource guards. Tenant comes from the JWT.",
+    @Operation(summary = "removeAttachment", description = "Roles: TASK and DOG_OBSERVATIONS → INSTRUCTOR, ADMIN (MEMBER → 403, impersonation → IMPERSONATION_DENIED); INSTRUCTOR_NOTE → the dog's owner MEMBER (also the impersonation token, audited; staff → 403). R-10-11: removal = removedAt + removedByAccountId (AttachmentRemoved, a task's attachmentCount − 1); the file stays until the GDPR erasure; the attachment leaves the lists. Same Idempotency-Key → the same 204; a removed one → 404. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "204", description = "void", content = @io.swagger.v3.oas.annotations.media.Content))
     public void removeAttachment(@PathVariable String id, @RequestHeader("Idempotency-Key") @Schema(format = "uuid") java.util.UUID idempotencyKey,
             @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        access.removableAttachment(access.caller(jwt.getClaimAsString("memberId")), id);
-        throw new UnsupportedOperationException();
+        attachments.remove(access.removableAttachment(access.caller(jwt.getClaimAsString("memberId")), id));
+    }
+    /** The §6 `Attachment` of an {@link AttachmentService} view. */
+    static AttachmentResponse response(Map<String, Object> view) {
+        return new AttachmentResponse((String) view.get("id"), (String) view.get("name"), (String) view.get("mimeType"), ((Number) view.get("sizeBytes")).longValue(),
+                (String) view.get("url"), (java.time.Instant) view.get("uploadedAt"));
     }
     /** The local storage's signed upload URL (CONVENCIONS_API §5, E5-T24): authorised by its signature alone, no bearer. */
     @io.swagger.v3.oas.annotations.Hidden
