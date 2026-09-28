@@ -3,6 +3,8 @@ package com.agilityhub.core.clubs.followup.application;
 import com.agilityhub.core.clubs.followup.domain.TaskState;
 import com.agilityhub.core.clubs.followup.persistence.Task;
 import com.agilityhub.core.clubs.followup.persistence.TaskRepository;
+import com.agilityhub.core.clubs.messaging.application.ports.NotificationFactsPort;
+import com.agilityhub.core.clubs.messaging.application.ports.NotificationSubject;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger;
 import com.agilityhub.core.clubs.messaging.domain.NotificationCatalog;
 import com.agilityhub.core.platform.application.Module;
@@ -72,6 +74,32 @@ class FollowupNotificationsTest {
         assertThat(facts.facts(event("TaskCreated", "t1", Map.of("taskId", "t1", "memberId", "member-a")), "N-20")).isEmpty();
     }
 
+    private static NotificationFactsPort.StoredNotification stored(String code, String memberId, NotificationSubject subject) {
+        return new NotificationFactsPort.StoredNotification("n-1", code, "TaskCreated", "MEMBER", "account-a", memberId, subject,
+                List.of(new NotificationFactsPort.DeliveryView("EMAIL", "QUEUED")), false);
+    }
+
+    /**
+     * E6-T03 round 3 (review #1, R-10-10 amended 27-09): before every attempt of an N-20 delivery the engine asks whether its
+     * recipient still owns the dog; a transfer between the first attempt and a retry makes it undeliverable. Before the fix
+     * the port had no such answer and a retry reached the previous owner.
+     */
+    @Test void R_10_10_everyN20AttemptNeedsItsRecipientToStillOwnTheDog() {
+        var subject = NotificationSubject.task("t1").withDog("dog-a");
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", "C")));
+        assertThat(facts.deliverable(stored("N-20", "member-a", subject), "EMAIL")).isTrue();
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-b", "C")));
+        assertThat(facts.deliverable(stored("N-20", "member-a", subject), "EMAIL")).as("transferred").isFalse();
+        assertThat(facts.deliverable(stored("N-20", "member-b", subject), "EMAIL")).as("the new owner's own notice").isTrue();
+        when(census.dog("dog-a")).thenReturn(Optional.empty());
+        assertThat(facts.deliverable(stored("N-20", "member-a", subject), "EMAIL")).as("a dog the club does not know").isFalse();
+        assertThat(facts.deliverable(stored("N-20", "member-a", NotificationSubject.task("t1")), "EMAIL")).as("no dog").isFalse();
+        assertThat(facts.deliverable(stored("N-20", null, subject), "EMAIL")).as("no member").isFalse();
+        // N-21 and N-22 go to the instructors: nothing to check.
+        assertThat(facts.deliverable(stored("N-21", null, NotificationSubject.NONE), "APP")).isTrue();
+        assertThat(facts.deliverable(stored("N-22", null, NotificationSubject.NONE), "APP")).isTrue();
+    }
+
     @Test void T_10_33_nothingIsQueuedWithTasksOffForADeletedTaskOrWithoutAMember() {
         when(tasks.findById("gone")).thenReturn(Optional.empty());
         when(tasks.findById("deleted")).thenReturn(Optional.of(task("deleted", NOW, null)));
@@ -115,9 +143,12 @@ class FollowupNotificationsTest {
         assertThat(facts.facts(event("TaskCompleted", "t1", Map.of("taskId", "t1", "memberId", "member-b")), "N-21").orElseThrow().values())
                 .containsEntry("member_name", "Joan Example").containsEntry("gender", "MALE");
         when(census.instructorNote("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Note("A veure si treballem el doble", NOW, "account-m")));
+        // Round 3: N-22 names the note's writer (the event's member), not whoever owns the dog when the event is consumed.
+        var n22 = facts.facts(event("MemberNoteChanged", "dog-a", Map.of("dogId", "dog-a", "memberId", "member-b")), "N-22").orElseThrow();
+        assertThat(n22.values()).containsEntry("member_name", "Joan Example").containsEntry("gender", "MALE").doesNotContainKey("task_excerpt");
         when(census.members(anyCollection())).thenReturn(Map.of());
-        var n22 = facts.facts(event("MemberNoteChanged", "dog-a", Map.of("dogId", "dog-a")), "N-22").orElseThrow();
-        assertThat(n22.values()).containsEntry("member_name", "").doesNotContainKey("task_excerpt");
+        assertThat(facts.facts(event("MemberNoteChanged", "dog-a", Map.of("dogId", "dog-a")), "N-22").orElseThrow().values()).as("without memberId: the owner")
+                .containsEntry("member_name", "");
         assertThat(facts.eventTypes()).containsExactlyInAnyOrder("TaskCreated", "TaskCompleted", "MemberNoteChanged");
     }
 }

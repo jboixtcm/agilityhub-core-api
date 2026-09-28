@@ -171,7 +171,16 @@ public class DogService {
         if (text == null || text.length() > 2000) { throw invalid("text", "INVALID_VALUE"); }
         if (text.equals(map(dog.instructorNote).getOrDefault("text", ""))) { return; }
         dog.instructorNote = object("text", text, "updatedAt", clock.instant(), "updatedByAccountId", CurrentUser.current().accountId());
-        access.dogs.save(dog); events.emit("MemberNoteChanged", "Dog", id, object("dogId", id, "memberId", dog.memberId));
+        access.dogs.save(dog); events.emit("MemberNoteChanged", "Dog", id, object("dogId", id, "memberId", dog.memberId, "author", noteAuthor(dog.memberId)));
+    }
+    /**
+     * S10 §3 (E6-T03 round 3): the writer of the note as they are now, frozen in `MemberNoteChanged` so that the D14 row keeps
+     * the name and gender of the moment it was written, whatever changes before the event is consumed: their account (the
+     * caller's when they have none), first name and gender.
+     */
+    private Map<String, Object> noteAuthor(String memberId) {
+        var writer = access.members.require(memberId);
+        return object("accountId", writer.accountId != null ? writer.accountId : CurrentUser.current().accountId(), "displayName", writer.firstName, "gender", writer.gender);
     }
     /**
      * S10 R-10-12 (E6-T03): the instructors' private observations, `Dog.remarks` (≤ 2000, stored as written; empty clears

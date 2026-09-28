@@ -5,6 +5,9 @@ import com.agilityhub.core.clubs.messaging.application.integrations.AllowListSms
 import com.agilityhub.core.clubs.messaging.application.integrations.PushResult;
 import com.agilityhub.core.clubs.messaging.application.integrations.SendResult;
 import com.agilityhub.core.clubs.messaging.application.ports.InMemoryMessagingPorts;
+import com.agilityhub.core.clubs.messaging.application.ports.NotificationFacts;
+import com.agilityhub.core.clubs.messaging.application.ports.NotificationFactsPort;
+import com.agilityhub.core.clubs.messaging.application.ports.NotificationTrigger;
 import com.agilityhub.core.clubs.messaging.domain.DeliveryStatus;
 import com.agilityhub.core.clubs.messaging.domain.NotificationChannel;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
@@ -16,9 +19,11 @@ import com.agilityhub.core.support.ConcurrencySupport;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.YearMonth;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -99,6 +104,65 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(NotificationDispatcher.emailRetryable("SendGrid timeout")).isTrue(); assertThat(NotificationDispatcher.emailRetryable(null)).isTrue();
         assertThat(NotificationDispatcher.emailRetryable("SendGrid HTTP 429")).isTrue(); assertThat(NotificationDispatcher.emailRetryable("SendGrid HTTP 404")).isFalse();
         assertThat(NotificationDispatcher.emailRetryable("SendGrid HTTP 502")).isTrue();
+    }
+
+    /**
+     * E6-T03 round 3 (S10 R-10-10, review of 27-09 21:19): before every attempt, retries included, the dispatcher asks the owners
+     * of the notification's event whether it still applies ({@link NotificationFactsPort#deliverable}). A hook that throws is a
+     * transient failure of that attempt; `false` ends the delivery as `SKIPPED_STALE`, with no provider call and no event, for
+     * good; `true` sends as before. A notification without an event type has no owner to ask. Before the fix the stored
+     * recipient was retried whatever its owner would answer.
+     */
+    @Test void R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies() {
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        levelChange("member-marc", "dog-ares");
+        var n = memberNotice("N-09", "member-marc");
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL).status()).isEqualTo(DeliveryStatus.QUEUED);
+        var answers = new ArrayDeque<Object>(List.of(new IllegalStateException("census unavailable"), false, true));
+        var asked = new ArrayList<String>();
+        owners = List.of(new NotificationFactsPort() {
+            @Override public Set<String> eventTypes() { return Set.of("DogLevelChanged"); }
+            @Override public Optional<NotificationFacts> facts(NotificationTrigger trigger, String code) { return Optional.empty(); }
+            @Override public boolean deliverable(StoredNotification notification, String channel) {
+                asked.add(notification.code() + " " + notification.memberId() + " " + notification.subject().dogId() + " " + channel);
+                var answer = answers.poll();
+                if (answer instanceof RuntimeException failure) { throw failure; }
+                return Boolean.TRUE.equals(answer);
+            }
+        });
+        var checking = dispatcher(sms);
+        // The hook throws: a transient failure of the attempt, retried 5 minutes later; nothing is sent.
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(dispatch(checking, n)).isEqualTo(1);
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.attempts()).isEqualTo(2); assertThat(d.lastError()).isEqualTo("IllegalStateException");
+        });
+        // `false`: SKIPPED_STALE, no provider call, no NotificationSent/NotificationFailed, and nothing left to retry.
+        clock.advance(Duration.ofMinutes(5));
+        assertThat(dispatch(checking, n)).isEqualTo(1);
+        assertThat(delivery(reload(n), NotificationChannel.EMAIL)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(d.attempts()).isEqualTo(2);
+            assertThat(d.lastError()).isEqualTo("No longer relevant to its recipient"); assertThat(d.claimToken()).isNull();
+        });
+        assertThat(mail.to("marc@example.test")).isEmpty();
+        for (String type : List.of("NotificationSent", "NotificationFailed")) {
+            assertThat(outbox(CLUB, type)).as(type).noneSatisfy(e -> assertThat(e.getString("aggregateId")).isEqualTo(n.id()));
+        }
+        clock.advance(Duration.ofDays(1)); assertThat(dispatch(checking, n)).isZero();
+        assertThat(asked).containsExactly("N-09 member-marc dog-ares EMAIL", "N-09 member-marc dog-ares EMAIL");
+        // `true`: the retry is sent as before.
+        mail.script.add(EmailSender.SendResult.failed("SendGrid HTTP 503"));
+        levelChange("member-anna", "dog-lluna");
+        var anna = memberNotice("N-09", "member-anna");
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(dispatch(checking, anna)).isEqualTo(1);
+        assertThat(reload(anna).deliveries()).filteredOn(d -> d.channel() == NotificationChannel.EMAIL).extracting(Notification.Delivery::status).containsOnly(DeliveryStatus.SENT);
+        assertThat(asked).hasSize(3).last().isEqualTo("N-09 member-anna dog-lluna EMAIL");
+        // Without an event type there is no owner to ask: sent.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(anna.id())), new Update().unset("eventType").push("deliveries", new Notification.Delivery(NotificationChannel.EMAIL,
+                "late@example.test", DeliveryStatus.QUEUED, 0, clock.instant(), null, null, null, null, null)), Notification.class);
+        assertThat(dispatch(checking, anna)).isEqualTo(1);
+        assertThat(mail.to("late@example.test")).hasSize(1); assertThat(asked).hasSize(3);
     }
 
     @Test void T_11_30_twoDispatchersOnTheSameQueuedDeliveriesSendEachOnce() throws Exception {

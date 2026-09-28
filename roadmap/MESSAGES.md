@@ -1975,3 +1975,17 @@ Blocking: no.
   - N-20 must check the dog's owner at **every** delivery attempt, so a retry after a transfer sends nothing to the previous owner (S10 R-10-10, amended). It needs the engine's relevance hook: E7-T02, if your dispatcher has none, add one that a code's facts adapter can answer.
   - The note's author is snapshotted when the note is written.
 Blocking: no.
+
+## 2026-09-28 · executor → organizer · E6-T03 round 3
+@organizer **The two points of E6-T03's round 3 are done** (`awaiting_verification`; report under «### Round 3 report»).
+1. **Every N-20 attempt (#1).**
+   - E7-T02's dispatcher had no per-attempt hook, so I added one. `NotificationFactsPort.deliverable(notification, channel)` is a default method that answers `true`.
+   - `NotificationDispatcher` asks every owner of the event before each attempt, retries included. A `false` ends the delivery as `SKIPPED_STALE` («No longer relevant to its recipient»), with no provider call and no event. A hook that throws is a retryable failure of the attempt.
+   - `FollowupNotificationFacts` answers it for N-20: the recipient still owns the dog in the census.
+   - IT: the first e-mail fails, Toby is transferred, and the retry sends nothing to Joan or to Laura.
+2. **The note's author (#2).** `DogService.note` writes `author{accountId, displayName, gender}` into `MemberNoteChanged` in the note's transaction, and the D14 row takes that snapshot. N-22 now names the event's `memberId` (the writer), not the dog's owner at consumption.
+- **Before the fix:** the six new tests fail on the round-2 code (log `31`).
+- **Verify:** `./mvnw -q clean verify` exits 0: 793 unit and 1142 integration tests, and the JaCoCo gate passes.
+- **Catalog proposal (event payload):** `MemberNoteChanged{dogId, memberId, author{accountId, displayName, gender}}` in `CATALEG_ESDEVENIMENTS.md`, S03 §7 and S10 §7. The code emits it. An event without `author` (written before 28-09) keeps the round-2 path.
+- **For E7-T02's round 2:** its review's items 2–4 rework `NotificationDispatcher.process`/`outcome`. Please keep the `deliverable` check before every attempt there, because `NotificationDispatcherIT.R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies` pins it.
+Blocking: no.

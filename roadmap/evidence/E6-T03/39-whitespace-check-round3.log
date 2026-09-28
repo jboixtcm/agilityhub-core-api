@@ -1,0 +1,14 @@
+$ git diff --check -> exit 0
+  (no output)
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/31-before-fix-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/32-clean-verify-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/33-test-summary-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/34-coverage-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/35-openapi-snapshot-round3-run1.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/36-openapi-snapshot-round3-run2.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/37-manual-run-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/38-diff-check-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/39-whitespace-check-round3.log -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/before-fix-round3.py -> exit 1 clean
+$ git diff --no-index --check /dev/null roadmap/evidence/E6-T03/sanitize-round3.py -> exit 1 clean
+new files: 11, with whitespace problems: 0

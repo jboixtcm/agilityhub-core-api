@@ -7,7 +7,9 @@ CLASSES = ["TaskService", "AttachmentService", "FollowupService", "FollowupProje
            "FollowupTransactions", "FollowupEvents", "FollowupUnreadCounter", "ObservationService", "FollowupContractAccess", "FollowupRules",
            "CensusForeignEvent", "FollowupCensusAdapter", "DogService", "DashboardQuery", "TasksController", "FollowupController", "AttachmentsController",
            # round 2 (27-09): FollowupNotificationFacts replaced FollowupNotifications (E7-T02); the list page limit.
-           "FollowupNotificationFacts", "FollowupItemRepository", "ListDefinition", "ListQuery", "OpenApiConfiguration", "ListContractValidation"]
+           "FollowupNotificationFacts", "FollowupItemRepository", "ListDefinition", "ListQuery", "OpenApiConfiguration", "ListContractValidation",
+           # round 3 (28-09): the per-attempt relevance hook of the S11 dispatcher.
+           "NotificationDispatcher", "NotificationFactsPort"]
 totals, classes = {}, {}
 with open("target/site/jacoco/jacoco.csv", encoding="utf-8") as source:
     for row in csv.DictReader(source):
@@ -38,7 +40,8 @@ for package, (lc, lm, bc, bm) in sorted(totals.items()):
     rows.append((ok, package, pct(lc, lm), pct(bc, bm), lm, bm))
 print("Packages under a jacoco rule (application/domain: 85 % lines, 80 % branches; api: 70 % lines):")
 for ok, package, lines, branches, lm, bm in sorted(rows, key=lambda r: (r[0], r[1])):
-    if not ok or package.startswith(("clubs.followup", "clubs.census.application", "clubs.dashboard.application", "shared.application", "shared.api", "configuration")):
+    if not ok or package.startswith(("clubs.followup", "clubs.census.application", "clubs.dashboard.application", "clubs.messaging.application", "shared.application",
+                                     "shared.api", "configuration")):
         print("  %-4s %-44s lines %5.1f%% (%d missed)  branches %5.1f%% (%d missed)" % ("OK" if ok else "LOW", package, lines, lm, branches, bm))
 print("Classes this task adds or changes:")
 for name in sorted(classes):

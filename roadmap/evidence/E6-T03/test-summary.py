@@ -9,7 +9,9 @@ CLASSES = ["FollowupIT", "FollowupRulesTest", "FollowupNotificationsTest", "Foll
            "MessageParityTest", "E6ResponseContractTest", "E2ResponseContractTest", "E6ContractIT", "ListFieldsContractIT", "AttendanceIT",
            "InstructorAggregatesIT", "CensusIT", "DashboardIT", "DemoScenarioSeedIT", "OpenApiSnapshotTest", "OpenApiRequiredContractTest",
            # round 2 (27-09)
-           "E6PersistenceIT", "E3GateFixesContractTest", "ListQueryTest", "ListContractValidationTest"]
+           "E6PersistenceIT", "E3GateFixesContractTest", "ListQueryTest", "ListContractValidationTest",
+           # round 3 (28-09)
+           "NotificationDispatcherIT", "NotificationEngineIT"]
 IDS = r"(T_10_06|T_10_15|T_10_16|T_10_17|T_10_18|T_10_22|T_10_25|T_10_14|T_10_33|T_10_21|R_04_06|R_10_10)"
 methods = {}
 for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TEST-*.xml"), ("integration (failsafe)", "target/failsafe-reports/TEST-*.xml")]:
@@ -25,7 +27,8 @@ for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TES
         if name in CLASSES:
             print("  %-32s tests=%-3d failures=%d errors=%d skipped=%d" % (name, *values))
         for case in suite.iter("testcase"):
-            if not re.search(IDS, case.get("name")) or not (name.startswith(("Followup", "AttachmentService")) or name in ("E6ContractIT", "AttendanceIT", "ListQueryTest")):
+            if not re.search(IDS, case.get("name")) or not (name.startswith(("Followup", "AttachmentService")) or name in ("E6ContractIT", "AttendanceIT", "ListQueryTest",
+                                                                                                                            "NotificationDispatcherIT")):
                 continue
             ok = case.find("failure") is None and case.find("error") is None and case.find("skipped") is None
             for test_id in re.findall(IDS, case.get("name")):

@@ -50,6 +50,7 @@ class FollowupIT extends AbstractIntegrationTest {
     @Autowired EmailSender email; @Autowired com.agilityhub.core.identity.application.ImpersonationService impersonations;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.MemberNoteChanged") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> noteConsumer;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.DogTransferred") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> transferConsumer;
+    @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
 
     @BeforeEach void fixtures() {
         clock.setInstant(NOW); ((FakeEmailSender) email).clear();
@@ -737,6 +738,76 @@ class FollowupIT extends AbstractIntegrationTest {
         }
         // Another universal list keeps the four sizes.
         assertThat(call(HttpMethod.GET, "/attendances?size=200", null, as("admin"), 200).path("size").asInt()).isEqualTo(200);
+    }
+
+    // ---------------------------------------------------------------- round 3 (review of 27-09 21:19): every attempt, the author as written
+
+    /** The dispatcher's retry of every due N-20 delivery of the club (what its 5-second poll does, without the other clubs). */
+    int retryN20() {
+        var ids = notifications("N-20").stream().map(n -> n.getString("_id")).distinct().toList();
+        try (var tenant = TenantContext.open(CLUB)) { return notificationDispatcher.dispatch(ids); }
+    }
+    List<String> n20Emails(String address) { return ((FakeEmailSender) email).messages().stream().filter(m -> m.to().equalsIgnoreCase(address)).map(m -> m.text()).toList(); }
+
+    /**
+     * Round 3 review #1 (R-10-10 amended 27-09): N-20's first e-mail to Joan fails, Toby moves to Laura, and the retry runs a
+     * minute later. The owner check before that attempt ends the delivery as `SKIPPED_STALE`: no e-mail to Joan, nor to
+     * Laura (assumption 15), and nothing left to retry. The same failure without a transfer is retried and reaches the owner.
+     */
+    @Test void R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner() throws Exception {
+        ((FakeEmailSender) email).failNextTo("s10f-joan@example.test");
+        createTask("estel", "s10f-d-toby", "Pujar la rampa amb en Joan", null, 201);
+        dispatch();
+        assertThat(notifications("N-20")).extracting(n -> n.getString("channel") + " " + n.getString("status") + " " + n.getString("accountId") + " " + n.get("attempts"))
+                .containsExactly("APP DELIVERED s10f-joan 0", "EMAIL QUEUED s10f-joan 1");
+        assertThat(n20Emails("s10f-joan@example.test")).isEmpty();
+        transfer("s10f-d-toby", "s10f-m-laura");
+        dispatch();
+        assertThat(retryN20()).as("not due before its minute").isZero();
+        clock.setInstant(NOW.plusSeconds(60));
+        assertThat(retryN20()).isEqualTo(1);
+        assertThat(notifications("N-20")).filteredOn(n -> "EMAIL".equals(n.getString("channel"))).singleElement().satisfies(n -> {
+            assertThat(n.getString("status")).isEqualTo("SKIPPED_STALE"); assertThat(n.getString("accountId")).isEqualTo("s10f-joan");
+            assertThat(n.get("attempts")).isEqualTo(1); assertThat(n.getString("lastError")).isEqualTo("No longer relevant to its recipient");
+        });
+        assertThat(n20Emails("s10f-joan@example.test")).isEmpty();
+        assertThat(n20Emails("s10f-laura@example.test")).isEmpty();
+        var joans = notifications("N-20").getFirst().getString("_id");
+        assertThat(eventsOf("NotificationSent")).noneSatisfy(e -> assertThat(e.getString("aggregateId")).isEqualTo(joans));
+        clock.setInstant(NOW.plusSeconds(3600)); assertThat(retryN20()).as("SKIPPED_STALE is final").isZero();
+        // Laura's own dog, the same failed first attempt and no transfer: the retry passes the check and reaches her.
+        ((FakeEmailSender) email).failNextTo("s10f-laura@example.test");
+        createTask("estel", "s10f-d-duna", "Treballar la calma a la sortida", null, 201);
+        dispatch();
+        assertThat(n20Emails("s10f-laura@example.test")).isEmpty();
+        clock.setInstant(NOW.plusSeconds(3660));
+        assertThat(retryN20()).isEqualTo(1);
+        assertThat(n20Emails("s10f-laura@example.test")).singleElement().satisfies(text -> assertThat(text).contains("Treballar la calma a la sortida"));
+        assertThat(notifications("N-20")).filteredOn(n -> "EMAIL".equals(n.getString("channel")))
+                .extracting(n -> n.getString("accountId") + " " + n.getString("status") + " " + n.get("attempts")).containsExactlyInAnyOrder("s10f-joan SKIPPED_STALE 1", "s10f-laura SENT 2");
+    }
+
+    /**
+     * Round 3 review #2 (S10 §3): Joan writes Toby's note and the office renames him and changes his gender before the outbox
+     * runs. `MemberNoteChanged` froze the author when the note was written, so the D14 row keeps «Joan», MALE and his account;
+     * the row's `memberName` is read when D14 is read, so it shows the new name.
+     */
+    @Test void T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch() throws Exception {
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-toby/instructor-note", Map.of("text", "En Toby s'espanta dels túnels"), as("joan"), 200);
+        call(HttpMethod.PATCH, "/members/s10f-m-joan", Map.of("firstName", "Jan", "gender", "FEMALE", "version", 0), as("admin"), 200);
+        dispatch();
+        var row = mongo.findById(com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.noteRowId(CLUB, "s10f-d-toby"), Document.class, "followup_items");
+        assertThat(row.getString("authorName")).isEqualTo("Joan");
+        assertThat(row.getString("authorGender")).isEqualTo("MALE");
+        assertThat(row.getString("authorAccountId")).isEqualTo("s10f-joan");
+        assertThat(followup("estel", "filter", "kind:eq:MEMBER_NOTE").path("items")).singleElement().satisfies(item -> {
+            assertThat(item.path("authorName").asText()).isEqualTo("Joan"); assertThat(item.path("authorGender").asText()).isEqualTo("MALE");
+            assertThat(item.path("memberName").asText()).isEqualTo("Jan Example");
+            assertThat(item.path("unread").asBoolean()).isTrue();
+        });
+        // The snapshot the note's transaction wrote into the event.
+        assertThat(eventsOf("MemberNoteChanged")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).get("author", Document.class))
+                .containsExactlyInAnyOrderEntriesOf(Map.of("accountId", "s10f-joan", "displayName", "Joan", "gender", "MALE")));
     }
 
     // ---------------------------------------------------------------- the port of the sheet and the card, TASKS off (T-10-33)

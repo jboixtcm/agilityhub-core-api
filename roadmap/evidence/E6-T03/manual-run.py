@@ -7,7 +7,8 @@ attached to a new task (201, AttachmentAdded, N-20), a 30 MB file, an .exe, an e
 (the four refusals), the owner's completion (N-21 to the instructors), the member's note (one MEMBER_NOTE row, N-22), the
 D14 page and unread counts of two accounts before and after one read-all, and the TaskReopened / AttachmentRemoved rows.
 Round 2 (27-09): the note row and the D14 page show `authorGender`, `TaskCreated` shows its `textExcerpt`, and the D14 page
-limit (size 50 → 200, size 200 → 400 INVALID_FILTER). Ids are truncated to 8 characters in the output.
+limit (size 50 → 200, size 200 → 400 INVALID_FILTER). Round 3 (28-09): this run's `MemberNoteChanged` carries the
+`author` snapshot and the MEMBER_NOTE row equals it. Ids are truncated to 8 characters in the output.
 """
 import importlib.machinery
 import importlib.util
@@ -133,6 +134,12 @@ def main():
                            "No MEMBER_NOTE row")
             e5.require(len(note) == 1, "exactly one MEMBER_NOTE row")
             show("followup_items MEMBER_NOTE", note)
+            # Round 3 (review #2): the note's transaction froze its author in MemberNoteChanged, and the row took that snapshot.
+            changed = outbox(["MemberNoteChanged"], [dog["id"]])[-1]
+            author = changed["payload"].get("author") or {}
+            show("outbox MemberNoteChanged", {"status": changed["status"], "dogId": short(changed["payload"]["dogId"]), "memberId": short(changed["payload"]["memberId"]),
+                                              "author": {"accountId": short(author.get("accountId") or "-"), "displayName": author.get("displayName"), "gender": author.get("gender")}})
+            e5.require(author.get("displayName") == note[0]["authorName"] and author.get("gender") == note[0]["authorGender"], "the row's author is the event's snapshot")
             n22 = e5.wait(lambda: (lambda r: r if len(r) == len(accounts) else None)(notifications("N-22", event_id("MemberNoteChanged", dog["id"]))), "N-22 rows missing")
             for row in n22:
                 show("notification", row)

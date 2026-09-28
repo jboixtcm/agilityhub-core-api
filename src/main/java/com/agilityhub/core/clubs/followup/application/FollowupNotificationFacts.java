@@ -18,11 +18,13 @@ import org.springframework.stereotype.Service;
  * S10 notices explained to the S11 engine (E7-T02; replaces `FollowupNotifications`, rules unchanged; the TASKS module guard
  * is the catalog's): N-20 `TaskCreated` → the dog's owner (never the family group), action OPEN_TASKS; N-21 `TaskCompleted`
  * (whoever completed it) and N-22 `MemberNoteChanged` (a note with text: an emptied note has nothing to read) → every
- * active instructor of the club, action OPEN_DOG, with the owner's `member_name` and `gender` («alumne/alumna», S10 §10).
+ * active instructor of the club, action OPEN_DOG, with the `member_name` and `gender` («alumne/alumna», S10 §10) of the
+ * event's member: the dog's owner at the completion, the note's writer (never the dog's owner when the event is consumed).
  * Nothing for a deleted task. N-20 goes to the event's `memberId` only while the census still holds them as the dog's
  * owner, with the event's `textExcerpt` (the text of the creation), never the task's current text: a delivery after a
- * transfer sends nothing, the task follows the dog and its new owner finds it on 13 (R-10-10, E64). The census is read
- * through `FollowupCensusAccess`.
+ * transfer sends nothing, the task follows the dog and its new owner finds it on 13 (R-10-10, E64). The same ownership is
+ * checked again before every attempt of each N-20 delivery ({@link #deliverable}), so an e-mail retried after a transfer
+ * is `SKIPPED_STALE`, never sent to the previous owner (E6-T03 round 3). The census is read through `FollowupCensusAccess`.
  */
 @Service
 public class FollowupNotificationFacts implements NotificationFactsPort {
@@ -53,13 +55,21 @@ public class FollowupNotificationFacts implements NotificationFactsPort {
                 var note = dogId == null ? null : census.instructorNote(dogId).orElse(null);
                 var dog = dogId == null ? null : census.dog(dogId).orElse(null);
                 if (note == null || dog == null || note.text() == null || note.text().isBlank()) { yield Optional.empty(); }
-                yield Optional.of(owner(dogId, dog.memberId()).build());
+                yield Optional.of(owner(dogId, Objects.requireNonNullElse(trigger.text("memberId"), dog.memberId())).build());
             }
             default -> Optional.empty();
         };
     }
 
-    /** `member_name` (full name), `dog_name` and the owner's `gender` for the instructors' copy; the subject is the dog. */
+    /** N-20, before every attempt (R-10-10 amended 27-09): its recipient still owns the notification's dog in the census. */
+    @Override public boolean deliverable(StoredNotification notification, String channel) {
+        if (!"N-20".equals(notification.code())) { return true; }
+        String dogId = notification.subject().dogId(), memberId = notification.memberId();
+        if (dogId == null || memberId == null) { return false; }
+        return census.dog(dogId).map(dog -> memberId.equals(dog.memberId())).orElse(false);
+    }
+
+    /** `member_name` (full name), `dog_name` and the member's `gender` for the instructors' copy; the subject is the dog. */
     private NotificationFacts.Builder owner(String dogId, String memberId) {
         var dog = census.dog(dogId).orElse(null);
         var member = memberId == null ? null : census.members(List.of(memberId)).get(memberId);

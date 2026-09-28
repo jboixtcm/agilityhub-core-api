@@ -50,6 +50,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * (decision E13).
  *
  * <ul>
+ * <li>before each attempt, retries included, every owner of the notification's event must still find it deliverable
+ * ({@link NotificationFactsPort#deliverable}); otherwise → `SKIPPED_STALE` and nothing is sent (S10 R-10-10: an N-20
+ * retried after the dog changed hands never reaches its previous owner);</li>
  * <li>accepted → `SENT` (`providerRef`, `sentAt`, `attempts++`) + `NotificationSent`;</li>
  * <li>retryable → back to `QUEUED`, `attempts++`, `nextAttemptAt` = now + 1, 5, 15, 60 min ({@link RetryPolicy}); the 5th
  * failure, or a non-retryable one → `FAILED` + `NotificationFailed`;</li>
@@ -112,6 +115,10 @@ public class NotificationDispatcher {
         var delivery = notification.deliveries().stream().filter(d -> token.equals(d.claimToken())).findFirst().orElse(null);
         if (delivery == null) { return; }
         try {
+            if (!deliverable(notification, delivery)) {
+                settle(notification, delivery, token, DeliveryStatus.SKIPPED_STALE, null, "No longer relevant to its recipient");
+                return;
+            }
             switch (delivery.channel()) {
                 case EMAIL -> outcome(notification, delivery, token, sendEmail(notification, delivery));
                 case SMS -> sendSms(notification, delivery, token);
@@ -265,6 +272,13 @@ public class NotificationDispatcher {
             return moved;
         });
         return Boolean.TRUE.equals(done);
+    }
+
+    /** Every owner of the notification's event agrees that it still applies to its recipient (an owner-less event: always). */
+    private boolean deliverable(Notification notification, Notification.Delivery delivery) {
+        if (notification.eventType() == null) { return true; }
+        var view = view(notification);
+        return owners.stream().filter(port -> port.eventTypes().contains(notification.eventType())).allMatch(port -> port.deliverable(view, delivery.channel().name()));
     }
 
     private NotificationFactsPort owner(Notification notification) {

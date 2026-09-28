@@ -13,7 +13,8 @@ import java.util.Set;
  *
  * <p>Owners with a business step tied to the notice get the two hooks: {@link #stored} runs in the engine's transaction
  * right after the code's notifications were stored (S08 R-08-13: the N-15 offer mark), {@link #sent} after a provider
- * accepted a delivery, outside any transaction (S10 §7: the N-19 «avís ja enviat»).</p>
+ * accepted a delivery, outside any transaction (S10 §7: the N-19 «avís ja enviat»). Owners whose notice can stop applying
+ * to its recipient after it was stored answer {@link #deliverable} before every attempt (S10 R-10-10: N-20).</p>
  */
 public interface NotificationFactsPort {
     /** The catalog event types (`CATALEG_ESDEVENIMENTS` wire names) this owner explains. */
@@ -24,6 +25,12 @@ public interface NotificationFactsPort {
     default void stored(NotificationTrigger trigger, String code, List<StoredNotification> notifications) { }
     /** A delivery of a notification this owner explained was accepted by its provider (`SENT`); outside any transaction. */
     default void sent(StoredNotification notification, String channel) { }
+    /**
+     * Before every attempt of a queued delivery of a notification this owner explained (the first one and each R-11-09 retry),
+     * outside any transaction, in the notification's club: whether it still applies to its recipient. `false` ends the
+     * delivery as `SKIPPED_STALE` and nothing is sent; a hook that throws is a transient failure of that attempt.
+     */
+    default boolean deliverable(StoredNotification notification, String channel) { return true; }
 
     /** A stored notification as its owner sees it: who, about what, and its deliveries. */
     record StoredNotification(String notificationId, String code, String eventType, String audience, String accountId,

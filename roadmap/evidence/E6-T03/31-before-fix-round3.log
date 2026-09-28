@@ -1,0 +1,85 @@
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/census/application/DogService.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupNotificationFacts.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupProjection.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/domain/CensusForeignEvent.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/messaging/application/engine/NotificationDispatcher.java
+kept round 3 in the copy (default no-op method only): src/main/java/com/agilityhub/core/clubs/messaging/application/ports/NotificationFactsPort.java
+$ (cd target/before-fix-e6t03-r3 && ./mvnw -q verify -Dtest=FollowupNotificationsTest,FollowupProjectionTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT,NotificationDispatcherIT -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 5, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.455 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest.R_10_10_everyN20AttemptNeedsItsRecipientToStillOwnTheDog -- Time elapsed: 0.041 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+Expecting value to be false but was true
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce -- Time elapsed: 0.010 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting map:
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.051 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.application.FollowupProjectionTest
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupProjectionTest.T_10_18_theNoteRowTakesTheAuthorTheEventFroze -- Time elapsed: 0.005 s <<< FAILURE!
+[ERROR]   FollowupNotificationsTest.R_10_10_everyN20AttemptNeedsItsRecipientToStillOwnTheDog:92 [transferred]
+Expecting value to be false but was true
+[ERROR]   FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce:148
+Expecting map:
+[ERROR]   FollowupProjectionTest.T_10_18_theNoteRowTakesTheAuthorTheEventFroze:103
+[ERROR] Tests run: 9, Failures: 3, Errors: 0, Skipped: 0
+[ERROR] Tests run: 17, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 11.48 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch -- Time elapsed: 0.349 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: "Joan"
+ but was: "Jan"
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner -- Time elapsed: 0.104 s <<< FAILURE!
+expected: "SKIPPED_STALE"
+ but was: "SENT"
+[ERROR] Tests run: 7, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.726 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies -- Time elapsed: 0.035 s <<< FAILURE!
+expected: QUEUED
+ but was: SENT
+[ERROR]   FollowupIT.R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner:769
+expected: "SKIPPED_STALE"
+ but was: "SENT"
+[ERROR]   FollowupIT.T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch:800
+expected: "Joan"
+ but was: "Jan"
+[ERROR]   NotificationDispatcherIT.R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies:137
+expected: QUEUED
+ but was: SENT
+[ERROR] Tests run: 24, Failures: 3, Errors: 0, Skipped: 0
+--- per test (surefire + failsafe XML of the copy), with the first line of each failure
+FAILED FollowupNotificationsTest.R_10_10_everyN20AttemptNeedsItsRecipientToStillOwnTheDog
+       [transferred] Expecting value to be false but was true
+FAILED FollowupNotificationsTest.T_10_15_T_10_18_n21AndN22GoToEachActiveInstructorWithAnAccountOnce
+        Expecting map: {"dog_name"="Duna", "entityId"="dog-a", "gender"="OTHER", "member_name"="Laura Example"} to contain entries: ["member_name"="Joan Example"] but the following map entries had different values: ["member_name"="Laura Example" (expected: "Joan Example")]
+ok     FollowupNotificationsTest.T_10_15_n20GoesToTheOwnerByAppAndByEmailAtTheContactAddress
+ok     FollowupNotificationsTest.T_10_33_nothingIsQueuedWithTasksOffForADeletedTaskOrWithoutAMember
+ok     FollowupNotificationsTest.R_10_10_n20ReachesOnlyTheCurrentOwnerWithTheExcerptOfTheCreation
+ok     FollowupProjectionTest.T_10_18_aNoteConsumedAfterATransferIsStillItsWritersRow
+FAILED FollowupProjectionTest.T_10_18_theNoteRowTakesTheAuthorTheEventFroze
+        Argument(s) are different! Wanted: followupItemRepository.note( "dog-a", "member-l", "account-j", "Joan", "MALE", "La nota d&apos;en Joan", 2026-08-12T16:00:00Z, 2026-08-12T16:00:00Z ); -> at com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.note(FollowupItemRepository.java:60)
+ok     FollowupProjectionTest.T_10_18_aTransferredDogTakesItsTasksAndRowsToItsCurrentOwner
+ok     FollowupProjectionTest.T_10_18_aNewNoteChangeUpsertsTheRowAndMakesItUnreadForEveryoneButTheAuthor
+ok     FollowupIT.T_10_21_d14PagesHoldAtMost50Rows
+FAILED FollowupIT.T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch
+        expected: "Joan" but was: "Jan"
+ok     FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications
+ok     FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner
+ok     FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow
+ok     FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued
+ok     FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21
+FAILED FollowupIT.R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner
+        [List check single element] (1 failure) -- failure 1 -- expected: "SKIPPED_STALE" but was: "SENT" at FollowupIT.lambda$R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner$38(FollowupIT.java:770)
+ok     FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken
+ok     FollowupIT.R_04_06_observationsOfAPendingReadmissionsReusedDogAnswer409
+ok     FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion
+ok     FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer
+ok     FollowupIT.T_10_18_theTaskFollowsATransferredDog
+ok     FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText
+ok     FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+ok     FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne
+ok     FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles
+ok     NotificationDispatcherIT.T_11_15_theSmsCounterUsesEachClubsOwnMonth
+ok     NotificationDispatcherIT.T_11_09_aRetryableFailureWaitsOneFiveFifteenSixtyMinutesAndTheFifthIsFinal
+ok     NotificationDispatcherIT.T_11_10_goneExpiresTheSubscriptionRetryableRetriesAndThreeFailuresExpireIt
+ok     NotificationDispatcherIT.T_11_06_oneSmsPerPhoneAndOutsideProductionOnlyTheAllowedNumbers
+ok     NotificationDispatcherIT.T_11_07_theMonthlyCapSkipsTheSmsForcesTheEmailAndNotifiesTheAdminsOncePerMonth
+ok     NotificationDispatcherIT.T_11_30_twoDispatchersOnTheSameQueuedDeliveriesSendEachOnce
+FAILED NotificationDispatcherIT.R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies
+        Multiple Failures (1 failure) -- failure 1 -- expected: QUEUED but was: SENT at NotificationDispatcherIT.lambda$R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies$7(NotificationDispatcherIT.java:138)

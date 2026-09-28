@@ -667,6 +667,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E6-T03 round 3 (review of 27-09 21:19): every N-20 attempt checks the owner, and the note's author is frozen when written.
+  - The S11 dispatcher asks the owners of a notification's event before every attempt, retries included
+    (`NotificationFactsPort.deliverable`, a new default hook). A `false` ends the delivery as `SKIPPED_STALE`, with no
+    provider call and no event. A hook that throws is a retryable failure of that attempt.
+  - N-20 answers it with the census: its recipient must still own the dog. An e-mail whose first attempt failed and that is
+    retried after a transfer never reaches the previous owner.
+  - `MemberNoteChanged` carries `author{accountId, displayName, gender}`, written in the note's transaction. The D14 row
+    takes that snapshot, so a profile changed before the event is consumed never rewrites it. N-22 names the note's writer
+    (the event's `memberId`), no longer whoever owns the dog when the event is consumed.
 - E6-T03 round 2 (ruling E64, S10 R-10-10 amended 27-09): a task belongs to the dog's current owner.
   - Every owner check of a task, of its attachments and of its completion reads `DogOwnerAccess.ownerOf(task.dogId())`,
     never `Task.memberId`: right after a transfer, before its consumer runs, the previous owner gets 404 and the new one 200.

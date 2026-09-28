@@ -89,6 +89,25 @@ class FollowupProjectionTest {
     }
 
     /**
+     * Round 3 (review #2, S10 §3): the event carries the author as they were when the note was written; the row takes that
+     * snapshot and never reads the member's record, so a profile changed before the consumption does not rewrite it. Before
+     * the fix the row took the record's current name and gender («Jan», FEMALE).
+     */
+    @Test void T_10_18_theNoteRowTakesTheAuthorTheEventFroze() {
+        when(census.instructorNote("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Note("La nota d'en Joan", NOW, "account-w")));
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Toby", "ACTIVE", "member-l", "C")));
+        when(census.members(anyCollection())).thenReturn(Map.of("member-j", new FollowupCensusAccess.Member("member-j", "Jan", "Jan Example", "FEMALE", "account-j", null, "es")));
+        when(items.findById(any())).thenReturn(Optional.empty());
+        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j",
+                "author", Map.of("accountId", "account-j", "displayName", "Joan", "gender", "MALE"))));
+        verify(items).note("dog-a", "member-l", "account-j", "Joan", "MALE", "La nota d'en Joan", NOW, NOW);
+        // A snapshot without an account, a name or a gender (a member with none of them): the note's writer, «», null.
+        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j", "author", Map.of())));
+        verify(items).note("dog-a", "member-l", "account-w", "", null, "La nota d'en Joan", NOW, NOW);
+        verify(census, never()).members(anyCollection());
+    }
+
+    /**
      * Round 2 (review #2): the tasks and rows go to the dog's owner as the census holds it, whatever the event says, so A → B
      * and B → C delivered in reverse order end with C. Before the fix the late A → B event put them back with B.
      */
