@@ -36,7 +36,9 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * E7-T01 step 3: the S11 §3 documents with their indexes, the E1–E6 helpers writing one S11 notification with a single
- * delivery (their semantics unchanged), `messaging:migrate-notifications` and the ANNOUNCEMENT_SENT audit action.
+ * delivery (their semantics unchanged), `messaging:migrate-notifications` and the ANNOUNCEMENT_SENT audit action. Round 2:
+ * a row written before E7-T01 loads before the migration (review #2), and the migration converts each row from its values
+ * when it writes (review #3).
  */
 class E7PersistenceIT extends AbstractIntegrationTest {
     static final String CLUB = "e7-persistence-a", OTHER = "e7-persistence-b";
@@ -202,6 +204,138 @@ class E7PersistenceIT extends AbstractIntegrationTest {
         assertThatThrownBy(() -> migrate.run(new DefaultApplicationArguments("--club=canic"))).hasMessageContaining("Usage");
         assertThatThrownBy(() -> migrate.run(new DefaultApplicationArguments("extra"))).hasMessageContaining("Usage");
     }
+    /** The E4–E6 SMS intent as `smsIntentOnce` stored it before E7-T01: flat status, a bare-string `action`, no `deliveries`. */
+    private static Document oldSmsIntent(String id, String action, String entityId, Instant at) {
+        var row = new Document("_id", id).append("clubId", CLUB).append("accountId", "e7p-account").append("code", "N-15").append("channel", "SMS")
+                .append("status", "QUEUED").append("recipientPhones", List.of("+34600000001")).append("body", "Club: plaça lliure").append("action", action)
+                .append("locale", "ca").append("createdAt", Date.from(at));
+        return entityId == null ? row : row.append("entityId", entityId);
+    }
+
+    /**
+     * Round 2 (review #2): a row written before E7-T01 loads through every reader before `messaging:migrate-notifications` runs,
+     * exactly as the command would convert it, and the stored row stays as it was. `smsIntentOnce` itself no longer exists
+     * (E7-T02 step 10 removed it): the replay is the id-keyed path every `…Once` helper shared — `completed(id)` reads the row,
+     * and a replayed `sendOnce` of a queued row written before E7-T01 writes no second row.
+     */
+    @Test void WP_11_A_anSmsIntentWrittenBeforeE7LoadsAndItsReplayWritesNoSecondRowBeforeAnyMigration() {
+        Instant now = clock.instant();
+        mongo.insert(oldSmsIntent("e7p-old-intent", "CLAIM_SEAT", "entry-a", now), "notifications");
+        mongo.insert(oldSmsIntent("e7p-old-unknown", "OPEN_LEGACY_SCREEN", null, now), "notifications");
+        mongo.insert(new Document("_id", "e7p-old-system").append("clubId", null).append("accountId", "e7p-account").append("code", "N-26").append("channel", "EMAIL")
+                .append("status", "QUEUED").append("recipientEmail", "e7p@example.test").append("locale", "ca").append("createdAt", Date.from(now)), "notifications");
+        var stored = raw("e7p-old-intent");
+        try (var scope = TenantContext.open(CLUB)) {
+            var intent = notifications.findScoped("e7p-old-intent").orElseThrow();
+            assertThat(intent.action()).isEqualTo(new Notification.Action(NotificationActionType.CLAIM_SEAT, Map.of("entityId", "entry-a")));
+            assertThat(intent.status()).isEqualTo(Notification.Status.QUEUED); assertThat(intent.channel()).isEqualTo("SMS");
+            assertThat(intent.smsBody()).isNull(); assertThat(intent.body()).isEqualTo("Club: plaça lliure"); assertThat(intent.deliveries()).isNull();
+            // Every reader: the tenant's, the dispatcher's, the feed's.
+            assertThat(notifications.findById("e7p-old-intent")).contains(intent);
+            assertThat(notifications.findForDispatch("e7p-old-intent")).contains(intent);
+            assertThat(notifications.findForAccount("e7p-old-intent", "e7p-account")).isEmpty(); // `recipient.accountId` comes with the conversion
+            assertThat(notifications.claimDue("e7p-old-intent", now, java.time.Duration.ofMinutes(1), "lease")).isEmpty(); // no delivery to claim
+            // An action name no S11 type has reads as no action (the command keeps it as `legacyAction`).
+            assertThat(notifications.findScoped("e7p-old-unknown").orElseThrow().action()).isNull();
+            // The id-keyed replay: the row is read, never duplicated.
+            assertThat(service.completed("e7p-old-intent")).isFalse(); assertThat(service.sent("e7p-old-intent")).isFalse();
+        }
+        assertThat(raw("e7p-old-intent")).isEqualTo(stored);
+        // A SYSTEM e-mail queued before E7-T01 and replayed with its id: the same row moves, no second one.
+        assertThat(service.completed("e7p-old-system")).isFalse();
+        assertThat(service.sendOnce("e7p-old-system", "N-26", "e7p-account", Map.of())).isEqualTo("e7p-old-system");
+        assertThat(service.completed("e7p-old-system")).isTrue();
+        assertThat(mongo.count(Query.query(Criteria.where("_id").regex("^e7p-old-")), "notifications")).isEqualTo(3);
+        assertThat(raw("e7p-old-system")).containsEntry("status", "SENT").doesNotContainKey("deliveries");
+        // Loaded before the migration = loaded after it (the command converts what the reader maps).
+        Notification before;
+        try (var scope = TenantContext.open(CLUB)) { before = notifications.findScoped("e7p-old-intent").orElseThrow(); }
+        run("--apply");
+        try (var scope = TenantContext.open(CLUB)) {
+            var after = notifications.findScoped("e7p-old-intent").orElseThrow();
+            assertThat(after.action()).isEqualTo(before.action()); assertThat(after.status()).isEqualTo(before.status());
+            assertThat(after.delivery().status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(after.smsBody()).isEqualTo("Club: plaça lliure");
+        }
+        assertThat(raw("e7p-old-unknown")).containsEntry("legacyAction", "OPEN_LEGACY_SCREEN").containsEntry("action", null);
+    }
+
+    /** A SYSTEM e-mail row as E1–E6 wrote it before E7-T01 (flat, no `deliveries`), listed by the command as it is now. */
+    private Document listedOldEmail(String id, String status, String providerMessageId, Instant sentAt) {
+        mongo.insert(new Document("_id", id).append("clubId", CLUB).append("accountId", "e7p-account").append("code", "N-27").append("channel", "EMAIL")
+                .append("status", status).append("providerMessageId", providerMessageId).append("sentAt", sentAt == null ? null : Date.from(sentAt))
+                .append("recipientEmail", "e7p@example.test").append("locale", "ca").append("createdAt", Date.from(clock.instant())), "notifications");
+        var listed = new LegacyNotificationRows(mongo).find().stream().filter(row -> row.getString("_id").equals(id)).findFirst().orElseThrow();
+        assertThat(listed.getString("status")).isEqualTo(status);
+        return listed;
+    }
+
+    /**
+     * Round 2 (review #3): the migration converts each row from its values at the moment it writes. The review's case: the
+     * command lists a QUEUED row, the SendGrid webhook moves its flat status to DELIVERED, then the conversion runs → the
+     * delivery is DELIVERED, never the stale QUEUED of the listing.
+     */
+    @Test void WP_11_A_theMigrationConvertsARowTheWebhookMovedAfterTheCommandListedIt() {
+        var rows = new LegacyNotificationRows(mongo);
+        var listed = listedOldEmail("e7p-race-listed", "QUEUED", null, null);
+        try (var scope = TenantContext.open(CLUB)) { assertThat(notifications.delivery("e7p-race-listed", Notification.Status.DELIVERED, null)).isTrue(); }
+        assertThat(rows.convert(listed)).isTrue();
+        try (var scope = TenantContext.open(CLUB)) {
+            var converted = notifications.findScoped("e7p-race-listed").orElseThrow();
+            assertThat(converted.status()).isEqualTo(Notification.Status.DELIVERED);
+            assertThat(converted.delivery()).isEqualTo(new Notification.Delivery(NotificationChannel.EMAIL, "e7p@example.test", DeliveryStatus.DELIVERED, 1,
+                    null, null, null, null, null, null));
+        }
+        // A converted row is no legacy row: converting it again changes nothing.
+        assertThat(rows.convert(listed)).isFalse();
+    }
+
+    /**
+     * Round 2 (review #3), the tightest interleaving: the webhook moves the flat status (SENT → DELIVERED) between the
+     * conversion's own read of the row and its write. The conditional write misses and the conversion runs again from the new
+     * values → a DELIVERED delivery with the provider reference and both instants.
+     */
+    @Test void WP_11_A_theMigrationConvertsARowTheWebhookMovedBetweenTheConversionsReadAndWrite() {
+        Instant now = clock.instant();
+        var listed = listedOldEmail("e7p-race-read", "SENT", "ref-e7p-race-read", now);
+        var interleaved = org.mockito.Mockito.spy(mongo); var fired = new java.util.concurrent.atomic.AtomicBoolean();
+        org.mockito.Mockito.doAnswer(call -> {
+            if (fired.compareAndSet(false, true)) {
+                try (var scope = TenantContext.open(CLUB)) { assertThat(notifications.delivery("e7p-race-read", Notification.Status.DELIVERED, null)).isTrue(); }
+            }
+            return call.callRealMethod();
+        }).when(interleaved).updateFirst(org.mockito.ArgumentMatchers.any(Query.class), org.mockito.ArgumentMatchers.any(org.springframework.data.mongodb.core.query.UpdateDefinition.class),
+                org.mockito.ArgumentMatchers.eq("notifications"));
+        assertThat(new LegacyNotificationRows(interleaved).convert(listed)).isTrue();
+        assertThat(fired).isTrue();
+        try (var scope = TenantContext.open(CLUB)) {
+            var converted = notifications.findScoped("e7p-race-read").orElseThrow();
+            assertThat(converted.status()).isEqualTo(Notification.Status.DELIVERED);
+            assertThat(converted.delivery()).isEqualTo(new Notification.Delivery(NotificationChannel.EMAIL, "e7p@example.test", DeliveryStatus.DELIVERED, 1,
+                    null, "ref-e7p-race-read", null, now, now, null));
+        }
+    }
+
+    /**
+     * Round 2 (review #3): a row that changes under every attempt is left as it is for the next run (`SKIPPED`), never
+     * converted from a value it no longer holds; that run converts it from what it holds then.
+     */
+    @Test void WP_11_A_aRowThatKeepsChangingUnderTheMigrationIsLeftForItsNextRun() {
+        var listed = listedOldEmail("e7p-race-busy", "QUEUED", null, null);
+        var busy = org.mockito.Mockito.spy(mongo); var writes = new java.util.concurrent.atomic.AtomicInteger();
+        org.mockito.Mockito.doAnswer(call -> {
+            mongo.getCollection("notifications").updateOne(new Document("_id", "e7p-race-busy"),
+                    new Document("$set", new Document("error", "SendGrid deferred " + writes.incrementAndGet())));
+            return call.callRealMethod();
+        }).when(busy).updateFirst(org.mockito.ArgumentMatchers.any(Query.class), org.mockito.ArgumentMatchers.any(org.springframework.data.mongodb.core.query.UpdateDefinition.class),
+                org.mockito.ArgumentMatchers.eq("notifications"));
+        assertThat(new LegacyNotificationRows(busy).convert(listed)).isFalse();
+        assertThat(writes).hasValue(5);
+        assertThat(raw("e7p-race-busy")).doesNotContainKey("deliveries").containsEntry("error", "SendGrid deferred 5");
+        assertThat(new LegacyNotificationRows(mongo).convert(listed)).isTrue();
+        assertThat(raw("e7p-race-busy").getList("deliveries", Document.class)).singleElement()
+                .satisfies(delivery -> assertThat(delivery).containsEntry("status", "QUEUED").containsEntry("lastError", "SendGrid deferred 5"));
+    }
+
     private String run(String... arguments) {
         var out = new ByteArrayOutputStream(); var original = System.out;
         System.setOut(new PrintStream(out, true, StandardCharsets.UTF_8));

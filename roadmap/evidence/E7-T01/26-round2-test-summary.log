@@ -1,0 +1,32 @@
+unit/contract (surefire): tests=793 failures=0 errors=0 skipped=0
+integration (failsafe): tests=1153 failures=0 errors=0 skipped=0
+Changed by round 2:
+  E7ContractIT                       tests=28  failures=0 errors=0 skipped=0
+  E7PersistenceIT                    tests=8   failures=0 errors=0 skipped=0
+  NotificationCatalogContractTest    tests=4   failures=0 errors=0 skipped=0
+  E7ResponseContractTest             tests=5   failures=0 errors=0 skipped=0
+Suites that read or write notifications or the snapshot (unchanged):
+  SystemNotificationServiceIT        tests=15  failures=0 errors=0 skipped=0
+  SendGridWebhookIT                  tests=12  failures=0 errors=0 skipped=0
+  EmailUnsubscribeIT                 tests=2   failures=0 errors=0 skipped=0
+  NotificationEngineIT               tests=10  failures=0 errors=0 skipped=0
+  NotificationDispatcherIT           tests=7   failures=0 errors=0 skipped=0
+  NotificationSeedSnapshotTest       tests=3   failures=0 errors=0 skipped=0
+  TemplateRendererTest               tests=2   failures=0 errors=0 skipped=0
+  NotificationSpecTest               tests=6   failures=0 errors=0 skipped=0
+  EventCatalogContractTest           tests=2   failures=0 errors=0 skipped=0
+  ErrorCatalogContractTest           tests=5   failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest                tests=10  failures=0 errors=0 skipped=0
+  OpenApiRequiredContractTest        tests=3   failures=0 errors=0 skipped=0
+  ArchitectureTest                   tests=14  failures=0 errors=0 skipped=0
+  AuditContractTest                  tests=1   failures=0 errors=0 skipped=0
+  IdentityCoreIT                     tests=26  failures=0 errors=0 skipped=0
+Round 2 test methods (new, or changed for E66):
+  E7ContractIT.WP_11_A_everyOperationPublishesTheAuthenticationItEnforces ok
+  E7PersistenceIT.WP_11_A_anSmsIntentWrittenBeforeE7LoadsAndItsReplayWritesNoSecondRowBeforeAnyMigration ok
+  E7PersistenceIT.WP_11_A_theMigrationConvertsARowTheWebhookMovedAfterTheCommandListedIt ok
+  E7PersistenceIT.WP_11_A_theMigrationConvertsARowTheWebhookMovedBetweenTheConversionsReadAndWrite ok
+  NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseOnlyTheirCodesVariables ok
+  NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections ok
+  NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs ok
+  E7ResponseContractTest.WP_11_A_eventsHaveExactlyTheS11PayloadFieldsAndEnvelope ok

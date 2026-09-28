@@ -103,7 +103,14 @@ class E7ResponseContractTest {
         assertThat(row(catalog, "| `LevelChanged` /")).contains("`MessageTemplateChanged`", "| id, diff |");
         assertThat(row(catalog, "| `AnnouncementSent` |")).contains("templateId, recipientCount, filters");
         assertThat(row(catalog, "| `PushSubscribed` / `PushUnsubscribed` |")).contains("accountId, endpoint");
-        assertThat(row(catalog, "| `EmailBounced{")).contains("`SmsCapReached{month}`", "`NotificationPreferencesChanged`", "`EmailUnsubscribed`");
+        // Annex A's S11 row lists the payloads of S11 §7 since E66 (27-09): the fixtures' fields, in the catalog's order.
+        var proposals = row(catalog, "| `EmailBounced{");
+        for (String name : List.of("EmailBounced", "SmsCapReached")) {
+            var payload = java.util.regex.Pattern.compile("`" + name + "\\{([^}]*)}`").matcher(proposals);
+            assertThat(payload.find()).as(name + " in the catalog row").isTrue();
+            assertThat(payload.group(1).split(", ")).as(name).containsExactly(fields.get(name).split(","));
+        }
+        assertThat(proposals).contains("`NotificationPreferencesChanged`", "`EmailUnsubscribed`");
         // The endpoint is its SHA-256, never the URL (the fixture is a hash, as PushSubscription.endpointHash).
         assertThat(fixtures.at("/PushSubscribed/endpoint").asText()).matches("[0-9a-f]{64}");
         // NotificationQueued/Sent/Failed{notificationId, channel}: the channel is the delivery's, not always EMAIL.

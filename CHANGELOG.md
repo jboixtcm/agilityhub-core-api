@@ -688,6 +688,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E7-T01 round 2 (review of 27-09 14:39, ruling E66): the S11 contract's four corrections.
+  - `POST /email-unsubscribes` publishes `security: []` (it inherited the global bearer); `E7ContractIT` asserts the
+    effective requirement of every S11 operation in the live document and the committed snapshot.
+  - A `notifications` row written before E7-T01 loads before `messaging:migrate-notifications` runs: the new
+    `LegacyNotificationReader` maps the E4–E6 SMS intent's bare-string `action` (and its `entityId`) exactly as the command
+    converts it, so `findScoped`, the tenant's finds and the dispatcher's read no longer fail with a converter error.
+  - The command converts each row from its values when it writes, never from its listing: one conditional update matches
+    the row exactly as re-read and retries when a webhook moved it in between (QUEUED → DELIVERED stays DELIVERED).
+  - Catalog alignment (E66): `CATALEG_NOTIFICACIONS.md` (the fourteen variables in «Variables disponibles», `club_name`
+    general, the new «Variables noves» sentence), S11 §8 N-08a without `ring_name`, and `CATALEG_ESDEVENIMENTS.md`
+    Annex A (`EmailBounced{memberId, email, type}`, `SmsCapReached{month, cap}`). In code:
+    `NotificationCatalog.GENERAL_VARIABLES` (`club_name`, used by the engine), `class_description` on N-13/N-15/N-16,
+    `gender` on N-21/N-22, `decision`, `source`, `member_first_name` and `dog_name` on N-28. The parity tests have no
+    proposal left to pin.
+  - Round 1's evidence logs lose their trailing whitespace.
 - E6-T03 round 3 (review of 27-09 21:19): every N-20 attempt checks the owner, and the note's author is frozen when written.
   - The S11 dispatcher asks the owners of a notification's event before every attempt, retries included
     (`NotificationFactsPort.deliverable`, a new default hook). A `false` ends the delivery as `SKIPPED_STALE`, with no

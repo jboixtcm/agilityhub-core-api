@@ -1,0 +1,49 @@
+NotificationCatalog variables: 74 used, 0 outside the catalog lists
+[ERROR] Tests run: 4, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.033 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest
+[ERROR] com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseOnlyTheirCodesVariables -- Time elapsed: 0.011 s <<< FAILURE!
+java.lang.AssertionError:
+[seed texts using a variable their code lacks]
+Expecting empty but was: {"N-13"=["class_description"], "N-15"=["class_description"], "N-16"=["class_description"], "N-28"=["dog_name", "member_first_name"]}
+	at com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseOnlyTheirCodesVariables(NotificationCatalogContractTest.java:258)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections -- Time elapsed: 0.008 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[N-13 variables]
+Expecting actual:
+  ["dog_name", "date", "time", "ring_name", "kind"]
+to contain exactly (and in same order):
+  ["dog_name", "date", "time", "ring_name", "kind", "class_description"]
+but could not find the following elements:
+  ["class_description"]
+
+	at com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections(NotificationCatalogContractTest.java:158)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections:158 [N-13 variables]
+Expecting actual:
+  ["dog_name", "date", "time", "ring_name", "kind"]
+to contain exactly (and in same order):
+  ["dog_name", "date", "time", "ring_name", "kind", "class_description"]
+but could not find the following elements:
+  ["class_description"]
+
+[ERROR]   NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseOnlyTheirCodesVariables:258 [seed texts using a variable their code lacks]
+Expecting empty but was: {"N-13"=["class_description"], "N-15"=["class_description"], "N-16"=["class_description"], "N-28"=["dog_name", "member_first_name"]}
+[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

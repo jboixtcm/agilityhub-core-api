@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-28 · E7-T01 round 2 · the anonymous unsubscribe publishes `security: []`
+
+**0 operations added or removed, 1 changed; 0 schemas changed.**
+- **`POST /email-unsubscribes`** publishes `security: []`: no bearer, as the server already enforced (`permitAll`; the signed
+  token authorises, the club comes from the host). It used to inherit the document's global bearer requirement, so a
+  generated client would have sent (or demanded) a token (E7-T01 review #1). `E7ContractIT` now asserts every S11
+  operation's effective requirement: `[]` for the anonymous one, the bearer for the other 20.
+
 ## 2026-09-27 · E7-T02 · S11 notification engine: VAPID key, the SMS guard status, bounce kinds, the unsubscribe served
 
 **0 operations added or removed, 1 changed; 0 schemas added or removed, 3 changed.** The web must regenerate its client.

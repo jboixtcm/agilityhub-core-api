@@ -800,12 +800,12 @@ Anonymized Playoff files written; no input values or key logged.
 14:17:26.554 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 14:17:26.697 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 14:17:26.698 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-14:17:26.712 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+14:17:26.712 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.7.2
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 14:17:26.890 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 14:17:26.979 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/

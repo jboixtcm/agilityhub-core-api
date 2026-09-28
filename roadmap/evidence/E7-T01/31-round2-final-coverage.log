@@ -1,0 +1,15 @@
+Packages under a jacoco rule: 65 of 65 pass
+  OK   clubs.messaging.api                          lines  99.1% (1 missed)  branches  83.3% (1 missed)
+  OK   clubs.messaging.application                  lines  99.7% (1 missed)  branches  90.0% (23 missed)
+  OK   clubs.messaging.application.engine           lines  99.1% (6 missed)  branches  88.2% (81 missed)
+  OK   clubs.messaging.application.integrations     lines  99.4% (1 missed)  branches  97.1% (2 missed)
+  OK   clubs.messaging.application.ports            lines 100.0% (0 missed)  branches  98.7% (1 missed)
+  OK   clubs.messaging.domain                       lines 100.0% (0 missed)  branches  96.5% (10 missed)
+Classes round 2 changes (clubs.messaging.persistence has no jacoco rule):
+  EmailUnsubscribesController (clubs.messaging.api)          lines 100.0% (0 missed)  branches 100.0% (0 missed)
+  LegacyNotificationReader (clubs.messaging.persistence)     lines 100.0% (0 missed)  branches  75.0% (1 missed)
+  LegacyNotificationRows (clubs.messaging.persistence)       lines 100.0% (0 missed)  branches  93.8% (2 missed)
+  MigrateNotificationsCommand (clubs.messaging.application)  lines  94.1% (1 missed)  branches  90.9% (2 missed)
+  Notification (clubs.messaging.persistence)                 lines 100.0% (0 missed)  branches  90.5% (2 missed)
+  NotificationCatalog (clubs.messaging.domain)               lines 100.0% (0 missed)  branches  94.1% (2 missed)
+  NotificationEngine (clubs.messaging.application.engine)    lines  99.2% (2 missed)  branches  88.1% (29 missed)

@@ -1,0 +1,12 @@
+T-11-05 snapshot ca: 51 seeded codes, 20 staff texts
+T-11-05 snapshot es: 51 seeded codes, 20 staff texts
+T-11-05 snapshot en: 51 seeded codes, 20 staff texts
+12:28:12.526 [main] WARN com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer -- Notification template of N-04 uses the unknown variable unknown_var
+12:28:12.527 [main] WARN com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer -- Notification template of N-04 is not valid ICU; rendered as plain text
+12:28:12.527 [main] WARN com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer -- Notification template of N-37 has no value for change
+12:28:12.527 [main] WARN com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer -- Notification template of N-17 has no value for dogs_count
+12:28:12.527 [main] WARN com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer -- Notification template of N-17 has no value for club_name
+NotificationCatalog parity: 61 rows (43 main + 18 Annex A) = 61 codes; N-12 absent
+NotificationCatalog variables: 75 used, 0 outside the catalog lists
+T-11-02 truth table: 61 catalog codes, 9792 code x audience x row combinations
+12:28:12.670 [main] INFO com.tngtech.archunit.core.PluginLoader -- Detected Java version 21.0.12.1

@@ -31,7 +31,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * e-mail path (`SystemNotificationService`: N-25, N-26, N-27, N-39, N-43, N-52, N-53). Each of its rows is one document with
  * a single delivery, `dedupKey` = its id, and these fields mirror that delivery (`NotificationRepository` moves both
  * together); engine documents leave them `null`. `messaging:migrate-notifications` converts the rows written before E7-T01
- * (no `deliveries`). `variant` names another copy of a code (`notif.{code}.{variant}.*`), `null` for the default copy.</p>
+ * (no `deliveries`); until then they load as they are, their bare-string `action` mapped by {@link LegacyNotificationReader}.
+ * `variant` names another copy of a code (`notif.{code}.{variant}.*`), `null` for the default copy.</p>
  */
 @Document("notifications")
 public record Notification(@Id String id, String clubId, String code, NotificationCategory category, String templateId, Long templateVersion,

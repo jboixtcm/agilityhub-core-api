@@ -1,0 +1,121 @@
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.323 s <<< FAILURE! -- in com.agilityhub.core.configuration.E7ResponseContractTest
+[ERROR] com.agilityhub.core.configuration.E7ResponseContractTest.WP_11_A_eventsHaveExactlyTheS11PayloadFieldsAndEnvelope -- Time elapsed: 0.090 s <<< FAILURE!
+java.lang.AssertionError:
+
+Expecting actual:
+  "| `EmailBounced{memberId, email, type}` · `SmsCapReached{month, cap}` · `NotificationPreferencesChanged` · `EmailUnsubscribed` | comunicacions | S11 |"
+to contain:
+  ["`SmsCapReached{month}`",
+    "`NotificationPreferencesChanged`",
+    "`EmailUnsubscribed`"]
+but could not find:
+  ["`SmsCapReached{month}`"]
+
+	at com.agilityhub.core.configuration.E7ResponseContractTest.WP_11_A_eventsHaveExactlyTheS11PayloadFieldsAndEnvelope(E7ResponseContractTest.java:106)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.039 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest
+[ERROR] com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections -- Time elapsed: 0.016 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[N-13 variables]
+Expecting actual:
+  ["dog_name", "date", "time", "ring_name", "kind"]
+to contain exactly (and in same order):
+  ["dog_name", "date", "time", "ring_name", "kind", "class_description"]
+but could not find the following elements:
+  ["class_description"]
+
+	at com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections(NotificationCatalogContractTest.java:146)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseTheRowVariablesOrAProposedOne -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+
+expected: {"N-08a"=["club_name", "ring_name"], "N-13"=["class_description"], "N-15"=["class_description", "club_name"], "N-16"=["class_description"], "N-28"=["club_name", "dog_name", "member_first_name"]}
+ but was: {"N-08a"=["club_name"], "N-13"=["class_description"], "N-15"=["class_description", "club_name"], "N-16"=["class_description"], "N-28"=["club_name", "dog_name", "member_first_name"]}
+	at com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseTheRowVariablesOrAProposedOne(NotificationCatalogContractTest.java:243)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs -- Time elapsed: 0.010 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+[row variables no list declares: the E7-T01 catalog proposal]
+expected:
+  ["pending_count",
+      "plan_name",
+      "period",
+      "challenge_title",
+      "actor",
+      "requested_date",
+      "level",
+      "host",
+      "inviter_name",
+      "error_count",
+      "score",
+      "execute_date",
+      "job_name",
+      "role"]
+ but was:
+  []
+	at com.agilityhub.core.clubs.messaging.domain.NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs(NotificationCatalogContractTest.java:281)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures:
+[ERROR]   NotificationCatalogContractTest.WP_11_A_catalogMatchesTheDocumentRowByRowInBothDirections:146 [N-13 variables]
+Expecting actual:
+  ["dog_name", "date", "time", "ring_name", "kind"]
+to contain exactly (and in same order):
+  ["dog_name", "date", "time", "ring_name", "kind", "class_description"]
+but could not find the following elements:
+  ["class_description"]
+
+[ERROR]   NotificationCatalogContractTest.WP_11_A_everyEventAndVariableComesFromTheCatalogs:281 [row variables no list declares: the E7-T01 catalog proposal]
+expected:
+  ["pending_count",
+      "plan_name",
+      "period",
+      "challenge_title",
+      "actor",
+      "requested_date",
+      "level",
+      "host",
+      "inviter_name",
+      "error_count",
+      "score",
+      "execute_date",
+      "job_name",
+      "role"]
+ but was:
+  []
+[ERROR]   NotificationCatalogContractTest.WP_11_A_theS11SeedTextsUseTheRowVariablesOrAProposedOne:243
+expected: {"N-08a"=["club_name", "ring_name"], "N-13"=["class_description"], "N-15"=["class_description", "club_name"], "N-16"=["class_description"], "N-28"=["club_name", "dog_name", "member_first_name"]}
+ but was: {"N-08a"=["club_name"], "N-13"=["class_description"], "N-15"=["class_description", "club_name"], "N-16"=["class_description"], "N-28"=["club_name", "dog_name", "member_first_name"]}
+[ERROR]   E7ResponseContractTest.WP_11_A_eventsHaveExactlyTheS11PayloadFieldsAndEnvelope:106
+Expecting actual:
+  "| `EmailBounced{memberId, email, type}` · `SmsCapReached{month, cap}` · `NotificationPreferencesChanged` · `EmailUnsubscribed` | comunicacions | S11 |"
+to contain:
+  ["`SmsCapReached{month}`",
+    "`NotificationPreferencesChanged`",
+    "`EmailUnsubscribed`"]
+but could not find:
+  ["`SmsCapReached{month}`"]
+
+[ERROR] Tests run: 9, Failures: 4, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR]
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

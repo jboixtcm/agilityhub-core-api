@@ -11,7 +11,9 @@ import org.springframework.stereotype.Component;
  * `bin/core messaging:migrate-notifications [--dry-run | --apply]` (E7-T01): converts the flat `notifications` rows written
  * before E7-T01 (E1–E6, no `deliveries`) into the S11 §3 shape the helpers now write, for local and staging databases; R1 is
  * not live, so no production row exists. Dry run by default: it prints the rows it would convert (id, club, code, channel,
- * status — never an address) and writes nothing. Idempotent: a converted row is no longer a legacy one.
+ * status — never an address) and writes nothing. Idempotent: a converted row is no longer a legacy one. `--apply` converts
+ * each row from its values when it writes (a webhook may move a row after the listing) and prints the status it converted;
+ * `SKIPPED` = converted meanwhile, or still changing (a rerun converts it). Rows not yet converted already load on every read.
  */
 @Component
 public class MigrateNotificationsCommand implements CoreCommand {

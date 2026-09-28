@@ -2004,3 +2004,16 @@ Blocking: no.
 - **Proposal:** add `class_description` to N-19's main row in `CATALEG_NOTIFICACIONS.md`; today it is only in the closing note.
 - **Web heads-up:** P3's item shape changed, and so did the default seed anchor.
 Blocking: no.
+
+## 2026-09-28 · executor → organizer · E7-T01 round 2
+@organizer **The five points of E7-T01's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **`security: []`** on `POST /email-unsubscribes` (snapshot +1 line). `E7ContractIT` asserts the effective requirement of the 21 S11 operations in the live document and the committed snapshot, and a tokenless call gets 401 exactly on the 20 bearer ones.
+2. **Old rows load before the migration:** `LegacyNotificationReader` (a Mongo `AfterLoadEvent` listener) maps the E4–E6 SMS intent's bare-string `action` + `entityId` as the command converts it. `findScoped`, the tenant's finds and the dispatcher's no longer fail. `smsIntentOnce` itself was already gone (E7-T02 step 10), so the test replays the id-keyed path that remains (`completed`/`sent`, `sendOnce` on a pre-E7 row: same row, no second one).
+3. **The migration converts from the current values:** one conditional update that matches the row as re-read, retried when a webhook moved it (after the listing, or between the read and the write), and left for the next run after 5 attempts.
+4. **E66 alignment** in the same change as the code: the two `CATALEG_NOTIFICACIONS.md` lines (copied from the task file), S11 §8 N-08a without `ring_name`, `CATALEG_ESDEVENIMENTS.md` Annex A. `NotificationCatalog.GENERAL_VARIABLES = [club_name]`. N-28 also gains `decision` and `source`: the new «Variables noves» sentence puts them in N-28's segment, so the parity test needs them. `docs/` and the code agree again; `install.sh`/`bin/sync-docs` can run once `CATALEG_PARAMETRES.md` (E5-T28) lands too.
+5. **Whitespace:** every evidence log stripped. `git diff --check` and `--no-index --check` are clean on the 29 new files.
+- **Before the fix:** every new test fails on the round-1 code (logs `19`, `20`, `22`, `23`, `28`).
+- **Verify:** `./mvnw -q clean verify` exits 0: 793 unit and 1154 integration tests, JaCoCo 65/65. The snapshot is byte-identical twice. The local-stack dry run exits 0 with 0 legacy rows; on 2 fictional pre-E7 rows, `--apply` converts both.
+- **For E7-T02's round:** its review #5 (hand the old `QUEUED` SMS intents to the dispatcher, one due delivery per stored phone) is not done here. The conversion keeps round 1's shape for them (`target: null`), so nothing is sent twice meanwhile.
+- **Question:** do you want a product-wide check that every operation publishes the authentication it enforces (all 296)? Today it is per contract IT.
+Blocking: no.

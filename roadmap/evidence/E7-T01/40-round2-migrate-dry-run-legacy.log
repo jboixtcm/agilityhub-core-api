@@ -1,0 +1,3 @@
+WOULD_CONVERT e7r2-legacy-sms club=00e8166e-77ce-4a13-bff0-98c178c0082d code=N-15 channel=SMS status=QUEUED
+WOULD_CONVERT e7r2-legacy-email club=00e8166e-77ce-4a13-bff0-98c178c0082d code=N-27 channel=EMAIL status=SENT
+Legacy notification rows: 2 (dry run: nothing written; --apply converts them)

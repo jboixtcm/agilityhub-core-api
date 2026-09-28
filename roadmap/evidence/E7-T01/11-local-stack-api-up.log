@@ -1,4 +1,4 @@
- Image agilityhub-core-api-api Building 
+ Image agilityhub-core-api-api Building
 #1 [internal] load local bake definitions
 #1 reading from stdin 560B done
 #1 DONE 0.0s
@@ -100,15 +100,15 @@
 
 #28 resolving provenance for metadata file
 #28 DONE 0.0s
- Image agilityhub-core-api-api Built 
- Container agilityhub-core-api-mongo-1 Running 
- Container agilityhub-core-api-api-1 Recreate 
- Container agilityhub-core-api-api-1 Recreated 
- Container agilityhub-core-api-mongo-1 Waiting 
- Container agilityhub-core-api-mongo-1 Healthy 
- Container agilityhub-core-api-api-1 Starting 
- Container agilityhub-core-api-api-1 Started 
- Container agilityhub-core-api-mongo-1 Waiting 
- Container agilityhub-core-api-api-1 Waiting 
- Container agilityhub-core-api-mongo-1 Healthy 
- Container agilityhub-core-api-api-1 Healthy 
+ Image agilityhub-core-api-api Built
+ Container agilityhub-core-api-mongo-1 Running
+ Container agilityhub-core-api-api-1 Recreate
+ Container agilityhub-core-api-api-1 Recreated
+ Container agilityhub-core-api-mongo-1 Waiting
+ Container agilityhub-core-api-mongo-1 Healthy
+ Container agilityhub-core-api-api-1 Starting
+ Container agilityhub-core-api-api-1 Started
+ Container agilityhub-core-api-mongo-1 Waiting
+ Container agilityhub-core-api-api-1 Waiting
+ Container agilityhub-core-api-mongo-1 Healthy
+ Container agilityhub-core-api-api-1 Healthy

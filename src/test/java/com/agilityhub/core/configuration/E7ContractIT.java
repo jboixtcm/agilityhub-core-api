@@ -240,6 +240,30 @@ class E7ContractIT extends AbstractIntegrationTest {
         assertThat(database()).isEqualTo(before);
     }
 
+    /**
+     * Round 2 (review #1): every operation publishes the authentication it enforces, in the live document and in the committed
+     * snapshot. The effective requirement is the operation's `security`, else the document's: `[]` for the anonymous
+     * operation, the bearer for the rest; and a call without a token answers 401 exactly on the bearer ones.
+     */
+    @Test void WP_11_A_everyOperationPublishesTheAuthenticationItEnforces() throws Exception {
+        var live = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        var committed = mapper.readTree(java.nio.file.Files.readString(java.nio.file.Path.of("docs/openapi/openapi.json")));
+        var bearer = mapper.readTree("[{\"bearer\": []}]");
+        for (var api : List.of(live, committed)) {
+            assertThat(api.path("security")).isEqualTo(bearer);
+            for (Route route : routes().toList()) {
+                var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
+                var effective = op.has("security") ? op.path("security") : api.path("security");
+                assertThat(effective).as(route.label()).isEqualTo(route.roles().contains("ANON") ? mapper.createArrayNode() : bearer);
+            }
+        }
+        for (Route route : routes().toList()) {
+            int status = mvc.perform(call(route, CLUB, "ANON")).andReturn().getResponse().getStatus();
+            assertThat(status == 401).as(route.label() + " without a token → " + status).isEqualTo(!route.roles().contains("ANON"));
+        }
+        assertThat(routes().filter(r -> r.roles().contains("ANON")).map(Route::label)).containsExactly("POST /api/v1/email-unsubscribes");
+    }
+
     @Test void WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
         assertThat(routes().count()).isEqualTo(21);

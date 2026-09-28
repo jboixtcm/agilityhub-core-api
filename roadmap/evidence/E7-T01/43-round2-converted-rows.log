@@ -1,0 +1,51 @@
+rs0 [direct: primary] test>
+rs0 [direct: primary] test>
+rs0 [direct: primary] test> | | | | | {
+  _id: 'e7r2-legacy-email',
+  status: 'SENT',
+  dedupKey: 'e7r2-legacy-email',
+  category: 'SYSTEM',
+  audience: 'MEMBER',
+  action: undefined,
+  legacyAction: undefined,
+  smsBody: undefined,
+  deliveries: [
+    {
+      channel: 'EMAIL',
+      target: 'e7r…',
+      status: 'SENT',
+      attempts: 1,
+      providerRef: 'e7r2-ref',
+      sentAt: ISODate('2026-09-28T08:00:01.000Z'),
+      deliveredAt: null
+    }
+  ]
+}
+{
+  _id: 'e7r2-legacy-sms',
+  status: 'QUEUED',
+  dedupKey: 'e7r2-legacy-sms',
+  category: 'OPERATIONAL',
+  audience: 'MEMBER',
+  action: {
+    type: 'CLAIM_SEAT',
+    params: {
+      entityId: 'e7r2-entry'
+    }
+  },
+  legacyAction: undefined,
+  smsBody: 'Club: plaça lliure',
+  deliveries: [
+    {
+      channel: 'SMS',
+      target: null,
+      status: 'QUEUED',
+      attempts: 0,
+      providerRef: null,
+      sentAt: null,
+      deliveredAt: null
+    }
+  ]
+}
+
+rs0 [direct: primary] test>

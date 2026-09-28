@@ -35,9 +35,9 @@ class NotificationCatalogContractTest {
     static final Set<String> FORMATTING = Set.of("review_time", "review_day", "week_start", "dogs_count", "changes", "masked_account", "calendar_links",
             "expires_minutes", "month", "cap", "email", "document_type", "task_excerpt", "setup_kind", "retry_link", "concept", "count", "oldest_days", "state",
             "decision", "fee", "expires_days", "dogs", "late");
-    /** Row variables that no variable list of the catalogs has: the catalog proposal of the E7-T01 report (kept, the rows name them). */
-    static final Set<String> UNMAPPED = Set.of("plan_name", "requested_date", "level", "actor", "period", "pending_count", "job_name", "error_count", "host",
-            "challenge_title", "score", "role", "execute_date", "inviter_name");
+    /** The «Variables disponibles» line: its variable list ends at «Sintaxi»; its last sentence names the general variables (E66). */
+    static final String AVAILABLE = "## Variables disponibles (claus de codi; etiqueta en l'idioma de l'admin a D9)";
+    static final Pattern GENERAL_SENTENCE = Pattern.compile("`([a-z_]+)` és una variable general");
     /** Events the code emits that the row does not name: S11 §7 (N-15 WaitlistNotified, N-23 DogDocumentPending{MANUAL}) and E5-T03 (N-46). */
     static final Map<String, Set<String>> EXTRA_EVENTS = Map.of("N-15", Set.of("WaitlistNotified"), "N-23", Set.of("DogDocumentPending"),
             "N-46", Set.of("WaitlistConsolidated", "BookingCreated"));
@@ -60,10 +60,11 @@ class NotificationCatalogContractTest {
     static String annexParagraph() throws Exception {
         return Files.readAllLines(CATALOG).stream().filter(line -> line.startsWith("Variants:")).findFirst().orElseThrow();
     }
-    /** The per-code additions of the Annex's «Variables noves» paragraph. */
+    /** The per-code additions of the Annex's «Variables noves» sentence (the «Origen:» sentence after it only explains them). */
     static Map<String, List<String>> annexVariables() throws Exception {
         String text = annexParagraph();
         text = text.substring(text.indexOf("Variables noves:"));
+        if (text.contains("Origen:")) { text = text.substring(0, text.indexOf("Origen:")); }
         var result = new LinkedHashMap<String, List<String>>(); var general = new TreeSet<String>();
         for (String segment : text.split("\\)")) {
             if (!segment.contains("(")) { continue; }
@@ -75,6 +76,17 @@ class NotificationCatalogContractTest {
         }
         assertThat(general).as("the two general variables are in the paragraph").isEqualTo(GENERAL);
         return result;
+    }
+    /** The «Variables disponibles» line of the document. */
+    static String availableLine() throws Exception {
+        var lines = Files.readAllLines(CATALOG);
+        return lines.get(lines.indexOf(AVAILABLE) + 2);
+    }
+    /** The variables the document declares general: any template may use them, whatever its code (`club_name`, E66). */
+    static List<String> generalVariables() throws Exception {
+        var names = new ArrayList<String>(); Matcher general = GENERAL_SENTENCE.matcher(availableLine().split("Sintaxi")[1]);
+        while (general.find()) { names.add(general.group(1)); }
+        return names;
     }
     static List<String> ticked(String text) {
         var names = new ArrayList<String>(); var matcher = TICKED.matcher(text);
@@ -221,11 +233,14 @@ class NotificationCatalogContractTest {
     }
 
     /**
-     * S11 §8 seed texts (E7-T03's seed) use variables that some catalog rows do not declare: pinned here as the E7-T01 catalog
-     * proposal (like E6-T04's for N-19, which Annex A then added). The seed may only use the row's variables, their derived
-     * forms and ICU arguments of the row.
+     * S11 §8 seed texts (E7-T03's seed) use only the variables of their code: the row's, the Annex's additions, their derived
+     * forms and the general ones (`club_name`). Round 1 pinned five codes here as a catalog proposal; ruling E66 added those
+     * variables to the catalog and removed N-08a's `ring_name` from S11 §8, so nothing is missing any more.
      */
-    @Test void WP_11_A_theS11SeedTextsUseTheRowVariablesOrAProposedOne() throws Exception {
+    @Test void WP_11_A_theS11SeedTextsUseOnlyTheirCodesVariables() throws Exception {
+        var general = generalVariables();
+        assertThat(general).containsExactly("club_name");
+        assertThat(NotificationCatalog.GENERAL_VARIABLES).as("the catalog's general variables as code").containsExactlyElementsOf(general);
         var missing = new TreeMap<String, TreeSet<String>>();
         Matcher seed = Pattern.compile("^\\| (N-\\d+[a-z]?) \\| `[a-z]+` · `[A-Z]+` \\| (.*) \\| (.*) \\|$", Pattern.MULTILINE).matcher(Files.readString(S11));
         int rows = 0;
@@ -235,14 +250,19 @@ class NotificationCatalogContractTest {
             Matcher variable = Pattern.compile("\\[\\[([a-z_]+)]]|\\{([a-z_]+), select").matcher(text);
             while (variable.find()) { used.add(variable.group(1) != null ? variable.group(1) : variable.group(2)); }
             var spec = NotificationCatalog.byCode(seed.group(1)).orElseThrow();
-            used.removeAll(spec.variables());
+            used.removeAll(spec.variables()); used.removeAll(general);
             used.removeIf(name -> NotificationCatalog.DERIVED_VARIABLES.containsKey(name) && spec.variables().contains(NotificationCatalog.DERIVED_VARIABLES.get(name)));
             if (!used.isEmpty()) { missing.put(spec.code(), used); }
         }
         assertThat(rows).isEqualTo(10);
-        assertThat(missing).isEqualTo(new TreeMap<>(Map.of("N-08a", new TreeSet<>(Set.of("club_name", "ring_name")), "N-13", new TreeSet<>(Set.of("class_description")),
-                "N-15", new TreeSet<>(Set.of("class_description", "club_name")), "N-16", new TreeSet<>(Set.of("class_description")),
-                "N-28", new TreeSet<>(Set.of("club_name", "dog_name", "member_first_name")))));
+        assertThat(missing).as("seed texts using a variable their code lacks").isEmpty();
+        // The Annex's additions of E66 are the codes' own now (the parity test above checks every row the same way).
+        var additions = annexVariables();
+        assertThat(additions.get("N-13")).containsExactly("kind", "class_description");
+        assertThat(additions.get("N-28")).containsExactly("admin_text", "cancelled_count", "decision", "source", "member_first_name", "dog_name");
+        for (String code : List.of("N-15", "N-16", "N-19")) { assertThat(additions.get(code)).as(code).contains("class_description"); }
+        for (String code : List.of("N-21", "N-22")) { assertThat(additions.get(code)).as(code).containsExactly("gender"); }
+        assertThat(additions.keySet()).allSatisfy(code -> assertThat(NotificationCatalog.byCode(code)).as(code).isPresent());
     }
 
     @Test void WP_11_A_everyEventAndVariableComesFromTheCatalogs() throws Exception {
@@ -271,16 +291,20 @@ class NotificationCatalogContractTest {
         // Variables: «Variables disponibles», the Annex's «Variables noves», the 24-09 additions and the S11 formatting list.
         var lines = Files.readAllLines(CATALOG);
         var allowed = new TreeSet<String>();
-        allowed.addAll(ticked(lines.get(lines.indexOf("## Variables disponibles (claus de codi; etiqueta en l'idioma de l'admin a D9)") + 2).split("Sintaxi")[0]));
+        var available = ticked(availableLine().split("Sintaxi")[0]);
+        // Round 1's proposal 4, accepted on 27-09 (E66): the fourteen variables the rows used are in the list now.
+        assertThat(available).containsSubsequence("plan_name", "requested_date", "level", "actor", "period", "pending_count", "job_name", "error_count", "host",
+                "challenge_title", "score", "role", "execute_date", "inviter_name");
+        allowed.addAll(available);
         String paragraph = annexParagraph(); allowed.addAll(ticked(paragraph.substring(paragraph.indexOf("Variables noves:"))));
         allowed.addAll(ticked(lines.stream().filter(l -> l.startsWith("- **Variables afegides el 24-09")).findFirst().orElseThrow()));
         assertThat(allowed).contains("member_name", "from_month", "to_month", "upfront_total", "auto_cancel", "mode", "entityId", "audience", "change");
         allowed.addAll(FORMATTING);
         var used = new TreeSet<String>(); NotificationCatalog.specs().forEach(spec -> used.addAll(spec.variables()));
         var outside = new TreeSet<>(used); outside.removeAll(allowed);
-        assertThat(outside).as("row variables no list declares: the E7-T01 catalog proposal").isEqualTo(UNMAPPED);
+        assertThat(outside).as("row variables no list of the catalogs declares").isEmpty();
         assertThat(allowed).containsAll(NotificationCatalog.CUSTOM_VARIABLES).containsAll(NotificationCatalog.DERIVED_VARIABLES.keySet())
-                .containsAll(NotificationCatalog.DERIVED_VARIABLES.values());
-        System.out.println("NotificationCatalog variables: " + used.size() + " used, " + UNMAPPED.size() + " outside the catalog lists " + UNMAPPED);
+                .containsAll(NotificationCatalog.DERIVED_VARIABLES.values()).containsAll(NotificationCatalog.GENERAL_VARIABLES);
+        System.out.println("NotificationCatalog variables: " + used.size() + " used, " + outside.size() + " outside the catalog lists");
     }
 }

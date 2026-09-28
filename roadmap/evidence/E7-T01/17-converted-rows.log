@@ -1,5 +1,5 @@
-rs0 [direct: primary] test> 
-rs0 [direct: primary] test> 
+rs0 [direct: primary] test>
+rs0 [direct: primary] test>
 rs0 [direct: primary] test> | | | | | | {
   _id: 'e7-legacy-email',
   clubId: '00e8166e-77ce-4a13-bff0-98c178c0082d',
@@ -85,4 +85,4 @@ rs0 [direct: primary] test> {
   legacy: 0
 }
 
-rs0 [direct: primary] test> 
+rs0 [direct: primary] test>

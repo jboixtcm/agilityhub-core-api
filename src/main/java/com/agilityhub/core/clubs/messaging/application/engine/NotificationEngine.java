@@ -339,7 +339,7 @@ public class NotificationEngine {
         var known = new HashSet<String>(spec.variables());
         NotificationCatalog.DERIVED_VARIABLES.forEach((derived, base) -> { if (known.contains(base)) { known.add(derived); } });
         known.addAll(NotificationCatalog.CUSTOM_VARIABLES);
-        known.add("club_name");
+        known.addAll(NotificationCatalog.GENERAL_VARIABLES);
         return known;
     }
     private static String occurrence(NotificationTrigger trigger, NotificationFacts facts) { return facts.occurrence() == null ? trigger.eventId() : facts.occurrence(); }

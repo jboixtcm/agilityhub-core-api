@@ -108,7 +108,7 @@
 | `WaitlistNotified{mode}` · `BookingCancelled{reason: PAYMENT_TIMEOUT · INSTRUCTOR_NOTICE · INACTIVITY · LEAVE · CLASS_CANCELLED}` | reserves | S08/S13 |
 | `TrainingCancelled{by, cancelReason, late}` | entrenaments | S09 |
 | `AttendanceMarked{classSessionId, memberId, previousState, late, afterClassEnd}` · `TaskReopened{taskId, dogId, by}` · `AttachmentRemoved{attachmentId, entityType, entityId}` | assistència | S10 |
-| `EmailBounced{memberId, email}` · `SmsCapReached{month}` · `NotificationPreferencesChanged` · `EmailUnsubscribed` | comunicacions | S11 |
+| `EmailBounced{memberId, email, type}` · `SmsCapReached{month, cap}` · `NotificationPreferencesChanged` · `EmailUnsubscribed` | comunicacions | S11 |
 | `BillingRunCreated` · `BillingRunCompleted` · `PackAdjusted{delta, reason}` · `MemberCardInvalidated` | pagaments | S12 |
 | `InactivityChanged` · `InactivityCancelled` · `LeaveCancelled` · `LeaveResolved{source, decision, cancelledBookings[]}` · `InactivityResolved{fee, cancelledBookings[]}` | inactivitat/baixa | S13 |
 | `AccountErasureRequested{accountId?, memberIds[], clubIds[], executeAt, source}` · `AccountErased{…}` · `DataExported{jobId, kind}` | RGPD | S14 |

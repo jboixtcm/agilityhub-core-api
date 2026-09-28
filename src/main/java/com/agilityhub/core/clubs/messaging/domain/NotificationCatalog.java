@@ -37,6 +37,11 @@ public final class NotificationCatalog {
      * (D9 «persona_cognoms») and of `dog_name` («la Duna», R-11-05), available wherever those are.
      */
     public static final Map<String, String> DERIVED_VARIABLES = Map.of("member_last_names", "member_name", "dog_name_article", "dog_name");
+    /**
+     * «`club_name` és una variable general» («Variables disponibles», E66, 27-09): any template may use it, whatever its code,
+     * so it is not repeated in every row's `variables`. The engine gives it to every notice.
+     */
+    public static final List<String> GENERAL_VARIABLES = List.of("club_name");
 
     private static final Map<String, NotificationSpec> BY_CODE;
     static {
@@ -102,15 +107,18 @@ public final class NotificationCatalog {
                 .modules(Module.BILLING, Module.PACKS).build());
         rows.add(code("N-11b", PERSONAL, "PackExpiring", "PackExpired").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "pack_expiry")
                 .modules(Module.BILLING, Module.PACKS).build());
-        rows.add(code("N-13", OPERATIONAL, "ReminderDue").to(MEMBER, APP, PUSH, EMAIL).action(OPEN_BOOKING).vars("dog_name", "date", "time", "ring_name", "kind")
+        // E66 (27-09): N-13, N-15 and N-16 gain `class_description`; N-21 and N-22 `gender`; N-28 its member variables (Annex A «Variables noves»).
+        rows.add(code("N-13", OPERATIONAL, "ReminderDue").to(MEMBER, APP, PUSH, EMAIL).action(OPEN_BOOKING)
+                .vars("dog_name", "date", "time", "ring_name", "kind", "class_description")
                 .seed(TemplateIcon.clock, TemplateColor.NEUTRAL).dedup(DedupKeyRule.PER_BOOKING).relevance(RelevanceRule.BOOKING_ACTIVE_AND_FUTURE).build());
         rows.add(code("N-14", OPERATIONAL, "LeaveRequested").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER).vars("member_name", "requested_date", "reason").build());
         // R-11-12: the one per-code exception to the caps, SMS for the member although the category is OPERATIONAL. S11 §7 emits it on WaitlistNotified.
         rows.add(code("N-15", OPERATIONAL, "WaitlistNotified").to(MEMBER, APP, SMS, PUSH).memberSms().action(CLAIM_SEAT)
-                .vars("dog_name", "class_date", "class_time", "confirm_by", "mode", "entityId").mandatory().seed(TemplateIcon.unlock, TemplateColor.ACCENT)
-                .modules(Module.WAITLIST).build());
+                .vars("dog_name", "class_date", "class_time", "confirm_by", "mode", "entityId", "class_description").mandatory()
+                .seed(TemplateIcon.unlock, TemplateColor.ACCENT).modules(Module.WAITLIST).build());
         rows.add(code("N-16", CLUB_CHANGES, "ClassAtRisk").to(MEMBER, APP, EMAIL).to(ADMINS, APP).action(CHANGE_CLASS)
-                .vars("dog_name", "class_date", "class_time", "review_time", "review_day", "audience", "auto_cancel").seed(TemplateIcon.warn, TemplateColor.WARNING).build());
+                .vars("dog_name", "class_date", "class_time", "review_time", "review_day", "audience", "class_description", "auto_cancel")
+                .seed(TemplateIcon.warn, TemplateColor.WARNING).build());
         rows.add(code("N-17", CLUB_CHANGES, "ClassAutoCancelled").to(INSTRUCTORS, APP, EMAIL).to(ADMINS, APP, EMAIL).action(CHANGE_CLASS)
                 .vars("class_date", "class_time", "dogs_count", "class_description", "ring_name", "auto_cancel").mandatory().build());
         rows.add(code("N-18a", OPERATIONAL, "InactivityRequested").to(ADMINS, APP, EMAIL).action(OPEN_MEMBER).vars("member_name", "from_month", "to_month")
@@ -122,16 +130,18 @@ public final class NotificationCatalog {
                 .seed(TemplateIcon.heart, TemplateColor.NEUTRAL).build());
         rows.add(code("N-20", PERSONAL, "TaskCreated").to(MEMBER, APP, EMAIL).action(OPEN_TASKS).vars("dog_name", "instructor_name", "task_excerpt")
                 .modules(Module.TASKS).build());
-        rows.add(code("N-21", OPERATIONAL, "TaskCompleted").to(INSTRUCTORS, APP).action(OPEN_DOG).vars("member_name", "dog_name", "task_excerpt")
+        rows.add(code("N-21", OPERATIONAL, "TaskCompleted").to(INSTRUCTORS, APP).action(OPEN_DOG).vars("member_name", "dog_name", "task_excerpt", "gender")
                 .modules(Module.TASKS).build());
-        rows.add(code("N-22", OPERATIONAL, "MemberNoteChanged").to(INSTRUCTORS, APP).action(OPEN_DOG).vars("member_name", "dog_name").modules(Module.TASKS).build());
+        rows.add(code("N-22", OPERATIONAL, "MemberNoteChanged").to(INSTRUCTORS, APP).action(OPEN_DOG).vars("member_name", "dog_name", "gender")
+                .modules(Module.TASKS).build());
         rows.add(code("N-23", PERSONAL, "DocumentReminderDue", "DogDocumentPending").to(MEMBER, APP, EMAIL).action(OPEN_DOG).vars("dog_name", "document_type").build());
         rows.add(code("N-24", CLUB_NEWS, "AnnouncementSent").to(MEMBER, APP, EMAIL, PUSH).vars(CUSTOM_VARIABLES.toArray(String[]::new))
                 .dedup(DedupKeyRule.PER_BATCH_MEMBER).build());
         rows.add(code("N-25", SYSTEM, "MagicLinkRequested").to(MEMBER, EMAIL).vars("link", "expires_minutes").build());
         rows.add(code("N-26", SYSTEM, "PasswordChanged").to(MEMBER, EMAIL).build());
         rows.add(code("N-27", SYSTEM, "AccessResent").to(MEMBER, EMAIL).vars("link").build());
-        rows.add(code("N-28", PERSONAL, "LeaveResolved").to(MEMBER, APP, EMAIL).vars("effective_date", "admin_text", "cancelled_count")
+        rows.add(code("N-28", PERSONAL, "LeaveResolved").to(MEMBER, APP, EMAIL)
+                .vars("effective_date", "admin_text", "cancelled_count", "decision", "source", "member_first_name", "dog_name")
                 .seed(TemplateIcon.doc, TemplateColor.NEUTRAL).build());
         rows.add(code("N-29", PERSONAL, "BookingBlockChanged").to(MEMBER, APP, EMAIL).vars("reason").build());
         rows.add(code("N-30", PERSONAL, "InvoicePaid", "UpfrontPaymentSucceeded").to(MEMBER, EMAIL).action(OPEN_INVOICES)
