@@ -42,8 +42,9 @@ import org.springframework.stereotype.Service;
  * <li>`WaitlistConsolidated`, `BookingCreated`, `SeatHoldReleased` of a confirmation → N-46 (ALL_AT_ONCE): the idempotent
  * demotion of R-08-13 first when an entry is still `NOTIFIED`, then every `ACTIVE` entry whose delivered offer was taken,
  * once per offer (`N-46:{entryId}:{notifiedAt}`), whichever event arrives first.</li>
- * <li>`NoShowNoticeDue` → N-19 per attendance of the batch, `class_date` = the class's own date (S10 §8); the first
- * delivered channel writes `noShowNotice.sentAt` (S10 §7 «avís ja enviat»).</li>
+ * <li>`NoShowNoticeDue` → N-19 per attendance of the batch, `class_date` = the class's own date (S10 §8) and
+ * `class_description` in the recipient's language (E65); the first delivered channel writes `noShowNotice.sentAt` (S10 §7
+ * «avís ja enviat»). The e-mail follows the owner's `PERSONAL` preference through the engine's `ChannelResolver`.</li>
  * <li>`ReminderDue` of a class booking → N-13 (`kind = CLASS`).</li>
  * </ul>
  */
@@ -203,10 +204,16 @@ public class BookingNotificationFacts implements NotificationFactsPort, Waitlist
         var batch = attendances.byIds(trigger.ids("attendanceIds")).stream().sorted(Comparator.comparing(com.agilityhub.core.clubs.bookings.persistence.Attendance::id)).toList();
         if (batch.isEmpty()) { return Optional.empty(); }
         var builder = NotificationFacts.builder();
+        var sessions = new java.util.HashMap<String, Optional<ClassSessionBookingAccess.Session>>();
         for (var attendance : batch) {
-            // S10 §8 / E6-T04: «la classe de {class_date}», the class's own date in full, never «ahir».
-            builder.member(new NotificationFacts.MemberSubject(attendance.memberId(), attendance.dogId(),
-                    Map.of("class_date", new NotificationValues.AbsoluteDate(attendance.classDate()), "entityId", attendance.bookingId()),
+            // S10 §8 / E6-T04: «la classe de {class_date}», the class's own date in full, never «ahir»; `class_description`
+            // (catalog N-19, E65) is the class's description in the recipient's language.
+            var values = new java.util.LinkedHashMap<String, Object>();
+            values.put("class_date", new NotificationValues.AbsoluteDate(attendance.classDate()));
+            sessions.computeIfAbsent(attendance.classSessionId(), classes::find).ifPresent(session ->
+                    values.put("class_description", new NotificationValues.Localized(locale -> classes.labels(session, locale).description())));
+            values.put("entityId", attendance.bookingId());
+            builder.member(new NotificationFacts.MemberSubject(attendance.memberId(), attendance.dogId(), values,
                     NotificationSubject.booking(attendance.bookingId()).with(NotificationSubject.classSession(attendance.classSessionId()))));
         }
         return Optional.of(builder.build());

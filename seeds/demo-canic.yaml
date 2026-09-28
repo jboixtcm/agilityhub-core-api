@@ -31,7 +31,8 @@ leftDogs:
   - {idDocumentType: DNI, idDocument: '99000001C', dogName: Demo Boira, chip: '941000000000805', levelCode: B}
 
 # E4-T05 (S06 P7 / S07 P6). Everything below is dated relative to the run's week start (--week-start, default: the
-# club-local Monday of the current week); `week` / `offset` count weeks after it. Instructors are indexes into the
+# first club-local Monday on or after the run date, E6-T04 round 2; with --reanchor, the Monday of the current week);
+# `week` / `offset` count weeks after it. Instructors are indexes into the
 # demo instructors (census member order), rings are catalog short names, levels are catalog codes.
 # seeds/README.md lists the resulting states (D3/D4/D4b/D4c/D7) and the deviations from the mockups.
 planning:
@@ -89,7 +90,7 @@ planning:
         - {day: SATURDAY, start: '09:30', ring: CAD, levels: [CAD], instructor: 1}
         - {day: SATURDAY, start: '16:30', ring: CEN, levels: [D, E], instructor: 2}
         - {day: SATURDAY, start: '18:30', ring: CEN, levels: [A, B], instructor: 0}
-  # E5-T06: the current week is generated (its past days are skipped) and VALIDATED, so screens 03/04 have bookable
+  # E5-T06: the anchor week is generated (its past days are skipped) and VALIDATED, so screens 03/04 have bookable
   # classes (and the E5 scenario below its data). Week +1 stays GENERATED with DRAFT classes (D4b); week +2 is VALIDATED
   # (D4/D4c/D7). Generation candidates then propose week +3.
   weeks:
@@ -167,8 +168,8 @@ activities:
 
 # E5-T06 (S08/S09/S15: screens 03/04/06/29/07/08/24, bin/e5-smoke, web T-08-40). Everything happens on week 0 (the run's
 # --week-start) and is consistent at `demoNow`, the instant bin/e5-smoke and the web E2E set the test clock to
-# (POST /test/clock). It needs every day of week 0 ahead, so seed:demo applies it only when --week-start is the run's
-# Monday or later (club-local); otherwise it reports scenario counts of 0. `member` = census ordinal of a seed login
+# (POST /test/clock). It needs week 0 ahead, so seed:demo applies it only when the anchor is the run's Monday or later
+# (club-local; the default anchor always is); an explicit earlier --week-start reports scenario counts of 0. `member` = census ordinal of a seed login
 # account (accountEmails order: 5 = member@, 6 = member.2@ … 14 = member.10@); `dog` = that member's first ACTIVE dog of
 # the level code; `ring` = catalog short name. Each member acts through the real services «as of» an instant: a class
 # booking as of the opening of the class's booking week (+ one second per item), a cancellation at `cancelAt`, free

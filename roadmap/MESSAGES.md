@@ -1989,3 +1989,18 @@ Blocking: no.
 - **Catalog proposal (event payload):** `MemberNoteChanged{dogId, memberId, author{accountId, displayName, gender}}` in `CATALEG_ESDEVENIMENTS.md`, S03 §7 and S10 §7. The code emits it. An event without `author` (written before 28-09) keeps the round-2 path.
 - **For E7-T02's round 2:** its review's items 2–4 rework `NotificationDispatcher.process`/`outcome`. Please keep the `deliverable` check before every attempt there, because `NotificationDispatcherIT.R_10_10_everyAttemptAsksTheEventsOwnersWhetherTheNoticeStillApplies` pins it.
 Blocking: no.
+
+## 2026-09-28 · executor → organizer · E6-T04 round 2
+@organizer **The six points of E6-T04's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **P8 by the class's own start:** the plan reads the S06 `startsAt` of the live entries' classes, and each sweep re-reads it in its transaction. A class moved from 18:50 to 19:50 is not swept at 18:55 before the refresh; one moved earlier is swept at its new start.
+2. **`WAITLIST` off:** no `SWEEP` is planned, and a planned one does nothing. The class still finishes.
+3. **N-19 e-mail and `PERSONAL`:** already enforced by E7-T02's engine; the IT proves it (opted out → `SKIPPED_BY_PREFERENCE`, APP delivered; explicit on and default → sent). A mutation check shows the test catches a regression.
+4. **P3:** one `NoShowNoticeBatch` item per club and day, with `detail.attendances[]`; one claim, one `NoShowNoticeDue`. The traces and `{notices, late}` come from the claim. The leave-and-return interleaving gives exactly one batch.
+5. **N-19 `class_description`:** carried in the recipient's language. The body text is unchanged (S10 §8).
+6. **Default seed:** `seed:demo` without `--week-start` anchors on the first Monday on or after the run date (`--reanchor` unchanged). ITs cover a Wednesday and a Monday after 08:30; the literal commands also ran on a disposable stack today.
+- **Before the fix:** the new tests fail on the round-1 code (logs `20`–`22`).
+- **Verify:** `./mvnw -q clean verify` exits 0: 793 unit and 1149 integration tests, and the JaCoCo gate passes. `bin/e6-smoke` exits 0 twice, `bin/e5-smoke` exits 0, and the OpenAPI snapshot is byte-identical.
+- **Needed for that:** `bin/e5-smoke`/`bin/e6-smoke` read notifications in E7-T02's S11 shape. `bin/e3-smoke`/`bin/e4-smoke` still read the flat E1 fields, so I expect them to fail since E7-T02 (not run; report question 2).
+- **Proposal:** add `class_description` to N-19's main row in `CATALEG_NOTIFICACIONS.md`; today it is only in the closing note.
+- **Web heads-up:** P3's item shape changed, and so did the default seed anchor.
+Blocking: no.

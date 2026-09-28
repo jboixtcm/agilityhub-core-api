@@ -1,0 +1,29 @@
+heavy.sh: 11:12 waiting for the host lock, held by: 11:11 agilityhub-core-web: pnpm e2e:core E4-W16
+heavy.sh: 11:18 got the host lock after 6 min 15 s
+PASS working tree image built
+Run date (UTC, the container's clock): 2026-09-28
+$ bin/core club:apply seeds/club-canic.yaml   # run 1
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+$ bin/core club:apply seeds/club-canic.yaml   # run 2
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+$ bin/core seed:demo --club=canic --seed=42   # run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  376 changes (demo planning, week start 2026-09-28)
+$ bin/core seed:demo --club=canic --seed=42   # run 2
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  0 changes (demo planning, week start 2026-09-28)
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+Anchor (demo_seed_runs.weekStart): 2026-09-28
+Counts: {"scenarioClassBookings": 18, "attendanceHistoryClasses": 10, "attendanceBookings": 34, "attendanceWaitlist": 1, "attendanceMarks": 26, "attendanceNoShowBatches": 1, "followupTasks": 2, "followupNotes": 1, "trainingHistoryBookings": 10}
+Sheet class 2026-09-28 08:30 CEN: {"capacity": 5, "state": "ACTIVE", "counters": {"booked": 4, "waiting": 1}}
+PASS the plain seed:demo seeds the E6 fixture of R-10-02's example on the first Monday on or after the run date; the second runs report 0 changes
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

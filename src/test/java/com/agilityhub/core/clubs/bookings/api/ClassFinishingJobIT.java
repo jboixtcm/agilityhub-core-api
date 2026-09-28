@@ -20,10 +20,11 @@ import static org.assertj.core.api.Assertions.*;
  * S15 R-15-18 P8 `class-finishing` (E6-T04: T-15-26) on the fictional S08 club: (a) the silent sweep of the waiting entries
  * of a started class, (b) a class 18:50–19:50 finishing on the 20:05 tick and not on the 20:04 one, the dry run equal to the
  * real effects and writing nothing, no business event, S06's notes-only edit and the sheet still markable until T1
- * (R-10-03); the switch with its one SKIPPED per hour and the manual run; a class on the October DST fold.
+ * (R-10-03); the switch with its one SKIPPED per hour and the manual run; a class on the October DST fold. Round 2: the
+ * sweep by the class's own start (a moved class) and no sweep without the WAITLIST module.
  */
 class ClassFinishingJobIT extends BookingFixtures {
-    @Autowired JobRunner runner; @Autowired ClassFinishingJob job;
+    @Autowired JobRunner runner; @Autowired ClassFinishingJob job; @Autowired com.agilityhub.core.clubs.bookings.application.WaitlistService waitlist;
 
     @BeforeEach void jobs() {
         mongo.remove(Query.query(Criteria.where("clubId").in(CLUB, OTHER)), "job_runs");
@@ -135,6 +136,89 @@ class ClassFinishingJobIT extends BookingFixtures {
         assertThat(run.at("/effects/counters/finished").asLong()).isEqualTo(1);
         assertThat(session("wed").getString("state")).isEqualTo("FINISHED");
         assertThat(count("audit_entries", Criteria.where("action").is("JOB_TRIGGERED"))).isEqualTo(1);
+    }
+
+    /**
+     * E6-T04 round 2 (review #1, ruling E65; S15 R-15-18a, S08 R-08-16): the sweep decides by the class's own start in S06,
+     * never by the copy a waiting entry keeps. The admin moves Wednesday's class from 18:50 to 19:50 and Thursday's from
+     * 18:50 to 16:00; the `ClassSessionUpdated` consumer that refreshes the entries has not run yet (the outbox is not
+     * delivered). At 18:55 Wednesday's entry stays ACTIVE — also when a stale plan asks for it —, the 19:50 tick sweeps it,
+     * and Thursday's entry goes at 16:00, not at 18:50.
+     */
+    @Test void T_15_26_R_15_18_theSweepDecidesByTheClassesOwnStartNotTheEntrysCopy() throws Exception {
+        book(as("laura"), "wed", "s08-d-duna"); book(as("joan"), "wed", "s08-d-toby"); book(as("pere"), "wed", "s08-d-nit");
+        String wednesday = join(as("c0"), "wed", "s08-d-c0", 201).path("id").asText();
+        for (int i = 1; i < 4; i++) { book(as("c" + i), "thu", "s08-d-c" + i); }
+        String thursday = join(as("c4"), "thu", "s08-d-c4", 201).path("id").asText();
+        dispatch();
+        // (The fixture's classes have no level; S06 validates a moved class like any edit, so the move names the dogs' level C.)
+        call(HttpMethod.PATCH, "/class-sessions/s08-wed", Map.of("version", ((Number) session("wed").get("version")).longValue(), "startTime", "19:50", "endTime", "20:50",
+                "levelIds", List.of("s08-lv-C")), as("admin"), 200);
+        call(HttpMethod.PATCH, "/class-sessions/s08-thu", Map.of("version", ((Number) session("thu").get("version")).longValue(), "startTime", "16:00", "endTime", "17:00",
+                "levelIds", List.of("s08-lv-C")), as("admin"), 200);
+        assertThat(session("wed").getDate("startsAt").toInstant()).isEqualTo(local("2026-10-07T19:50"));
+        assertThat(session("thu").getDate("startsAt").toInstant()).isEqualTo(local("2026-10-08T16:00"));
+        // The consumer is delayed: both ClassSessionUpdated wait in the outbox, and the entries keep the old start.
+        assertThat(count("domain_events", Criteria.where("type").is("ClassSessionUpdated").and("status").is("PENDING"))).isEqualTo(2);
+        assertThat(entry(wednesday).getDate("classStartsAt").toInstant()).isEqualTo(local("2026-10-07T18:50"));
+        assertThat(entry(thursday).getDate("classStartsAt").toInstant()).isEqualTo(local("2026-10-08T18:50"));
+
+        clock.setInstant(local("2026-10-07T18:55"));
+        var dry = runner.manual(CLUB, JobName.CLASS_FINISHING, true, "s08-admin");
+        assertThat(dry.items()).extracting(JobRun.Item::entityId).doesNotContain(wednesday, thursday);
+        var early = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(early.items()).extracting(JobRun.Item::entityId).doesNotContain(wednesday, thursday);
+        assertThat(entry(wednesday).getString("state")).isEqualTo("ACTIVE");
+        // A plan made from the stale copy is refused inside the sweep's transaction too.
+        try (var tenant = com.agilityhub.core.shared.application.TenantContext.open(CLUB)) {
+            assertThat(waitlist.sweepStarted(wednesday, clock.instant())).isFalse();
+            assertThat(waitlist.sweepStarted(clock.instant())).isZero();
+        }
+        assertThat(entry(wednesday).getString("state")).isEqualTo("ACTIVE"); assertThat(entry(wednesday).get("cancelReason")).isNull();
+
+        // 19:50, the class's new start: swept, although the entry still says 18:50.
+        clock.setInstant(local("2026-10-07T19:50"));
+        var swept = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(swept.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple(wednesday, "SWEEP"));
+        assertThat(entry(wednesday).getString("state")).isEqualTo("CANCELLED"); assertThat(entry(wednesday).getString("cancelReason")).isEqualTo("CLASS_STARTED");
+
+        // Thursday's class moved earlier: nothing at 15:59, swept at 16:00 although its entry still says 18:50.
+        clock.setInstant(local("2026-10-08T15:59"));
+        assertThat(runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow().items()).extracting(JobRun.Item::entityId).doesNotContain(thursday);
+        clock.setInstant(local("2026-10-08T16:00"));
+        assertThat(entry(thursday).getDate("classStartsAt").toInstant()).isEqualTo(local("2026-10-08T18:50"));
+        var moved = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(moved.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple(thursday, "SWEEP"));
+        assertThat(entry(thursday).getString("state")).isEqualTo("CANCELLED"); assertThat(entry(thursday).getString("cancelReason")).isEqualTo("CLASS_STARTED");
+    }
+
+    /**
+     * E6-T04 round 2 (review #2, ruling E65; S15 R-15-03, §9): without the WAITLIST module P8 leaves its waiting-list step
+     * out — no `SWEEP` in the plan, the dry run or the run, and the live entries of a started class stay as they were —
+     * while the class still finishes.
+     */
+    @Test void T_15_26_R_15_03_withoutTheWaitlistModuleP8SweepsNothingAndStillFinishesTheClass() throws Exception {
+        book(as("laura"), "wed", "s08-d-duna"); book(as("joan"), "wed", "s08-d-toby"); book(as("pere"), "wed", "s08-d-nit");
+        String waiting = join(as("c0"), "wed", "s08-d-c0", 201).path("id").asText();
+        String offered = join(as("c1"), "wed", "s08-d-c1", 201).path("id").asText();
+        dispatch();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(offered)), new Update().set("state", "NOTIFIED").set("notifiedAt", NOW), "waitlist_entries");
+        var before = List.of(entry(waiting), entry(offered));
+        modules(Arrays.stream(com.agilityhub.core.platform.application.Module.values()).filter(m -> m != com.agilityhub.core.platform.application.Module.WAITLIST)
+                .toArray(com.agilityhub.core.platform.application.Module[]::new));
+
+        clock.setInstant(local("2026-10-07T18:50"));
+        assertThat(runner.manual(CLUB, JobName.CLASS_FINISHING, true, "s08-admin").items()).extracting(JobRun.Item::action).doesNotContain("WOULD_SWEEP");
+        var started = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(started.status()).isEqualTo(JobStatus.SUCCEEDED);
+        assertThat(started.items()).extracting(JobRun.Item::action).doesNotContain("SWEEP");
+        assertThat(counters(started)).doesNotContainKey("swept");
+
+        clock.setInstant(local("2026-10-07T20:05"));
+        var finish = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(finish.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple("s08-wed", "FINISH"));
+        assertThat(session("wed").getString("state")).isEqualTo("FINISHED");
+        assertThat(List.of(entry(waiting), entry(offered))).as("the entries stay exactly as they were").isEqualTo(before);
     }
 
     /**

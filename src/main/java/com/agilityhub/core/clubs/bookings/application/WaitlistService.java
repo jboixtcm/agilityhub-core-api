@@ -177,25 +177,46 @@ public class WaitlistService {
         events.publish(BookingEvent.Kind.WaitlistNotified, classSessionId, payload, actor);
     }
 
-    /** R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a): live entries of started classes, silently, one transaction per class. */
+    /**
+     * R-08-16 `CLASS_STARTED` (S15 P8, R-15-18a): live entries of started classes, silently, one transaction per class. A
+     * class has started when S06's own `startsAt` is reached (E6-T04 round 2, review #1): a waiting entry's `classStartsAt`
+     * is a copy the `ClassSessionUpdated` consumer refreshes later, so a class moved from 18:50 to 19:50 is not swept at
+     * 18:55 before that refresh, and one moved earlier is swept by its new start.
+     */
     public int sweepStarted(Instant now) {
-        var byClass = waitlist.liveStartedBy(now).stream().collect(Collectors.groupingBy(WaitlistEntry::classSessionId, LinkedHashMap::new, Collectors.toList()));
+        var byClass = startedBy(now).stream().collect(Collectors.groupingBy(WaitlistEntry::classSessionId, LinkedHashMap::new, Collectors.toList()));
         int count = 0;
-        for (var group : byClass.entrySet()) {
-            count += transactions.write(List.of(group.getKey()), () -> cancelLocked(group.getKey(), group.getValue(), WaitlistCancelReason.CLASS_STARTED, now));
-        }
+        for (var group : byClass.entrySet()) { count += sweep(group.getKey(), group.getValue(), now); }
         return count;
     }
-    /** The entries {@link #sweepStarted(Instant)} would cancel, in its order; nothing written (the P8 plan, E6-T04). */
-    public List<WaitlistEntry> startedBy(Instant now) { return waitlist.liveStartedBy(now); }
+    /**
+     * The entries {@link #sweepStarted(Instant)} would cancel, by class; nothing written (the P8 plan, E6-T04): the live
+     * entries whose class (S06) has `startsAt ≤ now`. An entry whose class no longer exists keeps its own copy.
+     */
+    public List<WaitlistEntry> startedBy(Instant now) {
+        var live = waitlist.liveAll();
+        if (live.isEmpty()) { return List.of(); }
+        var starts = classes.startsAt(live.stream().map(WaitlistEntry::classSessionId).distinct().toList());
+        return live.stream().filter(e -> !starts.getOrDefault(e.classSessionId(), e.classStartsAt()).isAfter(now)).toList();
+    }
     /**
      * One entry of {@link #sweepStarted(Instant)} (the P8 item, E6-T04), in the caller's transaction when there is one:
-     * `CANCELLED{CLASS_STARTED}` with no event and no notification. False when it is no longer live or its class has not started.
+     * `CANCELLED{CLASS_STARTED}` with no event and no notification. False when it is no longer live or its class (S06,
+     * read inside the transaction) has not started.
      */
     public boolean sweepStarted(String entryId, Instant now) {
         var entry = waitlist.findById(entryId).orElse(null);
-        if (entry == null || !WaitlistEntryRepository.LIVE.contains(entry.state()) || entry.classStartsAt().isAfter(now)) { return false; }
-        return transactions.write(List.of(entry.classSessionId()), () -> cancelLocked(entry.classSessionId(), List.of(entry), WaitlistCancelReason.CLASS_STARTED, now)) > 0;
+        if (entry == null || !WaitlistEntryRepository.LIVE.contains(entry.state())) { return false; }
+        return sweep(entry.classSessionId(), List.of(entry), now) > 0;
+    }
+    private int sweep(String classSessionId, List<WaitlistEntry> entries, Instant now) {
+        return transactions.write(List.of(classSessionId), () -> {
+            locks.lock(classSessionId);
+            // The class's own start, read under the lock: a stale plan never sweeps a class that was moved later meanwhile.
+            var startsAt = classes.find(classSessionId).map(ClassSessionBookingAccess.Session::startsAt).orElse(entries.getFirst().classStartsAt());
+            if (startsAt.isAfter(now)) { return 0; }
+            return cancelLocked(classSessionId, entries, WaitlistCancelReason.CLASS_STARTED, now);
+        });
     }
     /** S15 P5c / S13 leave handling, inside the caller's transaction when there is one: every live entry of the member's dogs, silently. */
     public int cancelByMember(String memberId, WaitlistCancelReason reason) {

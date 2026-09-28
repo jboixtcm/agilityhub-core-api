@@ -583,7 +583,11 @@ another time zone gets its batch at its own 08:00). Their switches are `jobs.cla
 `jobs.noShowNotices.enabled` (on by default). P3's catch-up is unlimited: after a stop it notifies every pending
 no-show in one late run. P8 records at most one `SKIPPED{DISABLED}` per hour while switched off. No new environment
 variable. In staging, check that `GET /jobs` lists both rows and that `job_runs` records a `SCHEDULE` run of P8 every
-minute and of P3 at 08:00 local. The gate E6 (back) is rehearsed locally with the clock moved:
+minute and of P3 at 08:00 local. Round 2 (ruling E65): a P3 run has at most **one** item (`NoShowNoticeBatch`, keyed
+by the club's date) whose detail lists the claimed attendances; P8's waiting-list step runs only with the `WAITLIST`
+module and sweeps by the class's own start; N-19's e-mail follows the member's `PERSONAL` preference. The plain
+`seed:demo --club=canic --seed=42` now anchors the demo on the first Monday on or after the run date (see
+`seeds/README.md`). The gate E6 (back) is rehearsed locally with the clock moved:
 
 ```sh
 bin/e6-smoke

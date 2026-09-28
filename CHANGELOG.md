@@ -594,6 +594,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E6-T04 round 2 (organizer review, ruling E65):
+  - P8 `class-finishing` step (a) decides by the class's own start in S06, never by `WaitlistEntry.classStartsAt` (a copy
+    the `ClassSessionUpdated` consumer refreshes later): the plan (`WaitlistService.startedBy`) reads the classes' starts
+    with one query (`ClassSessionBookingAccess.startsAt`), and each sweep re-reads the start under the class's seat lock,
+    so a class moved from 18:50 to 19:50 is not swept at 18:55 and one moved earlier is swept at its new start.
+    `WaitlistEntryRepository.liveStartedBy` is replaced by `liveAll`.
+  - P8 step (a) runs only with the `WAITLIST` module (S15 R-15-03): no `SWEEP` in the plan, and a planned one does nothing
+    once the module is off; the other steps still run.
+  - P3 `no-show-notices` plans **one** item per club and day (`NoShowNoticeBatch`, keyed by the run's local date, with
+    `detail {date, attendances: [{attendanceId, bookingId, memberId, dogName, classDate}]}`); its application is one
+    claim with one `NoShowNoticeDue`, and the traced attendances and the counters `{notices, late}` come from that claim.
+    A mark that leaves the scope and comes back while the run is in progress no longer makes a second batch.
+  - N-19 carries `class_description`, the class's description in the recipient's language. Its e-mail follows the
+    member's `PERSONAL` preference (through E7-T02's `ChannelResolver`; proven by `NoShowNoticesJobIT`).
+  - `seed:demo` without `--week-start` anchors on the first club-local Monday on or after the run date (was the Monday of
+    the current week), so the plain `bin/core seed:demo --club=canic --seed=42` seeds the E5/E6 `scenario` (the E6
+    fixture of R-10-02's example) whatever the day; `--reanchor` keeps the current week's Monday. On a Tuesday–Sunday the
+    E4 planning therefore starts on the next Monday.
+  - `bin/e5-smoke` and `bin/e6-smoke` read notifications in the S11 shape of E7-T02 (`recipient.accountId`,
+    `deliveries[]`; a skipped delivery is no row); `bin/e6-smoke` checks P3's single item (dry run = run) and N-19's
+    `class_description`.
 - E6-T04: a class the club cancels (S06) now passes its text to each cancelled booking (`cancelMessage`), so the member
   history (R-10-14) shows «“{adminText}”» on «cancel·lada pel club» and `GET /bookings/{id}` carries it as
   `cancellation.message`. `ClassSessionService.finishEnded` reads the ended classes through the `{clubId, state, endsAt}`

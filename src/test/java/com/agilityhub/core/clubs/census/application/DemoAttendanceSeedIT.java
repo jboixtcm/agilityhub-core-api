@@ -24,8 +24,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * E6-T04 step 5 (S10 WP-10-G): the demo seed's E6 data at `demoNow` (Monday 14-09-2026 07:00 Madrid; the run is Wednesday
- * 09-09 with `--week-start=2026-09-14`), made through the real services: the Monday 08:30 class of R-10-02's example (4
+ * E6-T04 step 5 (S10 WP-10-G): the demo seed's E6 data at `demoNow` (Monday 14-09-2026 07:00 Madrid; the run is the default
+ * `seed:demo --club=canic --seed=42` on Wednesday 09-09, whose anchor is the next Monday since round 2, review #5), made
+ * through the real services: the Monday 08:30 class of R-10-02's example (4
  * booked + one waiting), the holder's dog's 30-day metrics of T-10-04 (86 %, 7 classes, 2.3 trainings a week), screen 25's
  * badges, the two tasks (one with its attachment, one done by the owner), the member note on D14 and the private observation.
  * The cast has invented names (Rita + Mel, Martí + Sorra, Alba + Pinya, Nil + Trufa, Iu + Gira; instructor Berta), never the
@@ -42,11 +43,64 @@ class DemoAttendanceSeedIT extends AbstractIntegrationTest {
     @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired MockMvc mvc; @Autowired OutboxDispatcher dispatcher;
     String club;
 
+    String firstRun;
+
     @BeforeEach void clear() {
         wipeDatabaseKeepingBootstrap();
         hosts.invalidate(); clock.setInstant(Instant.parse("2026-09-09T10:00:00Z"));
+        assertThat(LocalDate.ofInstant(clock.instant(), MADRID).getDayOfWeek()).isEqualTo(DayOfWeek.WEDNESDAY);
         club = definitions.apply(codec.read(Path.of("seeds/club-canic.yaml")), false).id();
-        command.run(new DefaultApplicationArguments("--club=canic", "--seed=42", "--week-start=" + WEEK));
+        firstRun = seed();
+    }
+    /** The default invocation of step 5 (no `--week-start`); returns what the command printed. */
+    String seed() {
+        var original = System.out; var out = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(out, true, java.nio.charset.StandardCharsets.UTF_8));
+        try { command.run(new DefaultApplicationArguments("--club=canic", "--seed=42")); } finally { System.setOut(original); }
+        String printed = out.toString(java.nio.charset.StandardCharsets.UTF_8);
+        original.print(printed);
+        return printed;
+    }
+    Map<String, List<Document>> snapshot() {
+        var result = new TreeMap<String, List<Document>>();
+        for (String name : mongo.getCollectionNames()) { result.put(name, mongo.findAll(Document.class, name)); } return result;
+    }
+
+    /**
+     * E6-T04 round 2 (review #5): `bin/core seed:demo --club=canic --seed=42` with no `--week-start`, run on a Wednesday,
+     * seeds the E6 fixture on the next Monday; the second run reports 0 changes and changes nothing.
+     */
+    @Test void T_10_19_theDefaultInvocationOnAWednesdaySeedsTheE6FixtureAndASecondRunChangesNothing() throws Exception {
+        assertThat(firstRun).contains("week start " + WEEK).doesNotContain("\n0 changes (demo planning");
+        var counts = mongo.findById(club + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);
+        assertThat(counts).containsEntry("attendanceBookings", 34).containsEntry("attendanceWaitlist", 1).containsEntry("followupTasks", 2);
+        assertThat(mongo.findById(club + ":planning", Document.class, "demo_seed_runs").getString("weekStart")).isEqualTo(WEEK.toString());
+        var saved = snapshot();
+        String second = seed();
+        assertThat(second).contains("0 changes (demo seed)").contains("0 changes (demo planning, week start " + WEEK + ")");
+        assertThat(snapshot()).isEqualTo(saved);
+    }
+
+    /**
+     * The other edge of «whatever the day»: on a Monday after the sheet class (10:00, the class began at 08:30), the default
+     * anchor is that same Monday (the scenario's rule: its week is not before the run's); the fixture is seeded «as of» its
+     * instants all the same, and a second run changes nothing.
+     */
+    @Test void T_10_19_theDefaultInvocationOnAMondayAfterTheSheetClassSeedsItOnThatMonday() throws Exception {
+        wipeDatabaseKeepingBootstrap();
+        hosts.invalidate(); clock.setInstant(WEEK.atTime(10, 0).atZone(MADRID).toInstant());
+        club = definitions.apply(codec.read(Path.of("seeds/club-canic.yaml")), false).id();
+        assertThat(seed()).contains("changes (demo planning, week start " + WEEK + ")");
+        var counts = mongo.findById(club + ":planning", Document.class, "demo_seed_runs").get("counts", Document.class);
+        assertThat(counts).containsEntry("attendanceHistoryClasses", 10).containsEntry("attendanceBookings", 34).containsEntry("attendanceWaitlist", 1)
+                .containsEntry("attendanceMarks", 26).containsEntry("followupTasks", 2).containsEntry("trainingHistoryBookings", 10);
+        String ring = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("shortName").is("CEN")), Document.class, "rings").getString("_id");
+        var monday = mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("date").is(WEEK.toString()).and("startTime").is("08:30").and("ringId").is(ring)),
+                Document.class, "class_sessions");
+        assertThat(monday.get("counters", Document.class)).containsEntry("booked", 4).containsEntry("waiting", 1);
+        var saved = snapshot();
+        assertThat(seed()).contains("0 changes (demo seed)").contains("0 changes (demo planning, week start " + WEEK + ")");
+        assertThat(snapshot()).isEqualTo(saved);
     }
     Document member(String firstName) { return mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("firstName").is(firstName)), Document.class, "members"); }
     Document dog(String name) { return mongo.findOne(Query.query(Criteria.where("clubId").is(club).and("name").is(name)), Document.class, "dogs"); }

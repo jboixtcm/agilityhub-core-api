@@ -1,7 +1,6 @@
 package com.agilityhub.core.clubs.bookings.application.jobs;
 
 import com.agilityhub.core.clubs.bookings.application.NoShowNoticeClaims;
-import com.agilityhub.core.clubs.bookings.domain.AttendanceState;
 import com.agilityhub.core.clubs.bookings.persistence.Attendance;
 import com.agilityhub.core.clubs.bookings.persistence.AttendanceRepository;
 import com.agilityhub.core.clubs.census.application.BookingMemberAccess;
@@ -13,20 +12,22 @@ import org.springframework.stereotype.Component;
 /**
  * S15 R-15-13 P3 `no-show-notices` (daily at `messaging.noShowNoticeTime`, club-local; no module guard; catch-up
  * unlimited because the scope is by state). Scope: {@link AttendanceRepository#dueForNoShowNotice} — `NO_SHOW` marks
- * not queued yet whose club-local class date is before the run's local date, also marks added late. The plan lists
- * one item per attendance (`WOULD_NOTIFY {attendanceId, bookingId, memberId, dogName, classDate}` in a dry run).
+ * not queued yet whose club-local class date is before the run's local date, also marks added late.
  *
- * <p>R-15-10's documented exception: the batch is <b>one</b> transaction. The first item still in scope claims the whole
- * set with {@link NoShowNoticeClaims#claim} inside the runner's item transaction (`noShowNotice.queuedAt` and the shared
- * `eventId` on every row, a single `NoShowNoticeDue{attendanceIds[], bookingIds[]}` on the outbox) and carries the
- * batch counters `{notices, late}`; the following items find their row already queued by that batch (the job lease
- * keeps any other run out) and only trace it. A mark changed to `PRESENT`/`NOTIFIED` before the claim is out of scope
- * and never notified. A second run, scheduled or manual, finds nothing (R-15-04). N-19 is S11's, one per booking
- * (the S11 engine, with {@link com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts}).
+ * <p>R-15-10's documented exception, one batch per club and day (E6-T04 round 2, review #4): the plan is <b>one</b>
+ * `NoShowNoticeBatch` item keyed by the run's local date, with the attendances in its detail (`WOULD_NOTIFY {date,
+ * attendances: [{attendanceId, bookingId, memberId, dogName, classDate}]}` in a dry run), or nothing when none is due. Its
+ * application is the runner's single item transaction: {@link NoShowNoticeClaims#claim} writes `noShowNotice.queuedAt`
+ * and the shared `eventId` on every row still in scope and puts a single `NoShowNoticeDue{attendanceIds[], bookingIds[]}`
+ * on the outbox; the traced attendances and the counters `{notices, late}` come from that claim's result, never from the
+ * plan. A mark changed to `PRESENT`/`NOTIFIED` before the claim is out of the batch and never notified, even if it goes back
+ * to `NO_SHOW` before the run ends (no second claim within a run). A second run with nothing new claims nothing and emits
+ * nothing (R-15-04). N-19 is S11's, one per booking (the S11 engine, with
+ * {@link com.agilityhub.core.clubs.bookings.application.BookingNotificationFacts}).
  */
 @Component
 public class NoShowNoticesJob implements Job {
-    static final String NOTIFY = "NOTIFY";
+    static final String NOTIFY = "NOTIFY", ENTITY = "NoShowNoticeBatch";
     private final AttendanceRepository attendances; private final NoShowNoticeClaims claims; private final BookingMemberAccess census;
     public NoShowNoticesJob(AttendanceRepository attendances, NoShowNoticeClaims claims, BookingMemberAccess census) {
         this.attendances = attendances; this.claims = claims; this.census = census;
@@ -35,32 +36,36 @@ public class NoShowNoticesJob implements Job {
 
     @Override public List<JobItem> plan(JobContext context) {
         var due = attendances.dueForNoShowNotice(context.clubId(), context.localDate());
-        var names = new HashMap<String, String>();
-        census.dogs(due.stream().map(Attendance::dogId).filter(Objects::nonNull).distinct().toList()).forEach(dog -> names.put(dog.id(), dog.name()));
-        return due.stream().map(a -> new JobItem("Attendance", a.id(), NOTIFY, detail(a, names.getOrDefault(a.dogId(), "")))).toList();
+        if (due.isEmpty()) { return List.of(); }
+        return List.of(new JobItem(ENTITY, context.localDate().toString(), NOTIFY, detail(context.localDate(), due)));
     }
 
     @Override public JobEffect apply(JobContext context, JobItem item) {
-        var attendance = attendances.findById(item.entityId()).orElse(null);
-        if (attendance == null || attendance.state() != AttendanceState.NO_SHOW) { return new JobEffect("NOT_IN_SCOPE", Map.of(), Map.of()); }
-        if (queued(attendance)) {
-            // Taken by the batch an earlier item of this run claimed (its counters already count it).
-            return new JobEffect(NOTIFY, item.detail(), Map.of());
-        }
-        if (!attendance.classDate().isBefore(context.localDate())) { return new JobEffect("NOT_IN_SCOPE", Map.of(), Map.of()); }
         var claim = claims.claim(context.localDate());
-        if (!claim.attendanceIds().contains(attendance.id())) { return new JobEffect("NOT_IN_SCOPE", Map.of(), Map.of()); }
-        long late = attendances.byIds(claim.attendanceIds()).stream().filter(a -> late(a.classDate(), context.localDate())).count();
-        return new JobEffect(NOTIFY, item.detail(), Map.of("notices", (long) claim.attendanceIds().size(), "late", late));
+        if (claim.attendanceIds().isEmpty()) { return new JobEffect("NOT_IN_SCOPE", Map.of(), Map.of()); }
+        var byId = new HashMap<String, Attendance>();
+        attendances.byIds(claim.attendanceIds()).forEach(a -> byId.put(a.id(), a));
+        // The claim's own order (class date, then id), the same as the plan's.
+        var claimed = claim.attendanceIds().stream().map(byId::get).filter(Objects::nonNull).toList();
+        long late = claimed.stream().filter(a -> late(a.classDate(), context.localDate())).count();
+        return new JobEffect(NOTIFY, detail(context.localDate(), claimed), Map.of("notices", (long) claim.attendanceIds().size(), "late", late));
     }
 
-    private static boolean queued(Attendance a) { return a.noShowNotice() != null && a.noShowNotice().queuedAt() != null; }
     /** R-15-13 `late`: the class is older than one day (a mark added two or more days after it). */
     public static boolean late(LocalDate classDate, LocalDate runDate) { return classDate.isBefore(runDate.minusDays(1)); }
-    private static Map<String, Object> detail(Attendance a, String dogName) {
+
+    private Map<String, Object> detail(LocalDate runDate, List<Attendance> batch) {
+        var names = new HashMap<String, String>();
+        census.dogs(batch.stream().map(Attendance::dogId).filter(Objects::nonNull).distinct().toList()).forEach(dog -> names.put(dog.id(), dog.name()));
+        var rows = new ArrayList<Map<String, Object>>();
+        for (var a : batch) {
+            var row = new LinkedHashMap<String, Object>();
+            row.put("attendanceId", a.id()); row.put("bookingId", a.bookingId()); row.put("memberId", a.memberId());
+            row.put("dogName", names.getOrDefault(a.dogId(), "")); row.put("classDate", a.classDate().toString());
+            rows.add(row);
+        }
         var detail = new LinkedHashMap<String, Object>();
-        detail.put("attendanceId", a.id()); detail.put("bookingId", a.bookingId()); detail.put("memberId", a.memberId());
-        detail.put("dogName", dogName); detail.put("classDate", a.classDate().toString());
+        detail.put("date", runDate.toString()); detail.put("attendances", rows);
         return detail;
     }
 }

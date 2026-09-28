@@ -138,8 +138,10 @@ only way a non-production stack may ever dispatch an SMS, and only to the listed
 the S06/S07 application services (templates, generation, validation, ring blocks,
 class cancellation, activity lifecycle and registrations) in one transaction, as the
 first demo admin (`administrators[0]`) and, for registrations, as each member. Dates
-are relative to `--week-start=YYYY-MM-DD` (an ISO Monday), by default the club-local
-Monday of the **current week (W)** of the run; `--week-start` is meant for tests. The
+are relative to `--week-start=YYYY-MM-DD` (an ISO Monday), by default the **first
+club-local Monday on or after the run date (W)** — the run's own week on a Monday, the
+next one on any other day (E6-T04 round 2, so the `scenario` below is always seeded;
+until then it was the Monday of the current week); `--week-start` is meant for tests. The
 first completed planning run is recorded per club (`demo_seed_runs`, id
 `<clubId>:planning`); later runs report `0 changes (demo planning, week start …)`
 whatever their week start, and a changed seed/section is rejected with
@@ -236,19 +238,22 @@ bin/core seed:demo --club=canic --seed=42 --reanchor
 
 E5 changes three things in the E4 arrangement above:
 
-- **W (current week)** is now generated from «Setmana A» + «Dissabtes» and `VALIDATED`, so screens 03/04 have
-  bookable classes. Generation skips the days already past (R-06 `PAST`); on a Sunday nothing is left and the week
-  stays unvalidated. W+1 (`DRAFT`, D4b), W+2 (`VALIDATED`, D4/D4c/D7) and the W+3 candidate are unchanged.
+- **W (the anchor week)** is now generated from «Setmana A» + «Dissabtes» and `VALIDATED`, so screens 03/04 have
+  bookable classes. Generation skips the days already past (R-06 `PAST`): with an explicit `--week-start` on the
+  run's own Monday, a mid-week run leaves the past days out, and on a Sunday nothing is left and the week stays
+  unvalidated. W+1 (`DRAFT`, D4b), W+2 (`VALIDATED`, D4/D4c/D7) and the W+3 candidate are unchanged.
 - **The E4 demo bookings adapter is retired**: since E5-T02 the W+2 registrants are real S08 bookings, and since E5-T06
   the waiting registrants join through `WaitlistService.join` too. R-08-12 needs a class that is full through its
   bookings, so a row with free seats (the D4c «4/5 + 2») briefly gets its booked count as capacity through the S06
   class edit. The entries then join, and the class gets its capacity and `AUTO`/`MANUAL` mode back. A capacity raise
   releases no seat, so the entries stay `ACTIVE`, as D4c shows them. Nothing writes `bookings`, `seat_holds`,
   `waitlist_entries` or `training_bookings` directly, and no counter is set by hand.
-- **The `scenario` section** is applied only when `--week-start` is the run's Monday or a later one (club-local).
-  Every day of its anchor week must still be ahead. Without it, `seed:demo` reports the `scenario*` counts as `0`, and
-  E4 still gets everything. Use it with a future Monday and set the test clock to `demoNow`, the scenario's Monday at
-  07:00 local, with `POST /api/v1/test/clock {"instant": …}` (local/test profiles only):
+- **The `scenario` section** is applied only when the anchor is the run's Monday or a later one (club-local).
+  An explicit `--week-start` on an earlier Monday makes `seed:demo` report the `scenario*` counts as `0`, and E4
+  still gets everything; the default anchor (the first Monday on or after the run date) always applies it. Set the
+  test clock to `demoNow`, the scenario's Monday at 07:00 local, with `POST /api/v1/test/clock {"instant": …}`
+  (local/test profiles only). The smokes and front tests use a Monday 8+ days ahead, so nothing seeded is due in real
+  time while they run:
 
 ```sh
 bin/core club:apply seeds/club-canic.yaml
@@ -315,9 +320,11 @@ replays the E5 gate at `demoNow`.
 
 #### Exact commands for the web E2E T-08-40 (and any front test on the E5 states)
 
-The seed without `--week-start` (the Verification default) creates **none** of the E5 states: the scenario needs a
-future anchor week. The web T-08-40 therefore seeds and moves the clock exactly as `bin/e5-smoke` does, on a fresh
-stack (`compose.yaml` or `docker-compose.consumer.yml`, local/test profile, so `POST /test/clock` exists):
+The seed without `--week-start` (the Verification default) anchors the scenario on the first Monday on or after the
+run date (E6-T04 round 2), which can be tomorrow: the scheduler of a running stack then reaches the scenario's
+instants in real time. The web T-08-40 therefore seeds and moves the clock exactly as `bin/e5-smoke` does, with a week
+8+ days ahead, on a fresh stack (`compose.yaml` or `docker-compose.consumer.yml`, local/test profile, so
+`POST /test/clock` exists):
 
 1. `WEEK_START` = the Monday of the week after next, club-local (`Europe/Madrid`): today + (7 − ISO weekday index,
    Monday = 0) + 7 days, i.e. 8 to 14 days ahead. On Thursday 2026-09-24 it is `2026-10-05`.
@@ -342,7 +349,9 @@ The table above then holds at `demoNow`; select rows by account and state, never
 
 ### E6 attendance and follow-up (`scenario.attendance`, E6-T04)
 
-Applied with the E5 scenario (same `--week-start` rule), after it, through the real services: the census step renames
+Applied with the E5 scenario (same anchor rule: the plain `bin/core seed:demo --club=canic --seed=42` seeds it on
+the first Monday on or after the run date, whatever the day; E6-T04 round 2, review #5), after it, through the real
+services: the census step renames
 the cast and the class instructor (S03/S05 edits by the admin; a login's CAD dog moves up to A first), the S06 step creates
 and validates the past classes, the S08/S10 step books and marks them «as of» each instant and books the week-0 class,
 the follow-up step writes the tasks and the observation, the S09 step books the free trainings. The names are invented;

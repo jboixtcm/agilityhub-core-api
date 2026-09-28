@@ -31,6 +31,15 @@ public class ClassSessionBookingAccess {
     }
     public Optional<Session> find(String id) { return id == null ? Optional.empty() : classes.findById(id).map(ClassSessionBookingAccess::view); }
     public Session require(String id) { return find(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)); }
+    /**
+     * The own `startsAt` of several classes with one query (S15 R-15-18a: P8 decides by the class's start, never by the
+     * copy a waiting entry keeps); ids of classes that no longer exist are absent from the map.
+     */
+    public Map<String, Instant> startsAt(Collection<String> ids) {
+        var out = new HashMap<String, Instant>();
+        classes.findAllById(new LinkedHashSet<>(ids)).forEach(c -> out.put(c.id(), c.startsAt()));
+        return out;
+    }
     /** ACTIVE classes starting in `[from, to)`, by start (S15 P1 warm-up of the bookable-classes base cache). */
     public List<Session> activeBetween(Instant from, Instant to) {
         return classes.findActiveBetween(com.agilityhub.core.shared.application.TenantContext.require(), from, to).stream()

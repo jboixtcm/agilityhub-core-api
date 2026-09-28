@@ -45,11 +45,21 @@ public class DemoSeedCommand implements CoreCommand {
             var spec = mapper.convertValue(document, DemoDataset.Spec.class);
             System.out.println(service.apply(spec, seed).render());
             if (!sections.isEmpty()) {
+                boolean reanchor = args.containsOption("reanchor");
                 var weekStart = args.containsOption("week-start") ? LocalDate.parse(args.getOptionValues("week-start").getFirst())
-                        : clubClock.today(id).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                System.out.println(planning.apply(spec, sections, seed, weekStart, args.containsOption("reanchor")).render());
+                        : defaultWeekStart(clubClock.today(id), reanchor);
+                System.out.println(planning.apply(spec, sections, seed, weekStart, reanchor).render());
             }
         } catch (IOException failure) { throw new IllegalArgumentException("Unreadable demo seed specification", failure); }
+    }
+    /**
+     * The anchor without `--week-start` (E6-T04 round 2, review #5): the first club-local Monday on or after the run date,
+     * so the `scenario` section (E5 and the E6 fixture of R-10-02's example, applied only while its week is still ahead)
+     * is seeded whatever the day of the run. `--reanchor` keeps E5-T09's anchor, the Monday of the current week, whose
+     * planning weeks it refreshes.
+     */
+    static LocalDate defaultWeekStart(LocalDate today, boolean reanchor) {
+        return today.with(reanchor ? TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY) : TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
     }
     private static boolean monday(String value) {
         try { return LocalDate.parse(value).getDayOfWeek() == DayOfWeek.MONDAY; } catch (DateTimeException invalid) { return false; }

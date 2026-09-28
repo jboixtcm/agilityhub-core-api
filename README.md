@@ -424,7 +424,7 @@ and staging/email delivery still require their separate roadmap tasks.
 
 ```sh
 bin/core club:apply seeds/club-canic.yaml
-bin/core seed:demo --club=canic --seed=42      # census (E2/E3) + planning/activities (E4)
+bin/core seed:demo --club=canic --seed=42      # census (E2/E3) + planning/activities (E4) + the E5/E6 scenario
 bin/core seed:demo --club=canic --seed=42      # repeat: both parts report 0 changes
 bin/core seed:demo --club=canic --week-start=2026-10-05   # tests only: explicit Monday anchor
 bin/core seed:demo --club=canic --seed=42 --reanchor      # long-lived stack: planning weeks re-anchored to today (once per week)
@@ -434,7 +434,9 @@ bin/e4-smoke                                   # gate E4 (back) on a disposable 
 ```
 
 `seed:demo` accepts `--club`, `--seed` (default 42) and `--week-start` (an ISO
-Monday; default: the club-local Monday of the current week). The planning part
+Monday; default: the first club-local Monday on or after the run date since
+E6-T04 round 2, so the E5/E6 `scenario` is seeded whatever the day; with
+`--reanchor`, the Monday of the current week). The planning part
 runs after the census demo, through the S06/S07 application services, in one
 transaction. Its first completed run is recorded per club, so later runs (with
 any week start) print `0 changes (demo planning, ...)`. `--reanchor` (E5-T09)
@@ -507,9 +509,11 @@ bin/e5-perf             # k6 (ruling E28) on the load-test club seeds/club-perf.
                         # last seat 50 at once, burst; zero-overbooking check; see perf/README.md
 ```
 
-The E5 scenario (`seeds/README.md`) is applied only when `--week-start` is the
-run's Monday or later. Without it, `seed:demo` behaves as in E4, and the current
-week is validated so the screens have classes. `bin/e5-smoke [--image]` builds the
+The E5 scenario (`seeds/README.md`) is applied only when the anchor week is the
+run's week or a later one. Without `--week-start` the anchor is the first Monday on
+or after the run date (E6-T04 round 2), so the scenario is always applied; on a
+Tuesday–Sunday the current week then holds only the E6 history classes, and the
+planning (validated W, draft W+1, validated W+2) starts on the next Monday. `bin/e5-smoke [--image]` builds the
 working tree image (or uses the published one) and seeds both clubs on a week 8+
 days ahead. It then moves the test clock through that week and asserts statuses,
 codes, Mongo documents, outbox events and notification rows, with the scheduler on:
@@ -523,14 +527,14 @@ Two more scheduled processes run on the E5 framework (S15 R-15-13, R-15-18):
 
 | Process | Cadence | What it does | Parameters |
 |---|---|---|---|
-| P3 `no-show-notices` | daily at `messaging.noShowNoticeTime` (08:00), club-local, catch-up unlimited | one transaction claims every `NO_SHOW` not yet queued whose class date is before today (late marks included) and publishes a single `NoShowNoticeDue`; the outbox consumer sends one N-19 per booking (APP + EMAIL, the class's own date) and marks `noShowNotice.sentAt` («avís ja enviat») | `jobs.noShowNotices.enabled`, `messaging.noShowNoticeTime` |
-| P8 `class-finishing` | every minute | (a) waiting entries of started classes → `CANCELLED{CLASS_STARTED}` silently; (b) `ACTIVE` classes with `endsAt + classes.finishGraceMinutes` (15) ≤ now → `FINISHED`; (c) with `ACTIVITIES`, ended activities → `FINISHED` (assumption in force, see E6-T04) | `jobs.classFinishing.enabled`, `classes.finishGraceMinutes` |
+| P3 `no-show-notices` | daily at `messaging.noShowNoticeTime` (08:00), club-local, catch-up unlimited | one item per club and day (`NoShowNoticeBatch`, keyed by the run's local date): one transaction claims every `NO_SHOW` not yet queued whose class date is before today (late marks included) and publishes a single `NoShowNoticeDue`; the S11 engine sends one N-19 per booking (APP, and EMAIL unless the owner turned `PERSONAL` e-mail off; the class's own date and description) and marks `noShowNotice.sentAt` («avís ja enviat») | `jobs.noShowNotices.enabled`, `messaging.noShowNoticeTime` |
+| P8 `class-finishing` | every minute | (a) with `WAITLIST`, waiting entries of classes whose own start (S06's `startsAt`, not the entry's copy) has passed → `CANCELLED{CLASS_STARTED}` silently; (b) `ACTIVE` classes with `endsAt + classes.finishGraceMinutes` (15) ≤ now → `FINISHED`; (c) with `ACTIVITIES`, ended activities → `FINISHED` (S15 R-15-18, ruling E65) | `jobs.classFinishing.enabled`, `classes.finishGraceMinutes` |
 
 Counters: P3 `{notices, late}`; P8 `{swept, finished, activitiesFinished}`. No business event of P8's own
 (only `SchedulerRun`; step (c) keeps S07's `ActivityFinished`). Simulate or run them by hand like the others:
 
 ```sh
-bin/core jobs:run no-show-notices --club=canic --dry-run   # WOULD_NOTIFY {attendanceId, bookingId, memberId, dogName, classDate}
+bin/core jobs:run no-show-notices --club=canic --dry-run   # one WOULD_NOTIFY {date, attendances: [{attendanceId, bookingId, memberId, dogName, classDate}]}
 bin/core jobs:run class-finishing --club=canic --dry-run   # WOULD_SWEEP {entryId}, WOULD_FINISH {classId}, WOULD_FINISH_ACTIVITY {activityId}
 curl -fsS -X POST localhost:8080/api/v1/jobs/no-show-notices/trigger -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"dryRun":false}'
 curl -fsS -X PUT  localhost:8080/api/v1/jobs/class-finishing/switch  -H "Authorization: Bearer $ADMIN" -H 'Content-Type: application/json' -d '{"enabled":false}'
@@ -538,7 +542,9 @@ curl -fsS -X PUT  localhost:8080/api/v1/jobs/class-finishing/switch  -H "Authori
 
 A manual run (`[Executa ara]`, the CLI) also runs with the switch off (R-15-09); a second run right after the
 scheduled one finds nothing. The E6 demo lives in `scenario.attendance` of `seeds/demo-canic.yaml` (applied with the
-E5 scenario, so `--week-start` on the run's Monday or later): the week-0 Monday 08:30 class on Central with four booked
+E5 scenario: the plain `bin/core seed:demo --club=canic --seed=42` anchors it on the first Monday on or after the run
+date, whatever the day; set the test clock to that Monday's `demoNow` to see the screens as the seed describes them):
+the week-0 Monday 08:30 class on Central with four booked
 and one waiting, a past month of marked classes and ten free trainings for the holder's dog (R-10-08: 86 %, 7 classes,
 2.3 a week), a club-cancelled class and a late cancellation (screen 25's badges), two tasks (one with a fictional
 `video/mp4`), the member's note and a private observation. The names are invented (seeds/README.md maps them to the
@@ -551,6 +557,7 @@ bin/e6-smoke            # gate E6 (back) on a disposable Compose stack; fresh st
 `bin/e6-smoke [--image]` seeds the Cànic twice (the second run must report 0 changes), switches P3, P8 and P2 off so
 the scheduler never races the manual runs, and moves the test clock: Monday 04:25 (the day, the sheet, one save with
 present / no-show / «ha avisat» four hours before, the stale save), 09:46 (P8 dry run then real run, the sheet still
-markable), Tuesday 08:00 (P3 twice: one N-19, then nothing), then the histories (the holder signs in; two members
+markable), Tuesday 08:00 (P3 dry run, run and run again: one `NoShowNoticeBatch` item equal to the plan, one N-19
+with the class's date and description, then nothing), then the histories (the holder signs in; two members
 through the admin's impersonation), the tasks with their attachment, the D14 unread counts per account and the week
 PDF. It prints a summary table and exits non-zero on the first failed assertion.

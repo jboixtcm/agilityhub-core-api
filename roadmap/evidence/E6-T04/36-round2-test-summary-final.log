@@ -1,0 +1,66 @@
+  ArchitectureTest               tests=14  failures=0 errors=0 skipped=0
+  NoShowNotificationTextsTest    tests=2   failures=0 errors=0 skipped=0
+  BookingJobsTest                tests=2   failures=0 errors=0 skipped=0
+  AuditContractTest              tests=1   failures=0 errors=0 skipped=0
+  JobCatalogContractTest         tests=4   failures=0 errors=0 skipped=0
+  JobOccurrencesTest             tests=7   failures=0 errors=0 skipped=0
+  MessageParityTest              tests=1   failures=0 errors=0 skipped=0
+  EventCatalogContractTest       tests=2   failures=0 errors=0 skipped=0
+unit/contract (surefire): tests=793 failures=0 errors=0 skipped=0
+  ActivityIT                     tests=31  failures=0 errors=0 skipped=0
+  AttendanceIT                   tests=19  failures=0 errors=0 skipped=0
+  ClassFinishingJobIT            tests=5   failures=0 errors=0 skipped=0
+  JobsApiIT                      tests=5   failures=0 errors=0 skipped=0
+  NoShowNoticesJobIT             tests=5   failures=0 errors=0 skipped=0
+  WaitlistIT                     tests=18  failures=0 errors=0 skipped=0
+  DemoAttendanceSeedIT           tests=3   failures=0 errors=0 skipped=0
+  DemoPlanningSeedIT             tests=9   failures=0 errors=0 skipped=0
+  DemoScenarioSeedIT             tests=5   failures=0 errors=0 skipped=0
+  DemoSeedsIT                    tests=10  failures=0 errors=0 skipped=0
+  FollowupIT                     tests=17  failures=0 errors=0 skipped=0
+  CalendarIT                     tests=17  failures=0 errors=0 skipped=0
+  E6ContractIT                   tests=30  failures=0 errors=0 skipped=0
+  ListFieldsContractIT           tests=4   failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest            tests=10  failures=0 errors=0 skipped=0
+  JobFrameworkIT                 tests=16  failures=0 errors=0 skipped=0
+integration (failsafe): tests=1149 failures=0 errors=0 skipped=0
+Spec-id test methods (the task's classes; T-10-11/T-10-19 integration halves are E6-T02's AttendanceIT plus bin/e6-smoke steps 3 and 7):
+  T-06-28  DemoPlanningSeedIT.T_06_28_D4cCancellationOfTheSeededClassNotifiesTheDemoRegistrants ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_T_07_32_demoSeedHoldsThePlanningAndActivityStatesOfTheGate ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_demoPlanningIsDeterministicIdempotentAndGuarded ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_planningNeedsTheCensusDemoFirst ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_reanchorOneWeekLaterValidatesTheKeptDraftWeekAndBooksOnlyTheGeneratedWeek ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_reanchorRefreshesThePlanningWeeksToTheRunDateOncePerWeek ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_seedSourcesContainNoRealStaffOrMockupFirstNames ok
+  T-06-28  DemoPlanningSeedIT.T_06_28_theDefaultAnchorIsTheFirstMondayOnOrAfterTheRunDate ok
+  T-10-04  DemoAttendanceSeedIT.T_10_04_T_10_19_theE6DemoHoldsTheMondayClassTheHoldersMetricsAndEveryHistoryBadge ok
+  T-10-11  AttendanceIT.T_10_11_haAvisatInTimeCancelsReleasesTheSeatAndTellsTheWaitingListOnceThenLateThenAfterTheEnd ok
+  T-10-19  DemoAttendanceSeedIT.T_10_04_T_10_19_theE6DemoHoldsTheMondayClassTheHoldersMetricsAndEveryHistoryBadge ok
+  T-10-19  DemoAttendanceSeedIT.T_10_19_theDefaultInvocationOnAMondayAfterTheSheetClassSeedsItOnThatMonday ok
+  T-10-19  DemoAttendanceSeedIT.T_10_19_theDefaultInvocationOnAWednesdaySeedsTheE6FixtureAndASecondRunChangesNothing ok
+  T-10-19  E6ContractIT.T_10_15_T_10_19_T_10_22_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs ok
+  T-10-26  E6ContractIT.T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand ok
+  T-10-26  JobCatalogContractTest.T_10_26_T_15_13_noShowNoticesIsTheDailyP3RowAtMessagingNoShowNoticeTime ok
+  T-10-26  NoShowNoticesJobIT.T_10_26_T_15_16_aBuenosAiresClubGetsItsBatchAtItsOwnEightOClockWithItsOwnClassDate ok
+  T-10-26  NoShowNoticesJobIT.T_15_16_T_10_26_n19EmailFollowsThePersonalPreferenceAndCarriesTheClassDescriptionInTheRecipientsLanguage ok
+  T-10-26  NoShowNoticesJobIT.T_15_16_T_10_26_threeOfYesterdayAndALateMarkMakeOneBatchOfFourWithOneLateAndASecondRunEmitsNothing ok
+  T-10-26  NoShowNotificationTextsTest.T_10_26_n19NamesTheClassDateInTheRecipientsLanguageNeverYesterday ok
+  T-15-13  E6ContractIT.T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand ok
+  T-15-13  JobCatalogContractTest.T_10_26_T_15_13_noShowNoticesIsTheDailyP3RowAtMessagingNoShowNoticeTime ok
+  T-15-16  BookingJobsTest.T_15_16_p3PlansOneItemPerClubAndDayAndTracesWhatItsSingleClaimTook ok
+  T-15-16  JobOccurrencesTest.T_15_26_T_15_16_continuousTicksCrossTheOctoberFoldMinuteByMinuteAndTheDailyBatchStaysAtEightLocal ok
+  T-15-16  NoShowNoticesJobIT.T_10_26_T_15_16_aBuenosAiresClubGetsItsBatchAtItsOwnEightOClockWithItsOwnClassDate ok
+  T-15-16  NoShowNoticesJobIT.T_15_16_R_15_13_aMarkThatLeavesTheScopeAndComesBackDuringTheRunNeverMakesASecondBatch ok
+  T-15-16  NoShowNoticesJobIT.T_15_16_T_10_26_n19EmailFollowsThePersonalPreferenceAndCarriesTheClassDescriptionInTheRecipientsLanguage ok
+  T-15-16  NoShowNoticesJobIT.T_15_16_T_10_26_threeOfYesterdayAndALateMarkMakeOneBatchOfFourWithOneLateAndASecondRunEmitsNothing ok
+  T-15-16  NoShowNotificationTextsTest.T_15_16_lateCountsClassesOlderThanOneDay ok
+  T-15-18  E6ContractIT.T_10_26_T_15_13_T_15_18_noShowNoticesAndClassFinishingAreListedAndRunOnDemand ok
+  T-15-18  JobCatalogContractTest.T_15_18_classFinishingIsTheContinuousP8RowWithoutParameterOrModule ok
+  T-15-26  ActivityIT.T_15_26_classFinishingFinishesEndedActivitiesOnlyWithTheActivitiesModule ok
+  T-15-26  BookingJobsTest.T_15_26_p8GuardsStepsAAndCByTheirModulesItemsByStateAndRefusesAnUnknownAction ok
+  T-15-26  ClassFinishingJobIT.T_15_26_R_15_02_aClassOnTheOctoberFoldFinishesFifteenMinutesAfterItsFirstEnd ok
+  T-15-26  ClassFinishingJobIT.T_15_26_R_15_03_theSwitchOffRecordsOneSkippedRunPerHourAndTheAdminStillRunsIt ok
+  T-15-26  ClassFinishingJobIT.T_15_26_R_15_03_withoutTheWaitlistModuleP8SweepsNothingAndStillFinishesTheClass ok
+  T-15-26  ClassFinishingJobIT.T_15_26_R_15_18_theSweepDecidesByTheClassesOwnStartNotTheEntrysCopy ok
+  T-15-26  ClassFinishingJobIT.T_15_26_aClassOf1850To1950FinishesOnThe2005TickAndTheWaitingEntriesOfAStartedClassGoSilently ok
+  T-15-26  JobOccurrencesTest.T_15_26_T_15_16_continuousTicksCrossTheOctoberFoldMinuteByMinuteAndTheDailyBatchStaysAtEightLocal ok

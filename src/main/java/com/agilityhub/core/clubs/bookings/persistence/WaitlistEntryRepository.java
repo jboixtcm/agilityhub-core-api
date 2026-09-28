@@ -58,9 +58,12 @@ public class WaitlistEntryRepository extends TenantRepository<WaitlistEntry> {
     public List<String> liveClassIds(java.time.Instant after) {
         return mongo.findDistinct(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").gt(after)), "classSessionId", WaitlistEntry.class, String.class);
     }
-    /** Live entries whose class has started (S15 P8 sweep, R-15-18a). */
-    public List<WaitlistEntry> liveStartedBy(java.time.Instant now) {
-        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE).and("classStartsAt").lte(now)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
+    /**
+     * Every live entry of the club, by class (S15 P8 sweep, R-15-18a). The caller decides with the class's own start:
+     * `classStartsAt` is a copy a consumer refreshes after a class moves, so it can be stale either way.
+     */
+    public List<WaitlistEntry> liveAll() {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("state").in(LIVE)).with(Sort.by("classSessionId", "_id")), WaitlistEntry.class);
     }
     /** S15 P6: NOTIFIED (FIFO) entries whose `confirmBy` has passed, oldest offer first. */
     public List<WaitlistEntry> notifiedDue(java.time.Instant now) {

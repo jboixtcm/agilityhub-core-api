@@ -96,9 +96,14 @@ class E6:
                           + ',' + json.dumps(field) + ':' + json.dumps(value) + '})')
 
     def notes(self, code, account, channel=None):
-        query = '{clubId:' + json.dumps(self.club) + ',code:' + json.dumps(code) + ',accountId:' + json.dumps(account)
-        return self.mongo('db.notifications.find(' + query + (',channel:' + json.dumps(channel) if channel else '') + '})'
-                          '.toArray().map(n=>({id:n._id,channel:n.channel,status:n.status,locale:n.locale,vars:n.variables||{}}))')
+        """One row per delivery of the account's notices of `code` that went out or is on its way. Since E7-T02 a notice is one
+        S11 document per recipient (`recipient.accountId`) with a delivery per channel; a delivery the engine skipped (by
+        preference, module or missing contact) is no row, as the E1 rows had none."""
+        match = '{clubId:' + json.dumps(self.club) + ',code:' + json.dumps(code) + '}'
+        rows = self.mongo('db.notifications.aggregate([{$match:' + match + '},{$unwind:"$deliveries"},{$project:{channel:"$deliveries.channel",'
+                          'status:"$deliveries.status",locale:1,vars:{$ifNull:["$variables",{}]},account:{$ifNull:["$recipient.accountId","$accountId"]}}}])'
+                          '.toArray().map(n=>({id:n._id,channel:n.channel,status:n.status,locale:n.locale,vars:n.vars,account:n.account}))')
+        return [r for r in rows if r["account"] == account and (channel is None or r["channel"] == channel) and not r["status"].startswith("SKIPPED")]
 
     # ---- fixture lookup
     def lookup(self):
@@ -207,19 +212,28 @@ class E6:
                     f"plan = effects ({len(planned)} items, counters {run['effects']['counters']}); class FINISHED; {WAITING}'s entry "
                     f"CANCELLED{{CLASS_STARTED}} with no notification; D12 PUT Martí PRESENT on the FINISHED class → 200")
 
-        # (6) P3 the next morning at 08:00 local: one batch, one N-19 to Nil with the class's own date; a second run: nothing.
+        # (6) P3 the next morning at 08:00 local: one item for the club's day (E65), one batch, one N-19 to Nil with the class's
+        # own date and description; a second run: nothing.
         s.set_clock(s.local("TUESDAY", "08:00"), "Tuesday 08:00")
+        tuesday = str(s.week_start + datetime.timedelta(days=1))
         batches = self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:"NoShowNoticeDue"})')
-        p3 = self.call("POST", "/api/v1/jobs/no-show-notices/trigger", access=self.admin, body=dict(dryRun=False))
         nil_attendance = self.mongo('db.attendances.findOne({bookingId:' + json.dumps(self.bookings["Nil"]) + '})._id')
-        self.require([i["entityId"] for i in p3["effects"]["items"]] == [nil_attendance], f"P3 items: {p3['effects']['items']}")
+        p3_dry = self.call("POST", "/api/v1/jobs/no-show-notices/trigger", access=self.admin, body=dict(dryRun=True))
+        p3 = self.call("POST", "/api/v1/jobs/no-show-notices/trigger", access=self.admin, body=dict(dryRun=False))
+        for run, action in ((p3_dry, "WOULD_NOTIFY"), (p3, "NOTIFY")):
+            items = run["effects"]["items"]
+            self.require(len(items) == 1 and items[0]["entityType"] == "NoShowNoticeBatch" and items[0]["entityId"] == tuesday
+                         and items[0]["action"] == action, f"P3 items: {items}")
+            self.require([a["attendanceId"] for a in items[0]["detail"]["attendances"]] == [nil_attendance], f"P3 batch: {items[0]['detail']}")
+        self.require(p3["effects"]["items"][0]["detail"] == p3_dry["effects"]["items"][0]["detail"], "P3 effects differ from the plan")
         self.require(p3["effects"]["counters"] == {"notices": 1, "late": 0}, f"P3 counters {p3['effects']['counters']}")
         self.require(self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:"NoShowNoticeDue"})') == batches + 1,
                      "NoShowNoticeDue missing")
         nil = self.people["Nil"]["account"]
         n19 = self.m.wait(lambda: (lambda rows: rows if len(rows) == 2 else None)(self.notes("N-19", nil)), "N-19 to Nil missing")
         app = next(n for n in n19 if n["channel"] == "APP")
-        self.require(app["vars"].get("dog_name") == DOGS["Nil"] and str(s.week_start.day) in app["vars"].get("class_date", ""), f"N-19 variables {app['vars']}")
+        self.require(app["vars"].get("dog_name") == DOGS["Nil"] and str(s.week_start.day) in app["vars"].get("class_date", "")
+                     and app["vars"].get("class_description"), f"N-19 variables {app['vars']}")
         again = self.call("POST", "/api/v1/jobs/no-show-notices/trigger", access=self.admin, body=dict(dryRun=False))
         self.require(again["effects"]["items"] == [], "A second P3 run claimed again")
         self.require(self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:"NoShowNoticeDue"})') == batches + 1,
@@ -228,9 +242,11 @@ class E6:
         sent = self.m.wait(lambda: next((r["noShowNotice"] for r in self.call("GET", f"/api/v1/class-sessions/{self.class_id}/attendance",
                                                                                  access=self.desk, quiet=True)["rows"]
                                          if r["bookingId"] == self.bookings["Nil"] and r["noShowNotice"].get("sentAt")), None), "sentAt missing")
-        self.record("(6) POST /jobs/no-show-notices/trigger at Tuesday 08:00, twice", "200 · 200",
-                    f"run 1: counters {{notices: 1, late: 0}}, 1 NoShowNoticeDue, N-19 to Nil ({', '.join(sorted(n['channel'] + ' ' + n['locale'] for n in n19))}), "
-                    f"class_date «{app['vars']['class_date']}»; sheet «avís ja enviat» (sentAt {sent['sentAt'][:16]}Z); run 2: 0 items, 0 new events")
+        self.record("(6) POST /jobs/no-show-notices/trigger at Tuesday 08:00: dry run, run, run again", "200 · 200 · 200",
+                    f"plan = effects: 1 NoShowNoticeBatch item {tuesday} with Nil's attendance; run 1: counters {{notices: 1, late: 0}}, "
+                    f"1 NoShowNoticeDue, N-19 to Nil ({', '.join(sorted(n['channel'] + ' ' + n['locale'] for n in n19))}), "
+                    f"class_date «{app['vars']['class_date']}», class_description «{app['vars']['class_description']}»; "
+                    f"sheet «avís ja enviat» (sentAt {sent['sentAt'][:16]}Z); run 2: 0 items, 0 new events")
 
         # (7) Histories: the holder signs in; Alba and Nil are read through the admin's impersonation (screen 25 contract).
         history = self.call("GET", "/api/v1/me/history?dogId=" + self.people[HOLDER]["dog"], access=self.holder)

@@ -45,8 +45,14 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
         var result = new TreeMap<String, List<Document>>();
         for (String name : mongo.getCollectionNames()) { result.put(name, mongo.findAll(Document.class, name)); } return result;
     }
+    /**
+     * A first run is anchored explicitly on {@link #MONDAY}, the current week of the Wednesday run (the E4 arrangement, with
+     * the scenario skipped because its week has started): since E6-T04 round 2 the default anchor is the next Monday
+     * (`T_06_28_theDefaultAnchorIsTheFirstMondayOnOrAfterTheRunDate`). A `--reanchor` run keeps its own default.
+     */
     void seed(String... extra) throws Exception {
         var args = new ArrayList<>(List.of("--club=canic", "--seed=42")); args.addAll(List.of(extra));
+        if (args.stream().noneMatch(a -> a.startsWith("--week-start") || a.startsWith("--reanchor"))) { args.add("--week-start=" + MONDAY); }
         command.run(new DefaultApplicationArguments(args.toArray(String[]::new)));
     }
     JsonNode admin(MockHttpServletRequestBuilder request) throws Exception { return call(request, "ADMIN", 200); }
@@ -245,6 +251,19 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
     long bookingsOf(List<String> weekIds) {
         var classIds = mongo.find(Query.query(Criteria.where("weekId").in(weekIds)), Document.class, "class_sessions").stream().map(c -> c.getString("_id")).toList();
         return mongo.count(Query.query(Criteria.where("classSessionId").in(classIds)), "bookings");
+    }
+
+    /**
+     * E6-T04 round 2 (review #5): without `--week-start` a first run anchors on the first club-local Monday on or after the
+     * run date, so the scenario (E5, and E6's fixture of R-10-02's example) is applied whatever the day of the run;
+     * `--reanchor` keeps E5-T09's anchor, the Monday of the current week.
+     */
+    @Test void T_06_28_theDefaultAnchorIsTheFirstMondayOnOrAfterTheRunDate() {
+        for (int day = 0; day < 7; day++) {
+            var date = MONDAY.plusDays(day);
+            assertThat(DemoSeedCommand.defaultWeekStart(date, false)).as(date.getDayOfWeek().toString()).isEqualTo(day == 0 ? MONDAY : MONDAY.plusWeeks(1));
+            assertThat(DemoSeedCommand.defaultWeekStart(date, true)).as(date.getDayOfWeek() + " --reanchor").isEqualTo(MONDAY);
+        }
     }
 
     @Test void T_06_28_planningNeedsTheCensusDemoFirst() throws Exception {

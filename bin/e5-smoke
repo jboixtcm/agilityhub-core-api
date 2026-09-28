@@ -211,8 +211,12 @@ class Smoke:
         return (form, card) if header and len(card["items"]) == len(form["items"]) and expected == actual else None
 
     def notifications(self, code, accounts, channel="APP"):
-        return self.mongo('db.notifications.countDocuments({clubId:{$in:' + json.dumps([self.canic, self.fifo]) + '},code:' + json.dumps(code)
-                          + ',channel:' + json.dumps(channel) + ',accountId:{$in:' + json.dumps(accounts) + '}})')
+        """Deliveries of `code` on `channel` to the accounts that went out or are on their way. Since E7-T02 a notice is one S11
+        document per recipient (`recipient.accountId`) with a delivery per channel; a skipped delivery counts as no row, as
+        the E1 rows had none (the E1 SYSTEM rows keep their flat `accountId`)."""
+        return self.mongo('db.notifications.aggregate([{$match:{clubId:{$in:' + json.dumps([self.canic, self.fifo]) + '},code:' + json.dumps(code) + '}},'
+                          '{$unwind:"$deliveries"},{$match:{"deliveries.channel":' + json.dumps(channel) + ',"deliveries.status":{$not:/^SKIPPED/},'
+                          '$or:[{"recipient.accountId":{$in:' + json.dumps(accounts) + '}},{accountId:{$in:' + json.dumps(accounts) + '}}]}}]).toArray().length')
 
     def account_of(self, member_id):
         return self.mongo('db.members.findOne({_id:' + json.dumps(member_id) + '}).accountId')

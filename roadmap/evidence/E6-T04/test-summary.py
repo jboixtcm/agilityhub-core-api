@@ -7,10 +7,11 @@ import xml.etree.ElementTree as ET
 CLASSES = ["NoShowNoticesJobIT", "ClassFinishingJobIT", "DemoAttendanceSeedIT", "BookingJobsTest", "NoShowNotificationTextsTest", "JobOccurrencesTest",
            "JobCatalogContractTest", "JobsApiIT", "JobFrameworkIT", "E6ContractIT", "ActivityIT", "ListFieldsContractIT", "DemoScenarioSeedIT",
            "DemoPlanningSeedIT", "ArchitectureTest", "AuditContractTest", "EventCatalogContractTest", "MessageParityTest", "OpenApiSnapshotTest",
-           "CalendarIT", "AttendanceIT", "FollowupIT"]
+           "CalendarIT", "AttendanceIT", "FollowupIT", "WaitlistIT", "DemoSeedsIT"]
 TASK = ("NoShowNoticesJobIT", "ClassFinishingJobIT", "DemoAttendanceSeedIT", "BookingJobsTest", "NoShowNotificationTextsTest", "JobOccurrencesTest",
-        "JobCatalogContractTest", "E6ContractIT", "ActivityIT", "AttendanceIT")
-IDS = r"(T_15_16|T_15_26|T_10_26|T_10_11|T_10_19|T_10_04|T_15_13|T_15_18)"
+        "JobCatalogContractTest", "E6ContractIT", "ActivityIT", "AttendanceIT", "DemoPlanningSeedIT")
+# Round 2 adds T_06_28 (the default anchor of seed:demo, DemoPlanningSeedIT) and the R_15_* suffixed names.
+IDS = r"(T_15_16|T_15_26|T_10_26|T_10_11|T_10_19|T_10_04|T_15_13|T_15_18|T_06_28)"
 methods = {}
 for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TEST-*.xml"), ("integration (failsafe)", "target/failsafe-reports/TEST-*.xml")]:
     totals = [0, 0, 0, 0]
