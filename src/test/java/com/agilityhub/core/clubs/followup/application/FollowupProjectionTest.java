@@ -35,7 +35,7 @@ class FollowupProjectionTest {
     }
     private static FollowupItem row(Instant activityAt) {
         return new FollowupItem("row", "club-a", FollowupKind.MEMBER_NOTE, null, "dog-a", "member-a", "account-m", AuthorRole.MEMBER, "Laura", "FEMALE", "Old", NOW, null,
-                activityAt, false, NOW);
+                activityAt, false, NOW, null);
     }
 
     @Test void T_10_18_aNewNoteChangeUpsertsTheRowAndMakesItUnreadForEveryoneButTheAuthor() {
@@ -44,33 +44,33 @@ class FollowupProjectionTest {
         when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", "C")));
         when(census.members(List.of("member-a"))).thenReturn(Map.of("member-a", new FollowupCensusAccess.Member("member-a", "Laura", "Laura Example", "FEMALE", "account-m", null, "ca")));
         when(items.findById(rowId)).thenReturn(Optional.of(row(NOW.minusSeconds(60))));
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-a")));
-        verify(items).note("dog-a", "member-a", "account-m", "Laura", "FEMALE", "Nota nova", NOW, NOW);
+        projection.memberNote("e-1", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-a")));
+        verify(items).note("dog-a", "member-a", "account-m", "Laura", "FEMALE", "Nota nova", NOW, "e-1", NOW);
         verify(marks).unreadForEveryone(rowId, NOW);
         verify(dashboard).invalidateCountersAfterCommit("club-a");
         // An older (or the same) change replayed: the excerpt follows the note, nothing becomes unread.
-        projection.memberNote(event("MemberNoteChanged", NOW.minusSeconds(120), Map.of("dogId", "dog-a")));
+        projection.memberNote("e-0", event("MemberNoteChanged", NOW.minusSeconds(120), Map.of("dogId", "dog-a")));
         verify(items).noteText("dog-a", "Nota nova", NOW);
         verify(marks, times(1)).unreadForEveryone(anyString(), any());
         // The first row, without a known member (an event without memberId falls back to the owner): no author name or gender, the note's writer as the author.
         when(items.findById(rowId)).thenReturn(Optional.empty());
         when(census.instructorNote("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Note("Una", NOW, "account-w")));
         when(census.members(List.of("member-a"))).thenReturn(Map.of());
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
-        verify(items).note("dog-a", "member-a", "account-w", "", null, "Una", NOW, NOW);
+        projection.memberNote("e-2", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
+        verify(items).note("dog-a", "member-a", "account-w", "", null, "Una", NOW, "e-2", NOW);
         // A member without an account: the note's writer is the author, with the member's name.
         when(census.members(List.of("member-a"))).thenReturn(Map.of("member-a", new FollowupCensusAccess.Member("member-a", "Laura", "Laura Example", "FEMALE", null, null, "ca")));
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
-        verify(items).note("dog-a", "member-a", "account-w", "Laura", "FEMALE", "Una", NOW, NOW);
+        projection.memberNote("e-3", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
+        verify(items).note("dog-a", "member-a", "account-w", "Laura", "FEMALE", "Una", NOW, "e-3", NOW);
         // A stored row without activityAt is always refreshed; without a note or a dog, nothing.
         when(items.findById(rowId)).thenReturn(Optional.of(row(null)));
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
-        verify(items, times(3)).note(eq("dog-a"), any(), eq("account-w"), any(), any(), any(), any(), any());
+        projection.memberNote("e-4", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
+        verify(items, times(3)).note(eq("dog-a"), any(), eq("account-w"), any(), any(), any(), any(), any(), any());
         when(census.dog("dog-a")).thenReturn(Optional.empty());
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
+        projection.memberNote("e-5", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
         when(census.instructorNote("dog-a")).thenReturn(Optional.empty());
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
-        verify(items, times(4)).note(any(), any(), any(), any(), any(), any(), any(), any());
+        projection.memberNote("e-6", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a")));
+        verify(items, times(4)).note(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     /**
@@ -83,8 +83,8 @@ class FollowupProjectionTest {
         when(census.members(List.of("member-j"))).thenReturn(Map.of("member-j", new FollowupCensusAccess.Member("member-j", "Joan", "Joan Example", "MALE", "account-j", null, "es")));
         when(census.members(List.of("member-l"))).thenReturn(Map.of("member-l", new FollowupCensusAccess.Member("member-l", "Laura", "Laura Example", "FEMALE", "account-l", null, "ca")));
         when(items.findById(any())).thenReturn(Optional.empty());
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j")));
-        verify(items).note("dog-a", "member-l", "account-j", "Joan", "MALE", "La nota d'en Joan", NOW, NOW);
+        projection.memberNote("e-j", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j")));
+        verify(items).note("dog-a", "member-l", "account-j", "Joan", "MALE", "La nota d'en Joan", NOW, "e-j", NOW);
         verify(census, never()).members(List.of("member-l"));
     }
 
@@ -98,13 +98,50 @@ class FollowupProjectionTest {
         when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Toby", "ACTIVE", "member-l", "C")));
         when(census.members(anyCollection())).thenReturn(Map.of("member-j", new FollowupCensusAccess.Member("member-j", "Jan", "Jan Example", "FEMALE", "account-j", null, "es")));
         when(items.findById(any())).thenReturn(Optional.empty());
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j",
+        projection.memberNote("e-1", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j",
                 "author", Map.of("accountId", "account-j", "displayName", "Joan", "gender", "MALE"))));
-        verify(items).note("dog-a", "member-l", "account-j", "Joan", "MALE", "La nota d'en Joan", NOW, NOW);
+        verify(items).note("dog-a", "member-l", "account-j", "Joan", "MALE", "La nota d'en Joan", NOW, "e-1", NOW);
         // A snapshot without an account, a name or a gender (a member with none of them): the note's writer, «», null.
-        projection.memberNote(event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j", "author", Map.of())));
-        verify(items).note("dog-a", "member-l", "account-w", "", null, "La nota d'en Joan", NOW, NOW);
+        projection.memberNote("e-2", event("MemberNoteChanged", NOW, Map.of("dogId", "dog-a", "memberId", "member-j", "author", Map.of())));
+        verify(items).note("dog-a", "member-l", "account-w", "", null, "La nota d'en Joan", NOW, "e-2", NOW);
         verify(census, never()).members(anyCollection());
+    }
+
+    /**
+     * Round 4 (review #2, S10 §7): the consumer is idempotent by `eventId`, and compares instants at the millisecond Mongo
+     * stores. The event keeps `.519123Z`, the row `.519Z`. Before the fix the replay counted as a new change and made the
+     * row unread for everyone again.
+     */
+    @Test void T_10_18_theSameNoteEventConsumedAgainNeverMakesTheRowUnreadAgain() {
+        String rowId = FollowupItemRepository.noteRowId("club-a", "dog-a");
+        Instant precise = NOW.plusNanos(519_123_000), stored = Instant.parse("2026-08-12T16:00:00.519Z");
+        when(census.instructorNote("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Note("Nota", precise, "account-m")));
+        when(census.dog("dog-a")).thenReturn(Optional.of(new FollowupCensusAccess.Dog("dog-a", "Duna", "ACTIVE", "member-a", "C")));
+        var author = Map.<String, Object>of("accountId", "account-m", "displayName", "Laura", "gender", "FEMALE");
+        var changed = event("MemberNoteChanged", precise, Map.of("dogId", "dog-a", "memberId", "member-a", "author", author));
+        // The first delivery stores the instant at the stored precision, with the event's id.
+        when(items.findById(rowId)).thenReturn(Optional.empty());
+        projection.memberNote("e-1", changed);
+        verify(items).note("dog-a", "member-a", "account-m", "Laura", "FEMALE", "Nota", stored, "e-1", NOW);
+        verify(marks, times(1)).unreadForEveryone(rowId, NOW);
+        // The same event again: nothing is written and no read mark is touched.
+        var applied = new FollowupItem(rowId, "club-a", FollowupKind.MEMBER_NOTE, null, "dog-a", "member-a", "account-m", AuthorRole.MEMBER, "Laura", "FEMALE", "Nota",
+                stored, null, stored, false, NOW, "e-1");
+        when(items.findById(rowId)).thenReturn(Optional.of(applied));
+        projection.memberNote("e-1", changed);
+        // A row written before `lastEventId` existed: the replay is not newer at the stored precision, so only the excerpt follows.
+        when(items.findById(rowId)).thenReturn(Optional.of(new FollowupItem(rowId, "club-a", FollowupKind.MEMBER_NOTE, null, "dog-a", "member-a", "account-m",
+                AuthorRole.MEMBER, "Laura", "FEMALE", "Nota", stored, null, stored, false, NOW, null)));
+        projection.memberNote("e-1", changed);
+        verify(items, times(1)).noteText("dog-a", "Nota", NOW);
+        verify(items, times(1)).note(any(), any(), any(), any(), any(), any(), any(), any(), any());
+        verify(marks, times(1)).unreadForEveryone(anyString(), any());
+        verify(dashboard, times(1)).invalidateCountersAfterCommit("club-a");
+        // A later change, one millisecond on, is a new change: unread again for everyone but its author.
+        when(items.findById(rowId)).thenReturn(Optional.of(applied));
+        projection.memberNote("e-2", event("MemberNoteChanged", stored.plusMillis(1), Map.of("dogId", "dog-a", "memberId", "member-a", "author", author)));
+        verify(items).note("dog-a", "member-a", "account-m", "Laura", "FEMALE", "Nota", stored.plusMillis(1), "e-2", NOW);
+        verify(marks, times(2)).unreadForEveryone(rowId, NOW);
     }
 
     /**

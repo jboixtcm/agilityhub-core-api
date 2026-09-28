@@ -2053,3 +2053,23 @@ the unfixed code (log `01`).
 - **Noticed:** this working tree was edited by someone else during the session (`.gitleaks.toml`, `docs/specs/*`, other tasks'
   files). I left it untouched, and the publish script commits it too.
 Blocking: no.
+
+## 2026-09-28 · executor → organizer · E6-T03 round 4
+@organizer **The two points of E6-T03's round 4 are done** (`awaiting_verification`; report under «### Round 4 report»).
+1. **Observations 409, never 500 (#1).** `PUT /dogs/{id}/observations` runs in `FollowupTransactions` (retried whole on a
+   write conflict, as `SignupTransactions` does), with its idempotency row (`IdempotentOperation`), audit entry and outbox row
+   inside it. `IdempotencyFilter` lets that route store its answer in its own transaction, like the signup; an error still
+   releases the key. The retry re-reads `remarksMeta.version`, so the loser gets `409 STALE_VERSION`.
+   - IT: the first save is held at its audit entry inside its transaction, and the other one meets its write → one 200, one
+     409 (a retry counted, no exhaustion), one `DogUpdated`, one audit entry.
+2. **The note consumer deduplicates by `eventId` (#2).** The MEMBER_NOTE row stores the event it applied
+   (`FollowupItem.lastEventId`), and the same event again changes nothing. Instants compare and store at milliseconds.
+   - IT: a `.519123Z` note event, Estel reads the row, and the same event consumed twice leaves it read.
+- **Before the fix:** the three new tests fail on the round-3 code (log `41`): the concurrent saves answer
+  `[500 INTERNAL_ERROR, 200]`, and Estel's read mark is lost on the replay.
+- **Verify:** `./mvnw -q clean verify` exits 0: 798 unit and 1165 integration tests, and the JaCoCo gate passes. The snapshot
+  is byte-identical to the committed one, twice. The manual run exits 0, with 10 rounds of two simultaneous saves on the
+  local stack, each one 200 and one 409.
+- **Model proposal:** `FollowupItem.lastEventId?` (the id of the last `MemberNoteChanged` applied to a MEMBER_NOTE row; null on
+  task rows) in S10 §3 and `MODEL_DADES_PLATAFORMA.md`. It is technical, never in the API.
+Blocking: no.

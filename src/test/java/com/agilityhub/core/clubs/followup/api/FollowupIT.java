@@ -30,6 +30,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 
@@ -51,6 +53,9 @@ class FollowupIT extends AbstractIntegrationTest {
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.MemberNoteChanged") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> noteConsumer;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("followup.DogTransferred") DomainEventHandler<com.agilityhub.core.clubs.followup.domain.CensusForeignEvent> transferConsumer;
     @Autowired com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher notificationDispatcher;
+    @Autowired TransactionRetries retries;
+    /** Round 4: holds the first observations save at its audit entry, inside its transaction (the same spy as ClubPagesIT's). */
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.platform.persistence.audit.AuditRepository audits;
 
     @BeforeEach void fixtures() {
         clock.setInstant(NOW); ((FakeEmailSender) email).clear();
@@ -498,6 +503,62 @@ class FollowupIT extends AbstractIntegrationTest {
         assertThat(eventsOf("DogUpdated")).isEmpty(); assertThat(count("audit_entries", new Criteria())).isZero();
     }
 
+    /**
+     * Round 4 review #1 (R-10-12, step 4): Estel and Marc save the observations of version 0 at the same time, with different
+     * keys. The first save to write the dog is held at its audit entry, inside its transaction, so the other one meets that
+     * write (a Mongo write conflict). Its transaction runs again, re-reads `remarksMeta.version` once the first one has
+     * committed, and answers 409 STALE_VERSION: one 200, one 409, one DogUpdated, one audit entry. Before the fix the
+     * conflict of the request's own transaction was never retried and answered 500 INTERNAL_ERROR.
+     */
+    @Test void R_10_12_twoConcurrentSavesOfOneVersionGiveOne200AndOne409NeverA500() throws Exception {
+        var held = new CountDownLatch(1); var release = new CountDownLatch(1); var gate = new java.util.concurrent.atomic.AtomicBoolean();
+        doAnswer(call -> {
+            com.agilityhub.core.platform.persistence.audit.AuditEntry entry = call.getArgument(0);
+            if ("Dog".equals(entry.entityType()) && gate.compareAndSet(false, true)) {
+                held.countDown();
+                if (!release.await(30, TimeUnit.SECONDS)) { throw new IllegalStateException("the first save was never released"); }
+            }
+            return call.callRealMethod();
+        }).when(audits).append(any());
+        double retried = retries.retries("followup"), exhausted = retries.exhaustions("followup");
+        var auth = Map.of("estel", as("estel"), "marc", as("marc")); var keys = Map.of("estel", key(), "marc", key());
+        var outcomes = new LinkedHashMap<String, org.springframework.mock.web.MockHttpServletResponse>();
+        var pool = Executors.newFixedThreadPool(2);
+        try {
+            var saves = new LinkedHashMap<String, Future<org.springframework.mock.web.MockHttpServletResponse>>();
+            for (String who : List.of("estel", "marc")) {
+                byte[] body = mapper.writeValueAsBytes(Map.of("text", "Observació de " + who, "version", 0));
+                saves.put(who, pool.submit(() -> mvc.perform(request(HttpMethod.PUT, "/api/v1/dogs/s10f-d-duna/observations").header("Host", HOST).with(auth.get(who))
+                        .header("Idempotency-Key", keys.get(who)).contentType("application/json").content(body)).andReturn().getResponse()));
+            }
+            assertThat(held.await(30, TimeUnit.SECONDS)).as("one save reached its audit entry").isTrue();
+            // The other save met the held write: it retries (the fix), or it has already answered (before the fix, with a 500).
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+            while (retries.retries("followup") <= retried && saves.values().stream().noneMatch(Future::isDone) && System.nanoTime() < deadline) { Thread.sleep(2); }
+            release.countDown();
+            for (var save : saves.entrySet()) { outcomes.put(save.getKey(), save.getValue().get(60, TimeUnit.SECONDS)); }
+        } finally { release.countDown(); pool.shutdownNow(); }
+
+        var bodies = new ArrayList<String>(); for (var response : outcomes.values()) { bodies.add(response.getStatus() + " " + response.getContentAsString()); }
+        assertThat(outcomes.values().stream().map(org.springframework.mock.web.MockHttpServletResponse::getStatus).toList()).as(bodies.toString())
+                .containsExactlyInAnyOrder(200, 409);
+        String winner = outcomes.get("estel").getStatus() == 200 ? "estel" : "marc", loser = winner.equals("estel") ? "marc" : "estel";
+        assertThat(code(mapper.readTree(outcomes.get(loser).getContentAsString()))).isEqualTo("STALE_VERSION");
+        assertThat(retries.retries("followup")).as("the write conflict was retried").isGreaterThan(retried);
+        assertThat(retries.exhaustions("followup")).as("the 409 is the re-read version, not the attempts running out").isEqualTo(exhausted);
+        var dog = mongo.findById("s10f-d-duna", Document.class, "dogs");
+        assertThat(dog.getString("remarks")).isEqualTo("Observació de " + winner);
+        assertThat(dog.get("remarksMeta", Document.class).get("version", Number.class).longValue()).isEqualTo(1);
+        assertThat(eventsOf("DogUpdated")).hasSize(1);
+        assertThat(count("audit_entries", Criteria.where("entityType").is("Dog").and("entityId").is("s10f-d-duna"))).isEqualTo(1);
+        // The winner's key replays its 200; the loser reloads (version 1) and saves again.
+        var replay = call(HttpMethod.PUT, "/dogs/s10f-d-duna/observations", Map.of("text", "Observació de " + winner, "version", 0), as(winner), 200, keys.get(winner));
+        assertThat(replay).isEqualTo(mapper.readTree(outcomes.get(winner).getContentAsString()));
+        assertThat(call(HttpMethod.PUT, "/dogs/s10f-d-duna/observations", Map.of("text", "Observació de " + loser, "version", 1), as(loser), 200, key())
+                .path("version").asLong()).isEqualTo(2);
+        assertThat(eventsOf("DogUpdated")).hasSize(2);
+    }
+
     // ---------------------------------------------------------------- D14 (R-10-13) and the S03 consumers
 
     @Test void T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow() throws Exception {
@@ -808,6 +869,36 @@ class FollowupIT extends AbstractIntegrationTest {
         // The snapshot the note's transaction wrote into the event.
         assertThat(eventsOf("MemberNoteChanged")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class).get("author", Document.class))
                 .containsExactlyInAnyOrderEntriesOf(Map.of("accountId", "s10f-joan", "displayName", "Joan", "gender", "MALE")));
+    }
+
+    /**
+     * Round 4 review #2 (S10 §7, R-10-13): the note consumer is idempotent by `eventId`. The event keeps microseconds
+     * (`.519123Z`) and Mongo stores the row's `activityAt` in milliseconds (`.519Z`). Estel reads the row, and the same event
+     * consumed again leaves it read. Before the fix the replay counted as a new change and made it unread for everyone again.
+     */
+    @Test void T_10_18_aNoteEventReplayedWithSubMillisecondPrecisionLeavesTheRowRead() throws Exception {
+        Instant precise = NOW.plusNanos(519_123_000);
+        clock.setInstant(precise);
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-duna/instructor-note", Map.of("text", "Treballem el balancí amb calma"), as("laura"), 200);
+        dispatch();
+        String noteRow = com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.noteRowId(CLUB, "s10f-d-duna");
+        var changed = eventsOf("MemberNoteChanged").getLast();
+        var envelope = mapper.readValue(changed.getString("eventJson"), com.agilityhub.core.clubs.followup.domain.CensusForeignEvent.class);
+        assertThat(envelope.occurredAt()).as("the event keeps sub-millisecond precision").isEqualTo(precise);
+        var stored = mongo.findById(noteRow, Document.class, "followup_items");
+        assertThat(stored.getDate("activityAt").toInstant()).isEqualTo(Instant.parse("2026-08-12T14:00:00.519Z"));
+        assertThat(stored.getString("lastEventId")).isEqualTo(changed.getString("_id"));
+        assertThat(unread("estel")).isEqualTo(1); assertThat(unread("marc")).isEqualTo(1);
+
+        clock.setInstant(precise.plusSeconds(60));
+        call(HttpMethod.POST, "/followup/" + noteRow + "/read", null, as("estel"), 204, key());
+        assertThat(unread("estel")).isZero();
+        // The same event consumed again (an outbox redelivery), directly and inside a transaction.
+        noteConsumer.handle(changed.getString("_id"), envelope);
+        tx.executeWithoutResult(status -> { try { noteConsumer.handle(changed.getString("_id"), envelope); } catch (Exception e) { throw new IllegalStateException(e); } });
+        assertThat(unread("estel")).as("Estel's read mark survives the replay").isZero(); assertThat(unread("marc")).isEqualTo(1);
+        assertThat(followup("estel").path("items")).singleElement().satisfies(item -> assertThat(item.path("unread").asBoolean()).isFalse());
+        assertThat(mongo.findById(noteRow, Document.class, "followup_items")).isEqualTo(stored);
     }
 
     // ---------------------------------------------------------------- the port of the sheet and the card, TASKS off (T-10-33)

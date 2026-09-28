@@ -8,8 +8,10 @@ attached to a new task (201, AttachmentAdded, N-20), a 30 MB file, an .exe, an e
 D14 page and unread counts of two accounts before and after one read-all, and the TaskReopened / AttachmentRemoved rows.
 Round 2 (27-09): the note row and the D14 page show `authorGender`, `TaskCreated` shows its `textExcerpt`, and the D14 page
 limit (size 50 → 200, size 200 → 400 INVALID_FILTER). Round 3 (28-09): this run's `MemberNoteChanged` carries the
-`author` snapshot and the MEMBER_NOTE row equals it. Ids are truncated to 8 characters in the output.
+`author` snapshot and the MEMBER_NOTE row equals it. Round 4 (28-09): rounds of two simultaneous observation saves of one
+version (one 200 and one 409 STALE_VERSION each, never a 500). Ids are truncated to 8 characters in the output.
 """
+import concurrent.futures
 import importlib.machinery
 import importlib.util
 import json
@@ -18,6 +20,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
+import uuid
 
 ROOT = Path(__file__).resolve().parents[3]
 loader = importlib.machinery.SourceFileLoader("e5smoke", str(ROOT / "bin/e5-smoke"))
@@ -26,6 +30,7 @@ e5 = importlib.util.module_from_spec(spec)
 loader.exec_module(e5)
 e5.LOCAL_IMAGE = "agilityhub-e6-t03-manual:local"
 SEEDS = (("club:apply", "seeds/club-canic.yaml"), ("seed:demo", "--club=canic", "--seed=42", e5.WEEK_START))
+ROUNDS = 10
 short = e5.short
 
 
@@ -50,6 +55,23 @@ def upload(s, access, purpose, name, mime, size, directory):
                              "--output", "/dev/null", "--write-out", "%{http_code}", "--config", "-"], input=config, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     e5.require(result.stdout == "204", f"signed PUT answered {result.stdout}")
     return grant["fileKey"]
+
+
+def save_observations(s, access, dog_id, text, version, tag, barrier):
+    """One `PUT /dogs/{id}/observations` with its own key and its own private files (s.call shares one request and one
+    response file, so two threads cannot use it); the token stays in stdin, as in s.call. Waits on `barrier` first."""
+    payload, response = s.private / f"r4-request-{tag}", s.private / f"r4-response-{tag}"
+    payload.write_text(json.dumps(dict(text=text, version=version)))
+    headers = ["User-Agent: AgilityHub-E5-Smoke", "Host: " + s.host, "Authorization: Bearer " + access, "Idempotency-Key: " + str(uuid.uuid4()),
+               "Content-Type: application/json"]
+    config = "\n".join("header = " + json.dumps(h) for h in headers) + "\nurl = " + json.dumps(s.base + "/api/v1/dogs/" + dog_id + "/observations")
+    barrier.wait(timeout=60)
+    result = subprocess.run(["curl", "-4", "--silent", "--show-error", "--noproxy", "*", "--max-time", "60", "--request", "PUT", "--data-binary", "@" + str(payload),
+                             "--output", str(response), "--write-out", "%{http_code}", "--config", "-"], input=config, cwd=ROOT, env=s.env, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    e5.require(result.returncode == 0, f"curl PUT observations failed (exit {result.returncode})")
+    data = response.read_text()
+    return int(result.stdout), (json.loads(data) if data else {})
 
 
 def main():
@@ -172,6 +194,29 @@ def main():
             print(f"  GET /followup?size=50 -> 200, size {fifty['size']}, {len(fifty['items'])} items", flush=True)
             refused = s.call("GET", "/api/v1/followup?size=200", 400, access=instructor, error="INVALID_FILTER")
             show("400", {k: refused[k] for k in ("code", "message", "details")})
+
+            # 8. Round 4 (review #1, R-10-12): the instructor and the admin save the observations of one version at the same
+            # time, with different keys, ROUNDS times. Every round is one 200 and one 409 STALE_VERSION, never a 500, and
+            # one DogUpdated. The interleaving is not controlled here (FollowupIT pins the write conflict); this checks the
+            # real stack's answers.
+            events_before = len(outbox(["DogUpdated"], [dog["id"]]))
+            outcomes = []
+            for round_number in range(1, ROUNDS + 1):
+                version = s.call("GET", "/api/v1/dogs/" + dog["id"] + "/instructor-card", access=instructor, quiet=True)["observations"]["version"]
+                barrier = threading.Barrier(2)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                    saves = [pool.submit(save_observations, s, access, dog["id"], f"Observació {round_number} ({who})", version, f"{round_number}-{who}", barrier)
+                             for who, access in (("instructor", instructor), ("admin", admin))]
+                    answers = [save.result(timeout=120) for save in saves]
+                statuses = sorted(status for status, _ in answers)
+                codes = [body.get("code") for status, body in answers if status != 200]
+                outcomes.append(statuses)
+                e5.require(statuses == [200, 409] and codes == ["STALE_VERSION"], f"round {round_number}: {statuses} {codes}")
+            events = e5.wait(lambda: (lambda r: r if len(r) == events_before + ROUNDS else None)(outbox(["DogUpdated"], [dog["id"]])), "DogUpdated rows missing")
+            card = s.call("GET", "/api/v1/dogs/" + dog["id"] + "/instructor-card", access=admin, quiet=True)["observations"]
+            print(f"  concurrent observation saves: {ROUNDS} rounds, answers {outcomes}; DogUpdated rows +{len(events) - events_before}; card version {card['version']}", flush=True)
+            e5.require(card["version"] == version + 1, "one change per round")
+            print(f"PASS round 4: {ROUNDS} x (200, 409 STALE_VERSION), no 500", flush=True)
             print("PASS E6-T03 manual run", flush=True)
         finally:
             s.cleanup()

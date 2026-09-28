@@ -725,6 +725,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `gender` on N-21/N-22, `decision`, `source`, `member_first_name` and `dog_name` on N-28. The parity tests have no
     proposal left to pin.
   - Round 1's evidence logs lose their trailing whitespace.
+- E6-T03 round 4 (review of 28-09 10:28): concurrent observation saves answer 409, and the note consumer deduplicates by
+  `eventId`.
+  - `PUT /dogs/{id}/observations` runs in its own Mongo transaction, retried whole on a write conflict
+    (`FollowupTransactions`), with its idempotency row (`IdempotentOperation`), audit entry and outbox row inside it; the
+    idempotency filter no longer wraps that route in the request's transaction. Two saves of one version with different keys
+    give one 200 and one `409 STALE_VERSION` (the retry re-reads `remarksMeta.version`), never a `500 INTERNAL_ERROR`.
+  - The `MemberNoteChanged` consumer stores the event it applied on the MEMBER_NOTE row (`FollowupItem.lastEventId`): the
+    same event consumed again changes nothing. The event's instant is compared and stored at the millisecond Mongo keeps,
+    so a sub-millisecond replay is never a newer change and never makes the row unread again.
 - E6-T03 round 3 (review of 27-09 21:19): every N-20 attempt checks the owner, and the note's author is frozen when written.
   - The S11 dispatcher asks the owners of a notification's event before every attempt, retries included
     (`NotificationFactsPort.deliverable`, a new default hook). A `false` ends the delivery as `SKIPPED_STALE`, with no

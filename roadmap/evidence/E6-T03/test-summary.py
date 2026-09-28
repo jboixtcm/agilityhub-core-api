@@ -11,8 +11,10 @@ CLASSES = ["FollowupIT", "FollowupRulesTest", "FollowupNotificationsTest", "Foll
            # round 2 (27-09)
            "E6PersistenceIT", "E3GateFixesContractTest", "ListQueryTest", "ListContractValidationTest",
            # round 3 (28-09)
-           "NotificationDispatcherIT", "NotificationEngineIT"]
-IDS = r"(T_10_06|T_10_15|T_10_16|T_10_17|T_10_18|T_10_22|T_10_25|T_10_14|T_10_33|T_10_21|R_04_06|R_10_10)"
+           "NotificationDispatcherIT", "NotificationEngineIT",
+           # round 4 (28-09): the observations route stores its answer in its own transaction; ClubPagesIT spies the same bean.
+           "IdempotentReplayContractIT", "IdempotencyIT", "ClubPagesIT"]
+IDS = r"(T_10_06|T_10_15|T_10_16|T_10_17|T_10_18|T_10_22|T_10_25|T_10_14|T_10_33|T_10_21|R_04_06|R_10_10|R_10_12)"
 methods = {}
 for label, pattern in [("unit/contract (surefire)", "target/surefire-reports/TEST-*.xml"), ("integration (failsafe)", "target/failsafe-reports/TEST-*.xml")]:
     totals = [0, 0, 0, 0]

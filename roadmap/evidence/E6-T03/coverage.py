@@ -9,7 +9,9 @@ CLASSES = ["TaskService", "AttachmentService", "FollowupService", "FollowupProje
            # round 2 (27-09): FollowupNotificationFacts replaced FollowupNotifications (E7-T02); the list page limit.
            "FollowupNotificationFacts", "FollowupItemRepository", "ListDefinition", "ListQuery", "OpenApiConfiguration", "ListContractValidation",
            # round 3 (28-09): the per-attempt relevance hook of the S11 dispatcher.
-           "NotificationDispatcher", "NotificationFactsPort"]
+           "NotificationDispatcher", "NotificationFactsPort",
+           # round 4 (28-09): the observations save in its own retried transaction; the note consumer's eventId.
+           "IdempotencyFilter"]
 totals, classes = {}, {}
 with open("target/site/jacoco/jacoco.csv", encoding="utf-8") as source:
     for row in csv.DictReader(source):

@@ -58,6 +58,8 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     /** S10 R-10-04 (E6-T02): the attendance save retries inside its seat-lock transaction and stores its 200 there. */
     static final java.util.regex.Pattern ATTENDANCE = java.util.regex.Pattern.compile("/api/v1/class-sessions/[^/]+/attendance");
+    /** S10 R-10-12 (E6-T03 round 4): the observations save retries a write conflict inside its own transaction and stores its 200 there. */
+    static final java.util.regex.Pattern OBSERVATIONS = java.util.regex.Pattern.compile("/api/v1/dogs/[^/]+/observations");
 
     /**
      * CONVENCIONS_API §7 (E5-T27, ruling E46): a POST with the header, and every other route whose handler declares the header
@@ -153,7 +155,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
         // so two concurrent submissions give one 201 and one 422, never a 500.
         boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup");
-        if (bookings || signup || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
+        // S10 R-10-12 (E6-T03 round 4): two observation saves of one version give one 200 and one 409 STALE_VERSION, never a
+        // 500; like the signup, an error releases the key.
+        boolean observations = "PUT".equals(request.getMethod()) && OBSERVATIONS.matcher(path).matches();
+        if (bookings || signup || observations || path.equals("/api/v1/activities") || path.startsWith("/api/v1/activities/")
                 || path.equals("/api/v1/activity-registrations") || path.startsWith("/api/v1/activity-registrations/")) {
             var completed = new java.util.concurrent.atomic.AtomicBoolean();
             var target = bookings ? new ContentCachingResponseWrapper(response) : response;

@@ -12,7 +12,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * The follow-up writes without an `Idempotency-Key` (the text edit, the completion and the reopening) run in one Mongo
  * transaction retried whole on a write conflict: two simultaneous completions give one 200 and one TASK_ALREADY_DONE
- * (T-10-25). A keyed route already runs inside the idempotency filter's transaction and is not retried here.
+ * (T-10-25). The observations save (`PUT /dogs/{id}/observations`, keyed) runs here too, with its idempotency row
+ * (`IdempotentOperation`), so two saves of one version give one 200 and one STALE_VERSION (R-10-12, E6-T03 round 4). The
+ * other keyed routes already run inside the idempotency filter's transaction and are not retried here.
  */
 @Component
 public class FollowupTransactions {

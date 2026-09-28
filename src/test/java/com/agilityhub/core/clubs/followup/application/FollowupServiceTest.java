@@ -42,7 +42,7 @@ class FollowupServiceTest {
 
     private static FollowupItem item(String id, FollowupKind kind, String dogId, String memberId, String author, AuthorRole role, Instant activityAt) {
         return new FollowupItem(id, "club-a", kind, kind == FollowupKind.TASK ? "task-" + id : null, dogId, memberId, author, role, kind == FollowupKind.TASK ? "Estel" : "Joan",
-                kind == FollowupKind.TASK ? null : "MALE", "Text", NOW, null, activityAt, false, NOW);
+                kind == FollowupKind.TASK ? null : "MALE", "Text", NOW, null, activityAt, false, NOW, null);
     }
 
     @Test void T_10_06_T_10_18_theListComputesUnreadInTheQueryAndResolvesNamesAtReadTime() {

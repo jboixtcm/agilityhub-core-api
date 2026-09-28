@@ -98,7 +98,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         mongo.insert(new Attachment("e6-att-task", CLUB, "TASK", "e6-task-a", "e6-att-task", "vídeo.mp4", "video/mp4", 4, "e6-INSTRUCTOR", now, now, null, null, 0));
         mongo.insert(new Attachment("e6-att-note", CLUB, "INSTRUCTOR_NOTE", "e6-dog-a", "e6-att-note", "foto.jpg", "image/jpeg", 4, "e6-MEMBER", now, now, null, null, 0));
         mongo.insert(new FollowupItem("e6-item-a", CLUB, FollowupKind.TASK, "e6-task-a", "e6-dog-a", "e6-member-a", "e6-INSTRUCTOR", AuthorRole.INSTRUCTOR,
-                "Estel", null, "Practiqueu el balancí", now, null, now, false, now));
+                "Estel", null, "Practiqueu el balancí", now, null, now, false, now, null));
     }
     private void club(String clubId, List<Module> modules) {
         mongo.remove(Query.query(Criteria.where("_id").is(clubId)), Club.class);

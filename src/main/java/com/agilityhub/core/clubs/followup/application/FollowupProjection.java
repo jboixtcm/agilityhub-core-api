@@ -10,6 +10,8 @@ import com.agilityhub.core.shared.application.DomainEventHandler;
 import com.agilityhub.core.shared.application.FollowupCensusAccess;
 import com.agilityhub.core.shared.application.TenantContext;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
  * writes nothing new. `MemberNoteChanged` upserts the dog's one MEMBER_NOTE row (R-10-12/13): `activityAt` = the change's
  * `occurredAt`, the excerpt of the note's current text, the author = the member who wrote it, as the event froze them when
  * the note was written (their account, first name and gender; never the dog's current owner, E64, nor a later profile), and the row leaves
- * every read mark, so it is unread again for everyone but its author; an older replay only refreshes the excerpt.
+ * every read mark, so it is unread again for everyone but its author; an older replay only refreshes the excerpt. The
+ * event last applied to the row (`lastEventId`) consumed again changes nothing, and instants compare at the millisecond
+ * Mongo stores, so a replay never makes the row unread again (E6-T03 round 4).
  * `DogTransferred` moves the dog's tasks and rows to the dog's current owner as the census holds it, never to the event's
  * destination, so the transfers delivered late or out of order end with the last one (the task follows the dog, S03
  * R-03-14, E64). `DogDeactivated` changes nothing.
@@ -37,16 +41,19 @@ public class FollowupProjection {
     }
 
     @Transactional
-    public void memberNote(CensusForeignEvent event) {
+    public void memberNote(String eventId, CensusForeignEvent event) {
         try (var tenant = TenantContext.open(event.clubId())) {
             String dogId = event.text("dogId");
             var note = census.instructorNote(dogId).orElse(null); var dog = census.dog(dogId).orElse(null);
             if (note == null || dog == null) { return; }
             String excerpt = FollowupRules.excerpt(note.text()), rowId = FollowupItemRepository.noteRowId(event.clubId(), dogId);
             var stored = items.findById(rowId).orElse(null);
-            if (stored != null && stored.activityAt() != null && !event.occurredAt().isAfter(stored.activityAt())) { items.noteText(dogId, excerpt, clock.instant()); return; }
+            if (stored != null && eventId != null && eventId.equals(stored.lastEventId())) { return; } // the same event again (S10 §7)
+            // Mongo keeps milliseconds: the event's instant is compared, and stored, at that precision.
+            Instant occurredAt = event.occurredAt().truncatedTo(ChronoUnit.MILLIS);
+            if (stored != null && stored.activityAt() != null && !occurredAt.isAfter(stored.activityAt())) { items.noteText(dogId, excerpt, clock.instant()); return; }
             var author = author(event, dog, note);
-            items.note(dogId, dog.memberId(), author.accountId(), author.name(), author.gender(), excerpt, event.occurredAt(), clock.instant());
+            items.note(dogId, dog.memberId(), author.accountId(), author.name(), author.gender(), excerpt, occurredAt, eventId, clock.instant());
             marks.unreadForEveryone(rowId, clock.instant());
             dashboard.invalidateCountersAfterCommit(event.clubId());
         }
@@ -86,12 +93,12 @@ public class FollowupProjection {
             return handler("MemberNoteChanged", projection::memberNote);
         }
         @Bean("followup.DogTransferred") DomainEventHandler<CensusForeignEvent> dogTransferred(FollowupProjection projection) {
-            return handler("DogTransferred", projection::transferred);
+            return handler("DogTransferred", (id, event) -> projection.transferred(event));
         }
-        private static DomainEventHandler<CensusForeignEvent> handler(String type, java.util.function.Consumer<CensusForeignEvent> work) {
+        private static DomainEventHandler<CensusForeignEvent> handler(String type, java.util.function.BiConsumer<String, CensusForeignEvent> work) {
             return new DomainEventHandler<>() {
                 public String eventType() { return type; } public Class<CensusForeignEvent> eventClass() { return CensusForeignEvent.class; }
-                public void handle(String id, CensusForeignEvent event) { work.accept(event); }
+                public void handle(String id, CensusForeignEvent event) { work.accept(id, event); }
             };
         }
     }

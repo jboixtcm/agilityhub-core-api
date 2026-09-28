@@ -81,9 +81,9 @@ class FollowupContractAccessTest {
         assertThatThrownBy(() -> access.task(owner, "task-d")).hasMessage("NOT_FOUND");
         assertThatThrownBy(() -> access.task(staff, "task-x")).hasMessage("NOT_FOUND");
         when(items.findById("item-a")).thenReturn(Optional.of(new FollowupItem("item-a", "club-a", com.agilityhub.core.clubs.followup.domain.FollowupKind.TASK, "task-a",
-                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", null, "Practiqueu", NOW, null, NOW, false, NOW)));
+                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", null, "Practiqueu", NOW, null, NOW, false, NOW, null)));
         when(items.findById("item-h")).thenReturn(Optional.of(new FollowupItem("item-h", "club-a", com.agilityhub.core.clubs.followup.domain.FollowupKind.TASK, "task-d",
-                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", null, "Pujar", NOW, null, NOW, true, NOW)));
+                "dog-a", "member-a", "account-a", com.agilityhub.core.clubs.followup.domain.AuthorRole.INSTRUCTOR, "Estel", null, "Pujar", NOW, null, NOW, true, NOW, null)));
         access.followupItem("item-a");
         assertThatThrownBy(() -> access.followupItem("item-x")).hasMessage("NOT_FOUND");
         assertThatThrownBy(() -> access.followupItem("item-h")).as("a deleted task's hidden row").hasMessage("NOT_FOUND");

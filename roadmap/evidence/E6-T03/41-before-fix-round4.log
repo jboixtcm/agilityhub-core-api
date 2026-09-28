@@ -1,0 +1,55 @@
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/api/FollowupController.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/clubs/followup/application/FollowupTransactions.java
+restored HEAD in the copy: src/main/java/com/agilityhub/core/shared/api/IdempotencyFilter.java
+kept round 4 in the copy (the stored field / parameter only): src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItem.java
+kept round 4 in the copy (the stored field / parameter only): src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItemRepository.java
+reverted in the copy's FollowupProjection: if (stored != null && eventId != null && eventId.equals(stored.lastEventId())) { return; } // the same event again (S10 §7)
+reverted in the copy's FollowupProjection: Instant occurredAt = event.occurredAt().truncatedTo(ChronoUnit.MILLIS);
+$ (cd target/before-fix-e6t03-r4 && ./mvnw -q verify -Dtest=FollowupProjectionTest -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=FollowupIT -Dmaven.test.failure.ignore=true -Djacoco.skip=true)
+exit 0
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.535 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.application.FollowupProjectionTest
+[ERROR] com.agilityhub.core.clubs.followup.application.FollowupProjectionTest.T_10_18_theSameNoteEventConsumedAgainNeverMakesTheRowUnreadAgain -- Time elapsed: 0.011 s <<< FAILURE!
+[ERROR]   FollowupProjectionTest.T_10_18_theSameNoteEventConsumedAgainNeverMakesTheRowUnreadAgain:125
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Tests run: 19, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 11.70 s <<< FAILURE! -- in com.agilityhub.core.clubs.followup.api.FollowupIT
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.R_10_12_twoConcurrentSavesOfOneVersionGiveOne200AndOne409NeverA500 -- Time elapsed: 0.284 s <<< FAILURE!
+java.lang.AssertionError:
+Expecting actual:
+[ERROR] com.agilityhub.core.clubs.followup.api.FollowupIT.T_10_18_aNoteEventReplayedWithSubMillisecondPrecisionLeavesTheRowRead -- Time elapsed: 0.124 s <<< FAILURE!
+org.opentest4j.AssertionFailedError:
+expected: 0
+ but was: 1
+[ERROR]   FollowupIT.R_10_12_twoConcurrentSavesOfOneVersionGiveOne200AndOne409NeverA500:544 [[500 {"code":"INTERNAL_ERROR","message":"S'ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi bb3a7685-1dc0-4961-8f13-947f9df1ff1b al club.","details":{},"traceId":"bb3a7685-1dc0-4961-8f13-947f9df1ff1b"}, 200 {"text":"Observació de marc","updatedAt":"2026-08-12T14:00:00Z","upda
+Expecting actual:
+[ERROR]   FollowupIT.T_10_18_aNoteEventReplayedWithSubMillisecondPrecisionLeavesTheRowRead:899 [Estel's read mark survives the replay]
+expected: 0
+ but was: 1
+[ERROR] Tests run: 19, Failures: 2, Errors: 0, Skipped: 0
+--- per test (surefire + failsafe XML of the copy), with the first line of each failure
+ok     FollowupProjectionTest.T_10_18_aNoteConsumedAfterATransferIsStillItsWritersRow
+ok     FollowupProjectionTest.T_10_18_theNoteRowTakesTheAuthorTheEventFroze
+FAILED FollowupProjectionTest.T_10_18_theSameNoteEventConsumedAgainNeverMakesTheRowUnreadAgain
+        Argument(s) are different! Wanted: followupItemRepository.note( "dog-a", "member-a", "account-m", "Laura", "FEMALE", "Nota", 2026-08-12T16:00:00.519Z, "e-1", 2026-08-12T16:00:00Z ); -> at com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.note(FollowupItemRepository.java:60) Actual invocations have different arguments at position [6]: followupItemRepository.findById( "a5c957bf-
+ok     FollowupProjectionTest.T_10_18_aTransferredDogTakesItsTasksAndRowsToItsCurrentOwner
+ok     FollowupProjectionTest.T_10_18_aNewNoteChangeUpsertsTheRowAndMakesItUnreadForEveryoneButTheAuthor
+FAILED FollowupIT.R_10_12_twoConcurrentSavesOfOneVersionGiveOne200AndOne409NeverA500
+       [[500 {"code":"INTERNAL_ERROR","message":"S&apos;ha produït un error inesperat. Torna-ho a provar; si persisteix, indica el codi bb3a7685-1dc0-4961-8f13-947f9df1ff1b al club.","details":{},"traceId":"bb3a7685-1dc0-4961-8f13-947f9df1ff1b"}, 200 {"text":"Observació de marc","updatedAt":"2026-08-12T14:00:00Z","updatedByName":"Marc","version":1}]] Expecting actual: [500, 200] to contain exactly in any
+ok     FollowupIT.T_10_21_d14PagesHoldAtMost50Rows
+ok     FollowupIT.T_10_18_aNoteRowKeepsItsAuthorAsWrittenWhenTheProfileChangesBeforeTheDispatch
+ok     FollowupIT.T_10_15_aTaskIsCreatedEditedCompletedReopenedAndDeletedWithItsEventsAndNotifications
+ok     FollowupIT.R_10_10_transfersDeliveredOutOfOrderEndWithTheDogsCurrentOwner
+ok     FollowupIT.T_10_18_T_10_06_d14ListsUnreadFirstPerAccountWithReadMarksAndTheNoteRow
+ok     FollowupIT.T_10_14_T_10_33_theCardGetsItsThreeBlocksWithTasksOnAndNoneWithTasksOffAndNothingIsQueued
+ok     FollowupIT.T_10_25_aDoubleClickIsOneTaskAndTwoSimultaneousCompletionsOneN21
+ok     FollowupIT.R_10_10_anN20EmailRetriedAfterATransferNeverReachesThePreviousOwner
+ok     FollowupIT.T_10_15_T_10_22_theImpersonatedOwnerCompletesAuditedAndStaffRoutesRejectTheToken
+ok     FollowupIT.R_04_06_observationsOfAPendingReadmissionsReusedDogAnswer409
+ok     FollowupIT.R_10_10_rightAfterATransferOnlyTheNewOwnerReachesTheTaskItsAttachmentsAndItsCompletion
+FAILED FollowupIT.T_10_18_aNoteEventReplayedWithSubMillisecondPrecisionLeavesTheRowRead
+       [Estel&apos;s read mark survives the replay] expected: 0 but was: 1
+ok     FollowupIT.T_10_18_theAuthorOfANoteRowStaysWhoWroteItAcrossATransfer
+ok     FollowupIT.T_10_18_theTaskFollowsATransferredDog
+ok     FollowupIT.R_10_10_aDelayedTaskCreatedAfterATransferNotifiesNobodyAndNeverTheNewText
+ok     FollowupIT.T_10_17_observationsAreVersionedAuditedAndNeverReachAMember
+ok     FollowupIT.T_10_15_includeDoneDefaultsToTheWholeHistoryAndStatePicksOne
+ok     FollowupIT.T_10_16_attachmentsFollowTheirEntityPurposeLimitAndRoles

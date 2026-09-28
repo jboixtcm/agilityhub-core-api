@@ -52,16 +52,17 @@ public class FollowupItemRepository extends TenantRepository<FollowupItem> {
     public void hide(String taskId, Instant now) { set(taskRowId(taskId), new Update().set("hidden", true), now); }
     /**
      * The one MEMBER_NOTE row of a dog (R-10-12/13): `activityAt` is the change's `occurredAt`, the excerpt the note's
-     * current text, the author the member who wrote it (E64); an emptied note hides the row. Returns the row as stored
-     * before, null the first time.
+     * current text, the author the member who wrote it (E64), `lastEventId` the event applied (S10 §7); an emptied note
+     * hides the row. Returns the row as stored before, null the first time.
      */
     public FollowupItem note(String dogId, String memberId, String authorAccountId, String authorName, String authorGender, String excerpt, Instant occurredAt,
-            Instant now) {
+            String eventId, Instant now) {
         String id = noteRowId(tenantClub(), dogId);
         var before = findById(id).orElse(null);
         mongo.upsert(row(id), new Update().setOnInsert("kind", FollowupKind.MEMBER_NOTE).setOnInsert("dogId", dogId)
                 .setOnInsert("createdAt", occurredAt).set("memberId", memberId).set("authorAccountId", authorAccountId).set("authorRole", AuthorRole.MEMBER)
-                .set("authorName", authorName).set("authorGender", authorGender).set("textExcerpt", excerpt).set("activityAt", occurredAt).set("hidden", excerpt.isEmpty()).set("updatedAt", now), FollowupItem.class);
+                .set("authorName", authorName).set("authorGender", authorGender).set("textExcerpt", excerpt).set("activityAt", occurredAt).set("hidden", excerpt.isEmpty())
+                .set("lastEventId", eventId).set("updatedAt", now), FollowupItem.class);
         return before;
     }
     /** An older (replayed) note change: only the excerpt follows the note's current text. */

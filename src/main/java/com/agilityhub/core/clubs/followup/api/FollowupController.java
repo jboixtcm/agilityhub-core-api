@@ -3,14 +3,17 @@ package com.agilityhub.core.clubs.followup.api;
 import com.agilityhub.core.clubs.followup.application.FollowupActors;
 import com.agilityhub.core.clubs.followup.application.FollowupContractAccess;
 import com.agilityhub.core.clubs.followup.application.FollowupService;
+import com.agilityhub.core.clubs.followup.application.FollowupTransactions;
 import com.agilityhub.core.clubs.followup.application.ObservationService;
 import com.agilityhub.core.clubs.followup.domain.FollowupKind;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.CurrentUser;
+import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.application.contract.ListContract;
 import com.agilityhub.core.shared.application.lists.SparseItems;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,9 +40,10 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 public class FollowupController {
     static final String GUARDS = " Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.";
     private final FollowupContractAccess access; private final FollowupActors actors; private final ObservationService observations;
-    private final FollowupService followup; private final ObjectMapper mapper;
-    public FollowupController(FollowupContractAccess access, FollowupActors actors, ObservationService observations, FollowupService followup, ObjectMapper mapper) {
-        this.access = access; this.actors = actors; this.observations = observations; this.followup = followup; this.mapper = mapper;
+    private final FollowupService followup; private final FollowupTransactions transactions; private final ObjectMapper mapper;
+    public FollowupController(FollowupContractAccess access, FollowupActors actors, ObservationService observations, FollowupService followup,
+            FollowupTransactions transactions, ObjectMapper mapper) {
+        this.access = access; this.actors = actors; this.observations = observations; this.followup = followup; this.transactions = transactions; this.mapper = mapper;
     }
     private static String me() { return CurrentUser.current().accountId(); }
 
@@ -52,8 +56,18 @@ public class FollowupController {
         access.tenant();
         var caller = access.caller(jwt.getClaimAsString("memberId"));
         access.dog(caller, id);
-        var saved = observations.save(id, request.text(), request.version(), actors.actor(caller, jwt.getClaimAsString("memberId"), jwt.getClaimAsString("instructorId")));
-        return new Observations(saved.text() == null ? "" : saved.text(), saved.updatedAt(), saved.updatedByName(), saved.version());
+        var by = actors.actor(caller, jwt.getClaimAsString("memberId"), jwt.getClaimAsString("instructorId"));
+        // E6-T03 round 4 (R-10-12): the save, its audit and outbox rows and the stored 200 of the key commit together, in a
+        // transaction retried whole on a write conflict. Two saves of one version: the loser's retry re-reads
+        // remarksMeta.version and answers 409 STALE_VERSION, never a 500.
+        return transactions.run(() -> {
+            IdempotentOperation.lock();
+            var saved = observations.save(id, request.text(), request.version(), by);
+            var result = new Observations(saved.text() == null ? "" : saved.text(), saved.updatedAt(), saved.updatedByName(), saved.version());
+            try { IdempotentOperation.complete(200, mapper.writeValueAsBytes(result)); }
+            catch (JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
+            return result;
+        });
     }
 
     @GetMapping("/api/v1/followup")
