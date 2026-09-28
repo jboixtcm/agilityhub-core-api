@@ -33,12 +33,15 @@ public final class RecipientResolver {
         this.members = members; this.staff = staff; this.signups = signups;
     }
 
-    /** One recipient of one audience; `contact` is null for an `APPLICANT`, `applicant` for the others. */
+    /**
+     * One recipient of one audience; `contact` is null for an `APPLICANT`, `applicant` for the others. `subjectDog` is the
+     * notice's dog (`dogId`) whoever owns it: the recipient's own, or the owner's for the family member who booked it.
+     */
     public record Recipient(NotificationAudience audience, MemberContact contact, SignupContactPort.ApplicantContact applicant, String dogId,
-            Map<String, Object> values, NotificationSubject subject, String occurrence) {
+            Map<String, Object> values, NotificationSubject subject, String occurrence, MemberContact.DogContact subjectDog) {
         public Recipient(NotificationAudience audience, MemberContact contact, SignupContactPort.ApplicantContact applicant, String dogId,
                 Map<String, Object> values, NotificationSubject subject) {
-            this(audience, contact, applicant, dogId, values, subject, null);
+            this(audience, contact, applicant, dogId, values, subject, null, null);
         }
         public String accountId() { return contact != null ? contact.accountId() : applicant == null ? null : applicant.accountId(); }
         public String memberId() { return contact == null ? null : contact.memberId(); }
@@ -73,6 +76,9 @@ public final class RecipientResolver {
         var contacts = new LinkedHashMap<String, MemberContact>();
         members.findAll(subjects.stream().map(NotificationFacts.MemberSubject::memberId).distinct().toList())
                 .forEach(contact -> contacts.put(contact.memberId(), contact));
+        // R-11-05: the subject dog whoever owns it — among the event's members first (the owner beside the booker), else the census.
+        var dogs = new java.util.HashMap<String, MemberContact.DogContact>();
+        contacts.values().forEach(contact -> contact.dogs().forEach(dog -> dogs.putIfAbsent(dog.dogId(), dog)));
         var seen = new HashSet<String>();
         for (var subject : subjects) {
             var contact = contacts.get(subject.memberId());
@@ -81,7 +87,9 @@ public final class RecipientResolver {
             if (!seen.add(contact.memberId() + "|" + Objects.toString(subject.dogId(), "") + "|" + Objects.toString(subject.occurrence(), ""))) { continue; }
             var ids = facts.subject().with(subject.subject()).with(NotificationSubject.member(contact.memberId()));
             if (subject.dogId() != null) { ids = ids.withDog(subject.dogId()); }
-            out.add(new Recipient(NotificationAudience.MEMBER, contact, null, subject.dogId(), subject.values(), ids, subject.occurrence()));
+            var dog = subject.dogId() == null ? null : contact.dog(subject.dogId()).or(() -> java.util.Optional.ofNullable(dogs.get(subject.dogId())))
+                    .or(() -> members.dog(subject.dogId())).orElse(null);
+            out.add(new Recipient(NotificationAudience.MEMBER, contact, null, subject.dogId(), subject.values(), ids, subject.occurrence(), dog));
         }
     }
     /** R-11-02 default: `affected[{memberId, dogId, bookingId}]`, else the payload's `memberId` (and `dogId`). */

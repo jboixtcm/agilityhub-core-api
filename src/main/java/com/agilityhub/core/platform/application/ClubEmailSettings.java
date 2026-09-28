@@ -27,9 +27,11 @@ public class ClubEmailSettings {
                 club.defaultLocale(), config.get("auth.magicLinkMinutes", Integer.class));
     }
     /** `https://{host}` of the club's verified member app domain (the links of a notification e-mail), or empty. */
-    public java.util.Optional<String> appOrigin(String clubId) {
+    public java.util.Optional<String> appOrigin(String clubId) { return appOrigin(clubId, "clubs"); }
+    /** `https://{host}` of the club's verified domain of `app` (`clubs`, `clubs-admin`: the deep links of R-11-11), or empty. */
+    public java.util.Optional<String> appOrigin(String clubId, String app) {
         return clubs.findById(clubId).flatMap(club -> club.domains().stream()
-                .filter(candidate -> "clubs".equals(candidate.app()) && candidate.status() == Club.DomainStatus.VERIFIED)
+                .filter(candidate -> app.equals(candidate.app()) && candidate.status() == Club.DomainStatus.VERIFIED)
                 .sorted(java.util.Comparator.comparing(Club.Domain::primary).reversed().thenComparing(Club.Domain::host))
                 .findFirst().map(candidate -> "https://" + candidate.host()));
     }

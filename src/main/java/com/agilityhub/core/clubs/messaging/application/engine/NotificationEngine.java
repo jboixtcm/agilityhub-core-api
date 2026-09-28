@@ -277,7 +277,8 @@ public class NotificationEngine {
             raw.putIfAbsent("member_first_name", contact.firstName());
             raw.putIfAbsent("member_last_names", lastNames(contact));
             raw.putIfAbsent("gender", contact.gender() == null ? "OTHER" : contact.gender());
-            var dog = recipient.dogId() == null ? Optional.<MemberContact.DogContact>empty() : contact.dog(recipient.dogId());
+            // The subject dog whoever owns it (the family member who booked the owner's dog reads its name, A20b).
+            var dog = Optional.ofNullable(recipient.subjectDog());
             if (dog.isPresent()) {
                 raw.putIfAbsent("dog_name", dog.get().name());
                 raw.putIfAbsent("dog_name_article", DogNameArticle.of(dog.get().name(), dog.get().sex(), locale));
@@ -319,19 +320,14 @@ public class NotificationEngine {
         return Locale.forLanguageTag("ca");
     }
 
-    /** The R-11-03 contact of a recipient; an address the account marked as bounced (E1-T03) counts as bounced too. */
+    /** The R-11-03 contact of a recipient; an address the account marked as bounced (E1-T03) counts as bounced too ({@link EmailSuppression}). */
     private static ChannelResolver.Contact contact(RecipientResolver.Recipient recipient, NotificationAccounts.Recipient account, Map<String, List<String>> push) {
         if (recipient.applicant() != null) {
             return new ChannelResolver.Contact(recipient.applicant().accountId(), List.of(new ChannelResolver.EmailAddress(recipient.applicant().email(), false)),
                     List.of(), List.of(), null);
         }
         var person = recipient.contact();
-        var emails = new ArrayList<ChannelResolver.EmailAddress>();
-        for (var address : person.emails()) {
-            boolean accountBounced = account != null && account.emailStatus() != null && account.email() != null && account.email().equalsIgnoreCase(address.address());
-            emails.add(new ChannelResolver.EmailAddress(address.address(), address.bounced() || accountBounced));
-        }
-        return new ChannelResolver.Contact(person.accountId(), emails, person.phones(),
+        return new ChannelResolver.Contact(person.accountId(), EmailSuppression.addresses(person, account), person.phones(),
                 person.accountId() == null ? List.of() : push.getOrDefault(person.accountId(), List.of()), NotificationPreference.of(person.preferences()));
     }
 

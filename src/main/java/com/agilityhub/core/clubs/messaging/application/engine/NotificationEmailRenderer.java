@@ -2,6 +2,7 @@ package com.agilityhub.core.clubs.messaging.application.engine;
 
 import com.agilityhub.core.clubs.messaging.application.EmailMessage;
 import com.agilityhub.core.clubs.messaging.domain.NotificationCategory;
+import com.agilityhub.core.clubs.messaging.domain.NotificationLinks;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.platform.application.ClubEmailSettings;
 import com.agilityhub.core.shared.application.IcuMessageSource;
@@ -11,16 +12,17 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 /**
  * S11 R-11-05 (5) and R-11-08, the e-mail of an engine notification: subject = the rendered title; HTML = the club's
- * Thymeleaf layout (logo, colours and name of `Club.theme`, the E1-T03 layout) with the frozen body, a button to the feed
- * of the club app when the code has a native action (R-11-11: the action opens from there), the calendar link of N-04, the
- * «reply to contact the club» footer, and — only on `CLUB_NEWS` — the «Deixar de rebre aquests comunicats» link with the
- * `List-Unsubscribe` header; plus the plain-text part. `From`/`Reply-To` come from {@link ClubEmailSettings} (the club
- * domain only when S17 verified it).
+ * Thymeleaf layout (logo, colours and name of `Club.theme`, the E1-T03 layout) with the frozen body, a button with the deep
+ * link of the code's native action (R-11-11: the action's route and parameters in the audience's app,
+ * {@link NotificationLinks}), the calendar link of N-04, the «reply to contact the club» footer, and — only on `CLUB_NEWS` —
+ * the «Deixar de rebre aquests comunicats» link with the `List-Unsubscribe` header; plus the plain-text part.
+ * `From`/`Reply-To` come from {@link ClubEmailSettings} (the club domain only when S17 verified it).
  */
 public final class NotificationEmailRenderer {
     private final IcuMessageSource messages; private final TemplateEngine templates;
@@ -28,14 +30,17 @@ public final class NotificationEmailRenderer {
     public NotificationEmailRenderer(IcuMessageSource messages, TemplateEngine templates) { this.messages = messages; this.templates = templates; }
 
     /**
-     * @param appOrigin   `https://{club app host}`, or null when the club has no verified app domain (no links then)
+     * @param origins     `https://{host}` of the club's verified domain of an app (`clubs`, `clubs-admin`), or null when the club
+     *                    has none (no button then)
      * @param unsubscribe the signed unsubscribe URL of a `CLUB_NEWS` mail, otherwise null
      */
-    public EmailMessage render(Notification notification, String to, ClubEmailSettings.Settings settings, String appOrigin, String unsubscribe,
+    public EmailMessage render(Notification notification, String to, ClubEmailSettings.Settings settings, Function<String, String> origins, String unsubscribe,
             Map<String, String> tags) {
         var locale = Locale.forLanguageTag(notification.locale() == null ? settings.defaultLocale() : notification.locale());
         boolean news = notification.category() == NotificationCategory.CLUB_NEWS;
-        String link = notification.action() != null && appOrigin != null ? appOrigin + "/notificacions" : null;
+        String link = notification.action() == null ? null : NotificationLinks.of(notification.audience(), notification.action().type(), notification.action().params())
+                .map(route -> { String origin = origins.apply(route.app()); return origin == null ? null : origin + route.path(); })
+                .filter(NotificationEmailRenderer::safe).orElse(null);
         String calendar = notification.variables() != null && notification.variables().get("calendar_links") instanceof String ics && safe(ics) ? ics : null;
         String unsubscribeLink = news && unsubscribe != null && safe(unsubscribe) ? unsubscribe : null;
         var values = new HashMap<String, Object>();

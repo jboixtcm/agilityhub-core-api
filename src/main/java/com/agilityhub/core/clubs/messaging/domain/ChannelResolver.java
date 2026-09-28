@@ -85,13 +85,19 @@ public final class ChannelResolver {
 
     /**
      * R-11-06 at the cap: the SMS of the recipient become `SKIPPED_CAP` and an EMAIL is forced to every address that is not
-     * bounced and has no live EMAIL delivery yet, even when the preference is off. Returns the EMAIL deliveries to add.
+     * bounced and has no live EMAIL delivery yet, even when the preference is off: one per address compared without case, as
+     * the first resolution writes them. Returns the EMAIL deliveries to add.
      */
     public static List<Planned> capReached(Contact contact, java.util.Collection<String> liveEmailTargets) {
-        var forced = new ArrayList<Planned>();
+        var live = new java.util.HashSet<String>();
+        liveEmailTargets.forEach(target -> live.add(target.strip().toLowerCase(java.util.Locale.ROOT)));
+        var targets = new java.util.LinkedHashMap<String, String>();
         for (var address : contact.emails()) {
-            if (!address.bounced() && !liveEmailTargets.contains(address.address())) { forced.add(new Planned(EMAIL, address.address(), QUEUED)); }
+            String key = address.address().strip().toLowerCase(java.util.Locale.ROOT);
+            if (!address.bounced() && !key.isEmpty() && !live.contains(key)) { targets.putIfAbsent(key, address.address().strip()); }
         }
+        var forced = new ArrayList<Planned>();
+        targets.values().forEach(target -> forced.add(new Planned(EMAIL, target, QUEUED)));
         return forced;
     }
 

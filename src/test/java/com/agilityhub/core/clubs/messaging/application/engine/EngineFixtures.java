@@ -7,6 +7,7 @@ import com.agilityhub.core.clubs.messaging.application.integrations.FakePushSend
 import com.agilityhub.core.clubs.messaging.application.integrations.FakeSmsSender;
 import com.agilityhub.core.clubs.messaging.application.integrations.SmsSender;
 import com.agilityhub.core.clubs.messaging.application.ports.InMemoryMessagingPorts;
+import com.agilityhub.core.clubs.messaging.application.ports.MemberDirectoryPort;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationFacts;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationFactsPort;
 import com.agilityhub.core.clubs.messaging.application.ports.NotificationSubject;
@@ -94,9 +95,44 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         engine = new NotificationEngine(configs, messages, templates, new RecipientResolver(ports, ports, ports), notifications, subscriptions, accounts, owners, ports,
                 events, dispatcher, clock, transactions);
     }
-    NotificationDispatcher dispatcher(SmsSender smsSender) {
-        return new NotificationDispatcher(notifications, subscriptions, mail, smsSender, push, configs, emailSettings, usage, emails, unsubscribes, ports, events,
-                new TransactionTemplate(transactions), owners, clock, "no-reply@example.test");
+    NotificationDispatcher dispatcher(SmsSender smsSender) { return dispatcher(smsSender, ports, usage, events); }
+    /** A dispatcher over other doubles: the member directory, the SMS counter or the outbox (the failure-injection tests of round 2). */
+    NotificationDispatcher dispatcher(SmsSender smsSender, MemberDirectoryPort members, ClubSmsUsage smsUsage, EventPublisher outbox) {
+        return new NotificationDispatcher(notifications, subscriptions, mail, smsSender, push, configs, emailSettings, smsUsage, emails, unsubscribes, members, accounts,
+                outbox, new TransactionTemplate(transactions), owners, clock, "no-reply@example.test");
+    }
+    /** A dispatcher whose inline trigger does nothing: the engine stores the deliveries due, and the test dispatches them. */
+    NotificationDispatcher idleDispatcher() {
+        return new NotificationDispatcher(notifications, subscriptions, mail, sms, push, configs, emailSettings, usage, emails, unsubscribes, ports, accounts, events,
+                new TransactionTemplate(transactions), owners, clock, "no-reply@example.test") {
+            @Override public int dispatch(java.util.Collection<String> notificationIds) { return 0; }
+        };
+    }
+    /** The engine sending through `using` right after its commit. */
+    NotificationEngine engine(NotificationDispatcher using) {
+        return new NotificationEngine(configs, messages, templates, new RecipientResolver(ports, ports, ports), notifications, subscriptions, accounts, owners, ports,
+                events, using, clock, transactions);
+    }
+
+    /** The in-memory directory seen through a hook that runs before each member lookup (a gate, an injected failure). */
+    MemberDirectoryPort directory(java.util.function.Consumer<String> beforeFind) {
+        return new MemberDirectoryPort() {
+            @Override public Optional<com.agilityhub.core.clubs.messaging.application.ports.MemberContact> find(String memberId) { beforeFind.accept(memberId); return ports.find(memberId); }
+            @Override public List<com.agilityhub.core.clubs.messaging.application.ports.MemberContact> findAll(java.util.Collection<String> memberIds) { return ports.findAll(memberIds); }
+            @Override public Optional<com.agilityhub.core.clubs.messaging.application.ports.MemberContact> byAccount(String accountId) { return ports.byAccount(accountId); }
+            @Override public List<String> membersWithEmail(String address) { return ports.membersWithEmail(address); }
+            @Override public Optional<com.agilityhub.core.clubs.messaging.application.ports.MemberContact.DogContact> dog(String dogId) { return ports.dog(dogId); }
+        };
+    }
+
+    /** The outbox, failing the first `failures` publications of one event type (after nothing was written by them). */
+    static final class FailingOutbox implements EventPublisher {
+        final EventPublisher delegate; final String type; final java.util.concurrent.atomic.AtomicInteger left, failed = new java.util.concurrent.atomic.AtomicInteger();
+        FailingOutbox(EventPublisher delegate, String type, int failures) { this.delegate = delegate; this.type = type; this.left = new java.util.concurrent.atomic.AtomicInteger(failures); }
+        @Override public String publish(DomainEvent event) {
+            if (type.equals(event.type()) && left.getAndDecrement() > 0) { failed.incrementAndGet(); throw new IllegalStateException("outbox write failed (injected)"); }
+            return delegate.publish(event);
+        }
     }
     void club(String id, String zone, Module... modules) {
         mongo.remove(Query.query(Criteria.where("_id").is(id)), Club.class);
@@ -166,8 +202,11 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
         final List<EmailMessage> sent = new CopyOnWriteArrayList<>();
         final Deque<SendResult> script = new ConcurrentLinkedDeque<>();
         volatile Runnable during = () -> { };
+        /** Runs while the provider call is in flight, with the message (a webhook that arrives before the answer). */
+        volatile java.util.function.Consumer<EmailMessage> inFlight = message -> { };
         @Override public SendResult send(EmailMessage message) {
             during.run();
+            inFlight.accept(message);
             var next = script.poll();
             if (next != null) { return next; }
             sent.add(message); return SendResult.sent("mail-" + UUID.randomUUID());

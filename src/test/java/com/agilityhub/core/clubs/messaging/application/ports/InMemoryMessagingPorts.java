@@ -71,6 +71,9 @@ public final class InMemoryMessagingPorts implements MemberDirectoryPort, Member
     @Override public Optional<MemberContact> byAccount(String accountId) {
         return members.values().stream().filter(m -> accountId != null && accountId.equals(m.accountId())).findFirst();
     }
+    @Override public Optional<MemberContact.DogContact> dog(String dogId) {
+        return members.values().stream().flatMap(m -> m.dogs().stream()).filter(d -> d.dogId().equals(dogId)).findFirst();
+    }
     @Override public List<String> membersWithEmail(String address) {
         return members.values().stream().filter(m -> m.emails().stream().anyMatch(e -> e.address().equalsIgnoreCase(address))).map(MemberContact::memberId).toList();
     }

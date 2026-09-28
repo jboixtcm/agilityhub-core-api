@@ -1,0 +1,88 @@
+heavy.sh: 16:44 waiting for the host lock, held by: 16:44 clubs: pnpm -w run e2e:docker E4-W16
+heavy.sh: 16:47 got the host lock after 2 min 30 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  376 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+PASS E6 demo cast (seeds/demo-canic.yaml scenario.attendance): found · class Mon 2026-10-12 08:30 CEN 6b0f76d7…; Rita + Mel, Martí + Sorra, Alba + Pinya, Nil + Trufa, Iu + Gira; instructor Berta = instructor.3@example.test; holder Rita = member.8@example.test
+curl PUT /api/v1/jobs/class-finishing/switch -> 200
+curl PUT /api/v1/jobs/no-show-notices/switch -> 200
+curl PUT /api/v1/jobs/risk-review/switch -> 200
+PASS PUT /jobs/{class-finishing,no-show-notices,risk-review}/switch {enabled:false}: 200 · the scheduler records SKIPPED{DISABLED}; the manual runs below still run (R-15-09)
+PASS POST /test/clock: 200 · Monday 04:25 (Mon 12-10 04:25 Europe/Madrid; server now 2026-10-12T02:25Z)
+curl GET /api/v1/instructor/day -> 200
+PASS (1) GET /instructor/day (instructor, app): 200 · 08:30 A+B 4/5 · waiting 1 · attendance PENDING 0/4 («passar llista pendent»)
+curl GET /api/v1/class-sessions/<id>/attendance -> 200
+PASS (2) GET /class-sessions/{id}/attendance: 200 · rows Rita + Mel, Martí + Sorra, Alba + Pinya, Nil + Trufa · waiting Iu + Gira · version 0 · canMarkPresence True
+curl PUT /api/v1/class-sessions/<id>/attendance -> 200
+PASS (3) PUT /class-sessions/{id}/attendance (app): Rita PRESENT, Nil NO_SHOW, Alba NOTIFIED: 200 · notice {late: false, seatReleased: true, waitlistNotified: true}; outbox BookingCancelled + SeatReleased + WaitlistNotified; N-15 ×1 to Iu (APP); N-05 ×1 to Alba (APP, no SMS)
+curl PUT /api/v1/class-sessions/<id>/attendance -> 409 STALE_VERSION
+PASS (4) PUT with the stale version (D12): 409 STALE_VERSION · details.current = the sheet at version 1
+PASS POST /test/clock: 200 · Monday 09:46 (09:30 + 15 min) (Mon 12-10 09:46 Europe/Madrid; server now 2026-10-12T07:46Z)
+curl POST /api/v1/jobs/class-finishing/trigger -> 200
+curl POST /api/v1/jobs/class-finishing/trigger -> 200
+curl GET /api/v1/class-sessions/<id>/attendance -> 200
+curl PUT /api/v1/class-sessions/<id>/attendance -> 200
+PASS (5) POST /jobs/class-finishing/trigger {dryRun: true} then {dryRun: false}: 200 · plan = effects (12 items, counters {'swept': 1, 'finished': 11}); class FINISHED; Iu's entry CANCELLED{CLASS_STARTED} with no notification; D12 PUT Martí PRESENT on the FINISHED class → 200
+PASS POST /test/clock: 200 · Tuesday 08:00 (Tue 13-10 08:00 Europe/Madrid; server now 2026-10-13T06:00Z)
+curl POST /api/v1/jobs/no-show-notices/trigger -> 200
+curl POST /api/v1/jobs/no-show-notices/trigger -> 200
+curl POST /api/v1/jobs/no-show-notices/trigger -> 200
+PASS (6) POST /jobs/no-show-notices/trigger at Tuesday 08:00: dry run, run, run again: 200 · 200 · 200 · plan = effects: 1 NoShowNoticeBatch item 2026-10-13 with Nil's attendance; run 1: counters {notices: 1, late: 0}, 1 NoShowNoticeDue, N-19 to Nil (APP ca, EMAIL ca), class_date «dilluns, 12 d’octubre de 2026», class_description «A+B»; sheet «avís ja enviat» (sentAt 2026-10-13T06:00Z); run 2: 0 items, 0 new events
+curl GET /api/v1/me/history -> 200
+curl GET /api/v1/me/history -> 200
+curl GET /api/v1/me/history -> 200
+PASS (7) GET /me/history (holder; Alba and Nil impersonated): 200 · Rita + Mel: Monday DONE («feta»), badges CANCELLED, CANCELLED_BY_CLUB, CANCELLED_LATE, DONE, NO_SHOW; Alba: CANCELLED (INSTRUCTOR_NOTICE_IN_TIME) «ha avisat»; Nil: NO_SHOW (NO_SHOW)
+curl GET /api/v1/tasks -> 200
+curl GET /api/v1/attachments -> 200
+curl GET /api/v1/attachments -> 200
+PASS (8) GET /tasks?dogId + GET /attachments?entityType=TASK: 200 · 200 · 200 · 2 tasks (PENDING by Berta, DONE by Rita); balanci-mel.mp4 4096 B video/mp4 with a signed URL for the member and the instructor
+curl GET /api/v1/followup/unread-count -> 200
+curl GET /api/v1/followup/unread-count -> 200
+curl GET /api/v1/followup -> 200
+curl POST /api/v1/followup/read-all -> 204
+curl GET /api/v1/followup/unread-count -> 200
+curl GET /api/v1/followup/unread-count -> 200
+PASS (9) GET /followup/unread-count · POST /followup/read-all: 200 · 204 · instructor 1 → 0 (MEMBER_NOTE on Mel unread before); instructor.2 3 → 3
+curl GET /api/v1/instructor/week/export -> 200
+PASS (10) GET /instructor/week/export?format=pdf: 200 application/pdf · 13596 bytes, MediaBox 842x595 (landscape)
+
+SUMMARY (step · status · key values)
+  club:apply + seed:demo --seed=42 --week-start (Cànic; x2)                               · second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+  E6 demo cast (seeds/demo-canic.yaml scenario.attendance)                                · found · class Mon 2026-10-12 08:30 CEN 6b0f76d7…; Rita + Mel, Martí + Sorra, Alba + Pinya, Nil + Trufa, Iu + Gira; instructor Berta = instructor.3@example.test; holder Rita = member.8@example.test
+  PUT /jobs/{class-finishing,no-show-notices,risk-review}/switch {enabled:false}          · 200 · the scheduler records SKIPPED{DISABLED}; the manual runs below still run (R-15-09)
+  POST /test/clock                                                                        · 200 · Monday 04:25 (Mon 12-10 04:25 Europe/Madrid; server now 2026-10-12T02:25Z)
+  (1) GET /instructor/day (instructor, app)                                               · 200 · 08:30 A+B 4/5 · waiting 1 · attendance PENDING 0/4 («passar llista pendent»)
+  (2) GET /class-sessions/{id}/attendance                                                 · 200 · rows Rita + Mel, Martí + Sorra, Alba + Pinya, Nil + Trufa · waiting Iu + Gira · version 0 · canMarkPresence True
+  (3) PUT /class-sessions/{id}/attendance (app): Rita PRESENT, Nil NO_SHOW, Alba NOTIFIED · 200 · notice {late: false, seatReleased: true, waitlistNotified: true}; outbox BookingCancelled + SeatReleased + WaitlistNotified; N-15 ×1 to Iu (APP); N-05 ×1 to Alba (APP, no SMS)
+  (4) PUT with the stale version (D12)                                                    · 409 STALE_VERSION · details.current = the sheet at version 1
+  POST /test/clock                                                                        · 200 · Monday 09:46 (09:30 + 15 min) (Mon 12-10 09:46 Europe/Madrid; server now 2026-10-12T07:46Z)
+  (5) POST /jobs/class-finishing/trigger {dryRun: true} then {dryRun: false}              · 200 · plan = effects (12 items, counters {'swept': 1, 'finished': 11}); class FINISHED; Iu's entry CANCELLED{CLASS_STARTED} with no notification; D12 PUT Martí PRESENT on the FINISHED class → 200
+  POST /test/clock                                                                        · 200 · Tuesday 08:00 (Tue 13-10 08:00 Europe/Madrid; server now 2026-10-13T06:00Z)
+  (6) POST /jobs/no-show-notices/trigger at Tuesday 08:00: dry run, run, run again        · 200 · 200 · 200 · plan = effects: 1 NoShowNoticeBatch item 2026-10-13 with Nil's attendance; run 1: counters {notices: 1, late: 0}, 1 NoShowNoticeDue, N-19 to Nil (APP ca, EMAIL ca), class_date «dilluns, 12 d’octubre de 2026», class_description «A+B»; sheet «avís ja enviat» (sentAt 2026-10-13T06:00Z); run 2: 0 items, 0 new events
+  (7) GET /me/history (holder; Alba and Nil impersonated)                                 · 200 · Rita + Mel: Monday DONE («feta»), badges CANCELLED, CANCELLED_BY_CLUB, CANCELLED_LATE, DONE, NO_SHOW; Alba: CANCELLED (INSTRUCTOR_NOTICE_IN_TIME) «ha avisat»; Nil: NO_SHOW (NO_SHOW)
+  (8) GET /tasks?dogId + GET /attachments?entityType=TASK                                 · 200 · 200 · 200 · 2 tasks (PENDING by Berta, DONE by Rita); balanci-mel.mp4 4096 B video/mp4 with a signed URL for the member and the instructor
+  (9) GET /followup/unread-count · POST /followup/read-all                                · 200 · 204 · instructor 1 → 0 (MEMBER_NOTE on Mel unread before); instructor.2 3 → 3
+  (10) GET /instructor/week/export?format=pdf                                             · 200 application/pdf · 13596 bytes, MediaBox 842x595 (landscape)
+PASS E6 backend gate: the sheet from the app and from D12 (same PUT), «ha avisat» releasing the seat and telling the waiting list, P8 and P3 by hand with the clock advanced, histories, tasks with attachments, D14 per account and the week PDF
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

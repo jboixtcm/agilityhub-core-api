@@ -89,6 +89,7 @@ class MessagingPortsTest {
         var members = defaults.memberDirectory();
         assertThat(members.find("m")).isEmpty(); assertThat(members.findAll(List.of("m"))).isEmpty(); assertThat(members.byAccount("a")).isEmpty();
         assertThat(members.membersWithEmail("a@example.test")).isEmpty(); assertThat(members.byIds(List.of("m"))).isEmpty(); assertThat(members.byFilters(List.of("status:eq:ACTIVE"), null)).isEmpty();
+        assertThat(members.dog("d")).isEmpty();
         var writer = defaults.memberContactsWriter();
         assertThat(writer.markEmailBounced("m", "a@example.test")).isFalse(); assertThat(writer.unsubscribeClubNews("m", Instant.EPOCH)).isFalse();
         var staff = defaults.staffDirectory();
@@ -105,5 +106,6 @@ class MessagingPortsTest {
         assertThat(ports.membersWithEmail("laura@example.test")).containsExactly("member-laura");
         assertThat(ports.unsubscribeClubNews("member-laura", Instant.EPOCH)).isTrue(); assertThat(ports.unsubscribeClubNews("member-laura", Instant.EPOCH)).isFalse();
         assertThat(ports.byAccount("account-marc").orElseThrow().memberId()).isEqualTo("member-marc"); assertThat(ports.find(null)).isEmpty();
+        assertThat(ports.dog("dog-ares").orElseThrow().name()).isEqualTo("Ares"); assertThat(ports.dog("dog-unknown")).isEmpty();
     }
 }

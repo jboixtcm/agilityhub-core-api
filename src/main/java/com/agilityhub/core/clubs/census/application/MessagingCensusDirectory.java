@@ -52,6 +52,10 @@ public class MessagingCensusDirectory implements MemberDirectoryPort, MemberCont
         return access.members.matching(Criteria.where("accountId").is(accountId).and("erasedAt").is(null)).stream().findFirst()
                 .map(m -> contact(m, dogsOf(List.of(m.id))));
     }
+    @Override public Optional<MemberContact.DogContact> dog(String dogId) {
+        if (dogId == null) { return Optional.empty(); }
+        return access.dogs.findById(dogId).map(d -> new MemberContact.DogContact(d.id, d.name, d.sex, d.status));
+    }
     @Override public List<String> membersWithEmail(String address) {
         if (address == null || address.isBlank()) { return List.of(); }
         var exact = Pattern.compile("^" + Pattern.quote(address.strip()) + "$", Pattern.CASE_INSENSITIVE);

@@ -74,13 +74,16 @@ class NotificationEngineIT extends EngineFixtures {
         assertThat(marta.body()).isEqualTo("Club Agility Exemple: demà · 18:50 · B+C — classe anul·lada. " + RAIN);
         assertThat(all.stream().filter(n -> n.audience() == ADMINS)).allSatisfy(n -> assertThat(channels(n)).containsExactly("APP:DELIVERED"))
                 .extracting(n -> n.recipient().accountId()).containsExactlyInAnyOrder("account-admin", "account-admin2");
-        // The e-mails: subject = title, the club's layout and sender, a link to the club app, never the unsubscribe footer (CLUB_CHANGES).
+        // The e-mails: subject = title, the club's layout and sender, the deep link of CHANGE_CLASS in the club app (04 with each
+        // dog preselected, R-11-11; round 2), never the unsubscribe footer (CLUB_CHANGES).
         var mailToLaura = mail.to("laura@example.test");
         assertThat(mailToLaura).hasSize(2).allSatisfy(m -> {
-            assertThat(m.subject()).isEqualTo("Classe anul·lada pel club"); assertThat(m.html()).contains("Club Agility Exemple", "https://engine.example.test/notificacions");
+            assertThat(m.subject()).isEqualTo("Classe anul·lada pel club"); assertThat(m.html()).contains("Club Agility Exemple").doesNotContain("/notificacions");
             assertThat(m.headers()).isEmpty(); assertThat(m.tags()).containsEntry("clubId", CLUB);
-        });
-        assertThat(mail.to("marta@example.test")).singleElement().satisfies(m -> assertThat(m.text()).contains("classe anul·lada. " + RAIN));
+        }).extracting(m -> m.text().lines().filter(line -> line.startsWith("Obre l’app: ")).findFirst().orElse(""))
+                .containsExactlyInAnyOrder("Obre l’app: https://engine.example.test/reservar?dogId=dog-duna", "Obre l’app: https://engine.example.test/reservar?dogId=dog-rock");
+        assertThat(mail.to("marta@example.test")).singleElement().satisfies(m -> assertThat(m.text()).contains("classe anul·lada. " + RAIN,
+                "Obre l’app: https://engine.example.test/instructor/classes/e7t02-class-a"));
         // One NotificationQueued per notification and channel, one NotificationSent per accepted delivery.
         assertThat(outbox(CLUB, "NotificationQueued")).hasSize(4 * 3 + 2 + 2);
         assertThat(outbox(CLUB, "NotificationSent")).hasSize(5 + 6); // 5 e-mails, 6 SMS (APP is born DELIVERED)

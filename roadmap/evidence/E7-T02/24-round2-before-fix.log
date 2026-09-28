@@ -1,0 +1,45 @@
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.238 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRendererTest
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRendererTest.R_11_11_theEmailsActionIsADeepLinkToTheActionsRouteWithItsParameters -- Time elapsed: 0.033 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "Títol
+
+Cos.
+
+Obre l’app: https://app.example.test/notificacions
+
+Club Agility Exemple
+Respon a aquest correu per contactar amb el club."
+to contain:
+  "Obre l’app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-a&classSessionId=class-a&dogId=dog-duna" 
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRendererTest.R_11_11_theEmailsActionIsADeepLinkToTheActionsRouteWithItsParameters(NotificationEmailRendererTest.java:111)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   NotificationEmailRendererTest.R_11_11_theEmailsActionIsADeepLinkToTheActionsRouteWithItsParameters:111 
+Expecting actual:
+  "Títol
+
+Cos.
+
+Obre l’app: https://app.example.test/notificacions
+
+Club Agility Exemple
+Respon a aquest correu per contactar amb el club."
+to contain:
+  "Obre l’app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-a&classSessionId=class-a&dogId=dog-duna" 
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-cli) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v1.7 · 28-09-2026** (v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v1.8 · 28-09-2026** (v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -56,6 +56,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — passada de correccions |
 | INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — passada de correccions |
 | INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | oberta — passada de correccions |
+| INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, a la seva ronda 5 |
 
 ---
 
@@ -400,6 +401,23 @@ Solució probable:
 - **La lectura de P8 a cada minut.** `WaitlistEntryRepository.liveAll()` llegeix totes les entrades vives del club a cada tic (cada minut i club), també les de classes de setmanes endavant, i les ordena en memòria; no hi ha cap índex `{clubId, state}` declarat. Proposta: partir de les classes `ACTIVE` d'S06 ja començades i amb `counters.waiting > 0` (més les entrades la còpia de les quals diu que la classe ha començat, per a les classes esborrades) i llegir només les seves entrades.
 
 **On mirar**: `NoShowNoticesJob.java:37`, `WaitlistService.java:186`, `WaitlistEntryRepository.java:65`.
+
+---
+
+## INC-47 · Un conflicte d'escriptura de Mongo pot acabar en 500 (api, comú)
+
+**Gravetat**: mitjana. Només passa amb dues peticions simultànies sobre el mateix document, però llavors l'usuari veu un error intern en lloc del codi de l'especificació.
+
+**Origen**: revisions d'E6-T03, rondes 3 i 4 (`roadmap/reviews/E6-T03-20260928-1028-codex.md` i `…-1534-codex.md`, api); verificacions de l'organitzador del 28-09.
+
+**El problema**: `IdempotencyFilter` obre una transacció per a cada petició amb clau, llevat de les rutes d'una llista (l'alta, S07, S08, S09, el full d'assistència, les observacions). A les altres, el servei s'uneix a la transacció del filtre: els seus propis reintents (`FollowupTransactions`, `TransactionRetries`) no s'executen, i un `WriteConflict` o un `TransientTransactionError` arriba al gestor d'errors genèric, que respon `500 INTERNAL_ERROR`. La llista s'ha d'anar ampliant ruta per ruta.
+
+**Proposta**:
+- Xarxa de seguretat: el gestor d'errors respon `409 STALE_VERSION` (que el client pot reintentar) a qualsevol error transitori de transacció que li arribi, mai 500.
+- Estudiar si el camí per defecte del filtre pot reintentar la petició sencera (el cos ja es desa, la resposta també), després de revisar quines rutes fan crides externes dins la transacció.
+- Les rutes d'E6-T03 es corregeixen ara, a la seva ronda 5.
+
+**On mirar**: `IdempotencyFilter.java` (la llista i el camí per defecte), `FollowupTransactions.java`, `TransactionRetries.java`, el gestor d'errors global.
 
 ---
 

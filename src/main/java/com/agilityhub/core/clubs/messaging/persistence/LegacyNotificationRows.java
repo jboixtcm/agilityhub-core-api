@@ -19,10 +19,18 @@ import org.springframework.stereotype.Repository;
  * `messaging:migrate-notifications` on local and staging databases (R1 is not live: no production row exists). A converted
  * row is exactly what the helpers wrote since E7-T01: the S11 fields, one delivery, and its flat fields kept. Until it is
  * converted, {@link LegacyNotificationReader} maps its `action` the same way on every read.
+ *
+ * <p>The SMS and PUSH intents E4–E6 queued before the engine (`QUEUED`, with no destination and no due time) are never sent
+ * (ruling E69, E7-T02 round 2): a message queued days before the engine is stale, and its code is a real send through the
+ * engine since then. The conversion closes such a delivery as `SKIPPED_STALE` ({@value #BEFORE_ENGINE}), a final status
+ * nothing claims, and {@link #close} does the same on a row E7-T01's conversion (or its helpers) already wrote with one.</p>
  */
 @Repository
 public class LegacyNotificationRows {
     static final String COLLECTION = "notifications";
+    /** The `lastError` of an intent closed by the migration. */
+    public static final String BEFORE_ENGINE = "Written before the notification engine";
+    private static final List<String> INTENT_CHANNELS = List.of("SMS", "PUSH");
     /** The flat fields {@link #upgrade} reads: the conversion holds only while none of them changed since it read the row. */
     static final List<String> SOURCE_FIELDS = List.of("code", "channel", "status", "accountId", "recipientEmail", "variant", "providerMessageId", "error",
             "sentAt", "createdAt", "action", "entityId", "body");
@@ -54,6 +62,28 @@ public class LegacyNotificationRows {
         }
         return false;
     }
+    /** A queued intent without a destination: an SMS or PUSH delivery `QUEUED` with no `target`. */
+    private static Criteria intent() { return Criteria.where("channel").in(INTENT_CHANNELS).and("status").is("QUEUED").and("target").is(null); }
+    /** The rows (every club's) that already have `deliveries` and still hold such an intent, oldest first. */
+    public List<Document> findIntents() {
+        return mongo.find(Query.query(Criteria.where("deliveries").elemMatch(intent())).with(Sort.by("createdAt", "_id")), Document.class, COLLECTION);
+    }
+    /**
+     * Closes every queued intent of the row as `SKIPPED_STALE` ({@value #BEFORE_ENGINE}) with one update that matches only
+     * those deliveries (the others keep theirs), and the flat status of a compatibility row that mirrors one; true when it
+     * closed something.
+     */
+    public boolean close(Document row) {
+        var update = new Update().set("deliveries.$[intent].status", "SKIPPED_STALE").set("deliveries.$[intent].lastError", BEFORE_ENGINE)
+                .filterArray(Criteria.where("intent.channel").in(INTENT_CHANNELS).and("intent.status").is("QUEUED").and("intent.target").is(null));
+        boolean closed = mongo.updateFirst(Query.query(Criteria.where("_id").is(row.get("_id")).and("deliveries").elemMatch(intent())), update, COLLECTION)
+                .getModifiedCount() == 1;
+        if (closed) {
+            mongo.updateFirst(Query.query(Criteria.where("_id").is(row.get("_id")).and("channel").in(INTENT_CHANNELS).and("status").is("QUEUED")),
+                    new Update().set("status", "SKIPPED_STALE").set("error", BEFORE_ENGINE), COLLECTION);
+        }
+        return closed;
+    }
     private static Criteria legacy(Object id) { return Criteria.where("_id").is(id).and("deliveries").exists(false); }
     /** The row as read: `is(null)` also matches an absent field, the way {@link #upgrade} reads one. */
     private static Query unchanged(Document current) {
@@ -63,10 +93,14 @@ public class LegacyNotificationRows {
         return Query.query(criteria);
     }
 
-    /** The fields a flat row gains (the `$set` of {@link #convert}); the flat fields themselves stay. */
+    /**
+     * The fields a flat row gains (the `$set` of {@link #convert}); the flat fields themselves stay, except that a queued SMS or
+     * PUSH intent (no destination) is closed: its delivery and its flat `status` become `SKIPPED_STALE`.
+     */
     public static Document upgrade(Document row) {
         String code = row.getString("code"), channel = Objects.requireNonNullElse(row.getString("channel"), "EMAIL"), status = row.getString("status");
         String accountId = row.getString("accountId"), email = row.getString("recipientEmail");
+        boolean intent = INTENT_CHANNELS.contains(channel) && "QUEUED".equals(status);
         var spec = NotificationCatalog.byCode(code);
         var fields = new Document("dedupKey", row.get("_id").toString());
         spec.ifPresent(s -> fields.append("category", s.category().name()).append("icon", s.icon().name()).append("color", s.color().name()));
@@ -74,9 +108,10 @@ public class LegacyNotificationRows {
         if (audience != null) { fields.append("audience", audience.name()); }
         fields.append("recipient", new Document("accountId", accountId).append("email", email));
         boolean attempted = "EMAIL".equals(channel) && List.of("SENT", "DELIVERED", "FAILED").contains(status);
+        if (intent) { fields.append("status", "SKIPPED_STALE").append("error", BEFORE_ENGINE); }
         fields.append("deliveries", List.of(new Document("channel", channel).append("target", Notification.target(channel, accountId, email))
-                .append("status", status).append("attempts", attempted ? 1 : 0).append("providerRef", row.get("providerMessageId"))
-                .append("lastError", row.get("error")).append("sentAt", row.get("sentAt"))
+                .append("status", intent ? "SKIPPED_STALE" : status).append("attempts", attempted ? 1 : 0).append("providerRef", row.get("providerMessageId"))
+                .append("lastError", intent ? BEFORE_ENGINE : row.get("error")).append("sentAt", row.get("sentAt"))
                 .append("deliveredAt", "DELIVERED".equals(status) ? row.get("sentAt") : null)
                 .append("failedAt", "FAILED".equals(status) ? row.get("createdAt") : null)));
         // The E4–E6 SMS intent kept `action` as a bare string; S11 has `action {type, params}` (an unknown name stays as `legacyAction`).

@@ -38,6 +38,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `appOnce`/`smsIntentOnce` helpers; the E4–E6 SMS intents are real sends. `SystemNotificationService` keeps the SYSTEM
     codes only.
   - Copy: `ca` N-41 and N-49 no longer write «de agost»/«de octubre».
+  - Round 2 (review of 28-09):
+    - The dispatcher separates the provider call from its settlement. A settlement that fails is written again with the
+      same answer and never sends again; an accepted one that keeps failing waits in the dispatcher under its lease.
+    - A SendGrid webhook that arrives before the send's answer keeps its final state (`DELIVERED`, or `FAILED` with the
+      bounce); the settlement only records `providerRef`, `sentAt` and the attempt (`NotificationRepository.settleClaim`).
+    - At the SMS cap, `SKIPPED_CAP`, the forced e-mails, the monthly marker and `SmsCapReached` commit in one transaction.
+      The forced e-mail is one conditional insert per address (`addEmailIfAbsent`), so two phones settled at once add one.
+      It skips an address that either bounce mark suppresses (`EmailSuppression`: the contact's and the account's).
+    - E-mail actions are deep links (R-11-11, `NotificationLinks`): the action's route and parameters in the audience's
+      app, e.g. N-15 → `/reservar/confirmar?waitlistEntryId=…&classSessionId=…&dogId=…`, N-08a → `/reservar?dogId=…`,
+      the admins' N-51 → the back office's `/abonats/{memberId}`. `ClubEmailSettings.appOrigin(clubId, app)`.
+    - N-04 to the family member who booked another member's dog names that dog (`MemberDirectoryPort.dog`).
+    - `messaging:migrate-notifications` closes the SMS/PUSH intents queued before the engine as `SKIPPED_STALE`
+      («Written before the notification engine»), converted rows and already converted ones alike (ruling E69).
+    - `bin/e4-smoke` (N-08a, N-32c), `bin/e3-smoke` and `bin/e3-signup-smoke` (N-37) read the S11 shape.
 - E7-T01: the S11 communications contract (WP-11-A).
   - `NotificationCatalog` (`clubs.messaging.domain`): every row of `CATALEG_NOTIFICACIONS.md` as code, 43 main + 18 Annex A
     = 61 codes (N-12 does not exist). Per code: events, category, audiences, caps (R-11-12, with N-15's SMS exception),

@@ -25,8 +25,8 @@ email.html.sha256: 1b41cdd519f33dd2
 ## N-04 MEMBER
 title: Reserva confirmada
 body: Classe B+C · dimecres 12 · 18:50 · Central · amb Duna.
-email.text: Reserva confirmada⏎⏎Classe B+C · dimecres 12 · 18:50 · Central · amb Duna.⏎⏎Obre l’app: https://app.example.test/notificacions⏎Afegeix-la al calendari: https://app.example.test/calendari/exemple.ics⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 44a65769da5dcc6a
+email.text: Reserva confirmada⏎⏎Classe B+C · dimecres 12 · 18:50 · Central · amb Duna.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎Afegeix-la al calendari: https://app.example.test/calendari/exemple.ics⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: cfb52bd4575e32de
 
 ## N-05 MEMBER
 title: Reserva anul·lada
@@ -50,8 +50,8 @@ email.html.sha256: 6d268e1c9381846e
 title: Classe anul·lada pel club
 body: Dimecres 12 · 18:50 · B+C, amb Duna. «La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!» — Club Agility Exemple. Aquesta sessió no compta al teu còmput.
 sms: Club Agility Exemple: classe anul.lada dimecres 12 18:50 (B+C). La classe queda anul.lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu l... [160]
-email.text: Classe anul·lada pel club⏎⏎Dimecres 12 · 18:50 · B+C, amb Duna. «La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!» — Club Agility Exemple. Aquesta sessió no compta al teu còmput.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: e6743c5f5056b697
+email.text: Classe anul·lada pel club⏎⏎Dimecres 12 · 18:50 · B+C, amb Duna. «La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!» — Club Agility Exemple. Aquesta sessió no compta al teu còmput.⏎⏎Obre l’app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: e943fe4c53a635bb
 
 ## N-08a INSTRUCTORS
 title: Classe anul·lada pel club
@@ -65,8 +65,8 @@ body: Club Agility Exemple: dimecres 12 · 18:50 · B+C — classe anul·lada. L
 title: Classe modificada pel club
 body: Dimecres 12 · B+C, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.
 sms: Club Agility Exemple: classe dimecres 12 amb Duna modificada. Hora: 18:50 -> 19:00 . Pista: Central -> Muntanya. [112]
-email.text: Classe modificada pel club⏎⏎Dimecres 12 · B+C, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: b717a5c2f0cfee1a
+email.text: Classe modificada pel club⏎⏎Dimecres 12 · B+C, amb Duna: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: Central → Muntanya. Mira-ho a l'app.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 105a476e7c6d164e
 
 ## N-08b INSTRUCTORS
 title: Classe modificada pel club
@@ -75,8 +75,8 @@ body: Dimecres 12 · B+C: la classe ha canviat. Hora: 18:50 → 19:00 · Pista: 
 ## N-09 MEMBER
 title: La Duna puja de nivell!
 body: Per la vostra evolució, la Duna ja ha pujat a nivell C. Ja podeu reservar classes en aquest nou nivell; les classes que ja teníeu reservades, encara que no siguin d'aquest nivell, segueixen sent vàlides.
-email.text: La Duna puja de nivell!⏎⏎Per la vostra evolució, la Duna ja ha pujat a nivell C. Ja podeu reservar classes en aquest nou nivell; les classes que ja teníeu reservades, encara que no siguin d'aquest nivell, segueixen sent vàlides.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 53eb16e7ac2599f8
+email.text: La Duna puja de nivell!⏎⏎Per la vostra evolució, la Duna ja ha pujat a nivell C. Ja podeu reservar classes en aquest nou nivell; les classes que ja teníeu reservades, encara que no siguin d'aquest nivell, segueixen sent vàlides.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 3bc14214601ec2f1
 
 ## N-10 ADMINS
 title: Rebut impagat
@@ -85,20 +85,20 @@ body: El rebut F-2026-0042 de Laura Serra Puig (45,00 €) no s'ha pogut cobrar
 ## N-11a MEMBER
 title: El bo s'està acabant
 body: Al bo de Duna li queden 2 sessions.
-email.text: El bo s'està acabant⏎⏎Al bo de Duna li queden 2 sessions.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 84f55349d3928576
+email.text: El bo s'està acabant⏎⏎Al bo de Duna li queden 2 sessions.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: caabc4a7c9fcb1d2
 
 ## N-11b MEMBER
 title: Caducitat del bo
 body: El bo de Duna caduca el 31/8/26.
-email.text: Caducitat del bo⏎⏎El bo de Duna caduca el 31/8/26.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 2f441c536a4b7d62
+email.text: Caducitat del bo⏎⏎El bo de Duna caduca el 31/8/26.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 9ba65b3df322d70c
 
 ## N-13 MEMBER
 title: Recordatori de classe
 body: Classe · dc 12 · 8:00–8:30 · Central · amb Duna.
-email.text: Recordatori de classe⏎⏎Classe · dc 12 · 8:00–8:30 · Central · amb Duna.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 613e7c1ce3d5fd54
+email.text: Recordatori de classe⏎⏎Classe · dc 12 · 8:00–8:30 · Central · amb Duna.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 989f79109efec1f3
 
 ## N-14 ADMINS
 title: Sol·licitud de baixa rebuda
@@ -108,15 +108,15 @@ body: Laura Serra Puig ha demanat la baixa amb data 31 d’agost de 2026. Motiu:
 title: S'ha alliberat una plaça!
 body: Classe B+C · dimecres 12 · 18:50, amb Duna. La plaça és per a tu fins a les 17:00: toca «Agafa la plaça» per confirmar-la.
 sms: Club Agility Exemple: placa lliure a la classe dimecres 12 18:50 (B+C). Confirma-la a l'app abans de les 17:00. [111]
-email.text: S'ha alliberat una plaça!⏎⏎Classe B+C · dimecres 12 · 18:50, amb Duna. La plaça és per a tu fins a les 17:00: toca «Agafa la plaça» per confirmar-la.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: e65edb8bfd707406
+email.text: S'ha alliberat una plaça!⏎⏎Classe B+C · dimecres 12 · 18:50, amb Duna. La plaça és per a tu fins a les 17:00: toca «Agafa la plaça» per confirmar-la.⏎⏎Obre l’app: https://app.example.test/reservar/confirmar?waitlistEntryId=entry-exemple&classSessionId=class-exemple&dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 09ecf3e5c7c24d19
 
 ## N-16 MEMBER
 title: Possible anul·lació de classe
 body: Dimecres 12 · 18:50 · B+C, amb Duna: la classe encara no té prou alumnes. Si ningú més s'hi apunta, es cancel·larà dimecres a les 7:30. Et proposem reservar-ne una altra.
 sms: Club Agility Exemple: la classe dimecres 12 18:50 encara no té prou alumnes i es pot anul.lar. [94]
-email.text: Possible anul·lació de classe⏎⏎Dimecres 12 · 18:50 · B+C, amb Duna: la classe encara no té prou alumnes. Si ningú més s'hi apunta, es cancel·larà dimecres a les 7:30. Et proposem reservar-ne una altra.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: bc9f187900eb3bd1
+email.text: Possible anul·lació de classe⏎⏎Dimecres 12 · 18:50 · B+C, amb Duna: la classe encara no té prou alumnes. Si ningú més s'hi apunta, es cancel·larà dimecres a les 7:30. Et proposem reservar-ne una altra.⏎⏎Obre l’app: https://app.example.test/reservar?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: b42dc190eb146e61
 
 ## N-16 ADMINS
 title: Possible anul·lació de classe
@@ -155,8 +155,8 @@ email.html.sha256: af572313479302cb
 ## N-20 MEMBER
 title: Tasca nova per a Duna
 body: Marta t'ha posat una tasca per a Duna: «Treballar el contacte a la zona de salts»
-email.text: Tasca nova per a Duna⏎⏎Marta t'ha posat una tasca per a Duna: «Treballar el contacte a la zona de salts»⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: fa3087cb8cdf55b6
+email.text: Tasca nova per a Duna⏎⏎Marta t'ha posat una tasca per a Duna: «Treballar el contacte a la zona de salts»⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna&taskId=task-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 46bd1556bc5bccb3
 
 ## N-21 INSTRUCTORS
 title: Tasca completada
@@ -169,8 +169,8 @@ body: Laura Serra Puig (alumna) ha escrit o canviat la nota als instructors de D
 ## N-23 MEMBER
 title: Documentació pendent
 body: Falta la documentació «Vacuna antiràbica» de Duna. Pots pujar-la des de la fitxa del gos a l'app.
-email.text: Documentació pendent⏎⏎Falta la documentació «Vacuna antiràbica» de Duna. Pots pujar-la des de la fitxa del gos a l'app.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 9ffbb4f3519a6998
+email.text: Documentació pendent⏎⏎Falta la documentació «Vacuna antiràbica» de Duna. Pots pujar-la des de la fitxa del gos a l'app.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 25d4358d71ac1cee
 
 ## N-24 MEMBER
 title: Comunicat del club
@@ -193,27 +193,27 @@ email.html.sha256: e63f3f8c579c90ae
 ## N-30 MEMBER
 title: Pagament rebut
 body: Hem rebut el pagament de 45,00 € (Quota d'agost).
-email.text: Pagament rebut⏎⏎Hem rebut el pagament de 45,00 € (Quota d'agost).⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 4fac2f9030fdad61
+email.text: Pagament rebut⏎⏎Hem rebut el pagament de 45,00 € (Quota d'agost).⏎⏎Obre l’app: https://app.example.test/rebuts?invoiceId=invoice-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: ab5c54bae5a61120
 
 ## N-31 MEMBER
 title: Recorregut nou a la pista
 body: Hi ha un recorregut nou a la pista Central.
-email.text: Recorregut nou a la pista⏎⏎Hi ha un recorregut nou a la pista Central.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 6589f56a471dacfb
+email.text: Recorregut nou a la pista⏎⏎Hi ha un recorregut nou a la pista Central.⏎⏎Obre l’app: https://app.example.test/training⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 61b3efef4e2a9ba4
 
 ## N-32a MEMBER
 title: Activitat publicada
 body: Seminari de canicross · dc 12
-email.text: Activitat publicada⏎⏎Seminari de canicross · dc 12⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.⏎Deixar de rebre aquests comunicats: https://app.example.test/comunicats/baixa?t=exemple
-email.html.sha256: 6b44ebf3aa58c4af
+email.text: Activitat publicada⏎⏎Seminari de canicross · dc 12⏎⏎Obre l’app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.⏎Deixar de rebre aquests comunicats: https://app.example.test/comunicats/baixa?t=exemple
+email.html.sha256: b4a45fca6afd000f
 
 ## N-32b MEMBER
 title: Inscripció a una activitat
 body: Seminari de canicross · dc 12
 sms: Club Agility Exemple: Seminari de canicross . dc 12 [51]
-email.text: Inscripció a una activitat⏎⏎Seminari de canicross · dc 12⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 3383fd67df4be323
+email.text: Inscripció a una activitat⏎⏎Seminari de canicross · dc 12⏎⏎Obre l’app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: d21d54cb0ae5d427
 
 ## N-32c MEMBER
 title: Activitat cancel·lada pel club
@@ -225,8 +225,8 @@ email.html.sha256: 5f9c5b573b10e997
 ## N-33 MEMBER
 title: Ja pots reservar la setmana vinent
 body: Club Agility Exemple: ja pots reservar les classes de la setmana del 17 d’agost de 2026.
-email.text: Ja pots reservar la setmana vinent⏎⏎Club Agility Exemple: ja pots reservar les classes de la setmana del 17 d’agost de 2026.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 6242cf1774332088
+email.text: Ja pots reservar la setmana vinent⏎⏎Club Agility Exemple: ja pots reservar les classes de la setmana del 17 d’agost de 2026.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 8340cac340a82fe6
 
 ## N-34 ADMINS
 title: Sol·licituds d'alta pendents
@@ -235,21 +235,21 @@ body: Hi ha 3 sol·licituds d'alta pendents; la més antiga fa 5 dies que espera
 ## N-35 MEMBER
 title: No s'ha pogut cobrar la targeta
 body: No hem pogut cobrar 45,00 €: Documentació pendent. Revisa la targeta des de l'app.
-email.text: No s'ha pogut cobrar la targeta⏎⏎No hem pogut cobrar 45,00 €: Documentació pendent. Revisa la targeta des de l'app.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 7a3dc906662b583e
+email.text: No s'ha pogut cobrar la targeta⏎⏎No hem pogut cobrar 45,00 €: Documentació pendent. Revisa la targeta des de l'app.⏎⏎Obre l’app: https://app.example.test/rebuts?invoiceId=invoice-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 6ddb4a862b3c4c20
 
 ## N-36 MEMBER
 title: Reserva gestionada pel club
 body: El club t'ha reservat una classe: dimecres 12 · 18:50, amb Duna.
 sms: Club Agility Exemple: el club t'ha reservat la classe dimecres 12 18:50 amb Duna. [81]
-email.text: Reserva gestionada pel club⏎⏎El club t'ha reservat una classe: dimecres 12 · 18:50, amb Duna.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 1c8030443bff9a3f
+email.text: Reserva gestionada pel club⏎⏎El club t'ha reservat una classe: dimecres 12 · 18:50, amb Duna.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 0a6b99d4c1f9aacc
 
 ## N-37 MEMBER
 title: Gos nou afegit
 body: Duna ja forma part del club.
-email.text: Gos nou afegit⏎⏎Duna ja forma part del club.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 13ef0b31b86c4f12
+email.text: Gos nou afegit⏎⏎Duna ja forma part del club.⏎⏎Obre l’app: https://app.example.test/gossos?dogId=dog-duna⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 1c638a515e12ec97
 
 ## N-38 MEMBER
 title: Mètode de pagament canviat
@@ -265,14 +265,14 @@ body: El període d'inactivitat de Laura Serra Puig (setembre del 2026 – octub
 title: Activitat modificada pel club
 body: Seminari de canicross: Hora: 18:50 → 19:00 · Pista: Central → Muntanya
 sms: Club Agility Exemple: Seminari de canicross: Hora: 18:50 -> 19:00 . Pista: Central -> Muntanya [94]
-email.text: Activitat modificada pel club⏎⏎Seminari de canicross: Hora: 18:50 → 19:00 · Pista: Central → Muntanya⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 7608fb9428ed880c
+email.text: Activitat modificada pel club⏎⏎Seminari de canicross: Hora: 18:50 → 19:00 · Pista: Central → Muntanya⏎⏎Obre l’app: https://app.example.test/activitats/activity-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: cb0c4b163e5888c8
 
 ## N-40 MEMBER
 title: Reserva no completada
 body: Dimecres 12 · 18:50, amb Duna: el pagament no s'ha completat a temps i la reserva s'ha anul·lat.
-email.text: Reserva no completada⏎⏎Dimecres 12 · 18:50, amb Duna: el pagament no s'ha completat a temps i la reserva s'ha anul·lat.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: c00d5deb70a66345
+email.text: Reserva no completada⏎⏎Dimecres 12 · 18:50, amb Duna: el pagament no s'ha completat a temps i la reserva s'ha anul·lat.⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 585b20c890ea00dd
 
 ## N-41 ADMINS
 title: Remesa del mes pendent
@@ -292,8 +292,8 @@ email.html.sha256: 51135ed6c7d37d95
 title: Entrenament gestionat pel club
 body: El club t'ha reservat un entrenament: dc 12 · 8:00–8:30 · Central, amb Duna. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!
 sms: Club Agility Exemple: entrenament reservat pel club: dc 12 8:00-8:30 (Central), amb Duna. [89]
-email.text: Entrenament gestionat pel club⏎⏎El club t'ha reservat un entrenament: dc 12 · 8:00–8:30 · Central, amb Duna. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 66bcc64fa72b5008
+email.text: Entrenament gestionat pel club⏎⏎El club t'ha reservat un entrenament: dc 12 · 8:00–8:30 · Central, amb Duna. La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!⏎⏎Obre l’app: https://app.example.test/reserves/booking-exemple⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: ebc5ff1513e61f6b
 
 ## N-49 ADMINS
 title: Límit mensual d'SMS assolit
@@ -302,8 +302,8 @@ body: S'ha arribat al límit mensual de 1.000 SMS (agost del 2026). Fins al mes 
 ## N-50 MEMBER
 title: Les teves dades estan a punt
 body: Pots descarregar les teves dades des de l'app durant 7 dies.
-email.text: Les teves dades estan a punt⏎⏎Pots descarregar les teves dades des de l'app durant 7 dies.⏎⏎Obre l’app: https://app.example.test/notificacions⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: 23c18636bfa33593
+email.text: Les teves dades estan a punt⏎⏎Pots descarregar les teves dades des de l'app durant 7 dies.⏎⏎Obre l’app: https://app.example.test/perfil⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 64f0894746bf6a56
 
 ## N-51 ADMINS
 title: Correu rebotat

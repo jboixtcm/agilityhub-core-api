@@ -137,9 +137,9 @@ public class MessagingConfiguration {
 
     @Bean NotificationDispatcher notificationDispatcher(NotificationRepository notifications, PushSubscriptionRepository subscriptions, EmailSender email,
             SmsSender sms, PushSender push, ClubConfigService configs, ClubEmailSettings emailSettings, ClubSmsUsage usage, NotificationEmailRenderer emails,
-            UnsubscribeTokens unsubscribes, MemberDirectoryPort members, EventPublisher events, PlatformTransactionManager transactions,
+            UnsubscribeTokens unsubscribes, MemberDirectoryPort members, NotificationAccounts accounts, EventPublisher events, PlatformTransactionManager transactions,
             List<NotificationFactsPort> owners, Clock clock, @Value("${email.platform-from:}") String from) {
-        return new NotificationDispatcher(notifications, subscriptions, email, sms, push, configs, emailSettings, usage, emails, unsubscribes, members, events,
+        return new NotificationDispatcher(notifications, subscriptions, email, sms, push, configs, emailSettings, usage, emails, unsubscribes, members, accounts, events,
                 new TransactionTemplate(transactions), owners, clock, from.isBlank() ? "no-reply@example.test" : from);
     }
 

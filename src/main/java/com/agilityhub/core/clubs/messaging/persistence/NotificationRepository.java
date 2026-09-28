@@ -114,6 +114,32 @@ public class NotificationRepository extends TenantRepository<Notification> {
         outcome.accept(update);
         return mongo.updateFirst(Query.query(Criteria.where("_id").is(id).and("deliveries.claimToken").is(token)), update, Notification.class).getModifiedCount() == 1;
     }
+    /** How {@link #settleClaim} found the claimed delivery. */
+    public enum Settlement { MOVED, KEPT, LOST }
+    /**
+     * The dispatcher's settlement of a claimed delivery (R-11-08, S11 §5), run inside its transaction: `outcome` applies while
+     * the delivery is still `QUEUED` (→ {@link Settlement#MOVED}); a delivery the SendGrid webhook already moved to its final
+     * state while the provider call was in flight keeps that state and only gets `kept` (the acceptance's `providerRef`,
+     * `sentAt` and attempt, as E1's `finish()` does) → {@link Settlement#KEPT}. Both release the lease; {@link Settlement#LOST}
+     * when the lease is no longer this token's (nothing written).
+     */
+    public Settlement settleClaim(String id, String token, Consumer<Update> outcome, Consumer<Update> kept) {
+        var queued = new Update().unset("deliveries.$.claimToken").unset("deliveries.$.claimedUntil"); outcome.accept(queued);
+        var stillQueued = Query.query(Criteria.where("_id").is(id).and("deliveries").elemMatch(Criteria.where("claimToken").is(token).and("status").is("QUEUED")));
+        if (mongo.updateFirst(stillQueued, queued, Notification.class).getModifiedCount() == 1) { return Settlement.MOVED; }
+        return settle(id, token, kept) ? Settlement.KEPT : Settlement.LOST;
+    }
+    /**
+     * R-11-06 at the SMS cap: adds the forced EMAIL delivery to `delivery.target` only when the notification has no live EMAIL
+     * delivery (`QUEUED`, `SENT`, `DELIVERED`) to that address, compared without case — one conditional `$push`, so two
+     * dispatchers settling two phones of the same notification never both add it. `true` when it was added.
+     */
+    public boolean addEmailIfAbsent(String id, Notification.Delivery delivery) {
+        var address = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(delivery.target()) + "$", java.util.regex.Pattern.CASE_INSENSITIVE);
+        var live = Criteria.where("deliveries").elemMatch(Criteria.where("channel").is("EMAIL").and("target").regex(address).and("status").in("QUEUED", "SENT", "DELIVERED"));
+        var query = scoped(id).addCriteria(new Criteria().norOperator(live));
+        return mongo.updateFirst(query, new Update().push("deliveries", delivery), Notification.class).getModifiedCount() == 1;
+    }
     /** Any notification by id, whatever the tenant (the poll, R-11-09), for the dispatcher only. */
     public Optional<Notification> findForDispatch(String id) { return Optional.ofNullable(mongo.findById(id, Notification.class)); }
     /**

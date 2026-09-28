@@ -38,6 +38,8 @@ class NotificationEmailRendererTest {
         var engine = new TemplateEngine(); engine.setTemplateResolver(resolver);
         renderer = new NotificationEmailRenderer(new IcuMessageSource(), engine);
     }
+    /** The club's verified app domains: one host for the member app (`clubs`); none (no button). */
+    private static final java.util.function.Function<String, String> APP = app -> "clubs".equals(app) ? "https://app.example.test" : null, NO_APP = app -> null;
     private static final ClubEmailSettings.Settings SETTINGS = new ClubEmailSettings.Settings("Club Agility Exemple", "https://assets.example.test/logo.svg", "#3155A4",
             "#FFFFFF", "exemple@mail.example.test", "Club Agility Exemple", "club@example.test", "ca", 15);
 
@@ -51,43 +53,78 @@ class NotificationEmailRendererTest {
 
     @Test void T_11_23_clubNewsCarriesTheUnsubscribeFooterAndHeaderAndTransactionalMailsNever() {
         String link = "https://app.example.test/comunicats/baixa?t=token-a";
-        var news = renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, "https://app.example.test",
+        var news = renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, APP,
                 link, Map.of("clubId", "club-a", "notificationId", "notification-a"));
         assertThat(news.headers()).containsExactly(Map.entry("List-Unsubscribe", "<" + link + ">"));
         assertThat(news.html()).contains("Deixar de rebre aquests comunicats", link.replace("&", "&amp;"), "Respon a aquest correu per contactar amb el club.");
         assertThat(news.text()).contains("Deixar de rebre aquests comunicats: " + link);
         // A PERSONAL (or any transactional) mail never carries it, even when a link is offered.
         for (var category : List.of(NotificationCategory.PERSONAL, NotificationCategory.OPERATIONAL, NotificationCategory.CLUB_CHANGES)) {
-            var personal = renderer.render(notification("N-09", category, "ca", null, null), "laura@example.test", SETTINGS, "https://app.example.test", link, Map.of());
+            var personal = renderer.render(notification("N-09", category, "ca", null, null), "laura@example.test", SETTINGS, APP, link, Map.of());
             assertThat(personal.headers()).isEmpty(); assertThat(personal.html()).doesNotContain("Deixar de rebre", "baixa"); assertThat(personal.text()).doesNotContain("baixa");
         }
         // A link that is not https (or carries credentials) is never written.
-        var unsafe = renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, "https://app.example.test",
+        var unsafe = renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, APP,
                 "http://app.example.test/x", Map.of());
         assertThat(unsafe.headers()).isEmpty();
-        assertThat(renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, null, null, Map.of()).headers()).isEmpty();
+        assertThat(renderer.render(notification("N-24", NotificationCategory.CLUB_NEWS, "ca", null, null), "laura@example.test", SETTINGS, NO_APP, null, Map.of()).headers()).isEmpty();
     }
 
     @Test void R_11_08_subjectLayoutSenderAndTheActionLinkInTheRecipientsLanguage() {
         var mail = renderer.render(notification("N-08a", NotificationCategory.CLUB_CHANGES, "es", NotificationActionType.CHANGE_CLASS,
-                Map.of("calendar_links", "https://app.example.test/cal.ics")), "laura@example.test", SETTINGS, "https://app.example.test", null, Map.of("clubId", "club-a"));
+                Map.of("calendar_links", "https://app.example.test/cal.ics")), "laura@example.test", SETTINGS, APP, null, Map.of("clubId", "club-a"));
         assertThat(mail.to()).isEqualTo("laura@example.test"); assertThat(mail.subject()).isEqualTo("Classe anul·lada pel club");
         assertThat(mail.from()).isEqualTo(new EmailMessage.Address("exemple@mail.example.test", "Club Agility Exemple")); assertThat(mail.replyTo()).isEqualTo("club@example.test");
         assertThat(mail.locale()).isEqualTo(Locale.forLanguageTag("es")); assertThat(mail.tags()).containsEntry("clubId", "club-a");
         assertThat(mail.html()).contains("lang=\"es\"", "Club Agility Exemple", "https://assets.example.test/logo.svg", "#3155A4", "Dimecres 12 · 18:50 · B+C.",
-                "Aquesta sessió no compta al teu còmput.", "https://app.example.test/notificacions", "Abre la app", "https://app.example.test/cal.ics", "Añádela al calendario")
+                "Aquesta sessió no compta al teu còmput.", "https://app.example.test/reservar?dogId=dog-duna", "Abre la app", "https://app.example.test/cal.ics", "Añádela al calendario")
                 .doesNotContain("[[", " th:", "Dejar de recibir");
-        assertThat(mail.text()).startsWith("Classe anul·lada pel club\n\nDimecres 12").contains("Abre la app: https://app.example.test/notificacions",
+        assertThat(mail.text()).startsWith("Classe anul·lada pel club\n\nDimecres 12").contains("Abre la app: https://app.example.test/reservar?dogId=dog-duna",
                 "Añádela al calendario: https://app.example.test/cal.ics", "Club Agility Exemple\nResponde a este correo").doesNotContain("<p>");
         // No verified app domain: no links; an unsafe logo, a bad colour and a non-https calendar are dropped; no locale → the club's.
         var bare = renderer.render(notification("N-04", NotificationCategory.OPERATIONAL, null, NotificationActionType.OPEN_BOOKING, Map.of("calendar_links", "javascript:x")),
-                "laura@example.test", new ClubEmailSettings.Settings("Club", "http://logo.example.test/x.svg", "red", null, "a@example.test", "Club", null, "en", 15), null,
+                "laura@example.test", new ClubEmailSettings.Settings("Club", "http://logo.example.test/x.svg", "red", null, "a@example.test", "Club", null, "en", 15), NO_APP,
                 null, Map.of());
         assertThat(bare.html()).doesNotContain("/notificacions", "javascript:", "logo.example.test", "background:red", "<img").contains("lang=\"en\"");
         assertThat(bare.locale()).isEqualTo(Locale.ENGLISH); assertThat(bare.replyTo()).isNull();
         var noBody = new Notification("n", "club-a", "N-04", NotificationCategory.OPERATIONAL, null, null, null, null, "d", NotificationAudience.MEMBER, null, "ca", null,
                 TemplateIcon.check, TemplateColor.OK, "Reserva confirmada", null, null, null, List.of(), null, NOW, null, null, null, null, null, null, null, null, null);
-        assertThat(renderer.render(noBody, "laura@example.test", SETTINGS, null, null, Map.of()).text()).startsWith("Reserva confirmada\n\n\n\nClub Agility Exemple");
+        assertThat(renderer.render(noBody, "laura@example.test", SETTINGS, NO_APP, null, Map.of()).text()).startsWith("Reserva confirmada\n\n\n\nClub Agility Exemple");
+    }
+
+    static Notification withAction(String code, NotificationAudience audience, NotificationActionType type, Map<String, String> params) {
+        return new Notification("notification-a", "club-a", code, NotificationCategory.OPERATIONAL, "template-a", 0L, "event-a", "Event", "dedup-a", audience,
+                new Notification.Recipient("account-laura", "member-laura", null, null, "Laura"), "ca", null, TemplateIcon.bell, TemplateColor.NEUTRAL,
+                "Títol", "Cos.", null, new Notification.Action(type, params), List.of(), null, NOW, null, null, null, null, null, null, null, null, Map.of());
+    }
+
+    /**
+     * Round 2, review #7 (R-11-11 «Correu: l'acció es tradueix en un enllaç profund a la mateixa ruta»): the e-mail's button and
+     * its plain-text link open the route of the native action with the action's parameters, as the app's card does, never the
+     * bare feed. N-15 → the seat claim (06/29 with the entry, the class and the dog); N-08a → 04 with the dog preselected.
+     * Before the fix both linked to `/notificacions`.
+     */
+    @Test void R_11_11_theEmailsActionIsADeepLinkToTheActionsRouteWithItsParameters() {
+        var params = new java.util.LinkedHashMap<String, String>();
+        params.put("dogId", "dog-duna"); params.put("classSessionId", "class-a"); params.put("waitlistEntryId", "entry-a");
+        String claim = "https://app.example.test/reservar/confirmar?waitlistEntryId=entry-a&classSessionId=class-a&dogId=dog-duna";
+        var seat = renderer.render(withAction("N-15", NotificationAudience.MEMBER, NotificationActionType.CLAIM_SEAT, params), "laura@example.test", SETTINGS,
+                APP, null, Map.of());
+        assertThat(seat.text()).contains("Obre l’app: " + claim).doesNotContain("/notificacions");
+        assertThat(seat.html()).contains("href=\"" + claim.replace("&", "&amp;") + "\"").doesNotContain("/notificacions");
+        var cancelled = renderer.render(withAction("N-08a", NotificationAudience.MEMBER, NotificationActionType.CHANGE_CLASS, Map.of("dogId", "dog-duna", "classSessionId", "class-a")),
+                "laura@example.test", SETTINGS, APP, null, Map.of());
+        assertThat(cancelled.text()).contains("Obre l’app: https://app.example.test/reservar?dogId=dog-duna").doesNotContain("/notificacions");
+        assertThat(cancelled.html()).contains("href=\"https://app.example.test/reservar?dogId=dog-duna\"");
+        // Staff: the administrators' N-51 opens D10 in the back office's own domain; without a verified one, no button.
+        java.util.function.Function<String, String> both = app -> "clubs".equals(app) ? "https://app.example.test" : "https://admin.example.test";
+        var bounce = withAction("N-51", NotificationAudience.ADMINS, NotificationActionType.OPEN_MEMBER, Map.of("memberId", "member-marc"));
+        assertThat(renderer.render(bounce, "admin@example.test", SETTINGS, both, null, Map.of()).text()).contains("Obre l’app: https://admin.example.test/abonats/member-marc");
+        var noBackOffice = renderer.render(bounce, "admin@example.test", SETTINGS, APP, null, Map.of());
+        assertThat(noBackOffice.html()).doesNotContain("/abonats", "Obre l’app"); assertThat(noBackOffice.text()).doesNotContain("Obre l’app");
+        // An instructor's N-17 opens the class (21) in the member app.
+        assertThat(renderer.render(withAction("N-17", NotificationAudience.INSTRUCTORS, NotificationActionType.CHANGE_CLASS, Map.of("classSessionId", "class-a")),
+                "marta@example.test", SETTINGS, both, null, Map.of()).text()).contains("Obre l’app: https://app.example.test/instructor/classes/class-a");
     }
 
     @Test void T_11_23_theUnsubscribeTokenIsSignedValidThirtyDaysAndBoundToItsClub() {

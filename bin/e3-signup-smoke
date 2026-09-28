@@ -209,7 +209,9 @@ def main():
                     validation = dict(version=review["version"], dogs=[dict(dogId=added["dogId"], levelId=review["proposals"]["levels"][0]["id"])], upfrontAmountPaid=review["upfront"]["totalDue"])
                     more = call("POST", f"/api/v1/members/{member_id}/validation", host=host, access=admin, body=validation)
                     require(more["accountId"] == validated["accountId"] and more["number"] == validated["number"], "Add-dog changed identity")
-                    wait(lambda: mongo('print(JSON.stringify(db.notifications.countDocuments({clubId:'+json.dumps(fixture['_id'])+',code:"N-37",channel:"APP",status:"SENT"})))'), "N-37 app notification missing")
+                    # E7-T02: one S11 document per recipient with an APP delivery born DELIVERED (the E1 row was flat APP/SENT).
+                    wait(lambda: mongo('print(JSON.stringify(db.notifications.countDocuments({clubId:'+json.dumps(fixture['_id'])+',code:"N-37",$or:['
+                                       '{deliveries:{$elemMatch:{channel:"APP",status:{$in:["DELIVERED","SENT"]}}}},{channel:"APP",status:"SENT"}]})))'), "N-37 app notification missing")
                     call("POST", "/api/v1/signup/identity-checks", host=host, body=dict(idDocument=person["idDocument"], emails=[email]))
                     recognition, _ = wait(lambda: mail(email, "Verifica", True), "Recognition mail missing")
                     require("redirect=%2Fgossos%2Fnou" in recognition["text"], "Recognition redirect missing")

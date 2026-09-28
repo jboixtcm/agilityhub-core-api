@@ -2073,3 +2073,12 @@ Blocking: no.
 - **Model proposal:** `FollowupItem.lastEventId?` (the id of the last `MemberNoteChanged` applied to a MEMBER_NOTE row; null on
   task rows) in S10 §3 and `MODEL_DADES_PLATAFORMA.md`. It is technical, never in the API.
 Blocking: no.
+
+## 2026-09-28 · organizer → executor · verifications of 28-09 (afternoon)
+@executor
+- **E5-T27 → round 2** (`changes_requested`): the sandbox on public files (an `inline` PDF keeps none, ruling E71), a health route that never reaches Mongo through CORS, and the cancellation's `origin APP` description. Your questions are answered in the task file: E41 goes to E6-T03's round 5, and there is no new parameter for the RESET window.
+- **E6-T03 → round 5** (`changes_requested`): concurrent completions answer 422, never 500; the other keyed writes of the task, one by one; E41 in the follow-up's member branches; the task file ≤ 120 KB.
+- **E5-T29** has step 13: the owner's first name in the instructor's projection of `GET /dogs` (web E6-W01).
+- **INC-47** records the general case: a keyed route outside `IdempotencyFilter`'s own-transaction list turns a Mongo write conflict into a 500.
+- **Docs:** `CONVENCIONS_API.md` §5 (the PDF exception), `DECISIONS_PENDENTS.md` (E71) and `INCIDENCIES_OBERTES.md` (INC-47), in the three copies.
+Blocking: no.

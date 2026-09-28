@@ -54,6 +54,26 @@ class RecipientResolverTest {
         assertThat(both).filteredOn(r -> "account-admin".equals(r.accountId())).extracting(RecipientResolver.Recipient::audience).containsExactly(MEMBER, ADMINS);
     }
 
+    /**
+     * E7-T02 round 2, review #8 (R-11-05, A20b): the subject dog is the notice's dog whoever owns it. N-04 of Marc's Ares booked by
+     * Laura (a family group): the owner's recipient and the booker's both carry Ares — from the owner's contact when he is a
+     * recipient too, from the directory when he is not.
+     */
+    @Test void R_11_05_theSubjectDogOfTheBookerIsTheBookedDogNotOneOfTheirOwn() {
+        var subject = NotificationSubject.booking("booking-9");
+        var both = NotificationFacts.builder().member(new NotificationFacts.MemberSubject("member-marc", "dog-ares", Map.of(), subject))
+                .member(new NotificationFacts.MemberSubject("member-laura", "dog-ares", Map.of(), subject)).build();
+        assertThat(resolver.resolve(spec("N-04"), trigger("BookingCreated", Map.of()), both)).extracting(r -> r.contact().memberId() + ":" + r.subjectDog().name())
+                .containsExactly("member-marc:Ares", "member-laura:Ares");
+        var bookerOnly = NotificationFacts.builder().member(new NotificationFacts.MemberSubject("member-laura", "dog-ares", Map.of(), subject)).build();
+        assertThat(resolver.resolve(spec("N-04"), trigger("BookingCreated", Map.of()), bookerOnly)).singleElement()
+                .satisfies(r -> assertThat(r.subjectDog()).isEqualTo(InMemoryMessagingPorts.dog("dog-ares", "Ares", "MALE")));
+        // Her own dog, and a dog nobody knows (no name then).
+        var own = NotificationFacts.builder().member("member-laura", "dog-rock").member("member-pau", "dog-gone").build();
+        assertThat(resolver.resolve(spec("N-04"), trigger("BookingCreated", Map.of()), own)).extracting(r -> r.subjectDog() == null ? null : r.subjectDog().name())
+                .containsExactly("Rock", null);
+    }
+
     @Test void T_11_14_instructorsOfTheClassNewAndFormerElseEveryActiveOne() {
         // N-08b: the class's new instructors and the former ones of the diff.
         ports.classInstructors.put("class-a", List.of("instructor-estel"));

@@ -111,5 +111,12 @@ class ChannelResolverTest {
         // An address that already has a live EMAIL delivery (the first capped SMS forced it) gets no second one.
         assertThat(ChannelResolver.capReached(contact, List.of("laura@example.test"))).containsExactly(new ChannelResolver.Planned(EMAIL, "laura.work@example.test", QUEUED));
         assertThat(ChannelResolver.capReached(new ChannelResolver.Contact(null, null, null, null, null), List.of())).isEmpty();
+        // Round 2 (review #4): one per address compared without case, as the first resolution writes them; a blank one is none.
+        var twice = new ChannelResolver.Contact("account-laura", List.of(new ChannelResolver.EmailAddress(" Laura@Example.test ", false),
+                new ChannelResolver.EmailAddress("laura@example.test", false), new ChannelResolver.EmailAddress(" ", false),
+                new ChannelResolver.EmailAddress("LAURA.WORK@example.test", false)), List.of(), List.of(), null);
+        assertThat(ChannelResolver.capReached(twice, List.of())).containsExactly(new ChannelResolver.Planned(EMAIL, "Laura@Example.test", QUEUED),
+                new ChannelResolver.Planned(EMAIL, "LAURA.WORK@example.test", QUEUED));
+        assertThat(ChannelResolver.capReached(twice, List.of("laura.work@example.test ", "LAURA@example.test"))).isEmpty();
     }
 }

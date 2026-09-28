@@ -14,6 +14,10 @@ import org.springframework.stereotype.Component;
  * status — never an address) and writes nothing. Idempotent: a converted row is no longer a legacy one. `--apply` converts
  * each row from its values when it writes (a webhook may move a row after the listing) and prints the status it converted;
  * `SKIPPED` = converted meanwhile, or still changing (a rerun converts it). Rows not yet converted already load on every read.
+ *
+ * <p>E7-T02 round 2 (ruling E69): the SMS and PUSH intents E4–E6 queued before the engine are never sent. The conversion
+ * closes a flat row's intent as `SKIPPED_STALE`; a second pass lists the rows that already have `deliveries` and still hold
+ * such an intent (`WOULD_CLOSE`) and, with `--apply`, closes them (`CLOSED`; `SKIPPED` = closed meanwhile).</p>
  */
 @Component
 public class MigrateNotificationsCommand implements CoreCommand {
@@ -37,5 +41,15 @@ public class MigrateNotificationsCommand implements CoreCommand {
         }
         System.out.println(apply ? "Legacy notification rows: " + found + ", converted: " + converted
                 : "Legacy notification rows: " + found + " (dry run: nothing written; --apply converts them)");
+        int intents = 0, closed = 0;
+        for (var row : rows.findIntents()) {
+            intents++;
+            boolean done = apply && rows.close(row);
+            if (done) { closed++; }
+            System.out.println((apply ? done ? "CLOSED " : "SKIPPED " : "WOULD_CLOSE ") + row.get("_id") + " club=" + Objects.requireNonNullElse(row.getString("clubId"), "SYSTEM")
+                    + " code=" + row.getString("code"));
+        }
+        System.out.println(apply ? "Queued intents written before the engine: " + intents + ", closed: " + closed
+                : "Queued intents written before the engine: " + intents + " (dry run: nothing written; --apply closes them)");
     }
 }

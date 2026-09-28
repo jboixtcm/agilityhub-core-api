@@ -23,4 +23,9 @@ public interface MemberDirectoryPort {
     default List<MemberContact> byFilters(List<String> filters, String q) { return List.of(); }
     /** The members of the club with at least one contact e-mail equal to the address (case-insensitive), for a bounce. */
     List<String> membersWithEmail(String address);
+    /**
+     * A dog of the club by id, whoever owns it (R-11-05: the subject dog's `dog_name` and `dog_name_article` for a recipient
+     * who is not its owner, e.g. the family-group member who booked it, A20b). The null object knows none.
+     */
+    default Optional<MemberContact.DogContact> dog(String dogId) { return Optional.empty(); }
 }

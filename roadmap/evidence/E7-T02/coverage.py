@@ -9,7 +9,9 @@ CLASSES = ["NotificationEngine", "NotificationDispatcher", "RecipientResolver", 
            "EmailUnsubscribeService", "MessagingNotificationFacts", "NotificationPreferences", "SystemNotificationService", "NotificationFacts",
            "NotificationTrigger", "NotificationSubject", "MessagingPortDefaults", "MemberContact", "ClubSmsUsage", "ClubFormats",
            "MessagingCensusDirectory", "CensusNotificationFacts", "SchedulingNotificationFacts", "BookingNotificationFacts", "TrainingNotificationFacts",
-           "ActivityNotificationFacts", "FollowupNotificationFacts", "CommonNotificationFacts"]
+           "ActivityNotificationFacts", "FollowupNotificationFacts", "CommonNotificationFacts",
+           # round 2
+           "NotificationLinks", "EmailSuppression", "NotificationRepository", "LegacyNotificationRows", "MigrateNotificationsCommand", "ClubEmailSettings"]
 totals, classes = {}, {}
 with open("target/site/jacoco/jacoco.csv", encoding="utf-8") as source:
     for row in csv.DictReader(source):

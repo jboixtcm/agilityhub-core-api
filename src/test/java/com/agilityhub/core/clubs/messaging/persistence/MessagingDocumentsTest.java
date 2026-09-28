@@ -68,7 +68,16 @@ class MessagingDocumentsTest {
         var smsFields = LegacyNotificationRows.upgrade(sms);
         assertThat(smsFields.get("action")).isEqualTo(new Document("type", "CLAIM_SEAT").append("params", new Document("entityId", "entry-a")));
         assertThat(smsFields).containsEntry("smsBody", "Club: plaça lliure");
-        assertThat(smsFields.getList("deliveries", Document.class).getFirst()).containsEntry("target", null).containsEntry("attempts", 0);
+        // E7-T02 round 2 (ruling E69): the queued intent written before the engine is closed, never sent — its delivery and flat status.
+        assertThat(smsFields.getList("deliveries", Document.class).getFirst()).containsEntry("target", null).containsEntry("attempts", 0)
+                .containsEntry("status", "SKIPPED_STALE").containsEntry("lastError", LegacyNotificationRows.BEFORE_ENGINE);
+        assertThat(smsFields).containsEntry("status", "SKIPPED_STALE").containsEntry("error", LegacyNotificationRows.BEFORE_ENGINE);
+        var push = LegacyNotificationRows.upgrade(new Document(sms).append("channel", "PUSH"));
+        assertThat(push.getList("deliveries", Document.class).getFirst()).containsEntry("channel", "PUSH").containsEntry("status", "SKIPPED_STALE");
+        // An SMS row that is no longer queued (the module was off) keeps its status.
+        var skipped = LegacyNotificationRows.upgrade(new Document(sms).append("status", "SKIPPED_MODULE_OFF"));
+        assertThat(skipped.getList("deliveries", Document.class).getFirst()).containsEntry("status", "SKIPPED_MODULE_OFF").containsEntry("lastError", null);
+        assertThat(skipped).doesNotContainKeys("status", "error");
         var odd = LegacyNotificationRows.upgrade(new Document(sms).append("action", "SOMETHING_ELSE").append("code", "N-99"));
         assertThat(odd).containsEntry("action", null).containsEntry("legacyAction", "SOMETHING_ELSE").doesNotContainKeys("category", "audience");
         // A SYSTEM row without a channel field is an e-mail (E1).

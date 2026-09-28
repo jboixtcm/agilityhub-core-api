@@ -118,6 +118,17 @@ class Smoke:
         return json.loads(self.compose("exec", "-T", "mongo", "mongosh", "--quiet", "e4_smoke", "--eval",
                                        "print(JSON.stringify(" + script + "))").strip().splitlines()[-1])
 
+    def notices(self, code, criteria):
+        """One row per delivery of the club's `code` notices matching `criteria` that went out or is on its way. Since E7-T02 a
+        notice is one S11 document per recipient (`recipient.accountId`, `audience`, `eventId`) with a delivery per channel; a
+        delivery the engine skipped (by preference, module or missing contact) is no row, as the E1 rows had none (the E1
+        SYSTEM rows keep their flat `accountId`). Mirrors bin/e5-smoke and bin/e6-smoke."""
+        pipeline = [{"$match": {"clubId": self.club_id, "code": code, **criteria}}, {"$unwind": "$deliveries"},
+                    {"$match": {"deliveries.status": {"$not": {"$regex": "^SKIPPED"}}}},
+                    {"$project": {"_id": 0, "notification": "$_id", "channel": "$deliveries.channel", "status": "$deliveries.status",
+                                  "account": {"$ifNull": ["$recipient.accountId", "$accountId"]}}}]
+        return self.mongo("db.notifications.aggregate(" + json.dumps(pipeline) + ").toArray()")
+
     def cli(self, *args):
         service = "seed" if self.image else self.service
         return self.compose("run", "--rm", "--no-deps", "-T", "--entrypoint", "java", service,
@@ -280,24 +291,26 @@ class Smoke:
                            + json.dumps(target["id"]) + '},{payload:1})')
         require(len(event["payload"]["affected"]) == 4 and len(event["payload"]["waitlistIds"]) == 2, "Outbox payload mismatch")
         self.record("outbox ClassCancelledByClub", "committed", f"event {short(event['_id'])}: affected=4, waitlistIds=2")
-        prefix = "^" + re.escape(event["_id"]) + ":(?!staff:)"
 
         def delivered():
-            rows = self.mongo('db.notifications.find({clubId:' + json.dumps(self.club_id) + ',code:"N-08a",_id:{$regex:' + json.dumps(prefix)
-                              + '}},{channel:1,status:1}).toArray()')
+            # E7-T02: one MEMBER notice per registrant (the event's own), APP born DELIVERED, the e-mail and the SMS really sent
+            # (the local profile's LogSmsSender); the staff's copies are other audiences.
+            rows = self.notices("N-08a", {"eventId": event["_id"], "audience": "MEMBER"})
             by = {}
             for row in rows:
                 by.setdefault(row["channel"], []).append(row)
-            ok = (len(by.get("APP", [])) == 6 and len(by.get("SMS", [])) == 6 and len(by.get("EMAIL", [])) == 6
-                  and all(r["status"] == "SENT" for r in by["EMAIL"]) and all(r["status"] == "QUEUED" for r in by["SMS"]))
+            notices = {r["notification"] for r in rows}
+            ok = (len(notices) == 6 and len(by.get("APP", [])) == 6 and len(by.get("EMAIL", [])) == 6 and len(by.get("SMS", [])) >= 6
+                  and all(r["status"] == "DELIVERED" for r in by["APP"]) and all(r["status"] == "SENT" for r in by["EMAIL"])
+                  and all(r["status"] == "SENT" for r in by["SMS"]) and {r["notification"] for r in by["SMS"]} == notices)
             return by if ok else None
-        by = wait(delivered, "N-08a APP/EMAIL/SMS rows for the 6 registrants did not appear")
+        by = wait(delivered, "N-08a APP/EMAIL/SMS deliveries for the 6 registrants did not appear")
         directory = self.private / "mailbox"
         directory.mkdir(exist_ok=True)
         self.command(["docker", "cp", self.container + ":/app/mailbox/.", str(directory)])
         mails = {json.loads(p.read_text())["tags"].get("notificationId") for p in directory.glob("local-*.json")}
-        require({r["_id"] for r in by["EMAIL"]} <= mails, "N-08a e-mails missing from the local mailbox")
-        self.record("notifications N-08a", "6 APP + 6 EMAIL (mailbox) + 6 SMS QUEUED", "4 bookings + 2 waitlist")
+        require({r["notification"] for r in by["EMAIL"]} <= mails, "N-08a e-mails missing from the local mailbox")
+        self.record("notifications N-08a", "6 APP DELIVERED + 6 EMAIL SENT (mailbox) + SMS SENT", f"4 bookings + 2 waitlist; {len(by['SMS'])} SMS")
 
         # Ring blocks: over an active class -> conflict; on a free slot -> visible in both grids.
         zone = self.mongo('db.clubs.findOne({_id:' + json.dumps(self.club_id) + '}).timeZone')
@@ -384,9 +397,8 @@ class Smoke:
         after = self.call("GET", f"/api/v1/activity-registrations/{registration['id']}", access=member)
         require(after["state"] == "CANCELLED" and after["cancellation"]["reason"] == "ACTIVITY_CANCELLED", "Registration not cancelled by the activity")
         account = self.mongo('db.memberships.findOne({clubId:' + json.dumps(self.club_id) + ',memberId:' + json.dumps(registration["memberId"]) + '}).accountId')
-        wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.club_id) + ',code:"N-32c",accountId:' + json.dumps(account) + '})') > 0,
-             "N-32c rows missing")
-        self.record("POST /activities/{id}/cancellation", "200", "registration CANCELLED{ACTIVITY_CANCELLED}; N-32c rows")
+        wait(lambda: len(self.notices("N-32c", {"$or": [{"recipient.accountId": account}, {"accountId": account}]})) > 0, "N-32c deliveries missing")
+        self.record("POST /activities/{id}/cancellation", "200", "registration CANCELLED{ACTIVITY_CANCELLED}; N-32c deliveries")
         self.call("POST", f"/api/v1/ring-blocks/{block['id']}/cancellation", access=admin, body={})
         self.record("POST /ring-blocks/{smoke}/cancellation", "200", "smoke block released")
         for command in ("activities:finish-ended", "scheduling:finish-ended"):

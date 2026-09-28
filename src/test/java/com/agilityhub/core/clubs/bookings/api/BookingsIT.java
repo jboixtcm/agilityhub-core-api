@@ -451,6 +451,30 @@ class BookingsIT extends BookingFixtures {
         try (var t = TenantContext.open(OTHER)) { assertThat(activity.dogsWithBooking(OTHER, NOW, NOW.plus(Duration.ofDays(30)))).isEmpty(); }
     }
 
+    /**
+     * E7-T02 round 2, review #8 (R-11-05, A20b): N-04 reaches the dog's owner and the family-group member who booked it, and both
+     * read the booked dog's name — the subject dog is resolved from the booking, not among the recipient's own dogs. Before the
+     * fix Laura's confirmation of Joan's Toby said «amb .» (an empty `dog_name`).
+     */
+    @Test void R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName() throws Exception {
+        book(as("laura"), "thu", "s08-d-toby");
+        dispatch();
+        var n04 = com.agilityhub.core.support.NotificationRows.find(mongo, Criteria.where("clubId").is(CLUB).and("code").is("N-04").and("channel").is("APP"));
+        assertThat(n04).extracting(n -> n.getString("accountId")).containsExactlyInAnyOrder("s08-joan", "s08-laura");
+        assertThat(n04).allSatisfy(n -> {
+            assertThat(n.get("variables", Document.class).getString("dog_name")).isEqualTo("Toby");
+            assertThat(n.getString("body")).contains("Toby").doesNotContain(" .");
+            assertThat(n.get("subject", Document.class).getString("dogId")).isEqualTo("s08-d-toby");
+        });
+        // Laura's own dog: her name only in her own confirmation.
+        book(as("laura"), "wed", "s08-d-duna");
+        dispatch();
+        assertThat(com.agilityhub.core.support.NotificationRows.find(mongo, Criteria.where("clubId").is(CLUB).and("code").is("N-04").and("channel").is("APP")
+                .and("subject.dogId").is("s08-d-duna"))).singleElement().satisfies(n -> {
+            assertThat(n.getString("accountId")).isEqualTo("s08-laura"); assertThat(n.getString("body")).contains("Duna");
+        });
+    }
+
     @Test void T_08_47_theUniversalListFiltersByDeclaredFieldsOnlyForStaff() throws Exception {
         var a = book(as("laura"), "wed", "s08-d-duna"); book(as("pere"), "wed", "s08-d-nit"); var c = book(as("laura"), "mon", "s08-d-rock");
         cancel(as("laura"), a.path("id").asText(), 200);

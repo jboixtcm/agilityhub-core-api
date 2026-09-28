@@ -56,6 +56,10 @@ class NotificationSeedSnapshotTest {
             "ca", "La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!",
             "es", "La clase queda cancelada por la lluvia. Podéis reservar otra desde la app. ¡Disculpad las molestias!",
             "en", "The class is cancelled because of the rain. You can book another one in the app. Sorry for the inconvenience!");
+    /** The fictional subject ids of every native action (the e-mail's deep link, R-11-11, takes the ones its route needs). */
+    private static final Map<String, String> ACTION_PARAMS = new java.util.TreeMap<>(Map.of("dogId", "dog-duna", "classSessionId", "class-exemple",
+            "bookingId", "booking-exemple", "waitlistEntryId", "entry-exemple", "activityId", "activity-exemple", "taskId", "task-exemple",
+            "invoiceId", "invoice-exemple"));
     private final IcuMessageSource messages;
     private final NotificationEmailRenderer emails;
     private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
@@ -144,11 +148,11 @@ class NotificationSeedSnapshotTest {
                 if (rendered.sms() != null) { assertThat(rendered.sms().text()).hasSizeLessThanOrEqualTo(160).doesNotContain("http"); }
                 // The e-mail of the member audiences (staff mails share the layout).
                 if (!isStaff) {
-                    var action = spec.action(audience) == null ? null : new Notification.Action(spec.action(audience), Map.of("dogId", "dog-duna"));
+                    var action = spec.action(audience) == null ? null : new Notification.Action(spec.action(audience), ACTION_PARAMS);
                     var notification = new Notification("snapshot-" + spec.code(), "club-a", spec.code(), spec.category(), null, null, null, null, "d", audience, null, language, null,
                             spec.icon(), spec.color(), rendered.title(), rendered.body(), null, action, List.of(), null, NOW, null, null, null, null, null, null, null, null, variables);
                     String unsubscribe = spec.category() == NotificationCategory.CLUB_NEWS ? "https://app.example.test/comunicats/baixa?t=exemple" : null;
-                    var mail = emails.render(notification, "laura@example.test", settings, "https://app.example.test", unsubscribe, Map.of());
+                    var mail = emails.render(notification, "laura@example.test", settings, app -> "https://app.example.test", unsubscribe, Map.of());
                     assertThat(mail.subject()).isEqualTo(rendered.title());
                     assertThat(mail.html()).contains("<h1", "Club Agility Exemple").doesNotContain(" th:", "[[", "{");
                     assertThat(mail.text()).startsWith(rendered.title() + "\n\n" + rendered.body());

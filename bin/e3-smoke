@@ -212,14 +212,15 @@ class Smoke:
     def rows(self, code, criteria):
         """E1-shaped rows, one per delivery: since E7-T02 a notice is one S11 document per recipient with a delivery per channel
         (`recipient.*`, `deliveries[].channel/target/status`); SYSTEM notices keep their flat E1 fields. Mirrors the tests'
-        `NotificationRows` (E5-T27: this smoke still read the flat fields only)."""
+        `NotificationRows` (E5-T27: this smoke still read the flat fields only). A delivery the engine skipped (by preference,
+        module or missing contact) is no row, as the E1 rows had none (E7-T02 round 2, as bin/e5-smoke and bin/e6-smoke)."""
         flat = {"accountId": {"$ifNull": ["$recipient.accountId", "$accountId"]},
                 "channel": {"$ifNull": ["$deliveries.channel", "$channel"]}, "status": {"$ifNull": ["$deliveries.status", "$status"]},
                 "recipientEmail": {"$cond": [{"$eq": ["$deliveries.channel", "EMAIL"]}, "$deliveries.target", {"$ifNull": ["$recipient.email", "$recipientEmail"]}]},
                 "variables": {"$cond": [{"$ifNull": ["$action.type", False]},
                                         {"$mergeObjects": [{"$ifNull": ["$variables", {}]}, {"action": "$action.type"}]}, {"$ifNull": ["$variables", {}]}]}}
         pipeline = [{"$match": {"clubId": self.club_id, "code": code}}, {"$unwind": {"path": "$deliveries", "preserveNullAndEmptyArrays": True}},
-                    {"$project": flat}, {"$match": criteria}]
+                    {"$project": flat}, {"$match": {"status": {"$not": {"$regex": "^SKIPPED"}}}}, {"$match": criteria}]
         return self.mongo("db.notifications.aggregate(" + json.dumps(pipeline) + ").toArray().map(n=>n._id)")
 
     def mailbox(self, code, email, token=False):

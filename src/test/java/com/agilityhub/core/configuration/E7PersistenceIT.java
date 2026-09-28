@@ -195,9 +195,11 @@ class E7PersistenceIT extends AbstractIntegrationTest {
             var sms = notifications.findById("e7p-old-sms").orElseThrow();
             assertThat(sms.action()).isEqualTo(new Notification.Action(NotificationActionType.OPEN_BOOKING, Map.of("entityId", "booking-a")));
             assertThat(sms.smsBody()).isEqualTo("Club: canvi"); assertThat(sms.audience()).isEqualTo(NotificationAudience.MEMBER);
-            // A converted row moves like a helper row.
-            assertThat(notifications.finish("e7p-old-sms", Notification.Status.FAILED, null, "Twilio 400", now)).isTrue();
-            assertThat(notifications.findById("e7p-old-sms").orElseThrow().delivery().status()).isEqualTo(DeliveryStatus.FAILED);
+            // E7-T02 round 2 (ruling E69): a queued SMS intent written before the engine is closed, never sent; nothing moves it again.
+            assertThat(sms.status()).isEqualTo(Notification.Status.SKIPPED_STALE);
+            assertThat(sms.delivery().status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(sms.delivery().lastError()).isEqualTo(LegacyNotificationRows.BEFORE_ENGINE);
+            assertThat(notifications.finish("e7p-old-sms", Notification.Status.FAILED, null, "Twilio 400", now)).isFalse();
+            assertThat(notifications.findById("e7p-old-sms").orElseThrow().delivery().status()).isEqualTo(DeliveryStatus.SKIPPED_STALE);
         }
         assertThat(run()).doesNotContain("e7p-old").contains("Legacy notification rows:");
         assertThatThrownBy(() -> migrate.run(new DefaultApplicationArguments("--dry-run", "--apply"))).hasMessageContaining("Usage");
@@ -247,14 +249,16 @@ class E7PersistenceIT extends AbstractIntegrationTest {
         assertThat(service.completed("e7p-old-system")).isTrue();
         assertThat(mongo.count(Query.query(Criteria.where("_id").regex("^e7p-old-")), "notifications")).isEqualTo(3);
         assertThat(raw("e7p-old-system")).containsEntry("status", "SENT").doesNotContainKey("deliveries");
-        // Loaded before the migration = loaded after it (the command converts what the reader maps).
+        // Loaded before the migration = loaded after it (the command converts what the reader maps), except that the queued intent
+        // is closed (E7-T02 round 2, ruling E69: written before the engine, never sent).
         Notification before;
         try (var scope = TenantContext.open(CLUB)) { before = notifications.findScoped("e7p-old-intent").orElseThrow(); }
         run("--apply");
         try (var scope = TenantContext.open(CLUB)) {
             var after = notifications.findScoped("e7p-old-intent").orElseThrow();
-            assertThat(after.action()).isEqualTo(before.action()); assertThat(after.status()).isEqualTo(before.status());
-            assertThat(after.delivery().status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(after.smsBody()).isEqualTo("Club: plaça lliure");
+            assertThat(after.action()).isEqualTo(before.action()); assertThat(before.status()).isEqualTo(Notification.Status.QUEUED);
+            assertThat(after.status()).isEqualTo(Notification.Status.SKIPPED_STALE);
+            assertThat(after.delivery().status()).isEqualTo(DeliveryStatus.SKIPPED_STALE); assertThat(after.smsBody()).isEqualTo("Club: plaça lliure");
         }
         assertThat(raw("e7p-old-unknown")).containsEntry("legacyAction", "OPEN_LEGACY_SCREEN").containsEntry("action", null);
     }
