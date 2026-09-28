@@ -23,7 +23,8 @@ public final class ClubCorsConfigurationSource implements CorsConfigurationSourc
         configuration.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Accept-Language",
                 "Idempotency-Key", "If-Match", "If-None-Match"));
-        configuration.setExposedHeaders(List.of("Retry-After", "ETag", "Content-Language"));
+        // E5-T27 step 8 (ruling E61, CONVENCIONS_API §5): the web reads a download's stored name when it fetches the file.
+        configuration.setExposedHeaders(List.of("Retry-After", "ETag", "Content-Language", "Content-Disposition"));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(300L);
         return configuration;

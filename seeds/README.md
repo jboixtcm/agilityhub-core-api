@@ -16,7 +16,15 @@ bin/core identity:seed-test-accounts --club=canic
 resources. Commands use the application's MongoDB environment variables and exit
 with status 0 or 1. They start no HTTP server and disable background scheduling.
 The Cànic definition contains 2 admins, 3 instructors and 10 members; the minimal
-definition contains 1 admin and 2 members. All are fictional `@example.test`
+definition contains 1 admin and 2 members. The third Cànic instructor,
+`instructor.3@example.test`, is declared `[INSTRUCTOR, MEMBER]` (E5-T27, S01 R-01-07,
+ruling E41: the roles are a union): after `seed:demo`, which links that login to demo
+member number 5 (member index 4) and its own dogs (the round-robin gives it one CAD and
+one E dog), it books, cancels and leaves waiting lists through the member routes as a
+member, and keeps the instructor's routes. The other two instructors stay `[INSTRUCTOR]`.
+`bin/e5-smoke` books and cancels with it. A local stack seeded before E5-T27 keeps the
+old roles until `club:apply seeds/club-canic.yaml` runs again (it reconciles the roles).
+All are fictional `@example.test`
 accounts. Their `${SEED_PASSWORD}` references require that environment variable,
 which has no default and is never printed. Omit `accounts[].password` to create
 passwordless accounts. Passwords are accepted in local/test; staging/prod require

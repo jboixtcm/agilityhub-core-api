@@ -524,6 +524,33 @@ class Smoke:
             require("status=SUCCEEDED" in line, f"jobs:run {job} failed")
             self.record(f"bin/core jobs:run {job} --club={club}", "exit 0", re.sub(r"run=[0-9a-f-]+", "run=<id>", re.sub(r"club=[0-9a-f-]+", "", line)))
 
+        # E5-T27 step 1 (S01 R-01-07, ruling E41, INC-16): the Cànic's dual-role instructor (INSTRUCTOR + MEMBER, own dogs)
+        # books and cancels as a member; an instructor without MEMBER still gets 403 on the member routes.
+        dual = self.login("instructor.3@example.test", "clubs-app")
+        payload = dual.split(".")[1]
+        roles = sorted(json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))["roles"])
+        require(roles == ["INSTRUCTOR", "MEMBER"], f"instructor.3@ roles mismatch: {roles}")
+        own = [d for d in self.call("GET", "/api/v1/me/home", access=dual, quiet=True)["dogs"] if d["own"]]
+        require(own, "The dual-role instructor has no dog of its own")
+        target = None
+        for dog in own:
+            classes = self.call("GET", f"/api/v1/me/bookable-classes?dogId={dog['id']}", access=dual, quiet=True)["classes"]
+            target = next(((dog, c) for c in classes if c["state"] == "BOOKABLE"), None)
+            if target:
+                break
+        require(target, "No bookable class for the dual-role instructor's dogs")
+        dog, lesson = target
+        hold = self.call("POST", "/api/v1/seat-holds", 201, access=dual, body=dict(classSessionId=lesson["id"], dogId=dog["id"]))
+        booked = self.call("POST", "/api/v1/bookings", 201, access=dual, body=dict(seatHoldId=hold["id"]), idempotent=True)
+        cancelled = self.call("POST", f"/api/v1/bookings/{booked['id']}/cancellation", access=dual, body={})
+        stored = self.mongo('db.bookings.findOne({_id:' + json.dumps(booked["id"]) + '},{cancelReason:1,memberId:1,dogId:1})')
+        require(cancelled["cancellation"]["byRole"] == "MEMBER" and stored["cancelReason"] == "MEMBER", "The own cancellation must take the member branch")
+        staff_only = self.login("instructor.2@example.test", "clubs-app")
+        self.call("GET", "/api/v1/me/home", 403, access=staff_only, error="FORBIDDEN")
+        self.record("instructor.3@ [INSTRUCTOR, MEMBER]: hold → book → cancel own dog", "201 · 201 · 200",
+                    f"dog {dog['name']} ({dog.get('levelName')}), class {lesson['startsAtLocal']}; byRole MEMBER, cancelReason MEMBER; "
+                    "instructor.2@ [INSTRUCTOR] GET /me/home → 403 FORBIDDEN")
+
     def report(self):
         width = max(len(s[0]) for s in self.summary)
         print("\nSUMMARY (step · status · key values)", flush=True)

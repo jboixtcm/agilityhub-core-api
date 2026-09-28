@@ -37,6 +37,22 @@ public class AccountSessionRepository extends GlobalRepository<RefreshToken> {
         mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("familyId").is(familyId)
                         .and("revokedAt").is(null)), new Update().set("tokenFamilyVersion", version), RefreshToken.class);
     }
+    /** S01 R-01-05 (E5-T27, ruling E49): whether the session still holds its RESET link's one-shot mark. */
+    public boolean passwordResetOpen(String accountId, String familyId, Instant now) {
+        return mongo.exists(passwordReset(accountId, familyId, now), RefreshToken.class);
+    }
+    /** Clears the session's RESET mark; true when this call took a live one (so a concurrent second change finds none). */
+    public boolean consumePasswordReset(String accountId, String familyId, Instant now) {
+        return mongo.updateMulti(passwordReset(accountId, familyId, now), new Update().unset("passwordResetUntil"), RefreshToken.class).getModifiedCount() > 0;
+    }
+    /** The first password change ends the mark, expired or live. */
+    public void clearPasswordReset(String accountId, String familyId) {
+        mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("familyId").is(familyId).and("passwordResetUntil").exists(true)),
+                new Update().unset("passwordResetUntil"), RefreshToken.class);
+    }
+    private static Query passwordReset(String accountId, String familyId, Instant now) {
+        return Query.query(Criteria.where("accountId").is(accountId).and("familyId").is(familyId).and("passwordResetUntil").gt(now));
+    }
     public void revokeOthers(String accountId, String familyId, Instant now) {
         mongo.updateMulti(Query.query(Criteria.where("accountId").is(accountId).and("familyId").ne(familyId)),
                 RefreshTokenRepository.revoked(now), RefreshToken.class);

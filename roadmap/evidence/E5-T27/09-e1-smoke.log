@@ -1,0 +1,6 @@
+PASS disposable MongoDB 7 replica set ready
+PASS Cànic and minimal seeds applied; disposable passwordless member projection prepared
+PASS local API health UP
+PASS magic link delivered through local mailbox and exchanged for cookie session
+CLEANUP local API stopped; disposable Mongo and private mailbox removed
+E1 smoke failed: Seeded passwordless member bootstrap mismatch

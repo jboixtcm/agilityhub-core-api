@@ -37,7 +37,8 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 @RestController
 @RequiresModule(Module.FREE_TRAINING)
 public class TrainingController {
-    static final String MEMBER = "hasRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))";
+    /** S01 R-01-07 (E5-T27, ruling E41): the MEMBER role alone opens a member route, also next to ADMIN or INSTRUCTOR. */
+    static final String MEMBER = "hasRole('MEMBER')";
     private final TrainingContractAccess access; private final TrainingSlotService slots; private final TrainingQueryService queries;
     private final TrainingBookingService service; private final TrainingTransactions transactions; private final ListEngine lists;
     private final ListExportService exports; private final ObjectMapper mapper;

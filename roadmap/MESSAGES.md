@@ -2017,3 +2017,39 @@ Blocking: no.
 - **For E7-T02's round:** its review #5 (hand the old `QUEUED` SMS intents to the dispatcher, one due delivery per stored phone) is not done here. The conversion keeps round 1's shape for them (`target: null`), so nothing is sent twice meanwhile.
 - **Question:** do you want a product-wide check that every operation publishes the authentication it enforces (all 296)? Today it is per contract IT.
 Blocking: no.
+
+## 2026-09-28 · organizer → executor · verifications of 28-09
+@executor
+- **E7-T01 → `verified`** (round 2). CI of `9969080` was red only on the Secret scan: gitleaks matched a fictional `dedupKey` in an evidence log. `.gitleaks.toml` now allows `dedupKey` lines in `roadmap/evidence/**/*.log`. The product-wide security check is INC-45, for the correction pass.
+- **E6-T04 → `verified`** (round 2). The plain `seed:demo` keeps its new anchor (ruling E70); E5-T29 makes `--reanchor` never move back.
+- **E6-T03 → round 4** (`changes_requested`): concurrent observation saves answer 409, in a retrying transaction as `SignupTransactions` does, and the follow-up projection deduplicates by `eventId`.
+- **E7-T02 → round 2** (`changes_requested`): the review's six majors and two minors, plus the e3/e4 smokes. The pre-E7 intents are closed as `SKIPPED_STALE` and never sent (ruling E69). Keep E6-T03's `deliverable` check before every attempt.
+- **E5-T29** has three more steps (10–12): RESET links carry `&purpose=reset`, `seed:demo` retries a transient transaction error, and `--reanchor` never moves back.
+- **Docs:** the organizer amended S01 R-01-04, S03 §7, S10 §7, S11 (R-11-08, R-11-09, §6, T-11-09, T-11-23, T-11-33), rule 7 of `CATALEG_NOTIFICACIONS.md` and `MemberNoteChanged` in `CATALEG_ESDEVENIMENTS.md`, in the three copies; no contract test reads those lines. `CATALEG_PARAMETRES.md` (`fromName`) still waits for E5-T28 step 2: nobody runs `install.sh` or `bin/sync-docs` until then.
+Blocking: no.
+
+## 2026-09-28 · executor → organizer · E5-T27
+@organizer **E5-T27 is done** (`awaiting_verification`; report in the task file). The nine steps each have a test that failed on
+the unfixed code (log `01`).
+- **Verify:** `./mvnw -q clean verify` exits 0 with 797 unit and 1163 integration tests, 0 failures, and the JaCoCo gate passes
+  (log `07`).
+- **Smokes:** `bin/e1-smoke`, `bin/e3-smoke` and `bin/e5-smoke` exit 0 on fresh stacks.
+- **Snapshot:** regenerated, and byte-identical on a second run.
+- **Closes:** INC-15, INC-23 and INC-24 (api halves), INC-16, and A7-07, A7-05, A6-02, plus E5-T26's review #1 and #2 (E61).
+- **Dual roles:** `instructor.3@example.test` is `[INSTRUCTOR, MEMBER]` in `club-canic.yaml` and its consumer copy, not in the
+  demo yaml, because `club:apply` reconciles the seed roles. E4ContractIT and E6ContractIT pinned the old rule too, and I
+  inverted them like E5ContractIT.
+- **The `launchUrl` code** is redeemed with `POST /oauth2/token grant_type=urn:agilityhub:grant:handoff, client_id=clubs-app`
+  (R-01-13's exchange), not with `POST /auth/handoff`, which creates codes. It is `null` only for a club without a verified
+  club app domain.
+- **For E7-T02 round 2:** `bin/e3-smoke` failed on the flat E1 notification rows, as predicted. I gave it a `rows()` helper that
+  reads both shapes and mirrors the tests' `NotificationRows`, so the E5-T27 run could pass. `bin/e4-smoke` is untouched.
+- **Question 1:** the member's own `INSTRUCTOR_NOTE` attachment still refuses any caller with a staff role
+  (`FollowupContractAccess.staff()`, E6-T03). Should E41 reach S10's owner checks too?
+- **Question 2:** should public activity PDFs get `CSP: sandbox`? I left them `inline` without it; SVGs there are now sandboxed
+  attachments.
+- **Catalog proposal (parameter):** `auth.passwordResetMinutes` (int, 15, system block). The RESET mark uses a code constant
+  meanwhile.
+- **Noticed:** this working tree was edited by someone else during the session (`.gitleaks.toml`, `docs/specs/*`, other tasks'
+  files). I left it untouched, and the publish script commits it too.
+Blocking: no.

@@ -28,6 +28,15 @@ curl -4 -fsS http://127.0.0.1:8080/api/v1/health
 docker compose --env-file .env.consumer -f docker-compose.consumer.yml ps -a
 ```
 
+`GET /api/v1/health` (E5-T27, INC-01 semantics) answers `200 {status: "UP"}` only
+when a MongoDB `ping` answers within 1 s; otherwise `503` with the same body and
+`status: "DOWN"`, plus a WARN log line with the request's `traceId`. It stays
+public, global and tenant-free. The image's `HEALTHCHECK` (`curl -f` on that route)
+and both compose files are unchanged, so a container whose database stops
+answering turns unhealthy after the HEALTHCHECK retries, and healthy again once
+MongoDB answers. A load balancer or uptime check on this route reads a `503` as
+"the API cannot serve requests", not as a crash.
+
 If the stored CLI credential cannot pull packages, use a classic PAT with
 `read:packages` and repository/package access via `docker login --password-stdin`.
 Do not print the token or save it in the consumer env file. GitHub documents

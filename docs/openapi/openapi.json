@@ -6009,6 +6009,7 @@
             "type" : "string"
           },
           "status" : {
+            "enum" : [ "UP", "DOWN" ],
             "type" : "string"
           },
           "version" : {
@@ -6391,9 +6392,9 @@
             "type" : "string"
           },
           "launchUrl" : {
-            "description" : "S03 member-app launch URL",
+            "description" : "S01 R-01-09 / S03 member-app launch URL: https://{club app host}/entrar?handoff=<one-shot code, 60 s>, redeemed once with the handoff grant (client_id clubs-app) into this grant's JWT; the JWT itself is never in the URL. Null only when the club has no verified club app domain.",
             "format" : "uri",
-            "type" : "string"
+            "type" : [ "string", "null" ]
           },
           "token" : {
             "type" : "string"
@@ -24251,7 +24252,7 @@
     },
     "/api/v1/bookings/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation → 403. R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation and without MEMBER → 403. An account with MEMBER and INSTRUCTOR cancels its own (or its family group's) booking as a member (origin MEMBER) and another member's as an instructor (R-01-07). R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
         "operationId" : "cancelBooking",
         "parameters" : [ {
           "in" : "path",
@@ -34978,6 +34979,7 @@
     },
     "/api/v1/health" : {
       "get" : {
+        "description" : "ANON, global (no tenant, no locale, no data). 200 {status: UP} only when a Mongo ping answers within 1 s; otherwise 503 with the same envelope and status DOWN. version and builtAt come from the build.",
         "operationId" : "health",
         "responses" : {
           "200" : {
@@ -34988,7 +34990,7 @@
                 }
               }
             },
-            "description" : "OK"
+            "description" : "HealthResponse, status UP"
           },
           "400" : {
             "content" : {
@@ -35099,6 +35101,16 @@
             },
             "description" : "Not Implemented"
           },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description" : "HealthResponse with status DOWN: the database did not answer a ping within 1 s"
+          },
           "5XX" : {
             "content" : {
               "application/json" : {
@@ -35111,6 +35123,7 @@
           }
         },
         "security" : [ ],
+        "summary" : "health",
         "tags" : [ "shared" ]
       }
     },
@@ -41741,7 +41754,7 @@
     },
     "/api/v1/me/password" : {
       "put" : {
-        "description" : "Account token, never impersonated. R-01-05: current is required only when a password already exists.",
+        "description" : "Account token, never impersonated. R-01-05: current is required only when a password already exists, except once in a session opened by a RESET magic link, within 15 minutes of the link's exchange (ruling E49); a LOGIN link never allows it.",
         "operationId" : "password",
         "requestBody" : {
           "content" : {
@@ -45744,7 +45757,7 @@
     },
     "/api/v1/members/{id}/impersonation-token" : {
       "post" : {
-        "description" : "ADMIN of the same club, never an impersonated token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued.",
+        "description" : "ADMIN of the same club, never an impersonated token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued. launchUrl = https://{club app host}/entrar?handoff=<code>: a one-shot handoff code valid 60 s, bound to this grant; the club app redeems it once with POST /oauth2/token grant_type=urn:agilityhub:grant:handoff, client_id=clubs-app, into this grant's JWT (no refresh token, no cookie). The JWT never travels in a URL (rulings E17/E47). token and expiresAt stay for API clients.",
         "operationId" : "impersonation",
         "parameters" : [ {
           "in" : "path",
@@ -60534,7 +60547,7 @@
     },
     "/api/v1/waitlist-entries/{id}/cancellation" : {
       "post" : {
-        "description" : "Roles: MEMBER (own or family group, also the impersonation token), ADMIN (D4/D12). R-08-16: ACTIVE or NOTIFIED only (WAITLIST_ENTRY_NOT_LIVE otherwise) → CANCELLED with cancelReason MEMBER, or ADMIN when an administrator acts (directly or impersonating); WaitlistLeft. Requires WAITLIST. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER (own or family group, also the impersonation token), ADMIN (D4/D12). R-08-16: ACTIVE or NOTIFIED only (WAITLIST_ENTRY_NOT_LIVE otherwise) → CANCELLED with cancelReason MEMBER, or ADMIN when an administrator acts (directly or impersonating); WaitlistLeft. An account with MEMBER and a staff role leaves its own (or its family group's) entry as a member (R-01-07). Requires WAITLIST. Tenant comes from the JWT.",
         "operationId" : "leaveWaitlist",
         "parameters" : [ {
           "in" : "path",

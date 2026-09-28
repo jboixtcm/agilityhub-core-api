@@ -85,7 +85,8 @@ public class MeController {
     @PutMapping("/api/v1/me/password")
     @PreAuthorize("isAuthenticated() and principal.claims['imp'] != true")
     @Operation(summary = "Set or change the current account password",
-            description = "Account token, never impersonated. R-01-05: current is required only when a password already exists.",
+            description = "Account token, never impersonated. R-01-05: current is required only when a password already exists, except once in a session "
+                    + "opened by a RESET magic link, within 15 minutes of the link's exchange (ruling E49); a LOGIN link never allows it.",
             responses = {@ApiResponse(responseCode = "200", description = "Password changed", content = @Content),
                     @ApiResponse(responseCode = "400", description = "PASSWORD_TOO_SHORT, PASSWORD_MISMATCH, PASSWORD_COMPROMISED"),
                     @ApiResponse(responseCode = "401", description = "INVALID_CREDENTIALS for current password"),

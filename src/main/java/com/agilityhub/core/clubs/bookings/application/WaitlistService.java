@@ -78,6 +78,11 @@ public class WaitlistService {
         if (!staff && (actorMemberId == null || !census.reachableMembers(actorMemberId).contains(entry.memberId()))) { throw new ApiException(ErrorCode.NOT_FOUND); }
         return entry;
     }
+    /** S01 R-01-07 (E5-T27, ruling E41): whether the entry is the member's own or their family group's. `NOT_FOUND` for an unknown entry. */
+    public boolean reachable(String id, String actorMemberId) {
+        var entry = waitlist.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return actorMemberId != null && census.reachableMembers(actorMemberId).contains(entry.memberId());
+    }
     public List<WaitlistEntry> forClass(String classSessionId) { return waitlist.forClass(classSessionId); }
 
     /** R-08-16 `POST /waitlist-entries/{id}/cancellation`: ACTIVE/NOTIFIED only → CANCELLED{MEMBER | ADMIN} + `WaitlistLeft`. */

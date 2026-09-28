@@ -157,6 +157,50 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
         assertThat(mongo.findAll(ImpersonationGrant.class).getFirst().revokedAt()).isEqualTo(clock.instant());
     }
 
+    /**
+     * E5-T27 step 2 (INC-15, rulings E17/E47; S01 R-01-09, D10): `launchUrl` is the club app's `/entrar?handoff=<code>`. The code
+     * is a one-shot handoff code of 60 s bound to the grant; the club app redeems it once with the handoff grant into the grant's
+     * impersonation JWT (no refresh token, no cookie). The JWT itself never travels in the URL.
+     */
+    @Test void T_01_11_launchUrlCarriesAOneShotHandoffCodeThatTheClubAppRedeemsOnceIntoTheImpersonationSession() throws Exception {
+        String admin = bearer(login());
+        var issued = impersonate(admin);
+        String value = issued.path("token").asText(), launchUrl = issued.path("launchUrl").asText();
+        assertThat(launchUrl).startsWith("https://" + HOST + "/entrar?handoff=").doesNotContain(value);
+        String code = launchUrl.substring(launchUrl.indexOf("handoff=") + "handoff=".length());
+        assertThat(code).matches("[A-Za-z0-9_-]{43}");
+        var grant = mongo.findAll(ImpersonationGrant.class).getFirst();
+        var stored = mongo.findOne(Query.query(Criteria.where("codeHash").is(TokenService.digest(code))), HandoffCode.class);
+        assertThat(stored).isNotNull();
+        assertThat(stored.sourceClientId()).isEqualTo("impersonation"); assertThat(stored.sourceFamilyId()).isEqualTo(grant.id());
+        assertThat(stored.targetClientId()).isEqualTo("clubs-app"); assertThat(stored.accountId()).isEqualTo("account-a");
+        assertThat(stored.expiresAt()).isEqualTo(clock.instant().plusSeconds(60));
+        assertThat(mongo.getCollection("handoff_codes").find().first().toJson()).doesNotContain(code);
+        exchange(code, "clubs-admin", ADMIN_HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
+        exchange(code, "clubs-app", "b.example.test").andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
+        var redeemed = exchange(code, "clubs-app", HOST).andExpect(status().isOk()).andExpect(cookie().doesNotExist(RefreshCookies.NAME))
+                .andExpect(jsonPath("$.refresh_token").doesNotExist()).andReturn().getResponse();
+        String session = mapper.readTree(redeemed.getContentAsString()).path("access_token").asText();
+        var claims = SignedJWT.parse(session).getJWTClaimsSet();
+        assertThat(claims.getBooleanClaim("imp")).isTrue();
+        assertThat(claims.getStringClaim("impersonatedMemberId")).isEqualTo("member-target"); assertThat(claims.getStringClaim("memberId")).isEqualTo("member-target");
+        assertThat(claims.getStringClaim("actorAccountId")).isEqualTo("account-a"); assertThat(claims.getSubject()).isEqualTo("account-member");
+        assertThat(claims.getStringListClaim("roles")).containsExactly("MEMBER"); assertThat(claims.getJWTID()).isEqualTo(grant.id());
+        assertThat(claims.getExpirationTime().toInstant()).isEqualTo(grant.expiresAt());
+        mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", "Bearer " + session)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.impersonation.actorName").value("Example Admin"));
+        // Single use: the second redemption is refused, and so is a code whose 60 s have passed.
+        exchange(code, "clubs-app", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
+        String late = impersonate(admin).path("launchUrl").asText();
+        clock.advance(Duration.ofSeconds(60));
+        exchange(late.substring(late.indexOf("handoff=") + 8), "clubs-app", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
+        // A grant ended («Surt») before the redemption takes its code with it.
+        var ended = impersonate(admin); String endedUrl = ended.path("launchUrl").asText();
+        revoke(admin, ended.path("token").asText());
+        exchange(endedUrl.substring(endedUrl.indexOf("handoff=") + 8), "clubs-app", HOST).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("HANDOFF_INVALID"));
+        assertThat(mongo.getCollection("security_events").find().into(new java.util.ArrayList<>()).toString()).doesNotContain(code, value);
+    }
+
     @Test void T_01_11_tenantRolesTargetStateAndExpiryAreEnforced() throws Exception {
         String admin = bearer(login());
         create(admin, "member-target", "b.example.test").andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("TENANT_MISMATCH"));
@@ -193,7 +237,7 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
                 throw new IllegalStateException("rollback");
             })).hasMessage("rollback");
         }
-        assertThat(mongo.findAll(ImpersonationGrant.class)).isEmpty();
+        assertThat(mongo.findAll(ImpersonationGrant.class)).isEmpty(); assertThat(mongo.findAll(HandoffCode.class)).as("E5-T27: the launch code too").isEmpty();
         assertThat(mongo.findAll(AuditEntry.class)).isEmpty(); assertThat(events("ImpersonationStarted")).isEmpty();
     }
 

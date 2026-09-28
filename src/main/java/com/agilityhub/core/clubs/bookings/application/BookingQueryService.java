@@ -34,6 +34,14 @@ public class BookingQueryService implements ListProvider {
         return booking;
     }
     public Map<String, Object> detail(String id, String actorMemberId, boolean staff) { return views.booking(visible(id, actorMemberId, staff), staff, null); }
+    /**
+     * S01 R-01-07 (E5-T27, ruling E41): whether the booking is the member's own or their family group's, so that an account with
+     * MEMBER and a staff role acts on it as a member. `NOT_FOUND` for an unknown booking.
+     */
+    public boolean reachable(String id, String actorMemberId) {
+        var booking = bookings.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return actorMemberId != null && census.reachableMembers(actorMemberId).contains(booking.memberId());
+    }
 
     /** Own and family-group bookings; `dogId` must be accessible, `from`/`to` are club-local dates (inclusive). */
     public List<Map<String, Object>> mine(String actorMemberId, String dogId, BookingState state, LocalDate from, LocalDate to) {

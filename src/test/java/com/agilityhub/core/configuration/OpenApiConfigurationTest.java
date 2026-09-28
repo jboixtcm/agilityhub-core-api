@@ -18,8 +18,8 @@ class OpenApiConfigurationTest {
                 .addApiResponse("503", new ApiResponse().description("Unavailable").content(new Content()
                         .addMediaType("application/problem+json", new MediaType().schema(new StringSchema())))));
         operation.addExtension("x-filterable", java.util.List.of("status"));
-        var result = new OpenApiConfiguration().contextAndErrors().customize(operation,
-                new HandlerMethod(new HealthController(null), HealthController.class.getMethod("health")));
+        var result = new OpenApiConfiguration().contextAndErrors().customize(operation, new HandlerMethod(new com.agilityhub.core.shared.api.RequestTraceFilter(),
+                com.agilityhub.core.shared.api.RequestTraceFilter.class.getMethod("traceId", jakarta.servlet.http.HttpServletRequest.class)));
         assertThat(result.getResponses().get("201")).isSameAs(success);
         assertThat(result.getResponses().get("503").getDescription()).isEqualTo("Unavailable");
         assertThat(result.getResponses().get("503").getContent()).containsOnlyKeys("application/json");
@@ -28,5 +28,13 @@ class OpenApiConfigurationTest {
         assertThat(result.getExtensions()).containsEntry("x-filterable", java.util.List.of("status"));
         assertThat(result.getTags()).containsExactly("shared");
         assertThat(OpenApiConfiguration.withErrors(new Operation()).getResponses()).containsKeys("4XX", "5XX");
+    }
+
+    /** E5-T27 step 5 (INC-01, A7-07): the health's 503 DOWN keeps the health envelope; its other errors stay ApiError. */
+    @Test void E5_T27_theHealthRoutes503IsItsOwnEnvelope() throws Exception {
+        var health = new OpenApiConfiguration().contextAndErrors().customize(new Operation().responses(new ApiResponses().addApiResponse("200", new ApiResponse())),
+                new HandlerMethod(new HealthController(null, null), HealthController.class.getMethod("health", jakarta.servlet.http.HttpServletRequest.class)));
+        assertThat(health.getResponses().get("503").getContent().get("application/json").getSchema().get$ref()).isEqualTo("#/components/schemas/HealthResponse");
+        assertThat(health.getResponses().get("500").getContent().get("application/json").getSchema().get$ref()).isEqualTo("#/components/schemas/ApiError");
     }
 }

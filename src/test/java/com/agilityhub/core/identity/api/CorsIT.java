@@ -20,7 +20,7 @@ class CorsIT extends IdentityIntegrationSupport {
             }
             mvc.perform(get("/api/v1/branding").header("Host", HOST).header("Origin", origin))
                     .andExpect(status().isOk()).andExpect(header().string("Access-Control-Allow-Origin", origin))
-                    .andExpect(header().string("Access-Control-Expose-Headers", "Retry-After, ETag, Content-Language"));
+                    .andExpect(header().string("Access-Control-Expose-Headers", "Retry-After, ETag, Content-Language, Content-Disposition"));
         }
     }
 

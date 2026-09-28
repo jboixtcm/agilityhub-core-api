@@ -21,6 +21,8 @@ import static com.agilityhub.core.clubs.activities.api.ActivityRequests.*;
 @RestController
 @RequiresModule(Module.ACTIVITIES)
 public class ActivitiesController {
+    /** S01 R-01-07 (E5-T27, ruling E41): the MEMBER role alone opens a member route, also next to ADMIN or INSTRUCTOR. */
+    static final String MEMBER = "hasRole('MEMBER')";
     private final ActivityApiService service;
     private final com.fasterxml.jackson.databind.ObjectMapper mapper;
     private final com.agilityhub.core.clubs.common.application.ListExportService exports;
@@ -204,7 +206,7 @@ public class ActivitiesController {
     }
 
     @PostMapping("/api/v1/activity-registrations")
-    @PreAuthorize("hasAnyRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))")
+    @PreAuthorize(MEMBER)
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, ACTIVITY_NOT_PUBLISHED, REGISTRATION_CLOSED, ACTIVITY_FULL, LEVEL_NOT_ALLOWED, ALREADY_REGISTERED, MEMBER_NOT_ACTIVE, BOOKING_BLOCKED, INACTIVITY_PERIOD, MODULE_DISABLED, IDEMPOTENCY_KEY_REUSED})
     @Operation(summary = "register", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "201", description = "ActivityRegistration", useReturnTypeSchema = true))
@@ -221,7 +223,7 @@ public class ActivitiesController {
     }
 
     @PostMapping("/api/v1/activity-registrations/{id}/cancellation")
-    @PreAuthorize("hasAnyRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))")
+    @PreAuthorize(MEMBER)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_STATE, REGISTRATION_NOT_CANCELLABLE})
     @Operation(summary = "cancelRegistration", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "ActivityRegistration", useReturnTypeSchema = true))
     public ActivityRegistration cancelRegistration(@PathVariable String id, @Valid @RequestBody RegistrationCancellationRequest request, @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
@@ -229,7 +231,7 @@ public class ActivitiesController {
     }
 
     @GetMapping("/api/v1/me/activities")
-    @PreAuthorize("hasAnyRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))")
+    @PreAuthorize(MEMBER)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, DOG_NOT_ACCESSIBLE})
     @Operation(summary = "mine", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "MeActivities", useReturnTypeSchema = true))
     public MeActivities mine(@RequestParam(required = false) String dogId) {
@@ -237,7 +239,7 @@ public class ActivitiesController {
     }
 
     @GetMapping("/api/v1/me/activities/{activityId}")
-    @PreAuthorize("hasAnyRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))")
+    @PreAuthorize(MEMBER)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "memberDetail", description = "Roles: MEMBER.  Tenant comes from the JWT. Requires ACTIVITIES.", responses = @ApiResponse(responseCode = "200", description = "MemberActivityDetail", useReturnTypeSchema = true))
     public MemberActivityDetail memberDetail(@PathVariable String activityId) {

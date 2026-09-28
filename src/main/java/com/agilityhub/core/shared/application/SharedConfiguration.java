@@ -3,6 +3,7 @@ package com.agilityhub.core.shared.application;
 import com.agilityhub.core.shared.api.ApiExceptionHandler;
 import com.agilityhub.core.shared.api.IdempotencyFilter;
 import com.agilityhub.core.shared.api.IdempotentReplayAspect;
+import com.agilityhub.core.shared.api.KeyedRoutes;
 import com.agilityhub.core.shared.persistence.IdempotencyRepository;
 import com.agilityhub.core.shared.persistence.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,9 +30,15 @@ public class SharedConfiguration {
         return arguments -> { idempotency.ensureIndexes(); outbox.ensureIndexes(); };
     }
 
+    /**
+     * CONVENCIONS_API §7 (E5-T27, ruling E46): the keyed routes come from the handlers' own `Idempotency-Key` declarations, read at
+     * the first request (the filter is created before the handler mapping).
+     */
     @Bean IdempotencyFilter idempotencyFilter(IdempotencyRepository records, MongoTransactionManager transactions,
-                                             Clock clock, ApiExceptionHandler errors, ObjectMapper mapper) {
-        return new IdempotencyFilter(records, new TransactionTemplate(transactions), clock, errors, mapper);
+                                             Clock clock, ApiExceptionHandler errors, ObjectMapper mapper,
+                                             @org.springframework.beans.factory.annotation.Qualifier("requestMappingHandlerMapping")
+                                             org.springframework.beans.factory.ObjectProvider<org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping> mappings) {
+        return new IdempotencyFilter(records, new TransactionTemplate(transactions), clock, errors, mapper, new KeyedRoutes(mappings::getObject));
     }
 
     /** CONVENCIONS_API §7 (E62): the replay answers only once the handler's own authorization accepted the token. */

@@ -97,10 +97,11 @@ accounts:
     roles: ["INSTRUCTOR"]
     password: "${SEED_PASSWORD}"
     onboardingPending: false
+  # E5-T27 (S01 R-01-07, ruling E41): an instructor who is also a member; seed:demo links the member and its own dogs.
   - email: "instructor.3@example.test"
     name: "Pau Example"
     locale: "ca"
-    roles: ["INSTRUCTOR"]
+    roles: ["INSTRUCTOR", "MEMBER"]
     password: "${SEED_PASSWORD}"
     onboardingPending: false
   - email: "member@example.test"

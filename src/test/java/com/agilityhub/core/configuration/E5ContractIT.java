@@ -188,13 +188,11 @@ class E5ContractIT extends AbstractIntegrationTest {
         }
     }
 
-    @Test void T_08_26_T_09_30_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs() throws Exception {
-        for (Route route : routes().filter(r -> r.roles().equals(List.of("MEMBER"))).toList()) {
-            for (String staff : List.of("ADMIN", "INSTRUCTOR")) {
-                error(call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e5-member-a"))
-                        .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + staff)), 403, "FORBIDDEN");
-            }
-        }
+    /**
+     * E5-T27 step 1 (INC-16, ruling E41; S01 R-01-07, S08 R-08-19): the roles are a union. A member route serves every token with
+     * the MEMBER role, also MEMBER plus ADMIN or INSTRUCTOR, and refuses a staff-only token (403 FORBIDDEN).
+     */
+    @Test void T_08_26_T_09_30_memberRoutesServeEveryTokenWithTheMemberRoleRefuseStaffOnlyTokensAndHideOtherMembers() throws Exception {
         for (Route route : routes().filter(r -> r.resource() && r.club() && r.roles().contains("MEMBER")).toList()) {
             error(call(route, CLUB, "MEMBER", "someone-else"), 404, "NOT_FOUND");
         }
@@ -208,6 +206,16 @@ class E5ContractIT extends AbstractIntegrationTest {
         // T-08-47 / T-09-30: MEMBER on the universal lists → 403.
         for (String path : List.of("/api/v1/bookings", "/api/v1/training-bookings", "/api/v1/risk-review")) {
             error(get(path).header("Host", HOST).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER")), 403, "FORBIDDEN");
+        }
+        // Last, as these calls now run (a member's own training cancellation included) and change the fixture.
+        for (Route route : routes().filter(r -> r.roles().equals(List.of("MEMBER"))).toList()) {
+            for (String staff : List.of("ADMIN", "INSTRUCTOR")) {
+                error(call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e5-member-a"))
+                        .authorities(() -> "ROLE_" + staff)), 403, "FORBIDDEN");
+                var dual = call(route, CLUB, "MEMBER").with(jwt().jwt(j -> j.claim("clubId", CLUB).claim("memberId", "e5-member-a"))
+                        .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + staff));
+                if (route.implemented()) { served(dual); } else { error(dual, 501, "NOT_IMPLEMENTED"); }
+            }
         }
     }
 

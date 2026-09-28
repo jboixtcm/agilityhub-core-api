@@ -277,7 +277,7 @@ Codis d'error propis (`ErrorCode`, missatge a `messages_{ca,es,en}.properties`, 
 **Consumits** (idempotents per `eventId`):
 | Esdeveniment | Què fa S10 |
 |---|---|
-| `MemberNoteChanged{dogId, memberId}` (S03) | upsert de la fila `MEMBER_NOTE` de D14: `activityAt = occurredAt`, `textExcerpt` de `Dog.instructorNote.text`, `authorAccountId` = qui l'ha escrit (R-10-12/13) |
+| `MemberNoteChanged{dogId, memberId, author{accountId, displayName, gender}}` (S03) | upsert de la fila `MEMBER_NOTE` de D14: `activityAt = occurredAt`, `textExcerpt` de `Dog.instructorNote.text`; `authorAccountId`, `authorName` i `authorGender` = l'`author` de l'esdeveniment, qui l'ha escrit tal com era en escriure-la (R-10-12/13; 28-09, E70). Idempotent per `eventId`: el mateix esdeveniment consumit dos cops no torna a marcar la fila com a no llegida |
 | `NoShowNoticeDue` (S15) → `NotificationSent{N-19}` (S11) | escriu `noShowNotice.sentAt` (per mostrar «avís ja enviat») |
 | `ClassCancelledByClub`, `ClassAutoCancelled` (S06/S15) | res a escriure: les reserves passen a `CANCELLED_BY_CLUB` i queden fora de la llista i de les mètriques; 21 mostra el bàner |
 | `ClassSessionUpdated{startsAt}` (S06) | refresca `classStartsAt/EndsAt/classDate` desnormalitzats de les `Attendance` |
@@ -412,3 +412,4 @@ Ordre: A → (B ∥ C ∥ D/E/F contra mocks) → G. Tres fils: back-B, back-C, 
 - 27-09-2026 · revisió global del 26-09: la taula de R-10-05, T-10-03 i T-10-11 amb el llindar del catàleg, 240 min (abans es calculaven amb 120); també la línia «Paràmetres» de R-10-05.
 - 27-09-2026 · verificacions d'E6-T02 i E6-T03 (decisions E63 i E64): §3 `FollowupItem.authorGender` i `Dog.remarksMeta.version`; §6 `handlerName` i `memberFullName` al full d'assistència; R-10-10, el propietari actual del gos; R-10-15, el logo del PDF.
 - 27-09-2026 · ronda 2 d'E6-T03: R-10-10, el propietari de N-20 es comprova a cada intent d'enviament.
+- 28-09-2026 · verificació d'E6-T03, ronda 3 (decisió E70): §7, `MemberNoteChanged` porta l'autor de la nota, i el consumidor és idempotent per `eventId`.

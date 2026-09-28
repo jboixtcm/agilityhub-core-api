@@ -172,6 +172,42 @@ class IdempotencyIT extends AbstractIntegrationTest {
         assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(1);
     }
 
+    /**
+     * E5-T27 step 4 (INC-23, ruling E46; CONVENCIONS_API §7): the key applies to every route that declares it, whatever the method.
+     * A keyed PUT replays its 200 and a keyed DELETE its 204 without running again; a GET is never filtered, and neither is a PUT
+     * whose handler does not declare the header. The set comes from the handlers' own declarations (these test routes included).
+     */
+    @Test void E5_T27_keyedPutAndDeleteReplayTheStoredAnswerAndAGetOrAnUndeclaredPutIsNeverFiltered() throws Exception {
+        var member = jwt().jwt(token -> token.subject("account-a").claim("clubId", "club-a")).authorities(() -> "ROLE_MEMBER");
+        String key = UUID.randomUUID().toString();
+        var first = mvc.perform(put("/api/v1/test/idempotency/item-1").with(csrf()).with(member).header("Idempotency-Key", key)
+                .contentType("application/json").content("edited")).andExpect(status().isOk()).andReturn().getResponse();
+        var replay = mvc.perform(put("/api/v1/test/idempotency/item-1").with(csrf()).with(member).header("Idempotency-Key", key)
+                .contentType("application/json").content("edited")).andExpect(status().isOk()).andReturn().getResponse();
+        assertThat(replay.getContentAsByteArray()).isEqualTo(first.getContentAsByteArray());
+        assertThat(controller.calls).hasValue(1);
+        mvc.perform(put("/api/v1/test/idempotency/item-1").with(csrf()).with(member).header("Idempotency-Key", key)
+                        .contentType("application/json").content("other"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.details.reason").value("DIFFERENT_REQUEST"));
+        String deletion = UUID.randomUUID().toString();
+        for (int attempt = 0; attempt < 2; attempt++) {
+            var deleted = mvc.perform(delete("/api/v1/test/idempotency/item-1").with(csrf()).with(member).header("Idempotency-Key", deletion))
+                    .andExpect(status().isNoContent()).andReturn().getResponse();
+            assertThat(deleted.getContentAsByteArray()).isEmpty();
+        }
+        assertThat(controller.calls).hasValue(2);
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(2);
+        assertThat(mongo.findAll(IdempotencyRecord.class)).hasSize(2).allMatch(record -> record.status() == IdempotencyRecord.Status.DONE);
+        String read = UUID.randomUUID().toString();
+        for (int attempt = 0; attempt < 2; attempt++) {
+            mvc.perform(get("/api/v1/test/idempotency/item-1").with(member).header("Idempotency-Key", read)).andExpect(status().isOk());
+            mvc.perform(put("/api/v1/test/idempotency/item-1/plain").with(csrf()).with(member).header("Idempotency-Key", read)
+                    .contentType("application/json").content("plain")).andExpect(status().isOk());
+        }
+        assertThat(controller.calls).as("two GETs and two undeclared PUTs ran").hasValue(6);
+        assertThat(mongo.findAll(IdempotencyRecord.class)).hasSize(2);
+    }
+
     @TestConfiguration(proxyBeanMethods = false) static class Config {
         @Bean @Order(0) SecurityFilterChain testSecurity(HttpSecurity http) throws Exception {
             return http.securityMatcher("/api/v1/test/**").authorizeHttpRequests(auth -> auth.anyRequest()
@@ -188,6 +224,27 @@ class IdempotencyIT extends AbstractIntegrationTest {
         @PostMapping("/api/v1/test/idempotency/transactional")
         public ResponseEntity<Map<String, Object>> transactional(@RequestBody String body) throws InterruptedException {
             return post(body);
+        }
+        /** A keyed PUT: its handler declares the header, as the contract's keyed PUTs do. */
+        @PutMapping("/api/v1/test/idempotency/{id}") Map<String, Object> edit(@PathVariable String id, @RequestBody String body,
+                @RequestHeader("Idempotency-Key") String key) {
+            int count = calls.incrementAndGet();
+            mongo.insert(new Document("_id", UUID.randomUUID().toString()).append("value", body), "idempotency_effects");
+            return Map.of("id", id, "body", body, "count", count);
+        }
+        @DeleteMapping("/api/v1/test/idempotency/{id}") @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+        void remove(@PathVariable String id, @RequestHeader("Idempotency-Key") String key) {
+            calls.incrementAndGet();
+            mongo.insert(new Document("_id", UUID.randomUUID().toString()).append("value", "deleted " + id), "idempotency_effects");
+        }
+        /** A GET that even reads the header: never filtered. */
+        @GetMapping("/api/v1/test/idempotency/{id}") Map<String, Object> read(@PathVariable String id,
+                @RequestHeader(value = "Idempotency-Key", required = false) String key) {
+            return Map.of("id", id, "count", calls.incrementAndGet());
+        }
+        /** A PUT that does not declare the header: not filtered, whatever the client sends. */
+        @PutMapping("/api/v1/test/idempotency/{id}/plain") Map<String, Object> plain(@PathVariable String id, @RequestBody String body) {
+            return Map.of("id", id, "count", calls.incrementAndGet());
         }
         @PostMapping("/api/v1/test/idempotency") ResponseEntity<Map<String, Object>> post(@RequestBody String body)
                 throws InterruptedException {

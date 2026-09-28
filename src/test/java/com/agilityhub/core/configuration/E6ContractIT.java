@@ -200,9 +200,16 @@ class E6ContractIT extends AbstractIntegrationTest {
         try (var scope = TenantContext.open(CLUB)) { return impersonations.create("e6-imp-admin", "e6-member-a", "Contract authorization test"); }
     }
 
-    @Test void T_10_15_T_10_19_T_10_22_memberRoutesRejectStaffAndOtherMembersSeeNothingOfTheirs() throws Exception {
+    /**
+     * E5-T27 step 1 (INC-16, ruling E41; S01 R-01-07): the roles are a union. `/me/history` serves MEMBER + ADMIN or MEMBER +
+     * INSTRUCTOR as the member and refuses a staff-only token; other members still see nothing of theirs.
+     */
+    @Test void T_10_15_T_10_19_T_10_22_memberRoutesServeTheMemberRoleRefuseStaffOnlyTokensAndOtherMembersSeeNothingOfTheirs() throws Exception {
         var history = routes().filter(r -> r.path().equals("/api/v1/me/history")).findFirst().orElseThrow();
-        for (String staff : List.of("ADMIN", "INSTRUCTOR")) { error(as(get("/api/v1/me/history"), "MEMBER", staff), 403, "FORBIDDEN"); }
+        for (String staff : List.of("ADMIN", "INSTRUCTOR")) {
+            error(as(get("/api/v1/me/history"), staff), 403, "FORBIDDEN");
+            served(as(get("/api/v1/me/history").param("dogId", "e6-dog-a"), "MEMBER", staff), 200);
+        }
         error(call(history, CLUB, "MEMBER", "e6-member-b"), 404, "DOG_NOT_ACCESSIBLE");
         served(as(get("/api/v1/me/history").param("dogId", "e6-dog-a"), "MEMBER"), 200);
         for (Route route : routes().filter(r -> r.resource() && r.roles().contains("MEMBER")).toList()) {

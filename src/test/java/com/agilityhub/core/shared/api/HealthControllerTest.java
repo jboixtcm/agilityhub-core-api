@@ -50,6 +50,12 @@ class HealthControllerTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     com.agilityhub.core.identity.application.ImpersonationService impersonations;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    com.agilityhub.core.shared.persistence.DatabaseProbe database;
+
+    @org.junit.jupiter.api.BeforeEach
+    void databaseUp() { org.mockito.Mockito.when(database.up()).thenReturn(true); }
+
     @Autowired
     MockMvc mvc;
 
@@ -63,6 +69,22 @@ class HealthControllerTest {
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.version").value(build.getVersion()))
+                .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
+    }
+
+    /**
+     * E5-T27 step 5 (A7-07, INC-01 semantics): without a successful database ping the health answers 503 with the same
+     * envelope and `status: DOWN`; the route stays public and needs no tenant.
+     */
+    @Test
+    void E5_T27_healthIsDownWith503AndTheSameEnvelopeWhenTheDatabasePingFails() throws Exception {
+        org.mockito.Mockito.when(database.up()).thenReturn(false);
+        mvc.perform(get("/api/v1/health").header("X-Club-Host", "club-a.example.test"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.status").value("DOWN"))
                 .andExpect(jsonPath("$.version").value(build.getVersion()))
                 .andExpect(jsonPath("$.builtAt").value(build.getTime().toString()));
     }

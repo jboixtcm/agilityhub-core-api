@@ -1082,6 +1082,38 @@ class SignupSecurityFixesIT extends AbstractIntegrationTest {
     }
 
     /**
+     * E5-T27 step 8 (review of E5-T26 #1 and #2, ruling E61; CONVENCIONS_API §5): an SVG uploaded through the anonymous signup route
+     * downloads as an `attachment`, never shown on the api's origin; a PNG stays `inline`. Every download carries
+     * `Content-Security-Policy: sandbox` (an `<img>` still shows the file), and CORS exposes `Content-Disposition` to the club's
+     * web origin, so that a `fetch` reads the stored name.
+     */
+    @Test void CONVENCIONS_API_5_E61_anSvgDownloadsAsASandboxedAttachmentAPngStaysInlineAndCorsExposesTheStoredName() throws Exception {
+        byte[] svg="<svg xmlns=\"http://www.w3.org/2000/svg\"><text>fictional</text></svg>".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] png="fictional png bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var svgGrant=result(from(postJson("/signup/upload-urls",Map.of("fileName","carnet-blau.svg","contentType","image/svg+xml","sizeBytes",svg.length)),"198.51.100.214"),200);
+        var pngGrant=result(from(postJson("/signup/upload-urls",Map.of("fileName","carnet-blau.png","contentType","image/png","sizeBytes",png.length)),"198.51.100.214"),200);
+        assertThat(putWith(svgGrant,svg,Map.of()).getStatus()).isEqualTo(204);assertThat(putWith(pngGrant,png,Map.of()).getStatus()).isEqualTo(204);
+        String id=submit(sending(request(),card(List.of(file(svgGrant.path("fileKey").asText(),"carnet-blau.svg"),file(pngGrant.path("fileKey").asText(),"carnet-blau.png"))))).path("memberId").asText();
+        var card=document(review(id).at("/dogs/0"),"VACCINATION_CARD");
+        String svgUrl=card.at("/files/0/downloadUrl").asText(),pngUrl=card.at("/files/1/downloadUrl").asText();
+        assertThat(svgUrl).startsWith("/api/v1/signup/files?");
+        var svgFile=getSigned(svgUrl);
+        assertThat(svgFile.getStatus()).isEqualTo(200);assertThat(svgFile.getContentAsByteArray()).isEqualTo(svg);
+        assertThat(svgFile.getContentType()).isEqualTo("image/svg+xml");
+        var svgDisposition=org.springframework.http.ContentDisposition.parse(svgFile.getHeader("Content-Disposition"));
+        assertThat(svgDisposition.isAttachment()).as(svgFile.getHeader("Content-Disposition")).isTrue();assertThat(svgDisposition.getFilename()).isEqualTo("carnet-blau.svg");
+        assertThat(svgFile.getHeaders("Content-Security-Policy")).singleElement().satisfies(policy -> assertThat(policy.split(";\\s*")).contains("sandbox"));
+        assertThat(svgFile.getHeader("X-Content-Type-Options")).isEqualTo("nosniff");
+        var pngFile=getSigned(pngUrl);
+        assertThat(pngFile.getStatus()).isEqualTo(200);assertThat(pngFile.getContentType()).isEqualTo("image/png");
+        assertThat(org.springframework.http.ContentDisposition.parse(pngFile.getHeader("Content-Disposition")).isInline()).as(pngFile.getHeader("Content-Disposition")).isTrue();
+        assertThat(pngFile.getHeaders("Content-Security-Policy")).singleElement().satisfies(policy -> assertThat(policy.split(";\\s*")).contains("sandbox"));
+        var crossOrigin=getSigned(svgUrl,"Origin","https://"+host);
+        assertThat(crossOrigin.getStatus()).isEqualTo(200);assertThat(crossOrigin.getHeader("Access-Control-Allow-Origin")).isEqualTo("https://"+host);
+        assertThat(crossOrigin.getHeader("Access-Control-Expose-Headers")).as("a fetch from the club's web reads the stored name").containsIgnoringCase("Content-Disposition");
+    }
+
+    /**
      * E5-T26 step 3 (review E5-T24 «Not checked»; CONVENCIONS_API §9): the web's cross-origin PUT to the signed upload routes
      * passes the CORS preflight from the club's web origin, like the api's other routes, although these routes have no tenant.
      * The PUT itself then answers 204 with the CORS headers. An unknown origin gets no CORS headers.

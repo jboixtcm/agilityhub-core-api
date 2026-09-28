@@ -688,6 +688,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T27: corrections pulled forward by the global audit of 26-09 (identity, security, shared).
+  - Member routes for dual-role accounts (INC-16, ruling E41): the S07, S08 and S09 member routes authorise
+    `hasRole('MEMBER')` alone; MEMBER + INSTRUCTOR or MEMBER + ADMIN is served, a token without MEMBER stays 403. The account's own
+    (or family group's) booking cancellation and waiting-list exit take the member branch (reason MEMBER, no
+    INSTRUCTOR_NOTICE); the instructor's notice stays for other members' bookings. `instructor.3@example.test` is
+    `[INSTRUCTOR, MEMBER]` in the Cànic seed, with its own demo dogs.
+  - Impersonation `launchUrl` (INC-15, rulings E17/E47): `https://{club app host}/entrar?handoff=<code>`, a one-shot 60 s
+    handoff code bound to the grant, redeemed once by the handoff grant (`clubs-app`) into the grant's JWT without refresh.
+  - Password recovery (INC-24, ruling E49): a RESET magic link marks its session (`refresh_tokens.passwordResetUntil`,
+    15 min); `PUT /me/password` accepts it once without `current`; a LOGIN link never does.
+  - `Idempotency-Key` on keyed PUT/DELETE (INC-23, ruling E46): `KeyedRoutes` reads the keyed routes from the handlers'
+    own `@RequestHeader("Idempotency-Key")`, replacing the two hand-kept patterns; a GET is never filtered; a contract
+    test checks every operation of the snapshot with a required key.
+  - Health (A7-07, INC-01 semantics): `UP` only when a bounded (1 s) Mongo ping answers, otherwise `503 {status: DOWN}`
+    with the same envelope and a WARN with the traceId (`DatabaseProbe`).
+  - Test clock (A7-05): the movable clock and `POST /test/clock` follow `(local | test) & !staging & !prod`, and the
+    route carries its own `@PreAuthorize` on that expression.
+  - P2 write conflicts (A6-02): `SchedulingTransactions`' nested branch keeps the Mongo conflict as the cause of its
+    contract error, and `JobRunner` retries an item on `TransactionRetries.conflict`, so a risk-review cancellation that
+    meets a concurrent booking ends SUCCEEDED after a retry.
+  - Signed downloads (ruling E61): an SVG is always an `attachment` (also on the public activity file route), every
+    signed download carries `Content-Security-Policy: …; sandbox`, and CORS exposes `Content-Disposition`.
 - E7-T01 round 2 (review of 27-09 14:39, ruling E66): the S11 contract's four corrections.
   - `POST /email-unsubscribes` publishes `security: []` (it inherited the global bearer); `E7ContractIT` asserts the
     effective requirement of every S11 operation in the live document and the committed snapshot.

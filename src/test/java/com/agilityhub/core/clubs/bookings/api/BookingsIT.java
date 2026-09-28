@@ -535,6 +535,41 @@ class BookingsIT extends BookingFixtures {
         assertThat(count("domain_events", Criteria.where("status").is("FAILED"))).isZero();
     }
 
+    /**
+     * E5-T27 step 1 (INC-16, ruling E41; S01 R-01-07, S08 R-08-19): the roles are a union. Estela, an instructor with a dog of their own,
+     * books through the member routes; the own cancellation takes the MEMBER branch (reason MEMBER, no INSTRUCTOR_NOTICE) and so
+     * does leaving the own waiting-list entry, while another member's booking still takes the INSTRUCTOR branch.
+     */
+    @Test void R_01_07_T_08_26_aDualRoleInstructorBooksAndCancelsTheirOwnDogAsAMember() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s08-inst")), new Update().set("roles", List.of("INSTRUCTOR", "MEMBER")), "memberships");
+        dog("s08-d-lluna", "s08-m-inst", "Lluna", "C", "FEMALE");
+        var estela = jwt().jwt(j -> j.subject("s08-inst").claim("clubId", CLUB).claim("memberId", "s08-m-inst").claim("name", "Example inst"))
+                .authorities(() -> "ROLE_MEMBER", () -> "ROLE_INSTRUCTOR");
+        assertThat(call(GET, "/me/bookable-classes?dogId=s08-d-lluna", null, estela, 200).at("/dog/id").asText()).isEqualTo("s08-d-lluna");
+        assertThat(call(GET, "/me/home", null, estela, 200).path("dogs")).extracting(d -> d.path("id").asText()).containsExactly("s08-d-lluna");
+        var own = book(estela, "wed", "s08-d-lluna");
+        assertThat(own.path("memberId").asText()).isEqualTo("s08-m-inst");
+        assertThat(call(GET, "/me/bookings", null, estela, 200).path("items")).extracting(i -> i.path("id").asText()).containsExactly(own.path("id").asText());
+        var laura = book(as("laura"), "wed", "s08-d-duna");
+        var cancelled = cancel(estela, own.path("id").asText(), 200);
+        assertThat(cancelled.at("/cancellation/byRole").asText()).isEqualTo("MEMBER");
+        assertThat(booking(own.path("id").asText())).containsEntry("cancelReason", "MEMBER");
+        var notice = cancel(estela, laura.path("id").asText(), 200);
+        assertThat(notice.at("/cancellation/byRole").asText()).as("another member's booking: the instructor's notice").isEqualTo("INSTRUCTOR");
+        assertThat(booking(laura.path("id").asText())).containsEntry("cancelReason", "INSTRUCTOR_NOTICE");
+        // BookingCancelled.origin is the channel: the member's own cancellation is APP, the instructor's notice INSTRUCTOR (R-08-19).
+        assertThat(eventsOf("BookingCancelled")).extracting(e -> e.get("payload", Document.class).getString("origin")).containsExactlyInAnyOrder("APP", "INSTRUCTOR");
+        // The waiting list: the own entry is left as a member (reason MEMBER); another member's entry cannot be left.
+        session("tiny", "2026-10-08T19:00", 1, List.of());
+        book(as("pere"), "tiny", "s08-d-nit");
+        var entry = join(estela, "tiny", "s08-d-lluna", 201);
+        var joan = join(as("joan"), "tiny", "s08-d-toby", 201);
+        assertThat(code(call(POST, "/waitlist-entries/" + joan.path("id").asText() + "/cancellation", null, estela, 404))).isEqualTo("NOT_FOUND");
+        assertThat(call(POST, "/waitlist-entries/" + entry.path("id").asText() + "/cancellation", null, estela, 200).path("cancelReason").asText()).isEqualTo("MEMBER");
+        // A staff-only token still has no member routes.
+        assertThat(code(hold(as("inst"), "thu", "s08-d-lluna", 403))).isEqualTo("FORBIDDEN");
+    }
+
     @Autowired com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess classAccess;
     /** E5-T09 (E4-T05 review #8): the S08 counter writer never raises `booked` above the capacity, and always lets it go down. */
     @Test void E5_T09_theCounterWriterRefusesABookedCountAboveTheCapacity() {

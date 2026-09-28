@@ -327,6 +327,13 @@ class MemberAggregatesIT extends BookingFixtures {
         for (String staff : List.of("admin", "inst")) {
             call(GET, "/me/home", null, as(staff), 403); call(GET, "/me/bookable-classes", null, as(staff), 403);
         }
+        // E5-T27 (ruling E41, S01 R-01-07): the roles are a union; Laura with MEMBER plus a staff role still gets the member aggregates.
+        for (String staff : List.of("ADMIN", "INSTRUCTOR")) {
+            var dual = jwt().jwt(j -> j.subject("s08-laura").claim("clubId", CLUB).claim("memberId", "s08-m-laura"))
+                    .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + staff);
+            assertThat(call(GET, "/me/home", null, dual, 200).path("dogs")).as(staff).isNotEmpty();
+            assertThat(call(GET, "/me/bookable-classes?dogId=s08-d-duna", null, dual, 200).at("/dog/id").asText()).as(staff).isEqualTo("s08-d-duna");
+        }
         call(GET, "/me/home", null, null, 401); call(GET, "/me/bookable-classes", null, null, 401);
         // A member of club B reaches neither club A's dogs nor its classes.
         mongo.save(new com.agilityhub.core.identity.persistence.Account("s08-b", "s08-b@example.test", "Example b", "ca", null, Set.of(),

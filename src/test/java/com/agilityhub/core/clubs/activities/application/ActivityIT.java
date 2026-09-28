@@ -250,8 +250,16 @@ class ActivityIT extends ActivityFixtures {
         call("PUT","/activities/"+id+"/image",Map.of("fileKey",image,"name","Example image"),"admin","ADMIN",200);
         String path="/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+image;
         var redirect=mvc.perform(get(path)).andExpect(status().isFound()).andReturn().getResponse().getHeader("Location");
-        mvc.perform(get(java.net.URI.create(redirect))).andExpect(status().isOk()).andExpect(content().bytes(new byte[]{1,2,3,4}));
+        mvc.perform(get(java.net.URI.create(redirect))).andExpect(status().isOk()).andExpect(content().bytes(new byte[]{1,2,3,4}))
+                .andExpect(header().string("Content-Disposition",org.hamcrest.Matchers.startsWith("inline")));
         mvc.perform(get(java.net.URI.create(redirect.replace("signature=","signature=invalid")))).andExpect(status().isForbidden());
+        // E5-T27 step 8 (ruling E61): an SVG image is never shown on the api's origin: a sandboxed attachment.
+        String svg=upload("ACTIVITY_IMAGE","image/svg+xml");
+        call("PUT","/activities/"+id+"/image",Map.of("fileKey",svg,"name","Example vector"),"admin","ADMIN",200);
+        var svgRedirect=mvc.perform(get("/api/v1/public/"+CLUB+"/activities/"+slug+"/files/"+svg)).andExpect(status().isFound()).andReturn().getResponse().getHeader("Location");
+        mvc.perform(get(java.net.URI.create(svgRedirect))).andExpect(status().isOk()).andExpect(content().contentType("image/svg+xml"))
+                .andExpect(header().string("Content-Disposition",org.hamcrest.Matchers.startsWith("attachment")))
+                .andExpect(header().string("Content-Security-Policy",org.hamcrest.Matchers.containsString("sandbox")));
         String first=null;
         for(int i=0;i<11;i++) {
             String key=upload("ACTIVITY_DOCUMENT","application/pdf");if(i==0) first=key;
@@ -277,6 +285,23 @@ class ActivityIT extends ActivityFixtures {
         call("PATCH","/activities/"+id,Map.of("version",2),"instructor","INSTRUCTOR",403);
         call("GET","/activity-registrations/"+r.path("id").asText(),null,"m1","MEMBER",404);
         mvc.perform(get("/api/v1/activities/"+id).header("Host","s07-b.example.test").with(jwt().jwt(j -> j.subject("foreign").claim("clubId",OTHER)).authorities(() -> "ROLE_ADMIN"))).andExpect(status().isNotFound());
+    }
+    /** E5-T27 step 1 (INC-16, ruling E41; S01 R-01-07, S07 §6): a member who is also ADMIN or INSTRUCTOR uses the member routes as a member. */
+    @Test void R_01_07_T_07_22_aMemberWithAStaffRoleRegistersAndCancelsAsAMember() throws Exception {
+        String id=published(4,false).path("id").asText();
+        for(String staff:List.of("ADMIN","INSTRUCTOR")) {
+            String member=staff.equals("ADMIN")?"m1":"m2";
+            var dual=jwt().jwt(j -> j.subject("s07-"+member).claim("clubId",CLUB).claim("memberId",member)).authorities(() -> "ROLE_MEMBER",() -> "ROLE_"+staff);
+            var registered=mapper.readTree(mvc.perform(post("/api/v1/activity-registrations").header("Host",HOST).header("Idempotency-Key",UUID.randomUUID().toString())
+                    .contentType("application/json").content(mapper.writeValueAsBytes(Map.of("activityId",id))).with(dual)).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+            assertThat(registered.path("origin").asText()).as(staff).isEqualTo("APP");
+            mvc.perform(get("/api/v1/me/activities").header("Host",HOST).with(dual)).andExpect(status().isOk());
+            mvc.perform(get("/api/v1/me/activities/"+id).header("Host",HOST).with(dual)).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.myRegistration.state").value("ACTIVE"));
+            mvc.perform(post("/api/v1/activity-registrations/"+registered.path("id").asText()+"/cancellation").header("Host",HOST).contentType("application/json")
+                    .content("{}").with(dual)).andExpect(status().isOk()).andExpect(jsonPath("$.state").value("CANCELLED"));
+        }
+        for(String role:List.of("ADMIN","INSTRUCTOR")) call("GET","/me/activities",null,role.toLowerCase(),role,403);
     }
     @Test @AuditCovers({AuditAction.ACTIVITY_REGISTERED_BY_CLUB,AuditAction.ACTIVITY_REGISTRATION_CANCELLED_BY_CLUB})
     void T_07_23_impersonationRecordsBothActorsAndClubChangeChannels() throws Exception {

@@ -35,10 +35,15 @@ public class SchedulingTransactions {
         this.transactions = transactions; this.context = context; this.retries = retries; this.jitter = jitter; this.backoff = backoff;
     }
     public <T> T write(Supplier<T> action) { return write(action,ErrorCode.STALE_VERSION); }
+    /**
+     * Nested in a caller's transaction, a conflict aborts the whole transaction: it is answered as `nestedConflict` but keeps the
+     * Mongo failure as its cause (E5-T27 step 7, audit A6-02), so a caller that retries whole units of work — `JobRunner`'s item
+     * (S15 R-15-10), the S07/S08/S09 writers — sees the conflict and runs again instead of recording `nestedConflict`.
+     */
     public <T> T write(Supplier<T> action,ErrorCode nestedConflict) {
         if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()) {
             try { context.lockReferences(); return action.get(); }
-            catch (RuntimeException failure) { if(TransactionRetries.conflict(failure)) throw new ApiException(nestedConflict); throw failure; }
+            catch (RuntimeException failure) { if(TransactionRetries.conflict(failure)) throw new ApiException(nestedConflict, failure); throw failure; }
         }
         for (int attempt = 1; ; attempt++) {
             try { return transactions.execute(tx -> { context.lockReferences(); return action.get(); }); }

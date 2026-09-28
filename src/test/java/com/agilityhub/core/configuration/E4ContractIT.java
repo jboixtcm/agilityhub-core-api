@@ -181,14 +181,22 @@ class E4ContractIT extends AbstractIntegrationTest {
                     route.impersonation() ? 501 : 403, route.impersonation() ? "NOT_IMPLEMENTED" : route.publicRoute() ? "FORBIDDEN" : "IMPERSONATION_DENIED");
         }
     }
-    @Test void T_06_21_T_07_10_memberViewsAndOwnRegistrationsRejectStaffAndOtherMembers() throws Exception {
+    /**
+     * E5-T27 step 1 (INC-16, ruling E41; S01 R-01-07): the roles are a union. The member routes of S07 refuse a staff-only token
+     * (403) and serve MEMBER + ADMIN or MEMBER + INSTRUCTOR as the member (here: past the guard, to the route's own answer).
+     */
+    @Test void T_06_21_T_07_10_memberViewsAndOwnRegistrationsServeTheMemberRoleRefuseStaffOnlyTokensAndOtherMembers() throws Exception {
         error(get("/api/v1/day-grid").param("date", "2026-09-14").param("view", "instructor").header("Host", HOST)
                 .with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER")), 403, "FORBIDDEN");
         for (String role : List.of("ADMIN", "INSTRUCTOR")) {
             mvc.perform(get("/api/v1/day-grid").param("date","2026-09-14").param("view","instructor").header("Host",HOST)
                     .with(jwt().jwt(j -> j.claim("clubId",CLUB)).authorities(() -> "ROLE_"+role))).andExpect(status().isOk());
             for (Route route : routes().filter(r -> r.roles().equals(List.of("MEMBER"))).toList()) {
-                error(call(route, CLUB, role).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + role)), 403, "FORBIDDEN");
+                error(call(route, CLUB, role).with(jwt().jwt(j -> j.claim("clubId", CLUB)).authorities(() -> "ROLE_" + role)), 403, "FORBIDDEN");
+                var dual = mvc.perform(call(route, CLUB, role).with(jwt().jwt(j -> j.subject("e4-MEMBER").claim("clubId", CLUB).claim("memberId", "member-a"))
+                                .authorities(() -> "ROLE_MEMBER", () -> "ROLE_" + role)))
+                        .andReturn().getResponse();
+                assertThat(dual.getStatus()).as(route.method() + " " + route.path() + " " + dual.getContentAsString()).isNotIn(401, 403, 500);
             }
         }
         for (Route route : routes().filter(r -> r.path().startsWith("/api/v1/activity-registrations/{id}")).toList()) {

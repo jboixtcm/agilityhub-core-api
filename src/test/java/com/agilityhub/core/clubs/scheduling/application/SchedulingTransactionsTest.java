@@ -55,7 +55,12 @@ class SchedulingTransactionsTest {
         TransactionSynchronizationManager.setActualTransactionActive(true);
         try {
             assertThatThrownBy(() -> transactions.write(() -> { throw new DuplicateKeyException("E11000 ring_slot_locks"); },ErrorCode.RING_HAS_BOOKINGS))
-                    .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.RING_HAS_BOOKINGS));
+                    .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.RING_HAS_BOOKINGS))
+                    // E5-T27 step 7 (A6-02): the answer keeps the conflict as its cause, so the caller's retry loop sees it.
+                    .hasCauseInstanceOf(DuplicateKeyException.class).satisfies(e -> assertThat(TransactionRetries.conflict(e)).isTrue());
+            assertThatThrownBy(() -> transactions.write(() -> { throw new com.mongodb.MongoException(112,"Write conflict"); },ErrorCode.INVALID_STATE))
+                    .isInstanceOfSatisfying(ApiException.class,e -> assertThat(e.code()).isEqualTo(ErrorCode.INVALID_STATE))
+                    .satisfies(e -> assertThat(TransactionRetries.conflict(e)).isTrue());
             assertThatThrownBy(() -> transactions.write(() -> { throw new IllegalStateException("not a conflict"); })).isInstanceOf(IllegalStateException.class);
         } finally { TransactionSynchronizationManager.setActualTransactionActive(false); }
         verify(template,times(3)).execute(any());

@@ -209,10 +209,22 @@ class Smoke:
         print(f"PASS D1 dashboard + counters: pending={pending}, olderThanWarn=1, activeMembers={active}", flush=True)
         return result
 
+    def rows(self, code, criteria):
+        """E1-shaped rows, one per delivery: since E7-T02 a notice is one S11 document per recipient with a delivery per channel
+        (`recipient.*`, `deliveries[].channel/target/status`); SYSTEM notices keep their flat E1 fields. Mirrors the tests'
+        `NotificationRows` (E5-T27: this smoke still read the flat fields only)."""
+        flat = {"accountId": {"$ifNull": ["$recipient.accountId", "$accountId"]},
+                "channel": {"$ifNull": ["$deliveries.channel", "$channel"]}, "status": {"$ifNull": ["$deliveries.status", "$status"]},
+                "recipientEmail": {"$cond": [{"$eq": ["$deliveries.channel", "EMAIL"]}, "$deliveries.target", {"$ifNull": ["$recipient.email", "$recipientEmail"]}]},
+                "variables": {"$cond": [{"$ifNull": ["$action.type", False]},
+                                        {"$mergeObjects": [{"$ifNull": ["$variables", {}]}, {"action": "$action.type"}]}, {"$ifNull": ["$variables", {}]}]}}
+        pipeline = [{"$match": {"clubId": self.club_id, "code": code}}, {"$unwind": {"path": "$deliveries", "preserveNullAndEmptyArrays": True}},
+                    {"$project": flat}, {"$match": criteria}]
+        return self.mongo("db.notifications.aggregate(" + json.dumps(pipeline) + ").toArray().map(n=>n._id)")
+
     def mailbox(self, code, email, token=False):
         def delivered():
-            criteria = dict(clubId=self.club_id, code=code, channel="EMAIL", recipientEmail=email, status="SENT")
-            ids = self.mongo("db.notifications.find(" + json.dumps(criteria) + ",{_id:1}).toArray().map(n=>n._id)")
+            ids = self.rows(code, dict(channel="EMAIL", recipientEmail=email, status="SENT"))
             if not ids:
                 return None
             directory = self.private / "mailbox"
@@ -235,9 +247,9 @@ class Smoke:
     def app_notification(self, code, account, entity):
         # entity=None: the applicant's own copy (N-01, E3-T08 M9), which never carries the admins' OPEN_SIGNUP action.
         scope = {"variables.entityId": entity} if entity else {"variables.action": {"$exists": False}}
-        criteria = dict(clubId=self.club_id, accountId=account, code=code, channel="APP", status="SENT", **scope)
-        wait(lambda: self.mongo("db.notifications.countDocuments(" + json.dumps(criteria) + ")") == 1,
-             code + " APP inbox content missing or duplicated")
+        # An APP delivery is born DELIVERED in the S11 engine (SENT in the E1 rows).
+        criteria = dict(accountId=account, channel="APP", status={"$in": ["SENT", "DELIVERED"]}, **scope)
+        wait(lambda: len(self.rows(code, criteria)) == 1, code + " APP inbox content missing or duplicated")
         print(f"PASS {code} in the member APP inbox, scoped to account and entity", flush=True)
 
     def start(self):

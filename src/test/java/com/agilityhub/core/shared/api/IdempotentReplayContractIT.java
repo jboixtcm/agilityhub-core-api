@@ -2,6 +2,7 @@ package com.agilityhub.core.shared.api;
 
 import com.agilityhub.core.support.AbstractIntegrationTest;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.aspectj.AbstractAspectJAdvice;
@@ -45,5 +46,46 @@ class IdempotentReplayContractIT extends AbstractIntegrationTest {
         System.out.println("E62 handler methods behind the replay aspect: " + checked + ", missing " + missing.size());
         assertThat(checked).isGreaterThan(100);
         assertThat(missing).isEmpty();
+    }
+
+    @Autowired IdempotencyFilter filter;
+
+    /**
+     * E5-T27 step 4 (INC-23, ruling E46; CONVENCIONS_API §7): every operation whose parameters in the committed OpenAPI snapshot
+     * include a required `Idempotency-Key` header is filtered with that header, whatever its method; the filter's non-POST routes
+     * are exactly the snapshot's; a GET is never filtered. The list comes from the snapshot, not from this test.
+     */
+    @Test void E46_everyOperationThatRequiresAnIdempotencyKeyInTheSnapshotIsKeyedByTheFilter() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var api = mapper.readTree(java.nio.file.Path.of("docs/openapi/openapi.json").toFile());
+        var required = new java.util.TreeSet<String>(); var declaredNonPost = new java.util.TreeSet<String>();
+        api.path("paths").fields().forEachRemaining(path -> path.getValue().fields().forEachRemaining(operation -> {
+            for (var parameter : operation.getValue().path("parameters")) {
+                if (parameter.has("$ref")) { parameter = api.at(parameter.path("$ref").asText().substring(1)); }
+                if (!"header".equals(parameter.path("in").asText()) || !"Idempotency-Key".equalsIgnoreCase(parameter.path("name").asText())) { continue; }
+                String id = operation.getKey().toUpperCase(java.util.Locale.ROOT) + " " + path.getKey();
+                if (parameter.path("required").asBoolean()) { required.add(id); }
+                if (!id.startsWith("POST ")) { declaredNonPost.add(id); }
+            }
+        }));
+        System.out.println("E46 operations with a required Idempotency-Key in the snapshot: " + required);
+        assertThat(required).contains("PUT /api/v1/class-sessions/{id}/attendance", "PUT /api/v1/dogs/{id}/observations",
+                "DELETE /api/v1/tasks/{id}", "DELETE /api/v1/attachments/{id}", "POST /api/v1/bookings");
+        for (String operation : required) {
+            String method = operation.substring(0, operation.indexOf(' ')), path = operation.substring(operation.indexOf(' ') + 1).replaceAll("\\{[^}]+}", "example-id");
+            var request = new org.springframework.mock.web.MockHttpServletRequest(method, path);
+            request.addHeader("Idempotency-Key", java.util.UUID.randomUUID().toString());
+            assertThat(filter.shouldNotFilter(request)).as(operation).isFalse();
+        }
+        assertThat(filter.keyed().operations().stream().filter(operation -> !operation.startsWith("POST ")).toList())
+                .as("the filter's keyed routes other than POST").containsExactlyInAnyOrderElementsOf(declaredNonPost);
+        for (String path : List.of("/api/v1/class-sessions/example-id/attendance", "/api/v1/tasks/example-id", "/api/v1/health")) {
+            var read = new org.springframework.mock.web.MockHttpServletRequest("GET", path);
+            read.addHeader("Idempotency-Key", java.util.UUID.randomUUID().toString());
+            assertThat(filter.shouldNotFilter(read)).as("GET " + path).isTrue();
+        }
+        var undeclared = new org.springframework.mock.web.MockHttpServletRequest("PUT", "/api/v1/me/profile");
+        undeclared.addHeader("Idempotency-Key", java.util.UUID.randomUUID().toString());
+        assertThat(filter.shouldNotFilter(undeclared)).as("a PUT that does not declare the header").isTrue();
     }
 }

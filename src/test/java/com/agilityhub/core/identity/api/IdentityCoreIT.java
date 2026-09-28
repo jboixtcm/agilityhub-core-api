@@ -216,6 +216,42 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         assertThat(accounts.findById("account-a").orElseThrow().passwordHash()).isNotNull();
     }
 
+    /**
+     * E5-T27 step 3 (INC-24, ruling E49; S01 R-01-05 «Recupera-la»): a RESET magic link opens a session that may set a new password
+     * once without `current`, within 15 minutes, although the account already has one. A failed attempt keeps the mark; the first
+     * change consumes it and the ordinary rule applies again. A LOGIN link never allows it.
+     */
+    @Test void R_01_05_T_01_09_aResetLinkSetsANewPasswordOnceWithoutCurrentAndALoginLinkDoesNot() throws Exception {
+        assertThat(accounts.findById("account-a").orElseThrow().passwordHash()).isNotNull();
+        createMagic(MagicLinkToken.Purpose.RESET);
+        var reset = readTokens(magic(linkToken(), "clubs-app", HOST).andExpect(status().isOk()).andReturn().getResponse());
+        var request = put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(reset)).contentType("application/json");
+        mvc.perform(request.content("{\"new\":\"Fictional recovered password\",\"repeat\":\"something else\"}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("PASSWORD_MISMATCH"));
+        mvc.perform(request.content("{\"new\":\"Fictional recovered password\",\"repeat\":\"Fictional recovered password\"}"))
+                .andExpect(status().isOk());
+        assertThat(passwords.verify("Fictional recovered password", accounts.findById("account-a").orElseThrow().passwordHash())).isTrue();
+        mvc.perform(request.content("{\"new\":\"Fictional second password\",\"repeat\":\"Fictional second password\"}"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+        mvc.perform(request.content(mapper.writeValueAsString(Map.of("current", "Fictional recovered password", "new", "Fictional second password", "repeat", "Fictional second password"))))
+                .andExpect(status().isOk());
+        // A LOGIN link: the ordinary rule.
+        createMagic(MagicLinkToken.Purpose.LOGIN);
+        var login = readTokens(magic(linkToken(), "clubs-app", HOST).andExpect(status().isOk()).andReturn().getResponse());
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(login)).contentType("application/json")
+                .content("{\"new\":\"Fictional third password\",\"repeat\":\"Fictional third password\"}"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+        // The mark lasts 15 minutes: a RESET session refreshed after that needs `current` again.
+        createMagic(MagicLinkToken.Purpose.RESET);
+        var stale = readTokens(magic(linkToken(), "clubs-app", HOST).andExpect(status().isOk()).andReturn().getResponse());
+        clock.advance(java.time.Duration.ofMinutes(15));
+        var refreshed = readTokens(refresh(refreshValue(stale), HOST, "clubs-app").andExpect(status().isOk()).andReturn().getResponse());
+        mvc.perform(put("/api/v1/me/password").header("Host", HOST).header("Authorization", bearer(refreshed)).contentType("application/json")
+                .content("{\"new\":\"Fictional third password\",\"repeat\":\"Fictional third password\"}"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+        assertThat(passwords.verify("Fictional second password", accounts.findById("account-a").orElseThrow().passwordHash())).isTrue();
+    }
+
     @Test void T_01_10_profilesRememberOnlyWhenRequestedAndRefreshFallsBackWhenRoleRemoved() throws Exception {
         membership("club-a", Set.of(Role.MEMBER, Role.INSTRUCTOR), null, "member-a");
         var first = login();

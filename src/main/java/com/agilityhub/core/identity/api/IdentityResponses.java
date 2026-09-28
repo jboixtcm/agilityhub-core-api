@@ -26,7 +26,9 @@ public final class IdentityResponses {
             @Schema(requiredMode = REQUIRED, format = "uri") String url) { }
     public record ImpersonationTokenResponse(@Schema(requiredMode = REQUIRED) String token,
             @Schema(requiredMode = REQUIRED) Instant expiresAt,
-            @Schema(requiredMode = NOT_REQUIRED, format = "uri", description = "S03 member-app launch URL") String launchUrl) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, format = "uri", description = "S01 R-01-09 / S03 member-app launch URL: https://{club app host}/entrar?handoff=<one-shot code, 60 s>, "
+                    + "redeemed once with the handoff grant (client_id clubs-app) into this grant's JWT; the JWT itself is never in the URL. "
+                    + "Null only when the club has no verified club app domain.") String launchUrl) { }
 
     public record AccountSummary(@Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED, format = "email") String email,

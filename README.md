@@ -26,8 +26,12 @@ as a non-root user on `eclipse-temurin:21-jre`. MongoDB 7 initializes the
 single-node `rs0` replica set and must become PRIMARY before the API starts.
 Expect health JSON with `status: "UP"`, replica-set state `1`, and both services
 healthy. Health also returns the Maven project `version` and UTC `builtAt`
-timestamp. It is a public, global liveness check and does not query a tenant or
-MongoDB; the separate Mongo healthcheck checks PRIMARY readiness.
+timestamp. It is public and global and reads no tenant, locale or data, but `UP`
+means the database answers: it pings MongoDB with a 1 s bound (E5-T27, INC-01
+semantics). When the ping fails or times out it answers `503` with the same body
+and `status: "DOWN"`, and logs a WARN with the request's `traceId`. The Docker
+HEALTHCHECK therefore marks the API unhealthy while MongoDB does not answer; the
+separate Mongo healthcheck still checks PRIMARY readiness.
 
 Compose reads `.env` automatically; all development values have defaults in
 `compose.yaml`, so the file is optional. `.env.example` documents the variables.
@@ -235,7 +239,14 @@ bin/core identity:seed-test-accounts --club=canic
 ```
 
 The definition contains 2 admins (including `admin@example.test`), 3 instructors
-and 10 members with their declared roles and argon2id passwords. The minimal
+and 10 members with their declared roles and argon2id passwords; the third
+instructor, `instructor.3@example.test`, is also a member (`[INSTRUCTOR, MEMBER]`),
+and `seed:demo` links that member and its own dogs. Roles are a union (S01 R-01-07,
+ruling E41, E5-T27): every member route authorises `hasRole('MEMBER')` alone, so an
+account with MEMBER and a staff role books, cancels and leaves waiting lists as a
+member for its own (or family group's) dogs, while a token without MEMBER gets
+`403 FORBIDDEN` there; an instructor still cancels another member's booking
+through the instructor's notice (R-08-19). The minimal
 definition has 1 admin and 2 members with separate emails. Repeat runs preserve
 existing global account details and credentials and reconcile the declared tenant
 roles. Member/instructor IDs remain empty pending census/team setup.

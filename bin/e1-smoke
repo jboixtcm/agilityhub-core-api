@@ -183,9 +183,9 @@ def main():
                         return match[1]
             return None
 
-        def magic():
+        def magic(purpose="LOGIN"):
             api.call("/api/v1/auth/magic-link", 202, host=host,
-                     body=dict(email=fixture["memberEmail"], purpose="LOGIN", client_id="clubs-app"))
+                     body=dict(email=fixture["memberEmail"], purpose=purpose, client_id="clubs-app"))
             token = eventually(mailbox_token, "Magic link did not reach the private local mailbox")
             return api.grant(host, dict(grant_type="urn:agilityhub:grant:magic-link", client_id="clubs-app", token=token))
 
@@ -214,7 +214,8 @@ def main():
             print("PASS disposable MongoDB 7 replica set ready", flush=True)
             fixture = mongo('''
                 const club = db.clubs.findOne({"domains.app":"clubs-admin"});
-                const member = db.memberships.findOne({clubId:club._id,roles: "MEMBER"});
+                // Exactly [MEMBER]: since E5-T27 instructor.3@ is [INSTRUCTOR, MEMBER] (S01 R-01-07).
+                const member = db.memberships.findOne({clubId:club._id,roles: ["MEMBER"]});
                 const admin = db.memberships.findOne({clubId:club._id,roles: "ADMIN"});
                 const account = db.accounts.findOne({_id:member.accountId});
                 const memberId = "e1-smoke-member";
@@ -278,9 +279,39 @@ def main():
             password_login(fixture["memberEmail"], new_password, expected=429, error="LOGIN_LOCKED")
             print("PASS correct password also denied while locked", flush=True)
 
+            # E5-T27 step 3 (S01 R-01-05, ruling E49, INC-24): «Recupera-la» sets a new password once without `current`.
+            member, refresh = magic("RESET")
+            recovered = secrets.token_urlsafe(32)
+            api.call("/api/v1/me/password", host=host, method="PUT", access=member["access_token"], body={"new":recovered,"repeat":recovered})
+            api.call("/api/v1/me/password", 401, host=host, method="PUT", access=member["access_token"],
+                     body={"new":new_password,"repeat":new_password}, error="INVALID_CREDENTIALS")
+            member, refresh = password_login(fixture["memberEmail"], recovered)
+            member, refresh = magic("LOGIN")
+            api.call("/api/v1/me/password", 401, host=host, method="PUT", access=member["access_token"],
+                     body={"new":new_password,"repeat":new_password}, error="INVALID_CREDENTIALS")
+            new_password = recovered
+            print("PASS RESET link sets a new password once without current (lockout cleared); a second change and a LOGIN link -> 401 INVALID_CREDENTIALS", flush=True)
+
             admin, _ = password_login(fixture["adminEmail"], env["SEED_PASSWORD"])
             path = "/api/v1/members/" + fixture["memberId"] + "/impersonation-token"
             impersonation, _ = api.call(path, 201, host=host, access=admin["access_token"], body={"reason":"E1 fictional smoke"})
+            # E5-T27 step 2 (S01 R-01-09, rulings E17/E47, INC-15): launchUrl carries a one-shot handoff code, never the JWT.
+            launch = urllib.parse.urlsplit(impersonation["launchUrl"])
+            launch_code = urllib.parse.parse_qs(launch.query)["handoff"][0]
+            require(launch.scheme == "https" and launch.hostname == host and launch.path == "/entrar"
+                    and impersonation["token"] not in impersonation["launchUrl"], "launchUrl must open the club app with a handoff code")
+            launch_form = dict(grant_type="urn:agilityhub:grant:handoff", client_id="clubs-app", token=launch_code)
+            redeemed, launch_headers = api.call("/oauth2/token", host=host, form=launch_form)
+            require("refresh_token" not in redeemed and read_cookie(launch_headers, "ah_refresh") is None, "An impersonation session has no refresh token")
+            launch_claims = jwt_claims(redeemed["access_token"])
+            require(launch_claims.get("imp") is True and launch_claims.get("memberId") == fixture["memberId"]
+                    and launch_claims.get("impersonatedMemberId") == fixture["memberId"] and launch_claims.get("roles") == ["MEMBER"], "Redeemed impersonation claims mismatch")
+            me, _ = api.call("/api/v1/me", host=host, access=redeemed["access_token"])
+            require(me["impersonation"] is not None, "The redeemed session is not the impersonation")
+            api.call("/oauth2/token", 400, host=host, form=launch_form, error="HANDOFF_INVALID")
+            print(f"PASS launchUrl https://{launch.hostname}{launch.path}?handoff={launch_code[:6]}…[truncated] redeemed once (clubs-app, handoff grant): "
+                  f"claims imp={launch_claims['imp']} memberId={launch_claims['memberId']} roles={launch_claims['roles']}, no refresh token; "
+                  "second redemption -> 400 HANDOFF_INVALID", flush=True)
             me, _ = api.call("/api/v1/me", host=host, access=impersonation["token"])
             require(me["impersonation"] and me["membership"]["roles"] == ["MEMBER"], "Impersonation identity mismatch")
             api.call("/api/v1/me/password", 403, host=host, method="PUT", access=impersonation["token"], body={"new":new_password,"repeat":new_password})
@@ -337,6 +368,22 @@ def main():
             require("50 would create, 0 would link, 0 skipped, 0 errors" in output, "Learn dry-run counts mismatch")
             print(output.strip(), flush=True)
             print("PASS Learn fixture dry-run proposes 50 accounts and leaves accounts, memberships, audits and outbox unchanged", flush=True)
+
+            # E5-T27 step 5 (INC-01 semantics, audit A7-07): UP means the database answers a bounded (1 s) ping.
+            up, _ = api.call("/api/v1/health")
+            pause = ["docker", "pause", container] if not options.image else [*compose_args, "pause", "mongo"]
+            unpause = ["docker", "unpause", container] if not options.image else [*compose_args, "unpause", "mongo"]
+            command(pause, env=env)
+            try:
+                started_at = time.monotonic()
+                down, _ = api.call("/api/v1/health", 503)
+                elapsed = time.monotonic() - started_at
+            finally:
+                command(unpause, env=env)
+            require(down == dict(status="DOWN", version=up["version"], builtAt=up["builtAt"]), "Health DOWN must keep the envelope")
+            require(elapsed < 3, "Health must answer within its 1 s bound")
+            eventually(lambda: api.call("/api/v1/health")[0].get("status") == "UP", "Health did not recover", 60)
+            print(f"PASS health with Mongo paused -> 503 {{status: DOWN}} in {elapsed:.1f} s; 200 UP again once Mongo answers", flush=True)
             print("E1 smoke passed. Staging/real delivery and the Learn adapter remain separate gate evidence.", flush=True)
         finally:
             if app is not None:

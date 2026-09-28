@@ -300,7 +300,7 @@ public class JobRunner {
                 manual ? DomainEvent.Origin.BACKOFFICE : DomainEvent.Origin.SYSTEM);
     }
 
-    /** Retries an aborted Mongo transaction (WriteConflict / TransientTransactionError), never a committed one. */
+    /** Retries an aborted Mongo transaction (WriteConflict / DuplicateKey / TransientTransactionError), never a committed one. */
     private <T> T write(Supplier<T> action) {
         for (int attempt = 0; ; attempt++) {
             try { return transactions.execute(status -> action.get()); }
@@ -309,12 +309,11 @@ public class JobRunner {
             }
         }
     }
-    private static boolean retryable(RuntimeException failure) {
-        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
-            if (cause instanceof com.mongodb.MongoException mongo && (mongo.getCode() == 112 || mongo.hasErrorLabel("TransientTransactionError"))) { return true; }
-        }
-        return false;
-    }
+    /**
+     * S15 R-15-10 (E5-T27 step 7, audit A6-02): the conflict of the shared writers anywhere in the cause chain, also under the
+     * contract error a nested writer answers (`SchedulingTransactions`), so a conflicting item runs again.
+     */
+    static boolean retryable(RuntimeException failure) { return com.agilityhub.core.shared.application.TransactionRetries.conflict(failure); }
 
     private static void trace(List<JobRun.Item> items, String entityType, String entityId, String action, Map<String, Object> detail) {
         if (items.size() < MAX_ITEMS) { items.add(new JobRun.Item(entityType, entityId, action, entries(detail))); }

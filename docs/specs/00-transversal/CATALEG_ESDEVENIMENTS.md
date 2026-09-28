@@ -25,7 +25,7 @@
 | `DogLevelChanged` | dogId, before, after | S03 | N-09, recalcul de visibilitat de classes, cobertura |
 | `DogFreeTrainingChanged` | dogId, allowed, source (LEVEL · MANUAL) | S03 | pestanya 08 |
 | `DogDocumentUploaded` / `DogDocumentPending` | dogId, type, state | S03/S04 | D15 pendents, N-23 |
-| `MemberNoteChanged` | dogId, memberId | S10 | N-22, D14 |
+| `MemberNoteChanged` | dogId, memberId, author{accountId, displayName, gender} (qui ha escrit la nota, tal com era en escriure-la; 28-09, E70) | S10 | N-22, D14 |
 | **Catàlegs** | | | |
 | `LevelChanged` / `RingChanged` / `InstructorChanged` / `PlanChanged` / `PriceChanged` / `FaqChanged` / `MessageTemplateChanged` | id, diff | S05/S11 | auditoria, cache |
 | **Planificació** | | | |

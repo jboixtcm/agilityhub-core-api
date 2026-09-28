@@ -34,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 @ActiveProfiles("test")
 @Testcontainers
+@org.junit.jupiter.api.TestMethodOrder(org.junit.jupiter.api.MethodOrderer.OrderAnnotation.class)
+@org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
 class HealthIndependenceIT {
     // Separate storage proves startup and every probe work before any club/account is seeded.
     @Container static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
@@ -47,7 +49,7 @@ class HealthIndependenceIT {
     @MockitoSpyBean LocaleSettingsProvider locales;
     @MockitoSpyBean TenantHostResolver hosts;
 
-    @Test void T_02_01_INC01_healthNeedsNoTenantLocaleAccountOrSeedData() throws Exception {
+    @Test @org.junit.jupiter.api.Order(1) void T_02_01_INC01_healthNeedsNoTenantLocaleAccountOrSeedData() throws Exception {
         assertEmpty();
         clearInvocations(accounts, locales, hosts);
         for (String host : new String[]{null, "app.agilitycanic.cat", "unknown.example.test"}) {
@@ -78,6 +80,42 @@ class HealthIndependenceIT {
                 .andExpect(jsonPath("$.traceId").isNotEmpty());
         verify(hosts).resolve("unknown.example.test");
         assertEmpty();
+    }
+
+    /**
+     * E5-T27 step 5 (A7-07, INC-01 semantics): UP means the database answers. With the Mongo container paused, the bounded (1 s)
+     * ping fails: 503 with status DOWN in the same envelope, within the bound, and a WARN with the request's traceId. Once the
+     * database is back the health is 200 UP again. Still no tenant, locale or account is read.
+     */
+    @Test @org.junit.jupiter.api.Order(2)
+    void E5_T27_healthAnswers503DownWithinItsBoundWhileTheDatabaseDoesNotAnswer(org.springframework.boot.test.system.CapturedOutput output) throws Exception {
+        mvc.perform(get("/api/v1/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
+        clearInvocations(accounts, locales, hosts);
+        var docker = MONGO.getDockerClient();
+        docker.pauseContainerCmd(MONGO.getContainerId()).exec();
+        try {
+            long started = System.nanoTime();
+            var result = mvc.perform(get("/api/v1/health").header("Host", "unknown.example.test")).andReturn();
+            long elapsed = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+            var down = result.getResponse();
+            assertThat(down.getStatus()).isEqualTo(503);
+            var body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(down.getContentAsString());
+            assertThat(body.path("status").asText()).isEqualTo("DOWN");
+            assertThat(body.path("version").asText()).isNotEmpty(); assertThat(body.path("builtAt").asText()).isNotEmpty();
+            assertThat(body.size()).isEqualTo(3);
+            assertThat(elapsed).as("the ping is bounded to 1 s").isLessThan(3000);
+            String traceId = RequestTraceFilter.traceId(result.getRequest());
+            assertThat(output.getAll()).contains("Health DOWN").contains("traceId=" + traceId);
+        } finally {
+            docker.unpauseContainerCmd(MONGO.getContainerId()).exec();
+        }
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(60);
+        int status = 0;
+        while (System.nanoTime() < deadline && (status = mvc.perform(get("/api/v1/health")).andReturn().getResponse().getStatus()) != 200) {
+            java.util.concurrent.locks.LockSupport.parkNanos(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(250));
+        }
+        assertThat(status).as("UP again once the database answers").isEqualTo(200);
+        verifyNoInteractions(accounts, locales, hosts);
     }
 
     private void assertEmpty() {

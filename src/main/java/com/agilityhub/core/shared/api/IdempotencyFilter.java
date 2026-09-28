@@ -45,29 +45,29 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     @org.springframework.beans.factory.annotation.Autowired private com.agilityhub.core.shared.application.SignupCheckoutGuard signupCheckout;
 
     public IdempotencyFilter(IdempotencyRepository records, TransactionTemplate transactions, Clock clock,
-                             ApiExceptionHandler errors, ObjectMapper mapper) {
+                             ApiExceptionHandler errors, ObjectMapper mapper, KeyedRoutes keyed) {
         this.records = records;
         this.transactions = transactions;
         this.clock = clock;
         this.errors = errors;
         this.mapper = mapper;
+        this.keyed = keyed;
     }
+    private final KeyedRoutes keyed;
+    KeyedRoutes keyed() { return keyed; }
 
-    /** S10 R-10-04 (E6-T02): the attendance save is a keyed PUT that replays the same response for the same key. */
-    static final java.util.regex.Pattern KEYED_PUT = java.util.regex.Pattern.compile("/api/v1/class-sessions/[^/]+/attendance");
+    /** S10 R-10-04 (E6-T02): the attendance save retries inside its seat-lock transaction and stores its 200 there. */
+    static final java.util.regex.Pattern ATTENDANCE = java.util.regex.Pattern.compile("/api/v1/class-sessions/[^/]+/attendance");
+
     /**
-     * S10 §6 (E6-T03): the other keyed writes that are no POST — the observations `PUT` and the two `DELETE`s of follow-up.
-     * They run in the filter's own transaction, like the keyed POSTs, and replay the same 200/204 for the same key.
+     * CONVENCIONS_API §7 (E5-T27, ruling E46): a POST with the header, and every other route whose handler declares the header
+     * ({@link KeyedRoutes}: E6-T01's attendance and observations PUTs and the two follow-up DELETEs today), are filtered; a read never.
      */
-    static final java.util.regex.Pattern KEYED_FOLLOWUP = java.util.regex.Pattern.compile("PUT /api/v1/dogs/[^/]+/observations|DELETE /api/v1/(tasks|attachments)/[^/]+");
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        boolean keyedMethod = "POST".equals(request.getMethod())
-                || "PUT".equals(request.getMethod()) && KEYED_PUT.matcher(path).matches()
-                || KEYED_FOLLOWUP.matcher(request.getMethod() + " " + path).matches();
-        return HealthRequests.matches(request) || !keyedMethod || (request.getHeader("Idempotency-Key") == null && !request.getRequestURI().equals("/api/v1/signup"));
+        boolean keyedMethod = "POST".equals(request.getMethod()) || keyed.declares(request.getMethod(), path);
+        return HealthRequests.matches(request) || !keyedMethod || (request.getHeader(KeyedRoutes.HEADER) == null && !request.getRequestURI().equals("/api/v1/signup"));
     }
 
     @Override
@@ -149,7 +149,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         // S10 R-10-04: the attendance save retries inside its seat-lock transaction and stores its 200 there too.
         boolean bookings = path.equals("/api/v1/bookings") || path.matches("/api/v1/waitlist-entries/[^/]+/claim")
                 || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation")
-                || KEYED_PUT.matcher(path).matches();
+                || "PUT".equals(request.getMethod()) && ATTENDANCE.matcher(path).matches();
         // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
         // so two concurrent submissions give one 201 and one 422, never a 500.
         boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup");

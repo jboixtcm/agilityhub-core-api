@@ -29,6 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenService {
     public static final Duration ACCESS_TTL = Duration.ofMinutes(15);
+    /** S01 R-01-05 (ruling E49): how long a RESET magic link's session may set a new password without `current`, once. */
+    public static final Duration PASSWORD_RESET_WINDOW = Duration.ofMinutes(15);
     private static final SecureRandom RANDOM = new SecureRandom();
     private final IdentityService identities;
     private final AccountRepository accounts;
@@ -78,7 +80,9 @@ public class TokenService {
             if (!magicLinks.consume(token.id(), clock.instant())) { return new Outcome(null, ErrorCode.MAGIC_LINK_INVALID, token.accountId()); }
             accounts.verifyEmail(token.accountId(), clock.instant());
             accounts.lockout(token.accountId(), LoginLockout.empty());
-            return new Outcome(login(session, clientId, userAgent), null, token.accountId());
+            // S01 R-01-05 (E5-T27, ruling E49): «Recupera-la» may set a new password once without `current`, within 15 minutes.
+            Instant reset = token.purpose() == MagicLinkToken.Purpose.RESET ? clock.instant().plus(PASSWORD_RESET_WINDOW) : null;
+            return new Outcome(login(session, clientId, userAgent, java.util.Set.of(), false, null, clock.instant(), reset), null, token.accountId());
         });
         if (outcome.error() != null) {
             securityEvents.record(SecurityEvents.Type.MAGIC_LINK_INVALID, outcome.accountId(), TenantContext.current());
@@ -95,6 +99,10 @@ public class TokenService {
         return login(session, clientId, userAgent, scopes, true, nonce, authTime);
     }
     private Tokens login(IdentityService.Session session, String clientId, String userAgent, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime) {
+        return login(session, clientId, userAgent, scopes, oidc, nonce, authTime, null);
+    }
+    private Tokens login(IdentityService.Session session, String clientId, String userAgent, java.util.Set<String> scopes, boolean oidc, String nonce,
+                         Instant authTime, Instant passwordResetUntil) {
         accounts.touchSessions(session.account().id());
         Instant now = clock.instant();
         var live = accountSessions.active(session.account().id(), session.account().familyVersion(), now);
@@ -104,7 +112,7 @@ public class TokenService {
             accountSessions.revokeFamily(session.account().id(), old.familyId(), now);
             revoked(session.account().id(), old.familyId(), old.clubId(), "LIMIT");
         }
-        Tokens tokens = issue(session, clientId, UUID.randomUUID().toString(), opaque(), null, device(userAgent), now, now, scopes, oidc, nonce, authTime);
+        Tokens tokens = issue(session, clientId, UUID.randomUUID().toString(), opaque(), null, device(userAgent), now, now, scopes, oidc, nonce, authTime, passwordResetUntil);
         accounts.recordLogin(session.account().id(), clientId, now);
         if (session.membership() != null) { memberships.accessed(session.account().id(), now); }
         return tokens;
@@ -128,7 +136,7 @@ public class TokenService {
                 refreshTokens.revokeFamily(old.familyId(), now);
                 return new Outcome(null, ErrorCode.REFRESH_REUSED, old.accountId());
             }
-            return new Outcome(issue(session, clientId, old.familyId(), next, old.activeProfile(), old.deviceLabel(), old.createdAt(), now, requestedScopes == null ? old.scopes() : requestedScopes, old.oidc(), old.nonce(), old.authTime()), null, old.accountId());
+            return new Outcome(issue(session, clientId, old.familyId(), next, old.activeProfile(), old.deviceLabel(), old.createdAt(), now, requestedScopes == null ? old.scopes() : requestedScopes, old.oidc(), old.nonce(), old.authTime(), null), null, old.accountId());
         });
         if (outcome.error() != null) {
             securityEvents.record(SecurityEvents.Type.REFRESH_TOKEN_REUSED, outcome.accountId(), TenantContext.current());
@@ -191,13 +199,15 @@ public class TokenService {
                 Map.of("accountId", accountId, "familyId", familyId, "reason", reason)));
     }
     private Tokens issue(IdentityService.Session session, String clientId, String familyId, String refresh, Role requested,
-                         String device, Instant createdAt, Instant now, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime) {
+                         String device, Instant createdAt, Instant now, java.util.Set<String> scopes, boolean oidc, String nonce, Instant authTime,
+                         Instant passwordResetUntil) {
         Role profile = session.membership() == null ? null : session.membership().activeProfile(requested);
         Jwt jwt = access(session, clientId, familyId, profile, now, scopes, authTime);
         Instant expiry = now.plus(Duration.ofDays(settings.integer("auth.sessionDays")));
         refreshTokens.extendFamilyRetention(familyId, expiry);
         refreshTokens.insert(new RefreshToken(UUID.randomUUID().toString(), digest(refresh), session.account().id(), TenantContext.current(),
-                clientId, familyId, session.account().familyVersion(), createdAt, expiry, now, null, null, profile, device, RefreshToken.Status.ACTIVE, scopes, oidc, nonce, authTime));
+                clientId, familyId, session.account().familyVersion(), createdAt, expiry, now, null, null, profile, device, RefreshToken.Status.ACTIVE, scopes, oidc, nonce, authTime,
+                passwordResetUntil));
         return new Tokens(jwt, new OAuth2RefreshToken(refresh, now, expiry), scopes, oidc, nonce, authTime);
     }
     private Jwt access(IdentityService.Session session, String clientId, String familyId, Role profile, Instant now, java.util.Set<String> scopes, Instant authTime) {

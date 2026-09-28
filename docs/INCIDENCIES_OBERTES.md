@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v1.6 · 27-09-2026** (v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v1.7 · 28-09-2026** (v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -54,6 +54,8 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-42 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | oberta — passada de correccions, abans de cap migració real |
 | INC-43 | 27-09 | api · fitxers | Revisió d'E5-T26: l'IT de les descàrregues locals no descarrega cap `DOG_PHOTO` ni `ACTIVITY_IMAGE` i els seus camins de reserva no tenen test; les descàrregues locals no admeten `Range` | Baixa | oberta — passada de correccions |
 | INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — passada de correccions |
+| INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — passada de correccions |
+| INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -371,6 +373,33 @@ Solució probable:
 - **«18:50 classe».** Una cel·la ocupada per una classe mostra l'hora de la fila, no la de la classe (S09 §13-3). Proposta: `SlotCell.classStartsAtLocal`.
 
 **On mirar**: `TrainingSlotService.java` (api), `apps/clubs/src/training/*`, `apps/clubs/src/instructor/RingBlockPage.tsx`, `apps/clubs-admin/src/training/RingBlockCard.tsx` (web).
+
+---
+
+## INC-45 · Comprovació global de la seguretat publicada (api)
+
+**Gravetat**: baixa. Avui cada IT de contracte ho comprova per a les seves rutes (per exemple, `E7ContractIT` per a les 21 d'S11).
+
+**Origen**: `roadmap/tasks/E7-T01.md` (api), pregunta de la ronda 2; verificació de l'organitzador del 28-09.
+
+**Proposta**: un sol test que, per a cada operació de l'OpenAPI publicat, compari el requisit de seguretat efectiu (el `security` de l'operació o, si no en té, el del document) amb una crida sense token: 401 exactament a les rutes amb bearer. `/oauth2/token` n'és l'excepció, perquè respon 401 per l'autenticació del client i no per la falta de bearer.
+
+**On mirar**: `E7ContractIT.WP_11_A_everyOperationPublishesTheAuthenticationItEnforces` (el patró), `docs/openapi/openapi.json`.
+
+---
+
+## INC-46 · Nits de la ronda 2 d'E6-T04 (api, processos)
+
+**Gravetat**: baixa. Avui funcionen.
+
+**Origen**: `roadmap/reviews/E6-T04-20260928-1212-claude.md` (api), troballes #3–#5; verificació de l'organitzador del 28-09 (decisió E70).
+
+**Llista**:
+- **El recompte de [Simula] de P3.** P3 és un sol ítem per club i dia, i la simulació compta ítems: `WOULD_NOTIFY: 1` per a quatre avisos, mentre que l'execució real diu `{notices: 4, late: 1}` (R-15-08, «pla = efectes»). A més, `detail.attendances` d'aquest ítem no té límit (per exemple, en una recuperació després d'una aturada llarga), i el límit de 500 ítems de la traça ja no el cobreix. Proposta: en simulació, registrar `notices` i `late` del pla amb el comptador del context, i limitar o resumir `detail.attendances`.
+- **L'escombrada en bloc.** `WaitlistService.sweepStarted(Instant)` ja no té cap crida de producció, només tests, i no té la guarda de `WAITLIST` del camí de P8 (R-15-03). Proposta: treure-la o posar-hi la mateixa guarda.
+- **La lectura de P8 a cada minut.** `WaitlistEntryRepository.liveAll()` llegeix totes les entrades vives del club a cada tic (cada minut i club), també les de classes de setmanes endavant, i les ordena en memòria; no hi ha cap índex `{clubId, state}` declarat. Proposta: partir de les classes `ACTIVE` d'S06 ja començades i amb `counters.waiting > 0` (més les entrades la còpia de les quals diu que la classe ha començat, per a les classes esborrades) i llegir només les seves entrades.
+
+**On mirar**: `NoShowNoticesJob.java:37`, `WaitlistService.java:186`, `WaitlistEntryRepository.java:65`.
 
 ---
 

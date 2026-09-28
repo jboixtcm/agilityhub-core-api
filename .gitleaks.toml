@@ -15,3 +15,10 @@ condition = "AND"
 paths = ['''src/test/java/com/agilityhub/core/(identity/api/SecurityHeadersIT|configuration/JwtConfigurationTest)\.java$''']
 regexTarget = "line"
 regexes = ['''String pem = "-----BEGIN PRIVATE KEY-----\\n" \+ Base64\.getMimeEncoder''']
+
+[[allowlists]]
+description = "Notification evidence logs print dedupKey values: fictional, event-derived deduplication keys, not secrets. The generic-api-key rule matched one in E7-T01's round 2 (organizer, 28-09). Code and resources stay fully scanned."
+condition = "AND"
+paths = ['''roadmap/evidence/.*\.log$''']
+regexTarget = "line"
+regexes = ['''dedupKey['"]?\s*[:=]''']

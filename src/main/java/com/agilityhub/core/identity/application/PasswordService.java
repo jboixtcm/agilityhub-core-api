@@ -34,10 +34,17 @@ public class PasswordService {
         this.passwords = passwords; this.compromised = compromised; this.settings = settings; this.transactions = transactions;
         this.events = events; this.notifications = notifications; this.clock = clock;
     }
+    /**
+     * R-01-05: `current` is required whenever a password exists, except once in a session opened by a RESET magic link within its
+     * 15 minutes (E5-T27, ruling E49). A failed attempt keeps that mark; the first change clears it, so the ordinary rule applies
+     * again afterwards.
+     */
     @Transactional(propagation = Propagation.NEVER)
     public void change(String accountId, String clientId, String familyId, String current, String next, String repeat) {
         var account = identities.current(accountId).account();
-        if (account.passwordHash() != null && (current == null || !passwords.verify(current, account.passwordHash()))) {
+        boolean reset = account.passwordHash() != null && (current == null || current.isEmpty());
+        if (reset ? !sessions.passwordResetOpen(accountId, familyId, clock.instant())
+                : account.passwordHash() != null && !passwords.verify(current, account.passwordHash())) {
             throw new ApiException(ErrorCode.INVALID_CREDENTIALS);
         }
         if (!Objects.equals(next, repeat)) { throw new ApiException(ErrorCode.PASSWORD_MISMATCH); }
@@ -49,6 +56,8 @@ public class PasswordService {
             var fresh = identities.current(accountId).account();
             if (!Objects.equals(fresh.passwordHash(), account.passwordHash())) { throw new ApiException(ErrorCode.INVALID_CREDENTIALS); }
             tokens.requireFamily(accountId, clientId, familyId, fresh.familyVersion());
+            if (reset && !sessions.consumePasswordReset(accountId, familyId, clock.instant())) { throw new ApiException(ErrorCode.INVALID_CREDENTIALS); }
+            sessions.clearPasswordReset(accountId, familyId);
             accounts.password(accountId, hash, clock.instant());
             sessions.revokeOthers(accountId, familyId, clock.instant());
             sessions.preserveFamily(accountId, familyId, fresh.familyVersion() + 1);

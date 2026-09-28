@@ -36,7 +36,11 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
  */
 @RestController
 public class BookingsController {
-    static final String MEMBER = "hasRole('MEMBER') and (principal.claims['imp'] == true or !hasAnyRole('ADMIN','INSTRUCTOR'))";
+    /**
+     * S01 R-01-07 (E5-T27, ruling E41): the roles are a union, so the MEMBER role alone opens a member route, also next to ADMIN or
+     * INSTRUCTOR; the impersonation token carries MEMBER only. A token without MEMBER gets 403.
+     */
+    static final String MEMBER = "hasRole('MEMBER')";
     private final BookingContractAccess access; private final BookingActors actors; private final SeatHoldService holds;
     private final BookingConfirmationService confirmations; private final BookingCancellationService cancellations; private final BookingQueryService queries;
     private final BookingViews views; private final BookingTransactions transactions; private final ListEngine lists; private final ObjectMapper mapper;
@@ -63,6 +67,15 @@ public class BookingsController {
         var user = CurrentUser.current();
         return (user == null || user.impersonation() == null) && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ROLE_INSTRUCTOR"));
+    }
+    private static boolean adminOnly() {
+        var user = CurrentUser.current();
+        return (user == null || user.impersonation() == null) && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+    }
+    /** R-01-07 (ruling E41): a token with the MEMBER role whose member reaches the resource (own or family group) acts on it as a member. */
+    private static boolean member() {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_MEMBER"));
     }
 
     @GetMapping("/api/v1/me/home")
@@ -200,11 +213,11 @@ public class BookingsController {
     @PreAuthorize("(hasRole('INSTRUCTOR') and principal.claims['imp'] != true) or (" + MEMBER + ")")
     @AllowsImpersonation
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, BOOKING_NOT_CANCELLABLE})
-    @Operation(summary = "cancelBooking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation → 403. R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
+    @Operation(summary = "cancelBooking", description = "Roles: MEMBER (own or family group, also the impersonation token), INSTRUCTOR when bookings.instructorLastMinuteNotice (origin INSTRUCTOR, otherwise 403). ADMIN without impersonation and without MEMBER → 403. An account with MEMBER and INSTRUCTOR cancels its own (or its family group's) booking as a member (origin MEMBER) and another member's as an instructor (R-01-07). R-08-10: late = now > classStartsAt - bookings.lateCancelThresholdMinutes. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "Booking", useReturnTypeSchema = true))
     public Booking cancelBooking(@PathVariable String id, @Valid @RequestBody(required = false) BookingCancellationRequest request, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        boolean instructor = instructorOnly();
+        boolean instructor = instructorOnly() && !(member() && queries.reachable(id, memberId(jwt)));
         queries.visible(id, memberId(jwt), instructor);
         var actor = instructor ? actors.instructor() : actors.member(memberId(jwt));
         var cancelled = cancellations.cancel(id, actor, request == null ? null : request.message());
@@ -260,14 +273,14 @@ public class BookingsController {
     @AllowsImpersonation
     @RequiresModule(Module.WAITLIST)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, MODULE_DISABLED, WAITLIST_ENTRY_NOT_LIVE})
-    @Operation(summary = "leaveWaitlist", description = "Roles: MEMBER (own or family group, also the impersonation token), ADMIN (D4/D12). R-08-16: ACTIVE or NOTIFIED only (WAITLIST_ENTRY_NOT_LIVE otherwise) → CANCELLED with cancelReason MEMBER, or ADMIN when an administrator acts (directly or impersonating); WaitlistLeft. Requires WAITLIST. Tenant comes from the JWT.",
+    @Operation(summary = "leaveWaitlist", description = "Roles: MEMBER (own or family group, also the impersonation token), ADMIN (D4/D12). R-08-16: ACTIVE or NOTIFIED only (WAITLIST_ENTRY_NOT_LIVE otherwise) → CANCELLED with cancelReason MEMBER, or ADMIN when an administrator acts (directly or impersonating); WaitlistLeft. An account with MEMBER and a staff role leaves its own (or its family group's) entry as a member (R-01-07). Requires WAITLIST. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "WaitlistEntry", useReturnTypeSchema = true))
     public WaitlistEntry leaveWaitlist(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
         access.tenant();
-        boolean admin = staff();
+        boolean admin = adminOnly() && !(member() && waitlist.reachable(id, memberId(jwt)));
         waitlist.visible(id, memberId(jwt), admin);
         var left = waitlist.leave(admin ? actors.admin() : actors.member(memberId(jwt)), id);
-        return view(views.waitlistEntry(left, admin), WaitlistEntry.class);
+        return view(views.waitlistEntry(left, staff()), WaitlistEntry.class);
     }
 
     @PostMapping("/api/v1/waitlist-entries/{id}/claim")

@@ -109,13 +109,18 @@ class OpenApiSnapshotTest extends AbstractIntegrationTest {
             if (!JOB_ROUTES.contains(path.getKey())) { assertThat(names(operation.path("responses"))).contains("422"); }
             assertThat(names(operation.path("responses"))).anyMatch(code -> code.matches("[23][0-9]{2}"));
             operation.path("responses").fields().forEachRemaining(entry -> {
-                if (entry.getKey().matches("[45](?:[0-9]{2}|XX)")) {
+                // E5-T27 step 5 (INC-01, A7-07): the health's 503 is its own envelope, asserted below.
+                if (entry.getKey().matches("[45](?:[0-9]{2}|XX)") && !(path.getKey().equals("/api/v1/health") && entry.getKey().equals("503"))) {
                     assertThat(names(entry.getValue().path("content"))).containsExactly("application/json");
                     assertThat(entry.getValue().at("/content/application~1json/schema/$ref").asText())
                             .isEqualTo("#/components/schemas/ApiError");
                 }
             });
         }));
+        var health = document.at("/paths/~1api~1v1~1health/get/responses");
+        assertThat(health.at("/200/content/application~1json/schema/$ref").asText()).isEqualTo("#/components/schemas/HealthResponse");
+        assertThat(health.at("/503/content/application~1json/schema/$ref").asText()).as("503 DOWN keeps the health envelope").isEqualTo("#/components/schemas/HealthResponse");
+        assertThat(strings(document.at("/components/schemas/HealthResponse/properties/status/enum"))).containsExactly("UP", "DOWN");
         for (String path : List.of("/api/v1/health", "/api/v1/branding", "/api/v1/manifest.webmanifest", "/oauth2/jwks", "/.well-known/jwks.json")) {
             assertThat(document.path("paths").path(path).path("get").path("security")).isEmpty();
             assertThat(document.path("paths").path(path).path("get").has("security")).isTrue();

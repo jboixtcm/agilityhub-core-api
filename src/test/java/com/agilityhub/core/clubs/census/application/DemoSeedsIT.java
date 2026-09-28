@@ -162,6 +162,21 @@ class DemoSeedsIT extends AbstractIntegrationTest {
                     .containsKeys("accountId", "clubId", "before", "after").doesNotContainKeys("rolesBefore", "rolesAfter").containsEntry("clubId", club));
             assertThatThrownBy(() -> demo.apply(DemoFixtures.spec(mapper, false), 43)).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.CLUB_NOT_EMPTY));
         }
+        // E5-T27 step 1 (S01 R-01-07, ruling E41; T-08-26, T-09-30): the Cànic's third seed instructor is also a member
+        // (club-canic.yaml), and seed:demo links that member and its own dogs.
+        var dual = mongo.findOne(Query.query(Criteria.where("email").is("instructor.3@example.test")), Document.class, "accounts");
+        var membership = mongo.findOne(Query.query(Criteria.where("accountId").is(dual.getString("_id")).and("clubId").is(club)), Document.class, "memberships");
+        assertThat(membership.getList("roles", String.class)).containsExactlyInAnyOrder("MEMBER", "INSTRUCTOR");
+        String dualMember = membership.getString("memberId");
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(club).and("memberId").is(dualMember).and("status").is("ACTIVE")), "dogs")).isPositive();
+        for (String email : List.of("instructor@example.test", "instructor.2@example.test")) {
+            var account = mongo.findOne(Query.query(Criteria.where("email").is(email)), Document.class, "accounts");
+            assertThat(mongo.findOne(Query.query(Criteria.where("accountId").is(account.getString("_id")).and("clubId").is(club)), Document.class, "memberships")
+                    .getList("roles", String.class)).as(email).containsExactly("INSTRUCTOR");
+        }
+        mvc.perform(get("/api/v1/me/home").header("Host", "app.agilitycanic.cat")
+                        .with(jwt().jwt(j -> j.subject(dual.getString("_id")).claim("clubId", club).claim("memberId", dualMember)).authorities(() -> "ROLE_MEMBER", () -> "ROLE_INSTRUCTOR")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.dogs[?(@.own == true)]").isNotEmpty());
         for (String role : List.of("ADMIN", "INSTRUCTOR")) {
             mvc.perform(get("/api/v1/members").param("size", "20").param("filter", "status:eq:ACTIVE").header("Host", "app.agilitycanic.cat")
                     .with(jwt().jwt(j -> j.subject("demo-admin").claim("clubId", club)).authorities(() -> "ROLE_" + role)))

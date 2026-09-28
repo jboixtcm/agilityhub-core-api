@@ -61,9 +61,12 @@ public class PublicActivitiesController {
         if(expires==null && signature==null) return org.springframework.http.ResponseEntity.status(302).location(java.net.URI.create(file.signedUrl())).build();
         if(expires==null || signature==null) throw new com.agilityhub.core.shared.domain.ApiException(FORBIDDEN);
         try(var tenant=com.agilityhub.core.shared.application.TenantContext.open(file.clubId())) {
-            return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.parseMediaType(file.mimeType()))
-                    .header("Cache-Control","no-store").header("Content-Disposition",org.springframework.http.ContentDisposition.inline().filename(file.name()).build().toString())
-                    .body(new org.springframework.core.io.InputStreamResource(attachments.openLocal(file.fileKey(),expires,signature).content()));
+            // E5-T27 step 8 (ruling E61): an SVG is never shown on the api's origin; it downloads as a sandboxed attachment.
+            var type=com.agilityhub.core.shared.application.FileDownloads.type(file.mimeType());boolean svg=com.agilityhub.core.shared.application.FileDownloads.svg(type);
+            var answer=org.springframework.http.ResponseEntity.ok().contentType(type).header("Cache-Control","no-store")
+                    .header("Content-Disposition",(svg?org.springframework.http.ContentDisposition.attachment():org.springframework.http.ContentDisposition.inline()).filename(file.name()).build().toString());
+            if(svg) answer.header("Content-Security-Policy",com.agilityhub.core.shared.application.ContentSecurityPolicies.DOWNLOAD);
+            return answer.body(new org.springframework.core.io.InputStreamResource(attachments.openLocal(file.fileKey(),expires,signature).content()));
         }
     }
 }

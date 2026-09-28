@@ -54,7 +54,10 @@ public class AccountAdministrationController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Create a non-refreshable member impersonation token",
-            description = "ADMIN of the same club, never an impersonated token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued.",
+            description = "ADMIN of the same club, never an impersonated token. R-01-09. Access expires per auth.impersonationMinutes; no refresh token is issued. "
+                    + "launchUrl = https://{club app host}/entrar?handoff=<code>: a one-shot handoff code valid 60 s, bound to this grant; the club app "
+                    + "redeems it once with POST /oauth2/token grant_type=urn:agilityhub:grant:handoff, client_id=clubs-app, into this grant's JWT "
+                    + "(no refresh token, no cookie). The JWT never travels in a URL (rulings E17/E47). token and expiresAt stay for API clients.",
             responses = {@ApiResponse(responseCode = "201", description = "Impersonation JWT and UTC expiry"),
                     @ApiResponse(responseCode = "403", description = "IMPERSONATION_DENIED"),
                     @ApiResponse(responseCode = "404", description = "NOT_FOUND within the current club")})
@@ -67,7 +70,7 @@ public class AccountAdministrationController {
         }
         try {
             var issued = impersonations.create(jwt.getSubject(), id, request.reason());
-            return new ImpersonationTokenResponse(issued.token().getTokenValue(), issued.expiresAt(), null);
+            return new ImpersonationTokenResponse(issued.token().getTokenValue(), issued.expiresAt(), issued.launchUrl());
         } catch (com.agilityhub.core.shared.domain.ApiException denied) {
             // Record only after the grant transaction rolls back.
             if (denied.code().httpStatus() == 403) { impersonations.rejected(jwt.getSubject()); }

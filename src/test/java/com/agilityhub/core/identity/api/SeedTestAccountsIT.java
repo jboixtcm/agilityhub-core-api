@@ -76,7 +76,9 @@ class SeedTestAccountsIT extends AbstractIntegrationTest {
         assertThat(storedAccounts).hasSize(15);
         try (var scope = TenantContext.open(first.id())) {
             assertThat(memberships.findAll().stream().filter(m -> m.roles().equals(Set.of(Role.ADMIN)))) .hasSize(2);
-            assertThat(memberships.findAll().stream().filter(m -> m.roles().equals(Set.of(Role.INSTRUCTOR)))) .hasSize(3);
+            assertThat(memberships.findAll().stream().filter(m -> m.roles().equals(Set.of(Role.INSTRUCTOR)))) .hasSize(2);
+            // E5-T27 (S01 R-01-07, ruling E41): the third seed instructor is also a member.
+            assertThat(memberships.findAll().stream().filter(m -> m.roles().equals(Set.of(Role.INSTRUCTOR, Role.MEMBER)))) .hasSize(1);
             assertThat(memberships.findAll().stream().filter(m -> m.roles().equals(Set.of(Role.MEMBER)))) .hasSize(10);
             for (var membership : memberships.findAll()) {
                 var account = accounts.findById(membership.accountId()).orElseThrow();

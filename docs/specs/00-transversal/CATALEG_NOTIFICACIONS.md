@@ -72,7 +72,7 @@ Accions natives (`action`): `CHANGE_CLASS` (obre 04 amb el gos preseleccionat) �
 4. **Push**: només si hi ha subscripció activa; error 410 → es dona de baixa la subscripció.
 5. **Correu**: proveïdor per ADR-005; bounce/complaint → marca a `Member.contactEmails[].bounced` i avís a l'admin.
 6. **Idempotència**: una notificació per (`eventId`, `recipient`, `channel`); els reintents no dupliquen.
-7. **Log** (`notifications`): estat per canal (`QUEUED`, `SENT`, `DELIVERED`, `FAILED`, `SKIPPED_BY_PREFERENCE`, `SKIPPED_MODULE_OFF`, `SKIPPED_NO_CONTACT` —sense adreça ni telèfon—, `SKIPPED_CAP` —límit mensual d'SMS— i `SKIPPED_STALE` —l'avís ja no és rellevant quan s'envia—; 27-09, E66), `readAt` per a l'app.
+7. **Log** (`notifications`): estat per canal (`QUEUED`, `SENT`, `DELIVERED`, `FAILED`, `SKIPPED_BY_PREFERENCE`, `SKIPPED_MODULE_OFF`, `SKIPPED_NO_CONTACT` —sense adreça ni telèfon—, `SKIPPED_CAP` —límit mensual d'SMS—, `SKIPPED_STALE` —l'avís ja no és rellevant quan s'envia— i `SKIPPED_NOT_ALLOWED` —fora de producció, un número que no és a `SMS_ALLOWED_NUMBERS`—; 27-09, E66; 28-09, E69), `readAt` per a l'app.
 8. Tests: per a cada codi, la matriu canals×públics amb preferències ON/OFF i mòduls ON/OFF (PLA_BACKEND §9.8).
 
 ## Annex A — codis afegits el 03-09 a partir de les specs (numeració tancada)

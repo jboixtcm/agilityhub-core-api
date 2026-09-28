@@ -377,6 +377,47 @@ class RiskReviewJobIT extends BookingFixtures {
         assertThat(notifications("N-42")).extracting(n -> n.getString("accountId")).contains("s08-admin");
     }
 
+    /**
+     * E5-T27 step 7 (A6-02; S15 R-15-10, R-15-12): P2's auto-cancellation runs nested in the item's transaction. Pere books the
+     * same class while that transaction is open, so its write meets a Mongo write conflict. The conflict keeps its cause and
+     * `JobRunner` runs the item again: the second attempt counts two dogs, leaves the class alone and the run ends SUCCEEDED,
+     * never PARTIAL {INVALID_STATE}.
+     */
+    @Test void R_15_10_aRiskReviewCancellationThatMeetsAConcurrentBookingIsRetriedAndTheRunSucceeds() throws Exception {
+        session("c2", "2026-10-06T17:40", 5, List.of());
+        String laura = book(as("laura"), "c2", "s08-d-duna").path("id").asText();
+        var attempts = new java.util.concurrent.atomic.AtomicInteger();
+        var pere = new java.util.concurrent.atomic.AtomicReference<String>();
+        try (var concurrent = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+            concurrent.submit(() -> { }).get(); // the worker starts outside the job's thread
+            Job racing = new Job() {
+                @Override public JobName name() { return job.name(); }
+                @Override public JobDefinition definition() { return job.definition(); }
+                @Override public boolean activeFor(com.agilityhub.core.platform.application.ClubConfig config) { return job.activeFor(config); }
+                @Override public List<JobItem> plan(JobContext context) { return job.plan(context); }
+                @Override public JobEffect apply(JobContext context, JobItem item) {
+                    if (attempts.incrementAndGet() == 1) {
+                        // The item's transaction reads the class first; Pere's booking then commits from another request.
+                        mongo.findById("s08-c2", Document.class, "class_sessions");
+                        try { pere.set(concurrent.submit(() -> book(as("pere"), "c2", "s08-d-nit").path("id").asText()).get()); }
+                        catch (Exception failure) { throw new IllegalStateException(failure); }
+                    }
+                    return job.apply(context, item);
+                }
+            };
+            var at = local("2026-10-06T07:30"); clock.setInstant(at);
+            var run = runner.scheduled(CLUB, true, racing, at).orElseThrow();
+            assertThat(run.errors()).isEmpty();
+            assertThat(run.status()).isEqualTo(JobStatus.SUCCEEDED);
+            assertThat(attempts).as("the item ran again after the write conflict").hasValue(2);
+            assertThat(run.items()).extracting(JobRun.Item::entityId, JobRun.Item::action).containsExactly(tuple("s08-c2", "NOT_AT_RISK"));
+        }
+        assertThat(session("c2").getString("state")).isEqualTo("ACTIVE");
+        assertThat(booking(laura).getString("state")).isEqualTo("ACTIVE");
+        assertThat(booking(pere.get()).getString("state")).isEqualTo("ACTIVE");
+        assertThat(eventsOf("ClassAutoCancelled")).isEmpty();
+    }
+
     @Test void R_15_12b_anInTimeDropBelowTheMinimumAlertsStaffOnceAndClearsWhenRecovered() throws Exception {
         session("thu", "2026-10-08T18:50", 5, List.of());
         String laura = book(as("laura"), "thu", "s08-d-duna").path("id").asText();

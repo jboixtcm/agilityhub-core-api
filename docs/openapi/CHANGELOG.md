@@ -2,6 +2,33 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-28 · E5-T27 · audit corrections (identity, security, shared): launchUrl, health DOWN, keyed PUT/DELETE, dual roles
+
+**0 operations added or removed, 6 changed; 0 schemas added or removed, 2 changed.** The web must regenerate its client.
+- **`POST /members/{id}/impersonation-token` → `ImpersonationTokenResponse.launchUrl`** (step 2, rulings E17/E47; INC-15):
+  now filled, `https://{club app host}/entrar?handoff=<code>`. The code is a one-shot handoff code valid 60 s, bound to
+  the grant; `apps/clubs` redeems it once with `POST /oauth2/token grant_type=urn:agilityhub:grant:handoff,
+  client_id=clubs-app` and receives the grant's impersonation JWT (`imp`, `memberId`, `impersonatedMemberId`; no refresh
+  token, no cookie). A second redemption, an expired code, a code of an ended grant or another client → `400
+  HANDOFF_INVALID`. The JWT never travels in the URL; `token` and `expiresAt` stay for API clients. The schema becomes
+  `nullable` (null only when the club has no verified club app domain). E4-W16 adopts it.
+- **`GET /health`** (step 5, INC-01 semantics, audit A7-07): `200 {status: UP}` only when a Mongo `ping` answers within
+  1 s; otherwise **`503`** with the same `HealthResponse` envelope and `status: DOWN` (this 503 is not an `ApiError`).
+  `HealthResponse.status` publishes `enum: [UP, DOWN]`. Still public, global, no tenant, no locale, no data; the Docker
+  HEALTHCHECK and both compose files are unchanged.
+- **Keyed `PUT`/`DELETE`** (step 4, ruling E46; INC-23): no document change. The four routes that declare
+  `Idempotency-Key` (`PUT /class-sessions/{id}/attendance`, `PUT /dogs/{id}/observations`, `DELETE /tasks/{id}`,
+  `DELETE /attachments/{id}`) are filtered because their handlers declare the header, not through a hand-kept list; a
+  GET is never filtered. `IdempotentReplayContractIT` checks every operation of this snapshot with a required key.
+- **`PUT /me/password`** (step 3, ruling E49; INC-24), description: after a RESET magic link, `current` may be left out
+  once within 15 minutes; a LOGIN link never allows it. Same request and answers.
+- **`POST /bookings/{id}/cancellation`** and **`POST /waitlist-entries/{id}/cancellation`** (step 1, ruling E41;
+  INC-16), descriptions: an account with MEMBER and a staff role acts on its own (or its family group's) booking or entry
+  as a member. Every member route (S07, S08, S09) now authorises `hasRole('MEMBER')` alone: MEMBER + ADMIN or MEMBER +
+  INSTRUCTOR is served, a token without MEMBER is `403 FORBIDDEN` (no document change for those routes).
+- Not in the document: signed downloads (step 8, ruling E61) answer an SVG as `attachment` and carry
+  `Content-Security-Policy: …; sandbox`; CORS exposes `Content-Disposition`.
+
 ## 2026-09-28 · E7-T01 round 2 · the anonymous unsubscribe publishes `security: []`
 
 **0 operations added or removed, 1 changed; 0 schemas changed.**

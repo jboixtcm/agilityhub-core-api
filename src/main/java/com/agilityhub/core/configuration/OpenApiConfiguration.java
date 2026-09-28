@@ -153,6 +153,11 @@ public class OpenApiConfiguration {
                         .forEach((status, codes) -> operation.getResponses().addApiResponse(status, new ApiResponse().description(codes)));
             }
             var result = withErrors(operation);
+            if (handler.getBeanType() == com.agilityhub.core.shared.api.HealthController.class) {
+                // E5-T27 step 5 (INC-01, A7-07): the health's 503 answers its own envelope {status: DOWN, version, builtAt}, not an ApiError.
+                result.getResponses().addApiResponse("503", new ApiResponse().description("HealthResponse with status DOWN: the database did not answer a ping within 1 s")
+                        .content(json(new Schema<>().$ref("#/components/schemas/HealthResponse"))));
+            }
             if (errors != null) {
                 for (int status : errors.omit()) {
                     if (java.util.Arrays.stream(errors.value()).noneMatch(code -> code.httpStatus() == status)) {

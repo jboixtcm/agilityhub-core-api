@@ -93,8 +93,8 @@ public class SecurityBaselineConfiguration {
         http.cors(config -> config.configurationSource(cors));
         http.headers(headers -> {
             headers.referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
-            headers.contentSecurityPolicy(csp -> csp.policyDirectives(
-                    "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"));
+            // A download sets its own stricter policy (ContentSecurityPolicies.DOWNLOAD); the writer leaves an existing one.
+            headers.contentSecurityPolicy(csp -> csp.policyDirectives(com.agilityhub.core.shared.application.ContentSecurityPolicies.API));
             if (environment.acceptsProfiles(Profiles.of("prod"))) {
                 headers.httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000));
             } else { headers.httpStrictTransportSecurity(hsts -> hsts.disable()); }
