@@ -1,0 +1,6 @@
+ExportEngineIT         tests=9 failures=0 errors=0 skipped=0 time=7.713s
+DemoScenarioSeedIT     tests=5 failures=0 errors=0 skipped=0 time=117.947s
+DemoPlanningSeedIT     tests=8 failures=0 errors=0 skipped=0 time=26.962s
+ListFieldsContractIT   tests=4 failures=0 errors=0 skipped=0 time=24.838s
+SeedTestAccountsIT     tests=4 failures=0 errors=0 skipped=0 time=2.319s
+DashboardIT            tests=11 failures=0 errors=0 skipped=0 time=4.933s

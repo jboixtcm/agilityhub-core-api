@@ -1,0 +1,21 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- jacoco:0.8.14:report (coverage) @ agilityhub-core-api ---
+[INFO] Loading execution data file /Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] Analyzed bundle 'AgilityHub Core API' with 2064 classes
+[INFO] 
+[INFO] --- jacoco:0.8.14:check (coverage) @ agilityhub-core-api ---
+[INFO] Loading execution data file /Users/jordib/dev/agilityhub/agilityhub-core-api/target/jacoco.exec
+[INFO] Analyzed bundle 'agilityhub-core-api' with 2064 classes
+[INFO] All coverage checks have been met.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.758 s
+[INFO] Finished at: 2026-09-28T09:36:50+02:00
+[INFO] ------------------------------------------------------------------------

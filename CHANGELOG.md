@@ -8,6 +8,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E7-T02: the S11 notification engine (WP-11-B). Every notice of the product now comes from one engine over the
+  `NotificationCatalog`.
+  - `NotificationEventHandler`: one outbox consumer per consumed event type, durable bean names `notifications.<EventType>`.
+  - `NotificationEngine` (S11 §6 pipeline): module guards (R-11-17), the parameter conditions of S11 §7 (N-30, N-31, N-33,
+    N-35), the owner's facts (`NotificationFactsPort`, one adapter per owning context), the club's template seeded on first
+    use (R-11-01), `stillRelevant` (R-11-16, `SKIPPED_STALE`), recipients (`RecipientResolver`, R-11-02), the recipient's
+    language, formatted variables (`VariableFormatter` over `ClubFormats`, club time zone), rendering (`TemplateRenderer`:
+    ICU with literal Catalan apostrophes, `[[var]]`, capital letter; a missing value renders empty with a WARN), the
+    `dedupKey` upsert and the deliveries of the R-11-03 truth table (`ChannelResolver`).
+  - `NotificationDispatcher`: atomic lease-based claim (two instances never send twice), sends after the commit and every
+    5 s, retries 1·5·15·60 min with the 5th failure final (`NotificationSent/Failed`), the SMS monthly cap with the forced
+    e-mail and `SmsCapReached` once per club-local month (N-49), push outcomes (`GONE` → subscription `EXPIRED` +
+    `PushUnsubscribed`, 3 failures → `EXPIRED`).
+  - Providers behind interfaces, selected like the `EmailSender`: `TwilioSmsSender` (with the `SMS_ALLOWED_NUMBERS` guard
+    outside `prod` → `SKIPPED_NOT_ALLOWED`), `LogSmsSender`, `FakeSmsSender`; `WebPushSender` (VAPID, `aes128gcm`),
+    `FakePushSender`. SMS text: GSM-7 transliteration, 160 characters, no links (R-11-06).
+  - E-mail (R-11-08): the club's layout with a link to the app, `From`/`Reply-To` of the club; bounces of engine mails
+    mark `Member.contactEmails[].bounced` and publish `EmailBounced` (N-51); `CLUB_NEWS` mails carry `List-Unsubscribe`
+    and the footer with a signed 30-day token; `POST /email-unsubscribes` is served.
+  - `GET /branding.pushPublicKey`; environment `TWILIO_*`, `SMS_ALLOWED_NUMBERS`, `VAPID_*`, `EMAIL_UNSUBSCRIBE_KEY`
+    (`.env.example`, `docs/DEPLOY.md`).
+  - Tests T-11-01…T-11-11, T-11-13…T-11-15, T-11-21…T-11-25, T-11-30…T-11-33, T-11-40; the T-11-02 truth table is a
+    public data provider (`ChannelTruthTable`) for E7-T04; T-11-05 snapshots in `src/test/resources/snapshots/notifications/`.
+  - Replaced (deleted): the per-vertical notification code of E3–E6 (`SignupNotifications`, `SchedulingNotifications`,
+    `RiskNotifications`, `SchedulingSms`, `ActivityNotifications`, `ActivitySms`, `BookingNotifications`,
+    `WaitlistNotifications`, `NoShowNotifications`, `BookingSms`, `TrainingNotifications`, `TrainingSms`,
+    `FollowupNotifications`, `WeekOpeningNotifications`, `JobFailureNotifications`, `NotificationFanout`) and the
+    `appOnce`/`smsIntentOnce` helpers; the E4–E6 SMS intents are real sends. `SystemNotificationService` keeps the SYSTEM
+    codes only.
+  - Copy: `ca` N-41 and N-49 no longer write «de agost»/«de octubre».
 - E7-T01: the S11 communications contract (WP-11-A).
   - `NotificationCatalog` (`clubs.messaging.domain`): every row of `CATALEG_NOTIFICACIONS.md` as code, 43 main + 18 Annex A
     = 61 codes (N-12 does not exist). Per code: events, category, audiences, caps (R-11-12, with N-15's SMS exception),

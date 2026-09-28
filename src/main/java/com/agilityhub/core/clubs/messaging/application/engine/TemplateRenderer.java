@@ -48,8 +48,11 @@ public final class TemplateRenderer {
             // Every apostrophe doubled (one already escaped for ICU, `''`, counts once) is a literal apostrophe in both modes.
             // DOUBLE_OPTIONAL, not the DOUBLE_REQUIRED S11 names: that is ICU4J's JDK mode, which re-parses a `select`
             // sub-message and so drops its apostrophes and leaves its `{var}` unformatted (TemplateRendererTest, T-11-04).
-            format.applyPattern(pattern.replace("''", "'").replace("'", "''"), MessagePattern.ApostropheMode.DOUBLE_OPTIONAL);
-            icu = format.format(new java.util.HashMap<String, Object>(variables));
+            String escaped = pattern.replace("''", "'").replace("'", "''");
+            format.applyPattern(escaped, MessagePattern.ApostropheMode.DOUBLE_OPTIONAL);
+            var arguments = new java.util.HashMap<String, Object>(variables);
+            missing(code, escaped, arguments);
+            icu = format.format(arguments);
         } catch (IllegalArgumentException unparsable) {
             LOG.warn("Notification template of {} is not valid ICU; rendered as plain text", code);
             icu = pattern;
@@ -65,6 +68,29 @@ public final class TemplateRenderer {
         }
         matcher.appendTail(out);
         return out.toString().replaceAll("[ \\t]{2,}", " ").strip();
+    }
+
+    /**
+     * An ICU argument the notice has no value for renders like an unknown `[[var]]`: empty (a `select` falls to `other`, a
+     * `plural` counts 0), never the raw `{name}` ICU would print; with a `WARN` when the argument is in the text itself. One
+     * inside a `select`/`plural` branch is filled silently: that branch may not be the one rendered (N-15's `confirm_by`
+     * only exists in FIFO).
+     */
+    private static void missing(String code, String pattern, Map<String, Object> arguments) {
+        var parsed = new MessagePattern(MessagePattern.ApostropheMode.DOUBLE_OPTIONAL).parse(pattern);
+        int depth = 0;
+        for (int i = 0; i + 1 < parsed.countParts(); i++) {
+            var start = parsed.getPart(i);
+            if (start.getType() == MessagePattern.Part.Type.MSG_START) { depth = start.getValue(); continue; }
+            if (start.getType() == MessagePattern.Part.Type.MSG_LIMIT) { depth = start.getValue() - 1; continue; }
+            var name = parsed.getPart(i + 1);
+            if (start.getType() != MessagePattern.Part.Type.ARG_START || name.getType() != MessagePattern.Part.Type.ARG_NAME) { continue; }
+            String key = parsed.getSubstring(name);
+            if (arguments.containsKey(key)) { continue; }
+            if (depth == 0) { LOG.warn("Notification template of {} has no value for {}", code, key); }
+            var type = start.getArgType();
+            arguments.put(key, type == MessagePattern.ArgType.PLURAL || type == MessagePattern.ArgType.SELECTORDINAL ? 0 : "");
+        }
     }
 
     /** Step (4): the first letter in upper case («Demà 9:30…», «Ahir no vas…»); leading marks and quotes stay. */

@@ -36,3 +36,9 @@ deliveries, `SmsCapReached` once per club-local month.
 - N-19 `class_date`: R-11-05 «ahir» (T-11-33) supersedes the E6 «never ahir».
 - SMS preferences: «+SMS» is fixed (R-11-04); the legacy `{CATEGORY: {email, sms}}` preference shape is gone.
 - `SKIPPED_NOT_ALLOWED` (organizer 2026-09-24): the non-prod Twilio allow-list guard.
+
+## Corrections (second session, 28-09)
+- The two deviations above about N-01/N-03 and N-19 were never implemented that way, and the task report supersedes them:
+  an existing member who applies still gets N-01/N-03 in the app (S04 §8; `SignupGateFixesIT` asserts it), and N-19's
+  `class_date` stays the class's own date in full (S10 §8, ruling E65), not «ahir» (report, Question 1).
+- Retries: a delivery has at most 5 attempts (waits 1, 5, 15, 60 min; the 5th failure is final), as `RetryPolicy` says.

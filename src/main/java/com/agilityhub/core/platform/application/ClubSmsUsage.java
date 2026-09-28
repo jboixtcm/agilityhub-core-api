@@ -30,7 +30,9 @@ public class ClubSmsUsage {
         var sameMonth = Query.query(Criteria.where("_id").is(clubId).and(MONTH).is(key).and(SENT).lt(cap));
         if (mongo.updateFirst(sameMonth, new Update().inc(SENT, 1L), Club.class).getModifiedCount() == 1) { return true; }
         var newMonth = Query.query(Criteria.where("_id").is(clubId).and(MONTH).ne(key));
-        return mongo.updateFirst(newMonth, new Update().set(MONTH, key).set(SENT, 1L), Club.class).getModifiedCount() == 1;
+        if (mongo.updateFirst(newMonth, new Update().set(MONTH, key).set(SENT, 1L), Club.class).getModifiedCount() == 1) { return true; }
+        // Another sender restarted the month between both updates: count in it, still below the cap.
+        return mongo.updateFirst(sameMonth, new Update().inc(SENT, 1L), Club.class).getModifiedCount() == 1;
     }
     /** Gives back one reservation of `month` (the provider refused or failed the SMS). */
     public void release(String clubId, YearMonth month) {

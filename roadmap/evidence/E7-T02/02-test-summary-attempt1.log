@@ -1,0 +1,144 @@
+unit/contract (surefire): tests=791 failures=0 errors=0 skipped=0
+  ArchitectureTest                 tests=14  failures=0 errors=0 skipped=0
+  MessagingApplicationTest         tests=3   failures=0 errors=0 skipped=0
+  NotificationEmailRendererTest    tests=3   failures=0 errors=0 skipped=0
+  NotificationSeedSnapshotTest     tests=3   failures=0 errors=0 skipped=0
+  RecipientResolverTest            tests=3   failures=0 errors=0 skipped=0
+  TemplateRendererTest             tests=2   failures=0 errors=0 skipped=0
+  VariableFormatterTest            tests=4   failures=0 errors=0 skipped=0
+  TwilioSmsSenderTest              tests=11  failures=0 errors=0 skipped=0
+  WebPushSenderTest                tests=12  failures=0 errors=0 skipped=0
+  MessagingPortsTest               tests=4   failures=0 errors=0 skipped=0
+  ChannelResolverTest              tests=64  failures=0 errors=0 skipped=0
+  NotificationCatalogContractTest  tests=4   failures=0 errors=0 skipped=0
+  SmsTextTest                      tests=5   failures=0 errors=0 skipped=0
+  MessagingConfigurationTest       tests=4   failures=0 errors=0 skipped=0
+  AuditContractTest                tests=1   failures=0 errors=0 skipped=0
+  MessageParityTest                tests=1   failures=0 errors=0 skipped=0
+  ErrorCatalogContractTest         tests=5   failures=0 errors=0 skipped=0
+  EventCatalogContractTest         tests=2   failures=0 errors=0 skipped=0
+integration (failsafe): tests=1139 failures=0 errors=18 skipped=0
+  NoShowNoticesJobIT               tests=3   failures=0 errors=0 skipped=0
+  EmailUnsubscribeIT               tests=2   failures=0 errors=0 skipped=0
+  SendGridWebhookIT                tests=12  failures=0 errors=0 skipped=0
+  SystemNotificationServiceIT      tests=15  failures=0 errors=0 skipped=0
+  NotificationDispatcherIT         tests=6   failures=0 errors=6 skipped=0
+  NotificationEngineIT             tests=10  failures=0 errors=10 skipped=0
+  E7ContractIT                     tests=27  failures=0 errors=0 skipped=0
+  E7PersistenceIT                  tests=5   failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest              tests=10  failures=0 errors=0 skipped=0
+Not passed: DemoPlanningSeedIT.T_07_29_T_07_32_theD7ListCarriesTheColumnsOfTheFourSeedActivities, DashboardIT.T_14_11_seededCensusShapeCacheExpiryAndLocaleVariants, NotificationDispatcherIT.T_11_15_theSmsCounterUsesEachClubsOwnMonth, NotificationDispatcherIT.T_11_09_aRetryableFailureWaitsOneFiveFifteenSixtyMinutesAndTheFifthIsFinal, NotificationDispatcherIT.T_11_10_goneExpiresTheSubscriptionRetryableRetriesAndThreeFailuresExpireIt, NotificationDispatcherIT.T_11_06_oneSmsPerPhoneAndOutsideProductionOnlyTheAllowedNumbers, NotificationDispatcherIT.T_11_07_theMonthlyCapSkipsTheSmsForcesTheEmailAndNotifiesTheAdminsOncePerMonth, NotificationDispatcherIT.T_11_30_twoDispatchersOnTheSameQueuedDeliveriesSendEachOnce, NotificationEngineIT.T_11_31_aHundredSimultaneousRemindersAreAHundredNotificationsWithoutDuplicates, NotificationEngineIT.T_11_08_reprocessingTheSameEventCreatesNoDocumentNorDeliveryAndTwoDogsOrTwoAudiencesAreTwoNotifications, NotificationEngineIT.T_11_11_bouncedAddressesAreSkippedAndAllBouncedIsNoContactAndTheBounceIsN51ToTheAdmins, NotificationEngineIT.T_11_14_leftMembersAndTheDefaultRecipientsOfAnEventWithoutOwner, NotificationEngineIT.T_11_24_classCancelledByClubReachesEveryDogTheInstructorAndTheAdminsOnTheirChannels, NotificationEngineIT.R_11_17_S11_7_parameterConditionsOwnerExceptionsEmitAndAFailedInlineSend, NotificationEngineIT.T_11_01_T_11_40_theRecipientsLanguageWithFallbacksAndANewLanguageOnlyForLaterNotices, NotificationEngineIT.T_11_21_T_11_25_modulesDisabledTemplatesAndSystemCodes, NotificationEngineIT.T_11_13_T_11_32_aReminderOfAnActiveBookingOnceAndOfACancelledOneNever, NotificationEngineIT.T_11_23_clubNewsMailsCarryTheSignedUnsubscribeLinkAndTransactionalOnesNever
+T-11-xx test methods (parameterized cases collapsed):
+  T-11-01  NotificationEngineIT.T_11_01_T_11_40_theRecipientsLanguageWithFallbacksAndANewLanguageOnlyForLaterNotices FAILED
+  T-11-02  ChannelResolverTest.T_11_02_everyCatalogCodeTimesEveryRowOfTheTruthTable ok
+  T-11-02  ChannelResolverTest.T_11_02_theS11ExamplesOfLaura ok
+  T-11-03  ChannelResolverTest.T_11_03_preferencesOnlyRemoveWhatTheTemplateAllowsAndOnlyForMembers ok
+  T-11-03  NotificationSpecTest.T_11_03_T_11_20_absentPreferencesReadAsTheProductDefaultsAndUnknownKeysSurviveAWrite ok
+  T-11-04  TemplateRendererTest.T_11_04_apostrophesSurviveEveryIcuBranchAndVariablesAreSubstituted ok
+  T-11-04  TemplateRendererTest.T_11_04_genderSelectUnknownVariablesCapitalAndBrokenPatterns ok
+  T-11-04  VariableFormatterTest.T_11_04_classDateIsRelativeWithinOneDayElseTheWeekdayAndTheMonthBeyondSixDays ok
+  T-11-04  VariableFormatterTest.T_11_04_dateTimeAndTheOtherFormsOfR_11_05 ok
+  T-11-04  VariableFormatterTest.T_11_04_listsLocalizedTextsAndTypesKeptForIcu ok
+  T-11-05  NotificationSeedSnapshotTest.T_11_05_everySeededCodeAndItsStaffTextsRenderAsTheCommittedSnapshot ok
+  T-11-06  MessagingConfigurationTest.T_11_06_theSmsSenderPerProfileAndTheNonProductionGuard ok
+  T-11-06  NotificationDispatcherIT.T_11_06_oneSmsPerPhoneAndOutsideProductionOnlyTheAllowedNumbers FAILED
+  T-11-06  SmsTextTest.T_11_06_cutsAt160WithAnEllipsisNeverSendsALinkAndCollapsesWhitespace ok
+  T-11-06  SmsTextTest.T_11_06_transliteratesToGsm7 ok
+  T-11-06  TwilioSmsSenderTest.T_11_06_aMessagingServiceReplacesTheSenderId ok
+  T-11-06  TwilioSmsSenderTest.T_11_06_messagesApiRequestWithTheSenderIdAndTheAcceptedSid ok
+  T-11-06  TwilioSmsSenderTest.T_11_06_outsideProductionOnlyTheAllowedNumbersReachTheProvider ok
+  T-11-07  ChannelResolverTest.T_11_07_atTheCapTheEmailIsForcedToEveryAddressWithoutOneWhateverThePreference ok
+  T-11-07  MessagingApplicationTest.T_11_11_T_11_07_theFactsOfN51AndN49 ok
+  T-11-07  NotificationDispatcherIT.T_11_07_theMonthlyCapSkipsTheSmsForcesTheEmailAndNotifiesTheAdminsOncePerMonth FAILED
+  T-11-07  NotificationSpecTest.T_11_07_T_11_15_theSmsCounterCountsTheClubLocalMonthAndRestartsWithANewOne ok
+  T-11-08  E7PersistenceIT.T_11_08_T_11_29_documentsRoundTripInTheirTenantAndTheUniqueKeysHold ok
+  T-11-08  NotificationEngineIT.T_11_08_reprocessingTheSameEventCreatesNoDocumentNorDeliveryAndTwoDogsOrTwoAudiencesAreTwoNotifications FAILED
+  T-11-08  NotificationSpecTest.T_11_08_dedupKeysAreStablePerEventRecipientAndDogAndFollowTheN13AndN24Exceptions ok
+  T-11-09  NotificationDispatcherIT.T_11_09_aRetryableFailureWaitsOneFiveFifteenSixtyMinutesAndTheFifthIsFinal FAILED
+  T-11-09  SendGridEmailSenderTest.T_11_09_providerErrorsBecomeSafeFailures ok
+  T-11-09  SendGridEmailSenderTest.T_11_09_timeoutIsHandled ok
+  T-11-09  SendGridEmailSenderTest.T_11_09_transportAndInterruptDoNotExposeRequestData ok
+  T-11-09  SmsTextTest.T_11_09_backoffIsOneFiveFifteenSixtyMinutesAndTheFifthFailureIsFinal ok
+  T-11-09  SystemNotificationServiceIT.T_11_09_providerFailureIsRecordedAfterCommittedQueue ok
+  T-11-09  TwilioSmsSenderTest.T_11_09_providerAnswersAreRetryableOrFinalWithoutEchoingTheRequest ok
+  T-11-09  TwilioSmsSenderTest.T_11_09_timeoutTransportAndInterruptAreRetryable ok
+  T-11-10  MessagingConfigurationTest.T_11_10_thePushSenderPerProfileAndTheVapidKeys ok
+  T-11-10  NotificationDispatcherIT.T_11_10_goneExpiresTheSubscriptionRetryableRetriesAndThreeFailuresExpireIt FAILED
+  T-11-10  WebPushSenderTest.T_11_10_encryptedPayloadVapidJwtAndTtl ok
+  T-11-10  WebPushSenderTest.T_11_10_pushServiceAnswers ok
+  T-11-10  WebPushSenderTest.T_11_10_theTestDoubleScriptsAnswersAndRemembersThePushes ok
+  T-11-10  WebPushSenderTest.T_11_10_timeoutTransportInterruptAndBrokenKeys ok
+  T-11-11  MessagingApplicationTest.T_11_11_T_11_07_theFactsOfN51AndN49 ok
+  T-11-11  NotificationEngineIT.T_11_11_bouncedAddressesAreSkippedAndAllBouncedIsNoContactAndTheBounceIsN51ToTheAdmins FAILED
+  T-11-11  SendGridWebhookIT.T_11_11_T_11_22_engineMailDeliveredSoftAndHardBouncesPerContactAddressAndTheAccountMarkCoexists ok
+  T-11-13  NotificationEngineIT.T_11_13_T_11_32_aReminderOfAnActiveBookingOnceAndOfACancelledOneNever FAILED
+  T-11-13  NotificationSpecTest.T_11_13_aReminderIsOnlyRelevantForAnActiveBookingThatStillLiesAhead ok
+  T-11-14  NotificationEngineIT.T_11_14_leftMembersAndTheDefaultRecipientsOfAnEventWithoutOwner FAILED
+  T-11-14  RecipientResolverTest.T_11_14_instructorsOfTheClassNewAndFormerElseEveryActiveOne ok
+  T-11-14  RecipientResolverTest.T_11_14_leftMembersOnlyReceiveTheirOwnNoticeAndTheApplicantIsTheSignupAddress ok
+  T-11-14  RecipientResolverTest.T_11_14_n08aReachesEveryDogOfThePayloadTheClassInstructorsAndTheAdmins ok
+  T-11-15  NotificationDispatcherIT.T_11_15_theSmsCounterUsesEachClubsOwnMonth FAILED
+  T-11-15  NotificationSpecTest.T_11_07_T_11_15_theSmsCounterCountsTheClubLocalMonthAndRestartsWithANewOne ok
+  T-11-15  VariableFormatterTest.T_11_15_theSameInstantIsTodayInOneClubAndTomorrowInTheOther ok
+  T-11-16  E7ContractIT.WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce ok
+  T-11-16  E7ResponseContractTest.T_11_16_T_11_19_T_11_26_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-11-16  ErrorCatalogContractTest.T_11_16_T_11_21_messagingErrorsFollowTheLiteralCatalogStatusRule ok
+  T-11-18  E7PersistenceIT.T_11_18_announcementSentIsAnAuditActionOfTheClub ok
+  T-11-19  E7ContractIT.T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound ok
+  T-11-19  E7PersistenceIT.T_11_19_T_11_26_collectionsDeclareTheS11IndexesAndUniqueGuards ok
+  T-11-19  E7ResponseContractTest.T_11_16_T_11_19_T_11_26_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-11-19  E7ResponseContractTest.T_11_19_T_11_20_theTwoS11JsonExtractsAreTheFixturesAndRoundTrip ok
+  T-11-19  E7ResponseContractTest.T_11_19_theFeedFormExposesNoDeliveryDataAndTheLogFormDoes ok
+  T-11-20  E7ResponseContractTest.T_11_19_T_11_20_theTwoS11JsonExtractsAreTheFixturesAndRoundTrip ok
+  T-11-20  E7ResponseContractTest.T_11_20_anAbsentReminderKeyIsNotTheNullOfMai ok
+  T-11-20  NotificationSpecTest.T_11_03_T_11_20_absentPreferencesReadAsTheProductDefaultsAndUnknownKeysSurviveAWrite ok
+  T-11-21  E7ContractIT.T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound ok
+  T-11-21  E7ContractIT.T_11_21_T_11_27_pushOffHidesTheDevicesAndFaqOffHidesTheFaq ok
+  T-11-21  ErrorCatalogContractTest.T_11_16_T_11_21_messagingErrorsFollowTheLiteralCatalogStatusRule ok
+  T-11-21  NotificationEngineIT.T_11_21_T_11_25_modulesDisabledTemplatesAndSystemCodes FAILED
+  T-11-22  MessagingApplicationTest.T_11_22_theWebhookIgnoresIncompleteOrForeignEventsAndAConcurrentReplay ok
+  T-11-22  SendGridSignatureVerifierTest.T_11_22_publicKeyFormatsAndMissingMalformedInputs ok
+  T-11-22  SendGridWebhookIT.T_11_11_T_11_22_engineMailDeliveredSoftAndHardBouncesPerContactAddressAndTheAccountMarkCoexists ok
+  T-11-22  SendGridWebhookIT.T_11_22_deliveredAndDeferredPreserveAccountState ok
+  T-11-22  SendGridWebhookIT.T_11_22_failedTransactionRollsBackReceiptAccountAuditAndDelivery ok
+  T-11-22  SendGridWebhookIT.T_11_22_invalidSignaturesAndTamperedRawBytesFailBeforeParsing ok
+  T-11-22  SendGridWebhookIT.T_11_22_rolesCannotBypassSignatureVerification ok
+  T-11-22  SendGridWebhookIT.T_11_22_signedClubRoutingUsesStoredNotificationRatherThanRequestHost ok
+  T-11-22  SendGridWebhookIT.T_11_22_spamReportOfAnEngineMailWithoutAMemberMarksTheMembersWithThatAddress ok
+  T-11-22  SendGridWebhookIT.T_11_22_unknownNotificationOtherClubAndChangedEmailAreIgnored ok
+  T-11-22  SendGridWebhookIT.T_11_22_validSignatureUpdatesAccountAuditAndDeliveryExactlyOnce ok
+  T-11-22  SystemNotificationServiceIT.T_11_22_callbackBeforeSendResponsePreservesFinalStatusAndProviderReference ok
+  T-11-23  EmailUnsubscribeIT.T_11_23_aValidTokenTurnsClubNewsOffOnceAndKeepsTheOtherPreferences ok
+  T-11-23  EmailUnsubscribeIT.T_11_23_expiredTamperedForeignAndUnknownTokensAre422AndWriteNothing ok
+  T-11-23  MessagingConfigurationTest.T_11_23_theUnsubscribeKeyIsRequiredOutsideLocalAndTest ok
+  T-11-23  NotificationEmailRendererTest.T_11_23_clubNewsCarriesTheUnsubscribeFooterAndHeaderAndTransactionalMailsNever ok
+  T-11-23  NotificationEmailRendererTest.T_11_23_theUnsubscribeTokenIsSignedValidThirtyDaysAndBoundToItsClub ok
+  T-11-23  NotificationEngineIT.T_11_23_clubNewsMailsCarryTheSignedUnsubscribeLinkAndTransactionalOnesNever FAILED
+  T-11-24  CalendarIT.T_06_25_T_11_24_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithN08aToMembersOnly ok
+  T-11-24  NotificationEngineIT.T_11_24_classCancelledByClubReachesEveryDogTheInstructorAndTheAdminsOnTheirChannels FAILED
+  T-11-25  ClubEmailSettingsTest.T_11_25_senderRequiresTheExactVerifiedDomain ok
+  T-11-25  EmailConfigurationTest.T_11_25_localAndTestSinksAndConfiguredSender ok
+  T-11-25  EmailConfigurationTest.T_11_25_productionRequiresSenderAndVerificationKey ok
+  T-11-25  EmailConfigurationTest.T_11_25_productionStartupFailsClearlyWithoutApiKey ok
+  T-11-25  EmailConfigurationTest.T_11_25_rendererEscapesBrandingAndRejectsUnsafeAssets ok
+  T-11-25  NotificationEngineIT.T_11_21_T_11_25_modulesDisabledTemplatesAndSystemCodes FAILED
+  T-11-25  SendGridEmailSenderTest.T_11_25_sendGridRequestAndAcceptedMessageId ok
+  T-11-25  SystemNotificationServiceIT.T_11_25_clubBrandingLocaleAndTenantIsolation ok
+  T-11-25  SystemNotificationServiceIT.T_11_25_emailCannotEscapeAnUncommittedIdentityTransaction ok
+  T-11-25  SystemNotificationServiceIT.T_11_25_rejectsUnsupportedCodesBadLinksAndUnknownAccounts ok
+  T-11-25  SystemNotificationServiceIT.T_11_25_suppressedAddressRecordsFailureAndLocaleFallback ok
+  T-11-25  SystemNotificationServiceIT.T_11_25_systemMessagesUseAccountLocaleAndPersistDelivery ok
+  T-11-26  E7ContractIT.T_11_26_theLogAndItsExportValidateTheUniversalListQueryBeforeTheStub ok
+  T-11-26  E7PersistenceIT.T_11_19_T_11_26_collectionsDeclareTheS11IndexesAndUniqueGuards ok
+  T-11-26  E7ResponseContractTest.T_11_16_T_11_19_T_11_26_formsKeepEveryDocumentedFieldDuringRoundTrip ok
+  T-11-27  E7ContractIT.T_11_21_T_11_27_pushOffHidesTheDevicesAndFaqOffHidesTheFaq ok
+  T-11-28  E7ContractIT.T_11_28_T_11_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501 ok
+  T-11-28  E7ContractIT.T_11_28_impersonationReadsAndMarksTheFeedAndSavesPreferencesButNeverReachesTheRest ok
+  T-11-29  E7ContractIT.T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound ok
+  T-11-29  E7ContractIT.T_11_28_T_11_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501 ok
+  T-11-29  E7PersistenceIT.T_11_08_T_11_29_documentsRoundTripInTheirTenantAndTheUniqueKeysHold ok
+  T-11-30  NotificationDispatcherIT.T_11_30_twoDispatchersOnTheSameQueuedDeliveriesSendEachOnce FAILED
+  T-11-31  NotificationEngineIT.T_11_31_aHundredSimultaneousRemindersAreAHundredNotificationsWithoutDuplicates FAILED
+  T-11-32  NotificationEngineIT.T_11_13_T_11_32_aReminderOfAnActiveBookingOnceAndOfACancelledOneNever FAILED
+  T-11-33  NoShowNoticesJobIT.T_11_33_aBatchOfThreeNoShowsIsThreeN19WithYesterdaysClassDate ok
+  T-11-40  NotificationEngineIT.T_11_01_T_11_40_theRecipientsLanguageWithFallbacksAndANewLanguageOnlyForLaterNotices FAILED

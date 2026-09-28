@@ -4,8 +4,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * One e-mail. `headers` carries the extra MIME headers of the engine's mails (R-11-08: `List-Unsubscribe` and
- * `List-Unsubscribe-Post` only on `CLUB_NEWS`); the E1 SYSTEM mails have none.
+ * One e-mail. `headers` carries the extra MIME headers of the engine's mails (R-11-08: `List-Unsubscribe` only on
+ * `CLUB_NEWS`, pointing at the club app's unsubscribe page); the E1 SYSTEM mails have none.
  */
 public record EmailMessage(String to, String subject, String html, String text, Address from,
                            String replyTo, Locale locale, Map<String, String> tags, Map<String, String> headers) {

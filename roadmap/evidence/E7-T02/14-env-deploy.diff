@@ -1,0 +1,62 @@
+diff --git a/.env.example b/.env.example
+index e35ad5e..7684d22 100644
+--- a/.env.example
++++ b/.env.example
+@@ -71,6 +71,24 @@ MAIL_LOCAL_DIRECTORY=
+ MAIL_FROM_PLATFORM=
+ # SendGrid Event Webhook ECDSA public key, base64 DER or PUBLIC KEY PEM.
+ SENDGRID_WEBHOOK_PUBLIC_KEY=
++# HMAC key of the CLUB_NEWS unsubscribe links (base64, exactly 32 bytes). Required in staging/prod; local/test use a random one.
++EMAIL_UNSUBSCRIBE_KEY=
++
++# SMS through Twilio (S11 R-11-06, E7-T02). Required in staging/prod; local without them logs each SMS (no number, no text).
++TWILIO_ACCOUNT_SID=
++TWILIO_AUTH_TOKEN=
++# Optional: send through a Twilio Messaging Service instead of the club's `messaging.sms.senderId`.
++TWILIO_MESSAGING_SERVICE_SID=
++# Outside prod only these comma-separated E.164 numbers receive a real SMS; any other is SKIPPED_NOT_ALLOWED.
++# Empty = nobody (the demo seeds use real-format mobile numbers).
++SMS_ALLOWED_NUMBERS=
++
++# Web push (S11 R-11-07, VAPID). Base64url: the uncompressed P-256 public point and the 32-byte private scalar.
++# Required in staging/prod; local/test without them use an in-memory sender. The public key is published on GET /branding.
++VAPID_PUBLIC_KEY=
++VAPID_PRIVATE_KEY=
++# mailto: or https: contact of the product, sent to the push services.
++VAPID_SUBJECT=
+ 
+ # Export storage: local/test uses a private directory; staging/prod uses a private S3 bucket.
+ EXPORT_LOCAL_DIRECTORY=./.local/exports
+diff --git a/docs/DEPLOY.md b/docs/DEPLOY.md
+index a20390b..df3a776 100644
+--- a/docs/DEPLOY.md
++++ b/docs/DEPLOY.md
+@@ -331,6 +331,28 @@ export signatures over restarts; otherwise it is ephemeral. Attachment signature
+ are always ephemeral, so obtain fresh links after a restart. Retain these volumes
+ when recreating containers; removing volumes deletes their stored files.
+ 
++## Notifications: SMS, web push and unsubscribe links (E7-T02)
++
++The S11 engine sends every notice through three providers, selected like the
++e-mail sender (decision E13): `staging`/`prod` refuse to start without their
++credentials, `test` uses in-memory doubles, `local` without credentials logs each
++SMS (never the number or the text) and keeps pushes in memory. All values come
++from the environment ([.env.example](../.env.example)); none is ever logged.
++
++| Variable | Use |
++|---|---|
++| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio Messages API (HTTP basic). Required in staging/prod. |
++| `TWILIO_MESSAGING_SERVICE_SID` | Optional: send through a Messaging Service instead of the club's `messaging.sms.senderId`. |
++| `SMS_ALLOWED_NUMBERS` | Outside `prod` only: comma-separated E.164 numbers that may receive a real SMS. Any other is recorded as `SKIPPED_NOT_ALLOWED`; empty = nobody. The demo seeds use real-format Spanish mobile numbers, so keep it to the testers' phones on staging. |
++| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | The product's P-256 key pair, base64url (uncompressed public point, 32-byte private scalar). The public key is published on `GET /branding` as `pushPublicKey`. Required in staging/prod. Generate once, e.g. `npx web-push generate-vapid-keys`; rotating it invalidates every browser subscription. |
++| `VAPID_SUBJECT` | `mailto:` or `https:` contact sent to the push services. |
++| `EMAIL_UNSUBSCRIBE_KEY` | HMAC key (base64, 32 bytes) of the signed 30-day «Deixar de rebre aquests comunicats» links of `CLUB_NEWS` mails (`List-Unsubscribe`). Required in staging/prod. |
++
++The dispatcher sends right after each notice is stored and polls every 5 s for
++retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS state
++(no Twilio delivery callback at R1). The real Twilio and VAPID sends are verified
++on staging once the accounts exist.
++
+ ## E3 signup and dashboard gate (backend)
+ 
+ Run from the API checkout with Docker, Compose, Python 3 and curl:

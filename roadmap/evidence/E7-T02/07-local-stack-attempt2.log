@@ -1,0 +1,15 @@
+heavy.sh: 01:04 waiting for the host lock, held by: 01:03 agilityhub-core-web: pnpm e2e:core E5-W04 e5-core.spec.ts -g "step 2 |T-08-40 .a..b."
+heavy.sh: 01:24 got the host lock after 20 min 56 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+FAIL docker run failed (exit 1; exception classes: none; codes: none; private output withheld)

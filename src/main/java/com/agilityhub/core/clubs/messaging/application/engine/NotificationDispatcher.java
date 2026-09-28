@@ -132,7 +132,18 @@ public class NotificationDispatcher {
         String unsubscribe = origin != null && memberId != null ? origin + "/comunicats/baixa?t=" + unsubscribes.issue(notification.clubId(), memberId) : null;
         var tags = new LinkedHashMap<String, String>(); tags.put("clubId", notification.clubId()); tags.put("notificationId", notification.id());
         var result = email.send(emails.render(notification, delivery.target(), settings, origin, unsubscribe, tags));
-        return result.sent() ? SendResult.accepted(result.providerMessageId()) : SendResult.retryable(result.error());
+        if (result.sent()) { return SendResult.accepted(result.providerMessageId()); }
+        return emailRetryable(result.error()) ? SendResult.retryable(result.error()) : SendResult.failed(result.error());
+    }
+    /**
+     * R-11-09 for the `EmailSender`'s answers, which carry no flag of their own: a provider status 4xx other than 429 (a
+     * rejected request, an invalid address) is final; 429, 5xx, a timeout or a transport failure is retried.
+     */
+    static boolean emailRetryable(String error) {
+        var status = error == null ? null : java.util.regex.Pattern.compile("HTTP (\\d{3})").matcher(error);
+        if (status == null || !status.find()) { return true; }
+        int code = Integer.parseInt(status.group(1));
+        return code == 429 || code >= 500;
     }
 
     private void sendSms(Notification notification, Notification.Delivery delivery, String token) {

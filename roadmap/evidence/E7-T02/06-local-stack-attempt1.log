@@ -1,0 +1,39 @@
+heavy.sh: 00:42 waiting for the host lock, held by: 00:27 agilityhub-core-web: pnpm e2e:core E5-W04 e5-core.spec.ts -g "step 2 |R-15-11"
+heavy.sh: 00:43 got the host lock after 1 min 0 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  376 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+Cànic modules: ACTIVITIES, BILLING, COURSES, FAMILY_GROUP, FAQ, FREE_TRAINING, INACTIVITY, LEARN_LINK, PACKS, PUSH, SMS, TASKS, WAITLIST
+Seeded class e758f5e8… on 2026-10-28 08:30 with 5 ACTIVE bookings
+curl POST /api/v1/class-sessions/<id>/cancellation -> 200
+mongosh --quiet --eval 'db.notifications.find({clubId:<canic>,code:"N-08a","subject.classSessionId":<class>})': 9 documents
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+Traceback (most recent call last):
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E7-T02/manual-run.py", line 89, in <module>
+    main()
+    ~~~~^^
+  File "/Users/jordib/dev/agilityhub/agilityhub-core-api/roadmap/evidence/E7-T02/manual-run.py", line 60, in main
+    print(f"  {n['audience']:<11} member {short(n['member'])} dog {short(n['dog'])} {n['locale']} «{n['title']}» [{deliveries}]", flush=True)
+                                                                         ~^^^^^^^
+KeyError: 'dog'

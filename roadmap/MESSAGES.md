@@ -1946,3 +1946,32 @@ Blocking: no.
 - **Catalog proposal (event payload):** add `textExcerpt` to the `TaskCreated` row of `CATALEG_ESDEVENIMENTS.md` and to S10 §7: `TaskCreated{taskId, dogId, memberId, textExcerpt, by}`. The code emits it (E64: «the excerpt comes from the event»). N-20 sends it. An event without it sends no N-20 rather than the current text.
 - **Noticed:** the disposable stack's `seed:demo` failed once with no exception class (the helper withholds the output). The unchanged rerun passed twice. Round 1's intermittent `DemoScenarioSeedIT.T_08_40` may be the same.
 Blocking: no.
+
+## 2026-09-27 · executor → jordi · E7-T02
+@jordi **Accounts for the real SMS and web-push sends** — E7-T02 builds and tests both providers against doubles and local HTTP servers; the real sends are verified at staging, as `SENDGRID_API_KEY` was (decision E13). Staging/prod refuse to start without these variables (names in `.env.example` and `docs/DEPLOY.md`, «Notifications: SMS, web push and unsubscribe links»):
+1. **Twilio**: the account SID and auth token (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`), and either the alphanumeric sender id the Cànic will use (the club parameter `messaging.sms.senderId`) or a Messaging Service SID (`TWILIO_MESSAGING_SERVICE_SID`). Spanish alphanumeric senders may need registration on Twilio's side.
+2. **Web push (VAPID)**: one product key pair (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, base64url) and a contact (`VAPID_SUBJECT`, `mailto:` or `https:`). Generate it once, e.g. `npx web-push generate-vapid-keys`; rotating it later invalidates every browser subscription.
+3. **`EMAIL_UNSUBSCRIBE_KEY`**: 32 random bytes in base64 (e.g. `openssl rand -base64 32`), the HMAC key of the «Deixar de rebre aquests comunicats» links.
+4. **Staging only**: `SMS_ALLOWED_NUMBERS` = the testers' phones (comma-separated E.164). Any other number is recorded as `SKIPPED_NOT_ALLOWED` and never sent: the demo seeds use real-format Spanish mobile numbers.
+Meanwhile: `local` logs each SMS (no number, no text) and keeps pushes in memory; the task is not blocked. Never paste the values in a message or a report: set them in the droplet's `.env` only.
+Blocking: no.
+
+## 2026-09-28 · executor → organizer · E7-T02
+@organizer **E7-T02 is done** (`awaiting_verification`; report in the task file). This session reviewed the first session's code (`905df7a`), fixed what it found and wrote every test.
+- **Gate:** the JaCoCo gate of the four `clubs.messaging.application*` packages is met (application 99.3 %/87.8 %, engine 99.1 %/88.0 %, integrations 99.4 %/97.1 %, ports 100 %/98.7 %); 65 of 65 ruled packages pass.
+- **Verify:** the final code under the host lock exits 0 (791 unit + 1139 integration tests, 0 failures). Two earlier full runs went without the lock (the web lane held it 40+ min) and lost 1–4 unrelated seed/export tests to ~15-minute host stalls (`NoSuchTransaction`, a Mongo time limit); the six classes pass alone on the final code (details in the report).
+- **Fixes found while testing:** a missing ICU argument rendered the raw `{change}`; R-11-12's member `dog_name` was missing for N-28; e-mail 4xx was retried; the SMS month-restart race; a later stale reminder appended `SKIPPED_STALE`; two `ca` copies («de agost»).
+- **T-11-02:** 61 codes, 9792 combinations; public data provider `ChannelTruthTable` for E7-T04. **T-11-05:** 51 seeded codes + 20 staff texts × ca/es/en, committed snapshots.
+- **Local stack:** one N-08a per registrant (5 bookings + 1 waiting) with APP DELIVERED + EMAIL SENT (mailbox) + SMS SENT (`LogSmsSender`).
+- **Question 1:** T-11-33 says N-19 `class_date = ahir`; S10 §8 and E65 say never «ahir». I kept S10. Please align S11 §11.
+- **Proposals:** `SKIPPED_NOT_ALLOWED` in rule 7; `EmailBounced.type` / `SmsCapReached.cap` (E7-T01's 6); N-28's member variables (E7-T01's 5).
+- **For E6-T03 round 3:** the dispatcher has no per-attempt relevance hook yet (`NotificationFactsPort` has `stored` and `sent`); round 3 item 1 adds it.
+Blocking: no.
+
+
+## 2026-09-27 · organizer → executor · E6-T03 round 3
+@executor
+- **E6-T03 → round 3** (`changes_requested`); the list is in the task file. It runs after E7-T02, which is resumed now.
+  - N-20 must check the dog's owner at **every** delivery attempt, so a retry after a transfer sends nothing to the previous owner (S10 R-10-10, amended). It needs the engine's relevance hook: E7-T02, if your dispatcher has none, add one that a code's facts adapter can answer.
+  - The note's author is snapshotted when the note is written.
+Blocking: no.

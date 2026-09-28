@@ -1,0 +1,42 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  15 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  376 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+Cànic modules: ACTIVITIES, BILLING, COURSES, FAMILY_GROUP, FAQ, FREE_TRAINING, INACTIVITY, LEARN_LINK, PACKS, PUSH, SMS, TASKS, WAITLIST
+Seeded class d901c397… on 2026-10-28 08:30 with 5 ACTIVE bookings
+curl POST /api/v1/class-sessions/<id>/cancellation -> 200
+mongosh --quiet --eval 'db.notifications.find({clubId:<canic>,code:"N-08a","subject.classSessionId":<class>})': 9 documents
+  ADMINS      member d26fa719… dog … ca «Classe anul·lada pel club» [APP DELIVERED]
+  ADMINS      member a2920f58… dog … ca «Classe anul·lada pel club» [APP DELIVERED]
+  INSTRUCTORS member 4c1a0171… dog … ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-ba…]
+  MEMBER      member 70ce553c… dog 00701d36… ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-71…, SMS SENT ref log-9979…]
+  MEMBER      member ce212bff… dog 6d730d25… ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-cc…, SMS SENT ref log-ffca…]
+  MEMBER      member 4bee423e… dog f0432ab1… ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-a2…, SMS SENT ref log-fbb1…]
+  MEMBER      member 60211b09… dog aebc3213… ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-e8…, SMS SENT ref log-7350…]
+  MEMBER      member 8278b045… dog 4dd6e0bf… ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-a6…, SMS SENT ref log-c137…]
+  MEMBER      member e25e1a39… dog a0ed01e1… ca «Classe anul·lada pel club» [APP DELIVERED, EMAIL SENT ref local-66…, SMS SENT ref log-65d2…]
+PASS N-08a per registrant: 6 MEMBER documents · 6 with APP DELIVERED + EMAIL SENT + SMS SENT; 6 e-mails, 6 SMS (LogSmsSender)
+PASS local mailbox: 6 files carry the N-08a notification ids · 6 EMAIL deliveries SENT
+PASS outbox: NotificationQueued 22, NotificationSent 13
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved
+E7-T02 local stack: OK

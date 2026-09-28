@@ -2,6 +2,19 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-27 · E7-T02 · S11 notification engine: VAPID key, the SMS guard status, bounce kinds, the unsubscribe served
+
+**0 operations added or removed, 1 changed; 0 schemas added or removed, 3 changed.** The web must regenerate its client.
+- **`GET /branding` → `BrandingResponse.pushPublicKey`** (new, required, nullable string): the product's VAPID public key
+  (base64url) the browser passes to `PushManager.subscribe` (S11 R-11-07, S02); `null` when the club has no `PUSH`
+  module or the product has no key (local/test without `VAPID_PUBLIC_KEY`).
+- **`DeliveryStatus`** gains `SKIPPED_NOT_ALLOWED`: outside `prod`, an SMS to a number missing from `SMS_ALLOWED_NUMBERS`
+  (organizer 24-09, E4-T05 review #1). Catalog proposal in the E7-T02 report, like the three `SKIPPED_*` of E7-T01.
+- **`SendGridEvent.type`** (optional string): SendGrid's bounce kind — `bounce` (hard: the contact address is marked
+  `bounced`, `EmailBounced`, N-51) or `blocked` (soft: the delivery fails, nothing is marked). R-11-08.
+- **`POST /email-unsubscribes`** is served (no longer 501): the description loses «Contract only» and says that a second use
+  of the link changes nothing. Its answers are unchanged (200 `EmailUnsubscribeResult`, 422 `UNSUBSCRIBE_TOKEN_INVALID`).
+
 ## 2026-09-27 · E6-T03 round 2 · D14 pages and authors (ruling E64)
 
 **0 operations added or removed, 1 changed; 0 schemas added or removed, 1 description changed.**

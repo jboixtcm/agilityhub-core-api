@@ -164,6 +164,36 @@ class NoShowNoticesJobIT extends BookingFixtures {
         assertThat(NotificationRows.rows(mongo, CLUB, "N-19")).hasSize(10);
     }
 
+    /**
+     * T-11-33 (S11 contract with S15): `NoShowNoticeDue` with 3 bookings → 3 N-19, one per booking, through the engine. S11's
+     * «`class_date = ahir`» is superseded by the owner of N-19's variables (S10 §8: «la classe de {class_date}», not «ahir»;
+     * decision E65): the class was yesterday, and the notice names that day in full.
+     */
+    @Test void T_11_33_aBatchOfThreeNoShowsIsThreeN19WithYesterdaysClassDate() throws Exception {
+        String duna = id(book(as("laura"), "thu", "s08-d-duna")), toby = id(book(as("joan"), "thu", "s08-d-toby")), nit = id(book(as("pere"), "thu", "s08-d-nit"));
+        clock.setInstant(local("2026-10-08T20:00"));
+        save("thu", as("inst"), 0, duna, "NO_SHOW", toby, "NO_SHOW", nit, "NO_SHOW");
+        clock.setInstant(local("2026-10-09T08:00"));
+        var run = runner.scheduled(CLUB, true, job, clock.instant()).orElseThrow();
+        assertThat(counters(run)).isEqualTo(Map.of("notices", 3L, "late", 0L));
+        var batch = eventsOf("NoShowNoticeDue").stream().filter(e -> e.get("payload", Document.class).getList("bookingIds", String.class).size() == 3).findFirst().orElseThrow();
+        dispatch();
+        var notices = NotificationRows.notifications(mongo, CLUB, "N-19").stream().filter(n -> batch.getString("_id").equals(n.getString("eventId"))).toList();
+        assertThat(notices).hasSize(3);
+        assertThat(notices).extracting(n -> n.get("subject", Document.class).getString("bookingId")).containsExactlyInAnyOrder(duna, toby, nit);
+        assertThat(notices).extracting(n -> n.get("recipient", Document.class).getString("accountId")).containsExactlyInAnyOrder("s08-laura", "s08-joan", "s08-pere");
+        String yesterday = fullDate(LocalDate.of(2026, 10, 8), "ca");
+        assertThat(notices).allSatisfy(n -> {
+            assertThat(n.getString("title")).isEqualTo("T'hem trobat a faltar");
+            assertThat(n.get("variables", Document.class).getString("class_date")).isEqualTo(yesterday);
+            assertThat(n.getString("body")).contains("a la classe de " + yesterday).doesNotContain("ahir");
+        });
+        // A second delivery of the batch (the outbox's retry) adds nothing.
+        NotificationRows.deliver(engine, notificationTransactions, batch.getString("_id"), new AttendanceEvent(AttendanceEvent.Kind.NoShowNoticeDue, CLUB, CLUB, clock.instant(),
+                batch.get("payload", Document.class), null, null, DomainEvent.Origin.SYSTEM));
+        assertThat(NotificationRows.notifications(mongo, CLUB, "N-19").stream().filter(n -> batch.getString("_id").equals(n.getString("eventId")))).hasSize(3);
+    }
+
     /** A class on the club's own calendar (not the fixture's Madrid one). */
     void sessionIn(ZoneId zone, String id, String start) {
         var begins = LocalDateTime.parse(start); var starts = begins.atZone(zone).toInstant(); var s = new LinkedHashMap<String, Object>();

@@ -159,6 +159,91 @@ class SendGridWebhookIT extends AbstractIntegrationTest {
         assertThat(mongo.findAll(AuditEntry.class)).singleElement().satisfies(audit -> assertThat(audit.clubId()).isEqualTo("club-a"));
         assertThat(TenantContext.current()).isNull();
     }
+    /** An engine notification of club-a (E7-T02) to the member's two contact addresses; the second is also the account's login address. */
+    private void engineNotification() {
+        mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is("club-a")), "members");
+        mongo.remove(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is("club-a")), "domain_events");
+        mongo.save(new org.bson.Document("_id", "webhook-member").append("clubId", "club-a").append("accountId", "webhook-account").append("status", "ACTIVE")
+                .append("firstName", "Laura").append("lastName1", "Serra").append("contactEmails", List.of(new org.bson.Document("email", "laura.work@example.test"),
+                        new org.bson.Document("email", "Webhook@example.test"))).append("version", 0), "members");
+        var now = clock.instant();
+        var deliveries = List.of(
+                new Notification.Delivery(com.agilityhub.core.clubs.messaging.domain.NotificationChannel.APP, "webhook-account",
+                        com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.DELIVERED, 0, null, null, null, null, now, null),
+                new Notification.Delivery(com.agilityhub.core.clubs.messaging.domain.NotificationChannel.EMAIL, "laura.work@example.test",
+                        com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.SENT, 1, null, "provider-a", null, now, null, null),
+                new Notification.Delivery(com.agilityhub.core.clubs.messaging.domain.NotificationChannel.EMAIL, "Webhook@example.test",
+                        com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.SENT, 1, null, "provider-b", null, now, null, null));
+        mongo.insert(new Notification("engine-notification", "club-a", "N-09", com.agilityhub.core.clubs.messaging.domain.NotificationCategory.PERSONAL, "template-a", 0L,
+                "event-a", "DogLevelChanged", "event-a:N-09:MEMBER:webhook-account", com.agilityhub.core.clubs.messaging.domain.NotificationAudience.MEMBER,
+                new Notification.Recipient("webhook-account", "webhook-member", null, null, "Laura Serra"), "ca", null,
+                com.agilityhub.core.clubs.messaging.domain.TemplateIcon.up, com.agilityhub.core.clubs.messaging.domain.TemplateColor.OK, "La Duna puja de nivell!", "Body", null,
+                null, deliveries, null, now, null, null, null, null, null, null, null, null, java.util.Map.of()));
+    }
+    private Notification.Delivery engineDelivery(String target) {
+        try (var tenant = TenantContext.open("club-a")) {
+            return notifications.findById("engine-notification").orElseThrow().deliveries().stream().filter(d -> target.equals(d.target())).findFirst().orElseThrow();
+        }
+    }
+    private List<org.bson.Document> contactEmails() { return mongo.findById("webhook-member", org.bson.Document.class, "members").getList("contactEmails", org.bson.Document.class); }
+    private List<org.bson.Document> clubEvents(String type) {
+        return mongo.find(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("clubId").is("club-a").and("type").is(type)),
+                org.bson.Document.class, "domain_events");
+    }
+    private byte[] bounce(String id, String event, String email, String type) throws Exception {
+        var values = new java.util.HashMap<String, String>(Map.of("sg_event_id", id, "event", event, "notificationId", "engine-notification", "clubId", "club-a", "email", email));
+        if (type != null) { values.put("type", type); }
+        return mapper.writeValueAsBytes(List.of(values));
+    }
+
+    @Test @AuditCovers(AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED)
+    void T_11_11_T_11_22_engineMailDeliveredSoftAndHardBouncesPerContactAddressAndTheAccountMarkCoexists() throws Exception {
+        engineNotification();
+        // delivered → DELIVERED (that address only); deferred → nothing.
+        send(bounce("e-delivered", "delivered", "laura.work@example.test", null));
+        assertThat(engineDelivery("laura.work@example.test").status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.DELIVERED);
+        assertThat(engineDelivery("laura.work@example.test").deliveredAt()).isEqualTo(clock.instant());
+        send(bounce("e-deferred", "deferred", "laura.work@example.test", null));
+        assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isEqualTo(1);
+        // A soft bounce (`blocked`) fails the delivery but marks nothing.
+        send(bounce("e-soft", "bounce", "webhook@example.test", "blocked"));
+        assertThat(engineDelivery("Webhook@example.test").status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.FAILED);
+        assertThat(contactEmails()).allSatisfy(e -> assertThat(e.get("bounced")).isNull());
+        assertThat(clubEvents("EmailBounced")).isEmpty(); assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isNull();
+        // A hard bounce → FAILED + `contactEmails[address].bounced` + EmailBounced{memberId, email, type} (→ N-51), exactly once per event id.
+        byte[] hard = bounce("e-hard", "bounce", "LAURA.WORK@example.test", "bounce");
+        send(hard); send(hard);
+        assertThat(engineDelivery("laura.work@example.test").status()).isEqualTo(com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.FAILED);
+        assertThat(engineDelivery("laura.work@example.test").lastError()).isEqualTo("SendGrid bounce");
+        assertThat(contactEmails()).extracting(e -> e.getString("email") + ":" + e.get("bounced")).containsExactly("laura.work@example.test:true", "Webhook@example.test:null");
+        assertThat(clubEvents("EmailBounced")).singleElement().satisfies(e -> assertThat(e.get("payload", org.bson.Document.class))
+                .containsEntry("memberId", "webhook-member").containsEntry("email", "laura.work@example.test").containsEntry("type", "BOUNCE"));
+        assertThat(clubEvents("NotificationFailed")).hasSize(2);
+        // Not the login address: the account keeps its status (decision E12 works per account, R-11-08 per contact address).
+        assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isNull(); assertThat(mongo.count(new Query(), AuditEntry.class)).isZero();
+        // A drop of the login address marks both: the contact address and the account (with its E1-T03 audit).
+        send(bounce("e-dropped", "dropped", "webhook@example.test", null));
+        assertThat(contactEmails()).extracting(e -> e.get("bounced")).containsExactly(true, true);
+        assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isEqualTo(NotificationAccounts.EmailStatus.BOUNCED);
+        assertThat(mongo.findAll(AuditEntry.class)).singleElement().satisfies(a -> assertThat(a.action()).isEqualTo(AuditAction.ACCOUNT_EMAIL_STATUS_CHANGED));
+        assertThat(clubEvents("EmailBounced")).hasSize(2);
+        // An address the notification never went to, another club, an unknown notification: 200 without effect.
+        send(bounce("e-stranger", "bounce", "stranger@example.test", "bounce"));
+        send(event("e-other-club", "bounce", "engine-notification", "club-b", "laura.work@example.test"));
+        send(event("e-unknown", "bounce", "unknown-notification", "club-a", "laura.work@example.test"));
+        assertThat(clubEvents("EmailBounced")).hasSize(2); assertThat(mongo.count(new Query(), SendGridWebhookReceipt.class)).isEqualTo(4);
+    }
+
+    @Test void T_11_22_spamReportOfAnEngineMailWithoutAMemberMarksTheMembersWithThatAddress() throws Exception {
+        engineNotification();
+        mongo.updateFirst(org.springframework.data.mongodb.core.query.Query.query(org.springframework.data.mongodb.core.query.Criteria.where("_id").is("engine-notification")),
+                new org.springframework.data.mongodb.core.query.Update().set("recipient.memberId", null).set("recipient.accountId", null), Notification.class);
+        send(bounce("e-spam", "spamreport", "laura.work@example.test", null));
+        assertThat(contactEmails()).extracting(e -> e.get("bounced")).containsExactly(true, null);
+        assertThat(clubEvents("EmailBounced")).singleElement().satisfies(e -> assertThat(e.get("payload", org.bson.Document.class)).containsEntry("type", "SPAMREPORT"));
+        assertThat(accounts.findById("webhook-account").orElseThrow().emailStatus()).isNull();
+    }
+
     @Test void T_11_22_failedTransactionRollsBackReceiptAccountAuditAndDelivery() throws Exception {
         org.mockito.Mockito.doThrow(new IllegalStateException("Simulated outbox failure")).when(publisher).publish(org.mockito.ArgumentMatchers.any());
         byte[] body = event("retry-after-failure", "bounce");

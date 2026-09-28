@@ -281,9 +281,11 @@ public class NotificationEngine {
             if (dog.isPresent()) {
                 raw.putIfAbsent("dog_name", dog.get().name());
                 raw.putIfAbsent("dog_name_article", DogNameArticle.of(dog.get().name(), dog.get().sex(), locale));
-            } else if (recipient.dogId() == null && !contact.dogs().isEmpty() && spec.variables().contains("dog_name") && raw.get("dog_name") == null) {
-                // R-11-12 member variables: `dog_name` = the member's active dogs joined with «i».
-                raw.put("dog_name", String.join(" i ", contact.dogs().stream().filter(d -> !"INACTIVE".equals(d.status())).map(MemberContact.DogContact::name).toList()));
+            } else if (recipient.dogId() == null && raw.get("dog_name") == null) {
+                // R-11-12 member variables (every MEMBER notice, N-28's copy among them): `dog_name` = the member's active dogs,
+                // joined in the recipient's language («Duna i Rock», «Duna y Rock», «Duna and Rock»).
+                var names = contact.dogs().stream().filter(d -> !"INACTIVE".equals(d.status())).map(MemberContact.DogContact::name).filter(Objects::nonNull).toList();
+                if (!names.isEmpty()) { raw.put("dog_name", com.ibm.icu.text.ListFormatter.getInstance(locale).format(names)); }
             }
         }
         if (raw.get("dog_name") instanceof String name && !raw.containsKey("dog_name_article")) { raw.put("dog_name_article", name); }
@@ -360,6 +362,8 @@ public class NotificationEngine {
             }
             var missing = new ArrayList<Notification.Delivery>();
             for (var delivery : notification.deliveries()) {
+                // R-11-16: a later reminder of a booking that is no longer active leaves the stored reminder as it is.
+                if (delivery.status() == DeliveryStatus.SKIPPED_STALE) { continue; }
                 boolean present = current.deliveries() != null && current.deliveries().stream().anyMatch(d -> d.channel() == delivery.channel()
                         && Objects.equals(d.target(), delivery.target()) && (delivery.target() != null || d.status() == delivery.status()));
                 if (!present) { missing.add(delivery); }
