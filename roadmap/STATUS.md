@@ -2,7 +2,7 @@
 
 Rendered: 2026-09-30 · Tasks: 113 · — 1 not_open · ☐ 10 ready · ▶ 1 in_progress · 🔎 2 awaiting_verification · 🔁 0 changes_requested · ⛔ 1 blocked · ✅ 98 verified
 
-**Next task for the executor**: `E7-T05` — Notification engine hardening (E7-T02's round-2 review) — an accepted send survives a failed settlement and a restart, bounce suppression at every e-mail attempt, a push expiry that is never lost, a monthly SMS counter that never goes back, the e-mail routes of the web, and the dispatcher's failure-path table
+**Next task for the executor**: `E11-T04` — Deploy assets provable locally (E0-T13, part 1) — the production compose (an authenticated one-node Mongo replica set, Caddy with the same-site proxy of A1, the three static SPAs and on-demand TLS with its `ask`), encrypted daily backups to S3 and a verified restore, and DEPLOY.md as the release runbook
 
 ## E0
 
