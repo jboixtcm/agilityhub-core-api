@@ -43,7 +43,7 @@
   "AttendanceBookingNotActiveDetails": {"bookingId": "b5"},
   "AttendanceWindowClosedDetails": {"editableUntil": "2026-08-04T21:59:59Z"},
   "AttendanceListItem": {"id": "att-1", "bookingId": "b4", "classSessionId": "c1", "classDate": "2026-08-03", "classStartsAt": "2026-08-03T06:30:00Z", "dogId": "d4", "dogName": "Fish", "memberId": "m4", "memberName": "Eva Example", "state": "NO_SHOW", "markedAt": "2026-08-03T06:41:10Z", "markedByName": "Estel"},
-  "InstructorWeek": {"week": {"startDate": "2026-08-10", "endDate": "2026-08-15", "relative": "CURRENT"},
+  "InstructorWeek": {"week": {"startDate": "2026-08-10", "endDate": "2026-08-15", "relative": "CURRENT"}, "trainingSlotMinutes": 30,
     "filters": {"instructors": [{"id": "i1", "shortName": "Estel"}], "rings": [{"id": "r1", "name": "Muntanya", "color": "#F2B58C"}]},
     "rows": ["08:00", "08:30", "16:00", "18:50"],
     "cells": [

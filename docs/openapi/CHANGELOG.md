@@ -2,6 +2,28 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E6-T06 · D14's filter values and search, D12's training slot length, 25's activity links (web E6-W04 steps 0b and 0c adopt)
+
+**1 operation added; 2 operations changed (descriptions); 2 schemas changed (1 property added, 1 description).** Ruling E75.
+- **`GET /followup/filter-values`** (new, INSTRUCTOR and ADMIN; MEMBER → 403; impersonation → `IMPERSONATION_DENIED`;
+  `TASKS` off → `404 MODULE_DISABLED`): D14's universal filter values (CONVENCIONS_API §4), with `field` (one of
+  `kind`, `memberId`, `dogId`, `authorAccountId`, `unread`; any other → `400 INVALID_FILTER`), `q` and `filter`, no
+  `fields`; answers `FilterValues`. Each value's count is over the whole set the filters and `q` select, never one page; the
+  filters on `field` itself are left out. `unread` is the caller's own: two instructors get different counts. Labels: the
+  member's full name, the dog's name, the author's name (as their newest row stores it); `kind` and `unread` their values.
+  The «Creador» filter reads `authorAccountId` here.
+- **`GET /followup` searches** (description): `q` matches the member's full name, the dog's name, the author's name and the
+  text (the task's or the note's whole text, not only `textExcerpt`), in any case and literally. It was declared already, but
+  a non-blank one answered `400 INVALID_FILTER`.
+- **`InstructorWeek.trainingSlotMinutes`** (`integer | null`, not required, always sent): the club's `training.slotMinutes`
+  (S09), how long a half-height TRAINING cell is, for D12's legend; `null` with `FREE_TRAINING` off. `GET /instructor/week`'s
+  description says so.
+- **`HistoryItem.activityId`** (description; no shape change): only on the ACTIVITY rows whose activity is `PUBLISHED` or
+  `FINISHED`, the states whose `GET /me/activities/{activityId}` answers (S07 §6); `null` on the others (a cancelled,
+  unpublished or draft activity, also for a row the member had cancelled in time before) and on CLASS and TRAINING rows. Link
+  the row when it is not `null`. **Behaviour change:** since E6-T05, a CANCELLED or CANCELLED_BY_CLUB row of a cancelled
+  activity carried the id and linked to a 404.
+
 ## 2026-09-30 · E7-T03 round 2 · D10 reads the preferences, the messaging error details, push ownership (web E7-W01 adopts)
 
 **1 operation added; 4 operations changed (descriptions); 3 schemas added, 1 schema changed (description).** Ruling E76.

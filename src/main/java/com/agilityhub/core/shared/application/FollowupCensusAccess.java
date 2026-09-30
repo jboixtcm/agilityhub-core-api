@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * What S10 follow-up (tasks, observations, D14, N-20/21/22; E6-T03) reads from and writes to the census, which implements
@@ -27,7 +28,16 @@ public interface FollowupCensusAccess {
      */
     record Remarks(String text, Instant updatedAt, String updatedByAccountId, String updatedByName, long version) { }
 
+    /**
+     * D14's search (S10 §6, CONVENCIONS_API §4, E6-T06): the dogs whose name contains the text, the members whose full name
+     * («first last1 last2», as {@link Member#fullName}) does, and the dogs whose member note does; any case, taken literally.
+     * Erased members are absent, as in {@link #members}.
+     */
+    record Matches(Set<String> dogIds, Set<String> memberIds, Set<String> noteDogIds) { }
+
     Map<String, Dog> dogs(Collection<String> dogIds);
+    /** {@link Matches} of a non-blank {@code text}. */
+    Matches search(String text);
     default Optional<Dog> dog(String dogId) { return Optional.ofNullable(dogs(List.of(dogId)).get(dogId)); }
     /** The dogs a member owns, any status (the E6-T04 demo seed finds the holder's dog by its name). */
     Map<String, Dog> dogsOf(String memberId);

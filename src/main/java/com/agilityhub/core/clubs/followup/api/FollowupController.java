@@ -9,6 +9,7 @@ import com.agilityhub.core.clubs.followup.domain.FollowupKind;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.platform.application.RequiresModule;
 import com.agilityhub.core.shared.application.CurrentUser;
+import com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues;
 import com.agilityhub.core.shared.application.contract.ContractErrors;
 import com.agilityhub.core.shared.application.contract.ListContract;
 import com.agilityhub.core.shared.application.lists.SparseItems;
@@ -71,7 +72,7 @@ public class FollowupController {
             fields = {"id", "kind", "taskId", "dogId", "dogName", "levelCode", "memberId", "memberName", "authorName", "authorRole", "authorGender", "textExcerpt", "createdAt",
                     "completedAt", "activityAt", "unread"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
-    @Operation(summary = "followup", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER." + GUARDS,
+    @Operation(summary = "followup", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER. q searches the member's full name, the dog's name, the author's name and the text (the task's or the note's whole text, not only textExcerpt), any case, taken literally (CONVENCIONS_API §4, E75); GET /followup/filter-values gives the filter's values." + GUARDS,
             responses = @ApiResponse(responseCode = "200", description = "FollowupPage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = FollowupPage.class))))
     public Object followup(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
@@ -85,6 +86,21 @@ public class FollowupController {
         // With `fields`, the items are cut to the row id and the requested keys (CONVENCIONS_API §4), so the page is no longer typed.
         return params.containsKey("fields") ? SparseItems.apply(mapper, new com.agilityhub.core.shared.application.contract.ApiContracts.ListPage<>(items, page.page(),
                 page.size(), page.totalItems(), page.totalPages(), page.appliedFilters()), params, "id") : whole;
+    }
+
+    @GetMapping("/api/v1/followup/filter-values")
+    // CONVENCIONS_API §4 (E5-T24): filter-values takes no `fields`.
+    @ListContract(filterable = {"kind", "memberId", "dogId", "authorAccountId", "unread"}, sortable = {}, columns = {}, paged = false, exportable = false,
+            acceptsFields = false)
+    @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
+    @Operation(summary = "followupFilterValues", description = "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for D14's universal filter (S10 §6, E75): the top 50 values of field (one of GET /followup's x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter and q select, never one page; the filters on field itself are left out. unread is the caller's own (R-10-13: read marks are per account), so two instructors get different counts. Labels: the member's full name, the dog's name and the author's name (as their newest row stores it); kind and unread their values, as is an id whose record is gone. q narrows the set as the list's search does." + GUARDS,
+            responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
+    public FilterValues followupFilterValues(@RequestParam String field,
+            @Parameter(description = "The list's q: the member's full name, the dog's name, the author's name or the text") @RequestParam(required = false) String q,
+            @Parameter(description = "The list's filters (field:op:value, repeated); only x-filterable fields") @RequestParam(required = false) java.util.List<String> filter,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
+        access.tenant();
+        return followup.filterValues(field, params, me());
     }
 
     @GetMapping("/api/v1/followup/unread-count")

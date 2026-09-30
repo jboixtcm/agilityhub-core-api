@@ -75,6 +75,20 @@ public class FollowupItemRepository extends TenantRepository<FollowupItem> {
                 new Update().set("memberId", memberId), FollowupItem.class).getModifiedCount();
     }
     public List<FollowupItem> byIds(Collection<String> ids) { return mongo.find(tenantQuery().addCriteria(Criteria.where("_id").in(ids)), FollowupItem.class); }
+    /**
+     * The label of D14's «Creador» filter (E6-T06): each author's name as their newest visible row stores it (a row keeps its
+     * author as they were then, E64), one aggregation for the listed accounts.
+     */
+    public Map<String, String> authorNames(Collection<String> accountIds) {
+        var result = new HashMap<String, String>(); if (accountIds.isEmpty()) { return result; }
+        var match = tenantQuery().addCriteria(Criteria.where("authorAccountId").in(accountIds).and("hidden").is(false)).getQueryObject();
+        var pipeline = List.of(new org.bson.Document("$match", match), new org.bson.Document("$sort", new org.bson.Document("activityAt", -1).append("_id", 1)),
+                new org.bson.Document("$group", new org.bson.Document("_id", "$authorAccountId").append("name", new org.bson.Document("$first", "$authorName"))));
+        mongo.getCollection("followup_items").aggregate(pipeline).forEach(row -> {
+            if (row.getString("name") != null) { result.put(row.getString("_id"), row.getString("name")); }
+        });
+        return result;
+    }
     /** `activityAt` of the given rows: what a read mark prunes against (R-10-13). */
     public Map<String, Instant> activity(Collection<String> ids) {
         var result = new HashMap<String, Instant>(); if (ids.isEmpty()) { return result; }

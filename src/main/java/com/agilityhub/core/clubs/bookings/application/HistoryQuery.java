@@ -107,7 +107,10 @@ public class HistoryQuery {
             return item("CLASS", b.id(), null, b.classStartsAt(), zone, title, b.dogId(), names.get(b.dogId()), entry.state().name(), entry.counts(), detail);
         }).toList();
     }
-    /** `id` is the booking's or the registration's; `activityId` only on ACTIVITY rows (S10 §6, ruling E74), null otherwise. */
+    /**
+     * `id` is the booking's or the registration's; `activityId` only on ACTIVITY rows whose activity has a page (S10 §6, rulings
+     * E74, E75), null otherwise.
+     */
     private static Map<String, Object> item(String type, String id, String activityId, Instant startsAt, ZoneId zone, String title, String dogId, String dogName,
             String state, Boolean counts, Map<String, Object> detail) {
         var local = startsAt.atZone(zone).toLocalDateTime().withSecond(0).withNano(0);

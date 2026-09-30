@@ -369,7 +369,7 @@ class InstructorAggregatesIT extends BookingFixtures {
         var registered = call(HttpMethod.POST, "/activity-registrations", Map.of("activityId", "s08-act-open"), as("laura"), 201, UUID.randomUUID().toString());
         String inTime = registered.path("id").asText();
         assertThat(call(HttpMethod.POST, "/activity-registrations/" + inTime + "/cancellation", Map.of(), as("laura"), 200).path("state").asText()).isEqualTo("CANCELLED");
-        // An activity the club cancelled: the row keeps its activity's id, but the activity has no page (S07 §6: 404).
+        // An activity the club cancelled has no page (S07 §6: 404), so its row carries no id (E6-T06 step 4).
         activity("s08-act-cancelled", "Sortida a la platja", "2026-09-30", "CANCELLED");
         mongo.save(registration("s08-reg-club", "s08-act-cancelled", "2026-09-30T10:00", "2026-09-03T10:00").append("state", "CANCELLED")
                 .append("cancelledAt", local("2026-09-29T08:00")).append("cancelledBy", new Document("accountId", "s08-admin").append("role", "SYSTEM"))
@@ -390,17 +390,87 @@ class InstructorAggregatesIT extends BookingFixtures {
             assertThat(page.path("id").asText()).isEqualTo(row.getValue());
             assertThat(page.path("myRegistration").isNull()).as("a cancelled registration is not hers any more").isEqualTo(row.getKey().equals(inTime));
         }
-        assertThat(items.get("s08-reg-club").path("activityId").asText()).isEqualTo("s08-act-cancelled");
         assertThat(code(fetch("/me/activities/s08-act-cancelled", as("laura"), 404))).isEqualTo("NOT_FOUND");
-        // CLASS and TRAINING rows send the key with null.
-        for (String id : List.of(done, "s08-th1")) {
+        // CLASS and TRAINING rows, and the row of the cancelled activity, send the key with null.
+        for (String id : List.of(done, "s08-th1", "s08-reg-club")) {
             assertThat(items.get(id).has("activityId")).as(id).isTrue(); assertThat(items.get(id).path("activityId").isNull()).as(id).isTrue();
         }
         // The impersonated admin reads the same ids; ACTIVITIES off → no ACTIVITY row at all.
-        assertThat(texts(fetch("/me/history", impersonating("admin", "s08-m-laura"), 200, "type", "ACTIVITY").path("items"), "activityId"))
-                .containsExactly("s08-act-open", "s08-act-cancelled", "s08-act-done");
+        assertThat(activityIds(fetch("/me/history", impersonating("admin", "s08-m-laura"), 200, "type", "ACTIVITY").path("items")))
+                .containsExactly("s08-act-open", null, "s08-act-done");
         modules(Arrays.stream(Module.values()).filter(m -> m != Module.ACTIVITIES).toArray(Module[]::new));
         assertThat(texts(fetch("/me/history", as("laura"), 200).path("items"), "type")).containsOnly("CLASS", "TRAINING");
+    }
+    /** The `activityId` of each row, `null` where the api sends null. */
+    static List<String> activityIds(JsonNode items) {
+        var out = new ArrayList<String>(); items.forEach(i -> out.add(i.path("activityId").isNull() ? null : i.path("activityId").asText())); return out;
+    }
+
+    /**
+     * E6-T06 step 4 (E6-T05's question; S10 §6 amended 30-09, ruling E75; S07 §6): a row carries its activity's id only while
+     * the member's page of the activity answers, i.e. the activity is PUBLISHED or FINISHED; otherwise `null`, so 25 never
+     * links a row to a 404. Laura cancels three registrations in time; later the club cancels one of those activities and
+     * unpublishes another: those two rows stay CANCELLED and lose the id, as does a CANCELLED_BY_CLUB row. The done row and the
+     * row of the activity that is still published keep it.
+     */
+    @Test void T_10_19_aRowCarriesItsActivityIdOnlyWhileTheActivitysPageAnswers() throws Exception {
+        activity("s08-act-done", "Seminari d'obstacles", "2026-09-27", "FINISHED");
+        mongo.save(registration("s08-reg-done", "s08-act-done", "2026-09-27T10:00", "2026-09-02T10:00"), "activity_registrations");
+        var inTime = new LinkedHashMap<String, String>();
+        for (var activity : List.of(List.of("s08-act-open", "Taller de salts", "2026-10-17"), List.of("s08-act-later", "Sortida a la platja", "2026-10-24"),
+                List.of("s08-act-draft", "Trobada de tardor", "2026-10-31"))) {
+            activity(activity.get(0), activity.get(1), activity.get(2), "PUBLISHED");
+            String id = call(HttpMethod.POST, "/activity-registrations", Map.of("activityId", activity.get(0)), as("laura"), 201, UUID.randomUUID().toString()).path("id").asText();
+            assertThat(call(HttpMethod.POST, "/activity-registrations/" + id + "/cancellation", Map.of(), as("laura"), 200).path("state").asText()).isEqualTo("CANCELLED");
+            inTime.put(activity.get(0), id);
+        }
+        // Later the club cancels one activity and unpublishes another (S07): Laura's registrations were no longer live, so both rows stay CANCELLED.
+        call(HttpMethod.POST, "/activities/s08-act-later/cancellation", Map.of("reason", "CLUB_MANUAL", "adminText", "Previsió de pluja forta"), as("admin"), 200,
+                UUID.randomUUID().toString());
+        call(HttpMethod.DELETE, "/activities/s08-act-draft/publication", null, as("admin"), 200);
+        // A registration the club's cancellation reached: CANCELLED_BY_CLUB.
+        activity("s08-act-cancelled", "Jornada de portes obertes", "2026-09-30", "CANCELLED");
+        mongo.save(registration("s08-reg-club", "s08-act-cancelled", "2026-09-30T10:00", "2026-09-03T10:00").append("state", "CANCELLED")
+                .append("cancelledAt", local("2026-09-29T08:00")).append("cancelledBy", new Document("accountId", "s08-admin").append("role", "SYSTEM"))
+                .append("cancelReason", "ACTIVITY_CANCELLED").append("version", 1), "activity_registrations");
+
+        var items = new HashMap<String, JsonNode>();
+        fetch("/me/history", as("laura"), 200, "type", "ACTIVITY").path("items").forEach(i -> items.put(i.path("id").asText(), i));
+        assertThat(items).containsOnlyKeys("s08-reg-done", "s08-reg-club", inTime.get("s08-act-open"), inTime.get("s08-act-later"), inTime.get("s08-act-draft"));
+        assertThat(items.get("s08-reg-done").path("state").asText()).isEqualTo("DONE");
+        assertThat(items.get("s08-reg-club").path("state").asText()).isEqualTo("CANCELLED_BY_CLUB");
+        for (String activityId : inTime.keySet()) { assertThat(items.get(inTime.get(activityId)).path("state").asText()).as(activityId).isEqualTo("CANCELLED"); }
+        // No page (404), no id: the key is sent with null.
+        for (var row : Map.of(inTime.get("s08-act-later"), "s08-act-later", inTime.get("s08-act-draft"), "s08-act-draft", "s08-reg-club", "s08-act-cancelled").entrySet()) {
+            var item = items.get(row.getKey());
+            assertThat(item.has("activityId")).as(row.getValue()).isTrue(); assertThat(item.path("activityId").isNull()).as(row.getValue()).isTrue();
+            assertThat(code(fetch("/me/activities/" + row.getValue(), as("laura"), 404))).as(row.getValue()).isEqualTo("NOT_FOUND");
+        }
+        // A page (200), the id: the done row and the row of the activity that is still published.
+        for (var row : Map.of("s08-reg-done", "s08-act-done", inTime.get("s08-act-open"), "s08-act-open").entrySet()) {
+            assertThat(items.get(row.getKey()).path("activityId").asText()).as(row.getKey()).isEqualTo(row.getValue());
+            assertThat(fetch("/me/activities/" + row.getValue(), as("laura"), 200).path("id").asText()).isEqualTo(row.getValue());
+        }
+    }
+
+    /**
+     * E6-T06 step 3 (S10 §6 amended 30-09, ruling E75; S09 §2): D12's legend says how long a half-height training cell is, so
+     * the week carries the club's `training.slotMinutes`; an instructor cannot read `/parameters`. With FREE_TRAINING off there
+     * is no training cell: the key is sent with null.
+     */
+    @Test void T_10_20_theWeekCarriesTheClubsTrainingSlotLengthAndNullWithoutFreeTraining() throws Exception {
+        clock.setInstant(local("2026-10-07T12:00"));
+        training("s08-tb1", "s08-d-rock", "s08-m-laura", "s08-ring2", "2026-10-05T08:00", "ACTIVE");
+        var week = fetch("/instructor/week", as("inst"), 200, "date", "2026-10-07");
+        assertThat(week.path("trainingSlotMinutes").isInt()).isTrue(); assertThat(week.path("trainingSlotMinutes").asInt()).as("the product default").isEqualTo(30);
+        assertThat(code(fetch("/parameters", as("inst"), 403))).as("why the week carries it").isEqualTo("FORBIDDEN");
+        parameter("training.slotMinutes", 60);
+        assertThat(fetch("/instructor/week", as("anna"), 200, "date", "2026-10-07", "instructorId", "me").path("trainingSlotMinutes").asInt()).isEqualTo(60);
+        assertThat(fetch("/instructor/week", as("admin"), 200, "date", "2026-10-07", "ringId", "s08-ring2").path("trainingSlotMinutes").asInt()).isEqualTo(60);
+        modules(Arrays.stream(Module.values()).filter(m -> m != Module.FREE_TRAINING).toArray(Module[]::new));
+        var off = fetch("/instructor/week", as("inst"), 200, "date", "2026-10-07");
+        assertThat(off.has("trainingSlotMinutes")).isTrue(); assertThat(off.path("trainingSlotMinutes").isNull()).isTrue();
+        assertThat(off.path("cells").findValuesAsText("trainingBookingId")).isEmpty();
     }
 
     @Test void T_10_33_clubVariantsLevelsOffFifoSharedClassesAndTheMinimalClub() throws Exception {

@@ -4,8 +4,8 @@
 Seeds the Cànic with the E6 demo on a week 8+ days ahead (the Monday 08:30 class on Central: 4 booked + 1 waiting, a past
 month for the holder's dog, tasks with an attachment, a member note), moves the test clock (POST /api/v1/test/clock) through
 that Monday and Tuesday, and asserts the sheet, «ha avisat», the stale save, P8 class-finishing and P3 no-show-notices run by
-hand (their switches off, so the scheduler never races the manual runs), the member histories, tasks, D14 unread counts and the
-week agenda PDF. Re-runnable: every run builds its own stack and removes it at the end. Reuses bin/e5-smoke's stack helpers.
+hand (their switches off, so the scheduler never races the manual runs), the member histories, tasks, D14 unread counts, filter
+values and search, the week's training slot length and the week agenda PDF. Re-runnable: every run builds its own stack and removes it at the end. Reuses bin/e5-smoke's stack helpers.
 """
 import argparse
 import datetime
@@ -20,6 +20,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,6 +91,11 @@ class E6:
         status, _, kind = result.stdout.partition(" ")
         print(f"curl GET {path.split('?')[0]} -> {status}", flush=True)
         return int(status), kind, body.read_bytes()
+
+    def values(self, field, access):
+        """`GET /followup/filter-values` as {value: (label, count)}; a boolean value reads "true"/"false" (E6-T06)."""
+        rows = self.call("GET", "/api/v1/followup/filter-values?" + urllib.parse.urlencode(dict(field=field)), access=access, quiet=True)["values"]
+        return {json.dumps(v["value"]) if isinstance(v["value"], bool) else v["value"]: (v["label"], v["count"]) for v in rows}
 
     def events(self, kind, field, value):
         return self.mongo('db.domain_events.countDocuments({clubId:' + json.dumps(self.club) + ',type:' + json.dumps(kind)
@@ -284,13 +290,32 @@ class E6:
         page = self.call("GET", "/api/v1/followup", access=self.desk)["items"]
         note = [i for i in page if i["kind"] == "MEMBER_NOTE" and i["dogName"] == DOGS[HOLDER]]
         self.require(mine_count >= 1 and theirs >= 1 and len(note) == 1 and note[0]["unread"], "The member note is not unread")
+        # E6-T06 (E75): D14's filter values count each instructor's own unread rows, label the dog, and the list searches.
+        before = (self.values("unread", self.desk).get("true", ("", 0))[1], self.values("unread", self.other).get("true", ("", 0))[1])
+        self.require(before == (mine_count, theirs), f"filter-values unread {before} vs unread-count {(mine_count, theirs)}")
+        dog = self.values("dogId", self.desk).get(self.people[HOLDER]["dog"])
+        self.require(dog is not None and dog[0] == DOGS[HOLDER], f"filter-values dogId: {dog}")
+        found = self.call("GET", "/api/v1/followup?" + urllib.parse.urlencode(dict(q=DOGS[HOLDER].lower())), access=self.desk)["items"]
+        self.require(any(i["id"] == note[0]["id"] for i in found), f"q={DOGS[HOLDER].lower()} misses the note row")
         self.call("POST", "/api/v1/followup/read-all", 204, access=self.desk, body={}, idempotent=True)
         self.require(self.call("GET", "/api/v1/followup/unread-count", access=self.desk)["count"] == 0, "read-all left unread items")
         self.require(self.call("GET", "/api/v1/followup/unread-count", access=self.other)["count"] == theirs, "read-all changed another account")
-        self.record("(9) GET /followup/unread-count · POST /followup/read-all", "200 · 204",
-                    f"instructor {mine_count} → 0 (MEMBER_NOTE on {DOGS[HOLDER]} unread before); instructor.2 {theirs} → {theirs}")
+        after = (self.values("unread", self.desk).get("true", ("", 0))[1], self.values("unread", self.other).get("true", ("", 0))[1])
+        self.require(after == (0, theirs), f"filter-values unread after read-all {after}")
+        self.record("(9) GET /followup/unread-count · /followup/filter-values · /followup?q · POST /followup/read-all", "200 · 200 · 200 · 204",
+                    f"instructor {mine_count} → 0 (MEMBER_NOTE on {DOGS[HOLDER]} unread before); instructor.2 {theirs} → {theirs}; "
+                    f"filter-values unread:true {before} → {after}; dogId {DOGS[HOLDER]} ×{dog[1]}; q={DOGS[HOLDER].lower()} → {len(found)} rows with the note")
 
-        # (10) D12's PDF of the week: a landscape A4.
+        # (10) D12's legend: the week carries the club's training.slotMinutes, which an instructor cannot read from /parameters.
+        week = self.call("GET", f"/api/v1/instructor/week?date={s.week_start}", access=self.desk)
+        slot = self.call("GET", "/api/v1/parameters/training.slotMinutes", access=self.admin)["value"]
+        training = "FREE_TRAINING" in self.mongo('db.clubs.findOne({_id:' + json.dumps(self.club) + '}).modules')
+        self.require(week["trainingSlotMinutes"] == (slot if training else None), f"trainingSlotMinutes {week['trainingSlotMinutes']} (parameter {slot})")
+        self.call("GET", "/api/v1/parameters/training.slotMinutes", 403, access=self.desk, error="FORBIDDEN")
+        self.record("(10) GET /instructor/week (D12) · GET /parameters/training.slotMinutes (admin · instructor)", "200 · 200 · 403",
+                    f"trainingSlotMinutes {week['trainingSlotMinutes']} = the parameter {slot} (FREE_TRAINING {'on' if training else 'off'})")
+
+        # (11) D12's PDF of the week: a landscape A4.
         status, kind, pdf = self.raw(f"/api/v1/instructor/week/export?format=pdf&date={s.week_start}", self.desk)
         self.require(status == 200 and kind.startswith("application/pdf"), f"Week PDF: {status} {kind}")
         self.require(pdf.startswith(b"%PDF"), "The week export is not a PDF")
@@ -305,7 +330,7 @@ class E6:
         self.require(box is not None, "The week PDF has no readable MediaBox")
         width, height = float(box.group(3)) - float(box.group(1)), float(box.group(4)) - float(box.group(2))
         self.require(width > height, f"Week PDF is not landscape: {width}x{height}")
-        self.record("(10) GET /instructor/week/export?format=pdf", "200 application/pdf", f"{len(pdf)} bytes, MediaBox {width:.0f}x{height:.0f} (landscape)")
+        self.record("(11) GET /instructor/week/export?format=pdf", "200 application/pdf", f"{len(pdf)} bytes, MediaBox {width:.0f}x{height:.0f} (landscape)")
 
     def report(self):
         width = max(len(s[0]) for s in self.s.summary)

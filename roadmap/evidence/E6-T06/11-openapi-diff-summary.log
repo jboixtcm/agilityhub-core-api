@@ -1,0 +1,8 @@
+operations added: ['GET /api/v1/followup/filter-values']
+operations removed: []
+operation changed: GET /api/v1/followup keys ['description']
+operation changed: GET /api/v1/instructor/week keys ['description']
+schemas added: []
+schemas removed: []
+schema changed: HistoryItem properties added [] properties changed ['activityId'] required same
+schema changed: InstructorWeek properties added ['trainingSlotMinutes'] properties changed [] required same

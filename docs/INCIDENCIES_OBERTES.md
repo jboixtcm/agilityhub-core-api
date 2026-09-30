@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v2.2 · 30-09-2026** (v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v2.3 · 30-09-2026** (v2.2 30-09 · v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -54,7 +54,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-42 | 26-09 | api · migració i reserves | Revisió d'E5-T25: la migració desa un gos sense sexe quan Playoff en porta un de desconegut (S03 l'exigeix); detalls del contracte de reserves | **Mitjana** (el sexe; abans de migrar) · baixa (la resta) | oberta — passada de correccions, abans de cap migració real |
 | INC-43 | 27-09 | api · fitxers | Revisió d'E5-T26: l'IT de les descàrregues locals no descarrega cap `DOG_PHOTO` ni `ACTIVITY_IMAGE` i els seus camins de reserva no tenen test; les descàrregues locals no admeten `Range` | Baixa | oberta — passada de correccions |
 | INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — passada de correccions |
-| INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — passada de correccions |
+| INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — E11-T03 (pas 1) |
 | INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | oberta — passada de correccions |
 | INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, **fetes a la seva ronda 5 (30-09, E6-T03 ✅)** |
 | INC-48 | 30-09 | api (seguiment) | Nits de la ronda 5 d'E6-T03: l'estat que es desa per a la resposta repetida d'una clau és una còpia escrita a mà del `@ResponseStatus` de cada ruta, i un Javadoc mal tallat | Baixa | oberta — passada de correccions |

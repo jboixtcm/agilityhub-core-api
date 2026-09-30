@@ -151,10 +151,10 @@ Pattern per stage: contract → domain → endpoints and integrations → proces
 **E11 · Hardening and QA (S14 WP-D, PLA §11).** E11-T01…T04 are never cut.
 - **E11-T01** · RGPD, S14 WP-D: data package and N-50, erasure and N-52, `ErasureExecutor`, the monthly `RetentionSweep` (INC-10 included), consents, platform views (R-14-14…17) · E8-T05, E8-T06, E7-T02 · XL
 - **E11-T02** · The correction pass: every open api incidence of `INCIDENCIES_OBERTES.md`, INC-36 first · E8-T06 · L
-- **E11-T03** (thread D) · Security review and hardening: rate limits, headers, CORS per club, the image's secret scan, dependency audit, PITest, T-15-30, a compose smoke in CI, structured logs, Mongo timeouts · E8-T06 · L
+- **E11-T03** (thread D) · Security review and hardening, part 1 (without E8): the route inventory and INC-45's global check, rate limits, headers, CORS per club, structured logs with `traceId` and Sentry (R-14-18, INC-40), Mongo timeouts, the image's secret and vulnerability scan, the dependency audit, a compose smoke in CI, PITest on `bookings` and `identity` · no dependency · L · **thread D, installed 30-09 (`ready`)**; `payments`' PITest and E8's routes go to E11-T06, T-15-30 to E12-T01's k6 re-measure
 - **E11-T04** · Deploy assets provable locally (E0-T13 part 1): `deploy/compose.prod.yaml`, backups and a verified restore, `DEPLOY.md` as a runbook · no dependency · L · **thread D, installed 30-09 (`ready`)**
 - **E11-T05** · Migration rehearsal (S18 WP-D) on the anonymised derivative of Josep's fresh export · E8-T06 and the export · M
-- **E11-T06** · The E11 gate run: clean verify, traceability in CI, every smoke, seeds twice, snapshot drift · E11-T01…T05 · M
+- **E11-T06** · The E11 gate run: clean verify, traceability in CI, every smoke, seeds twice, snapshot drift, PITest on `payments` and E8's routes in E11-T03's security inventory · E11-T01…T05 · M
 
 **E12 · Migration and go-live (S18 WP-E).**
 - **E12-T01** · Release deployment: droplet, Caddy, real secrets, SendGrid, Twilio, VAPID, the Stripe test webhook, the backup cron and one restore on the server, the k6 re-measure. Needs SSH and DNS by 21-10 · E11-T04, E11-T06 · L

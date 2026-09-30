@@ -31,11 +31,15 @@ import org.springframework.util.MultiValueMap;
 public class FollowupContractAccess {
     /** D14 pages hold at most 50 rows (S10 §3): the names of a page are resolved at read time. */
     public static final int FOLLOWUP_MAX_SIZE = 50;
-    /** `GET /followup` (S10 §6, R-10-13): the universal list allowlist of CONVENCIONS_API §4, pages of 20 or 50 rows. */
+    /**
+     * `GET /followup` (S10 §6, R-10-13): the universal list allowlist of CONVENCIONS_API §4, pages of 20 or 50 rows. It searches
+     * (E75) the member's and the dog's names, the author's name and the text: {@link FollowupService}'s dataset matches them,
+     * the names through the census port.
+     */
     public static final ListDefinition FOLLOWUP = new ListDefinition("followup",
             Map.of("kind", new Field("kind", Type.TEXT), "memberId", new Field("memberId", Type.TEXT), "dogId", new Field("dogId", Type.TEXT),
                     "authorAccountId", new Field("authorAccountId", Type.TEXT), "unread", new Field("unread", Type.BOOLEAN)),
-            Map.of("activityAt", "activityAt"), List.of(),
+            Map.of("activityAt", "activityAt"), List.of("memberName", "dogName", "authorName", "text"),
             List.of("memberName", "dogName", "levelCode", "activityAt", "authorName", "textExcerpt", "createdAt", "completedAt"),
             List.of("memberName", "dogName", "levelCode", "activityAt", "authorName", "textExcerpt", "createdAt", "completedAt"),
             List.of("activityAt,desc"),

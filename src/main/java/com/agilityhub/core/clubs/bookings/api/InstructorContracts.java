@@ -118,7 +118,10 @@ public final class InstructorContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String markedByName) { }
 
     // ---- GET /instructor/week (D12)
-    public record InstructorWeek(WeekRange week, WeekFilters filters,
+    public record InstructorWeek(WeekRange week,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "training.slotMinutes (S09): how long a TRAINING cell is, drawn at half height, "
+                    + "for D12's legend; null with FREE_TRAINING off") Integer trainingSlotMinutes,
+            WeekFilters filters,
             @Schema(description = "Distinct start times (HH:mm) of the week's cells") List<String> rows, List<WeekCell> cells) { }
     public record WeekRange(LocalDate startDate, LocalDate endDate, WeekRelative relative) { }
     public record WeekFilters(@Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Null = «Tots»") String instructorId,
@@ -184,9 +187,10 @@ public final class InstructorContracts {
     public record HistoryDog(String id, String name, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelCode, boolean own,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Owner of a family-group dog") String ownerFirstName) { }
     public record HistoryItem(HistoryType type, String id,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ACTIVITY rows: the activity's id (the row's id is the registration's), for its page "
-                    + "GET /me/activities/{activityId}, which answers 404 once the activity is neither PUBLISHED nor FINISHED, as after the club cancels it. "
-                    + "Null on CLASS and TRAINING rows") String activityId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ACTIVITY rows whose activity is PUBLISHED or FINISHED: the activity's id (the row's "
+                    + "id is the registration's), for its page GET /me/activities/{activityId}, which answers only then (S07 §6). Null on the other ACTIVITY rows "
+                    + "(a cancelled, unpublished or draft activity: its page is 404, even for a row cancelled in time before) and on CLASS and TRAINING rows. "
+                    + "Link the row when it is not null") String activityId,
             LocalDate date,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Club-local YYYY-MM-DDTHH:mm") String startsAtLocal, String title,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogId, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName,

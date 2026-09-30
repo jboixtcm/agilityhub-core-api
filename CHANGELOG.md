@@ -13,6 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and isolated restore/count verification. `docs/DEPLOY.md` now includes the release/rollback runbook,
   environment and key inventory, daily cron, rotation/recovery limits, logs and the D+7 checklist.
   Club-domain on-demand TLS fails closed pending E10-T02's approval endpoint; real deployment remains E12-T01.
+- E6-T06 (ruling E75, S10 §6 and CONVENCIONS_API §4 amended 30-09): the D14 and D12 contract gaps of the web's E6-W03.
+  - `GET /followup/filter-values` (INSTRUCTOR, ADMIN; `TASKS`): D14's filter values for `kind`, `memberId`, `dogId`,
+    `authorAccountId` («Creador») and `unread`, each counted over the whole filtered set; `unread` is the caller's own.
+  - `GET /followup` searches: `q` matches the member's full name, the dog's name, the author's name and the whole text of the
+    task or the note, in any case and literally. A list may now bring its own search (`ListDataset.withSearch`), since
+    D14's names are read through the census port (`FollowupCensusAccess.search`).
+  - `InstructorWeek.trainingSlotMinutes`: the club's `training.slotMinutes` for D12's legend; `null` with `FREE_TRAINING` off.
 - E7-T03 (S11 WP-11-C): the S11 routes of E7-T01 are served, except `POST /message-templates/{id}/send` (E7-T04).
   - D9 templates: the list in D9's order with the counts per category, the code's variables labelled in the admin's
     language and `lastChange`; `CUSTOM` creation; the save with `version`, the R-11-12 validations and the statuses of
@@ -652,6 +659,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E6-T06 step 4 (E6-T05's question, ruling E75): `HistoryItem.activityId` is sent only when the activity's page answers
+  (`PUBLISHED` or `FINISHED`, S07 §6) and is `null` otherwise, so 25 never links a row to a 404: a registration cancelled in
+  time whose activity the club cancels or unpublishes later, and a `CANCELLED_BY_CLUB` row, carry `null`. The rule is one
+  method, `ActivityState.memberPage()`, which `GET /me/activities/{activityId}` uses too.
 - E7-T03 round 2 (ruling E76):
   - A push subscription never changes owner. Another account on the same browser ends the previous owner's subscription
     and gets its own; the dispatcher checks at every attempt that the subscription is the recipient's. A key that is not a

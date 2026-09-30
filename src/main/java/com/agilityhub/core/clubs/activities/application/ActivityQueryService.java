@@ -53,8 +53,9 @@ public class ActivityQueryService implements ActivityTitlePort {
             var a=activities.require(r.activityId()); var start=context.times(a).startsAt();
             if(start.isBefore(from) || start.isAfter(to)) continue;
             String state=ActivityRows.historyState(r.state(),r.cancelReason(),a.state()); if(state==null) continue;
-            result.add(object("type","ACTIVITY","id",r.id(),"activityId",a.id(),"title",projection.title(a),"state",state,"startsAt",start,"startsAtLocal",projection.local(start),
-                    "ringName",projection.place(a),"dogId",null,"adminText",r.cancelReason()==RegistrationCancelReason.ACTIVITY_CANCELLED?a.cancellation().adminText():null));
+            result.add(object("type","ACTIVITY","id",r.id(),"activityId",a.id(),"memberPage",a.state().memberPage(),"title",projection.title(a),"state",state,"startsAt",start,
+                    "startsAtLocal",projection.local(start),"ringName",projection.place(a),"dogId",null,
+                    "adminText",r.cancelReason()==RegistrationCancelReason.ACTIVITY_CANCELLED?a.cancellation().adminText():null));
         }
         return result;
     }
@@ -81,7 +82,7 @@ public class ActivityQueryService implements ActivityTitlePort {
     }
     public Map<String,Object> detail(String id) {
         context.require(); var a=activities.require(id);
-        if(a.state()!=ActivityState.PUBLISHED && a.state()!=ActivityState.FINISHED) throw new ApiException(ErrorCode.NOT_FOUND);
+        if(!a.state().memberPage()) throw new ApiException(ErrorCode.NOT_FOUND);
         String memberId=context.members.me(); var result=new LinkedHashMap<>(projection.activity(a,false));
         // The member view is a strict subset of the staff projection.
         result.keySet().retainAll(Set.of("id","slug","state","type","typeDisplay","title","shortDescription","longDescriptionHtml","image","documents","location","rings","allRings","date","startTime","endTime","startsAt","endsAt","registrationFrom","registrationTo","registrationOpen","minPlaces","maxPlaces","levelNames","waitlistEnabled","freeSeats"));

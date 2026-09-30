@@ -253,7 +253,7 @@ class E6ContractIT extends AbstractIntegrationTest {
         for (Route route : routes().filter(r -> r.module() != null).toList()) {
             for (String role : route.roles()) { error(call(route, CLUB, role), 404, "MODULE_DISABLED"); }
         }
-        assertThat(routes().filter(r -> "TASKS".equals(r.module())).count()).isEqualTo(14);
+        assertThat(routes().filter(r -> "TASKS".equals(r.module())).count()).isEqualTo(15);
         for (String purpose : List.of("TASK", "DOG_OBSERVATIONS")) {
             error(as(post("/api/v1/attachments/upload-url").contentType("application/json")
                     .content("{\"purpose\":\"" + purpose + "\",\"fileName\":\"a.pdf\",\"mimeType\":\"application/pdf\",\"sizeBytes\":4}"), "INSTRUCTOR"), 404, "MODULE_DISABLED");
@@ -332,7 +332,7 @@ class E6ContractIT extends AbstractIntegrationTest {
 
     @Test void T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(22);
+        assertThat(routes().count()).isEqualTo(23);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();
@@ -368,6 +368,14 @@ class E6ContractIT extends AbstractIntegrationTest {
                 .filter(p -> p.path("name").asText().equals("size")).findFirst().orElseThrow();
         assertThat(Stream.of(mapper.convertValue(followupSize.at("/schema/enum"), Integer[].class)).toList()).containsExactly(20, 50);
         assertThat(followupSize.path("description").asText()).contains("at most 50 rows");
+        // E6-T06 (ruling E75, CONVENCIONS_API §4): D14 searches, and its filter values take the list's filters and q, never fields.
+        assertThat(api.at("/paths/~1api~1v1~1followup/get/parameters").findValuesAsText("name")).contains("q");
+        assertThat(api.at("/paths/~1api~1v1~1followup/get/description").asText()).contains("q searches the member's full name, the dog's name, the author's name and the text");
+        assertThat(strings(api.at("/paths/~1api~1v1~1followup~1filter-values/get/x-filterable"))).containsExactly("kind", "memberId", "dogId", "authorAccountId", "unread");
+        assertThat(api.at("/paths/~1api~1v1~1followup~1filter-values/get/parameters").findValuesAsText("name")).containsExactlyInAnyOrder("field", "q", "filter");
+        assertThat(api.at("/paths/~1api~1v1~1followup~1filter-values/get/responses/200/content/application~1json/schema/$ref").asText())
+                .isEqualTo("#/components/schemas/FilterValues");
+        assertThat(api.at("/paths/~1api~1v1~1followup~1filter-values/get/x-fields").isMissingNode()).isTrue();
         var attendanceSize = Stream.of(mapper.convertValue(api.at("/paths/~1api~1v1~1attendances/get/parameters"), JsonNode[].class))
                 .filter(p -> p.path("name").asText().equals("size")).findFirst().orElseThrow();
         assertThat(Stream.of(mapper.convertValue(attendanceSize.at("/schema/enum"), Integer[].class)).toList()).containsExactly(20, 50, 200, 1000);
@@ -409,6 +417,10 @@ class E6ContractIT extends AbstractIntegrationTest {
         // E6-T05 (ruling E74): 25's rows carry the activity's id, a nullable string (null on CLASS and TRAINING rows), never required.
         assertThat(strings(schemas.at("/HistoryItem/properties/activityId/type"))).containsExactly("string", "null");
         assertThat(strings(schemas.at("/HistoryItem/required"))).containsExactlyInAnyOrder("type", "id", "date", "title", "state");
+        assertThat(schemas.at("/HistoryItem/properties/activityId/description").asText()).contains("PUBLISHED or FINISHED");
+        // E6-T06 step 3 (ruling E75): D12's training slot length, a nullable integer (null with FREE_TRAINING off), never required.
+        assertThat(strings(schemas.at("/InstructorWeek/properties/trainingSlotMinutes/type"))).containsExactly("integer", "null");
+        assertThat(strings(schemas.at("/InstructorWeek/required"))).containsExactlyInAnyOrder("week", "filters", "rows", "cells");
         for (String nullable : List.of("InstructorDayClass/ring", "AttendanceRow/notice", "AttendanceRow/noShowNotice", "InstructorCard/level", "TasksBlock/latest",
                 "HistoryItem/detail", "Task/doneBy")) {
             String[] parts = nullable.split("/");

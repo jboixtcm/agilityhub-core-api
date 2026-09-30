@@ -28,6 +28,23 @@ public class FollowupCensusAdapter implements FollowupCensusAccess {
         }
         return result;
     }
+    /**
+     * D14's search (E6-T06): the dogs by name and by member note, and the members by full name. A full name is its names
+     * joined by one space, so a match lies inside one name or spans them: each word of the text is inside one name, which the
+     * read narrows on before the full names are matched.
+     */
+    @Override public Matches search(String text) {
+        String literal = java.util.regex.Pattern.quote(text);
+        var named = access.dogs.matching(Criteria.where("name").regex(literal, "i")).stream().map(dog -> dog.id).collect(java.util.stream.Collectors.toSet());
+        var noted = access.dogs.matching(Criteria.where("instructorNote.text").regex(literal, "i")).stream().map(dog -> dog.id).collect(java.util.stream.Collectors.toSet());
+        String word = Arrays.stream(text.strip().split("\\s+")).max(Comparator.comparingInt(String::length)).orElse(text);
+        var candidates = access.members.matching(new Criteria().orOperator(java.util.stream.Stream.of("firstName", "lastName1", "lastName2")
+                .map(field -> Criteria.where(field).regex(java.util.regex.Pattern.quote(word), "i")).toList()));
+        var pattern = java.util.regex.Pattern.compile(literal, java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+        var members = candidates.stream().filter(member -> member.erasedAt == null && pattern.matcher(fullName(member)).find()).map(member -> member.id)
+                .collect(java.util.stream.Collectors.toSet());
+        return new Matches(named, members, noted);
+    }
     @Override public Map<String, Member> members(Collection<String> memberIds) {
         var result = new LinkedHashMap<String, Member>(); if (memberIds.isEmpty()) { return result; }
         for (var member : access.members.matching(Criteria.where("_id").in(new HashSet<>(memberIds)))) {

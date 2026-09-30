@@ -10,7 +10,8 @@ import java.util.List;
  */
 public interface ActivityHistoryQuery {
     /**
-     * @param id the registration's id; @param activityId its activity's (25 links the row to the activity's page, ruling E74)
+     * @param id the registration's id; @param activityId its activity's while the member's page of the activity answers
+     * (PUBLISHED or FINISHED, S07 §6), else null: 25 links the row to that page (rulings E74, E75)
      * @param state DONE · CANCELLED · CANCELLED_BY_CLUB (S07); @param adminText the club's text of a cancelled activity
      */
     record Item(String id, String activityId, String title, Instant startsAt, String startsAtLocal, String state, String adminText) { }

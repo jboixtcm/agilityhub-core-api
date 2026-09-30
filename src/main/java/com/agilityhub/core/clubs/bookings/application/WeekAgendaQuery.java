@@ -21,6 +21,7 @@ import static com.agilityhub.core.clubs.bookings.application.InstructorDayQuery.
  * with FREE_TRAINING; ring blocks are S06's with the reason, the note and who created them. `instructorId` narrows the
  * classes only (`me` = the caller's profile; a shared class of `classes.maxInstructorsPerClass > 1` matches any of its
  * instructors, whose names are joined «Marc, Neus»); `ringId` narrows everything. `rows[]` = the distinct start times.
+ * `trainingSlotMinutes` is `training.slotMinutes` for the legend, null with FREE_TRAINING off (E6-T06).
  */
 @Service
 public class WeekAgendaQuery {
@@ -80,7 +81,9 @@ public class WeekAgendaQuery {
         var filters = map("instructorId", instructor == null && instructorId != null ? instructorId : instructor, "ringId", ringId,
                 "instructors", InstructorDayQuery.activeInstructors(catalogs).stream().map(i -> map("id", i.id(), "shortName", i.shortName())).toList(),
                 "rings", ringViews.stream().filter(PlanningCatalogAccess.RingView::active).map(r -> map("id", r.id(), "name", r.name(), "color", r.color())).toList());
-        return map("week", map("startDate", monday, "endDate", sundayItems ? sunday : monday.plusDays(5), "relative", relative), "filters", filters,
-                "rows", List.copyOf(rows), "cells", cells);
+        // E6-T06 (S10 §6, E75): D12's legend says how long a half-height training cell is; an instructor cannot read /parameters.
+        Integer slotMinutes = context.enabled(Module.FREE_TRAINING) ? context.integer("training.slotMinutes") : null;
+        return map("week", map("startDate", monday, "endDate", sundayItems ? sunday : monday.plusDays(5), "relative", relative), "trainingSlotMinutes", slotMinutes,
+                "filters", filters, "rows", List.copyOf(rows), "cells", cells);
     }
 }

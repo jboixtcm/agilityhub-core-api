@@ -85,6 +85,8 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
     private List<Document> countPipeline(ListDataset data, ListQuery query) {
         var paths = new HashSet<String>();
         query.filters().forEach(filter -> paths.add(data.definition().field(filter.field()).path()));
+        // A list's own search may read any field its stages compute.
+        if (!query.q().isEmpty() && data.search() != null) { return pipeline(data, query); }
         if (!query.q().isEmpty()) { paths.addAll(data.definition().searchable()); }
         for (Document stage : data.stages()) {
             Set<String> written;
@@ -104,13 +106,16 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         return stages;
     }
     private void match(ListDataset data, ListQuery query, List<Document> stages) {
-        var predicates = new ArrayList<Criteria>();
-        for (Filter filter : query.filters()) { predicates.add(criteria(data.definition(), filter)); }
-        if (!query.q().isEmpty()) {
-            predicates.add(new Criteria().orOperator(data.definition().searchable().stream()
-                    .map(path -> Criteria.where(path).regex(Pattern.quote(query.q()), "i")).toList()));
-        }
-        if (!predicates.isEmpty()) { stages.add(new Document("$match", new Criteria().andOperator(predicates).getCriteriaObject())); }
+        var predicates = new ArrayList<Document>();
+        for (Filter filter : query.filters()) { predicates.add(criteria(data.definition(), filter).getCriteriaObject()); }
+        if (!query.q().isEmpty()) { predicates.add(search(data, query.q())); }
+        if (!predicates.isEmpty()) { stages.add(new Document("$match", new Document("$and", predicates))); }
+    }
+    /** `q`: the list's own search (`ListDataset.search`, D14), else any searchable path containing it, case-insensitive and literal. */
+    private static Document search(ListDataset data, String q) {
+        if (data.search() != null) { return data.search().apply(q); }
+        return new Criteria().orOperator(data.definition().searchable().stream()
+                .map(path -> Criteria.where(path).regex(Pattern.quote(q), "i")).toList()).getCriteriaObject();
     }
     private Criteria criteria(ListDefinition definition, Filter filter) {
         var field = definition.field(filter.field());

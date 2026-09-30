@@ -6126,7 +6126,7 @@
       "HistoryItem" : {
         "properties" : {
           "activityId" : {
-            "description" : "ACTIVITY rows: the activity's id (the row's id is the registration's), for its page GET /me/activities/{activityId}, which answers 404 once the activity is neither PUBLISHED nor FINISHED, as after the club cancels it. Null on CLASS and TRAINING rows",
+            "description" : "ACTIVITY rows whose activity is PUBLISHED or FINISHED: the activity's id (the row's id is the registration's), for its page GET /me/activities/{activityId}, which answers only then (S07 §6). Null on the other ACTIVITY rows (a cancelled, unpublished or draft activity: its page is 404, even for a row cancelled in time before) and on CLASS and TRAINING rows. Link the row when it is not null",
             "type" : [ "string", "null" ]
           },
           "counts" : {
@@ -6876,6 +6876,11 @@
               "type" : "string"
             },
             "type" : "array"
+          },
+          "trainingSlotMinutes" : {
+            "description" : "training.slotMinutes (S09): how long a TRAINING cell is, drawn at half height, for D12's legend; null with FREE_TRAINING off",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           },
           "week" : {
             "$ref" : "#/components/schemas/WeekRange"
@@ -34605,7 +34610,7 @@
     },
     "/api/v1/followup" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D14 universal list (CONVENCIONS_API §4, R-10-13): the visible FollowupItem rows (a deleted task's row is hidden), unread first (activityAt desc), then the rest (activityAt desc), ordered by the query; unread(item, me) = activityAt > readAllAt ∧ id ∉ readItemIds ∧ author ≠ me. memberName (the dog's current owner), dogName and levelCode (null with levels.enabled = false) are read at request time; authorAccountId, authorName and authorGender are whoever wrote the task or the note, as they were then, never the dog's current owner. Pages hold at most 50 rows (S10 §3): size 20 or 50, and 200 or 1000 is 400 INVALID_FILTER. An undeclared filter or sort is 400 INVALID_FILTER. q searches the member's full name, the dog's name, the author's name and the text (the task's or the note's whole text, not only textExcerpt), any case, taken literally (CONVENCIONS_API §4, E75); GET /followup/filter-values gives the filter's values. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
         "operationId" : "followup",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -34829,6 +34834,177 @@
         "x-filter-operators" : { },
         "x-filterable" : [ "kind", "memberId", "dogId", "authorAccountId", "unread" ],
         "x-sortable" : [ "activityAt" ]
+      }
+    },
+    "/api/v1/followup/filter-values" : {
+      "get" : {
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for D14's universal filter (S10 §6, E75): the top 50 values of field (one of GET /followup's x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter and q select, never one page; the filters on field itself are left out. unread is the caller's own (R-10-13: read marks are per account), so two instructors get different counts. Labels: the member's full name, the dog's name and the author's name (as their newest row stores it); kind and unread their values, as is an id whose record is gone. q narrows the set as the list's search does. Requires TASKS (MODULE_DISABLED). Tenant comes from the JWT.",
+        "operationId" : "followupFilterValues",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "field",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's q: the member's full name, the dog's name, the author's name or the text",
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's filters (field:op:value, repeated); only x-filterable fields",
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FilterValues"
+                }
+              }
+            },
+            "description" : "FilterValues"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "followupFilterValues",
+        "tags" : [ "clubs.followup" ],
+        "x-columns" : [ ],
+        "x-exportable" : false,
+        "x-filter-operators" : { },
+        "x-filterable" : [ "kind", "memberId", "dogId", "authorAccountId", "unread" ],
+        "x-sortable" : [ ]
       }
     },
     "/api/v1/followup/read-all" : {
@@ -35566,7 +35742,7 @@
     },
     "/api/v1/instructor/week" : {
       "get" : {
-        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 (R-10-15): ISO week of date in the club's zone, Monday–Saturday (Sunday only with items); classes of the S06 calendar form B (never DRAFT) with attendanceStatus; instructorId filters classes only (`me` = the caller; also the shared classes with classes.maxInstructorsPerClass > 1), ringId filters everything; trainings (half height: training.slotMinutes) and blocks are always shown. FREE_TRAINING off: no TRAINING cells; WAITLIST off: no waiting. Tenant comes from the JWT.",
+        "description" : "Roles: INSTRUCTOR, ADMIN (MEMBER → 403; impersonation → IMPERSONATION_DENIED). D12 (R-10-15): ISO week of date in the club's zone, Monday–Saturday (Sunday only with items); classes of the S06 calendar form B (never DRAFT) with attendanceStatus; instructorId filters classes only (`me` = the caller; also the shared classes with classes.maxInstructorsPerClass > 1), ringId filters everything; trainings (half height: training.slotMinutes, sent as trainingSlotMinutes for the legend) and blocks are always shown. FREE_TRAINING off: no TRAINING cells and trainingSlotMinutes null; WAITLIST off: no waiting. Tenant comes from the JWT.",
         "operationId" : "instructorWeek",
         "parameters" : [ {
           "in" : "query",

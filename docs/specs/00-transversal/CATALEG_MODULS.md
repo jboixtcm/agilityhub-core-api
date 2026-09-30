@@ -12,7 +12,7 @@
 | `FAMILY_GROUP` | — | `/family-groups`, gossos del grup al selector, pagador únic, tarifa familiar | pas 18 de l'alta, xips de gossos del grup | D10 bloc grup familiar, D2 «Grup trobat» | on |
 | `WAITLIST` | — | `/waitlist-entries`, estats «Completa · ⏳n», scheduler FIFO | files «Completa · ⏳n» passen a «Completa» inerta; 11 sense [Agafa la plaça] | D4 «+espera», D11 bloc Llista d'espera, D12 | on |
 | `TASKS` | — | `/tasks`, `/attachments` de tasques, notes als instructors, observacions, D14, avisos N-20/21/22 | 13 sense Tasques/Notes, 22/26 | D13 blocs, D14, comptador del menú | on |
-| `FAQ` | — | `/faq-entries` | 30 i la 6a icona del tabbar | D11 card FAQ | on |
+| `FAQ` | — | `/faq-entries` | la pestanya de preguntes de 30 (la icona «Info» i `/info` es queden per a les pàgines del club, E79) | D11 card FAQ | on |
 | `SMS` | — | canal SMS a la matriu de plantilles (Twilio); si off, la matriu amaga la columna SMS i cap enviament | «i per SMS» a 11, SMS a 12 | D9 columna SMS, D10 preferències | on |
 | `PUSH` | — | `/push-subscriptions`, enviament web push | toggle push a 12, permís en context | D9 columna Push (informativa) | on |
 | `INACTIVITY` | — (`BILLING` per a la quota) | `/inactivity-periods`, scheduler d'inicis/finals, quota d'inactivitat | 14, oferta a 15 | D10 acció Inactivitat, D6 KPI, D11 quota | on |

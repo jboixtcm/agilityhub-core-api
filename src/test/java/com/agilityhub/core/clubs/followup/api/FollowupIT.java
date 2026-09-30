@@ -807,6 +807,116 @@ class FollowupIT extends AbstractIntegrationTest {
         assertThat(call(HttpMethod.GET, "/attendances?size=200", null, as("admin"), 200).path("size").asInt()).isEqualTo(200);
     }
 
+    // ---------------------------------------------------------------- E6-T06 (ruling E75): D14's filter values and search
+
+    JsonNode filterValues(String who, String field, String... params) throws Exception {
+        var request = request(HttpMethod.GET, "/api/v1/followup/filter-values").header("Host", HOST).with(as(who)).param("field", field);
+        for (int i = 0; i < params.length; i += 2) { request.param(params[i], params[i + 1]); }
+        var response = mvc.perform(request).andReturn().getResponse();
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
+        return mapper.readTree(response.getContentAsString());
+    }
+    /** «value → label (count)» of each entry of a filter-values answer, in its order. */
+    static List<String> entries(JsonNode answer) {
+        var out = new ArrayList<String>();
+        answer.path("values").forEach(v -> out.add(v.path("value").asText() + " → " + v.path("label").asText() + " (" + v.path("count").asLong() + ")"));
+        return out;
+    }
+    static List<String> ids(JsonNode page) { return page.path("items").findValuesAsText("id"); }
+
+    /**
+     * E6-T06 step 1 (S10 §6 amended 30-09, CONVENCIONS_API §4, ruling E75): `GET /followup/filter-values` lists each value with
+     * its count over the whole filtered set, never over one page. Laura's note and Marc's task are older than D14's first 20
+     * rows, yet their dog, member, author and kind are listed. Labels: the member's full name, the dog's name and the author's
+     * name; `kind` and `unread` their values. `unread` is the caller's own (R-10-13): two instructors get different counts.
+     * An undeclared field is 400 INVALID_FILTER.
+     */
+    @Test void T_10_18_T_10_21_filterValuesCountTheWholeFilteredSetWithTheCallersOwnUnread() throws Exception {
+        // The oldest rows: Laura's note on Duna, then Marc's task on Toby; then 20 newer tasks of Estel on Duna.
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-duna/instructor-note", Map.of("text", "La Duna no vol saltar la tanca"), as("laura"), 200);
+        dispatch();
+        clock.setInstant(NOW.plusSeconds(60));
+        createTask("marc", "s10f-d-toby", "Pujar la rampa a poc a poc", null, 201);
+        for (int i = 1; i <= 20; i++) { clock.setInstant(NOW.plusSeconds(60 + 60L * i)); createTask("estel", "s10f-d-duna", "Tasca " + i + " de l'Estel", null, 201); }
+        // Núria has read nothing: her first page of 20 is Estel's tasks only.
+        var first = followup("nuria", "size", "20");
+        assertThat(first.path("totalItems").asInt()).isEqualTo(22);
+        assertThat(first.path("items").findValuesAsText("dogId")).hasSize(20).containsOnly("s10f-d-duna");
+        assertThat(first.path("items").findValuesAsText("kind")).containsOnly("TASK");
+        assertThat(first.path("items").findValuesAsText("authorName")).containsOnly("Estel");
+
+        var soft = new org.assertj.core.api.SoftAssertions();
+        soft.assertThat(filterValues("nuria", "dogId").path("field").asText()).isEqualTo("dogId");
+        soft.assertThat(entries(filterValues("nuria", "dogId"))).as("dogId").containsExactly("s10f-d-duna → Duna (21)", "s10f-d-toby → Toby (1)");
+        soft.assertThat(entries(filterValues("nuria", "memberId"))).as("memberId").containsExactly("s10f-m-laura → Laura Example (21)", "s10f-m-joan → Joan Example (1)");
+        soft.assertThat(entries(filterValues("nuria", "authorAccountId"))).as("authorAccountId")
+                .containsExactly("s10f-estel → Estel (20)", "s10f-laura → Laura (1)", "s10f-marc → Marc (1)");
+        soft.assertThat(entries(filterValues("nuria", "kind"))).as("kind").containsExactly("TASK → TASK (21)", "MEMBER_NOTE → MEMBER_NOTE (1)");
+        // `unread` is the caller's: Núria has read nothing, Estel wrote 20 rows (read for her), Marc wrote one.
+        soft.assertThat(entries(filterValues("nuria", "unread"))).as("unread nuria").containsExactly("true → true (22)");
+        soft.assertThat(entries(filterValues("estel", "unread"))).as("unread estel").containsExactly("false → false (20)", "true → true (2)");
+        soft.assertThat(entries(filterValues("marc", "unread"))).as("unread marc").containsExactly("true → true (21)", "false → false (1)");
+        soft.assertThat(filterValues("marc", "unread").at("/values/0/value").isBoolean()).as("a boolean value").isTrue();
+        // Counts over the filtered set; the filters on the field itself are left out; `q` narrows the set as the list's search does.
+        soft.assertThat(entries(filterValues("estel", "unread", "filter", "dogId:eq:s10f-d-toby"))).as("estel on Toby").containsExactly("true → true (1)");
+        soft.assertThat(entries(filterValues("marc", "unread", "filter", "dogId:eq:s10f-d-toby"))).as("marc on Toby").containsExactly("false → false (1)");
+        soft.assertThat(entries(filterValues("estel", "authorAccountId", "filter", "unread:eq:true"))).as("estel's unread authors")
+                .containsExactly("s10f-laura → Laura (1)", "s10f-marc → Marc (1)");
+        soft.assertThat(entries(filterValues("nuria", "dogId", "filter", "dogId:eq:s10f-d-toby", "filter", "kind:eq:TASK"))).as("own filter left out")
+                .containsExactly("s10f-d-duna → Duna (20)", "s10f-d-toby → Toby (1)");
+        soft.assertThat(entries(filterValues("nuria", "dogId", "q", "rampa"))).as("q").containsExactly("s10f-d-toby → Toby (1)");
+        // After a read-all, Núria's unread values move to false.
+        call(HttpMethod.POST, "/followup/read-all", null, as("nuria"), 204, key());
+        soft.assertThat(entries(filterValues("nuria", "unread"))).as("after read-all").containsExactly("false → false (22)");
+        soft.assertAll();
+        // An undeclared field or filter → 400 INVALID_FILTER; a member → 403.
+        for (String query : List.of("field=textExcerpt", "field=memberName", "field=hidden", "field=kind&filter=hidden:eq:false", "field=kind&filter=textExcerpt:contains:Duna")) {
+            assertThat(code(call(HttpMethod.GET, "/followup/filter-values?" + query, null, as("estel"), 400))).as(query).isEqualTo("INVALID_FILTER");
+        }
+        assertThat(code(call(HttpMethod.GET, "/followup/filter-values?field=kind", null, as("laura"), 403))).isEqualTo("FORBIDDEN");
+    }
+
+    /**
+     * E6-T06 step 2 (CONVENCIONS_API §4 and S10 §6 amended 30-09, ruling E75): D14 searches. `q` matches the member's full name
+     * and the dog's name (the census's, as they are now), the author's name and the text, the whole of it, not only the
+     * 120-character excerpt; any case, taken literally. One `q` per field.
+     */
+    @Test void T_10_18_qSearchesTheMembersAndTheDogsNamesTheAuthorAndTheText() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s10f-m-laura")), new Update().set("lastName1", "Serra").set("lastName2", "Vidal"), "members");
+        String text = "Practiqueu el balancí amb calma: sessions curtes, sempre acabant amb un èxit i amb molta paciència per part de tots dos. Al final, el trampolí";
+        assertThat(text.indexOf("trampolí")).as("beyond the excerpt").isGreaterThan(120);
+        var duna = rowId(createTask("estel", "s10f-d-duna", text, null, 201).path("id").asText());
+        clock.setInstant(NOW.plusSeconds(60));
+        var toby = rowId(createTask("marc", "s10f-d-toby", "Pujar la rampa a poc a poc", null, 201).path("id").asText());
+        clock.setInstant(NOW.plusSeconds(120));
+        call(HttpMethod.PUT, "/me/dogs/s10f-d-toby/instructor-note", Map.of("text", "En Toby s'espanta dels túnels"), as("joan"), 200);
+        dispatch();
+        String note = com.agilityhub.core.clubs.followup.persistence.FollowupItemRepository.noteRowId(CLUB, "s10f-d-toby");
+        assertThat(ids(followup("nuria"))).containsExactly(note, toby, duna);
+        assertThat(mongo.findById(duna, Document.class, "followup_items").getString("textExcerpt")).doesNotContain("trampolí");
+
+        var soft = new org.assertj.core.api.SoftAssertions();
+        // The member's full name: one of its names, or first and last names together, any case.
+        soft.assertThat(ids(followup("nuria", "q", "serra"))).as("member").containsExactly(duna);
+        soft.assertThat(ids(followup("nuria", "q", "Laura Serra Vid"))).as("member full name").containsExactly(duna);
+        // The dog's name: Marc's task on Toby says nothing of Toby.
+        soft.assertThat(ids(followup("nuria", "q", "TOB"))).as("dog").containsExactly(note, toby);
+        // The author's name.
+        soft.assertThat(ids(followup("nuria", "q", "marc"))).as("author").containsExactly(toby);
+        // The text: a task's beyond its excerpt, and the member's note.
+        soft.assertThat(ids(followup("nuria", "q", "trampolí"))).as("task text").containsExactly(duna);
+        soft.assertThat(ids(followup("nuria", "q", "túnels"))).as("note text").containsExactly(note);
+        // Taken literally: «.» is a dot (only the long text has one), «(» no pattern at all.
+        soft.assertThat(ids(followup("nuria", "q", "."))).as("literal dot").containsExactly(duna);
+        soft.assertThat(followup("nuria", "q", "(").path("totalItems").asInt()).as("literal parenthesis").isZero();
+        // With the universal filters, and after a rename in the census (read at request time).
+        soft.assertThat(ids(followup("nuria", "q", "tob", "filter", "kind:eq:TASK"))).as("q and a filter").containsExactly(toby);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s10f-d-toby")), new Update().set("name", "Tobias"), "dogs");
+        soft.assertThat(ids(followup("nuria", "q", "tobias"))).as("renamed dog").containsExactly(note, toby);
+        soft.assertThat(ids(followup("nuria", "q", "Nobody at all"))).as("no match").isEmpty();
+        soft.assertAll();
+    }
+
     // ---------------------------------------------------------------- round 3 (review of 27-09 21:19): every attempt, the author as written
 
     /** The dispatcher's retry of every due N-20 delivery of the club (what its 5-second poll does, without the other clubs). */

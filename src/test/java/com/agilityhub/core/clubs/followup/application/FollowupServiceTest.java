@@ -35,7 +35,8 @@ class FollowupServiceTest {
     private final FollowupCensusAccess census = mock(FollowupCensusAccess.class);
     private final ListEngine lists = mock(ListEngine.class);
     private final DashboardQuery dashboard = mock(DashboardQuery.class);
-    private final FollowupService service = new FollowupService(items, marks, census, lists, dashboard, Clock.fixed(NOW, ZoneOffset.UTC));
+    private final TaskRepository tasks = mock(TaskRepository.class);
+    private final FollowupService service = new FollowupService(items, marks, tasks, census, lists, dashboard, Clock.fixed(NOW, ZoneOffset.UTC));
     private TenantContext.Scope tenant;
     @BeforeEach void open() { tenant = TenantContext.open("club-a"); }
     @AfterEach void close() { tenant.close(); }
@@ -79,6 +80,59 @@ class FollowupServiceTest {
         service.list(new LinkedMultiValueMap<>(), "new");
         verify(lists, times(2)).list(dataset.capture(), any());
         assertThat(dataset.getValue().stages().get(1).get("$set", Document.class).get("unread", Document.class).getList("$and", Document.class)).hasSize(2);
+    }
+
+    /**
+     * E6-T06 step 2 (E75): the list's own search. `q` selects the rows of the dogs and members the census matched by name, the
+     * rows whose author's name contains it (literally: a regex character is quoted), the task rows whose whole text does and
+     * the note rows of the dogs whose note does.
+     */
+    @Test void T_10_18_theSearchMatchesTheCensusNamesTheAuthorAndTheWholeText() {
+        when(marks.find("me")).thenReturn(Optional.empty());
+        when(lists.list(any(ListDataset.class), any())).thenReturn(new ListPage<>(List.of(), 0, 50, 0, 0, List.of()));
+        when(census.search("a.b")).thenReturn(new FollowupCensusAccess.Matches(Set.of("dog-a"), Set.of("member-a"), Set.of("dog-n")));
+        when(tasks.idsContaining("a.b")).thenReturn(List.of("task-1"));
+        service.list(new LinkedMultiValueMap<>(), "me");
+        var dataset = ArgumentCaptor.forClass(ListDataset.class);
+        verify(lists).list(dataset.capture(), any());
+        assertThat(dataset.getValue().definition().searchable()).isNotEmpty();
+        var search = dataset.getValue().search().apply("a.b");
+        assertThat(search.getList("$or", Document.class)).containsExactly(
+                new Document("dogId", new Document("$in", List.of("dog-a"))), new Document("memberId", new Document("$in", List.of("member-a"))),
+                new Document("authorName", new Document("$regex", "\\Qa.b\\E").append("$options", "i")),
+                new Document("kind", "TASK").append("taskId", new Document("$in", List.of("task-1"))),
+                new Document("kind", "MEMBER_NOTE").append("dogId", new Document("$in", List.of("dog-n"))));
+    }
+
+    /**
+     * E6-T06 step 1 (E75): the filter values are the engine's facets over the caller's rows, relabelled in one read per field:
+     * the member's full name, the dog's name, the author's name; a value whose record is gone (or has no name) keeps its label,
+     * and `kind`/`unread` are their values.
+     */
+    @Test void T_10_18_filterValuesAreTheCallersFacetsWithTheirNames() {
+        when(marks.find("me")).thenReturn(Optional.of(new FollowupReadMark("m", "club-a", "me", READ_ALL, List.of("f2"), NOW, NOW)));
+        var facets = new com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues("x", List.of(
+                new com.agilityhub.core.shared.application.contract.ApiContracts.FilterValue("a", "a", 3),
+                new com.agilityhub.core.shared.application.contract.ApiContracts.FilterValue("gone", "gone", 1),
+                new com.agilityhub.core.shared.application.contract.ApiContracts.FilterValue("blank", "blank", 1)));
+        when(lists.facets(any(ListDataset.class), anyString(), any())).thenReturn(facets);
+        when(census.members(List.of("a", "gone", "blank"))).thenReturn(Map.of("a", new FollowupCensusAccess.Member("a", "Laura", "Laura Example", "FEMALE", null, null, "ca"),
+                "blank", new FollowupCensusAccess.Member("blank", "", "", null, null, null, "ca")));
+        when(census.dogs(List.of("a", "gone", "blank"))).thenReturn(Map.of("a", new FollowupCensusAccess.Dog("a", "Duna", "ACTIVE", "m", null)));
+        when(items.authorNames(List.of("a", "gone", "blank"))).thenReturn(Map.of("a", "Estel"));
+        var labels = new LinkedHashMap<String, List<String>>();
+        for (String field : List.of("memberId", "dogId", "authorAccountId", "kind")) {
+            labels.put(field, service.filterValues(field, new LinkedMultiValueMap<>(), "me").values().stream().map(v -> v.label() + "/" + v.count()).toList());
+        }
+        assertThat(labels).containsExactly(Map.entry("memberId", List.of("Laura Example/3", "gone/1", "blank/1")), Map.entry("dogId", List.of("Duna/3", "gone/1", "blank/1")),
+                Map.entry("authorAccountId", List.of("Estel/3", "gone/1", "blank/1")), Map.entry("kind", List.of("a/3", "gone/1", "blank/1")));
+        // The caller's own unread: the facets run over the dataset built from their read mark.
+        var dataset = ArgumentCaptor.forClass(ListDataset.class);
+        verify(lists, times(4)).facets(dataset.capture(), anyString(), any());
+        var unread = dataset.getValue().stages().get(1).get("$set", Document.class).get("unread", Document.class).getList("$and", Document.class);
+        assertThat(unread.get(0)).isEqualTo(new Document("$gt", List.of("$activityAt", Date.from(READ_ALL))));
+        assertThat(unread.get(2)).isEqualTo(new Document("$ne", List.of("$authorAccountId", "me")));
+        verify(census, never()).search(anyString());
     }
 
     @Test void T_10_06_aClickPrunesTheIdsReadAllCoversAndReadAllIsOneWrite() {

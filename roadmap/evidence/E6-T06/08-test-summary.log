@@ -1,0 +1,24 @@
+Read from target/surefire-reports and target/failsafe-reports after `./mvnw -q clean verify` (exit 0, log 07).
+surefire: tests=878 failures=0 errors=0 skipped=0
+failsafe: tests=1268 failures=0 errors=0 skipped=0
+Test classes this task adds or changes:
+  com.agilityhub.core.clubs.followup.api.FollowupIT: tests=26 failures=0 errors=0 skipped=0
+      T_10_18_qSearchesTheMembersAndTheDogsNamesTheAuthorAndTheText PASS
+      T_10_18_T_10_21_filterValuesCountTheWholeFilteredSetWithTheCallersOwnUnread PASS
+  com.agilityhub.core.clubs.bookings.api.InstructorAggregatesIT: tests=10 failures=0 errors=0 skipped=0
+      T_10_19_aRowCarriesItsActivityIdOnlyWhileTheActivitysPageAnswers PASS
+      T_10_20_theWeekCarriesTheClubsTrainingSlotLengthAndNullWithoutFreeTraining PASS
+      T_10_19_activityRowsCarryTheActivityIdThatOpensTheMembersActivityPageAndTheOtherRowsCarryNull PASS
+  com.agilityhub.core.configuration.E6ContractIT: tests=31 failures=0 errors=0 skipped=0
+      T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata PASS
+      T_10_33_disabledTasksAnswers404BeforeTheStubOnEveryTasksRouteAndPurpose PASS
+  com.agilityhub.core.clubs.followup.application.FollowupServiceTest: tests=4 failures=0 errors=0 skipped=0
+      T_10_18_filterValuesAreTheCallersFacetsWithTheirNames PASS
+      T_10_18_theSearchMatchesTheCensusNamesTheAuthorAndTheWholeText PASS
+  com.agilityhub.core.configuration.E6ResponseContractTest: tests=5 failures=0 errors=0 skipped=0
+      T_10_21_formsKeepEveryDocumentedFieldDuringRoundTrip PASS
+  com.agilityhub.core.configuration.E5BackOfficeContractTest: tests=6 failures=0 errors=0 skipped=0
+      CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch PASS
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  com.agilityhub.core.clubs.activities.application.ActivityIT: tests=33 failures=0 errors=0 skipped=0
+  com.agilityhub.core.arch.ArchitectureTest: tests=14 failures=0 errors=0 skipped=0

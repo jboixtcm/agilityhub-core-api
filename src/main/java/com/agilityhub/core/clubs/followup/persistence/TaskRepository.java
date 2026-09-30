@@ -28,6 +28,12 @@ public class TaskRepository extends TenantRepository<Task> {
                 .named("task_club_dog_deleted_state_created"));
     }
     private Query live(String id) { return tenantQuery().addCriteria(Criteria.where("_id").is(id).and("deletedAt").is(null)); }
+    /** D14's search (E6-T06): the ids of the live tasks whose whole text contains {@code text}, any case, taken literally. */
+    public List<String> idsContaining(String text) {
+        var query = tenantQuery().addCriteria(Criteria.where("deletedAt").is(null).and("text").regex(java.util.regex.Pattern.quote(text), "i"));
+        query.fields().include("_id");
+        return mongo.find(query, Document.class, "tasks").stream().map(task -> task.getString("_id")).toList();
+    }
     private Optional<Task> modify(Query query, Update update, Instant now) {
         return Optional.ofNullable(mongo.findAndModify(query, update.set("updatedAt", now).inc("version", 1), FindAndModifyOptions.options().returnNew(true), Task.class));
     }

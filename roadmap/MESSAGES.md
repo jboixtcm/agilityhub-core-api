@@ -2372,3 +2372,48 @@ Blocking: no.
 - **Questions** (report): Q1 whether T-11-12's «N-02 sense `[[link]]`» row of S11 §11 should now name N-08a; Q2 the export's
   applicant address.
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · verifications of 30-09 (night, second pass)
+@executor
+- **E7-T03 verified** (round 2). Its review's three new findings go to **E7-T06** (thread C, `ready`, order 37); E7-T04 now waits for it. The findings are a stored pre-E76 N-02 template, N-03's applicant surnames and the account's own `locale`.
+- **E7-T03's questions (ruling E79):**
+  1. S11 R-11-12 and T-11-12 now say that N-02's `link` is in the e-mail copy only, and T-11-12's example is N-08a without `[[admin_text]]`. The sentence «`requiredVariables`: N-02 `link`, N-08a `admin_text`» that `NotificationCatalogContractTest` reads is unchanged.
+  2. The applicant's cell in the log's export: accepted. It is the list's cell (the address).
+- **E7-T06 is wider now.** A second review of E7-T03 (`roadmap/reviews/E7-T03-20260930-2214-claude.md`) adds three things:
+  - templates that E7-T02 stored, whose `FEMALE` keys no longer match (step 1);
+  - N-01's surnames (step 2);
+  - two ICU arguments in the seed that are outside their catalog rows (step 5, new).
+  It came from the third loop, whose first session still ran the kit's older review step.
+- **E5-T30 → changes_requested** (round 2, five items):
+  1. an abandoned `IN_PROGRESS` claim is taken over once its lease has passed (every keyed route, `IdempotencyFilter`);
+  2. a stranded `PENDING` checkout expires, even with the provider off;
+  3. the payment's time decides, not the callback's;
+  4. a checkout smoke;
+  5. a full clean verify.
+- **Docs:**
+  - DECISIONS v3.1 (**E79**);
+  - CONVENCIONS_API §7 (`IN_PROGRESS` and the claim's lease);
+  - S04 R-04-26 (the stranded session and the late confirmation);
+  - S11 R-11-12, T-11-12, §2 row 30, T-11-36 and §10;
+  - CATALEG_MODULS (the `FAQ` row's app column only).
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E6-T06
+@organizer **E6-T06 is done** (`awaiting_verification`; the step → test table is in the report). Steps 1–4, ruling E75.
+1. **`GET /followup/filter-values`** (INSTRUCTOR, ADMIN; `TASKS`): `kind`, `memberId`, `dogId`, `authorAccountId`,
+   `unread`, with `q` and `filter`. Counts are over the whole filtered set; `unread` is the caller's own. Labels: full
+   name, dog name, author name.
+2. **D14 searches:** `q` matches the member's full name, the dog's name, the author's name and the whole task or note text.
+   The names come through the census port (follow-up still never reads `dogs`/`members`); the list engine takes a list's
+   own search (`ListDataset.withSearch`).
+3. **`InstructorWeek.trainingSlotMinutes`:** `training.slotMinutes`; `null` with `FREE_TRAINING` off.
+4. **`HistoryItem.activityId`:** only for a `PUBLISHED` or `FINISHED` activity (`ActivityState.memberPage()`, the page's
+   own rule). Otherwise `null`: E6-T05's in-time-then-club-cancelled row, a `CANCELLED_BY_CLUB` row, an unpublished one.
+- **Before the fix:** every new or changed test fails on the unchanged code (logs `01`, `02`).
+- **Verify:** `./mvnw -q clean verify` exits 0 (878 unit, 1268 integration tests); `bin/e6-smoke` exits 0 with new checks
+  of steps 1–3 (log `10`).
+- **Snapshot:** byte-identical on regeneration. The diff is 1 operation added, 2 descriptions, `trainingSlotMinutes` and
+  the `activityId` description (logs `06`, `11`).
+- **Question (not blocking):** the search reads the whole text, so a row can match on a word beyond its 120-character
+  excerpt. Assumed right; searching only the excerpt is a small change.
+Blocking: no.

@@ -84,8 +84,8 @@ class E5BackOfficeContractTest {
                 "GET /api/v1/training-bookings", "GET /api/v1/training-bookings/export", "GET /api/v1/training-bookings/filter-values",
                 "GET /api/v1/ring-blocks", "GET /api/v1/ring-blocks/filter-values",
                 "GET /api/v1/faq-entries/filter-values",
-                // D14: its search is api E6-T06 (ruling E75).
-                "GET /api/v1/followup",
+                // D14 and its filter values (E6-T06, ruling E75).
+                "GET /api/v1/followup", "GET /api/v1/followup/filter-values",
                 // Contract-only routes: their implementation (and search) is deferred.
                 "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/erasure-requests", "GET /api/v1/platform/security-events");
         for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs",
