@@ -1,0 +1,404 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 13 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1015 source files with javac [debug parameters release 21] to target/classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java:[15,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java:[16,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[15,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[16,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[17,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[18,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[19,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[49,29] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[52,66] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[145,29] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[43,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[44,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ParameterRepository.java:[39,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/WeekRepository.java:[15,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/CatalogRepository.java:[15,46] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java:[15,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java:[16,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[16,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[17,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[19,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[20,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ExportWorkRepository.java:[16,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ExportWorkRepository.java:[17,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[40,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[41,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[42,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[35,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[36,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[37,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/AttachmentRepository.java:[34,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/AttachmentRepository.java:[37,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/TaskRepository.java:[27,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[24,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[28,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[20,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[21,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[23,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java:[107,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java:[108,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MembershipRepository.java:[41,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[41,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[42,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[43,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[39,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[41,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[42,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[43,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[44,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/SeatHoldRepository.java:[21,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/SeatHoldRepository.java:[22,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[32,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[33,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[35,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[56,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[57,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[59,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[61,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/PlanRepository.java:[13,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/PriceRepository.java:[18,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/SignupNotificationAdmissionRepository.java:[21,58] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[23,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobLockRepository.java:[22,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/SavedViewRepository.java:[14,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/PushSubscriptionRepository.java:[18,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/PushSubscriptionRepository.java:[19,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/MessageTemplateRepository.java:[22,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/MessageTemplateRepository.java:[24,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/content/persistence/ClubPageRepository.java:[16,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItemRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItemRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupReadMarkRepository.java:[25,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/WeekTemplateRepository.java:[15,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistence.java:[33,26] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[28,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[29,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[30,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[16,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[18,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[24,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[30,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[60,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[61,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[62,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[64,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/ImpersonationGrantRepository.java:[20,49] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/HandoffCodeRepository.java:[27,42] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/HandoffCodeRepository.java:[28,42] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/OidcStateRepository.java:[17,33] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/SecurityEventRepository.java:[21,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/IdempotencyRepository.java:[22,48] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/IdempotencyRepository.java:[24,48] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/OutboxRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/application/CatalogSeeds.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/application/CatalogSeeds.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/OutboxRepository.java: /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/OutboxRepository.java has additional uses or overrides of a deprecated API that is marked for removal.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/application/PlanningContext.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/application/PlanningContext.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 45 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 298 source files with javac [debug parameters release 21] to target/test-classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[74,28] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[81,19] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[87,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[103,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ agilityhub-core-api ---
+[INFO] Building jar: /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.5.16:repackage (repackage) @ agilityhub-core-api ---
+[INFO] Replacing main artifact /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar.original
+[INFO] 
+[INFO] --- failsafe:3.5.6:integration-test (default) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.clubs.bookings.api.BackOfficeContractIT
+18:57:08.243 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.BackOfficeContractIT]: BackOfficeContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:57:08.352 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.BackOfficeContractIT
+18:57:08.408 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+18:57:08.409 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+18:57:08.412 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+18:57:08.496 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+18:57:08.623 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+18:57:08.623 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+18:57:08.632 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+18:57:08.854 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+18:57:08.967 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+18:57:09.045 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: d633c8ebf3c3ed7827a1d8134c57ca080c73f2c6e69fce93a2b77c7f219854ce
+18:57:09.242 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.387805S
+18:57:09.245 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+18:57:09.246 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+18:57:09.246 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+18:57:09.246 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+18:57:09.295 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 94ec407ca28f653ca740b36e6b36acb53cf44b9e8167eef5a185580f82909fe9
+18:57:09.909 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.662815S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-30T18:57:10.637+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.b.api.BackOfficeContractIT       : Starting BackOfficeContractIT using Java 21.0.12.1 with PID 6904 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-30T18:57:10.637+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.b.api.BackOfficeContractIT       : The following 1 profile is active: "test"
+2026-09-30T18:57:11.803+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-30T18:57:11.860+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 54 ms. Found 0 MongoDB repository interfaces.
+2026-09-30T18:57:12.283+02:00  INFO 6904 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3f5e64c9], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1f847d9e, com.mongodb.Jep395RecordCodecProvider@3d00e981, com.mongodb.KotlinCodecProvider@6265a548]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59385], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@2e51ede1], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-30T18:57:12.291+02:00  INFO 6904 --- [agilityhub-core-api] [localhost:59385] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59385, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=10209583, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=94ec407ca28f:27017, hosts=[94ec407ca28f:27017], passives=[], arbiters=[], primary='94ec407ca28f:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd3f65dca8d90bb30b2b09, counter=6}, lastWriteDate=Wed Sep 30 18:57:10 CEST 2026, lastUpdateTimeNanos=394049606864666}
+2026-09-30T18:57:14.823+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-30T18:57:14.823+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-30T18:57:14.824+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-30T18:57:14.859+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.b.api.BackOfficeContractIT       : Started BackOfficeContractIT in 4.342 seconds (process running for 6.912)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-09-30T18:57:16.392+02:00  WARN 6904 --- [agilityhub-core-api] [           main] c.n.schema.UnknownKeywordFactory         : Unknown keyword components - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.75 s -- in com.agilityhub.core.clubs.bookings.api.BackOfficeContractIT
+[INFO] Running com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT
+2026-09-30T18:57:20.969+02:00  INFO 6904 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT]: JobTriggerRetryIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T18:57:20.972+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-30T18:57:20.991+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.bookings.api.JobTriggerRetryIT   : Starting JobTriggerRetryIT using Java 21.0.12.1 with PID 6904 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-30T18:57:20.992+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.bookings.api.JobTriggerRetryIT   : The following 1 profile is active: "test"
+2026-09-30T18:57:21.300+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-30T18:57:21.330+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 MongoDB repository interfaces.
+2026-09-30T18:57:21.395+02:00  INFO 6904 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@735ea0a4], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1f847d9e, com.mongodb.Jep395RecordCodecProvider@3d00e981, com.mongodb.KotlinCodecProvider@6265a548]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59385], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@3ef173c], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-30T18:57:21.399+02:00  INFO 6904 --- [agilityhub-core-api] [localhost:59385] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59385, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=3647333, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=94ec407ca28f:27017, hosts=[94ec407ca28f:27017], passives=[], arbiters=[], primary='94ec407ca28f:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd3f65dca8d90bb30b2b09, counter=6}, lastWriteDate=Wed Sep 30 18:57:20 CEST 2026, lastUpdateTimeNanos=394058716722333}
+2026-09-30T18:57:22.663+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-30T18:57:22.663+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-30T18:57:22.665+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 2 ms
+2026-09-30T18:57:22.697+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.bookings.api.JobTriggerRetryIT   : Started JobTriggerRetryIT in 1.724 seconds (process running for 14.751)
+2026-09-30T18:57:22.862+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 24 dogs
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.746 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT
+[ERROR] com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT.T_15_08_CONVENCIONS_API_7_aKeyedTriggerWhoseAnswerWasLostAnswersItsOwnRunToTheRetry -- Time elapsed: 0.565 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "736d53db-39f8-48bd-9489-9b3880d4ce6f"
+ but was: "40d1512b-6214-45a3-89cf-1f746081c272"
+	at com.agilityhub.core.clubs.bookings.api.JobTriggerRetryIT.T_15_08_CONVENCIONS_API_7_aKeyedTriggerWhoseAnswerWasLostAnswersItsOwnRunToTheRetry(JobTriggerRetryIT.java:54)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT
+2026-09-30T18:57:23.720+02:00  INFO 6904 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT]: TrainingRegisterContractIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T18:57:23.783+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-30T18:57:23.808+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.t.a.TrainingRegisterContractIT   : Starting TrainingRegisterContractIT using Java 21.0.12.1 with PID 6904 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-30T18:57:23.809+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.t.a.TrainingRegisterContractIT   : The following 1 profile is active: "test"
+2026-09-30T18:57:24.182+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-30T18:57:24.205+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 22 ms. Found 0 MongoDB repository interfaces.
+2026-09-30T18:57:24.271+02:00  INFO 6904 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@429c9245], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1f847d9e, com.mongodb.Jep395RecordCodecProvider@3d00e981, com.mongodb.KotlinCodecProvider@6265a548]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59385], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@785bb7e9], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-30T18:57:24.273+02:00  INFO 6904 --- [agilityhub-core-api] [localhost:59385] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59385, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1687708, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=94ec407ca28f:27017, hosts=[94ec407ca28f:27017], passives=[], arbiters=[], primary='94ec407ca28f:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd3f65dca8d90bb30b2b09, counter=6}, lastWriteDate=Wed Sep 30 18:57:23 CEST 2026, lastUpdateTimeNanos=394061591189166}
+2026-09-30T18:57:24.961+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-30T18:57:24.962+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-30T18:57:24.962+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-30T18:57:24.976+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.t.a.TrainingRegisterContractIT   : Started TrainingRegisterContractIT in 1.19 seconds (process running for 17.029)
+2026-09-30T18:57:25.012+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 24 dogs
+2026-09-30T18:57:26.233+02:00  WARN 6904 --- [agilityhub-core-api] [           main] c.n.schema.UnknownKeywordFactory         : Unknown keyword example - you should define your own Meta Schema. If the keyword is irrelevant for validation, just use a NonValidationKeyword or if it should generate annotations AnnotationKeyword
+[ERROR] Tests run: 6, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 2.711 s <<< FAILURE! -- in com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT
+[ERROR] com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_27_theBlocksSearchTheRingAndTheNote -- Time elapsed: 0.232 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET /ring-blocks?q=CARRET {"code":"INVALID_FILTER","message":"El filtre no és vàlid.","details":{},"traceId":"245f9b68-e82c-47b6-969d-9d0ca0fead13"}] 
+expected: 200
+ but was: 400
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.call(TrainingFixtures.java:164)
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.call(TrainingFixtures.java:157)
+	at com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_27_theBlocksSearchTheRingAndTheNote(TrainingRegisterContractIT.java:192)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_30_theRegisterSearchesTheMemberTheDogAndTheRing -- Time elapsed: 0.219 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[GET /training-bookings?q=serrallonga {"code":"INVALID_FILTER","message":"El filtre no és vàlid.","details":{},"traceId":"70ad731e-e948-4310-96e0-3cea9e5aba99"}] 
+expected: 200
+ but was: 400
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.call(TrainingFixtures.java:164)
+	at com.agilityhub.core.clubs.training.api.TrainingFixtures.call(TrainingFixtures.java:157)
+	at com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_30_theRegisterSearchesTheMemberTheDogAndTheRing(TrainingRegisterContractIT.java:168)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_30_theRegisterExportHasTheEndAndTheMemberNumberColumns -- Time elapsed: 0.182 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"INVALID_FILTER","message":"The filter is invalid.","details":{},"traceId":"a286cb42-9844-4225-8a00-2118f80a0a97"}] 
+expected: 200
+ but was: 400
+	at com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.export(TrainingRegisterContractIT.java:118)
+	at com.agilityhub.core.clubs.training.api.TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_30_theRegisterExportHasTheEndAndTheMemberNumberColumns(TrainingRegisterContractIT.java:145)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.common.api.UniversalListsIT
+2026-09-30T18:57:26.431+02:00  INFO 6904 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.common.api.UniversalListsIT]: UniversalListsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T18:57:26.458+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.common.api.UniversalListsIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-30T18:57:26.469+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.clubs.common.api.UniversalListsIT  : Starting UniversalListsIT using Java 21.0.12.1 with PID 6904 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-30T18:57:26.469+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.clubs.common.api.UniversalListsIT  : The following 1 profile is active: "test"
+2026-09-30T18:57:26.689+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-30T18:57:26.714+02:00  INFO 6904 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 24 ms. Found 0 MongoDB repository interfaces.
+2026-09-30T18:57:26.788+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-30T18:57:26.795+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-30T18:57:26.795+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-30T18:57:26.819+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-30T18:57:26.819+02:00  INFO 6904 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 349 ms
+2026-09-30T18:57:26.834+02:00  INFO 6904 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@3e7a7ab8], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1f847d9e, com.mongodb.Jep395RecordCodecProvider@3d00e981, com.mongodb.KotlinCodecProvider@6265a548]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:59385], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@746948a0], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-30T18:57:26.837+02:00  INFO 6904 --- [agilityhub-core-api] [localhost:59385] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:59385, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2341834, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=94ec407ca28f:27017, hosts=[94ec407ca28f:27017], passives=[], arbiters=[], primary='94ec407ca28f:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd3f65dca8d90bb30b2b09, counter=6}, lastWriteDate=Wed Sep 30 18:57:26 CEST 2026, lastUpdateTimeNanos=394064154868583}
+2026-09-30T18:57:26.950+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-09-30T18:57:27.346+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring TestDispatcherServlet ''
+2026-09-30T18:57:27.346+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-30T18:57:27.347+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-09-30T18:57:27.387+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 59403 (http) with context path '/'
+2026-09-30T18:57:27.417+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-09-30T18:57:27.417+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-30T18:57:27.418+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-09-30T18:57:27.428+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-30T18:57:27.428+02:00  INFO 6904 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 39 ms
+2026-09-30T18:57:27.435+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-09-30T18:57:27.452+02:00  INFO 6904 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 59404 (http) with context path '/'
+2026-09-30T18:57:27.460+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.clubs.common.api.UniversalListsIT  : Started UniversalListsIT in 1.001 seconds (process running for 19.513)
+2026-09-30T18:57:27.501+02:00  INFO 6904 --- [agilityhub-core-api] [           main] c.a.c.c.c.persistence.CensusPersistence  : Dog.nameKey migrated for 27 dogs
+2026-09-30T18:57:27.865+02:00  INFO 6904 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-30T18:57:27.866+02:00  INFO 6904 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-30T18:57:27.866+02:00  INFO 6904 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+[ERROR] Tests run: 35, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 4.725 s <<< FAILURE! -- in com.agilityhub.core.clubs.common.api.UniversalListsIT
+[ERROR] com.agilityhub.core.clubs.common.api.UniversalListsIT.S03_R_03_24_T_03_11_theDogsExportsOwnerCellIsTheOwnersFullName -- Time elapsed: 0.133 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "Fictional Example 000"
+ but was: "member-0; Fictional Example 000; Fictional; 0; Activo"
+	at com.agilityhub.core.clubs.common.api.UniversalListsIT.S03_R_03_24_T_03_11_theDogsExportsOwnerCellIsTheOwnersFullName(UniversalListsIT.java:223)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   JobTriggerRetryIT.T_15_08_CONVENCIONS_API_7_aKeyedTriggerWhoseAnswerWasLostAnswersItsOwnRunToTheRetry:54 
+expected: "736d53db-39f8-48bd-9489-9b3880d4ce6f"
+ but was: "40d1512b-6214-45a3-89cf-1f746081c272"
+[ERROR]   UniversalListsIT.S03_R_03_24_T_03_11_theDogsExportsOwnerCellIsTheOwnersFullName:223 
+expected: "Fictional Example 000"
+ but was: "member-0; Fictional Example 000; Fictional; 0; Activo"
+[ERROR]   TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_27_theBlocksSearchTheRingAndTheNote:192->TrainingFixtures.call:157->TrainingFixtures.call:164 [GET /ring-blocks?q=CARRET {"code":"INVALID_FILTER","message":"El filtre no és vàlid.","details":{},"traceId":"245f9b68-e82c-47b6-969d-9d0ca0fead13"}] 
+expected: 200
+ but was: 400
+[ERROR]   TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_30_theRegisterExportHasTheEndAndTheMemberNumberColumns:145->export:118 [{"code":"INVALID_FILTER","message":"The filter is invalid.","details":{},"traceId":"a286cb42-9844-4225-8a00-2118f80a0a97"}] 
+expected: 200
+ but was: 400
+[ERROR]   TrainingRegisterContractIT.CONVENCIONS_API_4_T_09_30_theRegisterSearchesTheMemberTheDogAndTheRing:168->TrainingFixtures.call:157->TrainingFixtures.call:164 [GET /training-bookings?q=serrallonga {"code":"INVALID_FILTER","message":"El filtre no és vàlid.","details":{},"traceId":"70ad731e-e948-4310-96e0-3cea9e5aba99"}] 
+expected: 200
+ but was: 400
+[INFO] 
+[ERROR] Tests run: 51, Failures: 5, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- failsafe:3.5.6:verify (default) @ agilityhub-core-api ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  34.273 s
+[INFO] Finished at: 2026-09-30T18:57:31+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-failsafe-plugin:3.5.6:verify (default) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

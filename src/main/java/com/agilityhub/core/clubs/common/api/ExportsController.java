@@ -178,7 +178,7 @@ public class ExportsController {
     @GetMapping("/api/v1/notifications/export")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},
-            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, exportable = false,
+            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, searchable = false, exportable = false,
             fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export notifications",

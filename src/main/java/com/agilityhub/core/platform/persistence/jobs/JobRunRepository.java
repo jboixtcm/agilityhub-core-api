@@ -24,6 +24,18 @@ public class JobRunRepository extends TenantRepository<JobRun> {
                 .partial(PartialIndexFilter.of(Criteria.where("exclusive").is(true))).named("job_run_occurrence"));
         indexes.ensureIndex(new Index().on("clubId", ASC).on("job", ASC).on("startedAt", ASC).named("job_run_club_job_started"));
         indexes.ensureIndex(new Index().on("finishedAt", ASC).named("job_run_finished"));
+        indexes.ensureIndex(new Index().on("clubId", ASC).on("requestRef", ASC)
+                .partial(PartialIndexFilter.of(Criteria.where("requestRef").exists(true))).named("job_run_request"));
+    }
+
+    /**
+     * E5-T29 round 2 (CONVENCIONS_API §7, E75): the run of the process that the keyed request {@code requestRef} started since
+     * {@code since} (the key's lifetime). Empty without a reference.
+     */
+    public Optional<JobRun> forRequest(JobName job, String requestRef, Instant since) {
+        if (requestRef == null) { return Optional.empty(); }
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("requestRef").is(requestRef).and("job").is(job)
+                .and("startedAt").gte(since)).with(Sort.by(Sort.Direction.ASC, "startedAt", "_id")).limit(1), JobRun.class));
     }
 
     /**

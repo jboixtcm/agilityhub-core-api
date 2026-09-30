@@ -26,9 +26,19 @@ public class SchedulingLists implements ListProvider {
         for(String f:session?List.of("date","state","ringId","instructorId","levelId","weekId"):List.of("ringId","kind","reason","state","from","to"))
             filters.put(f,new ListDefinition.Field(f.equals("instructorId")?"instructorIds":f.equals("levelId")?"levelIds":f,f.equals("date")?ListDefinition.Type.DATE:Set.of("from","to").contains(f)?ListDefinition.Type.INSTANT:ListDefinition.Type.TEXT));
         var sorts=session?Map.of("startsAt","startsAt","date","date"):Map.of("from","from");
-        var definition=new ListDefinition(key,filters,sorts,List.of(),fields,fields,List.of(session?"startsAt,asc":"from,asc"),Set.copyOf(fields));
+        // CONVENCIONS_API §4, S09 §2 (ruling E75): the blocks search the ring's name (a deactivated ring's included) and the note, which
+        // only the staff read: a member's `q` never matches a note. The class sessions have no search, so a non-blank `q` is INVALID_FILTER.
+        List<String> search=session?List.of():projection.member()?List.of("ringSearchName"):List.of("ringSearchName","note");
+        var definition=new ListDefinition(key,filters,sorts,search,fields,fields,List.of(session?"startsAt,asc":"from,asc"),Set.copyOf(fields));
         var output=new LinkedHashMap<String,Object>(); fields.forEach(f -> output.put(f,1)); output.put("id","$_id");
         var stages=new ArrayList<Document>(); if(!session && !projection.enabled(Module.ACTIVITIES)) stages.add(new Document("$match",new Document("reason",new Document("$ne","ACTIVITY"))));
+        if(!session) {
+            stages.add(new Document("$lookup",new Document("from","rings").append("let",new Document("ref","$ringId").append("club","$clubId"))
+                    .append("pipeline",List.of(new Document("$match",new Document("$expr",new Document("$and",List.of(
+                            new Document("$eq",List.of("$clubId","$$club")),new Document("$eq",List.of("$_id","$$ref")))))),
+                            new Document("$project",new Document("name",1)))).append("as","ringRows")));
+            stages.add(new Document("$set",new Document("ringSearchName",new Document("$ifNull",List.of(new Document("$arrayElemAt",List.of("$ringRows.name",0)),"")))));
+        }
         return new ListDataset(definition,session?"class_sessions":"ring_blocks",stages,output,Set.of(),session?(field,value)->Objects.toString(value,""):this::blockLabel);
     }
     /** `GET /ring-blocks/filter-values` labels (E5-T29): the ring's name, a deactivated ring's included; any other field its value. */

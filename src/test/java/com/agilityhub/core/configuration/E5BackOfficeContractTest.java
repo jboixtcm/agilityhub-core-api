@@ -45,15 +45,64 @@ class E5BackOfficeContractTest {
         assertThat(nullable("RingBlockListItem", "ringColor")).containsExactlyInAnyOrder("string", "null");
     }
 
-    /** Step 6 (CONVENCIONS_API §4): the three filter-values routes take `field`, `q` and `filter`, never `fields`, and answer `FilterValues`. */
+    /**
+     * Step 6 (CONVENCIONS_API §4): the three filter-values routes take `field` and `filter`, never `fields`, and answer `FilterValues`.
+     * Round 2 (E75): `q` too where the list searches (the register and the blocks), not on the bookings.
+     */
     @Test void CONVENCIONS_API_4_theRegisterAndBookingListsPublishTheirFilterValues() {
         for (String list : List.of("bookings", "training-bookings", "ring-blocks")) {
             var operation = document.path("paths").path("/api/v1/" + list + "/filter-values").path("get");
-            assertThat(operation.path("parameters").findValuesAsText("name")).as(list).containsExactly("field", "q", "filter");
+            assertThat(operation.path("parameters").findValuesAsText("name")).as(list)
+                    .containsExactlyElementsOf(list.equals("bookings") ? List.of("field", "filter") : List.of("field", "q", "filter"));
             assertThat(operation.has("x-fields")).as(list).isFalse();
             assertThat(operation.path("x-filterable")).as(list).isEqualTo(document.path("paths").path("/api/v1/" + list).at("/get/x-filterable"));
             assertThat(operation.at("/responses/200/content/application~1json/schema/$ref").asText()).as(list).isEqualTo("#/components/schemas/FilterValues");
             assertThat(operation.at("/responses/400/description").asText()).as(list).contains("INVALID_FILTER");
+        }
+    }
+
+    /**
+     * Round 2 (ruling E75, CONVENCIONS_API §4 as amended 30-09): `q` is declared exactly on the operations whose list searches (each
+     * list's searchable paths, read in its `ListDefinition` or its catalog query). The lists without search do not declare it:
+     * the bookings and their filter values, the class sessions, the weeks, the attendances, a process's runs, and the notification
+     * log with its filter values and export. `BackOfficeContractIT` checks that they answer a non-blank `q` with 400 INVALID_FILTER,
+     * and `TrainingRegisterContractIT` that the register and the blocks search.
+     */
+    @Test void CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch() {
+        var declared = new java.util.TreeSet<String>();
+        document.path("paths").fields().forEachRemaining(path -> path.getValue().fields().forEachRemaining(operation -> {
+            if (operation.getValue().path("parameters").findValuesAsText("name").contains("q")) { declared.add(operation.getKey().toUpperCase() + " " + path.getKey()); }
+        }));
+        assertThat(declared).containsExactlyInAnyOrder(
+                // The census (S03), the audit (S14), the activities (S07), the register and the blocks (S09 §2), the FAQ categories (S05).
+                "GET /api/v1/members", "GET /api/v1/members/export", "POST /api/v1/members/export", "GET /api/v1/members/filter-values",
+                "GET /api/v1/dogs", "GET /api/v1/dogs/export", "POST /api/v1/dogs/export", "GET /api/v1/dogs/filter-values",
+                "GET /api/v1/audit-entries", "GET /api/v1/audit-entries/export", "POST /api/v1/audit-entries/export", "GET /api/v1/audit-entries/filter-values",
+                "GET /api/v1/members/{id}/audit-entries",
+                "GET /api/v1/activities", "GET /api/v1/activities/export", "GET /api/v1/activities/filter-values", "GET /api/v1/activities/{id}/registrations",
+                "GET /api/v1/activity-registrations/export",
+                "GET /api/v1/training-bookings", "GET /api/v1/training-bookings/export", "GET /api/v1/training-bookings/filter-values",
+                "GET /api/v1/ring-blocks", "GET /api/v1/ring-blocks/filter-values",
+                "GET /api/v1/faq-entries/filter-values",
+                // D14: its search is api E6-T06 (ruling E75).
+                "GET /api/v1/followup",
+                // Contract-only routes: their implementation (and search) is deferred.
+                "GET /api/v1/invoices/export", "GET /api/v1/platform/audit-entries", "GET /api/v1/platform/erasure-requests", "GET /api/v1/platform/security-events");
+        for (String without : List.of("/bookings", "/bookings/filter-values", "/class-sessions", "/weeks", "/attendances", "/jobs/{name}/runs",
+                "/notifications", "/notifications/filter-values", "/notifications/export")) {
+            assertThat(document.path("paths").has("/api/v1" + without)).as(without).isTrue();
+            assertThat(declared).as(without).doesNotContain("GET /api/v1" + without);
+        }
+    }
+
+    /** Round 2 (review #2): the register's export offers the end and the member's number as columns, not among the defaults. */
+    @Test void CONVENCIONS_API_4_theRegisterExportPublishesItsNewColumns() {
+        for (String path : List.of("/api/v1/training-bookings", "/api/v1/training-bookings/export")) {
+            var columns = document.path("paths").path(path).at("/get/x-columns");
+            assertThat(columns.findValuesAsText("key")).as(path).contains("endsAt", "endsAtLocal", "memberNumber");
+            for (var column : columns) {
+                if (List.of("endsAt", "endsAtLocal", "memberNumber").contains(column.path("key").asText())) { assertThat(column.path("defaultVisible").asBoolean()).isFalse(); }
+            }
         }
     }
 

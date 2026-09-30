@@ -52,7 +52,7 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         var stages = pipeline(data, query);
         stages.add(new Document("$sort", sort(data, query)));
         stages.add(new Document("$limit", limit));
-        stages.add(project(data, fields));
+        stages.add(project(data, fields, data.exportProjection()));
         var cursor = mongo.getCollection(data.collection()).aggregate(stages).allowDiskUse(true)
                 .maxTime(5, TimeUnit.MINUTES).batchSize(200).iterator();
         return java.util.stream.StreamSupport.stream(java.util.Spliterators.spliteratorUnknownSize(cursor, Spliterator.ORDERED), false)
@@ -147,10 +147,12 @@ public class MongoListRepository extends TenantRepository<MongoListRepository.Li
         sort.putIfAbsent("_id", 1);
         return sort;
     }
-    private Document project(ListDataset data, List<String> fields) {
+    private Document project(ListDataset data, List<String> fields) { return project(data, fields, Map.of()); }
+    /** {@code overrides}: an export's own expression for a column (`ListDataset.exportProjection`, S03 R-03-24). */
+    private Document project(ListDataset data, List<String> fields, Map<String, Object> overrides) {
         var projection = new Document("_id", 0).append("id", "$_id");
         data.projection().forEach((name, expression) -> {
-            if (fields.isEmpty() || fields.contains(name)) { projection.put(name, expression); }
+            if (fields.isEmpty() || fields.contains(name)) { projection.put(name, overrides.getOrDefault(name, expression)); }
         });
         return new Document("$project", projection);
     }

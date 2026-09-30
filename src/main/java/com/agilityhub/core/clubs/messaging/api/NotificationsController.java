@@ -43,13 +43,14 @@ public class NotificationsController {
     @GetMapping("/api/v1/notifications")
     @PreAuthorize(ADMIN)
     @ListContract(filterable = {"code", "category", "channel", "status", "memberId", "createdAt"}, sortable = {"createdAt"},
-            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, exportable = true,
+            columns = {"createdAt*", "code*", "recipient*", "channels*", "readAt"}, paged = true, searchable = false, exportable = true,
             fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"})
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "notifications", description = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log "
             + "(R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel "
             + "sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An "
-            + "undeclared filter, sort or fields key is 400 INVALID_FILTER." + TENANT,
+            + "undeclared filter, sort or fields key is 400 INVALID_FILTER. The log has no free-text search: it declares no q, and a non-blank one is "
+            + "INVALID_FILTER (CONVENCIONS_API §4, E75)." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "NotificationPage",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = NotificationPage.class))))
     public ListPage<Map<String, Object>> notifications(@Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
@@ -63,9 +64,9 @@ public class NotificationsController {
     @ContractErrors({INVALID_FILTER})
     @Operation(summary = "notificationFilterValues", description = "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their "
             + "counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → "
-            + "INVALID_FILTER." + TENANT,
+            + "INVALID_FILTER. No q: the log has no free-text search, and a non-blank q is INVALID_FILTER (E75)." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
-    public FilterValues notificationFilterValues(@RequestParam String field, @RequestParam(required = false) String q, @RequestParam(required = false) List<String> filter,
+    public FilterValues notificationFilterValues(@RequestParam String field, @RequestParam(required = false) List<String> filter,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> params) {
         access.tenant();
         access.filterValues(field, params);

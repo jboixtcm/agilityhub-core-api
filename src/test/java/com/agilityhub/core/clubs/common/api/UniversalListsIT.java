@@ -209,6 +209,27 @@ class UniversalListsIT extends AbstractIntegrationTest {
         assertThat(headers(admin(get("/api/v1/dogs/export").param("format", "xlsx").param("fields", "id,name")))).hasSize(1);
         assertThat(headers(admin(get("/api/v1/dogs/export").param("format", "xlsx")))).as("the default columns").hasSizeGreaterThan(1);
     }
+    /**
+     * E5-T29 round 2 (review #3, S03 R-03-24): the dogs export's «Titular» cell is the owner's full name, in the xlsx and the pdf, never
+     * the values of the owner object (its id, first name, number and status). The list keeps sending the owner object.
+     */
+    @Test void S03_R_03_24_T_03_11_theDogsExportsOwnerCellIsTheOwnersFullName() throws Exception {
+        byte[] file = admin(get("/api/v1/dogs/export").param("format", "xlsx").param("columns", "name,owner").param("filter", "id:in:dog-a"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(file))) {
+            var sheet = workbook.getSheetAt(0);
+            assertThat(sheet.getRow(0).getCell(1).getStringCellValue()).isEqualTo("Titular");
+            assertThat(sheet.getRow(1).getCell(0).getStringCellValue()).isEqualTo("Duna");
+            assertThat(sheet.getRow(1).getCell(1).getStringCellValue()).isEqualTo("Fictional Example 000");
+        }
+        byte[] pdf = admin(get("/api/v1/dogs/export").param("format", "pdf").param("columns", "name,owner").param("filter", "id:in:dog-a"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+        try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(document)).contains("Titular: Fictional Example 000").doesNotContain("member-0");
+        }
+        admin(get("/api/v1/dogs").param("filter", "id:in:dog-a")).andExpect(jsonPath("$.items[0].owner.id").value("member-0"))
+                .andExpect(jsonPath("$.items[0].owner.fullName").value("Fictional Example 000")).andExpect(jsonPath("$.items[0].owner.firstName").value("Fictional"));
+    }
     @Test void T_03_11_5000InlineAnd5001DurableHandoff() throws Exception {
         mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "members");
         var rows = new ArrayList<Document>(); for (int i = 0; i < 5000; i++) { rows.add(member(i)); } mongo.insert(rows, "members");

@@ -47,7 +47,8 @@ public class JobsController {
     @GetMapping("/api/v1/jobs/{name}/runs")
     @PreAuthorize(ADMIN)
     @ListContract(filterable = {"status", "scheduledFor", "trigger", "dryRun"}, sortable = {"scheduledFor", "startedAt"},
-            columns = {"scheduledForLocal*", "trigger*", "status*", "dryRun*", "durationMs", "counters*", "errorCount*", "skipReason"}, paged = true, exportable = false,
+            columns = {"scheduledForLocal*", "trigger*", "status*", "dryRun*", "durationMs", "counters*", "errorCount*", "skipReason"}, paged = true, searchable = false,
+            exportable = false,
             fields = {"runId", "scheduledFor", "scheduledForLocal", "trigger", "dryRun", "status", "skipReason", "startedAt", "finishedAt", "durationMs", "counters", "errorCount"})
     @ContractErrors(value = {VALIDATION_ERROR, INVALID_FILTER, JOB_UNKNOWN, MODULE_DISABLED, IMPERSONATION_DENIED}, omit = 422)
     @Operation(summary = "jobRuns", description = "Roles: ADMIN. Run history of the club (universal list, CONVENCIONS_API §4): without fields every item property is sent; with fields an item has runId and the requested keys only. Unknown name → JOB_UNKNOWN, module of the process off → MODULE_DISABLED. Tenant comes from the JWT.",

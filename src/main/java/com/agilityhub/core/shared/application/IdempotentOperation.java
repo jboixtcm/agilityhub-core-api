@@ -7,8 +7,17 @@ import java.util.function.BiConsumer;
 public final class IdempotentOperation {
     private record Operation(Runnable lock,BiConsumer<Integer,byte[]> complete,String reference,AtomicBoolean released) { }
     private static final ThreadLocal<Operation> CURRENT=new ThreadLocal<>();
+    /** CONVENCIONS_API §7: a key lives 24 h (the retention of the idempotency records); after that the same key is a new request. */
+    public static final java.time.Duration KEY_LIFETIME=java.time.Duration.ofHours(24);
     private IdempotentOperation() { }
     public static Scope open(Runnable lock,BiConsumer<Integer,byte[]> complete) { return open(lock,complete,null); }
+    /**
+     * E5-T29 round 2 (CONVENCIONS_API §7, ruling E75): a keyed request whose answer the filter stores in the request's own
+     * transaction. The scope only names the request: a use case whose effects commit outside that transaction (a keyed
+     * `POST /jobs/{name}/trigger`) keeps the reference with them, and the retry after a lost answer finds and answers them.
+     * {@link #lock()} and {@link #complete} do nothing here, as outside any scope.
+     */
+    public static Scope referenced(String reference) { return open(() -> { },(status,response) -> { },reference); }
     /**
      * {@code reference} names the request (its scope, key and body) whatever record the key has now: a use case whose answer
      * could not be stored finds, on the retry with the same key, what the first attempt committed (E5-T28, CONVENCIONS_API §7).

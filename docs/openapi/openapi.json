@@ -22081,13 +22081,6 @@
           },
           "style" : "form"
         }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
           "in" : "query",
@@ -23649,7 +23642,7 @@
     },
     "/api/v1/bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12: each row carries its class's display description in the reader's language, its ring and the ring's colour. Without fields every item property is sent; with fields an item has id and the requested keys only. The list has no free-text search: q is INVALID_FILTER. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12: each row carries its class's display description in the reader's language, its ring and the ring's colour. Without fields every item property is sent; with fields an item has id and the requested keys only. The list has no free-text search, so it declares no q, and a non-blank q is INVALID_FILTER (CONVENCIONS_API §4, E75). Tenant comes from the JWT.",
         "operationId" : "bookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -23683,13 +23676,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
@@ -24034,20 +24020,12 @@
     },
     "/api/v1/bookings/filter-values" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for D10/D12's universal filter: the top 50 values of field (one of GET /bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the dog's name, the member's name, the class's start and description; any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for D10/D12's universal filter: the top 50 values of field (one of GET /bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the dog's name, the member's name, the class's start and description; any other field its value. The list has no free-text search: no q is declared, and a non-blank one is INVALID_FILTER. Tenant comes from the JWT.",
         "operationId" : "bookingFilterValues",
         "parameters" : [ {
           "in" : "query",
           "name" : "field",
           "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER",
-          "in" : "query",
-          "name" : "q",
-          "required" : false,
           "schema" : {
             "type" : "string"
           }
@@ -24999,13 +24977,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
@@ -36894,13 +36865,6 @@
           },
           "style" : "form"
         }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
           "in" : "query",
@@ -48488,7 +48452,7 @@
     },
     "/api/v1/notifications" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. The log has no free-text search: it declares no q, and a non-blank one is INVALID_FILTER (CONVENCIONS_API §4, E75). Tenant comes from the JWT.",
         "operationId" : "notifications",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -48522,13 +48486,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
@@ -48757,13 +48714,6 @@
           },
           "style" : "form"
         }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,
           "in" : "query",
@@ -48966,19 +48916,12 @@
     },
     "/api/v1/notifications/filter-values" : {
       "get" : {
-        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → INVALID_FILTER. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → INVALID_FILTER. No q: the log has no free-text search, and a non-blank q is INVALID_FILTER (E75). Tenant comes from the JWT.",
         "operationId" : "notificationFilterValues",
         "parameters" : [ {
           "in" : "query",
           "name" : "field",
           "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "in" : "query",
-          "name" : "q",
-          "required" : false,
           "schema" : {
             "type" : "string"
           }
@@ -54398,7 +54341,7 @@
     },
     "/api/v1/ring-blocks" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. Each row carries its ring's name and colour, a deactivated ring's included. The list has no free-text search: q is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. Each row carries its ring's name and colour, a deactivated ring's included. q searches the ring's name and, for ADMIN and INSTRUCTOR, the note (S09 §2, E75). With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
         "operationId" : "blocks",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -54758,7 +54701,7 @@
     },
     "/api/v1/ring-blocks/filter-values" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for the register's universal filter (/entrenaments): the top 50 values of field (one of GET /ring-blocks' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's name (a deactivated ring's included); any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for the register's universal filter (/entrenaments): the top 50 values of field (one of GET /ring-blocks' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's name (a deactivated ring's included); any other field its value. q narrows the set as the list's search does. Tenant comes from the JWT.",
         "operationId" : "blockFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -54768,7 +54711,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER",
+          "description" : "The list's q: the ring's name or the block's note",
           "in" : "query",
           "name" : "q",
           "required" : false,
@@ -59552,7 +59495,7 @@
     },
     "/api/v1/training-bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER, and so is q (no free-text search). Each row carries its slot's end (endsAt, endsAtLocal) and the member's number (null without one). Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. q searches the member's full name, the dog's name and the ring's name (S09 §2, E75). Each row carries its slot's end (endsAt, endsAtLocal) and the member's number (null without one). Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingBookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -59753,11 +59696,17 @@
           "defaultVisible" : true,
           "key" : "startsAtLocal"
         }, {
+          "defaultVisible" : false,
+          "key" : "endsAtLocal"
+        }, {
           "defaultVisible" : true,
           "key" : "ringName"
         }, {
           "defaultVisible" : true,
           "key" : "memberName"
+        }, {
+          "defaultVisible" : false,
+          "key" : "memberNumber"
         }, {
           "defaultVisible" : true,
           "key" : "dogName"
@@ -59770,6 +59719,9 @@
         }, {
           "defaultVisible" : false,
           "key" : "createdAt"
+        }, {
+          "defaultVisible" : false,
+          "key" : "endsAt"
         } ],
         "x-exportable" : true,
         "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt" ],
@@ -60169,11 +60121,17 @@
           "defaultVisible" : true,
           "key" : "startsAtLocal"
         }, {
+          "defaultVisible" : false,
+          "key" : "endsAtLocal"
+        }, {
           "defaultVisible" : true,
           "key" : "ringName"
         }, {
           "defaultVisible" : true,
           "key" : "memberName"
+        }, {
+          "defaultVisible" : false,
+          "key" : "memberNumber"
         }, {
           "defaultVisible" : true,
           "key" : "dogName"
@@ -60186,6 +60144,9 @@
         }, {
           "defaultVisible" : false,
           "key" : "createdAt"
+        }, {
+          "defaultVisible" : false,
+          "key" : "endsAt"
         } ],
         "x-exportable" : false,
         "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt" ],
@@ -60196,7 +60157,7 @@
     },
     "/api/v1/training-bookings/filter-values" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. CONVENCIONS_API §4 for the register's universal filter (listKey training-bookings): the top 50 values of field (one of GET /training-bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's, the member's and the dog's names; any other field its value. q is INVALID_FILTER (the list has no free-text search). Requires FREE_TRAINING. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. CONVENCIONS_API §4 for the register's universal filter (listKey training-bookings): the top 50 values of field (one of GET /training-bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's, the member's and the dog's names; any other field its value. q narrows the set as the list's search does. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingBookingFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -60206,7 +60167,7 @@
             "type" : "string"
           }
         }, {
-          "description" : "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER",
+          "description" : "The list's q: the member's full name, the dog's name or the ring's name",
           "in" : "query",
           "name" : "q",
           "required" : false,
@@ -63026,13 +62987,6 @@
             "type" : "array"
           },
           "style" : "form"
-        }, {
-          "description" : "Free-text search within the caller's permitted projection.",
-          "in" : "query",
-          "name" : "q",
-          "schema" : {
-            "type" : "string"
-          }
         }, {
           "description" : "Repeat field:op:value; operators eq, ne, in, nin, lt, lte, gt, gte, contains, startsWith, exists, between. Only x-filterable fields; otherwise INVALID_FILTER.",
           "explode" : true,

@@ -38,6 +38,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - The N-25 link of a RESET magic link ends with `&purpose=reset` (S01 R-01-04 amended 28-09, ruling E70).
   - `bin/e5-smoke` checks these fields on the Cànic's seed, P9 through `POST /jobs/cleanup/trigger` with an
     `Idempotency-Key`, and `nextBookableAt` of a NEXT class.
+  - Round 2 (ruling E75): `GET /training-bookings` searches (`q`) the member's full name, the dog's and the ring's name;
+    `GET /ring-blocks` the ring's name and the note (staff only). Their `filter-values` and the register's export search alike.
+  - Round 2: the register's export has `endsAt`, `endsAtLocal` and `memberNumber` as columns, and its headers are the
+    columns' names in ca/es/en.
 
 - E7-T02: the S11 notification engine (WP-11-B). Every notice of the product now comes from one engine over the
   `NotificationCatalog`.
@@ -751,6 +755,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `q` on a universal list without free-text search (`/bookings`, `/ring-blocks`, `/training-bookings`, `/class-sessions`,
     `/weeks`, `/attendances`, `/followup`, `/jobs/{name}/runs`, their `filter-values`) is `400 INVALID_FILTER`; the engine
     sent Mongo an empty `$or` and answered 500.
+  - Round 2 (ruling E75, CONVENCIONS_API §4): a list without search no longer declares `q` (`@ListContract(searchable =
+    false)`): `/bookings` and its `filter-values`, `/class-sessions`, `/weeks`, `/attendances`, `/jobs/{name}/runs`, and the
+    notification log with its `filter-values` and export.
+  - Round 2 (review #1, CONVENCIONS_API §7): a keyed `POST /jobs/{name}/trigger` keeps the request's reference on its run
+    (`JobRun.requestRef`, a digest). The retry after a lost answer answers that run instead of running the process again and
+    writing a second `JOB_TRIGGERED` entry.
+  - Round 2 (review #3, S03 R-03-24): the dogs export's «Titular» cell is the owner's full name only, no longer every value of
+    the owner object (id, full name, first name, number, status) (`ListDataset.exportProjection`).
   - `seed:demo` retries a transaction that fails with a `TransientTransactionError` (or a write conflict) up to 3 attempts
     with the shared 50–150 ms backoff, instead of failing the command.
   - `seed:demo --reanchor` without `--week-start` anchors on the later of the Monday of the current week and the recorded

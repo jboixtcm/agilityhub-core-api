@@ -23,7 +23,9 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         var stages = members ? memberStages() : dogStages(true);
         Map<String, Object> fields = members ? memberFields(admin) : dogFields();
         fields.keySet().retainAll(definition.fields());
-        return new ListDataset(definition, members ? "members" : "dogs", stages, fields, members ? Set.of() : Set.of("freeTraining.override"), this::label);
+        var dataset = new ListDataset(definition, members ? "members" : "dogs", stages, fields, members ? Set.of() : Set.of("freeTraining.override"), this::label);
+        // S03 R-03-24 (E5-T29 round 2, review #3): the dogs export's «Titular» cell is the owner's full name; the list keeps the owner object.
+        return members ? dataset : dataset.withExportProjection(Map.of("owner", "$owner.fullName"));
     }
     private List<Document> memberStages() {
         var stages = new ArrayList<Document>();

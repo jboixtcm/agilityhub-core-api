@@ -148,7 +148,7 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/weeks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"id", "startDate", "state"}, sortable = {"startDate"}, paged = true,
+    @ListContract(filterable = {"id", "startDate", "state"}, sortable = {"startDate"}, paged = true, searchable = false,
             fields = {"id", "isoYear", "isoWeek", "startDate", "endDate", "state", "generatedAt", "validatedAt", "weekdayTemplateName", "saturdayTemplateName", "classCounts"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
     @Operation(summary = "weeks", description = "Roles: ADMIN, INSTRUCTOR. Tenant and role guards apply. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<WeekListItem>", useReturnTypeSchema = true))
@@ -221,7 +221,7 @@ public class SchedulingController {
 
     @GetMapping("/api/v1/class-sessions")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
-    @ListContract(filterable = {"id", "date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true,
+    @ListContract(filterable = {"id", "date", "state", "ringId", "instructorId", "levelId", "weekId"}, sortable = {"startsAt", "date"}, paged = true, searchable = false,
             fields = {"id", "weekId", "date", "startTime", "endTime", "startsAt", "endsAt", "ringId", "levelIds", "instructorIds", "capacity", "capacityMode", "description",
                     "displayDescription", "state", "counters", "atRisk", "riskExempt", "cancellation", "origin", "version", "inconsistencyIds", "placementId", "notes"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
@@ -300,7 +300,7 @@ public class SchedulingController {
             fields = {"id", "ringId", "ringName", "ringColor", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version",
                     "note", "createdByName"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. Each row carries its ring's name and colour, a deactivated ring's included. The list has no free-text search: q is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlockListItem>", useReturnTypeSchema = true))
+    @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. Each row carries its ring's name and colour, a deactivated ring's included. q searches the ring's name and, for ADMIN and INSTRUCTOR, the note (S09 §2, E75). With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlockListItem>", useReturnTypeSchema = true))
     public ListPage<RingBlockListItem> blocks(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
         access.tenant();
         return (ListPage) schedulingLists.list(lists, "ring-blocks", params);
@@ -311,9 +311,9 @@ public class SchedulingController {
     // CONVENCIONS_API §4 (E5-T24): filter-values takes no `fields`.
     @ListContract(filterable = {"id", "ringId", "kind", "reason", "state", "from", "to"}, sortable = {}, columns = {}, paged = false, exportable = false, acceptsFields = false)
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
-    @Operation(summary = "blockFilterValues", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for the register's universal filter (/entrenaments): the top 50 values of field (one of GET /ring-blocks' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's name (a deactivated ring's included); any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
+    @Operation(summary = "blockFilterValues", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for the register's universal filter (/entrenaments): the top 50 values of field (one of GET /ring-blocks' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's name (a deactivated ring's included); any other field its value. q narrows the set as the list's search does. Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
     public com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues blockFilterValues(@RequestParam String field,
-            @io.swagger.v3.oas.annotations.Parameter(description = "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER") @RequestParam(required = false) String q,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's q: the ring's name or the block's note") @RequestParam(required = false) String q,
             @io.swagger.v3.oas.annotations.Parameter(description = "The list's filters (field:op:value, repeated); only x-filterable fields") @RequestParam(required = false) java.util.List<String> filter,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
         access.tenant();

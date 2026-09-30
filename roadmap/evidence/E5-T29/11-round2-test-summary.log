@@ -1,0 +1,22 @@
+surefire (unit): tests=872 failures=0 errors=0 skipped=0 (164 classes)
+  E5BackOfficeContractTest: tests=6 failures=0 errors=0 skipped=0
+  ListQueryTest: tests=36 failures=0 errors=0 skipped=0
+failsafe (integration): tests=1248 failures=0 errors=0 skipped=0 (111 classes)
+  OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  JobTriggerRetryIT: tests=2 failures=0 errors=0 skipped=0
+  TrainingRegisterContractIT: tests=6 failures=0 errors=0 skipped=0
+  UniversalListsIT: tests=35 failures=0 errors=0 skipped=0
+  BackOfficeContractIT: tests=8 failures=0 errors=0 skipped=0
+  JobsApiIT: tests=6 failures=0 errors=0 skipped=0
+  ListFieldsContractIT: tests=4 failures=0 errors=0 skipped=0
+  ExportEngineIT: tests=9 failures=0 errors=0 skipped=0
+  TrainingIT: tests=23 failures=0 errors=0 skipped=0
+  JobFrameworkIT: tests=16 failures=0 errors=0 skipped=0
+  IdempotencyIT: tests=10 failures=0 errors=0 skipped=0
+  E5ContractIT: tests=40 failures=0 errors=0 skipped=0
+  E4ContractIT: tests=64 failures=0 errors=0 skipped=0
+  E2ContractIT: tests=14 failures=0 errors=0 skipped=0
+  CleanupJobIT: tests=6 failures=0 errors=0 skipped=0
+  SingleClassCheckoutIT: tests=11 failures=0 errors=0 skipped=0
+  FollowupIT: tests=24 failures=0 errors=0 skipped=0
+jacoco: target/site/jacoco/index.html present

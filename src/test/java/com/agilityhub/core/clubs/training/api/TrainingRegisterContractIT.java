@@ -109,4 +109,93 @@ class TrainingRegisterContractIT extends TrainingFixtures {
         assertThat(code(call(GET, "/ring-blocks/filter-values?field=note", null, as("admin"), 400))).isEqualTo("INVALID_FILTER");
         call(GET, "/ring-blocks/filter-values?field=ringId", null, as("maria"), 403);
     }
+
+    static List<String> ids(JsonNode page) { var ids = new ArrayList<String>(); page.path("items").forEach(item -> ids.add(item.path("id").asText())); return ids; }
+    /** An inline export of the register as ADMIN, in English. */
+    byte[] export(String format, String query) throws Exception {
+        var response = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/training-bookings/export?format=" + format + query)
+                .header("Host", HOST).header("Accept-Language", "en").with(as("admin"))).andReturn().getResponse();
+        assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
+        return response.getContentAsByteArray();
+    }
+    /** The rows of an XLSX export, header first. */
+    static List<List<String>> sheet(byte[] file) throws Exception {
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new java.io.ByteArrayInputStream(file))) {
+            var rows = new ArrayList<List<String>>();
+            for (var row : workbook.getSheetAt(0)) {
+                var cells = new ArrayList<String>(); for (int i = 0; i < row.getLastCellNum(); i++) { cells.add(row.getCell(i).getStringCellValue()); }
+                rows.add(cells);
+            }
+            return rows;
+        }
+    }
+    static String pdf(byte[] file) throws Exception {
+        try (var document = org.apache.pdfbox.Loader.loadPDF(file)) { return new org.apache.pdfbox.text.PDFTextStripper().getText(document); }
+    }
+
+    /**
+     * Round 2 (review #2, CONVENCIONS_API §4): the register's export has the columns its `x-fields` publish. `endsAt`, `endsAtLocal`
+     * and `memberNumber` are columns of the xlsx and the pdf, `fields` with only them is a valid selection, and the default columns
+     * stay the six of before. The headers are the columns' names in the reader's language.
+     */
+    @Test void CONVENCIONS_API_4_T_09_30_theRegisterExportHasTheEndAndTheMemberNumberColumns() throws Exception {
+        var rock = book(as("maria"), "s09-d-rock", "2026-10-06T09:30", CEN, 201);
+        long number = mongo.findById("s09-m-maria", Document.class, "members").get("memberNumber", Number.class).longValue();
+        String only = "&filter=id:in:" + rock.path("id").asText();
+        var rows = sheet(export("xlsx", "&fields=endsAt,endsAtLocal,memberNumber" + only));
+        assertThat(rows.getFirst()).containsExactly("End date", "End", "Number");
+        assertThat(rows).hasSize(2);
+        assertThat(rows.get(1)).containsExactly("06/10/2026", "10:00", Long.toString(number));
+        assertThat(sheet(export("xlsx", "&columns=memberName,memberNumber,endsAtLocal" + only)).get(1)).containsExactly("Maria Example", Long.toString(number), "10:00");
+        assertThat(pdf(export("pdf", "&fields=endsAtLocal,memberNumber" + only))).contains("End: 10:00", "Number: " + number);
+        assertThat(sheet(export("xlsx", only)).getFirst()).as("the default columns").containsExactly("Date", "Start", "Ring", "Member", "Dog", "Status");
+    }
+
+    /**
+     * Round 2 (ruling E75; CONVENCIONS_API §4, S09 §2): `q` on the register matches the member's full name (first name and both last
+     * names), the dog's name and the ring's name, in any case; its filter values and its export search the same way.
+     */
+    @Test void CONVENCIONS_API_4_T_09_30_theRegisterSearchesTheMemberTheDogAndTheRing() throws Exception {
+        String rock = book(as("maria"), "s09-d-rock", "2026-10-06T09:30", CEN, 201).path("id").asText();
+        String blat = book(as("pau"), "s09-d-blat", "2026-10-05T09:00", MUN, 201).path("id").asText();
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("s09-m-maria")), new Update().set("lastName2", "Serrallonga"), "members");
+        var searches = new LinkedHashMap<String, List<String>>();
+        searches.put("serrallonga", List.of(rock)); searches.put("MARIA", List.of(rock)); searches.put("pau", List.of(blat));
+        searches.put("rock", List.of(rock)); searches.put("Bla", List.of(blat)); searches.put("centr", List.of(rock)); searches.put("muntanya", List.of(blat));
+        searches.put("example", List.of(rock, blat)); searches.put("nowhere", List.of());
+        for (var search : searches.entrySet()) {
+            for (String reader : List.of("admin", "estel")) {
+                assertThat(ids(call(GET, "/training-bookings?q=" + search.getKey(), null, as(reader), 200))).as(reader + " q=" + search.getKey())
+                        .containsExactlyInAnyOrderElementsOf(search.getValue());
+            }
+        }
+        assertThat(call(GET, "/training-bookings/filter-values?field=ringId&q=blat", null, as("admin"), 200).path("values"))
+                .extracting(v -> v.path("value").asText() + ":" + v.path("count").asLong()).containsExactly(MUN + ":1");
+        var rows = sheet(export("xlsx", "&columns=dogName&q=serrallonga"));
+        assertThat(rows).hasSize(2); assertThat(rows.get(1)).containsExactly("Rock");
+    }
+
+    /**
+     * Round 2 (ruling E75; CONVENCIONS_API §4, S09 §2): `q` on the ring blocks matches the ring's name (a deactivated ring's too) and
+     * the block's note. A member never reads a note, so a member's `q` never matches one; the filter values search the same way.
+     */
+    @Test void CONVENCIONS_API_4_T_09_27_theBlocksSearchTheRingAndTheNote() throws Exception {
+        block("s09-block-car", CAR, "2026-10-06T16:00", "2026-10-06T18:00", "BLOCK", "MAINTENANCE", "Reg de la pista", null);
+        block("s09-block-pet", PET, "2026-10-07T16:00", "2026-10-07T17:00", "BLOCK", "MAINTENANCE", null, null);
+        block("s09-block-cen", CEN, "2026-10-08T16:00", "2026-10-08T17:00", "BLOCK", "PRIVATE_CLASS", "Classe particular", null);
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(PET)), new Update().set("active", false), "rings");
+        var searches = new LinkedHashMap<String, List<String>>();
+        searches.put("CARRET", List.of("s09-block-car")); searches.put("petita", List.of("s09-block-pet")); searches.put("REG", List.of("s09-block-car"));
+        searches.put("particular", List.of("s09-block-cen")); searches.put("nowhere", List.of());
+        for (var search : searches.entrySet()) {
+            for (String reader : List.of("admin", "estel")) {
+                assertThat(ids(call(GET, "/ring-blocks?q=" + search.getKey(), null, as(reader), 200))).as(reader + " q=" + search.getKey())
+                        .containsExactlyInAnyOrderElementsOf(search.getValue());
+            }
+        }
+        assertThat(ids(call(GET, "/ring-blocks?q=carret", null, as("maria"), 200))).containsExactly("s09-block-car");
+        assertThat(ids(call(GET, "/ring-blocks?q=particular", null, as("maria"), 200))).as("a member's q never matches a note").isEmpty();
+        assertThat(call(GET, "/ring-blocks/filter-values?field=reason&q=pista", null, as("estel"), 200).path("values"))
+                .extracting(v -> v.path("value").asText() + ":" + v.path("count").asLong()).containsExactly("MAINTENANCE:1");
+    }
 }

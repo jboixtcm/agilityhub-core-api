@@ -5,6 +5,7 @@ import com.agilityhub.core.platform.application.audit.Audited;
 import com.agilityhub.core.platform.application.audit.AuditableLoader;
 import com.agilityhub.core.platform.persistence.jobs.JobRunRepository;
 import com.agilityhub.core.shared.application.CurrentUser;
+import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.audit.AuditField;
 import java.util.Map;
@@ -17,10 +18,13 @@ public class JobTriggerService {
     private final JobRunner runner;
     public JobTriggerService(JobRunner runner) { this.runner = runner; }
 
-    /** Callers resolve `{name}` with {@link JobCatalog#byRoute}; the platform console opens the club scope first. */
+    /**
+     * Callers resolve `{name}` with {@link JobCatalog#byRoute}; the platform console opens the club scope first. A keyed request's
+     * reference goes on the run (E5-T29 round 2): {@code JobAdminService} answers that run to the retry, without a second entry.
+     */
     @Audited(action = AuditAction.JOB_TRIGGERED, entityType = "'JobRun'", entity = "#result.runId()")
     public JobViews.JobRunView trigger(JobName name, boolean dryRun) {
-        return JobViews.view(runner.manual(TenantContext.require(), name, dryRun, actor()));
+        return JobViews.view(runner.manual(TenantContext.require(), name, dryRun, actor(), IdempotentOperation.reference()));
     }
 
     private static String actor() {

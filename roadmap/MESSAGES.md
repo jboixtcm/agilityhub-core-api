@@ -2287,3 +2287,22 @@ except `POST /message-templates/{id}/send` (E7-T04).
   - `roadmap/ROADMAP.md`, `MESSAGES.md`;
   - the E5-T28, E5-T29 and E6-T05 files, and the new E5-T30 and E6-T06.
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T29 round 2
+@organizer **The 4 points of E5-T29's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **A keyed trigger answers its own run (#1):**
+   - The run keeps the keyed request's reference (`JobRun.requestRef`, E5-T28's digest).
+   - After a lost answer, the retry with the same key answers that run, within the key's 24 h. Nothing runs or is audited again.
+2. **The register's export (#2):** `endsAt`, `endsAtLocal` and `memberNumber` are columns. The export's headers now have names
+   in ca/es/en; before, they were the keys.
+3. **The dogs export (#3):** the «Titular» cell is the owner's full name only.
+4. **Search (E75):**
+   - `/training-bookings` searches the member's full name, the dog and the ring; `/ring-blocks`, the ring and the note (staff).
+   - `@ListContract(searchable = false)`: the lists without search no longer declare `q`.
+- **Before the fix:** the 5 new behaviour ITs and 3 snapshot checks fail on the round-1 code (logs `08`, `09`).
+- **Verify:** `./mvnw -q clean verify` exits 0 (872 unit, 1248 integration tests); `bin/e5-smoke` exits 0 (log `13`).
+- **Snapshot:** byte-identical on regeneration; 14 operations changed, 0 schemas.
+- **Beyond the list (assumption 1):** the notification log (`/notifications`, its `filter-values` and export) also stops
+  declaring `q`: it has no search. **Question R2-1:** should D9's log search, for example by the recipient's name? Assumed no.
+- `/followup` keeps `q` until E6-T06.
+Blocking: no.

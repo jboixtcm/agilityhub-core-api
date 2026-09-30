@@ -7,6 +7,7 @@ import com.agilityhub.core.platform.persistence.Club;
 import com.agilityhub.core.platform.persistence.ClubRepository;
 import com.agilityhub.core.platform.persistence.jobs.JobRun;
 import com.agilityhub.core.platform.persistence.jobs.JobRunRepository;
+import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.application.contract.ApiContracts.ListPage;
 import com.agilityhub.core.shared.application.lists.ListDataset;
@@ -115,8 +116,15 @@ public class JobAdminService {
      */
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public JobRunView trigger(String routeId, boolean dryRun) { return JobViews.forClub(triggered(routeId, dryRun)); }
+    /**
+     * E5-T29 round 2 (CONVENCIONS_API §7, S15 R-15-09, ruling E75): the run commits before the key's answer is stored. When that
+     * answer is lost (the request's commit fails and the key is released), the retry with the same key and body answers the run
+     * the first attempt started, as it is now (its `runId`, state and counters): nothing runs and nothing is audited again.
+     */
     private JobRunView triggered(String routeId, boolean dryRun) {
         var definition = access.job(routeId);
+        var earlier = runs.forRequest(definition.name(), IdempotentOperation.reference(), clock.instant().minus(IdempotentOperation.KEY_LIFETIME));
+        if (earlier.isPresent()) { return JobViews.view(earlier.get()); }
         return triggers.trigger(definition.name(), dryRun);
     }
 

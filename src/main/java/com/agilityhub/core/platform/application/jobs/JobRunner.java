@@ -70,7 +70,7 @@ public class JobRunner {
     }
 
     private record Request(String clubId, Job job, JobDefinition definition, ClubConfig config, ZoneId zone, Instant scheduledFor,
-            JobTrigger trigger, boolean dryRun, String actorAccountId) { }
+            JobTrigger trigger, boolean dryRun, String actorAccountId, String requestRef) { }
 
     /** Registered implementations in R-15-01 order; jobs outside the catalog (the test job) come last. */
     public List<Job> registered() {
@@ -103,7 +103,7 @@ public class JobRunner {
             if (!continuous && runs.occurrenceTaken(definition.name(), scheduledFor)) { return Optional.empty(); }
             var outcome = JobOccurrences.triggerFor(now, scheduledFor, definition.catchUpWindow(), zone);
             var request = new Request(clubId, job, definition, config, zone, scheduledFor,
-                    outcome == JobOccurrences.Outcome.SCHEDULE ? JobTrigger.SCHEDULE : JobTrigger.CATCH_UP, false, null);
+                    outcome == JobOccurrences.Outcome.SCHEDULE ? JobTrigger.SCHEDULE : JobTrigger.CATCH_UP, false, null, null);
             SkipReason skip = !clubActive ? SkipReason.CLUB_INACTIVE
                     : !moduleOn(job, config) ? SkipReason.MODULE_OFF
                     : !enabled(definition, config) ? SkipReason.DISABLED
@@ -114,10 +114,15 @@ public class JobRunner {
     }
 
     /** R-15-09: same lock and code; runs even when the switch is off; a module that is off is 404. Never in the caller's transaction. */
-    public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId) {
-        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId));
+    public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId) { return manual(clubId, name, dryRun, actorAccountId, null); }
+    /**
+     * {@code requestRef}: the keyed request that asks for the run (E5-T29 round 2, CONVENCIONS_API §7), stored on the run from its
+     * first write, so the retry after a lost answer finds it ({@code JobRunRepository.forRequest}); null without a key.
+     */
+    public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef) {
+        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId, requestRef));
     }
-    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId) {
+    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId, String requestRef) {
         try (var scope = TenantContext.open(clubId)) {
             var job = registered(name).orElseThrow(() -> new ApiException(ErrorCode.JOB_UNKNOWN));
             var config = configs.get(clubId);
@@ -125,7 +130,7 @@ public class JobRunner {
             reap(clubId, name);
             Instant now = clock.instant().truncatedTo(ChronoUnit.MINUTES);
             var request = new Request(clubId, job, job.definition(), config, ZoneId.of(config.club().timeZone()), now,
-                    JobTrigger.MANUAL, dryRun, actorAccountId);
+                    JobTrigger.MANUAL, dryRun, actorAccountId, requestRef);
             return execute(request, now).orElseThrow(() -> new ApiException(ErrorCode.JOB_ALREADY_RUNNING));
         }
     }
@@ -143,7 +148,7 @@ public class JobRunner {
         boolean baseline = reason == SkipReason.MISSED_WINDOW && !runs.any(name);
         var run = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request), request.zone().getId(),
                 request.trigger(), request.dryRun(), JobStatus.SKIPPED, reason, now, now, 0L, List.of(), List.of(), List.of(),
-                request.actorAccountId(), entries(baseSnapshot(request)), false, null, false);
+                request.actorAccountId(), entries(baseSnapshot(request)), false, null, false, request.requestRef());
         if (reason == SkipReason.MISSED_WINDOW && !baseline) {
             // R-15-10: a missed occurrence alerts like a failure (JobFailed → N-42).
             write(() -> { runs.insert(run); events.publish(failed(run)); return run; });
@@ -162,7 +167,7 @@ public class JobRunner {
             // R-15-08: a dry run writes only its JobRun, so it takes no lease (E5-T09): it never blocks, nor is blocked by, a real run.
             var running = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request),
                     request.zone().getId(), request.trigger(), true, JobStatus.RUNNING, null, clock.instant(), null, null,
-                    List.of(), List.of(), List.of(), request.actorAccountId(), entries(baseSnapshot(request)), false, holder, false);
+                    List.of(), List.of(), List.of(), request.actorAccountId(), entries(baseSnapshot(request)), false, holder, false, request.requestRef());
             runs.insert(running);
             return Optional.of(run(request, running, lock, holder));
         }
@@ -174,7 +179,7 @@ public class JobRunner {
             boolean exclusive = !request.dryRun() && request.trigger() != JobTrigger.MANUAL;
             var running = new JobRun(UUID.randomUUID().toString(), request.clubId(), name, request.scheduledFor(), local(request),
                     request.zone().getId(), request.trigger(), request.dryRun(), JobStatus.RUNNING, null, clock.instant(), null, null,
-                    List.of(), List.of(), List.of(), request.actorAccountId(), entries(baseSnapshot(request)), exclusive, holder, false);
+                    List.of(), List.of(), List.of(), request.actorAccountId(), entries(baseSnapshot(request)), exclusive, holder, false, request.requestRef());
             try { runs.insert(running); }
             catch (DuplicateKeyException claimed) { return Optional.empty(); }
             return Optional.of(run(request, running, lock, holder));

@@ -1,0 +1,291 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 13 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 45 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.configuration.E5BackOfficeContractTest
+[ERROR] Tests run: 6, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.158 s <<< FAILURE! -- in com.agilityhub.core.configuration.E5BackOfficeContractTest
+[ERROR] com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch -- Time elapsed: 0.046 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  ["GET /api/v1/activities",
+    "GET /api/v1/activities/export",
+    "GET /api/v1/activities/filter-values",
+    "GET /api/v1/activities/{id}/registrations",
+    "GET /api/v1/activity-registrations/export",
+    "GET /api/v1/attendances",
+    "GET /api/v1/audit-entries",
+    "GET /api/v1/audit-entries/export",
+    "GET /api/v1/audit-entries/filter-values",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/class-sessions",
+    "GET /api/v1/dogs",
+    "GET /api/v1/dogs/export",
+    "GET /api/v1/dogs/filter-values",
+    "GET /api/v1/faq-entries/filter-values",
+    "GET /api/v1/followup",
+    "GET /api/v1/invoices/export",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/members",
+    "GET /api/v1/members/export",
+    "GET /api/v1/members/filter-values",
+    "GET /api/v1/members/{id}/audit-entries",
+    "GET /api/v1/notifications",
+    "GET /api/v1/notifications/export",
+    "GET /api/v1/notifications/filter-values",
+    "GET /api/v1/platform/audit-entries",
+    "GET /api/v1/platform/erasure-requests",
+    "GET /api/v1/platform/security-events",
+    "GET /api/v1/ring-blocks",
+    "GET /api/v1/ring-blocks/filter-values",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/weeks",
+    "POST /api/v1/audit-entries/export",
+    "POST /api/v1/dogs/export",
+    "POST /api/v1/members/export"]
+to contain exactly in any order:
+  ["GET /api/v1/members",
+    "GET /api/v1/members/export",
+    "POST /api/v1/members/export",
+    "GET /api/v1/members/filter-values",
+    "GET /api/v1/dogs",
+    "GET /api/v1/dogs/export",
+    "POST /api/v1/dogs/export",
+    "GET /api/v1/dogs/filter-values",
+    "GET /api/v1/audit-entries",
+    "GET /api/v1/audit-entries/export",
+    "POST /api/v1/audit-entries/export",
+    "GET /api/v1/audit-entries/filter-values",
+    "GET /api/v1/members/{id}/audit-entries",
+    "GET /api/v1/activities",
+    "GET /api/v1/activities/export",
+    "GET /api/v1/activities/filter-values",
+    "GET /api/v1/activities/{id}/registrations",
+    "GET /api/v1/activity-registrations/export",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/ring-blocks",
+    "GET /api/v1/ring-blocks/filter-values",
+    "GET /api/v1/faq-entries/filter-values",
+    "GET /api/v1/followup",
+    "GET /api/v1/invoices/export",
+    "GET /api/v1/platform/audit-entries",
+    "GET /api/v1/platform/erasure-requests",
+    "GET /api/v1/platform/security-events"]
+but the following elements were unexpected:
+  ["GET /api/v1/attendances",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/class-sessions",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/notifications",
+    "GET /api/v1/notifications/export",
+    "GET /api/v1/notifications/filter-values",
+    "GET /api/v1/weeks"]
+
+	at com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch(E5BackOfficeContractTest.java:76)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_theRegisterExportPublishesItsNewColumns -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+[/api/v1/training-bookings] 
+Expecting ArrayList:
+  ["date",
+    "startsAtLocal",
+    "ringName",
+    "memberName",
+    "dogName",
+    "state",
+    "origin",
+    "createdAt"]
+to contain:
+  ["endsAt", "endsAtLocal", "memberNumber"]
+but could not find the following element(s):
+  ["endsAt", "endsAtLocal", "memberNumber"]
+
+	at com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_theRegisterExportPublishesItsNewColumns(E5BackOfficeContractTest.java:102)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_theRegisterAndBookingListsPublishTheirFilterValues -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[bookings] 
+Expecting actual:
+  ["field", "q", "filter"]
+to contain exactly (and in same order):
+  ["field", "filter"]
+but some elements were not expected:
+  ["q"]
+
+	at com.agilityhub.core.configuration.E5BackOfficeContractTest.CONVENCIONS_API_4_theRegisterAndBookingListsPublishTheirFilterValues(E5BackOfficeContractTest.java:56)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   E5BackOfficeContractTest.CONVENCIONS_API_4_qIsDeclaredOnlyOnTheListsThatSearch:76 
+Expecting actual:
+  ["GET /api/v1/activities",
+    "GET /api/v1/activities/export",
+    "GET /api/v1/activities/filter-values",
+    "GET /api/v1/activities/{id}/registrations",
+    "GET /api/v1/activity-registrations/export",
+    "GET /api/v1/attendances",
+    "GET /api/v1/audit-entries",
+    "GET /api/v1/audit-entries/export",
+    "GET /api/v1/audit-entries/filter-values",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/class-sessions",
+    "GET /api/v1/dogs",
+    "GET /api/v1/dogs/export",
+    "GET /api/v1/dogs/filter-values",
+    "GET /api/v1/faq-entries/filter-values",
+    "GET /api/v1/followup",
+    "GET /api/v1/invoices/export",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/members",
+    "GET /api/v1/members/export",
+    "GET /api/v1/members/filter-values",
+    "GET /api/v1/members/{id}/audit-entries",
+    "GET /api/v1/notifications",
+    "GET /api/v1/notifications/export",
+    "GET /api/v1/notifications/filter-values",
+    "GET /api/v1/platform/audit-entries",
+    "GET /api/v1/platform/erasure-requests",
+    "GET /api/v1/platform/security-events",
+    "GET /api/v1/ring-blocks",
+    "GET /api/v1/ring-blocks/filter-values",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/weeks",
+    "POST /api/v1/audit-entries/export",
+    "POST /api/v1/dogs/export",
+    "POST /api/v1/members/export"]
+to contain exactly in any order:
+  ["GET /api/v1/members",
+    "GET /api/v1/members/export",
+    "POST /api/v1/members/export",
+    "GET /api/v1/members/filter-values",
+    "GET /api/v1/dogs",
+    "GET /api/v1/dogs/export",
+    "POST /api/v1/dogs/export",
+    "GET /api/v1/dogs/filter-values",
+    "GET /api/v1/audit-entries",
+    "GET /api/v1/audit-entries/export",
+    "POST /api/v1/audit-entries/export",
+    "GET /api/v1/audit-entries/filter-values",
+    "GET /api/v1/members/{id}/audit-entries",
+    "GET /api/v1/activities",
+    "GET /api/v1/activities/export",
+    "GET /api/v1/activities/filter-values",
+    "GET /api/v1/activities/{id}/registrations",
+    "GET /api/v1/activity-registrations/export",
+    "GET /api/v1/training-bookings",
+    "GET /api/v1/training-bookings/export",
+    "GET /api/v1/training-bookings/filter-values",
+    "GET /api/v1/ring-blocks",
+    "GET /api/v1/ring-blocks/filter-values",
+    "GET /api/v1/faq-entries/filter-values",
+    "GET /api/v1/followup",
+    "GET /api/v1/invoices/export",
+    "GET /api/v1/platform/audit-entries",
+    "GET /api/v1/platform/erasure-requests",
+    "GET /api/v1/platform/security-events"]
+but the following elements were unexpected:
+  ["GET /api/v1/attendances",
+    "GET /api/v1/bookings",
+    "GET /api/v1/bookings/filter-values",
+    "GET /api/v1/class-sessions",
+    "GET /api/v1/jobs/{name}/runs",
+    "GET /api/v1/notifications",
+    "GET /api/v1/notifications/export",
+    "GET /api/v1/notifications/filter-values",
+    "GET /api/v1/weeks"]
+
+[ERROR]   E5BackOfficeContractTest.CONVENCIONS_API_4_theRegisterAndBookingListsPublishTheirFilterValues:56 [bookings] 
+Expecting actual:
+  ["field", "q", "filter"]
+to contain exactly (and in same order):
+  ["field", "filter"]
+but some elements were not expected:
+  ["q"]
+
+[ERROR]   E5BackOfficeContractTest.CONVENCIONS_API_4_theRegisterExportPublishesItsNewColumns:102 [/api/v1/training-bookings] 
+Expecting ArrayList:
+  ["date",
+    "startsAtLocal",
+    "ringName",
+    "memberName",
+    "dogName",
+    "state",
+    "origin",
+    "createdAt"]
+to contain:
+  ["endsAt", "endsAtLocal", "memberNumber"]
+but could not find the following element(s):
+  ["endsAt", "endsAtLocal", "memberNumber"]
+
+[INFO] 
+[ERROR] Tests run: 6, Failures: 3, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.877 s
+[INFO] Finished at: 2026-09-30T18:57:44+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.6:test (default-test) on project agilityhub-core-api: There are test failures.
+[ERROR] 
+[ERROR] See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

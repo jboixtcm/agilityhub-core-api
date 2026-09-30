@@ -146,7 +146,7 @@ public class InstructorController {
     @GetMapping("/api/v1/attendances")
     @PreAuthorize(STAFF)
     @ListContract(filterable = {"dogId", "memberId", "classSessionId", "classDate", "state"}, sortable = {"classStartsAt", "classDate"},
-            columns = {"classStartsAt*", "classDate", "dogName*", "memberName*", "state*", "markedAt", "markedByName"}, paged = true, exportable = false,
+            columns = {"classStartsAt*", "classDate", "dogName*", "memberName*", "state*", "markedAt", "markedByName"}, paged = true, searchable = false, exportable = false,
             fields = {"id", "bookingId", "classSessionId", "classDate", "classStartsAt", "dogId", "dogName", "memberId", "memberName", "state", "markedAt", "markedByName"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
     @Operation(summary = "attendances", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) of the stored S10 attendances (D10, phase 2; a booking never marked has no row); an undeclared filter or sort is 400 INVALID_FILTER. No export. Tenant comes from the JWT.",

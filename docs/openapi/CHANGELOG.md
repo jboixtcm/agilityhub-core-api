@@ -2,6 +2,30 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E5-T29 round 2 · which lists search, the register's export columns, a keyed trigger's retry (web E5-W05 adopts)
+
+**0 operations added or removed; 14 operations changed (parameters, `x-columns` or descriptions); 0 schemas changed.**
+- **`q` is declared only where the list searches** (CONVENCIONS_API §4 as amended 30-09, ruling E75). These operations no
+  longer declare `q`; a non-blank `q` keeps answering `400 INVALID_FILTER` there, as since E5-T29, and a blank one is no
+  search:
+  - `GET /bookings` and `GET /bookings/filter-values`;
+  - `GET /class-sessions`, `GET /weeks`, `GET /attendances`, `GET /jobs/{name}/runs`;
+  - `GET /notifications`, `GET /notifications/filter-values`, `GET /notifications/export` (the log has no search either).
+  - `GET /followup` still declares `q`; its search is api E6-T06.
+- **The register searches** (`GET /training-bookings`, its `filter-values` and its `export`, S09 §2): `q` matches, in any
+  case, the member's full name (first name and both last names), the dog's name or the ring's name.
+- **The blocks search** (`GET /ring-blocks` and its `filter-values`): `q` matches the ring's name (a deactivated ring's too)
+  or the block's note. A MEMBER never reads a note, so a member's `q` never matches one.
+- **`GET /training-bookings` and `GET /training-bookings/export`, `x-columns`**: `endsAtLocal`, `memberNumber` and `endsAt`
+  are export columns (not default-visible). `fields=endsAt,endsAtLocal,memberNumber` is a valid export selection; the
+  default columns are unchanged. The export's headers are now the columns' names in the reader's language («Data», «Inici»,
+  «Fi», «Pista», «Abonat», «Número», …) instead of the keys.
+- **`GET /dogs/export`**: the «Titular» cell is the owner's full name only (S03 R-03-24); `GET /dogs` still sends the owner
+  object with `firstName`.
+- **`POST /jobs/{name}/trigger` with an `Idempotency-Key`** (CONVENCIONS_API §7, S15 R-15-09): the run keeps the request's
+  reference. When the first answer is lost after the run committed (the key is released), the retry with the same key and
+  body answers that run (its `runId`, state and counters) and runs nothing, audits nothing. No shape changes.
+
 ## 2026-09-30 · E7-T03 · S11 served: templates (D9), the log, feed 11, preferences (12/D10), push devices (web WP-11-D/E adopt)
 
 **0 operations added; 19 operations stop answering 501 (descriptions changed); 3 schemas changed.** Only

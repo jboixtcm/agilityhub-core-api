@@ -203,7 +203,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             return;
         }
         var cachedResponse = new ContentCachingResponseWrapper(response);
-        try {
+        // E5-T29 round 2 (CONVENCIONS_API §7, E75): the handler knows this request's reference. A keyed job trigger runs outside
+        // this transaction and keeps the reference on its run, so the retry after a lost answer answers that run.
+        try (var named = com.agilityhub.core.shared.application.IdempotentOperation.referenced(reference(clubId, accountId, key, hash))) {
             transactions.executeWithoutResult(status -> {
                 records.lock(record);
                 try { chain.doFilter(new BufferedRequest(request, body), cachedResponse); }

@@ -13,12 +13,24 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * `exclusive` marks the rows that claim an occurrence (non-dry SCHEDULE/CATCH_UP runs that execute): the unique
  * index `{clubId, job, scheduledFor, trigger}` applies to them only, so SKIPPED{LOCKED}, dry runs and manual runs
  * never collide with the claim. `holder` identifies the lease; `leaseExpired` marks a run reaped after its process died.
+ * `requestRef` names the keyed request that started a manual run (`IdempotentOperation.reference()`, a digest, never the key):
+ * the retry with the same key answers this run instead of starting another (E5-T29 round 2, CONVENCIONS_API §7); null otherwise.
  */
 @Document("job_runs")
 public record JobRun(@Id String id, String clubId, JobName job, Instant scheduledFor, String scheduledForLocal, String timeZone,
         JobTrigger trigger, boolean dryRun, JobStatus status, SkipReason skipReason, Instant startedAt, Instant finishedAt, Long durationMs,
         List<Entry> counters, List<Item> items, List<RunError> errors, String actorAccountId, List<Entry> parametersSnapshot,
-        boolean exclusive, String holder, boolean leaseExpired) implements TenantEntity {
+        boolean exclusive, String holder, boolean leaseExpired, String requestRef) implements TenantEntity {
+    @org.springframework.data.annotation.PersistenceCreator
+    public JobRun { }
+    /** A run that no keyed request started (the calendar, the CLI, fixtures). */
+    public JobRun(String id, String clubId, JobName job, Instant scheduledFor, String scheduledForLocal, String timeZone,
+            JobTrigger trigger, boolean dryRun, JobStatus status, SkipReason skipReason, Instant startedAt, Instant finishedAt, Long durationMs,
+            List<Entry> counters, List<Item> items, List<RunError> errors, String actorAccountId, List<Entry> parametersSnapshot,
+            boolean exclusive, String holder, boolean leaseExpired) {
+        this(id, clubId, job, scheduledFor, scheduledForLocal, timeZone, trigger, dryRun, status, skipReason, startedAt, finishedAt, durationMs,
+                counters, items, errors, actorAccountId, parametersSnapshot, exclusive, holder, leaseExpired, null);
+    }
     public record Entry(String key, Object value) { }
     public record Item(String entityType, String entityId, String action, List<Entry> detail) { }
     public record RunError(String entityId, String code, String message, String traceId) { }
@@ -28,6 +40,6 @@ public record JobRun(@Id String id, String clubId, JobName job, Instant schedule
             List<Entry> snapshot, boolean expired) {
         return new JobRun(id, clubId, job, scheduledFor, scheduledForLocal, timeZone, trigger, dryRun, next, skipReason, startedAt, at,
                 at.toEpochMilli() - startedAt.toEpochMilli(), nextCounters, nextItems, nextErrors, actorAccountId, snapshot,
-                exclusive && !expired, holder, expired);
+                exclusive && !expired, holder, expired, requestRef);
     }
 }

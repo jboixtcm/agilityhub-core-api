@@ -7,13 +7,21 @@ import org.bson.Document;
 
 /**
  * A context supplies tenant-scoped joins and an explicit safe output projection. `leadingSort` orders the rows before the
- * requested sort (S10 R-10-13: D14's unread rows first, then `activityAt`); empty for every other list.
+ * requested sort (S10 R-10-13: D14's unread rows first, then `activityAt`); empty for every other list. `exportProjection`
+ * replaces the projection of a column in the list's exports only (S03 R-03-24: the dogs' «Titular» cell is the owner's full
+ * name, while the list sends the owner object); empty for every other list.
  */
 public record ListDataset(ListDefinition definition, String collection, List<Document> stages,
         Map<String, Object> projection, java.util.Set<String> nullablePaths, BiFunction<String, Object, String> label,
-        java.util.function.UnaryOperator<Map<String, Object>> sanitize, Document leadingSort) {
+        java.util.function.UnaryOperator<Map<String, Object>> sanitize, Document leadingSort, Map<String, Object> exportProjection) {
     public ListDataset {
         leadingSort = leadingSort == null ? new Document() : leadingSort;
+        exportProjection = exportProjection == null ? Map.of() : Map.copyOf(exportProjection);
+    }
+    public ListDataset(ListDefinition definition, String collection, List<Document> stages,
+            Map<String, Object> projection, java.util.Set<String> nullablePaths, BiFunction<String, Object, String> label,
+            java.util.function.UnaryOperator<Map<String, Object>> sanitize, Document leadingSort) {
+        this(definition, collection, stages, projection, nullablePaths, label, sanitize, leadingSort, Map.of());
     }
     public ListDataset(ListDefinition definition, String collection, List<Document> stages,
             Map<String, Object> projection, java.util.Set<String> nullablePaths, BiFunction<String, Object, String> label,
@@ -23,5 +31,9 @@ public record ListDataset(ListDefinition definition, String collection, List<Doc
     public ListDataset(ListDefinition definition, String collection, List<Document> stages,
             Map<String, Object> projection, java.util.Set<String> nullablePaths, BiFunction<String, Object, String> label) {
         this(definition, collection, stages, projection, nullablePaths, label, java.util.function.UnaryOperator.identity());
+    }
+    /** The same dataset whose exports project each column of {@code columns} with its expression instead of the list's. */
+    public ListDataset withExportProjection(Map<String, Object> columns) {
+        return new ListDataset(definition, collection, stages, projection, nullablePaths, label, sanitize, leadingSort, columns);
     }
 }

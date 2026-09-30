@@ -25,6 +25,11 @@ public @interface ListContract {
      */
     boolean acceptsFields() default true;
     boolean paged() default false;
+    /**
+     * False for a list without free-text search (CONVENCIONS_API §4 as amended 30-09, ruling E75): a `paged` operation then does not
+     * publish `q`, and its list answers a non-blank one with `400 INVALID_FILTER` (its `ListDefinition` has no searchable paths).
+     */
+    boolean searchable() default true;
     boolean exportable() default false;
     /**
      * The largest of the four page sizes (CONVENCIONS_API §4) the operation accepts: its `size` enum publishes the sizes up to

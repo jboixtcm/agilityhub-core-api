@@ -23,7 +23,15 @@ import org.springframework.util.MultiValueMap;
 @Service
 public class TrainingQueryService implements ListProvider {
     static final List<String> FILTERS = List.of("date", "ringId", "memberId", "dogId", "state", "origin");
-    static final List<String> COLUMNS = List.of("date", "startsAtLocal", "ringName", "memberName", "dogName", "state", "origin", "createdAt");
+    /**
+     * The export's columns (`x-columns`). E5-T29 round 2 (review #2): the end (`endsAt`, `endsAtLocal`) and the member's number are
+     * columns too, as the list's `x-fields` publish them; the default columns stay the six of before.
+     */
+    static final List<String> COLUMNS = List.of("date", "startsAtLocal", "endsAtLocal", "ringName", "memberName", "memberNumber", "dogName", "state", "origin",
+            "createdAt", "endsAt");
+    static final List<String> DEFAULT_COLUMNS = List.of("date", "startsAtLocal", "ringName", "memberName", "dogName", "state");
+    /** CONVENCIONS_API §4, S09 §2 (ruling E75): `q` searches the member's full name (first name and both last names), the dog's and the ring's name. */
+    static final List<String> SEARCH = List.of("memberFullName", "dogName", "ringName");
     /** The list's keys and `x-fields`; E5-T29 adds the end (`endsAt`, `endsAtLocal`) and the member's number (null without one). */
     static final List<String> FIELDS = List.of("id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName",
             "memberNumber", "dogId", "dogName", "state", "origin", "createdAt");
@@ -112,7 +120,7 @@ public class TrainingQueryService implements ListProvider {
         String zone = context.zone().getId();
         var filters = new HashMap<String, ListDefinition.Field>(); filters.put("id", new ListDefinition.Field("_id", ListDefinition.Type.TEXT));
         for (String f : FILTERS) { filters.put(f, new ListDefinition.Field(f, f.equals("date") ? ListDefinition.Type.DATE : ListDefinition.Type.TEXT)); }
-        var definition = new ListDefinition(key, filters, Map.of("startsAt", "startsAt"), List.of(), COLUMNS, COLUMNS.subList(0, 6),
+        var definition = new ListDefinition(key, filters, Map.of("startsAt", "startsAt"), SEARCH, COLUMNS, DEFAULT_COLUMNS,
                 List.of("startsAt,desc"), Set.copyOf(FIELDS));
         var stages = new ArrayList<Document>();
         stages.add(new Document("$set", new Document("date", new Document("$dateToString", new Document("date", "$startsAt").append("format", "%Y-%m-%d").append("timezone", zone)))
@@ -124,7 +132,9 @@ public class TrainingQueryService implements ListProvider {
                 .append("ringName", new Document("$ifNull", List.of(new Document("$arrayElemAt", List.of("$ringRows.name", 0)), "")))));
         stages.add(new Document("$set", new Document("memberName", new Document("$trim", new Document("input", new Document("$concat", List.of(
                 new Document("$ifNull", List.of("$person.firstName", "")), " ", new Document("$ifNull", List.of("$person.lastName1", "")))))))
-                .append("memberNumber", new Document("$ifNull", Arrays.asList("$person.memberNumber", null)))));
+                .append("memberNumber", new Document("$ifNull", Arrays.asList("$person.memberNumber", null)))
+                .append("memberFullName", new Document("$trim", new Document("input", new Document("$concat", List.of(new Document("$ifNull", List.of("$person.firstName", "")), " ",
+                        new Document("$ifNull", List.of("$person.lastName1", "")), " ", new Document("$ifNull", List.of("$person.lastName2", "")))))))));
         var output = new LinkedHashMap<String, Object>(); FIELDS.forEach(f -> output.put(f, 1)); output.put("id", "$_id"); output.put("_id", 0);
         return new ListDataset(definition, "training_bookings", stages, output, Set.of("memberNumber"), this::label);
     }
