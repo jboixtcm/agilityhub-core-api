@@ -2,6 +2,14 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E5-T27 round 3 · the health never reads a bearer
+
+**0 operations added or removed, 1 changed (description only); 0 schemas changed.**
+- **`GET /health`**, description (step 5, A7-07): an `Authorization` header is never read, so a bearer never sends the
+  probe to the database (decoding one reads the persisted signing key ring). Behaviour change: a malformed, expired or
+  impersonation bearer gets the usual `200 UP` / `503 DOWN` instead of `401` or `403`. The route is matched on its
+  decoded path, so `/api/v1/%68ealth` is the same route.
+
 ## 2026-09-30 · E6-T03 round 5 · follow-up writes under concurrency, dual-role owners (E41)
 
 **0 operations added or removed, 3 changed (descriptions only); 0 schemas changed.** Same requests and answers.

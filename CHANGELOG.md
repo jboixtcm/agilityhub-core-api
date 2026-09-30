@@ -731,6 +731,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     - The health never reaches the database through CORS: on `GET /api/v1/health` only the configured platform hosts are
       allowed, another origin gets the same `UP`/`DOWN` envelope without CORS headers.
     - `POST /bookings/{id}/cancellation` describes a dual-role account's own cancellation as `origin APP` (not MEMBER).
+  - Round 3 (review of 30-09 11:45): the health never reads a bearer. The bearer resolver ignores `/api/v1/health`, as it
+    ignores the signed-file routes, so a real bearer never sends the probe to the persisted signing key ring in Mongo, and
+    a malformed or impersonation bearer no longer turns it into a 401/403. `HealthRequests` and the health's CORS match the
+    decoded path Spring routes (`/api/v1/%68ealth` included). `bin/e1-smoke` persists its signing key ring and sends the
+    member's live bearer during the outage.
 - E7-T01 round 2 (review of 27-09 14:39, ruling E66): the S11 contract's four corrections.
   - `POST /email-unsubscribes` publishes `security: []` (it inherited the global bearer); `E7ContractIT` asserts the
     effective requirement of every S11 operation in the live document and the committed snapshot.

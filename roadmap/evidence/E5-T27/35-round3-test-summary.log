@@ -1,0 +1,13 @@
+./mvnw -q clean verify (via heavy.sh) -> exit 0; totals read from target/*-reports/TEST-*.xml
+surefire-reports: classes=158 tests=843 failures=0 errors=0 skipped=0
+  arch.ArchitectureTest: tests=14 failures=0 errors=0 skipped=0
+  platform.api.ClubCorsConfigurationSourceTest: tests=2 failures=0 errors=0 skipped=0
+  shared.api.HealthControllerTest: tests=13 failures=0 errors=0 skipped=0
+  shared.api.RequestLocaleResolverTest: tests=12 failures=0 errors=0 skipped=0
+  shared.api.TenantFilterTest: tests=3 failures=0 errors=0 skipped=0
+failsafe-reports: classes=100 tests=1181 failures=0 errors=0 skipped=0
+  configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  identity.api.CorsIT: tests=4 failures=0 errors=0 skipped=0
+  shared.api.HealthIndependenceIT: tests=4 failures=0 errors=0 skipped=0
+  shared.api.IdempotentReplayContractIT: tests=2 failures=0 errors=0 skipped=0
+  shared.persistence.IdempotencyIT: tests=10 failures=0 errors=0 skipped=0

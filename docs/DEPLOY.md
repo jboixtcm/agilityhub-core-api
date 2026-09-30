@@ -38,7 +38,11 @@ MongoDB answers. A load balancer or uptime check on this route reads a `503` as
 "the API cannot serve requests", not as a crash. The route never reads the
 database for anything else, not even CORS (ruling E71): it allows the platform
 hosts of `CORS_PLATFORM_HOSTS` only, and answers any other `Origin` with the same
-envelope and no CORS headers.
+envelope and no CORS headers. It never reads an `Authorization` header either
+(E5-T27 round 3): decoding a bearer reads the signing key ring that
+`OIDC_MASTER_KEY` persists in MongoDB, so a probe that sends one still gets its
+`UP`/`DOWN` answer, and a malformed or expired bearer no longer turns it into a
+`401`.
 
 If the stored CLI credential cannot pull packages, use a classic PAT with
 `read:packages` and repository/package access via `docker login --password-stdin`.

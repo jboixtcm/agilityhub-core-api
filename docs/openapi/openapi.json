@@ -34979,7 +34979,7 @@
     },
     "/api/v1/health" : {
       "get" : {
-        "description" : "ANON, global (no tenant, no locale, no data). 200 {status: UP} only when a Mongo ping answers within 1 s; otherwise 503 with the same envelope and status DOWN. version and builtAt come from the build.",
+        "description" : "ANON, global (no tenant, no locale, no data; an Authorization header is never read). 200 {status: UP} only when a Mongo ping answers within 1 s; otherwise 503 with the same envelope and status DOWN. version and builtAt come from the build.",
         "operationId" : "health",
         "responses" : {
           "200" : {

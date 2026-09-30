@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v1.8 · 28-09-2026** (v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v1.9 · 30-09-2026** (v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -24,21 +24,21 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
 | INC-13 | 26-09 | api · definició de club | Revisió d'E5-T23: les instruccions d'`MANUAL` en blanc passen la validació, la regla R-17-05 només es comprova quan la definició les declara, noms i abast de dos tests | Baixa | oberta — passada de correccions |
 | INC-14 | 26-09 | api · fitxers | Revisió d'E5-T24: la ruta signada es reconeix pel camí cru, P9 no neteja els fitxers `DOG_DOCUMENT` orfes de l'ADMIN, el test de T-05-07 no la cobreix sencera | Baixa | oberta — passada de correccions |
-| INC-15 | 26-09 | api · web (autenticació) | «Entra com l'abonat»: `launchUrl` sempre `null` (E17); el web obre l'origen de l'admin amb el JWT al fragment, i `apps/clubs` no té cap consumidor de `/entrar?handoff=` | **Alta** | oberta — E5-T27 pas 2 · E4-W16 pas 1 (E47) |
+| INC-15 | 26-09 | api · web (autenticació) | «Entra com l'abonat»: `launchUrl` sempre `null` (E17); el web obre l'origen de l'admin amb el JWT al fragment, i `apps/clubs` no té cap consumidor de `/entrar?handoff=` | **Alta** | **meitat web resolta 30-09 (E4-W16 ✅, provada al core real)**; la de l'api, E5-T27 pas 2 (ronda 3) |
 | INC-16 | 26-09 | api (autenticació) | Els comptes amb dos rols (abonat i instructor o admin) reben `403` a totes les rutes d'abonat; `E5ContractIT` ho fixa | **Alta** | oberta — E5-T27 pas 1 (E41) |
 | INC-17 | 26-09 | api (cens) | El `PATCH` SEPA→SEPA del mètode de pagament esborra l'IBAN desat quan no s'envia; T-03-13 ho fixa | **Alta** | oberta — E5-T28 pas 1 (E42) |
-| INC-18 | 26-09 | web (autenticació) | Una sessió impersonada es renova en tornar a la pestanya amb un token que no es pot renovar: cau, o passa a ser la sessió d'abonat de l'admin | **Alta** | oberta — E4-W16 pas 2 |
-| INC-19 | 26-09 | web (autenticació) | Una fallada transitòria de la renovació (sense xarxa, 5xx) tanca la sessió de l'abonat; la cookie es renova a cada focus | Mitjana | oberta — E4-W16 pas 3 |
-| INC-20 | 26-09 | web (build) | El món de mocks (MSW) va dins dels bundles de producció i a la precàrrega del service worker | Mitjana | oberta — E4-W16 pas 4 |
-| INC-21 | 26-09 | web · api (exportacions) | Les exportacions en cua (`202`) no es poden baixar des del calaix: la llista no porta l'enllaç i un `<a href>` no pot enviar el bearer | Mitjana | oberta — E4-W16 pas 5 |
-| INC-22 | 26-09 | web | El diàleg «＋ DOC.» queda desactivat després de la primera pujada | Mitjana | oberta — E4-W16 pas 6 |
-| INC-23 | 26-09 | api · web (contracte) | `Idempotency-Key` s'ignora a les rutes PUT i DELETE que el declaren (el filtre de l'api i el middleware del web només miren POST) | Mitjana | oberta — E5-T27 pas 4 · E6-W01 pas 0 (E46) |
-| INC-24 | 26-09 | api · web (autenticació) | La recuperació de contrasenya no es pot acabar si el compte ja en té: es demana `current` després d'un enllaç `RESET` | Mitjana | oberta — E5-T27 pas 3 · E4-W16 pas 10 (E49) |
+| INC-18 | 26-09 | web (autenticació) | Una sessió impersonada es renova en tornar a la pestanya amb un token que no es pot renovar: cau, o passa a ser la sessió d'abonat de l'admin | **Alta** | **resolta 30-09 (E4-W16 ✅)** |
+| INC-19 | 26-09 | web (autenticació) | Una fallada transitòria de la renovació (sense xarxa, 5xx) tanca la sessió de l'abonat; la cookie es renova a cada focus | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-20 | 26-09 | web (build) | El món de mocks (MSW) va dins dels bundles de producció i a la precàrrega del service worker | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-21 | 26-09 | web · api (exportacions) | Les exportacions en cua (`202`) no es poden baixar des del calaix: la llista no porta l'enllaç i un `<a href>` no pot enviar el bearer | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-22 | 26-09 | web | El diàleg «＋ DOC.» queda desactivat després de la primera pujada | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-23 | 26-09 | api · web (contracte) | `Idempotency-Key` s'ignora a les rutes PUT i DELETE que el declaren (el filtre de l'api i el middleware del web només miren POST) | Mitjana | **meitat web resolta 30-09 (E6-W01 ✅)**; la de l'api, E5-T27 pas 4 (ronda 3) |
+| INC-24 | 26-09 | api · web (autenticació) | La recuperació de contrasenya no es pot acabar si el compte ja en té: es demana `current` després d'un enllaç `RESET` | Mitjana | **meitat web resolta 30-09 (E4-W16 ✅)**; la de l'api, E5-T27 pas 3 (ronda 3), i el `purpose` de l'enllaç, E5-T29 pas 10 |
 | INC-25 | 26-09 | api (catàleg) | El valor per defecte de `messaging.email.fromName` és el literal «Club Agility Cànic» (marca blanca) | Mitjana | oberta — E5-T28 pas 2 (E48) |
-| INC-26 | 26-09 | web | La pantalla 13 mostra un comptador en lloc de les files de tasques (R-03-18) | Mitjana | oberta — E4-W16 pas 11 |
-| INC-27 | 26-09 | web | D10 sense `BILLING` perd «Bloqueja les reserves», «Inactivitat», «Baixa» i «Tota l'auditoria ›» (R-03-30) | Mitjana | oberta — E4-W16 pas 7 |
-| INC-28 | 26-09 | web | D8 «Nou preu» proposa un 21 % d'impost per defecte (el Cànic no aplica IVA; una constant de país al codi) | Mitjana | oberta — E4-W16 pas 8 |
-| INC-29 | 26-09 | web | D7: [DESA] amb `STALE_VERSION` recarrega el formulari i perd les edicions de l'admin | Mitjana | oberta — E4-W16 pas 9 |
+| INC-26 | 26-09 | web | La pantalla 13 mostra un comptador en lloc de les files de tasques (R-03-18) | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-27 | 26-09 | web | D10 sense `BILLING` perd «Bloqueja les reserves», «Inactivitat», «Baixa» i «Tota l'auditoria ›» (R-03-30) | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-28 | 26-09 | web | D8 «Nou preu» proposa un 21 % d'impost per defecte (el Cànic no aplica IVA; una constant de país al codi) | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
+| INC-29 | 26-09 | web | D7: [DESA] amb `STALE_VERSION` recarrega el formulari i perd les edicions de l'admin | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
 | INC-30 | 26-09 | api (SEPA) | Els abonats nous reben un `mandateRef` de 39 caràcters (pain.008 en permet 35), i el seed de demostració no té mandats | Mitjana | oberta — E5-T28 pas 3 (E43) |
 | INC-31 | 26-09 | api (privacitat) | Dues formes d'IBAN: en clar (entrat per l'api) i xifrat (migrat); cap tasca d'E8 no ho sabia | Mitjana | oberta — E8-T01 (`BankAccountVault`, E43) + E11-T02 (xifrar els IBAN en clar abans del llançament, A37 ✓ Jordi 27-09) |
 | INC-32 | 26-09 | api (alta) | Rebutjar una alta amb un checkout obert no tanca la sessió del proveïdor; un pagament tardà es perd | Mitjana | oberta — E5-T28 pas 4 |
@@ -56,7 +56,8 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-44 | 27-09 | web · api (entrenaments) | Preguntes d'E5-W02: sense graella a 24 i D12 per a una pista sense entrenament lliure o amb `FREE_TRAINING` desactivat; la cel·la «classe» mostra l'hora de la fila, no la de la classe | Baixa | oberta — passada de correccions |
 | INC-45 | 28-09 | api (seguretat, contracte) | Pregunta d'E7-T01: cap test comprova, per a totes les operacions, que la seguretat publicada a l'OpenAPI és la que s'aplica (avui ho fa cada IT de contracte per a les seves rutes) | Baixa | oberta — passada de correccions |
 | INC-46 | 28-09 | api (processos) | Nits de la ronda 2 d'E6-T04: el recompte de [Simula] de P3 i la seva traça sense límit, una escombrada en bloc sense ús ni guarda de mòdul, i la lectura de P8 a cada minut | Baixa | oberta — passada de correccions |
-| INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, a la seva ronda 5 |
+| INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, **fetes a la seva ronda 5 (30-09, E6-T03 ✅)** |
+| INC-48 | 30-09 | api (seguiment) | Nits de la ronda 5 d'E6-T03: l'estat que es desa per a la resposta repetida d'una clau és una còpia escrita a mà del `@ResponseStatus` de cada ruta, i un Javadoc mal tallat | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -418,6 +419,20 @@ Solució probable:
 - Les rutes d'E6-T03 es corregeixen ara, a la seva ronda 5.
 
 **On mirar**: `IdempotencyFilter.java` (la llista i el camí per defecte), `FollowupTransactions.java`, `TransactionRetries.java`, el gestor d'errors global.
+
+---
+
+## INC-48 · Nits de la ronda 5 d'E6-T03 (api, seguiment)
+
+**Gravetat**: baixa. Avui funcionen.
+
+**Origen**: `roadmap/reviews/E6-T03-20260930-1238-claude.md` (api), troballes #2 i #4; verificació de l'organitzador del 30-09 (decisió E73).
+
+**Llista**:
+- **L'estat de la resposta repetida.** A `TasksController`, `AttachmentsController` i `FollowupController`, l'estat que es desa amb la clau (`keyed(201|200, …)`, `keyedNoContent` = 204) és una segona còpia, escrita a mà, del `@ResponseStatus` de la ruta. Si mai divergeixen, una clau repetida respon un estat diferent del primer (CONVENCIONS_API §7). Proposta: llegir-lo del `@ResponseStatus`, o una asserció de resposta repetida per a cada ruta amb clau.
+- **El Javadoc de `FollowupTransactions`** (línies 15–19) es talla a mitja frase. Proposta: refer-ne l'ajust.
+
+**On mirar**: `TasksController.java:210,239,254`, `AttachmentsController.java:55,77`, `FollowupController.java:120`, `FollowupTransactions.java:15-19`.
 
 ---
 

@@ -8,6 +8,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 public final class ClubCorsConfigurationSource implements CorsConfigurationSource {
+    private static final org.springframework.web.util.UrlPathHelper PATHS = new org.springframework.web.util.UrlPathHelper();
     private final HostTenantResolver hosts;
     private final List<String> platformHosts;
     private final boolean local;
@@ -24,8 +25,9 @@ public final class ClubCorsConfigurationSource implements CorsConfigurationSourc
         return configuration(allowed(origin) ? origin : null);
     }
 
+    /** E5-T27 round 3: the path Spring routes (decoded, without `;` parameters), so `/api/v1/%68ealth` is the health too. */
     private static boolean health(HttpServletRequest request) {
-        return request.getRequestURI().substring(request.getContextPath().length()).equals("/api/v1/health");
+        return PATHS.getPathWithinApplication(request).equals("/api/v1/health");
     }
 
     private CorsConfiguration configuration(String allowedOrigin) {

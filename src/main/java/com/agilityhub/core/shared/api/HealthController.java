@@ -27,10 +27,11 @@ public class HealthController {
 
     /**
      * INC-01 (E3-T06) and E5-T27 step 5 (A7-07): public, global, no tenant, locale or data. `UP` only when a Mongo `ping` answers
-     * within 1 s; otherwise 503 with the same envelope and `status: DOWN`, and a WARN with the request's traceId.
+     * within 1 s; otherwise 503 with the same envelope and `status: DOWN`, and a WARN with the request's traceId. Round 3: an
+     * `Authorization` header is never read (decoding a bearer reads the key ring from Mongo).
      */
     @GetMapping("/api/v1/health")
-    @Operation(summary = "health", description = "ANON, global (no tenant, no locale, no data). 200 {status: UP} only when a Mongo ping answers within 1 s; "
+    @Operation(summary = "health", description = "ANON, global (no tenant, no locale, no data; an Authorization header is never read). 200 {status: UP} only when a Mongo ping answers within 1 s; "
             + "otherwise 503 with the same envelope and status DOWN. version and builtAt come from the build.",
             responses = @ApiResponse(responseCode = "200", description = "HealthResponse, status UP", useReturnTypeSchema = true))
     public ResponseEntity<HealthResponse> health(@io.swagger.v3.oas.annotations.Parameter(hidden = true) HttpServletRequest request) {

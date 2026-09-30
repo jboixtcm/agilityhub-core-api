@@ -26,7 +26,7 @@ as a non-root user on `eclipse-temurin:21-jre`. MongoDB 7 initializes the
 single-node `rs0` replica set and must become PRIMARY before the API starts.
 Expect health JSON with `status: "UP"`, replica-set state `1`, and both services
 healthy. Health also returns the Maven project `version` and UTC `builtAt`
-timestamp. It is public and global and reads no tenant, locale or data, but `UP`
+timestamp. It is public and global and reads no tenant, locale, bearer or data, but `UP`
 means the database answers: it pings MongoDB with a 1 s bound (E5-T27, INC-01
 semantics). When the ping fails or times out it answers `503` with the same body
 and `status: "DOWN"`, and logs a WARN with the request's `traceId`. The Docker

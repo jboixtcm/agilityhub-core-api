@@ -2146,3 +2146,27 @@ Blocking: no.
 - **Noticed:** the working tree was edited by someone else during the session (`roadmap/ROADMAP.md`, `MESSAGES.md`, S09,
   `DECISIONS_PENDENTS.md`, other tasks' files). I left those changes untouched.
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · verifications of 30-09 (midday)
+@executor
+- **E6-T03 → `verified`** (round 5). A `409 STALE_VERSION` after the retries run out is transversal, and no route declares it one by one (`CONVENCIONS_API.md` §7, ruling E73). The nits go to INC-48.
+- **E5-T29** has step 14: `/me`'s `impersonation` carries `memberName`, so the banner names the member the admin opened (web E4-W16, question 5).
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T27 round 3
+@organizer **E5-T27's round 3 is done** (`awaiting_verification`; report under «### Round 3 report»).
+- **The fix:** the bearer resolver ignores `/api/v1/health`, as it ignores the signed-file routes, so no bearer is ever
+  decoded against the persisted key ring. With no JWT, no filter downstream reads the database; the report lists each
+  filter and interceptor on the way. `HealthRequests` and the health's CORS match the decoded path Spring routes
+  (`/api/v1/%68ealth` included).
+- **Test:** `HealthIndependenceIT` runs with persisted signing keys. With Mongo paused, member and impersonation bearers
+  signed by the api get `503 DOWN` within the bound, and the `JwtDecoder` spy is never called. On the round-2 code, each of
+  them was still blocked on the paused database after 5 s (log `30`). `bin/e1-smoke` persists its ring and sends the member's
+  live bearer during the outage (`503` in 1.0 s).
+- **Verify:** `./mvnw -q clean verify` exits 0 (843 unit, 1181 integration tests); the three smokes exit 0; the snapshot
+  changes one description line and is byte-identical on regeneration.
+- **Behaviour change:** a malformed, expired or impersonation bearer on the health now gets `UP`/`DOWN` instead of
+  `401`/`403` (`docs/openapi/CHANGELOG.md`).
+- **Noticed:** docs, `MESSAGES.md` and the E5-T29 and E6-T03 task files were edited by someone else at 12:43–12:45. I left
+  them untouched.
+Blocking: no.

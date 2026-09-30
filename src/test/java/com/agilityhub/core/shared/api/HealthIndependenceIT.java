@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"shared.scheduling.enabled=false", "management.server.port=0", "core.oidc.master-key="})
+        properties = {"shared.scheduling.enabled=false", "management.server.port=0"})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 @ActiveProfiles("test")
 @Testcontainers
@@ -39,20 +39,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class HealthIndependenceIT {
     // Separate storage proves startup and every probe work before any club/account is seeded.
     @Container static final MongoDBContainer MONGO = new MongoDBContainer("mongo:7");
-    /** Club web origins: resolving one for CORS would query the clubs collection. The outage test uses its own, never cached. */
+    /**
+     * E5-T27 round 3: a master key persists the signing key ring, as on staging and prod, so decoding any bearer reads it from
+     * Mongo (`SigningKeys.publicKeys()`). The ring is written at startup: it is bootstrap, not club or account data.
+     */
+    static final String OIDC_MASTER = java.util.Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(32));
+    static final String BOOTSTRAP_COLLECTION = "signing_keys";
+    /** Club web origins: resolving one for CORS would query the clubs collection. The outage tests use their own, never cached. */
     static final String CLUB_ORIGIN = "https://app.health-club.example.test";
     static final String OUTAGE_CLUB_ORIGIN = "https://app.outage-club.example.test";
+    static final String BEARER_OUTAGE_CLUB_ORIGIN = "https://app.bearer-outage-club.example.test";
+    static final String ENCODED_OUTAGE_CLUB_ORIGIN = "https://app.encoded-outage-club.example.test";
     /** One of the configured platform hosts (`core.security.cors.platform-hosts`), allowed without the database. */
     static final String PLATFORM_ORIGIN = "https://id.agilitydoghub.com";
+    /** The route as MVC also routes it: `%68` is an `h`. */
+    static final URI ENCODED_HEALTH = URI.create("/api/v1/%68ealth");
+    static final String PROBE_ACCOUNT = "health-probe-account";
     @DynamicPropertySource static void database(DynamicPropertyRegistry registry) {
+        registry.add("core.oidc.master-key", () -> OIDC_MASTER);
         registry.add("spring.data.mongodb.uri", () -> MONGO.getReplicaSetUrl("health_empty"));
     }
     @Autowired MockMvc mvc;
     @Autowired MongoTemplate mongo;
+    @Autowired org.springframework.security.oauth2.jwt.JwtEncoder encoder;
+    @Autowired java.time.Clock clock;
+    @org.springframework.beans.factory.annotation.Value("${identity.issuer}") String issuer;
     @LocalManagementPort int managementPort;
     @MockitoSpyBean AccountAccess accounts;
     @MockitoSpyBean LocaleSettingsProvider locales;
     @MockitoSpyBean TenantHostResolver hosts;
+    @MockitoSpyBean org.springframework.security.oauth2.jwt.JwtDecoder decoder;
 
     @Test @org.junit.jupiter.api.Order(1) void T_02_01_INC01_healthNeedsNoTenantLocaleAccountOrSeedData() throws Exception {
         assertEmpty();
@@ -140,6 +156,102 @@ class HealthIndependenceIT {
         verifyNoInteractions(accounts, locales, hosts);
     }
 
+    /**
+     * E5-T27 round 3 (step 5; review of 30-09): the health never reads a bearer, whatever the headers. Decoding one would read the
+     * persisted key ring from Mongo, and an impersonation bearer would also look its grant up. With Mongo paused, bearers the api
+     * signed itself get 503 DOWN within the bound, on the route and on its encoded spelling with an uncached club Origin.
+     */
+    @Test @org.junit.jupiter.api.Order(3)
+    void E5_T27_aRealBearerGets503DownWithinItsBoundWhileTheDatabaseDoesNotAnswer() throws Exception {
+        assertThat(mongo.getCollection(BOOTSTRAP_COLLECTION).countDocuments()).as("the signing key ring is persisted").isEqualTo(1);
+        String member = bearer(false), impersonation = bearer(true);
+        // Real bearers: the api's own decoder accepts them while the database answers.
+        assertThat(decoder.decode(member).getSubject()).isEqualTo(PROBE_ACCOUNT);
+        assertThat(decoder.decode(impersonation).getClaimAsBoolean("imp")).isTrue();
+        mvc.perform(get("/api/v1/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
+        clearInvocations(accounts, locales, hosts, decoder);
+        var requests = new java.util.LinkedHashMap<String, org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder>();
+        requests.put("member bearer", get("/api/v1/health").header("Authorization", "Bearer " + member));
+        requests.put("impersonation bearer", get("/api/v1/health").header("Authorization", "Bearer " + impersonation));
+        requests.put("encoded route, member bearer and club Origin", get(ENCODED_HEALTH)
+                .header("Authorization", "Bearer " + member).header("Origin", BEARER_OUTAGE_CLUB_ORIGIN));
+        // The route's CORS also matches the decoded path: without a bearer, an encoded route with a club Origin stays off the database.
+        requests.put("encoded route and club Origin", get(ENCODED_HEALTH).header("Origin", ENCODED_OUTAGE_CLUB_ORIGIN));
+        var outcomes = new org.assertj.core.api.SoftAssertions();
+        var docker = MONGO.getDockerClient();
+        docker.pauseContainerCmd(MONGO.getContainerId()).exec();
+        try {
+            for (var request : requests.entrySet()) {
+                long started = System.nanoTime();
+                org.springframework.mock.web.MockHttpServletResponse answer;
+                try { answer = withinFiveSeconds(request.getValue()).getResponse(); }
+                catch (java.util.concurrent.TimeoutException blocked) {
+                    outcomes.fail("%s: no answer within 5 s, blocked on the paused database", request.getKey());
+                    continue;
+                }
+                long elapsed = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+                outcomes.assertThat(answer.getStatus()).as(request.getKey()).isEqualTo(503);
+                outcomes.assertThat(new com.fasterxml.jackson.databind.ObjectMapper().readTree(answer.getContentAsString()).path("status").asText())
+                        .as(request.getKey()).isEqualTo("DOWN");
+                outcomes.assertThat(elapsed).as("%s: the ping is bounded to 1 s", request.getKey()).isLessThan(3000);
+                outcomes.assertThat(answer.getHeader("Access-Control-Allow-Origin")).as(request.getKey()).isNull();
+            }
+        } finally {
+            docker.unpauseContainerCmd(MONGO.getContainerId()).exec();
+        }
+        outcomes.assertAll();
+        awaitUp();
+        verifyNoInteractions(decoder, accounts, locales, hosts);
+    }
+
+    /**
+     * E5-T27 round 3 (step 5): the bearer resolver ignores the health's `Authorization` header, as it ignores the signed-file
+     * routes', so the decoder is never called: a real bearer, an impersonation one and a malformed one all get UP, on the route
+     * and on its encoded spelling. The neighbouring public route still reads the header and refuses the malformed one.
+     */
+    @Test @org.junit.jupiter.api.Order(4)
+    void E5_T27_theHealthNeverReadsABearerAndAnotherRouteStillDoes() throws Exception {
+        var tokens = new java.util.LinkedHashMap<String, String>();
+        tokens.put("member bearer", bearer(false));
+        tokens.put("impersonation bearer", bearer(true));
+        tokens.put("malformed bearer", "not-a-jwt");
+        clearInvocations(accounts, locales, hosts, decoder);
+        var answers = new org.assertj.core.api.SoftAssertions();
+        for (var token : tokens.entrySet()) {
+            for (URI route : new URI[]{URI.create("/api/v1/health"), ENCODED_HEALTH}) {
+                var answer = mvc.perform(get(route).header("Authorization", "Bearer " + token.getValue())).andReturn().getResponse();
+                answers.assertThat(answer.getStatus() + " " + answer.getContentAsString()).as("%s on %s", token.getKey(), route)
+                        .startsWith("200 ").contains("\"status\":\"UP\"");
+            }
+        }
+        answers.assertAll();
+        verifyNoInteractions(decoder, accounts, locales, hosts);
+        mvc.perform(get("/api/v1/branding").header("Authorization", "Bearer not-a-jwt"))
+                .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+        verify(decoder).decode("not-a-jwt");
+    }
+
+    /** An access token signed with the api's persisted ring, with the claims `TokenService` issues (a member, or an impersonation). */
+    private String bearer(boolean impersonation) {
+        var now = clock.instant();
+        var claims = org.springframework.security.oauth2.jwt.JwtClaimsSet.builder().issuer(issuer).subject(PROBE_ACCOUNT)
+                .audience(java.util.List.of("clubs-app")).issuedAt(now).expiresAt(now.plus(java.time.Duration.ofMinutes(15)))
+                .claim("clubId", "health-probe-club").claim("roles", java.util.List.of("MEMBER"));
+        if (impersonation) {
+            claims.claim("imp", true).claim("actorAccountId", "health-probe-admin").claim("memberId", "health-probe-member");
+        }
+        return encoder.encode(org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(claims.build())).getTokenValue();
+    }
+
+    private void awaitUp() throws Exception {
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(60);
+        int status = 0;
+        while (System.nanoTime() < deadline && (status = mvc.perform(get("/api/v1/health")).andReturn().getResponse().getStatus()) != 200) {
+            java.util.concurrent.locks.LockSupport.parkNanos(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(250));
+        }
+        assertThat(status).as("UP again once the database answers").isEqualTo(200);
+    }
+
     /** Runs the request on its own thread, so that a request stuck on the paused database fails the test instead of hanging it. */
     private org.springframework.test.web.servlet.MvcResult withinFiveSeconds(
             org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request) throws Exception {
@@ -150,6 +262,7 @@ class HealthIndependenceIT {
 
     private void assertEmpty() {
         for (String collection : mongo.getCollectionNames()) {
+            if (collection.equals(BOOTSTRAP_COLLECTION)) { continue; }
             assertThat(mongo.getCollection(collection).countDocuments()).as(collection).isZero();
         }
     }

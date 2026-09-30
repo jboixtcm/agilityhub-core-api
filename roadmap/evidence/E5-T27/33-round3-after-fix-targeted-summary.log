@@ -1,0 +1,15 @@
+surefire-reports arch.ArchitectureTest tests=14 failures=0 errors=0 skipped=0
+surefire-reports platform.api.ClubCorsConfigurationSourceTest tests=2 failures=0 errors=0 skipped=0
+surefire-reports shared.api.HealthControllerTest tests=13 failures=0 errors=0 skipped=0
+surefire-reports shared.api.RequestLocaleResolverTest tests=12 failures=0 errors=0 skipped=0
+surefire-reports shared.api.TenantFilterTest tests=3 failures=0 errors=0 skipped=0
+failsafe-reports configuration.ManagementIT tests=1 failures=0 errors=0 skipped=0
+failsafe-reports configuration.OpenApiSnapshotTest tests=10 failures=0 errors=0 skipped=0
+failsafe-reports identity.api.CorsIT tests=4 failures=0 errors=0 skipped=0
+failsafe-reports identity.api.RateLimitIT tests=7 failures=0 errors=0 skipped=0
+failsafe-reports identity.api.SecurityHeadersIT tests=2 failures=0 errors=0 skipped=0
+failsafe-reports platform.api.RequiresModuleIT tests=9 failures=0 errors=0 skipped=0
+failsafe-reports platform.persistence.PlatformIT tests=10 failures=0 errors=0 skipped=0
+failsafe-reports shared.api.HealthIndependenceIT tests=4 failures=0 errors=0 skipped=0
+failsafe-reports shared.api.IdempotentReplayContractIT tests=2 failures=0 errors=0 skipped=0
+failsafe-reports shared.persistence.IdempotencyIT tests=10 failures=0 errors=0 skipped=0

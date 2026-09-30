@@ -89,9 +89,11 @@ public class SecurityConfiguration {
             combined.addAll(scopes.convert(jwt));
             return combined;
         });
-        // E5-T24: the bearer of a signed file URL is never read, so it does no harm (an expired one included).
+        // E5-T24: the bearer of a signed file URL is never read, so it does no harm (an expired one included). E5-T27 round 3
+        // (A7-07): nor the health's, whose probe never reaches the database (decoding reads the persisted key ring).
         var bearers = new org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver();
-        http.oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> com.agilityhub.core.shared.api.SignedFileRequests.matches(request) ? null : bearers.resolve(request))
+        http.oauth2ResourceServer(resource -> resource.bearerTokenResolver(request -> com.agilityhub.core.shared.api.SignedFileRequests.matches(request)
+                        || com.agilityhub.core.shared.api.HealthRequests.matches(request) ? null : bearers.resolve(request))
                 .jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
                 .authenticationEntryPoint((request, response, exception) -> writeError(request, response, ErrorCode.UNAUTHENTICATED, errors, mapper))
                 .accessDeniedHandler((request, response, exception) -> writeError(request, response, ErrorCode.FORBIDDEN, errors, mapper)));

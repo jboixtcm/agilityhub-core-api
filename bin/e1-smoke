@@ -133,7 +133,10 @@ def main():
         # Do not inherit deployment credentials, Spring overrides or external email settings.
         env = {key: os.environ[key] for key in ("PATH", "JAVA_HOME", "TMPDIR", "LANG", "HOME",
                "DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY") if key in os.environ}
+        # E5-T27 round 3: a fresh master key persists the signing key ring in Mongo, as on staging and prod, so decoding a
+        # bearer reads the database (the consumer Compose of --image keeps its ephemeral ring).
         env.update(SPRING_PROFILES_ACTIVE="local", SEED_PASSWORD=secrets.token_urlsafe(32),
+                   OIDC_MASTER_KEY=base64.b64encode(secrets.token_bytes(32)).decode(),
                    LOGGING_LEVEL_ROOT="ERROR", SPRING_MAIN_BANNER_MODE="off",
                    MANAGEMENT_SERVER_PORT="0", MANAGEMENT_SERVER_ADDRESS="127.0.0.1",
                    SERVER_ADDRESS="127.0.0.1", SHARED_SCHEDULING_ENABLED="false", MONGODB_DATABASE="e1_smoke",
@@ -371,6 +374,11 @@ def main():
 
             # E5-T27 step 5 (INC-01 semantics, audit A7-07): UP means the database answers a bounded (1 s) ping.
             up, _ = api.call("/api/v1/health")
+            # E5-T27 round 3: a live bearer, which the api decodes against the key ring it persisted in Mongo.
+            rings = mongo('print(JSON.stringify(db.signing_keys.countDocuments()))')
+            require(options.image or rings == 1, "The jar run must persist its signing key ring")
+            bearer = member["access_token"]
+            api.call("/api/v1/me", host=host, access=bearer)
             pause = ["docker", "pause", container] if not options.image else [*compose_args, "pause", "mongo"]
             unpause = ["docker", "unpause", container] if not options.image else [*compose_args, "unpause", "mongo"]
             command(pause, env=env)
@@ -378,7 +386,12 @@ def main():
                 started_at = time.monotonic()
                 down, _ = api.call("/api/v1/health", 503)
                 elapsed = time.monotonic() - started_at
-                # E5-T27 round 2 (review #2, ruling E71): a club Origin never sends the health to the database through CORS.
+                # E5-T27 round 3: a bearer never sends the health to the database, which never reads it.
+                started_at = time.monotonic()
+                down_bearer, _ = api.call("/api/v1/health", 503, access=bearer)
+                elapsed_bearer = time.monotonic() - started_at
+                # E5-T27 round 2 (review #2, ruling E71): nor does a club Origin, through CORS. The probe's two ping threads
+                # still wait on the paused database, so this third probe answers DOWN at once (DatabaseProbe).
                 started_at = time.monotonic()
                 down_origin, origin_headers = api.call("/api/v1/health", 503, origin="https://uncached-club.example.test")
                 elapsed_origin = time.monotonic() - started_at
@@ -388,9 +401,11 @@ def main():
             require(elapsed < 3, "Health must answer within its 1 s bound")
             require(down_origin == down and elapsed_origin < 3, "Health with a club Origin must answer DOWN within its bound")
             require(origin_headers.get("Access-Control-Allow-Origin") is None, "Health must not allow a club Origin")
+            require(down_bearer == down and elapsed_bearer < 3, "Health with a bearer must answer DOWN within its bound")
             eventually(lambda: api.call("/api/v1/health")[0].get("status") == "UP", "Health did not recover", 60)
-            print(f"PASS health with Mongo paused -> 503 {{status: DOWN}} in {elapsed:.1f} s, also with an uncached club Origin "
-                  f"in {elapsed_origin:.1f} s (no CORS headers); 200 UP again once Mongo answers", flush=True)
+            print(f"PASS health with Mongo paused -> 503 {{status: DOWN}} in {elapsed:.1f} s, also with the member's live bearer "
+                  f"in {elapsed_bearer:.1f} s ({'persisted' if rings == 1 else 'ephemeral'} signing key ring) and with an uncached "
+                  f"club Origin in {elapsed_origin:.1f} s (no CORS headers; probe busy); 200 UP again once Mongo answers", flush=True)
             print("E1 smoke passed. Staging/real delivery and the Learn adapter remain separate gate evidence.", flush=True)
         finally:
             if app is not None:

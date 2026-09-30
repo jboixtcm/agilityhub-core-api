@@ -1,0 +1,28 @@
+PASS disposable MongoDB 7 replica set ready
+PASS Cànic and minimal seeds applied; disposable passwordless member projection prepared
+PASS local API health UP
+PASS magic link delivered through local mailbox and exchanged for cookie session
+PASS /me exposes the seeded member and tenant
+PASS PUT /me/profile persists MEMBER and remember=true
+PASS refresh rotation replaces the HttpOnly host-only cookie
+PASS reuse rejected with REFRESH_REUSED; replacement family also rejected
+PASS first password set and password login succeeds
+PASS all seven product locales persist; unsupported locale rejected
+PASS password failure 1/5 -> 401 INVALID_CREDENTIALS
+PASS password failure 2/5 -> 401 INVALID_CREDENTIALS
+PASS password failure 3/5 -> 401 INVALID_CREDENTIALS
+PASS password failure 4/5 -> 401 INVALID_CREDENTIALS
+PASS password failure 5/5 -> 429 LOGIN_LOCKED
+PASS correct password also denied while locked
+PASS RESET link sets a new password once without current (lockout cleared); a second change and a LOGIN link -> 401 INVALID_CREDENTIALS
+PASS launchUrl https://app.agilitycanic.cat/entrar?handoff=1gjJas…[truncated] redeemed once (clubs-app, handoff grant): claims imp=True memberId=e1-smoke-member roles=['MEMBER'], no refresh token; second redemption -> 400 HANDOFF_INVALID
+PASS admin impersonation, forbidden password change and grant revocation
+PASS clubs-admin handoff restores admin context; replay rejected
+PASS OIDC discovery, required S256 PKCE, fresh cookie-bound login, code exchange, ID claims, userinfo and replay rejection
+PASS OIDC and handoff cookie sessions revoked; subsequent refresh denied
+Dry run: 50 would create, 0 would link, 0 skipped, 0 errors
+Reasons: {NEW_ACCOUNT=50}
+PASS Learn fixture dry-run proposes 50 accounts and leaves accounts, memberships, audits and outbox unchanged
+PASS health with Mongo paused -> 503 {status: DOWN} in 1.0 s, also with the member's live bearer in 1.0 s (persisted signing key ring) and with an uncached club Origin in 0.0 s (no CORS headers; probe busy); 200 UP again once Mongo answers
+E1 smoke passed. Staging/real delivery and the Learn adapter remain separate gate evidence.
+CLEANUP local API stopped; disposable Mongo and private mailbox removed
