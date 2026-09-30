@@ -1,0 +1,50 @@
+surefire (unit): tests=876 failures=0 errors=0 skipped=0
+  MessageTemplateSeedTest: tests=4 failures=0 errors=0 skipped=0
+  MessageTemplateSeedChecksTest: tests=3 failures=0 errors=0 skipped=0
+  TemplateValidatorTest: tests=8 failures=0 errors=0 skipped=0
+  MessagingE7T03UnitTest: tests=6 failures=0 errors=0 skipped=0
+  NotificationSeedSnapshotTest: tests=3 failures=0 errors=0 skipped=0
+  RiskNotificationTextsTest: tests=1 failures=0 errors=0 skipped=0
+  NoShowNotificationTextsTest: tests=2 failures=0 errors=0 skipped=0
+  FollowupNotificationTextsTest: tests=2 failures=0 errors=0 skipped=0
+  OpenApiRequiredContractTest: tests=3 failures=0 errors=0 skipped=0
+  MessageParityTest: tests=1 failures=0 errors=0 skipped=0
+  NotificationCatalogContractTest: tests=4 failures=0 errors=0 skipped=0
+  ErrorCatalogContractTest: tests=5 failures=0 errors=0 skipped=0
+  AuditContractTest: tests=1 failures=0 errors=0 skipped=0
+  ArchitectureTest: tests=14 failures=0 errors=0 skipped=0
+  E7ResponseContractTest: tests=5 failures=0 errors=0 skipped=0
+  EventCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+  TemplateProviderTest: tests=3 failures=0 errors=0 skipped=0
+  MessagingDocumentsTest: tests=5 failures=0 errors=0 skipped=0
+failsafe (integration): tests=1263 failures=0 errors=0 skipped=0
+  MessageTemplatesIT: tests=10 failures=0 errors=0 skipped=0
+  NotificationFeedIT: tests=3 failures=0 errors=0 skipped=0
+  NotificationLogIT: tests=5 failures=0 errors=0 skipped=0
+  NotificationPreferencesIT: tests=5 failures=0 errors=0 skipped=0
+  PushSubscriptionsIT: tests=4 failures=0 errors=0 skipped=0
+  InfoScreenIT: tests=2 failures=0 errors=0 skipped=0
+  E7ContractIT: tests=29 failures=0 errors=0 skipped=0
+  E2ContractIT: tests=14 failures=0 errors=0 skipped=0
+  ListFieldsContractIT: tests=4 failures=0 errors=0 skipped=0
+  NotificationEngineIT: tests=13 failures=0 errors=0 skipped=0
+  NotificationDispatcherIT: tests=14 failures=0 errors=0 skipped=0
+  NoShowNoticesJobIT: tests=5 failures=0 errors=0 skipped=0
+  FollowupIT: tests=24 failures=0 errors=0 skipped=0
+  WaitlistIT: tests=18 failures=0 errors=0 skipped=0
+  E7PersistenceIT: tests=9 failures=0 errors=0 skipped=0
+  EmailUnsubscribeIT: tests=2 failures=0 errors=0 skipped=0
+  DemoSeedsIT: tests=11 failures=0 errors=0 skipped=0
+  OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0
+  ExportEngineIT: tests=9 failures=0 errors=0 skipped=0
+JaCoCo (merged unit + integration), line / branch covered ratio:
+  com.agilityhub.core.clubs.census.application: lines 0.985 (2072/2104), branches 0.847 (1775/2095)
+  com.agilityhub.core.clubs.common.application: lines 0.985 (466/473), branches 0.871 (283/325)
+  com.agilityhub.core.clubs.messaging.api: lines 0.994 (175/176), branches 0.850 (51/60)
+  com.agilityhub.core.clubs.messaging.application: lines 0.994 (773/778), branches 0.868 (619/713)
+  com.agilityhub.core.clubs.messaging.application.engine: lines 0.993 (905/911), branches 0.897 (773/862)
+  com.agilityhub.core.clubs.messaging.application.integrations: lines 0.994 (175/176), branches 0.971 (66/68)
+  com.agilityhub.core.clubs.messaging.application.ports: lines 0.985 (129/131), branches 0.987 (75/76)
+  com.agilityhub.core.clubs.messaging.domain: lines 1.000 (458/458), branches 0.975 (352/361)
+  com.agilityhub.core.clubs.messaging.persistence: lines 0.996 (257/258), branches 0.919 (148/161)
+  com.agilityhub.core.platform.application.definition: lines 0.977 (341/349), branches 0.955 (279/292)

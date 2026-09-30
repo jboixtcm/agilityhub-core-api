@@ -6,10 +6,10 @@ import com.agilityhub.core.clubs.messaging.domain.TemplateStatus;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.MessageTemplateRepository;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.application.TransactionRetries;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -24,6 +24,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class TemplateProvider {
     static final String SYSTEM_ACTOR = "system:notification-engine";
+    static final int FIRST_USE_ATTEMPTS = 8;
     private final MessageTemplateRepository templates; private final MessageTemplateSeed seeds; private final Clock clock;
     private final TransactionTemplate own, outside;
 
@@ -35,21 +36,33 @@ public class TemplateProvider {
 
     /** The template of a templated code in the current club, created from the seed (every product language) when absent. */
     public MessageTemplate forCode(NotificationSpec spec, String clubDefaultLocale) { return forCode(spec, null, clubDefaultLocale); }
-    /** The template of a templated code in the current club, created from the seed in the club's `locales` when absent. */
+    /**
+     * The template of a templated code in the current club, created from the seed in the club's `locales` when absent. A
+     * concurrent first use of the code (a hundred reminders at once, T-11-31) loses on the unique `{clubId, code}`: with a
+     * duplicate key once the winner committed, with a `WriteConflict` (112) or a `TransientTransactionError` while it had not.
+     * Either way the loser reads the winner's template outside any transaction (the caller's snapshot predates it) and, while
+     * it is not committed yet, waits 50–150 ms and tries again, at most {@value #FIRST_USE_ATTEMPTS} times.
+     */
     public MessageTemplate forCode(NotificationSpec spec, Collection<String> clubLocales, String clubDefaultLocale) {
         var existing = templates.findByCode(spec.code());
         if (existing.isPresent()) { return existing.get(); }
         var seed = seed(spec, clubLocales, clubDefaultLocale);
-        try {
-            return own.execute(tx -> templates.insert(seed));
-        } catch (DuplicateKeyException raced) {
-            return outside.execute(tx -> templates.findByCode(spec.code())).orElseThrow(() -> raced);
+        for (int attempt = 1; ; attempt++) {
+            try { return own.execute(tx -> templates.insert(seed)); }
+            catch (RuntimeException raced) {
+                if (!TransactionRetries.conflict(raced)) { throw raced; }
+                var winner = outside.execute(tx -> templates.findByCode(spec.code()));
+                if (winner.isPresent()) { return winner.get(); }
+                if (attempt >= FIRST_USE_ATTEMPTS) { throw raced; }
+                pause();
+            }
         }
     }
 
     /**
      * D9's list (R-11-01): every eligible code of the club has its template afterwards. The missing ones are inserted
-     * together in their own transaction; a concurrent first use of one of them (the unique `{clubId, code}`) is re-read.
+     * together in their own transaction; when a concurrent first use of one of them wins (a duplicate key or a write
+     * conflict), each code goes through {@link #forCode} instead.
      */
     public void ensureAll(Collection<String> clubLocales, String clubDefaultLocale) {
         var present = new java.util.HashSet<String>();
@@ -58,7 +71,14 @@ public class TemplateProvider {
         for (var spec : MessageTemplateSeed.eligible()) { if (!present.contains(spec.code())) { missing.add(seed(spec, clubLocales, clubDefaultLocale)); } }
         if (missing.isEmpty()) { return; }
         try { own.executeWithoutResult(tx -> missing.forEach(templates::insert)); }
-        catch (DuplicateKeyException raced) { MessageTemplateSeed.eligible().forEach(spec -> forCode(spec, clubLocales, clubDefaultLocale)); }
+        catch (RuntimeException raced) {
+            if (!TransactionRetries.conflict(raced)) { throw raced; }
+            MessageTemplateSeed.eligible().forEach(spec -> forCode(spec, clubLocales, clubDefaultLocale));
+        }
+    }
+    private static void pause() {
+        try { Thread.sleep(TransactionRetries.jitter()); }
+        catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }
     }
 
     /** The product seed of a templated code for the current club: every product language. */

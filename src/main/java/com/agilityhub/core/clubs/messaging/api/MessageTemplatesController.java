@@ -68,8 +68,10 @@ public class MessageTemplatesController {
     @ContractErrors({VALIDATION_ERROR, TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE, CHANNEL_NOT_ALLOWED, SMS_BODY_REQUIRED, SMS_BODY_TOO_LONG})
     @Operation(summary = "createMessageTemplate", description = ROLES + "[＋ Nova plantilla]: a CUSTOM template of PERSONAL, CLUB_NEWS or CLUB_CHANGES "
             + "(SYSTEM or OPERATIONAL → VALIDATION_ERROR) with member variables only and no action, sent to members only; texts in the club's languages "
-            + "(the default one required; body ≤ 2000); matrix cells outside the category's MEMBER caps → CHANNEL_NOT_ALLOWED (422); an active SMS cell "
-            + "needs smsBody (≤ 160 GSM-7 rendered with the preview data set). MessageTemplateChanged and CATALOG_CHANGED audit." + TENANT,
+            + "(the default one required; body ≤ 2000); matrix cells outside the category's MEMBER caps → CHANNEL_NOT_ALLOWED (422, "
+            + "ChannelNotAllowedDetails {audience, channel, cells}); an active SMS cell needs smsBody (≤ 160 GSM-7 rendered with the preview data set). "
+            + "TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE and SMS_BODY_* carry TemplateFieldDetails (details.field, e.g. body.ca). "
+            + "MessageTemplateChanged and CATALOG_CHANGED audit." + TENANT,
             responses = @ApiResponse(responseCode = "201", description = "MessageTemplateDetail", useReturnTypeSchema = true))
     public MessageTemplateDetail createMessageTemplate(@Valid @RequestBody MessageTemplateCreateRequest request) {
         return detail(templates.create(new MessageTemplateService.Create(request.category(),
@@ -78,7 +80,8 @@ public class MessageTemplatesController {
 
     @GetMapping("/api/v1/message-templates/{id}")
     @ContractErrors({NOT_FOUND})
-    @Operation(summary = "messageTemplate", description = ROLES + "The editor of D9: the texts per club locale, the seed texts (CATALOG) and lastChange. "
+    @Operation(summary = "messageTemplate", description = ROLES + "The editor of D9: the texts in the club's locales only (a template stored with other "
+            + "languages too shows the club's), the seed texts (CATALOG) and lastChange. "
             + "Another club's, an unknown or an archived template → 404." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "MessageTemplateDetail", useReturnTypeSchema = true))
     public MessageTemplateDetail messageTemplate(@PathVariable String id) { return detail(templates.get(id)); }
@@ -87,10 +90,13 @@ public class MessageTemplatesController {
     @ContractErrors({VALIDATION_ERROR, TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE, CHANNEL_NOT_ALLOWED, SMS_BODY_REQUIRED, SMS_BODY_TOO_LONG, NOT_FOUND,
             STALE_VERSION, TEMPLATE_MANDATORY})
     @Operation(summary = "updateMessageTemplate", description = ROLES + "[DESA] (R-11-12): texts, icon, colour, matrix within caps, enabled (not a "
-            + "mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized (the texts differ from the seed). A missing "
-            + "required variable (N-02 link, N-08a admin_text) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails). With SMS off the "
-            + "SMS cells are kept as stored. A stale version → STALE_VERSION. MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; "
-            + "the next notification uses the saved text (no template cache)." + TENANT,
+            + "mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized (the texts differ from the seed). Only the "
+            + "code's variables (the list of variables) are accepted. A missing required variable (N-08a admin_text; N-02's link belongs to its welcome "
+            + "e-mail only, E76) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails); CHANNEL_NOT_ALLOWED carries "
+            + "ChannelNotAllowedDetails; TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE and SMS_BODY_* carry TemplateFieldDetails. The texts are the "
+            + "club's languages (a template stored in other languages too is shown and saved in the club's). With SMS off the SMS cells are kept as "
+            + "stored. A stale version → STALE_VERSION. MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; the next notification "
+            + "uses the saved text (no template cache)." + TENANT,
             responses = @ApiResponse(responseCode = "200", description = "MessageTemplateDetail", useReturnTypeSchema = true))
     public MessageTemplateDetail updateMessageTemplate(@PathVariable String id, @Valid @RequestBody MessageTemplateUpdateRequest request) {
         return detail(templates.update(id, new MessageTemplateService.Update(new MessageTemplateService.Texts(request.title(), request.body(), request.smsBody()),

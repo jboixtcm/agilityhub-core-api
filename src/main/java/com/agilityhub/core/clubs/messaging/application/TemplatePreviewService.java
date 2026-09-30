@@ -72,7 +72,7 @@ public class TemplatePreviewService {
         var unknown = new LinkedHashSet<String>();
         for (var field : new String[][] {{"title", title}, {"body", body}, {"smsBody", sms}}) {
             if (field[1] == null) { continue; }
-            var names = TemplateValidator.syntax(field[0], field[1]);
+            var names = TemplateValidator.syntax(field[0] + "." + locale, field[1]);
             names.variables().stream().filter(name -> !rules.variables().contains(name)).forEach(unknown::add);
             names.icu().stream().filter(name -> !rules.variables().contains(name) && !rules.icuNames().contains(name)).forEach(unknown::add);
         }

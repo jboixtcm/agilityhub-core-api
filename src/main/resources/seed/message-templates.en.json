@@ -18,7 +18,7 @@
     {
       "code": "N-02",
       "title": "Welcome to [[club_name]], [[member_first_name]]!",
-      "body": "You now have access to the club's app. Sign in with this link: [[link]].",
+      "body": "You now have access to the club's app.",
       "icon": "mail",
       "color": "OK",
       "matrix": {

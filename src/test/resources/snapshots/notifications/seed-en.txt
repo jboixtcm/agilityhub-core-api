@@ -12,9 +12,9 @@ body: Laura Serra Puig has sent a signup request for Duna (C), Rock (D) (Quota m
 
 ## N-02 MEMBER
 title: Welcome to Club Agility Exemple, Laura!
-body: You now have access to the club's app. Sign in with this link: https://app.example.test/entra/exemple.
-email.text: Welcome to Club Agility Exemple, Laura!⏎⏎You now have access to the club's app. Sign in with this link: https://app.example.test/entra/exemple.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
-email.html.sha256: 0cdfbfedf87f57c8
+body: You now have access to the club's app.
+email.text: Welcome to Club Agility Exemple, Laura!⏎⏎You now have access to the club's app.⏎⏎Club Agility Exemple⏎Reply to this email to contact the club.
+email.html.sha256: 1a5c57a0825798dd
 
 ## N-03 APPLICANT
 title: Signup request declined

@@ -94,6 +94,9 @@ brings the seed back), so re-applying changes nothing. A code the definition lea
 when D9 lists the templates. An unknown, `SYSTEM` or later-stage code is `VALIDATION_ERROR`. The export lists the club's
 catalog templates. The Cànic lists all 51 (its CANIC preset has `SMS` and `PUSH` on); the other definitions list none.
 The `ca` texts of N-02, N-04, N-06, N-08a, N-09, N-13, N-15, N-16, N-19 and N-28 are S11 §8's; the rest are product copy.
+N-02's template is its APP copy, without the sign-in link (E76): the welcome e-mail, product copy of `messages_*`, carries it.
+A template uses only its code's variables (D9's «Variables:»); a template stored with other languages than the club's is
+shown and saved in the club's languages.
 **The `es` and `en` texts are translations of the same content and are reviewed before go-live** (S11 §8). Staff copy
 (`notif.N-xx.staff.*`) is product copy in `messages_*` and never part of the seed.
 

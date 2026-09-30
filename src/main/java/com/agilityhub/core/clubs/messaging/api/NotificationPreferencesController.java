@@ -15,8 +15,9 @@ import static com.agilityhub.core.clubs.messaging.api.MessagingContracts.*;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
- * The «Avisos» block of 12 (the member; the impersonation token saves with audit, T-11-28) and of D10 (ADMIN, audited with
- * the existing MEMBER_UPDATED, `changes[].path = notificationPreferences.…`: no dedicated audit action exists). R-11-04: the
+ * The «Avisos» block of 12 (the member; the impersonation token saves with audit, T-11-28) and of D10 (ADMIN: read with the
+ * shape of 12, E76; saved and audited with the existing MEMBER_UPDATED, `changes[].path = notificationPreferences.…`: no
+ * dedicated audit action exists). R-11-04: the
  * preferences only remove channels a template allows (the engine's `ChannelResolver` applies them).
  */
 @RestController
@@ -46,6 +47,16 @@ public class NotificationPreferencesController {
     public NotificationPreferences saveMyNotificationPreferences(@Valid @RequestBody NotificationPreferencesRequest request) {
         return view(preferences.saveMine(patch(request)));
     }
+
+    @GetMapping("/api/v1/members/{id}/notification-preferences")
+    @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")
+    @ContractErrors({NOT_FOUND, MEMBER_ERASED})
+    @Operation(summary = "memberNotificationPreferences", description = "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The «Avisos» block "
+            + "of D10 (organizer 30-09, E76): the member's NotificationPreference with exactly the shape of GET /me/notification-preferences for that member "
+            + "(the product defaults when the block is absent, the reminder options, the member's account locale, the club's locales and SMS/PUSH modules). "
+            + "Another club's member → 404." + TENANT,
+            responses = @ApiResponse(responseCode = "200", description = "NotificationPreferences", useReturnTypeSchema = true))
+    public NotificationPreferences memberNotificationPreferences(@PathVariable String id) { return view(preferences.member(id)); }
 
     @PutMapping("/api/v1/members/{id}/notification-preferences")
     @PreAuthorize("hasRole('ADMIN') and principal.claims['imp'] != true")

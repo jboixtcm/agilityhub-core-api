@@ -16,6 +16,8 @@ final class ExportValues {
         if (value instanceof Map<?, ?> map) {
             if (map.get("amountMinor") instanceof Number number && map.get("currency") instanceof String currency) { return new Money(number.longValue(), currency).format(locale); }
             if (map.containsKey("values")) { return text(map.get("values")); }
+            // A qualified value (E7-T03 round 2: a notification's channel and its delivery status) reads «App (Lliurat)».
+            if (map.size() == 2 && map.containsKey("value") && map.containsKey("qualifier")) { return text(map.get("value")) + " (" + text(map.get("qualifier")) + ")"; }
             if (map.containsKey(locale.getLanguage())) { return text(map.get(locale.getLanguage())); }
             return String.join("; ", map.values().stream().map(this::text).filter(item -> !item.isEmpty()).toList());
         }

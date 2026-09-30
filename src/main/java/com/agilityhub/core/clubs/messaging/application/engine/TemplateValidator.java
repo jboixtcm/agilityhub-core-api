@@ -24,16 +24,19 @@ import java.util.regex.Pattern;
  * <li>the texts' languages are the club's, `title`/`body` have the club's default one, `body` ≤ {@value #BODY_MAX} and
  * `title` ≤ {@value #TITLE_MAX} characters, an SMS text only where an SMS cell may exist → `400 VALIDATION_ERROR`
  * (`details.fieldErrors`);</li>
- * <li>ICU that does not parse, or a `[[` without its `]]` → `400 TEMPLATE_SYNTAX_ERROR` (`details.field`);</li>
- * <li>a `[[var]]` outside the template's variables, or an ICU argument outside them and the seed's own selectors →
- * `400 TEMPLATE_UNKNOWN_VARIABLE` (`details.variables`);</li>
- * <li>a required variable (N-02 `link`, N-08a `admin_text`) missing from a language → `400 VALIDATION_ERROR` with
- * `details.missingVariables` (S11's `TEMPLATE_MISSING_VARIABLE` is not in the catalog, E66);</li>
- * <li>an active cell outside the caps → `422 CHANNEL_NOT_ALLOWED` (`details.cells`; R-11-12's example: SMS on «Canvi de
- * nivell»);</li>
- * <li>an active SMS cell without an SMS text in the club's default language → `400 SMS_BODY_REQUIRED`;</li>
+ * <li>ICU that does not parse, or a `[[` without its `]]` → `400 TEMPLATE_SYNTAX_ERROR` (`details.field`, `body.ca`);</li>
+ * <li>a `[[var]]` outside the template's variables (the one list of {@code NotificationCatalog.templateVariables}), or an
+ * ICU argument outside them and the seed's own selectors → `400 TEMPLATE_UNKNOWN_VARIABLE` (`details.field` of the first
+ * text with one, `details.variables`);</li>
+ * <li>a required variable of the template (N-08a `admin_text`; N-02's `link` is its e-mail's only, E76) missing from a
+ * language → `400 VALIDATION_ERROR` with `details.missingVariables` (S11's `TEMPLATE_MISSING_VARIABLE` is not in the
+ * catalog, E66);</li>
+ * <li>an active cell outside the caps → `422 CHANNEL_NOT_ALLOWED` (`details {audience, channel}` of the first one and every
+ * one in `details.cells`; R-11-12's example: SMS on «Canvi de nivell»);</li>
+ * <li>an active SMS cell without an SMS text in the club's default language → `400 SMS_BODY_REQUIRED` (`details.field`,
+ * `smsBody.ca`);</li>
  * <li>an SMS text over 160 characters once rendered with the preview's data set and transliterated → `400
- * SMS_BODY_TOO_LONG` (the admin's own text is left out: it is cut at sending time, T-11-06);</li>
+ * SMS_BODY_TOO_LONG` (`details.field`, `details.max`; the admin's own text is left out: it is cut at sending time, T-11-06);</li>
  * <li>a mandatory template disabled → `422 TEMPLATE_MANDATORY`.</li>
  * </ol>
  * Pure: the caller gives the rules of the template and the sample values of each language.
@@ -72,14 +75,18 @@ public final class TemplateValidator {
         if (!errors.isEmpty()) { throw new ApiException(ErrorCode.VALIDATION_ERROR, Map.of("fieldErrors", errors)); }
 
         var unknown = new LinkedHashSet<String>();
+        String unknownField = null;
         for (var field : List.of(Map.entry("title", draft.title()), Map.entry("body", draft.body()), Map.entry("smsBody", draft.smsBody()))) {
-            field.getValue().forEach((locale, text) -> {
-                var names = syntax(field.getKey() + "." + locale, text);
+            for (var text : field.getValue().entrySet()) {
+                String path = field.getKey() + "." + text.getKey();
+                var names = syntax(path, text.getValue());
+                int before = unknown.size();
                 names.variables().stream().filter(name -> !rules.variables().contains(name)).forEach(unknown::add);
                 names.icu().stream().filter(name -> !rules.variables().contains(name) && !rules.icuNames().contains(name)).forEach(unknown::add);
-            });
+                if (unknownField == null && unknown.size() > before) { unknownField = path; }
+            }
         }
-        if (!unknown.isEmpty()) { throw new ApiException(ErrorCode.TEMPLATE_UNKNOWN_VARIABLE, Map.of("variables", List.copyOf(unknown))); }
+        if (!unknown.isEmpty()) { throw new ApiException(ErrorCode.TEMPLATE_UNKNOWN_VARIABLE, Map.of("field", unknownField, "variables", List.copyOf(unknown))); }
 
         var missing = new LinkedHashSet<String>();
         for (String locale : draft.body().keySet()) {
@@ -98,10 +105,10 @@ public final class TemplateValidator {
                 cells.add(Map.of("audience", audience.name(), "channel", channel.name()));
             }
         }));
-        if (!cells.isEmpty()) { throw new ApiException(ErrorCode.CHANNEL_NOT_ALLOWED, Map.of("cells", cells)); }
+        if (!cells.isEmpty()) { throw channelNotAllowed(cells); }
 
         boolean smsActive = draft.matrix().values().stream().anyMatch(row -> Boolean.TRUE.equals(row.get(NotificationChannel.SMS)));
-        if (smsActive && blank(draft.smsBody().get(defaultLocale))) { throw new ApiException(ErrorCode.SMS_BODY_REQUIRED, Map.of("field", "smsBody")); }
+        if (smsActive && blank(draft.smsBody().get(defaultLocale))) { throw new ApiException(ErrorCode.SMS_BODY_REQUIRED, Map.of("field", "smsBody." + defaultLocale)); }
         for (var entry : draft.smsBody().entrySet()) {
             var locale = Locale.forLanguageTag(entry.getKey());
             var values = new LinkedHashMap<String, Object>(samples.apply(locale));
@@ -152,6 +159,14 @@ public final class TemplateValidator {
             else if (text != null && text.length() > max) { errors.add(error(field + "." + locale, "INVALID_VALUE")); }
         });
         if (required && blank(values.get(defaultLocale))) { errors.add(error(field + "." + defaultLocale, "REQUIRED")); }
+    }
+    /**
+     * `422 CHANNEL_NOT_ALLOWED` with the first refused cell as `details {audience, channel}` (what D9 marks, E76) and every
+     * refused cell in `details.cells`.
+     */
+    public static ApiException channelNotAllowed(List<Map<String, Object>> cells) {
+        var first = cells.getFirst();
+        return new ApiException(ErrorCode.CHANNEL_NOT_ALLOWED, Map.of("audience", first.get("audience"), "channel", first.get("channel"), "cells", List.copyOf(cells)));
     }
     private static Map<String, Object> error(String field, String code) { return Map.of("field", field, "code", code); }
     private static ApiException syntaxError(String field) { return new ApiException(ErrorCode.TEMPLATE_SYNTAX_ERROR, Map.of("field", field)); }

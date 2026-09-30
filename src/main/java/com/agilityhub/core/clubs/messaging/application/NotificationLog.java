@@ -45,8 +45,21 @@ public class NotificationLog implements ListProvider {
                 .append("as", "d").append("in", new Document("channel", "$$d.channel").append("status", "$$d.status"))));
         projection.put("readAt", orNull("$readAt"));
         return new ListDataset(MessagingContractAccess.NOTIFICATIONS, "notifications", List.of(), projection,
-                Set.of("readAt", "audience", "recipient.memberId", "recipient.email"), this::label);
+                Set.of("readAt", "audience", "recipient.memberId", "recipient.email"), this::label).withExportProjection(EXPORT_CELLS);
     }
+    /**
+     * The export's own cells (S14 R-14-12, E7-T03 round 2): «Destinatari» is the recipient's name — an applicant's address when
+     * the row has no name — never an internal id; «Canals» is one `{value, qualifier}` per delivery, the channel and its status
+     * as the export's own keys (`export.value.notificationChannel.*`, `export.value.deliveryStatus.*`), which the renderer
+     * writes «App (Lliurat); SMS (Error)» in the reader's language.
+     */
+    static final Map<String, Object> EXPORT_CELLS = Map.of(
+            "recipient", new Document("$cond", Arrays.asList(
+                    new Document("$gt", Arrays.asList(new Document("$strLenCP", new Document("$ifNull", Arrays.asList("$recipient.displayName", ""))), 0)),
+                    "$recipient.displayName", new Document("$ifNull", Arrays.asList("$recipient.email", "")))),
+            "channels", new Document("$map", new Document("input", new Document("$ifNull", Arrays.asList("$deliveries", List.of()))).append("as", "d")
+                    .append("in", new Document("value", new Document("$concat", Arrays.asList("notificationChannel.", "$$d.channel")))
+                            .append("qualifier", new Document("$concat", Arrays.asList("deliveryStatus.", "$$d.status"))))));
     private static Document orNull(String path) { return new Document("$ifNull", Arrays.asList(path, null)); }
 
     public ListPage<Map<String, Object>> list(ListEngine engine, MultiValueMap<String, String> params) { return engine.list(KEY, params); }

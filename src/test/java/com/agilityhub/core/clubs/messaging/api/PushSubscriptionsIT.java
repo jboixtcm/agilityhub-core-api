@@ -1,6 +1,7 @@
 package com.agilityhub.core.clubs.messaging.api;
 
 import com.agilityhub.core.clubs.messaging.persistence.PushSubscription;
+import com.agilityhub.core.clubs.messaging.support.PushKeyFixtures;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.platform.application.HostTenantResolver;
 import com.agilityhub.core.platform.application.Module;
@@ -33,16 +34,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 /**
  * T-11-21 (R-11-07, R-11-17), the push devices through `POST/DELETE /push-subscriptions`: an upsert by endpoint (stored
- * with its SHA-256; the same browser again is the same row, `ACTIVE` again after a logout), `deviceLabel` from the User-Agent,
- * `PushSubscribed`/`PushUnsubscribed` with the endpoint's hash, never the URL; a malformed endpoint or key → `422
- * PUSH_SUBSCRIPTION_INVALID`; another account's or club's subscription → 404; `PUSH` off → `404 MODULE_DISABLED`; the
+ * with its SHA-256; the same browser again is the same row, `ACTIVE` again after a logout; another account on it ends the
+ * previous owner's row and gets its own — a subscription never changes owner, E76), `deviceLabel` from the User-Agent,
+ * `PushSubscribed`/`PushUnsubscribed` with the endpoint's hash, never the URL; a malformed endpoint or key (a point off P-256
+ * included) → `422 PUSH_SUBSCRIPTION_INVALID`; another account's or club's subscription → 404; `PUSH` off → `404 MODULE_DISABLED`; the
  * impersonation token is refused. The deliveries of `PUSH`/`SMS` off (`SKIPPED_MODULE_OFF`) are the engine's
  * (`NotificationEngineIT`, E7-T02); the SMS column of D9 is `MessageTemplatesIT`.
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class PushSubscriptionsIT extends AbstractIntegrationTest {
     static final String CLUB = "e7t03-push-a", OTHER = "e7t03-push-b", HOST = "push-a.example.test", OTHER_HOST = "push-b.example.test";
-    static final String P256DH = Base64.getUrlEncoder().withoutPadding().encodeToString(key(65, (byte) 4)), AUTH = Base64.getUrlEncoder().withoutPadding().encodeToString(key(16, (byte) 7));
+    static final String P256DH = PushKeyFixtures.p256dh(), AUTH = PushKeyFixtures.auth();
     static final String IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
     @Autowired MockMvc mvc; @Autowired ObjectMapper mapper; @Autowired MongoTemplate mongo; @Autowired ClubRepository clubs; @Autowired ClubConfigService configs;
     @Autowired HostTenantResolver hosts;
@@ -104,11 +106,23 @@ class PushSubscriptionsIT extends AbstractIntegrationTest {
         call(as(post("/api/v1/push-subscriptions").content(body(endpoint, P256DH, AUTH, null)), "push-laura", "MEMBER", CLUB), 201);
         var again = mongo.findById(id, PushSubscription.class);
         assertThat(again.status()).isEqualTo(PushSubscription.Status.ACTIVE); assertThat(again.expiredAt()).isNull();
-        // Another account on the same browser takes it over; one row per endpoint and club.
-        call(as(post("/api/v1/push-subscriptions").content(body(endpoint, P256DH, AUTH, null)), "push-marc", "INSTRUCTOR", CLUB), 201);
-        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB)), PushSubscription.class)).singleElement()
-                .satisfies(s -> assertThat(s.accountId()).isEqualTo("push-marc"));
-        assertThat(events("PushSubscribed")).hasSize(4);
+        // Round 2 (review #1, E76): another account on the same browser never takes Laura's subscription over. Hers ends
+        // (EXPIRED + PushUnsubscribed for her account) and Marc gets a row of his own; one ACTIVE row per endpoint and club.
+        String marc = call(as(post("/api/v1/push-subscriptions").content(body(endpoint, P256DH, AUTH, null)), "push-marc", "INSTRUCTOR", CLUB), 201).path("id").asText();
+        assertThat(marc).isNotEqualTo(id);
+        assertThat(mongo.findById(id, PushSubscription.class)).satisfies(s -> {
+            assertThat(s.accountId()).isEqualTo("push-laura"); assertThat(s.status()).isEqualTo(PushSubscription.Status.EXPIRED); });
+        assertThat(mongo.findById(marc, PushSubscription.class)).satisfies(s -> {
+            assertThat(s.accountId()).isEqualTo("push-marc"); assertThat(s.status()).isEqualTo(PushSubscription.Status.ACTIVE); });
+        assertThat(events("PushUnsubscribed")).hasSize(2).last().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("accountId", "push-laura"));
+        // Laura back on it: Marc's ends and Laura's own row is active again — still hers, with its id.
+        assertThat(call(as(post("/api/v1/push-subscriptions").content(body(endpoint, P256DH, AUTH, null)), "push-laura", "MEMBER", CLUB), 201).path("id").asText()).isEqualTo(id);
+        assertThat(mongo.findById(marc, PushSubscription.class).status()).isEqualTo(PushSubscription.Status.EXPIRED);
+        assertThat(mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("status").is("ACTIVE")), PushSubscription.class)).singleElement()
+                .satisfies(s -> { assertThat(s.id()).isEqualTo(id); assertThat(s.accountId()).isEqualTo("push-laura"); });
+        assertThat(events("PushSubscribed")).hasSize(5); assertThat(events("PushUnsubscribed")).hasSize(3);
+        // Marc cannot log out Laura's row: it is not his (404), and his own expired one stays as it is.
+        call(as(delete("/api/v1/push-subscriptions/" + id), "push-marc", "INSTRUCTOR", CLUB), 404);
         System.out.println("E7-T03 push: " + events("PushSubscribed").size() + " PushSubscribed, " + events("PushUnsubscribed").size() + " PushUnsubscribed");
     }
 
@@ -119,6 +133,10 @@ class PushSubscriptionsIT extends AbstractIntegrationTest {
         bad.add(body("https://push.example.test/send/x", "not+base64/url", AUTH, null));
         bad.add(body("https://push.example.test/send/x", Base64.getUrlEncoder().withoutPadding().encodeToString(key(64, (byte) 4)), AUTH, null)); // not 65 bytes
         bad.add(body("https://push.example.test/send/x", Base64.getUrlEncoder().withoutPadding().encodeToString(key(65, (byte) 3)), AUTH, null)); // not an uncompressed point
+        // Round 2 (review #4): the right length and prefix, but no point of P-256 — round 1's fixture key, (0, 0) and a point off the curve.
+        bad.add(body("https://push.example.test/send/x", Base64.getUrlEncoder().withoutPadding().encodeToString(key(65, (byte) 4)), AUTH, null));
+        bad.add(body("https://push.example.test/send/x", PushKeyFixtures.zeroPoint(), AUTH, null));
+        bad.add(body("https://push.example.test/send/x", PushKeyFixtures.offCurve(), AUTH, null));
         bad.add(body("https://push.example.test/send/x", P256DH, Base64.getUrlEncoder().withoutPadding().encodeToString(key(12, (byte) 1)), null)); // not 16 bytes
         for (String body : bad) {
             assertThat(call(as(post("/api/v1/push-subscriptions").content(body), "push-laura", "MEMBER", CLUB), 422).path("code").asText()).as(body)

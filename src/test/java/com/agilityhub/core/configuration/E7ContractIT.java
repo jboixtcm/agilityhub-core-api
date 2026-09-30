@@ -90,7 +90,8 @@ class E7ContractIT extends AbstractIntegrationTest {
         for (String owner : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
             mongo.insert(new Notification("e7-own-" + owner, CLUB, "e7-" + owner, "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
             mongo.insert(new PushSubscription("e7-sub-" + owner, CLUB, "e7-" + owner, "https://push.example.test/send/" + owner, null,
-                    new PushSubscription.Keys("p256dh", "auth"), "iPhone · Safari", "UA", PushSubscription.Status.ACTIVE, 0, null, null, 0L, now, "e7-" + owner, now, "e7-" + owner));
+                    new PushSubscription.Keys(com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.p256dh(), com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.auth()),
+                    "iPhone · Safari", "UA", PushSubscription.Status.ACTIVE, 0, null, null, 0L, now, "e7-" + owner, now, "e7-" + owner));
         }
         mongo.insert(new Notification("e7-own-imp", CLUB, "e7-imp-member", "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
     }
@@ -192,6 +193,7 @@ class E7ContractIT extends AbstractIntegrationTest {
         error(as(get("/api/v1/message-templates/e7-missing"), "ADMIN"), 404, "NOT_FOUND");
         error(as(get("/api/v1/notifications/e7-missing"), "ADMIN"), 404, "NOT_FOUND");
         error(as(put("/api/v1/members/e7-missing/notification-preferences").contentType("application/json").content("{}"), "ADMIN"), 404, "NOT_FOUND");
+        error(as(get("/api/v1/members/e7-missing/notification-preferences"), "ADMIN"), 404, "NOT_FOUND");
         // Bodies and parameters are validated before the stub.
         error(as(post("/api/v1/message-templates").contentType("application/json").content("{\"category\":\"CLUB_NEWS\"}"), "ADMIN"), 400, "VALIDATION_ERROR");
         error(as(post("/api/v1/message-templates/e7-template-a/send").contentType("application/json").content("{\"recipients\":{},\"dryRun\":true}"), "ADMIN"),
@@ -281,7 +283,7 @@ class E7ContractIT extends AbstractIntegrationTest {
 
     @Test void WP_11_A_T_11_16_snapshotPublishesEveryOperationWithTypedFormsListMetadataAndEnumsOnce() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(21);
+        assertThat(routes().count()).isEqualTo(22); // E7-T03 round 2 (E76): GET /members/{id}/notification-preferences for D10
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.label()).isFalse();
@@ -339,6 +341,9 @@ class E7ContractIT extends AbstractIntegrationTest {
             assertThat(field.path("anyOf").get(1).path("type").asText()).as(nullable).isEqualTo("null");
         }
         assertThat(schemas.at("/MissingVariablesDetails/properties/missingVariables/type").asText()).isEqualTo("array");
+        // E7-T03 round 2 (item 9, E76): the details D9 reads from CHANNEL_NOT_ALLOWED and from the template text errors.
+        assertThat(schemas.at("/ChannelNotAllowedDetails/properties").fieldNames()).toIterable().containsExactlyInAnyOrder("audience", "channel", "cells");
+        assertThat(schemas.at("/TemplateFieldDetails/properties").fieldNames()).toIterable().containsExactlyInAnyOrder("field", "variables", "max");
         assertThat(strings(schemas.at("/NotificationPreferencesRequest/properties/reminderMinutesBefore/type"))).containsExactlyInAnyOrder("integer", "null");
         assertThat(strings(schemas.at("/NotificationPreferencesRequest/required"))).isEmpty();
         // R-11-08: the bounce mark of a member's contact e-mail is published (S03, E2-T06).

@@ -111,11 +111,12 @@ class MessagingDocumentsTest {
 
     @Test void WP_11_A_aPushSubscriptionIsUniqueByTheEndpointHashAndNeverPrintsItsSecrets() {
         String endpoint = "https://push.example.test/send/abc123";
-        var subscription = new PushSubscription("s-1", "club-a", "account-a", endpoint, null, new PushSubscription.Keys("p256dh-value", "auth-value"), "iPhone · Safari",
+        String p256dh = com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.p256dh(), auth = com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.auth();
+        var subscription = new PushSubscription("s-1", "club-a", "account-a", endpoint, null, new PushSubscription.Keys(p256dh, auth), "iPhone · Safari",
                 "UA", PushSubscription.Status.ACTIVE, 0, null, null, 0L, NOW, "account-a", NOW, "account-a");
         assertThat(subscription.endpointHash()).isEqualTo(PushSubscription.hash(endpoint)).hasSize(64).matches("[0-9a-f]+");
-        assertThat(subscription.toString()).doesNotContain(endpoint, "p256dh-value", "auth-value");
-        assertThat(subscription.keys().toString()).doesNotContain("p256dh-value", "auth-value");
+        assertThat(subscription.toString()).doesNotContain(endpoint, p256dh, auth);
+        assertThat(subscription.keys().toString()).doesNotContain(p256dh, auth);
         assertThatThrownBy(() -> new PushSubscription("s-2", "club-a", "account-a", endpoint, "0".repeat(64), subscription.keys(), null, null,
                 PushSubscription.Status.ACTIVE, 0, null, null, 0L, NOW, null, NOW, null)).hasMessageContaining("SHA-256");
         assertThat(PushSubscription.hash(endpoint + "x")).isNotEqualTo(subscription.endpointHash());

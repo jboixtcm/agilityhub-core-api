@@ -14,6 +14,8 @@ CLASSES = [
     'MessageTemplatesIT', 'NotificationFeedIT', 'NotificationLogIT', 'NotificationPreferencesIT', 'PushSubscriptionsIT', 'InfoScreenIT', 'E7ContractIT',
     'E2ContractIT', 'ListFieldsContractIT', 'NotificationEngineIT', 'NotificationDispatcherIT', 'NoShowNoticesJobIT', 'FollowupIT', 'WaitlistIT',
     'E7PersistenceIT', 'EmailUnsubscribeIT', 'DemoSeedsIT', 'OpenApiSnapshotTest',
+    # Round 2
+    'TemplateProviderTest', 'MessagingDocumentsTest', 'ExportEngineIT',
 ]
 
 
@@ -41,7 +43,8 @@ if os.path.exists('target/site/jacoco/jacoco.csv'):
     with open('target/site/jacoco/jacoco.csv', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             package = row['PACKAGE']
-            if 'clubs.messaging' in package or package.endswith('clubs.census.application') or package.endswith('platform.application.definition'):
+            if 'clubs.messaging' in package or package.endswith('clubs.census.application') or package.endswith('platform.application.definition') \
+                    or package.endswith('clubs.common.application'):
                 agg = rows.setdefault(package, [0, 0, 0, 0])
                 agg[0] += int(row['LINE_MISSED']); agg[1] += int(row['LINE_COVERED'])
                 agg[2] += int(row['BRANCH_MISSED']); agg[3] += int(row['BRANCH_COVERED'])

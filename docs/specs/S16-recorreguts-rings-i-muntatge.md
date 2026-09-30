@@ -222,7 +222,7 @@ Llegeix: `courses.setupAutoExpireDays` (7), `courses.defaultWarningThresholdM` (
 | WP-16-D Sessions live | `agilityhub-core-api/courses` | WP-16-C | `BuildSession`, SSE, neteja; T-16-10 |
 | WP-16-E Front admin | `agilityhub-core-web/apps/clubs-admin` | WP-16-B, WP-16-C | D18, bloc geometria de D16, inventari, D7/D3 selectors; T-16-15 |
 | WP-16-F Front mòbil + integracions | `agilityhub-core-web/apps/clubs` | WP-16-B, WP-16-C, S06/S08/S09/S10 | visor, registre, sessió; blocs a 08/10/23/07/D12; T-16-16 |
-| WP-16-G Biblioteca AgilityHub + migració Supabase | core + script | WP-16-C | `/platform/courses`; importació condicional de dades del web-planner |
+| WP-16-G Biblioteca AgilityHub | core | WP-16-C | `/platform/courses`. Sense migració de Supabase: només té dades de prova (Jordi 30-09, A6) |
 
 Ordre: 0 → A → B ∥ C → D ∥ E ∥ F → G. Fils: (1) 0+A+B, (2) C+D, (3) E+F.
 
@@ -296,7 +296,7 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 3. **WP-16-B′** `packages/course-ui`: moure `PlannerCanvas`, `Planner3D`, `RingDoorEditor`, `RingMarkerDiagram`, `RingInventoryEditor`, `PlacementControls`, `WarningsPanel`, `UploadCourse`, `PlanStepper`, `VenueRingSelector`, `PaperSizeToggle`, `UnitsToggle` (són React + Tailwind sense Next); `CoreApiStore implements PlannerStore` a `packages/api-client`.
 4. **WP-16-E′** `apps/clubs-admin`: pàgines del wizard (`/recorreguts/nou` = `plan/*`), biblioteca (D18 = `courses` + calendari), geometria de D16 (`venue/[id]/markers` + `RingDoorEditor` + inventari), sessions (`build-sessions/[id]` i `/live`), impressió de marcadors (`markers/print`). Next App Router → React Router: substituir `next/navigation`, `next/link`, `NextResponse` i `supabase-server` pels equivalents.
 5. **WP-16-F′** `apps/clubs`: visor + «Registra què hi ha muntat» (nou, no existia al planner) + sessió de muntatge mòbil (reutilitza `/live`).
-6. **WP-16-G′** Importació de Supabase → core (només si hi ha dades reals) + retirada del planner.
+6. **WP-16-G′** Retirada del planner. No hi ha importació de Supabase: només té dades de prova (Jordi 30-09, A6).
 
 ### 14.6 Verificacions pendents (necessiten l'arrel del monorepo)
 
@@ -308,7 +308,7 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 
    L'origen és el commit `65126cf` del 21-09-2026. La pàgina de marcadors imprimible (`marker-svg.ts`) porta colors literals de la impressió, amb una excepció aprovada a la regla de colors: WP-16-E′ decideix si la capçalera i el peu prenen els colors del *branding* del club.
 2. Apps Unity/Quest del monorepo: estat real, versió d'AR Foundation, com llegeixen `BuildSessionExportV1` (`StreamingAssets/`), autenticació actual (Supabase?) → S20.
-3. Dades reals a Supabase (venues, rings, courses, usuaris amb `profiles`) → WP-16-G′ i importació de comptes a S01 si hi ha usuaris reals.
+3. ~~Dades reals a Supabase (venues, rings, courses, usuaris amb `profiles`) → WP-16-G′ i importació de comptes a S01 si hi ha usuaris reals.~~ **Resolt 30-09 (Jordi, A6):** només són dades de prova; no s'importa res.
 4. `packages/ui` (design system del planner) vs `packages/ui` del core: fusió o coexistència.
 
 **Propostes noves**: entitat `Venue` (+ `venue_members` → membresies/rols de plataforma), `Course.sizeCategory`, `Ring.geometry.markers[].aprilTagId/physicalWidthM/physicalHeightM/zM/rotationYDeg/role/isFixed`, `Placement.mode/scheduledAt/grades/sizes/displayName`, `BuildSession.joinCode/joinToken/selectedStrategy/lastKnownMarkerId`, `CalibrationLog`, endpoints `GET /build-sessions/{id}/export`, `POST /rings/{id}/calibrations`, `POST /build-sessions/join {code}`; paràmetre `courses.defaultWarningThresholdM` (substitueix `placementMarginMeters`, 1.5).
@@ -319,3 +319,4 @@ Fitxer `.txt` = una línia de text («Copy the text below and paste it in the Sm
 - 05-09-2026 · v0.2 · §14: verificació del web-planner (course-core i shared-types reals, esquema Supabase, `PlannerStore`, Unity export, AprilTag, calibratge, fixtures Smarter). El model de §3 i els paquets de §12 queden substituïts pel §14 on discrepin; pendent muntar l'arrel del monorepo per a §14.6.
 - 24-09-2026 · verificació d'E0-W08 (web): WP-16-A′ fet (còpia de `course-core` i `shared-types` des de `65126cf`). La publicació del JSON Schema se'n separa com a precondició de WP-16-C′. §14.6-1 resolt.
 - 30-09-2026 · preparació d'E9 (decisió E77): R-16-05 amb els `ruleId` de `course-core` i la política dels avisos `critical`; §9, `courses.defaultWarningThresholdM` i `courses.buildSessionMaxHours` (E9-T01 aplica el catàleg amb el codi); §13, dubtes resolts.
+- 30-09-2026 · A6 tancada (Jordi): el Supabase del web-planner només té dades de prova; WP-16-G′ queda sense importació (§12, §14.5, §14.6-3).

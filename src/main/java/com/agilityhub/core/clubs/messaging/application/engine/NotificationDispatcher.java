@@ -67,7 +67,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * ({@link EmailSuppression}) and that has no live EMAIL delivery (a conditional insert: one per address, whoever settles
  * which phone), and — the first time in the month — the marker with `SmsCapReached{month, cap}` (N-49); an SMS the
  * non-production guard refuses → `SKIPPED_NOT_ALLOWED`; `SENT` is terminal at R1 (no delivery callback);</li>
- * <li>PUSH (R-11-07): `GONE` → `FAILED`, subscription `EXPIRED` + `PushUnsubscribed`, never retried; `RETRYABLE` → retried;
+ * <li>PUSH (R-11-07): a subscription that is no longer `ACTIVE`, or that is not the recipient account's, → `FAILED` without a
+ * call (E76); `GONE` → `FAILED`, subscription `EXPIRED` + `PushUnsubscribed`, never retried; `RETRYABLE` → retried;
  * `FAILED` → `FAILED`, and the 3rd consecutive failure of a subscription expires it.</li>
  * </ul>
  *
@@ -81,7 +82,7 @@ public class NotificationDispatcher {
     static final Duration LEASE = Duration.ofMinutes(2);
     static final int POLL_BATCH = 200, PUSH_FAILURES_TO_EXPIRE = 3, SETTLE_ATTEMPTS = 5;
     static final String STALE = "No longer relevant to its recipient", CAP_REACHED = "SMS monthly cap reached", NOT_ALLOWED = "Not in SMS_ALLOWED_NUMBERS",
-            EXPIRED = "Push subscription expired";
+            EXPIRED = "Push subscription expired", OTHER_OWNER = "Push subscription of another account";
     private final NotificationRepository notifications; private final PushSubscriptionRepository subscriptions; private final EmailSender email;
     private final SmsSender sms; private final PushSender push; private final ClubConfigService configs; private final ClubEmailSettings emailSettings;
     private final ClubSmsUsage usage; private final NotificationEmailRenderer emails; private final UnsubscribeTokens unsubscribes;
@@ -193,6 +194,9 @@ public class NotificationDispatcher {
     private Outcome sendPush(Notification notification, Notification.Delivery delivery) {
         var subscription = subscriptions.findById(delivery.target()).orElse(null);
         if (subscription == null || subscription.status() != PushSubscription.Status.ACTIVE) { return Outcome.status(DeliveryStatus.FAILED, EXPIRED); }
+        // R-11-07 (E76): the device must still be the recipient's at every attempt, never the next account's on the same browser.
+        String recipient = notification.recipient() == null ? null : notification.recipient().accountId();
+        if (!subscription.accountId().equals(recipient)) { return Outcome.status(DeliveryStatus.FAILED, OTHER_OWNER); }
         String url = notification.action() == null ? "/notificacions" : "/notificacions?id=" + notification.id();
         var result = push.send(subscription, new PushPayload(notification.id(), notification.title(), notification.body(),
                 notification.icon() == null ? null : notification.icon().name(), url, notification.code()));

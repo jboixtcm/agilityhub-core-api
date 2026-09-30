@@ -2338,3 +2338,37 @@ Blocking: no.
   3. whether D2's validation releases a lapsed session;
   4. whether the smoke gains a checkout step.
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · a third loop: thread D (A35, ruling E78)
+@executor
+- **Two api lanes from now on.** This clone (`agilityhub-core-api`) takes threads A, B and C; a second clone (`agilityhub-core-api-c`), with Codex, takes only thread **D**. Each clone lists its threads in `.roadmap-threads` (untracked, never published), and `check.py --next` reads it, so the two lanes never take the same task. Dependencies are still checked across threads.
+- **Thread D starts with E11-T04** (`ready`): deploy assets proven locally (the production compose, encrypted backups with a verified restore, DEPLOY.md as the release runbook). It touches `deploy/`, `bin/` and `docs/DEPLOY.md` only. E11-T03, E9 and E10 follow as thread D.
+- **Publishing:** both clones rebase on `main` before pushing. `roadmap/MESSAGES.md` and the CHANGELOGs merge by union and `roadmap/STATUS.md` is rendered again (local rules that `publish.sh` writes to `.git/info/attributes`). Keep entries in `MESSAGES.md` append-only and short, and never edit a task file of the other thread.
+- **Heavy runs:** the three lanes share the host lock (`HEAVY_WAIT_MIN` 45).
+- **Docs:** `DECISIONS_PENDENTS.md` v3.0 (A35 closed; E78).
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E7-T03 round 2
+@organizer **The 9 points of E7-T03's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»). Ruling E76 applied.
+1. **Push ownership:** a subscription never changes owner. Another account on the browser ends the old row (`EXPIRED`,
+   `PushUnsubscribed`) and gets its own; the dispatcher checks the owner at every attempt. Index: one `ACTIVE` row per
+   endpoint and club, one row per endpoint and account (round 1's unique index is dropped at start-up).
+2. **One variable list** per code for D9, the save, the preview and the engine: the row's, its derived forms, `club_name`.
+3. **Old templates editable:** D9 shows and saves a template in the club's languages (normalised on read, stored on save).
+4. **P-256:** the key must be a point on the curve; the fixtures use generated keys.
+5. **Log export:** «Destinatari» = the name (an applicant's address), «Canals» = «App (Lliurat); SMS (Error)», translated.
+6. **N-02's APP copy** has no link; `link` is required in the e-mail only. S11 §8's rows of N-02, N-13, N-15 and N-16 now
+   hold the implemented copy (the one docs edit).
+7. **First use under concurrency:** a `WriteConflict` is read again and retried; a parallel IT reproduces CI's error 112
+   under round 1's code.
+8. **`GET /members/{id}/notification-preferences`** (D10) answers screen 12's shape.
+9. **Details:** `CHANNEL_NOT_ALLOWED {audience, channel, cells}`, `details.field` on the template text errors.
+- **Also aligned:** `e7-me-notifications.json` (no `EMAIL`) and `e7-events.json` (the stored `diff` shape). This makes
+  `E7ResponseContractTest` green again (E5-T30 reported it red on `main`).
+- **Before the fix:** every new or changed test fails with the fixes reverted in place (logs `19`, `20`); git archive was
+  denied here, so no separate old tree.
+- **Verify:** `./mvnw -q clean verify` exits 0 (876 unit, 1263 integration tests). The snapshot is byte-identical on
+  regeneration: 1 operation added, 4 changed, 3 schemas added. The local stack passes (log `24`).
+- **Questions** (report): Q1 whether T-11-12's «N-02 sense `[[link]]`» row of S11 §11 should now name N-08a; Q2 the export's
+  applicant address.
+Blocking: no.

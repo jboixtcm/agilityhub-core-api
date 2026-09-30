@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `read`, `read-all`, the same `unreadCount` as `GET /me/home`), the «Avisos» block of 12/D10 (audited as
     `MEMBER_UPDATED`, `NotificationPreferencesChanged`) and the push devices (upsert by endpoint, `PushSubscribed`,
     `PushUnsubscribed`).
+  - Round 2 (ruling E76): `GET /members/{id}/notification-preferences` gives D10 the block with screen 12's shape. The
+    messaging errors carry the details D9 uses: `CHANNEL_NOT_ALLOWED {audience, channel, cells}`, and `details.field` on
+    `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE` and `SMS_BODY_*`.
 - E6-T05 (ruling E74, S10 §6 amended 30-09): `GET /me/history` rows carry `activityId`, the activity's id on every
   `ACTIVITY` row (the row's `id` stays the registration's) and `null` on the `CLASS` and `TRAINING` rows, so screen 25 links
   an activity row to `/activitats/{activityId}` (web E6-W04 step 0b). Nothing else of 25 changes.
@@ -644,6 +647,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E7-T03 round 2 (ruling E76):
+  - A push subscription never changes owner. Another account on the same browser ends the previous owner's subscription
+    and gets its own; the dispatcher checks at every attempt that the subscription is the recipient's. A key that is not a
+    point on P-256 is `422 PUSH_SUBSCRIPTION_INVALID`. `push_subscriptions`: the unique `{clubId, endpointHash}` becomes
+    unique among `ACTIVE` rows plus unique `{clubId, endpointHash, accountId}` (the old index is dropped at start-up).
+  - One variable list per code for D9, the save, the preview and the delivery: the row's variables, their derived forms
+    and `club_name`; the member variables of R-11-12 are for `CUSTOM` templates (N-24's list).
+  - N-02's template is its APP copy, without the sign-in link, which only its welcome e-mail carries (`link` is required
+    there only). S11 §8's rows of N-02, N-13, N-15 and N-16 are the implemented copy.
+  - D9 shows and saves a template in the club's languages, also one stored earlier with every product language.
+  - The notification log's export: «Destinatari» is the recipient's name, «Canals» each channel with its status, translated.
 - E7-T03: the member texts of N-02, N-06, N-08a (SMS), N-13, N-15, N-16 and N-19 follow S11 §8 (the report lists the three
   readings: N-15's FIFO line, N-13's training line, N-16's S15 branches); the engine gives `gender` in lower case
   (`female`/`male`/`other`, S11 §10), so the staff copy of N-21/N-22 selects on `female`; a template is seeded in the club's
@@ -743,6 +757,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E7-T03 round 2: the first use of a template survives a concurrent first use (a `WriteConflict` is read again and
+  retried, not raised to the engine; CI of `ca83d97`, T-11-31).
 - E5-T30: signup checkout hardening (the three findings of E5-T28's round-2 review, and the failure paths behind them).
   - A retry with the same `Idempotency-Key` after a lost answer sends the provider exactly the first request. The session keeps
     it (`providerRequest`) while it is open and unanswered, so an admin's edit of the e-mail or the payment method in between

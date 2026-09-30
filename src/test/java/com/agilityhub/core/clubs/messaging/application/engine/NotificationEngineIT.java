@@ -13,6 +13,8 @@ import com.agilityhub.core.clubs.messaging.persistence.MessageTemplate;
 import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.platform.application.Module;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.domain.ApiException;
+import com.agilityhub.core.shared.domain.ErrorCode;
 import com.agilityhub.core.shared.domain.LocalizedText;
 import com.agilityhub.core.support.ConcurrencySupport;
 import java.time.Duration;
@@ -33,6 +35,7 @@ import static org.assertj.core.api.Assertions.*;
  * dispatcher sends them right after the commit.
  */
 class NotificationEngineIT extends EngineFixtures {
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.clubs.messaging.application.MessageTemplateService templateService;
     private static final String RAIN = "La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!";
 
     private Map<String, Object> cancellation(String reason) {
@@ -208,6 +211,76 @@ class NotificationEngineIT extends EngineFixtures {
         // The first-use template was created once for the club.
         try (var tenant = TenantContext.open(CLUB)) { assertThat(templateRepository.findByCode("N-13")).isPresent(); }
         assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-13")), MessageTemplate.class)).isEqualTo(1);
+    }
+
+    /**
+     * E7-T03 round 2, review #2 (R-11-12): one variable list for D9, the save, the preview and the delivery. For N-09 and N-02,
+     * a body with every variable D9 offers is saved through the real `MessageTemplateService` and delivered through the engine:
+     * each one renders a value. A variable the code's row does not document is refused on saving — the member variables of
+     * R-11-12 on N-09, N-02's `link` (its welcome e-mail's only, E76) and `dog_name_article`. Before the fix N-09 accepted the
+     * member variables, and N-02 accepted `link` and `dog_name_article`, which its notice rendered empty.
+     */
+    @Test void R_11_12_everyVariableATemplateAcceptsIsRenderedByTheEngineAndNoOtherIsAccepted() {
+        Map<String, Runnable> events = Map.of(
+                "N-09", () -> deliver(CLUB, "DogLevelChanged", Map.of("memberId", "member-anna", "dogId", "dog-lluna", "levelName", "C")),
+                "N-02", () -> deliver(CLUB, "MemberValidated", Map.of("memberId", "member-anna")));
+        Map<String, List<String>> undocumented = Map.of("N-09", List.of("member_first_name", "gender"), "N-02", List.of("link", "dog_name_article"));
+        for (String code : List.of("N-09", "N-02")) {
+            var spec = NotificationCatalog.byCode(code).orElseThrow();
+            List<String> offered;
+            try (var tenant = TenantContext.open(CLUB)) {
+                var view = templateService.get(templates.forCode(spec, List.of("ca", "es", "en"), "ca").id());
+                offered = view.variables();
+                assertThat(offered).as(code).containsExactlyElementsOf(NotificationCatalog.templateVariables(spec)).containsExactlyInAnyOrderElementsOf(NotificationEngine.known(spec));
+                var t = view.template();
+                String body = "Values: " + String.join(" | ", offered.stream().map(v -> v + "=[[" + v + "]]").toList()) + ".";
+                for (String other : undocumented.get(code)) {
+                    var refused = catchThrowableOfType(() -> templateService.update(t.id(), update(t, body + " [[" + other + "]]")), ApiException.class);
+                    assertThat(refused.code()).as(code + " " + other).isEqualTo(ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
+                    assertThat(refused.details()).containsEntry("variables", List.of(other)).containsEntry("field", "body.ca");
+                }
+                templateService.update(t.id(), update(t, body));
+            }
+            events.get(code).run();
+            var notice = stored(CLUB, code).stream().filter(n -> n.audience() == MEMBER).findFirst().orElseThrow();
+            for (String variable : offered) { assertThat(notice.body()).as(code + " " + variable).containsPattern(variable + "=[^ |.]"); }
+            System.out.println("E7-T03 R2 one variable list " + code + ": " + offered + " → " + notice.body());
+        }
+    }
+    /**
+     * E7-T03 round 2, item 6 (E76): N-02's notice in the feed (the stored APP copy that `GET /me/notifications` answers) has no
+     * sentence with an empty link: the reader of the feed is already signed in, and only the welcome e-mail carries the S01
+     * link. Before the fix it read «Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: .».
+     */
+    @Test void E76_theWelcomeNoticeInTheFeedHasNoEmptyLink() {
+        deliver(CLUB, "MemberValidated", Map.of("memberId", "member-laura"));
+        var welcome = stored(CLUB, "N-02").stream().filter(n -> n.audience() == MEMBER).findFirst().orElseThrow();
+        assertThat(welcome.locale()).isEqualTo("ca");
+        assertThat(welcome.body()).isEqualTo("Ja tens accés a l'app del club.").doesNotContain("enllaç", ": .");
+        assertThat(welcome.title()).startsWith("Benvingud").endsWith("a Club Agility Exemple, Laura!");
+        assertThat(welcome.variables()).doesNotContainKey("link");
+        assertThat(welcome.deliveries()).anySatisfy(d -> assertThat(d.channel()).isEqualTo(NotificationChannel.APP));
+    }
+
+    private static com.agilityhub.core.clubs.messaging.application.MessageTemplateService.Update update(MessageTemplate t, String body) {
+        return new com.agilityhub.core.clubs.messaging.application.MessageTemplateService.Update(new com.agilityhub.core.clubs.messaging.application.MessageTemplateService.Texts(
+                t.title().values(), Map.of("ca", body), t.smsBody() == null ? Map.of() : t.smsBody().values()), t.icon(), t.color(), t.matrix(), true, t.version(), null);
+    }
+
+    /**
+     * E7-T03 round 2, item 7 (R-11-01): many first uses of one code at once, each inside its own outer transaction as the
+     * outbox runs the engine, create one template and answer it to every caller — never a `WriteConflict` (CI of `ca83d97`).
+     */
+    @Test void T_11_31_manyParallelFirstUsesOfOneCodeAreOneTemplateAndNoError() throws Exception {
+        var spec = com.agilityhub.core.clubs.messaging.domain.NotificationCatalog.byCode("N-09").orElseThrow();
+        var ids = ConcurrencySupport.parallel(24, i -> () -> {
+            try (var tenant = TenantContext.open(CLUB)) {
+                return new org.springframework.transaction.support.TransactionTemplate(transactions).execute(tx -> templates.forCode(spec, List.of("ca", "es"), "ca").id());
+            }
+        });
+        assertThat(ids).hasSize(24).doesNotContainNull();
+        assertThat(ids.stream().distinct()).hasSize(1);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-09")), MessageTemplate.class)).isEqualTo(1);
     }
 
     @Test void T_11_01_T_11_40_theRecipientsLanguageWithFallbacksAndANewLanguageOnlyForLaterNotices() {

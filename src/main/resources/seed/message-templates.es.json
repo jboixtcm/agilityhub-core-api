@@ -18,7 +18,7 @@
     {
       "code": "N-02",
       "title": "{gender, select, female {¡Bienvenida} other {¡Bienvenido}} a [[club_name]], [[member_first_name]]!",
-      "body": "Ya tienes acceso a la app del club. Entra con este enlace: [[link]].",
+      "body": "Ya tienes acceso a la app del club.",
       "icon": "mail",
       "color": "OK",
       "matrix": {

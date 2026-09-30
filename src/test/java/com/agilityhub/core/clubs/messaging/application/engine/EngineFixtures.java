@@ -175,7 +175,8 @@ abstract class EngineFixtures extends AbstractIntegrationTest {
                 .append("position", 1).append("version", 0), "waitlist_entries");
     }
     PushSubscription subscribe(String clubId, String id, String accountId) {
-        var subscription = new PushSubscription(id, clubId, accountId, "https://push.example.test/" + id, null, new PushSubscription.Keys("p256dh", "auth"), "iPhone · Safari",
+        var keys = new PushSubscription.Keys(com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.p256dh(), com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.auth());
+        var subscription = new PushSubscription(id, clubId, accountId, "https://push.example.test/" + id, null, keys, "iPhone · Safari",
                 "UA", PushSubscription.Status.ACTIVE, 0, null, null, 0L, clock.instant(), accountId, clock.instant(), accountId);
         mongo.insert(subscription); return subscription;
     }

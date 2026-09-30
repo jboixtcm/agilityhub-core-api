@@ -1,0 +1,1441 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.agilityhub:agilityhub-core-api >-----------------
+[INFO] Building AgilityHub Core API 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- enforcer:3.6.2:enforce (require-java-21) @ agilityhub-core-api ---
+[INFO] Rule 0: org.apache.maven.enforcer.rules.version.RequireJavaVersion passed
+[INFO] Rule 1: org.apache.maven.enforcer.rules.version.RequireMavenVersion passed
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] argLine set to empty
+[INFO] 
+[INFO] --- spring-boot:3.5.16:build-info (default) @ agilityhub-core-api ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ agilityhub-core-api ---
+[INFO] Copying 13 resources from src/main/resources to target/classes
+[INFO] Copying 1 resource from seeds to target/classes/seeds
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1015 source files with javac [debug parameters release 21] to target/classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java:[15,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/RingBlockRepository.java:[16,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[15,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[16,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[17,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[18,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/ClassSessionRepository.java:[19,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[49,29] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[52,66] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/CensusRepository.java:[145,29] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[43,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ClubRepository.java:[44,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/ParameterRepository.java:[39,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/WeekRepository.java:[15,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/CatalogRepository.java:[15,46] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java:[15,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/InstructorRepository.java:[16,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[16,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[17,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[19,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ListExportRepository.java:[20,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ExportWorkRepository.java:[16,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/ExportWorkRepository.java:[17,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[40,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[41,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRepository.java:[42,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[35,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[36,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/activities/persistence/ActivityRegistrationRepository.java:[37,51] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/AttachmentRepository.java:[34,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/AttachmentRepository.java:[37,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/TaskRepository.java:[27,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[24,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/BookingRepository.java:[28,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[20,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[21,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/WaitlistEntryRepository.java:[23,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java:[107,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/AccountRepository.java:[108,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MembershipRepository.java:[41,41] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[41,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[42,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/MagicLinkTokenRepository.java:[43,45] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[39,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[41,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[42,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[43,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/NotificationRepository.java:[44,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/SeatHoldRepository.java:[21,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/SeatHoldRepository.java:[22,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[31,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[32,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[33,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/bookings/persistence/AttendanceRepository.java:[35,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[56,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[57,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[59,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/audit/AuditRepository.java:[61,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/PlanRepository.java:[13,35] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/persistence/PriceRepository.java:[18,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/census/persistence/SignupNotificationAdmissionRepository.java:[21,58] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[23,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobRunRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/jobs/JobLockRepository.java:[22,38] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/common/persistence/SavedViewRepository.java:[14,40] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/PushSubscriptionRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/PushSubscriptionRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/PushSubscriptionRepository.java:[28,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/MessageTemplateRepository.java:[22,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/messaging/persistence/MessageTemplateRepository.java:[24,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/content/persistence/ClubPageRepository.java:[16,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItemRepository.java:[26,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupItemRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/followup/persistence/FollowupReadMarkRepository.java:[25,47] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/WeekTemplateRepository.java:[15,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistence.java:[33,26] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[25,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[27,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[28,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[29,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/training/persistence/TrainingBookingRepository.java:[30,16] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[16,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[18,36] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[24,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/configuration/CatalogConfiguration.java:[30,39] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[60,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[61,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[62,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/RefreshTokenRepository.java:[64,43] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/ImpersonationGrantRepository.java:[20,49] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/HandoffCodeRepository.java:[27,42] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/HandoffCodeRepository.java:[28,42] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/identity/persistence/OidcStateRepository.java:[17,33] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/platform/persistence/SecurityEventRepository.java:[21,20] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/IdempotencyRepository.java:[22,48] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/application/CatalogSeeds.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/catalogs/application/CatalogSeeds.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/shared/persistence/IdempotencyRepository.java: Some input files additionally use or override a deprecated API that is marked for removal.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/application/PlanningContext.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/main/java/com/agilityhub/core/clubs/scheduling/application/PlanningContext.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ agilityhub-core-api ---
+[INFO] Copying 45 resources from src/test/resources to target/test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ agilityhub-core-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 300 source files with javac [debug parameters release 21] to target/test-classes
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[74,28] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[81,19] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[87,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[WARNING] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/scheduling/persistence/SchedulingPersistenceTest.java:[103,25] ensureIndex(org.springframework.data.mongodb.core.index.IndexDefinition) in org.springframework.data.mongodb.core.index.IndexOperations has been deprecated and marked for removal
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Some input files use or override a deprecated API.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/TeamIT.java: Recompile with -Xlint:deprecation for details.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/jordib/dev/agilityhub/agilityhub-core-api/src/test/java/com/agilityhub/core/clubs/catalogs/api/CatalogsIT.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- surefire:3.5.6:test (default-test) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.clubs.messaging.application.MessagingE7T03UnitTest
+[ERROR] Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.585 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.MessagingE7T03UnitTest
+[ERROR] com.agilityhub.core.clubs.messaging.application.MessagingE7T03UnitTest.R_11_07_theEndpointAndTheKeysOfAPushSubscription -- Time elapsed: 0.051 s <<< FAILURE!
+java.lang.AssertionError: 
+[keys.p256dh BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] 
+Expecting actual not to be null
+	at com.agilityhub.core.clubs.messaging.application.MessagingE7T03UnitTest.lambda$R_11_07_theEndpointAndTheKeysOfAPushSubscription$4(MessagingE7T03UnitTest.java:47)
+	at java.base/java.util.Map.forEach(Map.java:733)
+	at com.agilityhub.core.clubs.messaging.application.MessagingE7T03UnitTest.R_11_07_theEndpointAndTheKeysOfAPushSubscription(MessagingE7T03UnitTest.java:42)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest
+[ERROR] Tests run: 8, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 0.155 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_06_T_11_12_theSmsRules -- Time elapsed: 0.007 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {"field"="smsBody"}
+to contain exactly (and in same order):
+  ["field"="smsBody.ca"]
+but some elements were not found:
+  ["field"="smsBody.ca"]
+and others were not expected:
+  ["field"="smsBody"]
+
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_06_T_11_12_theSmsRules(TemplateValidatorTest.java:142)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_unknownVariablesAndIcuArgumentsAreRejectedOnSaving -- Time elapsed: 0.002 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"variables"=["persona_nom", "sobrenom"]}
+to contain entries:
+  ["field"="body.ca"]
+but could not find the following map entries:
+  ["field"="body.ca"]
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_unknownVariablesAndIcuArgumentsAreRejectedOnSaving(TemplateValidatorTest.java:127)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_theSeedOfEveryCodeIsValidAsItIs -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+[N-02] 
+Expecting code not to raise a throwable but caught
+  "com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator.validate(TemplateValidator.java:100)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.validate(TemplateValidatorTest.java:60)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.lambda$T_11_12_theSeedOfEveryCodeIsValidAsItIs$5(TemplateValidatorTest.java:75)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:908)
+	at org.assertj.core.api.AssertionsForClassTypes.assertThatCode(AssertionsForClassTypes.java:879)
+	at org.assertj.core.api.Assertions.assertThatCode(Assertions.java:1396)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_theSeedOfEveryCodeIsValidAsItIs(TemplateValidatorTest.java:75)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_theSeedOfEveryCodeIsValidAsItIs(TemplateValidatorTest.java:75)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aCellOutsideTheCapsIsChannelNotAllowed -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting map:
+  {"cells"=[{"audience"="MEMBER", "channel"="SMS"}]}
+to contain entries:
+  ["audience"="MEMBER"]
+but could not find the following map entries:
+  ["audience"="MEMBER"]
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aCellOutsideTheCapsIsChannelNotAllowed(TemplateValidatorTest.java:83)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aMandatoryTemplateCannotBeDisabledButAnotherOneCan -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: TEMPLATE_MANDATORY
+ but was: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.error(TemplateValidatorTest.java:65)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aMandatoryTemplateCannotBeDisabledButAnotherOneCan(TemplateValidatorTest.java:118)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting code not to raise a throwable but caught
+  "com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator.validate(TemplateValidator.java:100)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.validate(TemplateValidatorTest.java:60)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.lambda$T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables$9(TemplateValidatorTest.java:100)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:908)
+	at org.assertj.core.api.AssertionsForClassTypes.assertThatCode(AssertionsForClassTypes.java:879)
+	at org.assertj.core.api.Assertions.assertThatCode(Assertions.java:1396)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables(TemplateValidatorTest.java:100)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables(TemplateValidatorTest.java:100)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[ERROR] Tests run: 3, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.461 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest.T_11_31_aConflictThatNeverSettlesAndAnyOtherFailureAreTheCallers -- Time elapsed: 0.007 s <<< FAILURE!
+org.mockito.exceptions.verification.TooFewActualInvocations: 
+
+messageTemplateRepository.insert(
+    <any com.agilityhub.core.clubs.messaging.persistence.MessageTemplate>
+);
+Wanted 8 times:
+-> at com.agilityhub.core.shared.persistence.TenantRepository.insert(TenantRepository.java:30)
+But was 1 time:
+-> at com.agilityhub.core.clubs.messaging.application.engine.TemplateProvider.lambda$forCode$0(TemplateProvider.java:51)
+
+	at com.agilityhub.core.shared.persistence.TenantRepository.insert(TenantRepository.java:30)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest.T_11_31_aConflictThatNeverSettlesAndAnyOtherFailureAreTheCallers(TemplateProviderTest.java:53)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest.T_11_31_aWriteConflictOnTheFirstUseReadsTheWinnersTemplateOnceItIsCommitted -- Time elapsed: 0.001 s <<< ERROR!
+org.springframework.data.mongodb.UncategorizedMongoDbException: Write conflict
+	at com.agilityhub.core.shared.persistence.TenantRepository.insert(TenantRepository.java:30)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProvider.lambda$forCode$0(TemplateProvider.java:51)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProvider.forCode(TemplateProvider.java:51)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest.T_11_31_aWriteConflictOnTheFirstUseReadsTheWinnersTemplateOnceItIsCommitted(TemplateProviderTest.java:41)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.mongodb.MongoException: WriteConflict
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest.writeConflict(TemplateProviderTest.java:32)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProviderTest.T_11_31_aWriteConflictOnTheFirstUseReadsTheWinnersTemplateOnceItIsCommitted(TemplateProviderTest.java:40)
+	... 3 more
+
+[INFO] Running com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest
+E7-T03 seed: 51 templates per locale (ca, es, en); without a template: [N-25, N-26, N-27, N-39, N-43, N-44, N-45, N-48, N-52, N-53]
+[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.034 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_iconColourMatrixAndSmsFollowTheCatalogAndTheVariablesAreTheCodes -- Time elapsed: 0.003 s <<< FAILURE!
+java.lang.AssertionError: 
+[N-02 es] 
+Expecting actual:
+  "{gender, select, female {¡Bienvenida} other {¡Bienvenido}} a [[club_name]], [[member_first_name]]!Ya tienes acceso a la app del club."
+to contain:
+  "[[link]]" 
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.lambda$E7_T03_iconColourMatrixAndSmsFollowTheCatalogAndTheVariablesAreTheCodes$3(MessageTemplateSeedTest.java:67)
+	at java.base/java.util.LinkedHashMap.forEach(LinkedHashMap.java:986)
+	at java.base/java.util.Collections$UnmodifiableMap.forEach(Collections.java:1708)
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_iconColourMatrixAndSmsFollowTheCatalogAndTheVariablesAreTheCodes(MessageTemplateSeedTest.java:67)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_theCatalanTextsOfS11Section8AreTheSeedVerbatim -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[N-02 body] 
+expected: "Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: [[link]]."
+ but was: "Ja tens accés a l'app del club."
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_theCatalanTextsOfS11Section8AreTheSeedVerbatim(MessageTemplateSeedTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_everySeedPassesTheValidationOfAnUnchangedSave -- Time elapsed: 0.008 s <<< FAILURE!
+java.lang.AssertionError: 
+[N-02] 
+Expecting code not to raise a throwable but caught
+  "com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator.validate(TemplateValidator.java:100)
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.lambda$E7_T03_everySeedPassesTheValidationOfAnUnchangedSave$10(MessageTemplateSeedTest.java:125)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:908)
+	at org.assertj.core.api.AssertionsForClassTypes.assertThatCode(AssertionsForClassTypes.java:879)
+	at org.assertj.core.api.Assertions.assertThatCode(Assertions.java:1396)
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_everySeedPassesTheValidationOfAnUnchangedSave(MessageTemplateSeedTest.java:125)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_everySeedPassesTheValidationOfAnUnchangedSave(MessageTemplateSeedTest.java:126)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   MessagingE7T03UnitTest.R_11_07_theEndpointAndTheKeysOfAPushSubscription:42->lambda$R_11_07_theEndpointAndTheKeysOfAPushSubscription$4:47 [keys.p256dh BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] 
+Expecting actual not to be null
+[ERROR]   MessageTemplateSeedTest.E7_T03_everySeedPassesTheValidationOfAnUnchangedSave:126 [N-02] 
+Expecting code not to raise a throwable but caught
+  "com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator.validate(TemplateValidator.java:100)
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.lambda$E7_T03_everySeedPassesTheValidationOfAnUnchangedSave$10(MessageTemplateSeedTest.java:125)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:908)
+	at org.assertj.core.api.AssertionsForClassTypes.assertThatCode(AssertionsForClassTypes.java:879)
+	at org.assertj.core.api.Assertions.assertThatCode(Assertions.java:1396)
+	at com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeedTest.E7_T03_everySeedPassesTheValidationOfAnUnchangedSave(MessageTemplateSeedTest.java:125)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+[ERROR]   MessageTemplateSeedTest.E7_T03_iconColourMatrixAndSmsFollowTheCatalogAndTheVariablesAreTheCodes:67->lambda$E7_T03_iconColourMatrixAndSmsFollowTheCatalogAndTheVariablesAreTheCodes$3:67 [N-02 es] 
+Expecting actual:
+  "{gender, select, female {¡Bienvenida} other {¡Bienvenido}} a [[club_name]], [[member_first_name]]!Ya tienes acceso a la app del club."
+to contain:
+  "[[link]]" 
+[ERROR]   MessageTemplateSeedTest.E7_T03_theCatalanTextsOfS11Section8AreTheSeedVerbatim:88 [N-02 body] 
+expected: "Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: [[link]]."
+ but was: "Ja tens accés a l'app del club."
+[ERROR]   TemplateProviderTest.T_11_31_aConflictThatNeverSettlesAndAnyOtherFailureAreTheCallers:53 
+messageTemplateRepository.insert(
+    <any com.agilityhub.core.clubs.messaging.persistence.MessageTemplate>
+);
+Wanted 8 times:
+-> at com.agilityhub.core.shared.persistence.TenantRepository.insert(TenantRepository.java:30)
+But was 1 time:
+-> at com.agilityhub.core.clubs.messaging.application.engine.TemplateProvider.lambda$forCode$0(TemplateProvider.java:51)
+
+[ERROR]   TemplateValidatorTest.T_11_06_T_11_12_theSmsRules:142 
+Expecting actual:
+  {"field"="smsBody"}
+to contain exactly (and in same order):
+  ["field"="smsBody.ca"]
+but some elements were not found:
+  ["field"="smsBody.ca"]
+and others were not expected:
+  ["field"="smsBody"]
+
+[ERROR]   TemplateValidatorTest.T_11_12_aCellOutsideTheCapsIsChannelNotAllowed:83 
+Expecting map:
+  {"cells"=[{"audience"="MEMBER", "channel"="SMS"}]}
+to contain entries:
+  ["audience"="MEMBER"]
+but could not find the following map entries:
+  ["audience"="MEMBER"]
+[ERROR]   TemplateValidatorTest.T_11_12_aMandatoryTemplateCannotBeDisabledButAnotherOneCan:118->error:65 
+expected: TEMPLATE_MANDATORY
+ but was: VALIDATION_ERROR
+[ERROR]   TemplateValidatorTest.T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables:100 
+Expecting code not to raise a throwable but caught
+  "com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator.validate(TemplateValidator.java:100)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.validate(TemplateValidatorTest.java:60)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.lambda$T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables$9(TemplateValidatorTest.java:100)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:908)
+	at org.assertj.core.api.AssertionsForClassTypes.assertThatCode(AssertionsForClassTypes.java:879)
+	at org.assertj.core.api.Assertions.assertThatCode(Assertions.java:1396)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_aTemplateWithoutItsRequiredVariableIsAValidationErrorWithTheMissingVariables(TemplateValidatorTest.java:100)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+[ERROR]   TemplateValidatorTest.T_11_12_theSeedOfEveryCodeIsValidAsItIs:75 [N-02] 
+Expecting code not to raise a throwable but caught
+  "com.agilityhub.core.shared.domain.ApiException: VALIDATION_ERROR
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidator.validate(TemplateValidator.java:100)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.validate(TemplateValidatorTest.java:60)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.lambda$T_11_12_theSeedOfEveryCodeIsValidAsItIs$5(TemplateValidatorTest.java:75)
+	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:66)
+	at org.assertj.core.api.AssertionsForClassTypes.catchThrowable(AssertionsForClassTypes.java:908)
+	at org.assertj.core.api.AssertionsForClassTypes.assertThatCode(AssertionsForClassTypes.java:879)
+	at org.assertj.core.api.Assertions.assertThatCode(Assertions.java:1396)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateValidatorTest.T_11_12_theSeedOfEveryCodeIsValidAsItIs(TemplateValidatorTest.java:75)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:775)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:479)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:161)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:152)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:91)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:112)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:94)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:87)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:216)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:212)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:137)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:201)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:170)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:94)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:59)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:142)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+"
+[ERROR]   TemplateValidatorTest.T_11_12_unknownVariablesAndIcuArgumentsAreRejectedOnSaving:127 
+Expecting map:
+  {"variables"=["persona_nom", "sobrenom"]}
+to contain entries:
+  ["field"="body.ca"]
+but could not find the following map entries:
+  ["field"="body.ca"]
+[ERROR] Errors: 
+[ERROR]   TemplateProviderTest.T_11_31_aWriteConflictOnTheFirstUseReadsTheWinnersTemplateOnceItIsCommitted:41 » UncategorizedMongoDb Write conflict
+[INFO] 
+[ERROR] Tests run: 21, Failures: 11, Errors: 1, Skipped: 0
+[INFO] 
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/surefire-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ agilityhub-core-api ---
+[INFO] Building jar: /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.5.16:repackage (repackage) @ agilityhub-core-api ---
+[INFO] Replacing main artifact /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /Users/jordib/dev/agilityhub/agilityhub-core-api/target/agilityhub-core-api-0.1.0-SNAPSHOT.jar.original
+[INFO] 
+[INFO] --- failsafe:3.5.6:integration-test (default) @ agilityhub-core-api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.agilityhub.core.clubs.messaging.api.NotificationLogIT
+21:19:32.960 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.api.NotificationLogIT]: NotificationLogIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:19:33.061 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.api.NotificationLogIT
+21:19:33.106 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+21:19:33.107 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+21:19:33.110 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+21:19:33.185 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+21:19:33.301 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+21:19:33.301 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+21:19:33.312 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+21:19:33.540 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+21:19:33.655 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+21:19:33.706 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: 972ddd8b72a23b0bd2eb04023337ad7fb105f3117378fd7fad365fc02289fa95
+21:19:33.875 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.335514S
+21:19:33.878 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+21:19:33.878 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+21:19:33.879 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+21:19:33.879 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+21:19:33.906 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 8671cdea771dd936dde0e0c4d1f5160e485e3d162b442a6b4c0b885fcb5f553d
+21:19:34.380 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.500824S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-30T21:19:34.967+02:00  INFO 57178 --- [agilityhub-core-api] [           main] c.a.c.c.messaging.api.NotificationLogIT  : Starting NotificationLogIT using Java 21.0.12.1 with PID 57178 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-30T21:19:34.967+02:00  INFO 57178 --- [agilityhub-core-api] [           main] c.a.c.c.messaging.api.NotificationLogIT  : The following 1 profile is active: "test"
+2026-09-30T21:19:35.615+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-30T21:19:35.655+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 37 ms. Found 0 MongoDB repository interfaces.
+2026-09-30T21:19:35.916+02:00  INFO 57178 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@524c3e54], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1d7d968c, com.mongodb.Jep395RecordCodecProvider@10df1f34, com.mongodb.KotlinCodecProvider@6fe77a97]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52473], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@5cea47a1], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-30T21:19:35.921+02:00  INFO 57178 --- [agilityhub-core-api] [localhost:52473] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52473, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=7709166, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=8671cdea771d:27017, hosts=[8671cdea771d:27017], passives=[], arbiters=[], primary='8671cdea771d:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd60c6fbc4a80b38dea2c3, counter=6}, lastWriteDate=Wed Sep 30 21:19:34 CEST 2026, lastUpdateTimeNanos=402593131405583}
+2026-09-30T21:19:38.184+02:00  INFO 57178 --- [agilityhub-core-api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-09-30T21:19:38.184+02:00  INFO 57178 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-09-30T21:19:38.184+02:00  INFO 57178 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-09-30T21:19:38.210+02:00  INFO 57178 --- [agilityhub-core-api] [           main] c.a.c.c.messaging.api.NotificationLogIT  : Started NotificationLogIT in 3.357 seconds (process running for 5.539)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+E7-T03 log filter channel:eq:SMS → [log-n08a]; status:eq:FAILED → [log-n08a]; memberId:eq:log-m-laura → [log-n08a, log-n04]; code:eq:N-08a → [log-n08a, log-legacy]
+[ERROR] Tests run: 5, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 6.845 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.api.NotificationLogIT
+[ERROR] com.agilityhub.core.clubs.messaging.api.NotificationLogIT.T_11_26_R_14_12_theExportCellsAreTheRecipientsNameAndTheTranslatedChannelsWithTheirStatus -- Time elapsed: 0.939 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  [["Avís", "Destinatari", "Canals"],
+    ["N-08a", "Laura Serra; log-m-laura", "APP; DELIVERED; SMS; FAILED"],
+    ["N-03", "applicant@example.test", "EMAIL; SENT"],
+    ["N-04", "Laura Serra; log-m-laura", "APP; DELIVERED"],
+    ["N-08a", "", "APP; SENT"]]
+to contain exactly (and in same order):
+  [["Avís", "Destinatari", "Canals"],
+    ["N-08a", "Laura Serra", "App (Lliurat); SMS (Error)"],
+    ["N-03", "applicant@example.test", "Correu (Enviat)"],
+    ["N-04", "Laura Serra", "App (Lliurat)"],
+    ["N-08a", "", "App (Enviat)"]]
+but some elements were not found:
+  [["N-08a", "Laura Serra", "App (Lliurat); SMS (Error)"],
+    ["N-03", "applicant@example.test", "Correu (Enviat)"],
+    ["N-04", "Laura Serra", "App (Lliurat)"],
+    ["N-08a", "", "App (Enviat)"]]
+and others were not expected:
+  [["N-08a", "Laura Serra; log-m-laura", "APP; DELIVERED; SMS; FAILED"],
+    ["N-03", "applicant@example.test", "EMAIL; SENT"],
+    ["N-04", "Laura Serra; log-m-laura", "APP; DELIVERED"],
+    ["N-08a", "", "APP; SENT"]]
+
+	at com.agilityhub.core.clubs.messaging.api.NotificationLogIT.T_11_26_R_14_12_theExportCellsAreTheRecipientsNameAndTheTranslatedChannelsWithTheirStatus(NotificationLogIT.java:202)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT
+2026-09-30T21:19:39.780+02:00  INFO 57178 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT]: MessageTemplatesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T21:19:39.781+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT
+2026-09-30T21:19:40.503+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-08a uses the unknown variable apodo
+E7-T03 preview es: Clase cancelada por el club | Miércoles 12 · 18:50 · · Duna | {"text":"Example Agility Club: miércoles 12","length":34,"segments":1,"truncated":false}
+2026-09-30T21:19:40.509+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-08a uses the unknown variable apodo
+E7-T03 preview en: Class cancelled by the club | 12 Wednesday · 18:50 · · Duna | {"text":"Example Agility Club: 12 Wednesday","length":34,"segments":1,"truncated":false}
+E7-T03 D9 list: 51 templates, counts {"OPERATIONAL":24,"PERSONAL":17,"CLUB_CHANGES":8,"CLUB_NEWS":2}
+[ERROR] Tests run: 10, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 1.068 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT
+[ERROR] com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.E7_T03_aTemplateSeededInEveryProductLanguageIsEditedInTheClubsLanguages -- Time elapsed: 0.053 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[/titleI18n] 
+Expecting actual:
+  ["ca", "es", "en"]
+to contain exactly (and in same order):
+  ["ca", "es"]
+but some elements were not expected:
+  ["en"]
+
+	at com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.E7_T03_aTemplateSeededInEveryProductLanguageIsEditedInTheClubsLanguages(MessageTemplatesIT.java:383)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.T_11_12_theSaveValidationsAndTheResetToTheSeed -- Time elapsed: 0.087 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "MEMBER"
+ but was: ""
+	at com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.T_11_12_theSaveValidationsAndTheResetToTheSeed(MessageTemplatesIT.java:214)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.T_11_16_theListSeedsEveryEligibleCodeOnceInD9OrderWithTheCountsPerCategory -- Time elapsed: 0.059 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting actual:
+  ["dog_name",
+    "class_date",
+    "class_time",
+    "class_description",
+    "admin_text",
+    "member_first_name",
+    "member_last_names",
+    "member_name",
+    "gender",
+    "dog_name_article",
+    "club_name"]
+to contain exactly (and in same order):
+  ["dog_name",
+    "class_date",
+    "class_time",
+    "class_description",
+    "admin_text",
+    "dog_name_article",
+    "club_name"]
+but some elements were not expected:
+  ["member_first_name", "member_last_names", "member_name", "gender"]
+
+	at com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.T_11_16_theListSeedsEveryEligibleCodeOnceInD9OrderWithTheCountsPerCategory(MessageTemplatesIT.java:145)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.T_11_12_T_11_17_rowsAndCategoriesATemplateDoesNotHaveAndThePreviewOfEveryKind -- Time elapsed: 0.060 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "ADMINS"
+ but was: ""
+	at com.agilityhub.core.clubs.messaging.api.MessageTemplatesIT.T_11_12_T_11_17_rowsAndCategoriesATemplateDoesNotHaveAndThePreviewOfEveryKind(MessageTemplatesIT.java:337)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT
+2026-09-30T21:19:40.849+02:00  INFO 57178 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT]: PushSubscriptionsIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T21:19:40.850+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT
+[ERROR] Tests run: 4, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.163 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT
+[ERROR] com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT.T_11_21_malformedEndpointsAndKeysAreRejected -- Time elapsed: 0.036 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"id":"f1590853-4f2d-4e56-b8f2-8f5ae81e5916"}] 
+expected: 422
+ but was: 201
+	at com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT.call(PushSubscriptionsIT.java:72)
+	at com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT.T_11_21_malformedEndpointsAndKeysAreRejected(PushSubscriptionsIT.java:142)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT.T_11_21_anUpsertByEndpointWithTheLabelFromTheUserAgentAndItsEvents -- Time elapsed: 0.041 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "c4541120-1fc3-4b84-9a32-d24d254437ac"
+not to be equal to:
+  "c4541120-1fc3-4b84-9a32-d24d254437ac"
+
+	at com.agilityhub.core.clubs.messaging.api.PushSubscriptionsIT.T_11_21_anUpsertByEndpointWithTheLabelFromTheUserAgentAndItsEvents(PushSubscriptionsIT.java:112)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT
+2026-09-30T21:19:41.012+02:00  INFO 57178 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT]: NotificationPreferencesIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T21:19:41.013+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT
+E7-T03 D10 MEMBER_UPDATED: actor=pref-admin member=pref-m-laura changes=[notificationPreferences.emailByCategory.OPERATIONAL false→true, notificationPreferences.pushClubNews true→false]
+2026-09-30T21:19:41.169+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=ce6fc8d1-2e73-4334-9a7f-05af3ed1f87f
+2026-09-30T21:19:41.189+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.core.shared.api.ApiExceptionHandler  : Framework request rejected status=405 code=METHOD_NOT_ALLOWED traceId=1927e8d9-2909-444f-b90a-00f54380e273
+[ERROR] Tests run: 5, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.227 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT
+[ERROR] com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT.T_11_28_theImpersonationTokenSavesTheMembersBlockWithAudit -- Time elapsed: 0.065 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"METHOD_NOT_ALLOWED","message":"Este método HTTP no está permitido para este recurso.","details":{},"traceId":"ce6fc8d1-2e73-4334-9a7f-05af3ed1f87f"}] 
+expected: 403
+ but was: 405
+	at com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT.call(NotificationPreferencesIT.java:78)
+	at com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT.T_11_28_theImpersonationTokenSavesTheMembersBlockWithAudit(NotificationPreferencesIT.java:196)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT.T_11_20_d10ReadsTheMembersBlockWithTheShapeOfScreen12 -- Time elapsed: 0.020 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+[{"code":"METHOD_NOT_ALLOWED","message":"Aquest mètode HTTP no està permès per a aquest recurs.","details":{},"traceId":"1927e8d9-2909-444f-b90a-00f54380e273"}] 
+expected: 200
+ but was: 405
+	at com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT.call(NotificationPreferencesIT.java:78)
+	at com.agilityhub.core.clubs.messaging.api.NotificationPreferencesIT.T_11_20_d10ReadsTheMembersBlockWithTheShapeOfScreen12(NotificationPreferencesIT.java:162)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+2026-09-30T21:19:41.240+02:00  INFO 57178 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT]: NotificationEngineIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T21:19:41.274+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-09-30T21:19:41.284+02:00  INFO 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngineIT  : Starting NotificationEngineIT using Java 21.0.12.1 with PID 57178 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-09-30T21:19:41.284+02:00  INFO 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngineIT  : The following 1 profile is active: "test"
+2026-09-30T21:19:41.500+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-30T21:19:41.527+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 0 MongoDB repository interfaces.
+2026-09-30T21:19:41.562+02:00  INFO 57178 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@2d301b0e], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@1d7d968c, com.mongodb.Jep395RecordCodecProvider@10df1f34, com.mongodb.KotlinCodecProvider@6fe77a97]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:52473], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@6a49bf51], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-09-30T21:19:41.563+02:00  INFO 57178 --- [agilityhub-core-api] [localhost:52473] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:52473, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=1444917, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=8671cdea771d:27017, hosts=[8671cdea771d:27017], passives=[], arbiters=[], primary='8671cdea771d:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd60c6fbc4a80b38dea2c3, counter=6}, lastWriteDate=Wed Sep 30 21:19:41 CEST 2026, lastUpdateTimeNanos=402598774372500}
+2026-09-30T21:19:42.095+02:00  INFO 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngineIT  : Started NotificationEngineIT in 0.818 seconds (process running for 9.424)
+T-11-31 200 concurrent ReminderDue deliveries (100 bookings x 2); redelivered after a rolled-back attempt: {MongoCommandException=125}
+E5-T07 outbox backlog discarded before NotificationEngineIT: 300 PENDING records (more than one dispatch() batch)
+2026-09-30T21:19:42.997+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-09-30T21:19:42.998+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-09-30T21:19:43.026+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-09-30T21:19:43.026+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-09-30T21:19:43.027+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-09-30T21:19:43.027+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-09-30T21:19:43.027+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for invoice_number
+2026-09-30T21:19:43.027+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for member_name
+2026-09-30T21:19:43.027+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for amount
+2026-09-30T21:19:43.027+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-10 has no value for reason
+2026-09-30T21:19:43.152+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-32b has no value for state
+2026-09-30T21:19:43.152+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-32b has no value for state
+2026-09-30T21:19:43.419+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.NotificationEngine    : Inline notification dispatch failed; the poll retries it error=IllegalStateException
+2026-09-30T21:19:43.682+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:43.682+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:43.698+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:43.699+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+[ERROR] Tests run: 13, Failures: 1, Errors: 2, Skipped: 0, Time elapsed: 2.912 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.E76_theWelcomeNoticeInTheFeedHasNoEmptyLink -- Time elapsed: 0.041 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: "Ja tens accés a l'app del club."
+ but was: "Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: ."
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.E76_theWelcomeNoticeInTheFeedHasNoEmptyLink(NotificationEngineIT.java:259)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.R_11_12_everyVariableATemplateAcceptsIsRenderedByTheEngineAndNoOtherIsAccepted -- Time elapsed: 0.040 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.agilityhub.core.shared.domain.ApiException.code()" because "refused" is null
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.R_11_12_everyVariableATemplateAcceptsIsRenderedByTheEngineAndNoOtherIsAccepted(NotificationEngineIT.java:239)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.T_11_31_manyParallelFirstUsesOfOneCodeAreOneTemplateAndNoError -- Time elapsed: 0.055 s <<< ERROR!
+java.util.concurrent.ExecutionException: org.springframework.dao.DataIntegrityViolationException: Command failed with error 112 (WriteConflict): 'Caused by ::  :: Please retry your operation or multi-document transaction.' on server localhost:52473. The full response is {"errorLabels": ["TransientTransactionError"], "ok": 0.0, "errmsg": "Caused by ::  :: Please retry your operation or multi-document transaction.", "code": 112, "codeName": "WriteConflict", "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1790795984, "i": 25}}, "signature": {"hash": {"$binary": {"base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=", "subType": "00"}}, "keyId": 0}}, "operationTime": {"$timestamp": {"t": 1790795984, "i": 25}}}
+	at java.base/java.util.concurrent.FutureTask.report(FutureTask.java:122)
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:205)
+	at com.agilityhub.core.support.ConcurrencySupport.parallel(ConcurrencySupport.java:30)
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.T_11_31_manyParallelFirstUsesOfOneCodeAreOneTemplateAndNoError(NotificationEngineIT.java:276)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: org.springframework.dao.DataIntegrityViolationException: Command failed with error 112 (WriteConflict): 'Caused by ::  :: Please retry your operation or multi-document transaction.' on server localhost:52473. The full response is {"errorLabels": ["TransientTransactionError"], "ok": 0.0, "errmsg": "Caused by ::  :: Please retry your operation or multi-document transaction.", "code": 112, "codeName": "WriteConflict", "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1790795984, "i": 25}}, "signature": {"hash": {"$binary": {"base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=", "subType": "00"}}, "keyId": 0}}, "operationTime": {"$timestamp": {"t": 1790795984, "i": 25}}}
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.doTranslateException(MongoExceptionTranslator.java:141)
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.translateExceptionIfPossible(MongoExceptionTranslator.java:74)
+	at org.springframework.data.mongodb.core.MongoTemplate.potentiallyConvertRuntimeException(MongoTemplate.java:3037)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:618)
+	at org.springframework.data.mongodb.core.MongoTemplate.insertDocument(MongoTemplate.java:1562)
+	at org.springframework.data.mongodb.core.MongoTemplate.doInsert(MongoTemplate.java:1364)
+	at org.springframework.data.mongodb.core.MongoTemplate.insert(MongoTemplate.java:1292)
+	at org.springframework.data.mongodb.core.MongoTemplate.insert(MongoTemplate.java:1281)
+	at com.agilityhub.core.shared.persistence.TenantRepository.insert(TenantRepository.java:30)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at com.agilityhub.core.clubs.messaging.persistence.MessageTemplateRepository$$SpringCGLIB$$0.insert(<generated>)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProvider.lambda$forCode$0(TemplateProvider.java:51)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.clubs.messaging.application.engine.TemplateProvider.forCode(TemplateProvider.java:51)
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.lambda$T_11_31_manyParallelFirstUsesOfOneCodeAreOneTemplateAndNoError$41(NotificationEngineIT.java:278)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationEngineIT.lambda$T_11_31_manyParallelFirstUsesOfOneCodeAreOneTemplateAndNoError$42(NotificationEngineIT.java:278)
+	at com.agilityhub.core.support.ConcurrencySupport.lambda$parallel$0(ConcurrencySupport.java:28)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 112 (WriteConflict): 'Caused by ::  :: Please retry your operation or multi-document transaction.' on server localhost:52473. The full response is {"errorLabels": ["TransientTransactionError"], "ok": 0.0, "errmsg": "Caused by ::  :: Please retry your operation or multi-document transaction.", "code": 112, "codeName": "WriteConflict", "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1790795984, "i": 25}}, "signature": {"hash": {"$binary": {"base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=", "subType": "00"}}, "keyId": 0}}, "operationTime": {"$timestamp": {"t": 1790795984, "i": 25}}}
+	at com.mongodb.internal.connection.ProtocolHelper.getCommandFailureException(ProtocolHelper.java:210)
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveCommandMessageResponse(InternalStreamConnection.java:520)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceiveInternal(InternalStreamConnection.java:448)
+	at com.mongodb.internal.connection.InternalStreamConnection.lambda$sendAndReceive$0(InternalStreamConnection.java:375)
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceive(InternalStreamConnection.java:378)
+	at com.mongodb.internal.connection.UsageTrackingInternalConnection.sendAndReceive(UsageTrackingInternalConnection.java:111)
+	at com.mongodb.internal.connection.DefaultConnectionPool$PooledConnection.sendAndReceive(DefaultConnectionPool.java:747)
+	at com.mongodb.internal.connection.CommandProtocolImpl.execute(CommandProtocolImpl.java:61)
+	at com.mongodb.internal.connection.DefaultServer$DefaultServerProtocolExecutor.execute(DefaultServer.java:208)
+	at com.mongodb.internal.connection.DefaultServerConnection.executeProtocol(DefaultServerConnection.java:112)
+	at com.mongodb.internal.connection.DefaultServerConnection.command(DefaultServerConnection.java:82)
+	at com.mongodb.internal.connection.DefaultServer$OperationCountTrackingConnection.command(DefaultServer.java:306)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.executeCommand(MixedBulkWriteOperation.java:423)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.executeBulkWriteBatch(MixedBulkWriteOperation.java:270)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.lambda$execute$2(MixedBulkWriteOperation.java:206)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$0(SyncOperationHelper.java:131)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:156)
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$withSourceAndConnection$1(SyncOperationHelper.java:130)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:156)
+	at com.mongodb.internal.operation.SyncOperationHelper.withSourceAndConnection(SyncOperationHelper.java:129)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.lambda$execute$3(MixedBulkWriteOperation.java:191)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.lambda$decorateWriteWithRetries$0(MixedBulkWriteOperation.java:148)
+	at com.mongodb.internal.async.function.RetryingSyncSupplier.get(RetryingSyncSupplier.java:67)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.execute(MixedBulkWriteOperation.java:210)
+	at com.mongodb.internal.operation.MixedBulkWriteOperation.execute(MixedBulkWriteOperation.java:80)
+	at com.mongodb.client.internal.MongoClusterImpl$OperationExecutorImpl.execute(MongoClusterImpl.java:446)
+	at com.mongodb.client.internal.MongoCollectionImpl.executeSingleWriteRequest(MongoCollectionImpl.java:1116)
+	at com.mongodb.client.internal.MongoCollectionImpl.executeInsertOne(MongoCollectionImpl.java:498)
+	at com.mongodb.client.internal.MongoCollectionImpl.insertOne(MongoCollectionImpl.java:493)
+	at com.mongodb.client.internal.MongoCollectionImpl.insertOne(MongoCollectionImpl.java:486)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:281)
+	at org.springframework.data.mongodb.SessionAwareMethodInterceptor.invoke(SessionAwareMethodInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy2/jdk.proxy2.$Proxy245.insertOne(Unknown Source)
+	at org.springframework.data.mongodb.core.MongoTemplate.lambda$insertDocument$17(MongoTemplate.java:1568)
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:616)
+	... 25 more
+
+[INFO] Running com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT
+2026-09-30T21:19:44.156+02:00  INFO 57178 --- [agilityhub-core-api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT]: NotificationDispatcherIT does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-09-30T21:19:44.158+02:00  INFO 57178 --- [agilityhub-core-api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT
+2026-09-30T21:19:44.654+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.e.NotificationDispatcher     : Notification delivery failed notificationId=d5b91196-4cd2-4954-ba15-d7a488acd15e channel=EMAIL error=IllegalStateException
+2026-09-30T21:19:44.672+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.e.NotificationDispatcher     : Notification delivery failed notificationId=50c6ded5-8230-4fbb-af7a-bb193a50dbde channel=EMAIL error=IllegalStateException
+2026-09-30T21:19:45.694+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.e.NotificationDispatcher     : Notification settlement failed notificationId=311df541-e366-4901-9d02-4bc34207ef84 channel=EMAIL accepted=true error=IllegalStateException
+2026-09-30T21:19:46.346+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.346+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.350+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.350+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.354+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.354+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.358+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.358+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.362+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.362+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.366+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.366+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.369+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.369+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.372+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.372+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.376+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.376+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.379+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.379+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.383+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.383+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.386+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.386+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.390+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.390+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.393+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.393+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.396+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.396+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.399+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.399+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.403+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.403+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.406+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.406+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.409+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.409+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.412+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.412+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.engine.TemplateRenderer      : Notification template of N-37 has no value for change
+2026-09-30T21:19:46.610+02:00  WARN 57178 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.e.NotificationDispatcher     : Notification delivery failed notificationId=5d840b77-9cb7-4219-90ce-feae1f71617d channel=EMAIL error=IllegalStateException
+[ERROR] Tests run: 14, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.484 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT
+[ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_07_aPushQueuedForOneAccountNeverReachesTheNextAccountOnTheSameBrowser -- Time elapsed: 0.034 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  "subscription-laura"
+not to be equal to:
+  "subscription-laura"
+
+	at com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_07_aPushQueuedForOneAccountNeverReachesTheNextAccountOnTheSameBrowser(NotificationDispatcherIT.java:398)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   MessageTemplatesIT.E7_T03_aTemplateSeededInEveryProductLanguageIsEditedInTheClubsLanguages:383 [/titleI18n] 
+Expecting actual:
+  ["ca", "es", "en"]
+to contain exactly (and in same order):
+  ["ca", "es"]
+but some elements were not expected:
+  ["en"]
+
+[ERROR]   MessageTemplatesIT.T_11_12_T_11_17_rowsAndCategoriesATemplateDoesNotHaveAndThePreviewOfEveryKind:337 
+expected: "ADMINS"
+ but was: ""
+[ERROR]   MessageTemplatesIT.T_11_12_theSaveValidationsAndTheResetToTheSeed:214 
+expected: "MEMBER"
+ but was: ""
+[ERROR]   MessageTemplatesIT.T_11_16_theListSeedsEveryEligibleCodeOnceInD9OrderWithTheCountsPerCategory:145 
+Expecting actual:
+  ["dog_name",
+    "class_date",
+    "class_time",
+    "class_description",
+    "admin_text",
+    "member_first_name",
+    "member_last_names",
+    "member_name",
+    "gender",
+    "dog_name_article",
+    "club_name"]
+to contain exactly (and in same order):
+  ["dog_name",
+    "class_date",
+    "class_time",
+    "class_description",
+    "admin_text",
+    "dog_name_article",
+    "club_name"]
+but some elements were not expected:
+  ["member_first_name", "member_last_names", "member_name", "gender"]
+
+[ERROR]   NotificationLogIT.T_11_26_R_14_12_theExportCellsAreTheRecipientsNameAndTheTranslatedChannelsWithTheirStatus:202 
+Expecting actual:
+  [["Avís", "Destinatari", "Canals"],
+    ["N-08a", "Laura Serra; log-m-laura", "APP; DELIVERED; SMS; FAILED"],
+    ["N-03", "applicant@example.test", "EMAIL; SENT"],
+    ["N-04", "Laura Serra; log-m-laura", "APP; DELIVERED"],
+    ["N-08a", "", "APP; SENT"]]
+to contain exactly (and in same order):
+  [["Avís", "Destinatari", "Canals"],
+    ["N-08a", "Laura Serra", "App (Lliurat); SMS (Error)"],
+    ["N-03", "applicant@example.test", "Correu (Enviat)"],
+    ["N-04", "Laura Serra", "App (Lliurat)"],
+    ["N-08a", "", "App (Enviat)"]]
+but some elements were not found:
+  [["N-08a", "Laura Serra", "App (Lliurat); SMS (Error)"],
+    ["N-03", "applicant@example.test", "Correu (Enviat)"],
+    ["N-04", "Laura Serra", "App (Lliurat)"],
+    ["N-08a", "", "App (Enviat)"]]
+and others were not expected:
+  [["N-08a", "Laura Serra; log-m-laura", "APP; DELIVERED; SMS; FAILED"],
+    ["N-03", "applicant@example.test", "EMAIL; SENT"],
+    ["N-04", "Laura Serra; log-m-laura", "APP; DELIVERED"],
+    ["N-08a", "", "APP; SENT"]]
+
+[ERROR]   NotificationPreferencesIT.T_11_20_d10ReadsTheMembersBlockWithTheShapeOfScreen12:162->call:78 [{"code":"METHOD_NOT_ALLOWED","message":"Aquest mètode HTTP no està permès per a aquest recurs.","details":{},"traceId":"1927e8d9-2909-444f-b90a-00f54380e273"}] 
+expected: 200
+ but was: 405
+[ERROR]   NotificationPreferencesIT.T_11_28_theImpersonationTokenSavesTheMembersBlockWithAudit:196->call:78 [{"code":"METHOD_NOT_ALLOWED","message":"Este método HTTP no está permitido para este recurso.","details":{},"traceId":"ce6fc8d1-2e73-4334-9a7f-05af3ed1f87f"}] 
+expected: 403
+ but was: 405
+[ERROR]   PushSubscriptionsIT.T_11_21_anUpsertByEndpointWithTheLabelFromTheUserAgentAndItsEvents:112 
+Expecting actual:
+  "c4541120-1fc3-4b84-9a32-d24d254437ac"
+not to be equal to:
+  "c4541120-1fc3-4b84-9a32-d24d254437ac"
+
+[ERROR]   PushSubscriptionsIT.T_11_21_malformedEndpointsAndKeysAreRejected:142->call:72 [{"id":"f1590853-4f2d-4e56-b8f2-8f5ae81e5916"}] 
+expected: 422
+ but was: 201
+[ERROR]   NotificationDispatcherIT.R_11_07_aPushQueuedForOneAccountNeverReachesTheNextAccountOnTheSameBrowser:398 
+Expecting actual:
+  "subscription-laura"
+not to be equal to:
+  "subscription-laura"
+
+[ERROR]   NotificationEngineIT.E76_theWelcomeNoticeInTheFeedHasNoEmptyLink:259 
+expected: "Ja tens accés a l'app del club."
+ but was: "Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: ."
+[ERROR] Errors: 
+[ERROR]   NotificationEngineIT.R_11_12_everyVariableATemplateAcceptsIsRenderedByTheEngineAndNoOtherIsAccepted:239 NullPointer Cannot invoke "com.agilityhub.core.shared.domain.ApiException.code()" because "refused" is null
+[ERROR]   NotificationEngineIT.T_11_31_manyParallelFirstUsesOfOneCodeAreOneTemplateAndNoError:276 » Execution org.springframework.dao.DataIntegrityViolationException: Command failed with error 112 (WriteConflict): 'Caused by ::  :: Please retry your operation or multi-document transaction.' on server localhost:52473. The full response is {"errorLabels": ["TransientTransactionError"], "ok": 0.0, "errmsg": "Caused by ::  :: Please retry your operation or multi-document transaction.", "code": 112, "codeName": "WriteConflict", "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1790795984, "i": 25}}, "signature": {"hash": {"$binary": {"base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=", "subType": "00"}}, "keyId": 0}}, "operationTime": {"$timestamp": {"t": 1790795984, "i": 25}}}
+[INFO] 
+[ERROR] Tests run: 51, Failures: 11, Errors: 2, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- failsafe:3.5.6:verify (default) @ agilityhub-core-api ---
+[ERROR] There are test failures.
+
+See /Users/jordib/dev/agilityhub/agilityhub-core-api/target/failsafe-reports for the individual test results.
+See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[INFO] 
+[INFO] --- jacoco:0.8.14:report (coverage) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] 
+[INFO] --- jacoco:0.8.14:check (coverage) @ agilityhub-core-api ---
+[INFO] Skipping JaCoCo execution because property jacoco.skip is set.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  26.566 s
+[INFO] Finished at: 2026-09-30T21:19:47+02:00
+[INFO] ------------------------------------------------------------------------

@@ -88,8 +88,14 @@ class E7PersistenceIT extends AbstractIntegrationTest {
         assertThat(templateIndexes.get("template_club_code").get("partialFilterExpression")).isEqualTo(new Document("code", new Document("$type", 2)));
         assertThat(templateIndexes.get("template_club_category_status").get("key")).isEqualTo(keys("clubId", 1, "category", 1, "status", 1));
         var push = indexes("push_subscriptions");
-        assertThat(push.get("push_club_endpoint").get("key")).isEqualTo(keys("clubId", 1, "endpointHash", 1));
-        assertThat(push.get("push_club_endpoint").getBoolean("unique")).isTrue();
+        // E7-T03 round 2 (E76): one ACTIVE subscription per endpoint and club, one row per endpoint and account; round 1's
+        // unique `{clubId, endpointHash}` is dropped at start-up (a subscription never changes owner, so the endpoint repeats).
+        assertThat(push).doesNotContainKey("push_club_endpoint");
+        assertThat(push.get("push_club_endpoint_active").get("key")).isEqualTo(keys("clubId", 1, "endpointHash", 1));
+        assertThat(push.get("push_club_endpoint_active").getBoolean("unique")).isTrue();
+        assertThat(push.get("push_club_endpoint_active").get("partialFilterExpression")).isEqualTo(new Document("status", "ACTIVE"));
+        assertThat(push.get("push_club_endpoint_account").get("key")).isEqualTo(keys("clubId", 1, "endpointHash", 1, "accountId", 1));
+        assertThat(push.get("push_club_endpoint_account").getBoolean("unique")).isTrue();
         assertThat(push.get("push_club_account_status").get("key")).isEqualTo(keys("clubId", 1, "accountId", 1, "status", 1));
     }
 
@@ -125,13 +131,22 @@ class E7PersistenceIT extends AbstractIntegrationTest {
                         TemplateColor.ACCENT, Map.of(), true, false, false, TemplateStatus.ACTIVE, null, now, "account-a", now, "account-a"));
             }
             assertThat(templates.findAll()).hasSize(3);
-            var subscription = new PushSubscription("e7p-s1", CLUB, "account-a", "https://push.example.test/send/e7p", null, new PushSubscription.Keys("p", "a"),
+            var keys = new PushSubscription.Keys(com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.p256dh(), com.agilityhub.core.clubs.messaging.support.PushKeyFixtures.auth());
+            var subscription = new PushSubscription("e7p-s1", CLUB, "account-a", "https://push.example.test/send/e7p", null, keys,
                     "iPhone · Safari", "UA", PushSubscription.Status.ACTIVE, 0, null, null, null, now, "account-a", now, "account-a");
             subscriptions.insert(subscription);
             assertThat(subscriptions.findOwn("e7p-s1", "account-a")).get().extracting(PushSubscription::endpointHash).isEqualTo(subscription.endpointHash());
             assertThat(subscriptions.findOwn("e7p-s1", "account-b")).isEmpty();
+            // One ACTIVE subscription per endpoint and club, and one row per endpoint and account (E7-T03 round 2, E76): another
+            // account's active row of the endpoint collides; once the first one is EXPIRED the other account has a row of its own.
             assertThatThrownBy(() -> subscriptions.insert(new PushSubscription("e7p-s2", CLUB, "account-b", "https://push.example.test/send/e7p", null,
-                    new PushSubscription.Keys("p", "a"), null, null, PushSubscription.Status.ACTIVE, 0, null, null, null, now, null, now, null))).isInstanceOf(DuplicateKeyException.class);
+                    keys, null, null, PushSubscription.Status.ACTIVE, 0, null, null, null, now, null, now, null))).isInstanceOf(DuplicateKeyException.class);
+            assertThat(subscriptions.expire("e7p-s1", now)).isTrue();
+            subscriptions.insert(new PushSubscription("e7p-s2", CLUB, "account-b", "https://push.example.test/send/e7p", null, keys, null, null,
+                    PushSubscription.Status.ACTIVE, 0, null, null, null, now, null, now, null));
+            assertThatThrownBy(() -> subscriptions.insert(new PushSubscription("e7p-s3", CLUB, "account-a", "https://push.example.test/send/e7p", null,
+                    keys, null, null, PushSubscription.Status.EXPIRED, 0, null, null, null, now, null, now, null))).isInstanceOf(DuplicateKeyException.class);
+            assertThat(subscriptions.byEndpointHash(subscription.endpointHash())).extracting(PushSubscription::accountId).containsExactlyInAnyOrder("account-a", "account-b");
         }
         try (var scope = TenantContext.open(OTHER)) {
             // The same dedupKey, code and endpoint in another club are another club's.

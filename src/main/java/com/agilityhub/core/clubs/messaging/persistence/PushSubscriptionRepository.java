@@ -8,14 +8,23 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
-/** `push_subscriptions` with the S11 §3 indexes: unique `{clubId, endpointHash}` and the sender's `{clubId, accountId, status}`. */
+/**
+ * `push_subscriptions` with the S11 §3 indexes: the endpoint is unique per club among the `ACTIVE` subscriptions (partial
+ * `{clubId, endpointHash}`) and once per account (`{clubId, endpointHash, accountId}`), and the sender's `{clubId, accountId,
+ * status}`. A subscription never changes owner (E76): the browser of another account ends the previous owner's and gets its own
+ * row, so the old unique `{clubId, endpointHash}` of E7-T01 is dropped.
+ */
 @Repository
 public class PushSubscriptionRepository extends TenantRepository<PushSubscription> {
+    static final String LEGACY_ENDPOINT_INDEX = "push_club_endpoint";
     public PushSubscriptionRepository(MongoTemplate mongo) { super(mongo, PushSubscription.class); }
     @jakarta.annotation.PostConstruct
     public void ensureIndexes() {
         var indexes = mongo.indexOps(PushSubscription.class);
-        indexes.ensureIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).unique().named("push_club_endpoint"));
+        if (indexes.getIndexInfo().stream().anyMatch(index -> LEGACY_ENDPOINT_INDEX.equals(index.getName()))) { indexes.dropIndex(LEGACY_ENDPOINT_INDEX); }
+        indexes.ensureIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).unique().named("push_club_endpoint_active")
+                .partial(org.springframework.data.mongodb.core.index.PartialIndexFilter.of(new org.bson.Document("status", PushSubscription.Status.ACTIVE.name()))));
+        indexes.ensureIndex(new Index().on("clubId", ASC).on("endpointHash", ASC).on("accountId", ASC).unique().named("push_club_endpoint_account"));
         indexes.ensureIndex(new Index().on("clubId", ASC).on("accountId", ASC).on("status", ASC).named("push_club_account_status"));
     }
     /** The `ACTIVE` subscription ids of each account of the tenant (R-11-03 PUSH: one delivery per subscription). */
@@ -44,20 +53,19 @@ public class PushSubscriptionRepository extends TenantRepository<PushSubscriptio
                 new org.springframework.data.mongodb.core.query.Update().set("status", PushSubscription.Status.EXPIRED).set("expiredAt", at).inc("version", 1),
                 PushSubscription.class).getModifiedCount() == 1;
     }
-    /** The tenant's subscription of an endpoint, whoever holds it (R-11-07: upsert by endpoint). */
-    public Optional<PushSubscription> findByEndpointHash(String endpointHash) {
-        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("endpointHash").is(endpointHash)), PushSubscription.class));
+    /** The tenant's subscriptions of an endpoint, one per account that ever subscribed it (R-11-07: upsert by endpoint). */
+    public java.util.List<PushSubscription> byEndpointHash(String endpointHash) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("endpointHash").is(endpointHash)), PushSubscription.class);
     }
     /**
-     * `POST /push-subscriptions` on a known endpoint: the caller's account, the new keys and device, `ACTIVE` again (a browser
-     * that subscribes again after an expiry or a logout); `false` when the stored version moved meanwhile.
+     * `POST /push-subscriptions` on an endpoint the same account holds: the new keys and device, `ACTIVE` again (a browser that
+     * subscribes again after an expiry or a logout). The owner never changes; `false` when the stored version moved meanwhile.
      */
-    public boolean resubscribe(PushSubscription current, String accountId, PushSubscription.Keys keys, String deviceLabel, String userAgent,
-            java.time.Instant at, String by) {
-        var update = new org.springframework.data.mongodb.core.query.Update().set("accountId", accountId).set("keys", keys).set("deviceLabel", deviceLabel)
+    public boolean resubscribe(PushSubscription current, PushSubscription.Keys keys, String deviceLabel, String userAgent, java.time.Instant at, String by) {
+        var update = new org.springframework.data.mongodb.core.query.Update().set("keys", keys).set("deviceLabel", deviceLabel)
                 .set("userAgent", userAgent).set("status", PushSubscription.Status.ACTIVE).set("failureCount", 0).unset("expiredAt")
                 .set("updatedAt", at).set("updatedBy", by).inc("version", 1);
-        var query = tenantQuery().addCriteria(Criteria.where("_id").is(current.id()).and("version").is(current.version()));
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(current.id()).and("accountId").is(current.accountId()).and("version").is(current.version()));
         return mongo.updateFirst(query, update, PushSubscription.class).getModifiedCount() == 1;
     }
     /** A subscription of the tenant owned by the account (`DELETE /push-subscriptions/{id}`, «pròpia»): another account's is absent. */

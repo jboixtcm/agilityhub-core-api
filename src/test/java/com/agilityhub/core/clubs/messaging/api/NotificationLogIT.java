@@ -176,6 +176,49 @@ class NotificationLogIT extends AbstractIntegrationTest {
                 .isEqualTo("INVALID_FILTER");
     }
 
+    /**
+     * E7-T03 round 2, review #5 (S14 R-14-12): the export's cells are the reader's, never the list's objects. «Destinatari» is the
+     * recipient's name — an applicant's address when the row has none — and never an internal id; «Canals» is each channel with
+     * its delivery status, translated from the export's own keys (`export.value.notificationChannel.*`,
+     * `export.value.deliveryStatus.*`), in XLSX and in PDF and in the reader's language. Before the fix the cells were the
+     * flattened objects: «Laura Serra; log-m-laura» and «APP; DELIVERED; SMS; FAILED».
+     */
+    @Test void T_11_26_R_14_12_theExportCellsAreTheRecipientsNameAndTheTranslatedChannelsWithTheirStatus() throws Exception {
+        // An applicant's row (N-03 of a rejected signup): no name, no member; its address is the only recipient data.
+        var applicant = NotificationFeedIT.notice("log-n03", CLUB, null, "N-03", NotificationAudience.APPLICANT, now.minusSeconds(120),
+                null, new Notification.Delivery(NotificationChannel.EMAIL, "applicant@example.test", DeliveryStatus.SENT, 1, null, "SG-1", null, now.minusSeconds(120), null, null));
+        mongo.insert(new Notification(applicant.id(), CLUB, "N-03", applicant.category(), applicant.templateId(), applicant.templateVersion(), applicant.eventId(),
+                applicant.eventType(), applicant.dedupKey(), NotificationAudience.APPLICANT, new Notification.Recipient(null, null, null, "applicant@example.test", ""),
+                "ca", applicant.subject(), applicant.icon(), applicant.color(), applicant.title(), applicant.body(), null, null, applicant.deliveries(), null, now.minusSeconds(120),
+                null, null, null, null, null, null, null, null));
+        var xlsx = mvc.perform(as(get("/api/v1/notifications/export").param("filter", "code:in:N-08a,N-03,N-04").param("columns", "createdAt,code,recipient,channels")
+                .param("format", "xlsx"), "ADMIN", CLUB)).andReturn().getResponse();
+        assertThat(xlsx.getStatus()).as(xlsx.getContentAsString()).isEqualTo(200);
+        var rows = new ArrayList<List<String>>();
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(xlsx.getContentAsByteArray()))) {
+            workbook.getSheetAt(0).forEach(row -> { var cells = new ArrayList<String>(); row.forEach(cell -> cells.add(cell.toString())); rows.add(cells.subList(1, cells.size())); });
+        }
+        // The row written before E7-T02 does not tell its recipient's name: its cell is empty, never the account id it stores.
+        assertThat(rows).containsExactly(List.of("Avís", "Destinatari", "Canals"), List.of("N-08a", "Laura Serra", "App (Lliurat); SMS (Error)"),
+                List.of("N-03", "applicant@example.test", "Correu (Enviat)"), List.of("N-04", "Laura Serra", "App (Lliurat)"), List.of("N-08a", "", "App (Enviat)"));
+        var pdf = mvc.perform(as(get("/api/v1/notifications/export").param("filter", "code:in:N-08a,N-03,N-04").param("columns", "createdAt,code,recipient,channels")
+                .param("format", "pdf"), "ADMIN", CLUB)).andReturn().getResponse();
+        assertThat(pdf.getStatus()).isEqualTo(200);
+        try (var document = org.apache.pdfbox.Loader.loadPDF(pdf.getContentAsByteArray())) {
+            String text = new org.apache.pdfbox.text.PDFTextStripper().getText(document);
+            assertThat(text).contains("Destinatari: Laura Serra", "Canals: App (Lliurat); SMS (Error)", "Destinatari: applicant@example.test", "Canals: Correu (Enviat)",
+                    "Canals: App (Lliurat)").doesNotContain("log-m-laura", "DELIVERED", "APP;");
+        }
+        // The reader's language (es).
+        var spanish = mvc.perform(get("/api/v1/notifications/export").param("filter", "code:eq:N-08a").param("columns", "code,channels").param("format", "xlsx")
+                .header("Host", HOST).with(jwt().jwt(j -> j.subject("log-ADMIN").claim("clubId", CLUB).claim("locale", "es")).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andReturn().getResponse();
+        assertThat(spanish.getStatus()).isEqualTo(200);
+        try (var workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook(new ByteArrayInputStream(spanish.getContentAsByteArray()))) {
+            assertThat(workbook.getSheetAt(0).getRow(1).getCell(1).toString()).isEqualTo("App (Entregado); SMS (Error)");
+        }
+    }
+
     @Test void T_11_28_T_11_29_onlyTheClubsAdminsReadTheClubsLog() throws Exception {
         assertThat(call(as(get("/api/v1/notifications"), "ADMIN", OTHER), 200).path("items").findValuesAsText("id")).containsExactly("log-other");
         call(as(get("/api/v1/notifications/log-n08a"), "ADMIN", OTHER), 404);

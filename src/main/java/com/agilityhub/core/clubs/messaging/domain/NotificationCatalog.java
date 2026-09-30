@@ -57,21 +57,33 @@ public final class NotificationCatalog {
     public static Optional<NotificationSpec> byCode(String code) { return Optional.ofNullable(code == null ? null : BY_CODE.get(code)); }
 
     /**
-     * The `[[var]]` a club template of the code may use (D9 «Variables:», R-11-12, validated on saving): the row's variables,
-     * then — for a code with a `MEMBER` audience — the member variables of R-11-12 (`member_*`, `gender`, `dog_name`), the
-     * derived forms whose base is there (`member_last_names`, `dog_name_article`) and the general `club_name`.
+     * Variables of a code's e-mail copy that its template (the APP copy) never has (E76): N-02's welcome e-mail carries the
+     * S01 link, a credential identity renders itself; the reader of the feed is already signed in.
+     */
+    public static final Map<String, Set<String>> EMAIL_COPY_VARIABLES = Map.of("N-02", Set.of("link"));
+
+    /**
+     * The one list of the `[[var]]` a club template of the code may use (E7-T03 round 2): D9's «Variables:» («només les del
+     * codi», S11 §2), what a save accepts (R-11-12), what the preview renders and what the engine delivers. The row's
+     * variables (without those of its e-mail copy only, {@link #EMAIL_COPY_VARIABLES}), the derived forms whose base is there
+     * (`member_last_names`, `dog_name_article`) and the general `club_name`. The member variables of R-11-12 (`member_*`,
+     * `gender`, `dog_name`) belong to `CUSTOM` templates (N-24's row); a catalog code has one only when its row does.
      */
     public static List<String> templateVariables(NotificationSpec spec) {
         var keys = new java.util.LinkedHashSet<String>(spec.variables());
-        if (spec.audiences().contains(MEMBER)) {
-            for (String key : List.of("member_first_name", "member_last_names", "member_name", "gender", "dog_name")) { keys.add(key); }
-        }
+        keys.removeAll(EMAIL_COPY_VARIABLES.getOrDefault(spec.code(), Set.of()));
         DERIVED_VARIABLES.forEach((derived, base) -> { if (keys.contains(base)) { keys.add(derived); } });
         keys.addAll(GENERAL_VARIABLES);
         return List.copyOf(keys);
     }
-    /** R-11-12 `CUSTOM` templates: the member variables only. */
-    public static List<String> customTemplateVariables() { return CUSTOM_VARIABLES; }
+    /** The variables every language of the code's template must contain: the row's required ones but its e-mail copy's (E76). */
+    public static Set<String> templateRequiredVariables(NotificationSpec spec) {
+        var required = new java.util.LinkedHashSet<String>(spec.requiredVariables());
+        required.removeAll(EMAIL_COPY_VARIABLES.getOrDefault(spec.code(), Set.of()));
+        return Collections.unmodifiableSet(required);
+    }
+    /** R-11-12 `CUSTOM` templates: the member variables, the list of N-24, the code that carries them (§7, R-11-13). */
+    public static List<String> customTemplateVariables() { return templateVariables(BY_CODE.get("N-24")); }
     /** R-11-12 caps of a `CUSTOM` template (sent to members only, S11 §13-6): the category's `MEMBER` caps; none for staff. */
     public static Set<NotificationChannel> customCaps(NotificationCategory category, NotificationAudience audience) {
         return audience == MEMBER ? caps(category, audience) : Set.of();

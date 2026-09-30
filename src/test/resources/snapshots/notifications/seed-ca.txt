@@ -12,9 +12,9 @@ body: Laura Serra Puig ha enviat una sol·licitud per a Duna (C), Rock (D) (Quot
 
 ## N-02 MEMBER
 title: Benvinguda a Club Agility Exemple, Laura!
-body: Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: https://app.example.test/entra/exemple.
-email.text: Benvinguda a Club Agility Exemple, Laura!⏎⏎Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: https://app.example.test/entra/exemple.⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
-email.html.sha256: b5266d4993a57529
+body: Ja tens accés a l'app del club.
+email.text: Benvinguda a Club Agility Exemple, Laura!⏎⏎Ja tens accés a l'app del club.⏎⏎Club Agility Exemple⏎Respon a aquest correu per contactar amb el club.
+email.html.sha256: 6ea5de4a05a1463f
 
 ## N-03 APPLICANT
 title: Sol·licitud rebutjada

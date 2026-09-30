@@ -129,7 +129,7 @@ class NotificationSeedSnapshotTest {
         int codes = 0, staff = 0;
         for (var spec : seeded()) {
             codes++;
-            var known = new java.util.HashSet<>(spec.variables()); known.addAll(NotificationCatalog.CUSTOM_VARIABLES); known.add("dog_name_article"); known.add("club_name");
+            var known = NotificationEngine.known(spec); // the engine's list, the one of D9, the save and the preview (E7-T03 round 2)
             for (var audience : spec.audiences()) {
                 boolean isStaff = audience == NotificationAudience.INSTRUCTORS || audience == NotificationAudience.ADMINS;
                 var raw = fictional(locale); raw.put("audience", isStaff ? "STAFF" : "MEMBER");

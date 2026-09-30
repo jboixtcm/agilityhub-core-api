@@ -68,6 +68,9 @@
   "AnnouncementResult": {"batchId": "batch-a", "recipientCount": 37},
   "AnnouncementResult#dryRun": {"batchId": null, "recipientCount": 37},
   "MissingVariablesDetails": {"missingVariables": ["admin_text"]},
+  "ChannelNotAllowedDetails": {"audience": "MEMBER", "channel": "SMS", "cells": [{"audience": "MEMBER", "channel": "SMS"}]},
+  "TemplateFieldDetails#unknown": {"field": "body.es", "variables": ["apodo"]},
+  "TemplateFieldDetails#tooLong": {"field": "smsBody.es", "max": 160},
   "NotificationPage": {
     "items": [
       {"id": "notification-a", "createdAt": "2026-08-10T15:58:00Z", "code": "N-08a", "category": "CLUB_CHANGES", "audience": "MEMBER",
@@ -98,7 +101,7 @@
   "ReadResult": {"unreadCount": 1},
   "NotificationPreferencesRequest": {"emailByCategory": {"OPERATIONAL": null, "PERSONAL": null, "CLUB_CHANGES": null, "CLUB_NEWS": false}, "reminderMinutesBefore": 120, "pushClubNews": null},
   "NotificationPreferencesRequest#never": {"emailByCategory": null, "reminderMinutesBefore": null, "pushClubNews": false},
-  "PushSubscriptionRequest": {"endpoint": "https://push.example.test/send/abc123", "keys": {"p256dh": "BExamplePublicKey", "auth": "ExampleAuth"}, "deviceLabel": "iPhone · Safari"},
+  "PushSubscriptionRequest": {"endpoint": "https://push.example.test/send/abc123", "keys": {"p256dh": "BHOSs0YsSaLk6TQZCHSDATUjNlrmU0Lvhn21nxNNQtPGmW1zAZmQRcHOFqToHw0VllmplTaYYZl3k2c-1Jjfrp8", "auth": "IiIiIiIiIiIiIiIiIiIiIg"}, "deviceLabel": "iPhone · Safari"},
   "PushSubscriptionCreated": {"id": "subscription-a"},
   "EmailUnsubscribeRequest": {"token": "eyJ-example-token"},
   "EmailUnsubscribeResult": {"category": "CLUB_NEWS"}

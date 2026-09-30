@@ -101,7 +101,18 @@ public final class MessagingContracts {
             @NotNull @Schema(description = "true: count only («S'enviarà a {n} abonats»), 200 and nothing written") Boolean dryRun) { }
     public record AnnouncementResult(@Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on dryRun") String batchId, int recipientCount) { }
     /** `details` of `VALIDATION_ERROR` for a missing required variable (S11 §6 `TEMPLATE_MISSING_VARIABLE` is a catalog proposal). */
-    public record MissingVariablesDetails(@Schema(description = "requiredVariables absent from the text (N-02 link, N-08a admin_text)") List<String> missingVariables) { }
+    public record MissingVariablesDetails(@Schema(description = "The template's required variables absent from the text (N-08a admin_text; N-02's link is its "
+            + "welcome e-mail's only, E76)") List<String> missingVariables) { }
+    /** `details` of `422 CHANNEL_NOT_ALLOWED` (E76): the cell D9 marks, and every refused one. */
+    public record ChannelNotAllowedDetails(@Schema(description = "The first refused cell's row") NotificationAudience audience,
+            @Schema(description = "The first refused cell's channel") NotificationChannel channel, @Schema(description = "Every refused cell") List<ChannelCell> cells) { }
+    public record ChannelCell(NotificationAudience audience, NotificationChannel channel) { }
+    /** `details` of `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE`, `SMS_BODY_REQUIRED` and `SMS_BODY_TOO_LONG` (E76): the text D9 marks. */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record TemplateFieldDetails(@Schema(description = "The text: title.<locale>, body.<locale> or smsBody.<locale> (SMS_BODY_REQUIRED: the default "
+            + "language's)", example = "body.ca") String field,
+            @Schema(requiredMode = NOT_REQUIRED, description = "TEMPLATE_UNKNOWN_VARIABLE only: every unknown variable of the save") List<String> variables,
+            @Schema(requiredMode = NOT_REQUIRED, description = "SMS_BODY_TOO_LONG only: the maximum length, 160") Integer max) { }
 
     // ---- The notification log (ADMIN, R-11-10)
     public record NotificationRecipient(String displayName, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String memberId,

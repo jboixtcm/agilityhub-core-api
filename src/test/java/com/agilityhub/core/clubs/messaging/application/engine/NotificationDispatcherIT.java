@@ -15,7 +15,9 @@ import com.agilityhub.core.clubs.messaging.persistence.Notification;
 import com.agilityhub.core.clubs.messaging.persistence.PushSubscription;
 import com.agilityhub.core.platform.application.ClubSmsUsage;
 import com.agilityhub.core.platform.persistence.Club;
+import com.agilityhub.core.clubs.messaging.support.PushKeyFixtures;
 import com.agilityhub.core.shared.application.TenantContext;
+import com.agilityhub.core.shared.domain.DomainEvent;
 import com.agilityhub.core.support.ConcurrencySupport;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,6 +47,7 @@ import static org.assertj.core.api.Assertions.*;
 class NotificationDispatcherIT extends EngineFixtures {
     @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.clubs.messaging.application.SendGridWebhookService webhooks;
     @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.clubs.messaging.application.MigrateNotificationsCommand migrate;
+    @org.springframework.beans.factory.annotation.Autowired com.agilityhub.core.clubs.messaging.application.PushSubscriptionService pushSubscriptions;
     private static final Map<String, Object> NO_CLUB_CHANGES_EMAIL = Map.of("emailByCategory", Map.of("CLUB_CHANGES", false));
 
     private Notification memberNotice(String code, String memberId) {
@@ -363,6 +366,55 @@ class NotificationDispatcherIT extends EngineFixtures {
         dispatch(dispatcher, reminder.apply(7));
         assertThat(delivery(reminder.apply(7), NotificationChannel.PUSH)).satisfies(d -> { assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.lastError()).isEqualTo("Push subscription expired"); });
         assertThat(push.sent()).hasSize(calls);
+    }
+
+    /**
+     * E7-T03 round 2, review #1 (R-11-07, E76): a push queued for Laura's account never reaches Marc, who signs in on the same
+     * browser afterwards. Marc's `POST /push-subscriptions` of the same endpoint gets a row of its own (Laura's stays hers and
+     * ends), so Laura's queued retry still names her row, which the dispatcher no longer sends to; and at every attempt the
+     * dispatcher checks that the row is the recipient's — a row whose owner changed (as round 1's take-over left it) is never
+     * sent to. Before the fix Marc's POST moved Laura's row to him, and her retry was pushed to his browser with her texts.
+     */
+    @Test void R_11_07_aPushQueuedForOneAccountNeverReachesTheNextAccountOnTheSameBrowser() {
+        var startsAt = Instant.parse("2026-10-08T16:50:00Z");
+        java.util.function.IntFunction<Notification> remind = i -> {
+            ports.activeBookings.put("booking-" + i, startsAt);
+            push.answer(PushResult.of(PushResult.Status.RETRYABLE, "Push HTTP 503"));
+            deliver(CLUB, "ReminderDue", Map.of("bookingId", "booking-" + i, "memberId", "member-laura", "dogId", "dog-duna", "startsAt", startsAt.toString()));
+            return reload(stored(CLUB, "N-13").stream().filter(n -> n.dedupKey().equals("N-13:booking-" + i)).findFirst().orElseThrow());
+        };
+        var laura = subscribe(CLUB, "subscription-laura", "account-laura");
+        var first = remind.apply(1);
+        assertThat(delivery(first, NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.QUEUED); assertThat(d.target()).isEqualTo("subscription-laura"); });
+        // Laura signs out on this browser; Marc signs in on it and subscribes the same endpoint.
+        String marc;
+        try (var tenant = TenantContext.open(CLUB)) {
+            try (var user = com.agilityhub.core.shared.application.CurrentUser.open(new com.agilityhub.core.shared.application.CurrentUser("account-laura", "Laura", null,
+                    DomainEvent.Origin.APP))) { pushSubscriptions.unsubscribe("subscription-laura"); }
+            try (var user = com.agilityhub.core.shared.application.CurrentUser.open(new com.agilityhub.core.shared.application.CurrentUser("account-marc", "Marc", null,
+                    DomainEvent.Origin.APP))) { marc = pushSubscriptions.subscribe(laura.endpoint(), PushKeyFixtures.p256dh(), PushKeyFixtures.auth(), null, "UA"); }
+        }
+        assertThat(marc).isNotEqualTo("subscription-laura");
+        assertThat(mongo.findById("subscription-laura", PushSubscription.class)).satisfies(s -> {
+            assertThat(s.accountId()).isEqualTo("account-laura"); assertThat(s.status()).isEqualTo(PushSubscription.Status.EXPIRED); });
+        assertThat(mongo.findById(marc, PushSubscription.class).accountId()).isEqualTo("account-marc");
+        clock.advance(Duration.ofMinutes(1)); int calls = push.sent().size();
+        assertThat(dispatch(dispatcher, first)).isEqualTo(1);
+        assertThat(push.sent()).hasSize(calls);
+        assertThat(delivery(reload(first), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.lastError()).isEqualTo("Push subscription expired"); });
+        // A row whose owner is not the delivery's recipient any more (round 1 moved rows in place) is never sent to either.
+        subscribe(CLUB, "subscription-moved", "account-laura");
+        var second = remind.apply(2);
+        assertThat(delivery(second, NotificationChannel.PUSH).target()).isEqualTo("subscription-moved");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("subscription-moved")), new Update().set("accountId", "account-marc"), PushSubscription.class);
+        clock.advance(Duration.ofMinutes(1)); calls = push.sent().size();
+        assertThat(dispatch(dispatcher, second)).isEqualTo(1);
+        assertThat(push.sent()).hasSize(calls);
+        assertThat(delivery(reload(second), NotificationChannel.PUSH)).satisfies(d -> {
+            assertThat(d.status()).isEqualTo(DeliveryStatus.FAILED); assertThat(d.lastError()).isEqualTo("Push subscription of another account"); });
+        assertThat(push.sent()).noneSatisfy(sent -> assertThat(sent.subscriptionId()).isIn(marc, "subscription-moved"));
     }
 
     /**

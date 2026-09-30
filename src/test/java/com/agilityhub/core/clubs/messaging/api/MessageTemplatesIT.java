@@ -140,7 +140,9 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
         // Variables: the code's own, labelled in the admin's language (D9's chips), the code key as the value.
         var labels = new java.util.LinkedHashMap<String, String>(); n08a.path("variables").forEach(v -> labels.put(v.path("key").asText(), v.path("label").asText()));
         assertThat(labels).containsEntry("admin_text", "text_admin").containsEntry("class_date", "classe_data").containsEntry("club_name", "entitat_nom")
-                .containsEntry("member_first_name", "persona_nom").doesNotContainKey("effective_date");
+                .containsEntry("dog_name", "gos_nom").doesNotContainKey("effective_date");
+        // Round 2 (review #2): only the code's own — the row's, their derived forms and club_name; no member variable N-08a's row lacks.
+        assertThat(labels.keySet()).containsExactly("dog_name", "class_date", "class_time", "class_description", "admin_text", "dog_name_article", "club_name");
         var spanish = ok(as(get("/api/v1/message-templates").param("category", "PERSONAL"), "ADMIN", CLUB, "es"), 200);
         assertThat(item(spanish, "N-28").path("variables").findValuesAsText("label")).contains("persona_fecha_baja", "persona_nombre");
         assertThat(spanish.path("items")).allSatisfy(i -> assertThat(i.path("category").asText()).isEqualTo("PERSONAL"));
@@ -166,7 +168,9 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
         String id = created.path("id").asText();
         assertThat(created.path("kind").asText()).isEqualTo("CUSTOM"); assertThat(created.path("code").isNull()).isTrue();
         assertThat(created.path("version").asLong()).isZero(); assertThat(created.path("seedDefault").isNull()).isTrue();
-        assertThat(created.path("variables").findValuesAsText("key")).containsExactly("member_name", "member_first_name", "member_last_names", "gender", "dog_name", "club_name");
+        // N-24's list, the code that carries the CUSTOM templates (one list for editing and delivery, round 2).
+        assertThat(created.path("variables").findValuesAsText("key")).containsExactly("member_name", "member_first_name", "member_last_names", "gender", "dog_name",
+                "club_name", "dog_name_article");
         assertThat(created.at("/caps/MEMBER")).hasToString("[\"APP\",\"EMAIL\"]"); assertThat(created.at("/caps/ADMINS")).isEmpty();
         assertThat(events("MessageTemplateChanged")).singleElement().satisfies(e -> {
             assertThat(e.get("payload", Document.class).getString("id")).isEqualTo(id);
@@ -205,21 +209,36 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
         // «Canvi de nivell» (N-09) with SMS for the member → 422 CHANNEL_NOT_ALLOWED.
         var n09 = detail(item(list, "N-09").path("id").asText());
         var sms = save(n09); sms.withObject("/matrix").withObject("/MEMBER").put("SMS", true);
-        assertThat(error(as(put("/api/v1/message-templates/" + n09.path("id").asText()).content(sms.toString()), "ADMIN"), 422, ErrorCode.CHANNEL_NOT_ALLOWED)
-                .at("/details/cells/0/channel").asText()).isEqualTo("SMS");
-        // N-02 without [[link]] → 400 VALIDATION_ERROR with details.missingVariables.
-        var n02 = detail(item(list, "N-02").path("id").asText());
-        var noLink = save(n02); noLink.withObject("/body").put("ca", "Ja tens accés a l'app del club.");
-        assertThat(error(as(put("/api/v1/message-templates/" + n02.path("id").asText()).content(noLink.toString()), "ADMIN"), 400, ErrorCode.VALIDATION_ERROR)
-                .at("/details/missingVariables")).hasToString("[\"link\"]");
-        // Unbalanced braces → 400 TEMPLATE_SYNTAX_ERROR; an unknown variable → 400 TEMPLATE_UNKNOWN_VARIABLE.
-        var broken = save(n02); broken.withObject("/title").put("ca", "{gender, select, female {Benvinguda} other {Benvingut}");
-        error(as(put("/api/v1/message-templates/" + n02.path("id").asText()).content(broken.toString()), "ADMIN"), 400, ErrorCode.TEMPLATE_SYNTAX_ERROR);
-        var unknown = save(n02); unknown.withObject("/body").put("es", "Hola [[apodo]]: [[link]]");
-        assertThat(error(as(put("/api/v1/message-templates/" + n02.path("id").asText()).content(unknown.toString()), "ADMIN"), 400, ErrorCode.TEMPLATE_UNKNOWN_VARIABLE)
-                .at("/details/variables")).hasToString("[\"apodo\"]");
-        // A mandatory template cannot be disabled (N-08a) → 422 TEMPLATE_MANDATORY; a non-mandatory one can (N-04).
+        var refused = error(as(put("/api/v1/message-templates/" + n09.path("id").asText()).content(sms.toString()), "ADMIN"), 422, ErrorCode.CHANNEL_NOT_ALLOWED);
+        // Round 2 (item 9, E76): D9 marks the cell of `details {audience, channel}`; `cells` lists every refused one.
+        assertThat(refused.at("/details/audience").asText()).isEqualTo("MEMBER"); assertThat(refused.at("/details/channel").asText()).isEqualTo("SMS");
+        assertThat(refused.at("/details/cells")).isEqualTo(mapper.readTree("[{\"audience\":\"MEMBER\",\"channel\":\"SMS\"}]"));
+        // N-08a without [[admin_text]] → 400 VALIDATION_ERROR with details.missingVariables.
         var n08a = detail(item(list, "N-08a").path("id").asText());
+        var noText = save(n08a); noText.withObject("/body").put("ca", "[[class_date]] · [[class_time]]: classe anul·lada.");
+        assertThat(error(as(put("/api/v1/message-templates/" + n08a.path("id").asText()).content(noText.toString()), "ADMIN"), 400, ErrorCode.VALIDATION_ERROR)
+                .at("/details/missingVariables")).hasToString("[\"admin_text\"]");
+        // E76: N-02's template is its APP copy — `link` is its welcome e-mail's, so [[link]] is an unknown variable there.
+        var n02 = detail(item(list, "N-02").path("id").asText());
+        assertThat(n02.path("variables").findValuesAsText("key")).containsExactly("member_first_name", "gender", "club_name");
+        var withLink = save(n02); withLink.withObject("/body").put("ca", "Ja tens accés a l'app del club. Entra-hi amb aquest enllaç: [[link]].");
+        var linked = error(as(put("/api/v1/message-templates/" + n02.path("id").asText()).content(withLink.toString()), "ADMIN"), 400, ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
+        assertThat(linked.at("/details/variables")).hasToString("[\"link\"]"); assertThat(linked.at("/details/field").asText()).isEqualTo("body.ca");
+        // Unbalanced braces → 400 TEMPLATE_SYNTAX_ERROR; an unknown variable → 400 TEMPLATE_UNKNOWN_VARIABLE; each with details.field.
+        var broken = save(n02); broken.withObject("/title").put("ca", "{gender, select, female {Benvinguda} other {Benvingut}");
+        assertThat(error(as(put("/api/v1/message-templates/" + n02.path("id").asText()).content(broken.toString()), "ADMIN"), 400, ErrorCode.TEMPLATE_SYNTAX_ERROR)
+                .at("/details/field").asText()).isEqualTo("title.ca");
+        var unknown = save(n02); unknown.withObject("/body").put("es", "Hola [[apodo]]");
+        var apodo = error(as(put("/api/v1/message-templates/" + n02.path("id").asText()).content(unknown.toString()), "ADMIN"), 400, ErrorCode.TEMPLATE_UNKNOWN_VARIABLE);
+        assertThat(apodo.at("/details/variables")).hasToString("[\"apodo\"]"); assertThat(apodo.at("/details/field").asText()).isEqualTo("body.es");
+        // The SMS codes name the SMS text: the default language's when it is missing, the long one's when it is too long.
+        var noSms = save(n08a); noSms.putNull("smsBody");
+        assertThat(error(as(put("/api/v1/message-templates/" + n08a.path("id").asText()).content(noSms.toString()), "ADMIN"), 400, ErrorCode.SMS_BODY_REQUIRED)
+                .at("/details/field").asText()).isEqualTo("smsBody.ca");
+        var longSms = save(n08a); longSms.withObject("/smsBody").put("es", "[[club_name]]: " + "a".repeat(160));
+        var tooLong = error(as(put("/api/v1/message-templates/" + n08a.path("id").asText()).content(longSms.toString()), "ADMIN"), 400, ErrorCode.SMS_BODY_TOO_LONG);
+        assertThat(tooLong.at("/details/field").asText()).isEqualTo("smsBody.es"); assertThat(tooLong.at("/details/max").asInt()).isEqualTo(160);
+        // A mandatory template cannot be disabled (N-08a) → 422 TEMPLATE_MANDATORY; a non-mandatory one can (N-04).
         var off = save(n08a); off.put("enabled", false);
         error(as(put("/api/v1/message-templates/" + n08a.path("id").asText()).content(off.toString()), "ADMIN"), 422, ErrorCode.TEMPLATE_MANDATORY);
         var n04 = detail(item(list, "N-04").path("id").asText());
@@ -313,8 +332,9 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
         // N-04 has no ADMINS row: an active cell there is outside its caps; a catalog template keeps the code's category.
         var n04 = detail(item(list, "N-04").path("id").asText());
         var admins = save(n04); admins.withObject("/matrix").withObject("/ADMINS").put("APP", true);
-        assertThat(error(as(put("/api/v1/message-templates/" + n04.path("id").asText()).content(admins.toString()), "ADMIN"), 422, ErrorCode.CHANNEL_NOT_ALLOWED)
-                .at("/details/cells/0/audience").asText()).isEqualTo("ADMINS");
+        var row = error(as(put("/api/v1/message-templates/" + n04.path("id").asText()).content(admins.toString()), "ADMIN"), 422, ErrorCode.CHANNEL_NOT_ALLOWED);
+        assertThat(row.at("/details/cells/0/audience").asText()).isEqualTo("ADMINS");
+        assertThat(row.at("/details/audience").asText()).isEqualTo("ADMINS"); assertThat(row.at("/details/channel").asText()).isEqualTo("APP");
         var category = save(n04); category.put("category", "CLUB_NEWS");
         error(as(put("/api/v1/message-templates/" + n04.path("id").asText()).content(category.toString()), "ADMIN"), 400, ErrorCode.VALIDATION_ERROR);
         // The preview of a template without SMS has no SMS; a CLUB_NEWS one carries the unsubscribe link in its e-mail.
@@ -343,6 +363,39 @@ class MessageTemplatesIT extends AbstractIntegrationTest {
             assertThat(n.deliveries()).extracting(d -> d.channel() + ":" + d.status()).containsExactly("APP:DELIVERED", "EMAIL:SKIPPED_NO_CONTACT");
         });
         assertThat(((FakeEmailSender) email).messages()).isEmpty();
+    }
+
+    /**
+     * E7-T03 round 2, review #3 (R-11-01, steps 1 and 3): a template seeded before this task — E7-T02's first use stored every
+     * product language — stays editable in a `ca/es` club. D9's GET shows the club's languages only, the GET → edit → PUT round
+     * trip answers 200 and stores them, and the club's texts are kept as they were. Before the fix the GET answered the `en`
+     * texts too and the PUT that sent them back was `400 VALIDATION_ERROR` (`title.en`).
+     */
+    @Test void E7_T03_aTemplateSeededInEveryProductLanguageIsEditedInTheClubsLanguages() throws Exception {
+        locales(CLUB, List.of("ca", "es"));
+        MessageTemplate legacy;
+        try (var tenant = TenantContext.open(CLUB)) {
+            legacy = mongo.insert(provider.seed(NotificationCatalog.byCode("N-09").orElseThrow(), "ca")); // every product language, as E7-T02 stored it
+        }
+        assertThat(legacy.title().values().keySet()).containsExactly("ca", "es", "en");
+        var detail = detail(legacy.id());
+        for (String texts : List.of("/titleI18n", "/bodyI18n", "/seedDefault/titleI18n", "/seedDefault/bodyI18n")) {
+            assertThat(detail.at(texts).fieldNames()).toIterable().as(texts).containsExactly("ca", "es");
+        }
+        assertThat(item(list(), "N-09").path("id").asText()).isEqualTo(legacy.id());
+        var edit = save(detail); edit.withObject("/body").put("ca", "Per la vostra evolució, [[dog_name_article]] ja és a nivell [[level_name]].");
+        var saved = ok(as(put("/api/v1/message-templates/" + legacy.id()).content(edit.toString()), "ADMIN"), 200);
+        assertThat(saved.path("bodyI18n").fieldNames()).toIterable().containsExactly("ca", "es");
+        assertThat(saved.at("/bodyI18n/ca").asText()).startsWith("Per la vostra evolució"); assertThat(saved.at("/bodyI18n/es").asText()).isEqualTo(legacy.body().values().get("es"));
+        assertThat(saved.path("customized").asBoolean()).isTrue(); assertThat(saved.path("version").asLong()).isEqualTo(1);
+        var stored = mongo.findById(legacy.id(), MessageTemplate.class);
+        assertThat(stored.title().values()).isEqualTo(Map.of("ca", legacy.title().values().get("ca"), "es", legacy.title().values().get("es")));
+        assertThat(stored.body().values().keySet()).containsExactly("ca", "es");
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("code").is("N-09")), MessageTemplate.class)).isEqualTo(1);
+    }
+    private void locales(String clubId, List<String> locales) {
+        var tree = (ObjectNode) mapper.valueToTree(clubs.findById(clubId).orElseThrow()); tree.set("locales", mapper.valueToTree(locales));
+        clubs.save(mapper.convertValue(tree, Club.class)); configs.invalidate(clubId); hosts.invalidate();
     }
 
     @Test void T_11_21_withSmsOffTheSmsColumnIsNotAvailableAndItsCellsAreKept() throws Exception {

@@ -5,6 +5,6 @@
   "PushUnsubscribed": {"accountId": "account-a", "endpoint": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"},
   "EmailBounced": {"memberId": "member-a", "email": "laura@example.test", "type": "bounce"},
   "SmsCapReached": {"month": "2026-09", "cap": 1000},
-  "NotificationPreferencesChanged": {"memberId": "member-a", "diff": {"emailByCategory.CLUB_NEWS": {"before": true, "after": false}}, "byAccountId": "account-b"},
+  "NotificationPreferencesChanged": {"memberId": "member-a", "diff": {"emailByCategory": {"before": {"OPERATIONAL": false, "PERSONAL": true, "CLUB_CHANGES": true, "CLUB_NEWS": true}, "after": {"OPERATIONAL": false, "PERSONAL": true, "CLUB_CHANGES": true, "CLUB_NEWS": false}}}, "byAccountId": "account-b"},
   "EmailUnsubscribed": {"memberId": "member-a"}
 }

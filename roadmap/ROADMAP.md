@@ -96,6 +96,8 @@ Added 30-09, evening (verifications of E5-T28's round 2, E5-T29 and the web's E6
 
 Added 30-09, night (verifications of E5-T29's round 2, E7-T03 and the web's E7-W01, ruling E76): E7-T03's round 2 also publishes `GET /members/{id}/notification-preferences` (D10's block) and the details of the messaging errors (D9).
 
+Added 30-09, night (A35 closed by Jordi, ruling E78): a **third loop** (Codex) works in a second clone of this repo (`agilityhub-core-api-c`) and takes only **thread D**; the main loop takes threads A, B and C. Each clone lists its threads in an untracked `.roadmap-threads` file that `check.py --next` reads. Thread D starts with **E11-T04** (deploy assets proven locally, `ready`); E11-T03, E9 and E10 follow as thread D.
+
 ### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
@@ -134,14 +136,14 @@ Added 30-09, night (verifications of E5-T29's round 2, E7-T03 and the web's E7-W
 ### E9–E12 per-stage task lists (organizer 30-09; from the global review of 26-09, `backlog/revisio-26-09/REVISIO_GLOBAL_26-09.md` §5; the task files are written and installed before E8 closes)
 Pattern per stage: contract → domain → endpoints and integrations → processes, seed, smoke and gate. Sizes: S ≤ ½ session · M = 1 · L = 1–2 · XL = 2–3. Web tasks are listed in the web repo's `ROADMAP.md`.
 
-**E9 · Courses and build sessions (S16).** Organizer prep: done 30-09 (ruling E77: one placement engine, `course-core` on the client, whose `critical` warnings need an ADMIN's `force`; `courses.defaultWarningThresholdM` and `courses.buildSessionMaxHours`; the catalog rows E9-T01 adds with the code; the §14.2 model; three new routes). A6 is still open: is there real data in the planner's Supabase to import?
+**E9 · Courses and build sessions (S16) — thread D.** Organizer prep: done 30-09 (ruling E77: one placement engine, `course-core` on the client, whose `critical` warnings need an ADMIN's `force`; `courses.defaultWarningThresholdM` and `courses.buildSessionMaxHours`; the catalog rows E9-T01 adds with the code; the §14.2 model; three new routes). A6 is closed: the planner's Supabase holds test data only, so nothing is imported (Jordi 30-09).
 - **E9-T01** · Contract S16: courses, ring geometry, marker sheets, setups, calibrations, placements, ring setups, build sessions (with export and join), obstacle inventories, `/platform/courses`, `/challenges` as 501; documents, indexes and the JSON-Schema validation of `normalizedJson` · deps: web E9-W01, E2-T03, E4-T03, E5-T04, E8-T01 · L
 - **E9-T02** · Courses library and ring geometry (R-16-01…04, 12, 14, 16, 17) · E9-T01 · L
 - **E9-T03** · Placements, ring setups and their integrations: S08's `RingSetupPort`, S06 `placementId`, S07 placements, N-31, P5f (R-16-05…09, 13, 15) · E9-T02, E8-T06 · L
 - **E9-T04** · Live build sessions: SSE, join code, `BuildSessionExportV1` (R-16-11) · E9-T03 · M · cut #2
-- **E9-T05** · E9 integration: demo seed, `bin/e9-smoke`, gate; the Supabase import only if A6 says there is real data · E9-T03 (E9-T04) · M
+- **E9-T05** · E9 integration: demo seed, `bin/e9-smoke`, gate; no Supabase import (A6: test data only) · E9-T03 (E9-T04) · M
 
-**E10 · Club console (S17).** The first cut if time runs short; `club:apply`, the domain check with `/internal/domains/allowed`, support access and INC-49 are kept.
+**E10 · Club console (S17) — thread D.** The first cut if time runs short; `club:apply`, the domain check with `/internal/domains/allowed`, support access and INC-49 are kept.
 - **E10-T01** · Contract S17 WP-B · E1-T13, E2-T12, E8-T04 · M
 - **E10-T02** · Platform API (R-17-02…13) · E10-T01 · XL · cut #1, except domains, support access and the public key
 - **E10-T03** · E10 integration: `bin/e10-smoke` «a second club in under an hour», P9's domain re-check, DEPLOY «alta d'un domini» · E10-T02 · M
@@ -149,8 +151,8 @@ Pattern per stage: contract → domain → endpoints and integrations → proces
 **E11 · Hardening and QA (S14 WP-D, PLA §11).** E11-T01…T04 are never cut.
 - **E11-T01** · RGPD, S14 WP-D: data package and N-50, erasure and N-52, `ErasureExecutor`, the monthly `RetentionSweep` (INC-10 included), consents, platform views (R-14-14…17) · E8-T05, E8-T06, E7-T02 · XL
 - **E11-T02** · The correction pass: every open api incidence of `INCIDENCIES_OBERTES.md`, INC-36 first · E8-T06 · L
-- **E11-T03** · Security review and hardening: rate limits, headers, CORS per club, the image's secret scan, dependency audit, PITest, T-15-30, a compose smoke in CI, structured logs, Mongo timeouts · E8-T06 · L
-- **E11-T04** · Deploy assets provable locally (E0-T13 part 1): `deploy/compose.prod.yaml`, backups and a verified restore, `DEPLOY.md` as a runbook · no dependency · L
+- **E11-T03** (thread D) · Security review and hardening: rate limits, headers, CORS per club, the image's secret scan, dependency audit, PITest, T-15-30, a compose smoke in CI, structured logs, Mongo timeouts · E8-T06 · L
+- **E11-T04** · Deploy assets provable locally (E0-T13 part 1): `deploy/compose.prod.yaml`, backups and a verified restore, `DEPLOY.md` as a runbook · no dependency · L · **thread D, installed 30-09 (`ready`)**
 - **E11-T05** · Migration rehearsal (S18 WP-D) on the anonymised derivative of Josep's fresh export · E8-T06 and the export · M
 - **E11-T06** · The E11 gate run: clean verify, traceability in CI, every smoke, seeds twice, snapshot drift · E11-T01…T05 · M
 

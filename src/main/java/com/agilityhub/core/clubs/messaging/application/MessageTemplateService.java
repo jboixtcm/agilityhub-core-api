@@ -191,7 +191,7 @@ public class MessageTemplateService {
         var spec = spec(code);
         var caps = new EnumMap<NotificationAudience, Set<NotificationChannel>>(NotificationAudience.class);
         for (var audience : spec.audiences()) { if (audience.templated()) { caps.put(audience, spec.caps(audience)); } }
-        return new TemplateValidator.Rules(NotificationCatalog.templateVariables(spec), seedArguments(code), spec.requiredVariables(), caps,
+        return new TemplateValidator.Rules(NotificationCatalog.templateVariables(spec), seedArguments(code), NotificationCatalog.templateRequiredVariables(spec), caps,
                 MessageTemplateSeed.smsCapable(spec), spec.mandatory());
     }
     /** The ICU arguments of the code's seed in every language (its own selectors: `has_upfront`, `active`, `change`…). */
@@ -228,7 +228,7 @@ public class MessageTemplateService {
                 row.forEach((channel, on) -> { if (Boolean.TRUE.equals(on)) { outside.add(Map.of("audience", audience.name(), "channel", channel.name())); } });
             }
         });
-        if (!outside.isEmpty()) { throw new ApiException(ErrorCode.CHANNEL_NOT_ALLOWED, Map.of("cells", outside)); }
+        if (!outside.isEmpty()) { throw TemplateValidator.channelNotAllowed(outside); }
         for (var audience : rows) {
             var cells = new EnumMap<NotificationChannel, Boolean>(NotificationChannel.class);
             var row = requested == null ? null : requested.get(audience);
@@ -246,7 +246,8 @@ public class MessageTemplateService {
 
     // ---- views
 
-    private View view(MessageTemplate template, ClubConfig config, boolean detail) {
+    private View view(MessageTemplate stored, ClubConfig config, boolean detail) {
+        var template = normalized(stored, config);
         var caps = new EnumMap<NotificationAudience, Set<NotificationChannel>>(NotificationAudience.class);
         rules(template.kind(), template.code(), template.category()).caps().forEach((audience, channels) -> {
             var visible = EnumSet.noneOf(NotificationChannel.class); visible.addAll(channels);
@@ -263,6 +264,27 @@ public class MessageTemplateService {
     }
     private MessageTemplate seed(String code, ClubConfig config) {
         return provider.seed(spec(code), config.club().locales(), config.club().defaultLocale());
+    }
+    /**
+     * The template as D9 shows it (E7-T03 round 2): its texts in the club's languages only. A template stored before clubs kept
+     * only their own languages (E7-T02's first use stored every product language) shows the club's ones, edited or not, and
+     * leaves the others out, so D9's GET → edit → PUT sends only the club's languages and saves them; nothing the club can edit
+     * is lost. A text with none of the club's languages is shown as stored. Nothing is written here: the next save stores it.
+     */
+    static MessageTemplate normalized(MessageTemplate template, ClubConfig config) {
+        var title = inClubLocales(template.title(), config); var body = inClubLocales(template.body(), config);
+        var sms = inClubLocales(template.smsBody(), config);
+        if (title == template.title() && body == template.body() && sms == template.smsBody()) { return template; }
+        return new MessageTemplate(template.id(), template.clubId(), template.code(), template.kind(), template.category(), title, body, sms, template.icon(),
+                template.color(), template.matrix(), template.enabled(), template.mandatory(), template.customized(), template.status(), template.version(),
+                template.createdAt(), template.createdBy(), template.updatedAt(), template.updatedBy());
+    }
+    private static LocalizedText inClubLocales(LocalizedText text, ClubConfig config) {
+        if (text == null) { return null; }
+        var kept = new LinkedHashMap<String, String>();
+        for (String locale : config.club().locales()) { if (text.values().containsKey(locale)) { kept.put(locale, text.values().get(locale)); } }
+        if (kept.isEmpty() || kept.size() == text.values().size()) { return text; }
+        return new LocalizedText(kept, kept.containsKey(config.club().defaultLocale()) ? config.club().defaultLocale() : kept.keySet().iterator().next());
     }
     static boolean differs(MessageTemplate seed, LocalizedText title, LocalizedText body, LocalizedText sms) {
         return !values(seed.title()).equals(values(title)) || !values(seed.body()).equals(values(body)) || !values(seed.smsBody()).equals(values(sms));

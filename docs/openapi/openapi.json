@@ -2921,6 +2921,18 @@
         "required" : [ "ADMINS", "INSTRUCTORS", "MEMBER" ],
         "type" : "object"
       },
+      "ChannelCell" : {
+        "properties" : {
+          "audience" : {
+            "$ref" : "#/components/schemas/NotificationAudience"
+          },
+          "channel" : {
+            "$ref" : "#/components/schemas/NotificationChannel"
+          }
+        },
+        "required" : [ "audience", "channel" ],
+        "type" : "object"
+      },
       "ChannelMatrix" : {
         "description" : "«Canals per públic — aquesta plantilla» (D9): every row is present; a cell outside `caps` is always false and inert",
         "properties" : {
@@ -2935,6 +2947,27 @@
           }
         },
         "required" : [ "ADMINS", "INSTRUCTORS", "MEMBER" ],
+        "type" : "object"
+      },
+      "ChannelNotAllowedDetails" : {
+        "properties" : {
+          "audience" : {
+            "$ref" : "#/components/schemas/NotificationAudience",
+            "description" : "The first refused cell's row"
+          },
+          "cells" : {
+            "description" : "Every refused cell",
+            "items" : {
+              "$ref" : "#/components/schemas/ChannelCell"
+            },
+            "type" : "array"
+          },
+          "channel" : {
+            "$ref" : "#/components/schemas/NotificationChannel",
+            "description" : "The first refused cell's channel"
+          }
+        },
+        "required" : [ "audience", "cells", "channel" ],
         "type" : "object"
       },
       "ChannelState" : {
@@ -9718,7 +9751,7 @@
       "MissingVariablesDetails" : {
         "properties" : {
           "missingVariables" : {
-            "description" : "requiredVariables absent from the text (N-02 link, N-08a admin_text)",
+            "description" : "The template's required variables absent from the text (N-08a admin_text; N-02's link is its welcome e-mail's only, E76)",
             "items" : {
               "type" : "string"
             },
@@ -15137,6 +15170,29 @@
           }
         },
         "required" : [ "body", "title" ],
+        "type" : "object"
+      },
+      "TemplateFieldDetails" : {
+        "properties" : {
+          "field" : {
+            "description" : "The text: title.<locale>, body.<locale> or smsBody.<locale> (SMS_BODY_REQUIRED: the default language's)",
+            "example" : "body.ca",
+            "type" : "string"
+          },
+          "max" : {
+            "description" : "SMS_BODY_TOO_LONG only: the maximum length, 160",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "variables" : {
+            "description" : "TEMPLATE_UNKNOWN_VARIABLE only: every unknown variable of the save",
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "field" ],
         "type" : "object"
       },
       "TemplateIcon" : {
@@ -46132,6 +46188,151 @@
       }
     },
     "/api/v1/members/{id}/notification-preferences" : {
+      "get" : {
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The «Avisos» block of D10 (organizer 30-09, E76): the member's NotificationPreference with exactly the shape of GET /me/notification-preferences for that member (the product defaults when the block is absent, the reminder options, the member's account locale, the club's locales and SMS/PUSH modules). Another club's member → 404. Tenant comes from the JWT.",
+        "operationId" : "memberNotificationPreferences",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotificationPreferences"
+                }
+              }
+            },
+            "description" : "NotificationPreferences"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Forbidden"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "NOT_FOUND"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MEMBER_ERASED"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "memberNotificationPreferences",
+        "tags" : [ "clubs.messaging" ]
+      },
       "put" : {
         "description" : "Roles: ADMIN (impersonation → 403). The same block from D10, audited as MEMBER_UPDATED (changes[].path = notificationPreferences.…, the actor's actorAccountId) with NotificationPreferencesChanged. Another club's member → 404. Tenant comes from the JWT.",
         "operationId" : "saveMemberNotificationPreferences",
@@ -47384,7 +47585,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [＋ Nova plantilla]: a CUSTOM template of PERSONAL, CLUB_NEWS or CLUB_CHANGES (SYSTEM or OPERATIONAL → VALIDATION_ERROR) with member variables only and no action, sent to members only; texts in the club's languages (the default one required; body ≤ 2000); matrix cells outside the category's MEMBER caps → CHANNEL_NOT_ALLOWED (422); an active SMS cell needs smsBody (≤ 160 GSM-7 rendered with the preview data set). MessageTemplateChanged and CATALOG_CHANGED audit. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [＋ Nova plantilla]: a CUSTOM template of PERSONAL, CLUB_NEWS or CLUB_CHANGES (SYSTEM or OPERATIONAL → VALIDATION_ERROR) with member variables only and no action, sent to members only; texts in the club's languages (the default one required; body ≤ 2000); matrix cells outside the category's MEMBER caps → CHANNEL_NOT_ALLOWED (422, ChannelNotAllowedDetails {audience, channel, cells}); an active SMS cell needs smsBody (≤ 160 GSM-7 rendered with the preview data set). TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE and SMS_BODY_* carry TemplateFieldDetails (details.field, e.g. body.ca). MessageTemplateChanged and CATALOG_CHANGED audit. Tenant comes from the JWT.",
         "operationId" : "createMessageTemplate",
         "requestBody" : {
           "content" : {
@@ -47671,7 +47872,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The editor of D9: the texts per club locale, the seed texts (CATALOG) and lastChange. Another club's, an unknown or an archived template → 404. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The editor of D9: the texts in the club's locales only (a template stored with other languages too shows the club's), the seed texts (CATALOG) and lastChange. Another club's, an unknown or an archived template → 404. Tenant comes from the JWT.",
         "operationId" : "messageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -47816,7 +48017,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "put" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [DESA] (R-11-12): texts, icon, colour, matrix within caps, enabled (not a mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized (the texts differ from the seed). A missing required variable (N-02 link, N-08a admin_text) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails). With SMS off the SMS cells are kept as stored. A stale version → STALE_VERSION. MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; the next notification uses the saved text (no template cache). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [DESA] (R-11-12): texts, icon, colour, matrix within caps, enabled (not a mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized (the texts differ from the seed). Only the code's variables (the list of variables) are accepted. A missing required variable (N-08a admin_text; N-02's link belongs to its welcome e-mail only, E76) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails); CHANNEL_NOT_ALLOWED carries ChannelNotAllowedDetails; TEMPLATE_SYNTAX_ERROR, TEMPLATE_UNKNOWN_VARIABLE and SMS_BODY_* carry TemplateFieldDetails. The texts are the club's languages (a template stored in other languages too is shown and saved in the club's). With SMS off the SMS cells are kept as stored. A stale version → STALE_VERSION. MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; the next notification uses the saved text (no template cache). Tenant comes from the JWT.",
         "operationId" : "updateMessageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -54052,7 +54253,7 @@
     },
     "/api/v1/push-subscriptions" : {
       "post" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Asked in context from 12 (the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (unique per club through its hash), ACTIVE again if it had expired or belonged to another account on this browser; deviceLabel from the User-Agent when absent («iPhone · Safari»); PushSubscribed{accountId, endpoint = its SHA-256} when something changed. An endpoint that is no https URL, or keys that are not base64url of a 65-byte P-256 key and a 16-byte secret → PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey. Requires PUSH. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Asked in context from 12 (the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (its hash; one ACTIVE subscription per endpoint and club), ACTIVE again if it had expired. A subscription never changes owner (E76): when another account's is active on this browser it ends (EXPIRED, PushUnsubscribed for that account) and the caller gets a subscription of its own, a new id. deviceLabel from the User-Agent when absent («iPhone · Safari»); PushSubscribed{accountId, endpoint = its SHA-256} when something changed. An endpoint that is no https URL, or keys that are not base64url of a point on P-256 (65 bytes, uncompressed) and a 16-byte secret → PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey. Requires PUSH. Tenant comes from the JWT.",
         "operationId" : "subscribePush",
         "requestBody" : {
           "content" : {

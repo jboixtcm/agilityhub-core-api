@@ -6,6 +6,8 @@ the second run 0 changes), then as the Cànic's admin:
   2. edit N-08a's body (PUT), POST …/preview in ca and es, POST …/reset — the three responses, truncated;
   3. a D10 preference change (PUT /members/{id}/notification-preferences) and the audit entries it and the template edit wrote
      (MEMBER_UPDATED, CATALOG_CHANGED), ids truncated.
+Round 2 adds: the variables of N-08a and N-02 (one list per code, N-02 without `link`), the details of CHANNEL_NOT_ALLOWED and
+TEMPLATE_UNKNOWN_VARIABLE, the detail's languages (the club's), and D10's read GET /members/{id}/notification-preferences.
 The stack is removed at the end. Run from the repository root: python3 roadmap/evidence/E7-T03/local_stack.py"""
 import importlib.machinery
 import importlib.util
@@ -54,7 +56,22 @@ def main():
             print("codes: " + " ".join(codes))
             smoke_module.require(len(codes) == 51 and len(set(codes)) == 51, "one template per eligible code")
             n08a = next(item for item in listing["items"] if item["code"] == "N-08a")
+            # Round 2 (E76): one variable list per code (N-02 without `link`), the error details D9 reads.
+            n02 = next(item for item in listing["items"] if item["code"] == "N-02")
+            print("round 2 variables: N-08a " + ", ".join(v["key"] for v in n08a["variables"]) + " | N-02 " + ", ".join(v["key"] for v in n02["variables"]))
+            smoke_module.require("link" not in [v["key"] for v in n02["variables"]], "N-02's template has no link (E76)")
+            n09 = next(item for item in listing["items"] if item["code"] == "N-09")
+            n09detail = s.call("GET", "/api/v1/message-templates/" + n09["id"], access=admin)
+            sms = {"title": n09detail["titleI18n"], "body": n09detail["bodyI18n"], "smsBody": None, "icon": n09detail["icon"], "color": n09detail["color"],
+                   "matrix": json.loads(json.dumps(n09detail["matrix"])), "enabled": True, "version": n09detail["version"]}
+            sms["matrix"]["MEMBER"]["SMS"] = True
+            refused = s.call("PUT", "/api/v1/message-templates/" + n09["id"], 422, access=admin, body=sms, error="CHANNEL_NOT_ALLOWED")
+            print("round 2 PUT N-09 with an SMS cell -> 422 CHANNEL_NOT_ALLOWED details " + short(refused["details"]))
+            unknown = dict(sms, matrix=n09detail["matrix"], body=dict(n09detail["bodyI18n"], es="Hola [[member_first_name]]"))
+            refused = s.call("PUT", "/api/v1/message-templates/" + n09["id"], 400, access=admin, body=unknown, error="TEMPLATE_UNKNOWN_VARIABLE")
+            print("round 2 PUT N-09 with [[member_first_name]] -> 400 TEMPLATE_UNKNOWN_VARIABLE details " + short(refused["details"]))
             detail = s.call("GET", "/api/v1/message-templates/" + n08a["id"], access=admin)
+            print("N-08a detail languages: title " + ",".join(detail["titleI18n"]) + " body " + ",".join(detail["bodyI18n"]))
             print("N-08a before: version " + str(detail["version"]) + ", customized " + str(detail["customized"]) + ", body.ca "
                   + short(detail["bodyI18n"]["ca"]))
             body = {"title": detail["titleI18n"], "body": dict(detail["bodyI18n"]), "smsBody": detail["smsBodyI18n"], "icon": detail["icon"],
@@ -76,6 +93,9 @@ def main():
             prefs = s.call("PUT", f"/api/v1/members/{member}/notification-preferences", access=admin,
                            body={"emailByCategory": {"OPERATIONAL": True}, "reminderMinutesBefore": 120})
             print("PUT /members/<id>/notification-preferences -> " + short(prefs, 400))
+            read = s.call("GET", f"/api/v1/members/{member}/notification-preferences", access=admin)
+            print("round 2 GET /members/<id>/notification-preferences (D10) -> " + short(read, 400))
+            smoke_module.require(read == prefs, "D10 reads the block with screen 12's shape (E76)")
             audits = s.mongo('db.audit_entries.find({clubId:' + json.dumps(s.canic) + ',action:{$in:["MEMBER_UPDATED","CATALOG_CHANGED"]},'
                              'entityType:{$in:["Member","MessageTemplate"]}}).sort({at:1}).toArray().map(a=>({action:a.action,entityType:a.entityType,'
                              'entityId:a.entityId,actorName:a.actorName,actorRole:a.actorRole,origin:a.origin,'

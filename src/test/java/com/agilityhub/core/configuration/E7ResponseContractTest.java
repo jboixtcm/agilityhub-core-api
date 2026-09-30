@@ -34,7 +34,7 @@ class E7ResponseContractTest {
         int forms = 0;
         var fields = fixture("e7-messaging-responses").fields();
         while (fields.hasNext()) { var entry = fields.next(); roundTrip(entry.getKey(), entry.getValue(), type(entry.getKey())); forms++; }
-        assertThat(forms).isEqualTo(22);
+        assertThat(forms).isEqualTo(25); // E7-T03 round 2: the details of CHANNEL_NOT_ALLOWED and of the template text errors (E76)
     }
 
     /** The two JSON extracts of S11 §6 are the fixtures, byte for byte in JSON terms, and round-trip through the published forms. */

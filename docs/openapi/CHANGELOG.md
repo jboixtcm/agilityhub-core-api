@@ -2,6 +2,31 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E7-T03 round 2 · D10 reads the preferences, the messaging error details, push ownership (web E7-W01 adopts)
+
+**1 operation added; 4 operations changed (descriptions); 3 schemas added, 1 schema changed (description).** Ruling E76.
+- **`GET /members/{id}/notification-preferences`** (new, ADMIN; impersonation, MEMBER, INSTRUCTOR → 403; another club's or an
+  unknown member → 404): D10's «Avisos» block, answering `NotificationPreferences` exactly as `GET /me/notification-preferences`
+  answers it to that member (the defaults while the member has no block). No module, as the `PUT`.
+- **Error details, published for the generated client**:
+  - `ChannelNotAllowedDetails {audience, channel, cells[]}` (new, with `ChannelCell`): `422 CHANNEL_NOT_ALLOWED` names the
+    first refused cell in `audience`/`channel` and every one in `cells`;
+  - `TemplateFieldDetails {field, variables?, max?}` (new): `TEMPLATE_SYNTAX_ERROR`, `TEMPLATE_UNKNOWN_VARIABLE`,
+    `SMS_BODY_REQUIRED` and `SMS_BODY_TOO_LONG` name the text in `details.field` (`body.ca`, `smsBody.es`…; `SMS_BODY_REQUIRED`
+    names the default language's SMS text); `variables` only on the unknown variable, `max` (160) only on the long SMS;
+  - `MissingVariablesDetails.missingVariables`: description only. N-02's `link` belongs to its welcome e-mail since E76, so
+    the template's required variables are N-08a's `admin_text`.
+- **`PUT /message-templates/{id}`, `POST /message-templates`, `GET /message-templates/{id}`**: descriptions name the details above. A catalog template
+  accepts only its code's variables (`variables` of the list and the detail, the same list the preview and the delivery use);
+  N-02's list no longer has `link`, and no catalog code has a member variable its row lacks. **`GET /message-templates/{id}`**
+  answers the texts in the club's languages only, also for a template stored earlier with other languages too.
+- **`POST /push-subscriptions`**: a subscription never changes owner. When another account's subscription of the same
+  endpoint is active, it ends (`EXPIRED`, `PushUnsubscribed` for that account) and the caller gets a subscription of its own
+  (a new `id`). A key that is not a point on P-256 (`(0,0)`, off the curve) is `422 PUSH_SUBSCRIPTION_INVALID`. No shape change.
+- **`GET /notifications/export`**: the «Destinatari» cell is the recipient's name (an applicant's address when there is no
+  name), never an id; the «Canals» cell is each channel with its delivery status, in the reader's language
+  («App (Lliurat); SMS (Error)»). No shape change.
+
 ## 2026-09-30 · E5-T29 round 2 · which lists search, the register's export columns, a keyed trigger's retry (web E5-W05 adopts)
 
 **0 operations added or removed; 14 operations changed (parameters, `x-columns` or descriptions); 0 schemas changed.**

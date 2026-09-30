@@ -54,6 +54,11 @@ public class NotificationPreferencesService {
             boolean push) { }
 
     public View mine() { return view(me(), configs.get(TenantContext.require())); }
+    /** D10's read (E76): the member's block exactly as {@link #mine()} answers it to that member. */
+    public View member(String memberId) {
+        access.member(memberId);
+        return view(members.find(memberId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND)), configs.get(TenantContext.require()));
+    }
     public View saveMine(Patch patch) { return transactions.write(() -> save(me(), patch)); }
     public View saveMember(String memberId, Patch patch) {
         access.member(memberId);

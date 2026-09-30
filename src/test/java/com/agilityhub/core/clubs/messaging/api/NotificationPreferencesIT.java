@@ -152,6 +152,30 @@ class NotificationPreferencesIT extends AbstractIntegrationTest {
         assertThat(audits()).hasSize(1);
     }
 
+    /**
+     * E7-T03 round 2, item 8 (R-11-04, E76; E7-W01's review #4): D10 reads a member's block with `GET
+     * /members/{id}/notification-preferences`, which answers exactly what `GET /me/notification-preferences` answers to that
+     * member — the defaults, then a saved block — and writes nothing. ADMIN only (impersonation, MEMBER, INSTRUCTOR → 403);
+     * another club's or an unknown member → 404. Before the fix the route did not exist (404 on every call).
+     */
+    @Test void T_11_20_d10ReadsTheMembersBlockWithTheShapeOfScreen12() throws Exception {
+        var defaults = call(as(get("/api/v1/members/" + MEMBER + "/notification-preferences"), ADMIN, "ADMIN", CLUB), 200);
+        assertThat(defaults).isEqualTo(call(as(get("/api/v1/me/notification-preferences"), LAURA, "MEMBER", CLUB), 200));
+        assertThat(defaults.path("locale").asText()).isEqualTo("es"); assertThat(stored()).isNull();
+        call(as(put("/api/v1/me/notification-preferences").content("{\"emailByCategory\": {\"OPERATIONAL\": true}, \"reminderMinutesBefore\": 240, \"pushClubNews\": false}"),
+                LAURA, "MEMBER", CLUB), 200);
+        var saved = call(as(get("/api/v1/members/" + MEMBER + "/notification-preferences"), ADMIN, "ADMIN", CLUB), 200);
+        assertThat(saved).isEqualTo(call(as(get("/api/v1/me/notification-preferences"), LAURA, "MEMBER", CLUB), 200));
+        assertThat(saved).isEqualTo(mapper.readTree("""
+                {"emailByCategory": {"OPERATIONAL": true, "PERSONAL": true, "CLUB_CHANGES": true, "CLUB_NEWS": true}, "smsFixed": true,
+                 "reminderMinutesBefore": 240, "reminderOptionsMinutes": [60, 120, 240, 360, 720, 1440], "pushClubNews": false, "locale": "es",
+                 "availableLocales": ["ca", "es", "en"], "modules": {"sms": true, "push": true}}"""));
+        assertThat(audits()).hasSize(1); assertThat(events()).hasSize(1); // the member's own save; the reads wrote nothing
+        call(as(get("/api/v1/members/" + MEMBER + "/notification-preferences"), ADMIN, "ADMIN", OTHER), 404);
+        call(as(get("/api/v1/members/pref-nobody/notification-preferences"), ADMIN, "ADMIN", CLUB), 404);
+        for (String role : List.of("MEMBER", "INSTRUCTOR")) { call(as(get("/api/v1/members/" + MEMBER + "/notification-preferences"), LAURA, role, CLUB), 403); }
+    }
+
     @Test void T_11_28_theImpersonationTokenSavesTheMembersBlockWithAudit() throws Exception {
         mongo.save(new com.agilityhub.core.identity.persistence.Membership(ADMIN, ADMIN, CLUB, null, Set.of(com.agilityhub.core.identity.domain.Role.ADMIN),
                 com.agilityhub.core.identity.persistence.Membership.Status.ACTIVE, com.agilityhub.core.identity.domain.Role.ADMIN));
@@ -167,5 +191,8 @@ class NotificationPreferencesIT extends AbstractIntegrationTest {
         assertThat(events().getFirst().get("payload", Document.class).getString("byAccountId")).isEqualTo(ADMIN);
         var read = get("/api/v1/me/notification-preferences").header("Host", HOST).with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
         assertThat(call(read, 200).path("reminderMinutesBefore").asInt()).isEqualTo(60);
+        // D10's read is the back office's, never the impersonation token's (E76).
+        var d10 = get("/api/v1/members/" + MEMBER + "/notification-preferences").header("Host", HOST).with(jwt().jwt(issued.token()).authorities(() -> "ROLE_ADMIN"));
+        assertThat(call(d10, 403).path("code").asText()).isIn("IMPERSONATION_DENIED", "FORBIDDEN");
     }
 }

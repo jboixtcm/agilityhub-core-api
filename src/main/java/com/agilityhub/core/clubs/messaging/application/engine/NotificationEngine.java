@@ -342,13 +342,8 @@ public class NotificationEngine {
                 person.accountId() == null ? List.of() : push.getOrDefault(person.accountId(), List.of()), NotificationPreference.of(person.preferences()));
     }
 
-    private static Set<String> known(NotificationSpec spec) {
-        var known = new HashSet<String>(spec.variables());
-        NotificationCatalog.DERIVED_VARIABLES.forEach((derived, base) -> { if (known.contains(base)) { known.add(derived); } });
-        known.addAll(NotificationCatalog.CUSTOM_VARIABLES);
-        known.addAll(NotificationCatalog.GENERAL_VARIABLES);
-        return known;
-    }
+    /** The `[[var]]` the code renders: the one list of D9, the save and the preview ({@link NotificationCatalog#templateVariables}). */
+    static Set<String> known(NotificationSpec spec) { return new HashSet<>(NotificationCatalog.templateVariables(spec)); }
     private static String occurrence(NotificationTrigger trigger, NotificationFacts facts) { return facts.occurrence() == null ? trigger.eventId() : facts.occurrence(); }
 
     private record Stored(List<NotificationFactsPort.StoredNotification> views, List<String> toSend) { }

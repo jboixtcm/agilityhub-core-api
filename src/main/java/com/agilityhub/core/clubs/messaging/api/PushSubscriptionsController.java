@@ -32,11 +32,12 @@ public class PushSubscriptionsController {
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, PUSH_SUBSCRIPTION_INVALID, MODULE_DISABLED, IMPERSONATION_DENIED})
     @Operation(summary = "subscribePush", description = "Roles: MEMBER, INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Asked in context from 12 "
-            + "(the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (unique per club through its "
-            + "hash), ACTIVE again if it had expired or belonged to another account on this browser; deviceLabel from the User-Agent when absent "
-            + "(«iPhone · Safari»); PushSubscribed{accountId, endpoint = its SHA-256} when something changed. An endpoint that is no https URL, or keys "
-            + "that are not base64url of a 65-byte P-256 key and a 16-byte secret → PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is "
-            + "GET /branding.pushPublicKey." + TENANT,
+            + "(the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (its hash; one ACTIVE "
+            + "subscription per endpoint and club), ACTIVE again if it had expired. A subscription never changes owner (E76): when another account's is "
+            + "active on this browser it ends (EXPIRED, PushUnsubscribed for that account) and the caller gets a subscription of its own, a new id. "
+            + "deviceLabel from the User-Agent when absent («iPhone · Safari»); PushSubscribed{accountId, endpoint = its SHA-256} when something changed. "
+            + "An endpoint that is no https URL, or keys that are not base64url of a point on P-256 (65 bytes, uncompressed) and a 16-byte secret → "
+            + "PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey." + TENANT,
             responses = @ApiResponse(responseCode = "201", description = "PushSubscriptionCreated", useReturnTypeSchema = true))
     public PushSubscriptionCreated subscribePush(@Valid @RequestBody PushSubscriptionRequest request,
             @Parameter(hidden = true) @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
