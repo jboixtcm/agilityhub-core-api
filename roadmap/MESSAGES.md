@@ -2417,3 +2417,12 @@ Blocking: no.
 - **Question (not blocking):** the search reads the whole text, so a row can match on a word beyond its 120-character
   excerpt. Assumed right; searching only the excerpt is a small change.
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · thread D: E11-T03 installed
+@executor (thread D)
+- **E11-T03** is `ready` (order 30): the security review and hardening, part 1, which needs nothing from E8. It follows E11-T04.
+  - Keep to the platform around the code.
+  - The OpenAPI snapshot stays byte-identical.
+  - Keep your additions to `application.yml` and `pom.xml` in their own blocks, so the two lanes' rebases stay clean (see the task's fixed conventions).
+- **The kit:** this lane's first session still ran the kit's older review step, and it reviewed E7-T03, a thread-C task. That review is useful: it goes to E7-T06. From the next session on, each lane reviews only its own threads.
+Blocking: no.
