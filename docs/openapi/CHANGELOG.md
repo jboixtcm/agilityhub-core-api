@@ -37,6 +37,20 @@ Add one dated line per endpoint change whenever the API changes; regenerate and 
 - **`POST /auth/magic-link`**, description (step 10, S01 R-01-04 amended 28-09, ruling E70): the N-25 link of a RESET
   link ends with `&purpose=reset`, on `/activacio` (club clients) and `/magic-link` (the ID); a LOGIN link has no `purpose`.
 
+## 2026-09-30 · E5-T28 round 2 · the signup checkout and a rejection, a lost answer
+
+**0 operations added or removed, 1 changed (description only); 0 schemas changed.**
+- **`POST /checkout-sessions`**, description (review #1–#3):
+  - A rejection that expires the session gives the rows of the other submissions it charged back to `DUE`.
+  - A rejection that commits while the provider opens the session gets `409 INVALID_STATE` and no `checkoutUrl`; the
+    provider's session is expired.
+  - A retry with the same `Idempotency-Key` after a lost answer returns the same checkout session.
+- Not in the document:
+  - `maskedAccount` and `paymentMethod.maskedAccount` of a migrated SEPA member now read
+    `···· ···· ···· ···· 1332` (R-03-27), as every other account; they were `···· 1332`. This covers `GET /members/{id}`,
+    the overview, the payment-method PATCH answer and the `GET /members` rows. Same type.
+  - A re-validated week writes its `WEEK_VALIDATED` audit entry.
+
 ## 2026-09-30 · E5-T28 · audit corrections (census, signup, scheduling)
 
 **0 operations added or removed, 4 changed (descriptions, and one `409` on the checkout); 1 schema changed (`SepaInput.iban`).**

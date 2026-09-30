@@ -450,8 +450,11 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         assertThat(draftsOfValidatedWeeks()).isEmpty();
     }
-    /** T-06-23 (E5-T28 step 5): a VALIDATED week that still holds a DRAFT class (written before step 5) validates it again. */
-    @Test void T_06_23_aValidatedWeekWithALooseDraftIsValidatedAgainKeepingItsValidatedAt() throws Exception {
+    /**
+     * T-06-23 (E5-T28 step 5): a VALIDATED week that still holds a DRAFT class (written before step 5) validates it again;
+     * round 2: that validation writes its WEEK_VALIDATED entry (T-14-12, R-14-09).
+     */
+    @Test void T_06_23_T_14_12_aValidatedWeekWithALooseDraftIsValidatedAgainAuditedAndKeepsItsValidatedAt() throws Exception {
         String id=session("2026-08-25","18:00","plan-ring"),week=session(id).path("weekId").asText();validate(id);
         var validatedAt=mongo.findById(week,Document.class,"weeks").get("validatedAt");long events=events("WeekValidated"),audits=mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("WEEK_VALIDATED")),"audit_entries");
         clock.setInstant(clock.instant().plusSeconds(600));
@@ -463,7 +466,13 @@ class CalendarIT extends AbstractIntegrationTest {
         var stored=mongo.findById(week,Document.class,"weeks");
         assertThat(stored.getString("state")).isEqualTo("VALIDATED");assertThat(stored.get("validatedAt")).isEqualTo(validatedAt);
         assertThat(events("WeekValidated")).isEqualTo(events+1);
-        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("WEEK_VALIDATED")),"audit_entries")).as("no state change to audit").isEqualTo(audits);
+        // Round 2 (review #4, S14 R-14-09/10): the re-validation is audited like the first one; WEEK_VALIDATED is an event
+        // action, so its entry is written although the week's audited fields (state, validatedAt/By) did not change.
+        var entries=mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("WEEK_VALIDATED").and("entityId").is(week)).with(org.springframework.data.domain.Sort.by("at")),Document.class,"audit_entries");
+        assertThat(entries).hasSize((int)(audits+1));
+        var again=entries.getLast();
+        assertThat(again.getList("changes",Document.class)).isEmpty();assertThat(again.getString("entityType")).isEqualTo("Week");
+        assertThat(again.getString("actorAccountId")).isNotBlank();assertThat(again.get("at",Date.class).toInstant()).isEqualTo(clock.instant());
         error("POST","/weeks/"+week+"/validation",Map.of(),ErrorCode.NOTHING_TO_VALIDATE);
     }
     @Test void T_06_25_T_11_24_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithN08aToMembersOnly() throws Exception {

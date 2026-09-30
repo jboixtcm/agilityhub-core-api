@@ -373,7 +373,8 @@ on staging once the accounts exist.
 notices) is sent `From: <messaging.email.fromName> <address>`. The catalog default
 of `messaging.email.fromName` is empty, which means the club's own name
 (`Club.name`); no club name is a product default (white label). Set the parameter
-only when a club wants another sender name. The address is
+only when a club wants another sender name; the seeds for new clubs
+(`club-template-default.yaml`, `club-minim.yaml`) leave it unset. The address is
 `messaging.email.fromAddress` on the club's verified domain, or the platform
 address otherwise.
 

@@ -70,7 +70,8 @@ audit summary (`source: APPLY`), and outbox events in one Mongo transaction.
 Local/test definitions trust their domains so local branding can be exercised.
 Staging/prod domains are PENDING until the domain-verification vertical is
 implemented. A template cannot declare domains. The template seed is not an
-operational club.
+operational club. It overrides no sender name (E5-T28, decision E48): with
+`messaging.email.fromName` empty, a club sends its e-mails with its own `Club.name`.
 
 Catalogs are applied transactionally with the club definition. The schema closes each
 catalog shape. Levels and plans match by `code`, rings by `shortName`, FAQ by a stable

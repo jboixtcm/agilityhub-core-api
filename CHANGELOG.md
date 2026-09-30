@@ -756,6 +756,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - The ACTIVE dog's chip is normalised and checked per country profile on `PATCH /dogs/{id}` (INC-35, A2-08).
   - D1 and the members list read a pending readmission's submitted name, payment method, image consent and reused dog
     name (INC-33, A3-02); `Member.readmissionPending()` is the one accessor (A3 I-07).
+  - Round 2:
+    - A rejection that expires a signup checkout gives the rows of the other submissions it charged back to `DUE` (or
+      `PARTIAL` when they had received money), so a new checkout charges them (R-04-23/26).
+    - A rejection that commits while the provider opens the session: `POST /checkout-sessions` expires the provider's
+      session and answers `409 INVALID_STATE`, with no checkout URL.
+    - A checkout whose `201` could not be stored is answered again, with the same session, by a retry with the same
+      Idempotency-Key. The session keeps a digest of the request that opened it (`requestRef`), and the provider is asked
+      again for that session id, which it answers idempotently.
+    - A re-validated week writes its `WEEK_VALIDATED` entry: event actions (`WEEK_VALIDATED`, `DATA_EXPORTED`) are audited
+      without a field diff (S14 R-14-10).
+    - A migrated member's account reads `···· ···· ···· ···· 1332` (R-03-27) on D10, the PATCH answer and the members list.
+    - `seeds/club-template-default.yaml` no longer overrides `messaging.email.fromName`, so a new club sends with its own
+      name (E48).
+    - The spec test ids are in the names of the new tests.
 - E5-T27: corrections pulled forward by the global audit of 26-09 (identity, security, shared).
   - Member routes for dual-role accounts (INC-16, ruling E41): the S07, S08 and S09 member routes authorise
     `hasRole('MEMBER')` alone; MEMBER + INSTRUCTOR or MEMBER + ADMIN is served, a token without MEMBER stays 403. The account's own

@@ -194,12 +194,28 @@ class CensusIT extends AbstractIntegrationTest {
         var count = events("MemberPaymentMethodChanged").size(); change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer")));
         assertThat(events("MemberPaymentMethodChanged")).hasSize(count);
     }
+    /**
+     * R-03-27 (E5-T28 round 2, item 6): a migrated member's account (only `ibanLast4`, the IBAN encrypted) reads in the one
+     * format «···· ···· ···· ···· 1332» on D10 (`GET /members/{id}`, the overview), in the PATCH's answer and in the members list.
+     */
+    @Test void T_03_03_T_03_08_aMigratedAccountIsMaskedInTheOneFormatEverywhere() throws Exception {
+        String masked = "···· ···· ···· ···· 1332";
+        field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", "v1:example-ciphertext").append("ibanLast4", "1332")
+                .append("holderName", "Example Holder"));
+        var detail = json(admin(get("/api/v1/members/one")), 200);
+        assertThat(detail.path("maskedAccount").asText()).isEqualTo(masked); assertThat(detail.at("/paymentMethod/maskedAccount").asText()).isEqualTo(masked);
+        assertThat(json(admin(get("/api/v1/members/one/overview")), 200).at("/member/paymentMethod/maskedAccount").asText()).isEqualTo(masked);
+        var listed = json(admin(get("/api/v1/members").param("filter", "id:eq:one")), 200).path("items");
+        assertThat(listed).hasSize(1); assertThat(listed.get(0).at("/paymentMethod/maskedAccount").asText()).isEqualTo(masked);
+        assertThat(change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example Renamed"))).path("maskedAccount").asText()).isEqualTo(masked);
+        assertThat(detail.toString() + listed).doesNotContain("example-ciphertext");
+    }
     /** E42 (INC-17): the encrypted account of a migrated member survives a SEPA → SEPA PATCH that does not send `iban`. */
     @Test void T_03_13_sepaPatchKeepsTheMigratedEncryptedAccount() throws Exception {
         field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", "v1:example-ciphertext").append("ibanLast4", "1332")
                 .append("holderName", "Example Holder").append("holderTaxId", "12345678Z").append("mandateRef", "census-a-1-1").append("mandateSignedAt", Date.from(Instant.parse("2020-01-01T00:00:00Z"))));
         var payment = change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example Renamed")));
-        assertThat(payment.path("maskedAccount").asText()).endsWith("1332");
+        assertThat(payment.path("maskedAccount").asText()).isEqualTo("···· ···· ···· ···· 1332");
         assertThat(member("one").paymentMethod).containsEntry("ibanEncrypted", "v1:example-ciphertext").containsEntry("ibanLast4", "1332")
                 .containsEntry("holderName", "Example Renamed").containsEntry("holderTaxId", "12345678Z").containsEntry("mandateRef", "census-a-1-1")
                 .containsKey("mandateSignedAt").doesNotContainKey("iban");

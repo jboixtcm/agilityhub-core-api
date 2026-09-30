@@ -354,7 +354,7 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 15 (E3-T08 round-2 review) ----
-    @Test void T_04_22_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaid() throws Exception {
+    @Test void T_04_22_T_04_19_eachAddDogSubmissionStaysPayableAfterAnotherOneIsValidatedWithNothingPaidOrRejected() throws Exception {
         stripe();String id=activeMember();
         String a=addDog(id,"941000007000001",null,"ca");String b=addDog(id,"941000007000002",null,"ca");
         validate(id,List.of(a),0L);
@@ -365,6 +365,18 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
         var charged=fake.request(session);
         assertThat(charged.lines().stream().map(l -> l.paymentId())).containsExactlyInAnyOrderElementsOf(due.stream().map(p -> p.getString("_id")).toList());
         assertThat(charged.lines().stream().mapToLong(l -> l.amount().amountMinor()).sum()).isEqualTo(due.stream().mapToLong(p -> p.get("amountDue",Document.class).get("amountMinor",Number.class).longValue()).sum());
+        // E5-T28 round 2 (review #1, R-04-23/26): rejecting the pending dog while that checkout is open expires it, cancels b's
+        // rows and gives a's rows (already validated, unpaid) back to DUE; a new checkout then charges exactly a's rows.
+        var ofA=due.stream().filter(p -> a.equals(p.getString("dogId"))).map(p -> p.getString("_id")).toList();
+        var ofB=due.stream().filter(p -> b.equals(p.getString("dogId"))).map(p -> p.getString("_id")).toList();
+        reject(id,"Fictional dog not accepted");
+        assertThat(mongo.getCollection("checkout_sessions").find(new Document("_id",session)).first().getString("status")).isEqualTo("EXPIRED");
+        assertThat(fake.expired(session)).isTrue();
+        assertThat(rows(id).stream().filter(p -> ofB.contains(p.getString("_id")))).isNotEmpty().allMatch(p -> "CANCELLED".equals(p.getString("status")));
+        assertThat(rows(id).stream().filter(p -> ofA.contains(p.getString("_id")))).isNotEmpty().allMatch(p -> "DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
+        String replacement=checkout(id);
+        assertThat(replacement).isNotEqualTo(session);assertThat(charged(replacement)).containsExactlyInAnyOrderElementsOf(ofA);
+        assertThat(rows(id).stream().filter(p -> ofA.contains(p.getString("_id")))).allMatch(p -> "CHECKOUT_PENDING".equals(p.getString("status")));
     }
     String checkout(String id) throws Exception {
         return result(asMember(postJson("/checkout-sessions",Map.of("memberId",id,"successUrl","https://"+host+"/ok","cancelUrl","https://"+host+"/cancel")).header("Idempotency-Key",UUID.randomUUID()),id),201).path("checkoutSessionId").asText();

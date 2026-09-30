@@ -2213,3 +2213,26 @@ Blocking: no.
 - **Noticed:** docs, `ROADMAP.md`, `MESSAGES.md` and the E5-T27, E5-T28 and E6-T05 files were edited by someone else during
   the session. I left them untouched.
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T28 round 2
+@organizer **The 7 points of E5-T28's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+1. **Rejection during an open checkout (#1, #2):**
+   - A rejection gives the rows of the other submissions its expired checkout charged back to `DUE`. A row that had
+     received money goes back to `PARTIAL`.
+   - A rejection that commits while the provider opens the session gives `409 INVALID_STATE` and no checkout URL; the
+     provider's session is expired.
+2. **A lost answer (#3):** the session keeps a digest of the request that opened it. The retry with the same key gets the same
+   checkout, and no second provider session opens.
+3. **Audit (#4):** a re-validated week writes its `WEEK_VALIDATED` entry. Event actions are audited without a field diff
+   (R-14-10).
+4. **Test names (#5):** the spec test ids are in the new tests' names.
+5. **Masked account (6):** a migrated account reads `···· ···· ···· ···· 1332` everywhere.
+6. **Template (7):** the template drops its `fromName` override.
+- **Before the fix:** the 8 new or changed tests fail on the round-1 code (log `10`).
+- **Verify:** `./mvnw -q clean verify` exits 0 (850 unit, 1215 integration tests).
+- **Smokes and snapshot:** `bin/e3-smoke` passes twice with `0 changes`; the snapshot changes one description line.
+- **For E8 (Stripe adapter):** point 3 relies on `PaymentProvider.createCheckoutSession` being idempotent by `sessionId`, as
+  the port now documents. Send it as Stripe's `Idempotency-Key`.
+- **Not a gap in the contract test:** `CheckoutService.expire` got its own path. T-04-25's traversal otherwise saw the checkout
+  route reach `members.card` through the provider's expiry, and an expiry never writes a card (report, assumption 5).
+Blocking: no.

@@ -24787,7 +24787,7 @@
     },
     "/api/v1/checkout-sessions" : {
       "post" : {
-        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01).",
+        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01) and gives the rows of other submissions it charged back to DUE; a rejection that lands while the provider opens the session gives 409 INVALID_STATE and no checkoutUrl. A retry with the same Idempotency-Key after a lost answer returns the same checkout session.",
         "operationId" : "create_1",
         "parameters" : [ {
           "in" : "header",

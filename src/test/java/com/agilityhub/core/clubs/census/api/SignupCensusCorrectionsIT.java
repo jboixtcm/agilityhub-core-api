@@ -23,8 +23,18 @@ import org.springframework.data.mongodb.core.query.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import com.agilityhub.core.payments.application.PaymentProvider;
+import org.mockito.ArgumentCaptor;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import static com.agilityhub.core.clubs.catalogs.domain.OfferTerms.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
@@ -32,7 +42,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * E5-T28: the census and signup corrections the global audit of 26-09 pulled forward (steps 3, 4, 6 and 7): the SEPA
  * mandate of a new member (E43, INC-30), a rejection while a checkout is open (A3-01, INC-32) and the checkout's retried
  * transaction (A3-06), the ACTIVE dog's chip (A2-08, INC-35), and D1 and the members list on a pending readmission
- * (A3-02, INC-33). Same Spring context as {@link SignupIT}.
+ * (A3-02, INC-33). Round 2: the provider double and the idempotency store are spies, to hold the provider while a
+ * rejection commits (review #2) and to lose the checkout's stored answer once (review #3).
  */
 @org.springframework.boot.test.context.SpringBootTest(properties={"shared.scheduling.enabled=false","core.security.rate-limits.enabled=true"})
 @AutoConfigureMockMvc(print=MockMvcPrint.NONE)
@@ -41,7 +52,8 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;@Autowired ObjectMapper mapper;@Autowired MongoTemplate mongo;@Autowired ClubRepository clubs;
     @Autowired ClubConfigService configs;@Autowired HostTenantResolver hosts;
     @Autowired com.agilityhub.core.clubs.census.application.SignupService signupService;
-    @Autowired com.agilityhub.core.payments.application.FakeCheckoutGateway fake;
+    @MockitoSpyBean com.agilityhub.core.payments.application.FakeCheckoutGateway fake;
+    @MockitoSpyBean com.agilityhub.core.shared.persistence.IdempotencyRepository records;
     @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
     String club,host,plan,level;
@@ -109,7 +121,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     Document session(String id) { return mongo.getCollection("checkout_sessions").find(new Document("_id",id)).first(); }
 
     // ---- Step 3 (E43, INC-30): the mandate reference of a new SEPA member ----
-    @Test void E43_R_04_10_validationWritesTheMigratedMandateFormatAndAReadmissionSignsTheNextOne() throws Exception {
+    @Test void T_04_17_T_04_12_validationWritesTheMigratedMandateFormatAndAReadmissionSignsTheNextOne() throws Exception {
         var original=sepa(request(),IBAN);var submitted=submit(original);String id=submitted.path("memberId").asText();
         var signedAt=member(id).get("paymentMethod",Document.class).get("mandateSignedAt");
         assertThat(signedAt).isEqualTo(member(id).get("signup",Document.class).get("submittedAt"));
@@ -132,7 +144,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 4 (A3-01, INC-32): a rejection while a checkout is open ----
-    @Test void S04_A3_01_aRejectionExpiresTheOpenCheckoutAndALateProviderCompletionOnlyLeavesTheRefundMark() throws Exception {
+    @Test void T_04_19_T_04_22_aRejectionExpiresTheOpenCheckoutAndALateProviderCompletionOnlyLeavesTheRefundMark() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
         var submitted=submit(body);String id=submitted.path("memberId").asText();
         String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
@@ -154,7 +166,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(collection("domain_events").stream().map(e->e.getString("type"))).doesNotContain("UpfrontPaymentSucceeded");
     }
     /** A signup session still PENDING whose rows are no longer CHECKOUT_PENDING (a rejection written before this fix). */
-    @Test void S04_A3_01_aCompletionOfASessionWhoseRowsWereClosedTakesTheLatePath() throws Exception {
+    @Test void T_04_22_aCompletionOfASessionWhoseRowsWereClosedTakesTheLatePath() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
         var submitted=submit(body);String id=submitted.path("memberId").asText();
         String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
@@ -167,8 +179,69 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(collection("upfront_payments")).allMatch(p->"CANCELLED".equals(p.getString("status")));
         assertThat(member(id).get("paymentMethod",Document.class).get("card")).isNull();
     }
+    /**
+     * Round 2 (review #2): the rejection commits after the checkout's first transaction and before the provider has its session,
+     * so the rejection's own expiry cannot reach the provider. The checkout finds its session EXPIRED once the provider answers:
+     * it expires the provider's session and answers 409 INVALID_STATE, never a checkout URL for the rejected signup.
+     */
+    @Test void T_04_19_T_04_22_aRejectionWhileTheProviderOpensTheSessionGetsNoCheckoutUrl() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);String id=submitted.path("memberId").asText();
+        var opening=new java.util.concurrent.atomic.AtomicReference<String>();
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            doAnswer(invocation -> {
+                opening.set(invocation.<PaymentProvider.Request>getArgument(0).sessionId());
+                pool.submit(() -> reject(id)).get(60,TimeUnit.SECONDS);
+                return invocation.callRealMethod();
+            }).when(fake).createCheckoutSession(any());
+            var refused=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),409);
+            assertThat(refused.path("code").asText()).isEqualTo("INVALID_STATE");
+            assertThat(refused.toString()).doesNotContain("checkoutUrl","checkout.test");
+        }
+        String sid=opening.get();
+        assertThat(member(id).getString("status")).isEqualTo("LEFT");
+        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CANCELLED".equals(p.getString("status")));
+        // The rejection's expiry came before the provider's session existed; the checkout expired it once it did.
+        verify(fake,atLeast(2)).expire(sid);
+        assertThat(fake.expired(sid)).as("gateway.expire(%s) reached the provider's session",sid).isTrue();
+        // A completion that still arrives is a late one (E34): the mark, no PAID row, no card on the LEFT record.
+        fake.complete(sid);
+        assertThat(session(sid).get("lateCompletionAt")).isNotNull();
+        assertThat(collection("upfront_payments")).allMatch(p->"CANCELLED".equals(p.getString("status")));
+        assertThat(member(id).get("paymentMethod",Document.class).get("card")).isNull();
+    }
+    /**
+     * Round 2 (review #3, CONVENCIONS_API §7): the provider opened the session but its 201 could not be stored. The key is
+     * released; the retry with the same key finds the open session, asks the provider again for that same session, and answers
+     * the same checkout. No second session opens, and the stored answer is then replayed without the provider.
+     */
+    @Test void T_04_22_T_04_23_aCheckoutWhoseAnswerWasLostIsAnsweredAgainWithTheSameSession() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);var request=checkout(submitted);String key=UUID.randomUUID().toString(),ip=ip();
+        doThrow(new IllegalStateException("checkout answer not stored (injected)")).doCallRealMethod().when(records).complete(any(),eq(201),any(),any());
+        var lost=mvc.perform(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip)).andReturn().getResponse();
+        assertThat(lost.getStatus()).as(lost.getContentAsString()).isEqualTo(500);
+        var opened=collection("checkout_sessions");
+        assertThat(opened).singleElement().satisfies(s -> assertThat(s.getString("status")).isEqualTo("PENDING"));
+        String sid=opened.getFirst().getString("_id");
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status")));
+        var again=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201);
+        assertThat(again.path("checkoutSessionId").asText()).isEqualTo(sid);
+        assertThat(again.path("checkoutUrl").asText()).isEqualTo("https://checkout.test/"+sid);
+        assertThat(collection("checkout_sessions")).hasSize(1);
+        var asked=ArgumentCaptor.forClass(PaymentProvider.Request.class);
+        verify(fake,times(2)).createCheckoutSession(asked.capture());
+        assertThat(asked.getAllValues()).extracting(PaymentProvider.Request::sessionId).containsOnly(sid);
+        assertThat(asked.getAllValues().get(1)).isEqualTo(asked.getAllValues().get(0));
+        // The answer is stored now: the same key replays it, and the provider is not asked again.
+        assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201)).isEqualTo(again);
+        verify(fake,times(2)).createCheckoutSession(any());
+        // Another key cannot open a second checkout of the same rows while this one is open.
+        assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",UUID.randomUUID()),ip),409).path("code").asText()).isEqualTo("INVALID_STATE");
+    }
     /** A3-06 (R-04-27): the checkout meets a concurrent census write, retries in the signup's transaction, and answers 201. */
-    @Test void R_04_27_A3_06_aCheckoutMeetingAConcurrentCensusWriteIsRetriedNeverA500() throws Exception {
+    @Test void T_04_23_aCheckoutMeetingAConcurrentCensusWriteIsRetriedNeverA500() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
         var submitted=submit(body);var request=checkout(submitted);String key=UUID.randomUUID().toString(),ip=ip();
         var transactions=new org.springframework.transaction.support.TransactionTemplate(transactionManager);
@@ -194,7 +267,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 6 (A2-08, INC-35): the chip of an ACTIVE dog ----
-    @Test void R_04_07_A2_08_anActiveDogsChipIsStoredNormalisedAndTheIndexCatchesALaterSignup() throws Exception {
+    @Test void T_03_32_T_04_12_anActiveDogsChipIsStoredNormalisedAndTheIndexCatchesALaterSignup() throws Exception {
         String id=submit(request()).path("memberId").asText();validate(id);
         var dog=dogOf(id);String dogId=dog.getString("_id");
         result(admin(patch("/api/v1/dogs/"+dogId).header("Host",host).contentType("application/json").content(mapper.writeValueAsBytes(Map.of("version",dog.get("version"),"chip","ABC")))),400);
@@ -205,7 +278,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     }
 
     // ---- Step 7 (A3-02, INC-33): D1 and the members list read a pending readmission's submitted values ----
-    @Test void R_04_06_E38_D1AndTheMembersListReadAPendingReadmissionsSubmittedValues() throws Exception {
+    @Test void T_04_12_T_04_14_D1AndTheMembersListReadAPendingReadmissionsSubmittedValues() throws Exception {
         var original=request();String id=submit(original).path("memberId").asText();validate(id);leave(id);
         var readmission=sepa(original.deepCopy(),null);
         ((ObjectNode)readmission.get("person")).put("firstName","Returning").put("lastName1","Readmitted");

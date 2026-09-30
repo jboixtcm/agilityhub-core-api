@@ -55,6 +55,7 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
     @Autowired AccountRepository accounts;
     @Autowired MembershipRepository memberships;
     @Autowired ClubAdminProvisioner admins;
+    @Autowired com.agilityhub.core.platform.application.ClubEmailSettings emailSettings;
     @Autowired ObjectMapper mapper;
     @Autowired MongoTemplate mongo;
     @Autowired MockMvc mvc;
@@ -459,6 +460,21 @@ class ClubDefinitionsIT extends AbstractIntegrationTest {
         assertThatThrownBy(() -> definitions.apply(definition, false)).isInstanceOf(IllegalStateException.class);
         for (String collection : List.of("clubs", "parameters", "accounts", "memberships", "domain_events", "audit_entries", "club_pages")) { assertThat(count(collection)).as(collection).isZero(); }
         assertThat(TenantContext.current()).isNull();
+    }
+    /**
+     * E48 (E5-T28 round 2, item 7): the template for new clubs overrides no sender name, so a club created from it sends its
+     * e-mails with its own name (`messaging.email.fromName` empty = `Club.name`).
+     */
+    @Test void T_17_01_E48_theTemplateForNewClubsSendsWithTheClubsOwnName() {
+        assertThat(seed("template-default").path("parameters").has("messaging.email.fromName")).isFalse();
+        var template = definitions.apply(seed("template-default"), false);
+        var club = clubs.findById(template.id()).orElseThrow();
+        try (var scope = TenantContext.open(template.id())) {
+            assertThat(parameters.findAll()).extracting(Parameter::key).doesNotContain("messaging.email.fromName");
+        }
+        configs.invalidate(template.id());
+        assertThat(configs.get(template.id()).get("messaging.email.fromName", String.class)).isEmpty();
+        assertThat(emailSettings.get(template.id(), "platform@example.test").fromName()).isEqualTo(club.name()).isEqualTo("AgilityHub template");
     }
     @Test void T_17_01_templatePartialDefinitionAndExistingAdminPreserveIdentity() {
         var template = definitions.apply(seed("template-default"), false);

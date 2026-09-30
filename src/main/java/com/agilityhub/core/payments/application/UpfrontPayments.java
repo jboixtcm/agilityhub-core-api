@@ -172,7 +172,9 @@ public class UpfrontPayments {
     }
     /**
      * The provider finished the session: PAID + `UpfrontPaymentSucceeded`, or an expired session puts a signup line back
-     * to DUE and cancels a booking line (+ `UpfrontPaymentFailed`). Booking lines carry `bookingId` in both events (S08 R-08-18).
+     * to its payable state and cancels a booking line (+ `UpfrontPaymentFailed`). Booking lines carry `bookingId` in both
+     * events (S08 R-08-18). A payable signup line is `DUE`, or `PARTIAL` when it had received money before the checkout
+     * (E5-T28: a rejection then keeps that money in its `PAID` correction, E39b).
      */
     public void checkout(String memberId,String session,boolean complete) {
         for(var p:repository.member(memberId)) if(session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status())) {
@@ -185,8 +187,12 @@ public class UpfrontPayments {
             } else if(booking) {
                 repository.update(state(p,"CANCELLED",p.amountPaid(),"STRIPE",session));
                 emit("UpfrontPaymentFailed",p,payload);
-            } else repository.update(state(p,"DUE",p.amountPaid(),null,null));
+            } else repository.update(released(p));
         }
+    }
+    private UpfrontPayment released(UpfrontPayment p) {
+        return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),p.amountPaid(),
+                p.amountPaid().amountMinor()>0?"PARTIAL":"DUE",null,null,p.createdAt(),p.paidAt(),p.bookingId(),p.submissionId(),p.correctionOf());
     }
     private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session) {
         return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),paid,status,provider,session,p.createdAt(),

@@ -22,6 +22,13 @@ public class AuditWriter {
         this.clock = clock;
     }
 
+    /**
+     * S14 R-14-10: an entry without changes or reason is discarded, except for the «event» actions, which record that the
+     * action happened (E5-T28: a re-validation of a VALIDATED week that activates its loose DRAFT classes keeps the week's
+     * fields, and is still audited).
+     */
+    static final java.util.Set<AuditAction> EVENT_ACTIONS = java.util.EnumSet.of(AuditAction.WEEK_VALIDATED, AuditAction.DATA_EXPORTED);
+
     public void write(AuditCommand command) { write(command, null); }
 
     /**
@@ -41,7 +48,7 @@ public class AuditWriter {
         Objects.requireNonNull(action, "Audit action is required");
         requireText(entityType, "Audit entity type is required");
         requireText(entityId, "Audit entity id is required");
-        if (changes.isEmpty() && (reason == null || reason.isBlank())) { return; }
+        if (changes.isEmpty() && (reason == null || reason.isBlank()) && !EVENT_ACTIONS.contains(action)) { return; }
         String clubId = TenantContext.current();
         AuditActor actor = Objects.requireNonNull(actors.current(), "Audit actor is required");
         AuditEntry entry = new AuditEntry(UUID.randomUUID().toString(), clubId, clock.instant(), actor.accountId(),

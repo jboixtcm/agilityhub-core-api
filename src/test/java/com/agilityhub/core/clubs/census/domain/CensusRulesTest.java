@@ -27,8 +27,11 @@ class CensusRulesTest {
         assertThat(CensusRules.maskedId("381234561P")).isEqualTo("38······1P");
         assertThat(CensusRules.maskedId(null)).isEqualTo("······"); assertThat(CensusRules.maskedId("123")).isEqualTo("······");
     }
-    /** E43 (INC-30, S12 §7): every mandate reference the api writes fits pain.008 `MndtId` (Max35Text) and is unique per club. */
-    @Test void E43_mandateReferencesFitPain008AndAreUniquePerClub() {
+    /**
+     * E43 (INC-30, S12 §7): every mandate reference the api writes fits pain.008 `MndtId` (Max35Text, T-12-11's XSD) and is
+     * unique per club; its format is the migrated `{clubSlug}-{memberNumber}-1` (T-18-04, «mandateRef nou»).
+     */
+    @Test void T_18_04_T_12_11_mandateReferencesFitPain008AndAreUniquePerClub() {
         assertThat(CensusRules.mandateRef("canic", 87, null)).isEqualTo("canic-87-1");
         String longest = "a-very-long-club-slug-of-forty-character"; assertThat(longest).hasSize(40);
         var seen = new java.util.HashSet<String>();

@@ -35,8 +35,7 @@ theme:
   mode: "light"
 preset: "MINIM"
 paymentProviders: []
-parameters:
-  messaging.email.fromName: "AgilityHub"
+parameters: {}
 admins: []
 catalogs:
   levels: []

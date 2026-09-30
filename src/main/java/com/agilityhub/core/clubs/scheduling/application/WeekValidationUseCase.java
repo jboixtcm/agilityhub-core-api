@@ -34,7 +34,8 @@ public class WeekValidationUseCase {
             var before=planning.require(id); var drafts=classes.forWeek(id).stream().filter(c -> c.state()==ClassState.DRAFT).toList();
             if(drafts.isEmpty()) throw new ApiException(ErrorCode.NOTHING_TO_VALIDATE);
             // T-06-23 (E5-T28, A4-01): a VALIDATED week that still holds DRAFT classes (written before a class create touched its
-            // week) validates them again: they become ACTIVE, and the week keeps its own `validatedAt`.
+            // week) validates them again: they become ACTIVE, and the week keeps its own `validatedAt`. The validation is audited
+            // all the same (S14 R-14-09/10: WEEK_VALIDATED is an event action, written without a field diff; round 2, review #4).
             boolean again=before.state()==WeekState.VALIDATED;
             if(!again) ClassSessionRules.transition(before.state(),WeekState.VALIDATED);
             if(context.config().modules().contains(Module.FREE_TRAINING)) {
@@ -49,7 +50,7 @@ public class WeekValidationUseCase {
                     before.generatedAt(),before.generatedByAccountId(),before.weekdayTemplateId(),before.saturdayTemplateId(),again?before.validatedAt():now,
                     again?before.validatedByAccountId():actor,before.version()+1,before.createdAt(),before.createdByAccountId(),now,actor,before.openedAt(),before.openingNotifiedAt());
             weeks.update(after,before.version());
-            if(!again) audit.validated(before,after);
+            audit.validated(before,after);
             var ids=drafts.stream().map(ClassSession::id).toList();
             events.publish(SchedulingEvent.Kind.WeekValidated,id,Map.of("weekId",id,"classIds",ids));
             return Map.of("validatedClassIds",ids);

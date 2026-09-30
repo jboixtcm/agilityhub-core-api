@@ -115,7 +115,8 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         fields.put("contact", new Document("emails", emails()).append("phones", phones()));
         fields.put("plan", reference("$plan")); fields.put("familyGroup", reference("$familyGroup"));
         fields.put("paymentMethod", new Document("type", "$paymentMethod.type")
-                .append("maskedAccount", new Document("$cond", List.of(new Document("$ne", java.util.Arrays.asList(fallback("$paymentMethod.ibanLast4", null), null)), new Document("$concat", List.of("···· ", "$paymentMethod.ibanLast4")), masked(fallback("$paymentMethod.sepa.iban", "$paymentMethod.iban"), false))))
+                // R-03-27 (E5-T28 round 2): a migrated account (`ibanLast4`) is masked in the one format too.
+                .append("maskedAccount", masked(fallback("$paymentMethod.ibanLast4", fallback("$paymentMethod.sepa.iban", "$paymentMethod.iban")), false))
                 .append("holderName", fallback("$paymentMethod.sepa.holderName", "$paymentMethod.holderName"))
                 .append("channel", fallback("$paymentMethod.manual.channel", "$paymentMethod.channel")));
         fields.put("nextInvoiceDate", "$nextInvoiceDate");

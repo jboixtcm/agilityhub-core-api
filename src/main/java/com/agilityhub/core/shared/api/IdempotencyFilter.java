@@ -163,7 +163,8 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 || "PUT".equals(request.getMethod()) && ATTENDANCE.matcher(path).matches();
         // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
         // so two concurrent submissions give one 201 and one 422, never a 500. E5-T28 (A3-06): the signup checkout too; its
-        // provider call runs between its two transactions.
+        // provider call runs between its two transactions, and its session keeps this request's reference, so a retry after a
+        // lost answer finds the same session.
         boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup") || checkout;
         // S10 (E6-T03 rounds 4 and 5, INC-47): two keyed follow-up writes that meet on one document answer the spec's conflict
         // code (STALE_VERSION, TASK_ALREADY_DONE, NOT_FOUND, …) or both succeed, never a 500; like the signup, an error releases the key.
@@ -182,7 +183,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                                 new org.springframework.transaction.support.TransactionSynchronization() {
                                     @Override public void afterCommit() { completed.set(true); }
                                 });
-                    });
+                    }, reference(clubId, accountId, key, hash));
             try {
                 chain.doFilter(new BufferedRequest(request, body), target);
             } finally {
@@ -254,6 +255,17 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         var roles = jwt.getAuthorities().stream().map(org.springframework.security.core.GrantedAuthority::getAuthority)
                 .filter(authority -> authority.startsWith("ROLE_")).sorted().toList();
         return String.join(",", roles) + ";" + java.util.Objects.toString(jwt.getToken().getClaimAsString("actorAccountId"), "");
+    }
+
+    /**
+     * E5-T28 (CONVENCIONS_API §7): the same request under the same key and scope, whichever record claims the key now (an
+     * abandoned record is removed, and the retry claims a new one). A digest: the key and the account never leave the filter.
+     */
+    static String reference(String clubId, String accountId, String key, String hash) {
+        try {
+            var digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest((clubId + "\n" + accountId + "\n" + key + "\n" + hash).getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
 
     private String hash(HttpServletRequest request, byte[] body, org.springframework.security.core.Authentication authentication) {

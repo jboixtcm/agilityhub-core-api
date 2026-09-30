@@ -62,8 +62,9 @@ public class CensusQuery {
         if (member.paymentMethod == null) { return null; }
         var pay = member.paymentMethod; var sepa = map(pay.getOrDefault("sepa", pay)); var card = map(pay.getOrDefault("card", pay));
         var manual = map(pay.getOrDefault("manual", pay)); String type = string(pay.get("type"));
+        // R-03-27 (E5-T28 round 2): one format for every account, the migrated one (`ibanLast4`, IBAN encrypted) included.
         return object("type", type, "maskedAccount", "CARD".equals(type) ? (card.get("last4") == null ? null : "···· " + card.get("last4"))
-                : (sepa.get("ibanLast4") == null ? CensusRules.maskedIban(string(sepa.get("iban"))) : "···· " + sepa.get("ibanLast4")), "holderName", sepa.get("holderName"), "channel", manual.get("channel"));
+                : CensusRules.maskedIban(sepa.get("ibanLast4") == null ? string(sepa.get("iban")) : string(sepa.get("ibanLast4"))), "holderName", sepa.get("holderName"), "channel", manual.get("channel"));
     }
     public Map<String,Object> block(String id) {
         var block = map(access.members.require(id).bookingBlock);
