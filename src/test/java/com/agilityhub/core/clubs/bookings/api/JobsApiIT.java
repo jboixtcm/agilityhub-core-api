@@ -216,6 +216,34 @@ class JobsApiIT extends BookingFixtures {
                 .singleElement().satisfies(cell -> assertThat(cell.at("/lastRun/counters/platformPass").asLong()).isEqualTo(1));
     }
 
+    /**
+     * E5-T29 step 8 (web E5-W04 question 1): the web sends an `Idempotency-Key` on every POST, and a keyed POST runs inside the
+     * request's transaction. `POST /jobs/cleanup/trigger` runs the process outside it, as the scheduler and the CLI do, so P9's
+     * plan can list the collections: SUCCEEDED with its counters, never FAILED «ClientSessionException». The same key replays
+     * the stored answer without a second run; a keyed dry run succeeds too.
+     */
+    @Test void T_15_08_T_15_27_aKeyedManualCleanupRunsOutsideTheRequestTransactionAndSucceeds() throws Exception {
+        mongo.save(new Document("_id", "s08-stale-hold").append("clubId", CLUB).append("classSessionId", "s08-wed").append("dogId", "s08-d-duna")
+                .append("expiresAt", Date.from(clock.instant().minus(Duration.ofMinutes(5)))), "seat_holds");
+        String key = UUID.randomUUID().toString();
+        var run = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", false), as("admin"), 200, key);
+        assertThat(run.path("status").asText()).as(run.toString()).isEqualTo("SUCCEEDED");
+        assertThat(run.path("errors")).isEmpty();
+        assertThat(run.at("/effects/counters/ttlPendingSeatHolds").asLong()).isEqualTo(1);
+        for (String counter : List.of("ttlPendingMagicLinkTokens", "ttlPendingIdempotencyRecords", "ttlPendingJobLocks", "domainEventsDeleted", "jobRunsDeleted")) {
+            assertThat(run.at("/effects/counters/" + counter).isNumber()).as(counter).isTrue();
+        }
+        assertThat(call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", false), as("admin"), 200, key)).as("replayed").isEqualTo(run);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("job").is("CLEANUP")), "job_runs")).isEqualTo(1);
+        // The JOB_TRIGGERED entry names the committed run, as without a key: its status and counters.
+        var audit = mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("JOB_TRIGGERED").and("entityId").is(run.path("runId").asText())),
+                Document.class, "audit_entries");
+        assertThat(audit).singleElement().satisfies(entry -> assertThat(entry.get("changes").toString()).contains("SUCCEEDED", "ttlPendingSeatHolds", "domainEventsDeleted"));
+        var dry = call(POST, "/jobs/cleanup/trigger", Map.of("dryRun", true), as("admin"), 200, UUID.randomUUID().toString());
+        assertThat(dry.path("status").asText()).as(dry.toString()).isEqualTo("SUCCEEDED");
+        assertThat(dry.at("/effects/counters/ttlPendingSeatHolds").asLong()).isEqualTo(1);
+    }
+
     @Test void T_15_10_theOverviewMarksHealthPerClubAndProcess() throws Exception {
         Instant now = clock.instant();
         run("s08-rr-ok", CLUB, JobName.RISK_REVIEW, JobStatus.SUCCEEDED, now.minus(Duration.ofHours(2)));

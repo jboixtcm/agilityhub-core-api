@@ -283,7 +283,7 @@ class E4ContractIT extends AbstractIntegrationTest {
     }
     @Test void T_06_20_T_07_17_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(55);
+        assertThat(routes().count()).isEqualTo(56); // E5-T29: GET /ring-blocks/filter-values
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();

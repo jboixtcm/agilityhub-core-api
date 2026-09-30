@@ -27,15 +27,20 @@ class BookingQueryServiceTest {
         when(census.members(any())).thenReturn(IntStream.range(0, 5).mapToObj(i -> new BookingMemberAccess.Member("m" + i, "a" + i, "Example", "Example " + i,
                 "ACTIVE", null, false, null, null, null, "ca", null, List.of())).toList());
         when(views.listItem(any(), any(), any())).thenCallRealMethod();
+        // E5-T29: D10's class description and ring come from one class query for the page.
+        when(views.classLabels(any())).thenReturn(Map.of("class", new com.agilityhub.core.clubs.scheduling.application.ClassSessionBookingAccess.Labels(
+                "Classe B+C", "Central", "#8FCE8F", List.of("C"), "Estel", "ring-central")));
 
-        var page = new BookingQueryService(repository, census, views, null, null).list(engine, new LinkedMultiValueMap<>());
+        var page = new BookingQueryService(repository, census, views, null, null, null, null).list(engine, new LinkedMultiValueMap<>());
 
         assertThat(page.items()).hasSize(50); assertThat(page.totalItems()).isEqualTo(120);
         assertThat(page.items()).extracting(i -> i.get("id")).containsExactlyElementsOf(rows.stream().map(r -> r.get("id")).toList());
-        assertThat(page.items().get(7)).containsEntry("dogName", "Dog 2").containsEntry("memberName", "Example 2");
+        assertThat(page.items().get(7)).containsEntry("dogName", "Dog 2").containsEntry("memberName", "Example 2").containsEntry("classDescription", "Classe B+C")
+                .containsEntry("ringId", "ring-central").containsEntry("ringName", "Central").containsEntry("ringColor", "#8FCE8F");
         verify(repository, times(1)).byIds(argThat(ids -> ids.size() == 50)); verify(repository, never()).findById(any());
         verify(census, times(1)).dogs(argThat(ids -> ids.size() == 5)); verify(census, times(1)).members(argThat(ids -> ids.size() == 5));
         verify(census, never()).member(any()); verify(census, never()).dog(any());
+        verify(views, times(1)).classLabels(argThat(ids -> ids.size() == 1));
     }
 
     private static Booking booking(String id, String dogId, String memberId) {

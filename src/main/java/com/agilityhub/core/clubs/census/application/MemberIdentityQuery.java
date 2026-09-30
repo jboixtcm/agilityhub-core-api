@@ -20,6 +20,11 @@ public class MemberIdentityQuery implements com.agilityhub.core.shared.applicati
         }
         return member.accountId;
     }
+    @Override public java.util.Optional<String> displayName(String memberId) {
+        if (memberId == null) { return java.util.Optional.empty(); }
+        return members.findById(memberId).map(member -> String.join(" ", java.util.stream.Stream.of(member.firstName, member.lastName1, member.lastName2)
+                .filter(part -> part != null && !part.isBlank()).toList())).filter(name -> !name.isBlank());
+    }
     @Override public Bootstrap bootstrap(String memberId) {
         if (memberId == null) { return new Bootstrap(null, null, null); }
         return members.findById(memberId).map(member -> new Bootstrap(member.gender, member.lastDogForClass, member.lastDogForTraining))

@@ -107,7 +107,8 @@ public class CensusQuery {
     }
     public Map<String,Object> detail(String id) {
         var dog = access.dogs.require(id); var owner = access.members.require(dog.memberId);
-        var result = object("dog", dog(id), "owner", object("id", owner.id, "fullName", fullName(owner), "memberNumber", owner.memberNumber, "status", owner.status),
+        var result = object("dog", dog(id), "owner", object("id", owner.id, "fullName", fullName(owner), "firstName", java.util.Objects.toString(owner.firstName, ""),
+                        "memberNumber", owner.memberNumber, "status", owner.status),
                 "documents", documents.list(id), "licenses", licenses(dog), "version", dog.version(), "pack", pack(id));
         if (access.levels()) { result.putAll(object("level", level(dog.levelId), "levelHistory", rows(dog.levelHistory).stream().map(row -> select(row, "levelId", "from", "to", "byAccountId")).toList())); }
         if (access.enabled(Module.FREE_TRAINING)) { result.put("freeTraining", free(id)); }

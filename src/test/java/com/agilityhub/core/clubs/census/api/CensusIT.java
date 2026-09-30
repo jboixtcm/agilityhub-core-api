@@ -495,6 +495,25 @@ class CensusIT extends AbstractIntegrationTest {
         error(call(body(patch("/api/v1/members/one"), Map.of("version", 0, "firstName", "No")), CLUB, "one", "INSTRUCTOR"), ErrorCode.FORBIDDEN);
         assertThat(json(call(get("/api/v1/dogs/dog-one"), CLUB, "one", "INSTRUCTOR"), 200).path("dog").path("chip").asText()).isEqualTo("941000000100001");
     }
+    /**
+     * E5-T29 step 13 (web E6-W01 question 2, ruling E71): the instructor's projection of `GET /dogs` names the owner's first name
+     * (`owner.firstName`), a compound one whole, so the web writes «{guia} + {gos}» as S10 R-10-00 says; the dog's detail too.
+     */
+    @Test void R_10_00_T_03_33_theInstructorsDogListNamesTheOwnersFirstName() throws Exception {
+        field("members", "one", "firstName", "Joan Antoni");
+        var list = json(call(get("/api/v1/dogs").param("filter", "memberId:eq:one"), CLUB, "one", "INSTRUCTOR"), 200).path("items");
+        assertThat(list).isNotEmpty().allSatisfy(dog -> {
+            assertThat(dog.at("/owner/firstName").asText()).isEqualTo("Joan Antoni");
+            assertThat(dog.at("/owner/fullName").asText()).startsWith("Joan Antoni ");
+            assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(dog, "DogListItem")).isEmpty();
+        });
+        var sparse = json(call(get("/api/v1/dogs").param("filter", "memberId:eq:one").param("fields", "owner"), CLUB, "one", "INSTRUCTOR"), 200);
+        assertThat(sparse.at("/items/0/owner/firstName").asText()).isEqualTo("Joan Antoni");
+        assertThat(json(admin(get("/api/v1/dogs").param("filter", "memberId:eq:one")), 200).at("/items/0/owner/firstName").asText()).isEqualTo("Joan Antoni");
+        var detail = json(call(get("/api/v1/dogs/dog-one"), CLUB, "one", "INSTRUCTOR"), 200);
+        assertThat(detail.at("/owner/firstName").asText()).isEqualTo("Joan Antoni");
+        assertThat(com.agilityhub.core.support.SnapshotSchemas.violations(detail.path("owner"), "OwnerSummary")).isEmpty();
+    }
     @Test void T_03_34_moduleBranchesAndDerivedPlanBillingMode() throws Exception {
         mongo.insert(new Document("_id", "plan").append("clubId", CLUB).append("name", new Document("en", "Example Plan")).append("type", "MONTHLY").append("billingMode", "MAINTENANCE"), "plans");
         field("members", "one", "planId", "plan");

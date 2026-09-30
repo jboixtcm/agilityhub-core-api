@@ -75,8 +75,10 @@ public final class TrainingContracts {
     public record MemberTrainingBookings(List<TrainingBooking> items) { }
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record TrainingBookingListItem(String id, LocalDate date, Instant startsAt, @Schema(example = "08:30") String startsAtLocal,
-            String ringId, String ringName, String memberId, String memberName, String dogId, String dogName,
-            TrainingBookingState state, TrainingOrigin origin, Instant createdAt) { }
+            @Schema(description = "The slot's end (E5-T29)") Instant endsAt, @Schema(example = "09:00", description = "Club-local HH:mm of endsAt") String endsAtLocal,
+            String ringId, String ringName, String memberId, String memberName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Member.memberNumber; null for a member without one") Integer memberNumber,
+            String dogId, String dogName, TrainingBookingState state, TrainingOrigin origin, Instant createdAt) { }
 
     // ---- Error details (CATALEG_ERRORS §3 rule 2)
     @Schema(description = "details of 409 TRAINING_LIMIT_REACHED")

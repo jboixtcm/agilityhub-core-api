@@ -2238,6 +2238,10 @@
             "format" : "date-time",
             "type" : [ "string", "null" ]
           },
+          "ringColor" : {
+            "description" : "The ring's colour for 07's dot before the title (E5-T29); null for a ring without one",
+            "type" : [ "string", "null" ]
+          },
           "ringName" : {
             "type" : [ "string", "null" ]
           },
@@ -2270,7 +2274,7 @@
             "type" : "integer"
           },
           "nextBookableAt" : {
-            "description" : "Start of the next booking week",
+            "description" : "Start of the next booking week: the end of the current one (R-08-01), for a CURRENT class and for a NEXT one alike; at this instant a NEXT class becomes bookable in the current week (29)",
             "format" : "date-time",
             "type" : "string"
           },
@@ -2307,6 +2311,10 @@
           "bookingWeekKey" : {
             "type" : "string"
           },
+          "classDescription" : {
+            "description" : "The class's display description in the reader's language (D10 «Classes», E5-T29)",
+            "type" : "string"
+          },
           "classSessionId" : {
             "type" : "string"
           },
@@ -2335,6 +2343,16 @@
           "origin" : {
             "enum" : [ "APP", "BACKOFFICE", "INSTRUCTOR", "SYSTEM" ],
             "type" : "string"
+          },
+          "ringColor" : {
+            "description" : "The ring's colour; null for a ring without one",
+            "type" : [ "string", "null" ]
+          },
+          "ringId" : {
+            "type" : [ "string", "null" ]
+          },
+          "ringName" : {
+            "type" : [ "string", "null" ]
           },
           "state" : {
             "enum" : [ "PAYMENT_PENDING", "ACTIVE", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB" ],
@@ -2999,6 +3017,11 @@
             "format" : "date-time",
             "type" : "string"
           },
+          "displayState" : {
+            "description" : "S08 §6 derived label, as GET /bookings/{id} gives it: a past ACTIVE booking reads DONE, one with a NO_SHOW mark NO_SHOW",
+            "enum" : [ "CONFIRMED", "DONE", "NO_SHOW", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB", "PAYMENT_PENDING" ],
+            "type" : "string"
+          },
           "dogId" : {
             "type" : "string"
           },
@@ -3010,6 +3033,10 @@
           },
           "late" : {
             "type" : [ "boolean", "null" ]
+          },
+          "levelCode" : {
+            "description" : "The dog's level code (R-10-16); null with levels.enabled = false or for a dog without a level",
+            "type" : [ "string", "null" ]
           },
           "memberId" : {
             "type" : "string"
@@ -3026,7 +3053,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bookedAt", "bookingWeekKey", "classSessionId", "classStartsAt", "dogId", "dogName", "id", "memberId", "memberName", "origin", "state" ],
+        "required" : [ "bookedAt", "bookingWeekKey", "classSessionId", "classStartsAt", "displayState", "dogId", "dogName", "id", "memberId", "memberName", "origin", "state" ],
         "type" : "object"
       },
       "ClassBookings" : {
@@ -6371,9 +6398,13 @@
         "properties" : {
           "actorName" : {
             "type" : "string"
+          },
+          "memberName" : {
+            "description" : "The impersonated member's display name as D10 shows it, first name and last names, for the banner «Estàs veient l'app com {nom}»; not the account's name, which in a family group is another person's (E5-T29)",
+            "type" : "string"
           }
         },
-        "required" : [ "actorName" ],
+        "required" : [ "actorName", "memberName" ],
         "type" : "object"
       },
       "ImpersonationRequest" : {
@@ -10388,6 +10419,10 @@
       },
       "OwnerSummary" : {
         "properties" : {
+          "firstName" : {
+            "description" : "Member.firstName, a compound one whole («Joan Antoni»): «{guia}» of «{guia} + {gos}» when the dog has no handlerName (S10 R-10-00, E5-T29)",
+            "type" : "string"
+          },
           "fullName" : {
             "type" : "string"
           },
@@ -10404,7 +10439,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "fullName", "id", "status" ],
+        "required" : [ "firstName", "fullName", "id", "status" ],
         "type" : "object"
       },
       "PackBalance" : {
@@ -12384,8 +12419,16 @@
             "enum" : [ "MAINTENANCE", "PRIVATE_CLASS", "THERAPY", "PREPARATION", "ACTIVITY", "OTHER" ],
             "type" : "string"
           },
+          "ringColor" : {
+            "description" : "The ring's colour; null for a ring without one (E5-T29)",
+            "type" : [ "string", "null" ]
+          },
           "ringId" : {
             "type" : "string"
+          },
+          "ringName" : {
+            "description" : "The ring's name, a deactivated ring's included (the register shows history, E5-T29)",
+            "type" : [ "string", "null" ]
           },
           "state" : {
             "enum" : [ "ACTIVE", "CANCELLED" ],
@@ -15471,6 +15514,16 @@
           "dogName" : {
             "type" : "string"
           },
+          "endsAt" : {
+            "description" : "The slot's end (E5-T29)",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "endsAtLocal" : {
+            "description" : "Club-local HH:mm of endsAt",
+            "example" : "09:00",
+            "type" : "string"
+          },
           "id" : {
             "type" : "string"
           },
@@ -15479,6 +15532,11 @@
           },
           "memberName" : {
             "type" : "string"
+          },
+          "memberNumber" : {
+            "description" : "Member.memberNumber; null for a member without one",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           },
           "origin" : {
             "enum" : [ "APP", "BACKOFFICE" ],
@@ -16155,12 +16213,20 @@
           "dogName" : {
             "type" : [ "string", "null" ]
           },
+          "handlerName" : {
+            "description" : "Dog.handlerName; null when the member handles the dog (S10 R-10-00)",
+            "type" : [ "string", "null" ]
+          },
           "id" : {
             "type" : "string"
           },
           "joinedAt" : {
             "format" : "date-time",
             "type" : "string"
+          },
+          "memberFirstName" : {
+            "description" : "The owner's first name: «{guia}» of D12's «En espera: {guia} + {gos}» when handlerName is null (S10 R-10-00)",
+            "type" : [ "string", "null" ]
           },
           "memberId" : {
             "type" : "string"
@@ -23423,7 +23489,7 @@
     },
     "/api/v1/auth/magic-link" : {
       "post" : {
-        "description" : "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. Shares the configured authentication IP quota with /oauth2/token.",
+        "description" : "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. The mailed N-25 link is https://{client host}/activacio?t=… (club clients) or https://{ID host}/magic-link?t=… (the ID); with purpose RESET it ends with &purpose=reset (screen 02: «Ja hi ets»), a LOGIN link carries no purpose. Shares the configured authentication IP quota with /oauth2/token.",
         "operationId" : "magicLink",
         "requestBody" : {
           "content" : {
@@ -23566,7 +23632,7 @@
     },
     "/api/v1/bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Without fields every item property is sent; with fields an item has id and the requested keys only. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12: each row carries its class's display description in the reader's language, its ring and the ring's colour. Without fields every item property is sent; with fields an item has id and the requested keys only. The list has no free-text search: q is INVALID_FILTER. Tenant comes from the JWT.",
         "operationId" : "bookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -23786,7 +23852,7 @@
           "key" : "late"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late" ],
+        "x-fields" : [ "id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late", "classDescription", "ringId", "ringName", "ringColor" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
         "x-sortable" : [ "classStartsAt", "bookedAt" ]
@@ -23947,6 +24013,177 @@
         },
         "summary" : "confirmBooking",
         "tags" : [ "clubs.bookings" ]
+      }
+    },
+    "/api/v1/bookings/filter-values" : {
+      "get" : {
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for D10/D12's universal filter: the top 50 values of field (one of GET /bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the dog's name, the member's name, the class's start and description; any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.",
+        "operationId" : "bookingFilterValues",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "field",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER",
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's filters (field:op:value, repeated); only x-filterable fields",
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FilterValues"
+                }
+              }
+            },
+            "description" : "FilterValues"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "bookingFilterValues",
+        "tags" : [ "clubs.bookings" ],
+        "x-columns" : [ ],
+        "x-exportable" : false,
+        "x-filter-operators" : { },
+        "x-filterable" : [ "id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt" ],
+        "x-sortable" : [ ]
       }
     },
     "/api/v1/bookings/{id}" : {
@@ -54144,7 +54381,7 @@
     },
     "/api/v1/ring-blocks" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. Each row carries its ring's name and colour, a deactivated ring's included. The list has no free-text search: q is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.",
         "operationId" : "blocks",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -54340,7 +54577,7 @@
         "tags" : [ "clubs.scheduling" ],
         "x-columns" : [ ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "ringId", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName" ],
+        "x-fields" : [ "id", "ringId", "ringName", "ringColor", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "ringId", "kind", "reason", "state", "from", "to" ],
         "x-sortable" : [ "from" ]
@@ -54500,6 +54737,177 @@
         },
         "summary" : "createBlock",
         "tags" : [ "clubs.scheduling" ]
+      }
+    },
+    "/api/v1/ring-blocks/filter-values" : {
+      "get" : {
+        "description" : "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for the register's universal filter (/entrenaments): the top 50 values of field (one of GET /ring-blocks' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's name (a deactivated ring's included); any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.",
+        "operationId" : "blockFilterValues",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "field",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER",
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's filters (field:op:value, repeated); only x-filterable fields",
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FilterValues"
+                }
+              }
+            },
+            "description" : "FilterValues"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "blockFilterValues",
+        "tags" : [ "clubs.scheduling" ],
+        "x-columns" : [ ],
+        "x-exportable" : false,
+        "x-filter-operators" : { },
+        "x-filterable" : [ "id", "ringId", "kind", "reason", "state", "from", "to" ],
+        "x-sortable" : [ ]
       }
     },
     "/api/v1/ring-blocks/{id}" : {
@@ -59127,7 +59535,7 @@
     },
     "/api/v1/training-bookings" : {
       "get" : {
-        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER, and so is q (no free-text search). Each row carries its slot's end (endsAt, endsAtLocal) and the member's number (null without one). Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
         "operationId" : "trainingBookings",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -59347,7 +59755,7 @@
           "key" : "createdAt"
         } ],
         "x-exportable" : true,
-        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt" ],
+        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
@@ -59763,10 +60171,181 @@
           "key" : "createdAt"
         } ],
         "x-exportable" : false,
-        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt" ],
+        "x-fields" : [ "id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName", "state", "origin", "createdAt" ],
         "x-filter-operators" : { },
         "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
         "x-sortable" : [ "startsAt" ]
+      }
+    },
+    "/api/v1/training-bookings/filter-values" : {
+      "get" : {
+        "description" : "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. CONVENCIONS_API §4 for the register's universal filter (listKey training-bookings): the top 50 values of field (one of GET /training-bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's, the member's and the dog's names; any other field its value. q is INVALID_FILTER (the list has no free-text search). Requires FREE_TRAINING. Tenant comes from the JWT.",
+        "operationId" : "trainingBookingFilterValues",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "field",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER",
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "The list's filters (field:op:value, repeated); only x-filterable fields",
+          "in" : "query",
+          "name" : "filter",
+          "required" : false,
+          "schema" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FilterValues"
+                }
+              }
+            },
+            "description" : "FilterValues"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "VALIDATION_ERROR, INVALID_FILTER"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "IMPERSONATION_DENIED"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "MODULE_DISABLED"
+          },
+          "409" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Conflict"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Unprocessable Entity"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Too Many Requests",
+            "headers" : {
+              "Retry-After" : {
+                "description" : "Seconds before retrying",
+                "schema" : {
+                  "format" : "int32",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "4XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Client error"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Internal Server Error"
+          },
+          "501" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Not Implemented"
+          },
+          "5XX" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Server error"
+          }
+        },
+        "summary" : "trainingBookingFilterValues",
+        "tags" : [ "clubs.training" ],
+        "x-columns" : [ ],
+        "x-exportable" : false,
+        "x-filter-operators" : { },
+        "x-filterable" : [ "id", "date", "ringId", "memberId", "dogId", "state", "origin" ],
+        "x-sortable" : [ ]
       }
     },
     "/api/v1/training-bookings/{id}" : {

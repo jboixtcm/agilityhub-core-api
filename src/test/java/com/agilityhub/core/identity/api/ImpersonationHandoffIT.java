@@ -162,6 +162,29 @@ class ImpersonationHandoffIT extends IdentityIntegrationSupport {
      * is a one-shot handoff code of 60 s bound to the grant; the club app redeems it once with the handoff grant into the grant's
      * impersonation JWT (no refresh token, no cookie). The JWT itself never travels in the URL.
      */
+    /**
+     * E5-T29 step 14 (web E4-W16 question 5, ruling E73): during an impersonation `/me`'s `impersonation` also names the member the
+     * admin opened, as D10 shows it (first name and last names), for the banner «Estàs veient l'app com {nom}»; the account's
+     * own name differs (in a family group the account is another person's). Outside an impersonation there is no such object.
+     */
+    @Test void T_01_11_meNamesTheImpersonatedMemberNotTheAccount() throws Exception {
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("member-target")), new Update().set("firstName", "Joan Antoni").set("lastName1", "Serra")
+                .set("lastName2", "Pujol"), "members");
+        String imp = "Bearer " + impersonate(bearer(login())).path("token").asText();
+        var me = mapper.readTree(mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", imp)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        assertThat(me.at("/account/name").asText()).isEqualTo("Example Member");
+        assertThat(me.at("/impersonation/actorName").asText()).isEqualTo("Example Admin");
+        assertThat(me.at("/impersonation/memberName").asText()).isEqualTo("Joan Antoni Serra Pujol");
+        com.agilityhub.core.support.SnapshotSchemas.assertConforms(me.path("impersonation"), "Impersonation");
+        // Without a second last name, and outside an impersonation.
+        mongo.updateFirst(Query.query(Criteria.where("_id").is("member-target")), new Update().unset("lastName2"), "members");
+        mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", imp)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.impersonation.memberName").value("Joan Antoni Serra"));
+        mvc.perform(get("/api/v1/me").header("Host", HOST).header("Authorization", bearer(login()))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.impersonation").doesNotExist());
+    }
+
     @Test void T_01_11_launchUrlCarriesAOneShotHandoffCodeThatTheClubAppRedeemsOnceIntoTheImpersonationSession() throws Exception {
         String admin = bearer(login());
         var issued = impersonate(admin);

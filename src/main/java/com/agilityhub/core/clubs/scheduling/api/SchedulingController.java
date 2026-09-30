@@ -297,12 +297,27 @@ public class SchedulingController {
     @GetMapping("/api/v1/ring-blocks")
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR','MEMBER')")
     @ListContract(filterable = {"id", "ringId", "kind", "reason", "state", "from", "to"}, sortable = {"from"}, paged = true,
-            fields = {"id", "ringId", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version", "note", "createdByName"})
+            fields = {"id", "ringId", "ringName", "ringColor", "from", "to", "date", "fromLocal", "toLocal", "kind", "reason", "activityId", "activityTitle", "state", "version",
+                    "note", "createdByName"})
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED})
-    @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlockListItem>", useReturnTypeSchema = true))
+    @Operation(summary = "blocks", description = "Roles: ADMIN, INSTRUCTOR, MEMBER. Tenant and role guards apply. MEMBER rows leave out note and createdByName (as RingBlockMemberView), and asking for them in fields is INVALID_FILTER. Each row carries its ring's name and colour, a deactivated ring's included. The list has no free-text search: q is INVALID_FILTER. With fields an item has id and the requested keys only (CONVENCIONS_API §4). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ListPage<RingBlockListItem>", useReturnTypeSchema = true))
     public ListPage<RingBlockListItem> blocks(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
         access.tenant();
         return (ListPage) schedulingLists.list(lists, "ring-blocks", params);
+    }
+
+    @GetMapping("/api/v1/ring-blocks/filter-values")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    // CONVENCIONS_API §4 (E5-T24): filter-values takes no `fields`.
+    @ListContract(filterable = {"id", "ringId", "kind", "reason", "state", "from", "to"}, sortable = {}, columns = {}, paged = false, exportable = false, acceptsFields = false)
+    @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
+    @Operation(summary = "blockFilterValues", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for the register's universal filter (/entrenaments): the top 50 values of field (one of GET /ring-blocks' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's name (a deactivated ring's included); any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
+    public com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues blockFilterValues(@RequestParam String field,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER") @RequestParam(required = false) String q,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's filters (field:op:value, repeated); only x-filterable fields") @RequestParam(required = false) java.util.List<String> filter,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String,String> params) {
+        access.tenant();
+        return schedulingLists.blockFilterValues(lists, field, params);
     }
 
     @GetMapping("/api/v1/ring-blocks/{id}")

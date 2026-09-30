@@ -51,6 +51,10 @@ public final class BookingWeeks {
     }
     /** A week opens for booking one week before it starts, at the local opening occurrence: `start(W) − 7 days`. */
     public Instant opensAt(Week week) { return occurrence(LocalDate.parse(week.key()).minusWeeks(1)); }
-    /** Start of the booking week after the class's week (`nextBookableAt` of BOOKING_LIMIT_REACHED). */
-    public Instant nextBookableAt(Instant classStartsAt) { return week(classStartsAt).end(); }
+    /**
+     * `nextBookableAt` of BOOKING_LIMIT_REACHED (S08 §6, §2 row 29 amended 26-09; E5-T29): the start of the next booking week,
+     * the end of the week of {@code now}, for a CURRENT class and for a NEXT one alike. At that instant the NEXT week becomes
+     * the current one, so screen 29's «Podràs reservar aquesta classe a partir de…» holds; never the end of the class's own week.
+     */
+    public Instant nextBookableAt(Instant now) { return week(now).end(); }
 }

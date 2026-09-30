@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E5-T29: the contract gaps of the E5 back office found by the web's E5-W01…E5-W04 (details in `docs/openapi/CHANGELOG.md`).
+  - `GET /class-sessions/{id}/bookings` rows carry `displayState` (as `GET /bookings/{id}` derives it: DONE, NO_SHOW…) and
+    the dog's `levelCode` (null with `levels.enabled = false` or without a level).
+  - `WaitlistEntry` carries `memberFirstName` and the dog's `handlerName` (S10 R-10-00, «En espera: {guia} + {gos}»).
+  - `GET /bookings` rows carry `classDescription`, `ringId`, `ringName` and `ringColor`; `GET /training-bookings` rows
+    `endsAt`, `endsAtLocal` and `memberNumber`; `GET /ring-blocks` rows `ringName` and `ringColor` (a deactivated ring's
+    included). Each is in its list's `x-fields`.
+  - `GET /bookings/filter-values`, `GET /training-bookings/filter-values` and `GET /ring-blocks/filter-values`
+    (CONVENCIONS_API §4), counted over the whole filtered set, with the names of dogs, members, rings and classes as labels.
+  - `Booking.classSession.ringColor` (07's dot); `OwnerSummary.firstName` on `GET /dogs` and the dog's detail; `/me`'s
+    `impersonation.memberName` (the member the admin opened, ruling E73).
+  - The N-25 link of a RESET magic link ends with `&purpose=reset` (S01 R-01-04 amended 28-09, ruling E70).
+  - `bin/e5-smoke` checks these fields on the Cànic's seed, P9 through `POST /jobs/cleanup/trigger` with an
+    `Idempotency-Key`, and `nextBookableAt` of a NEXT class.
+
 - E7-T02: the S11 notification engine (WP-11-B). Every notice of the product now comes from one engine over the
   `NotificationCatalog`.
   - `NotificationEventHandler`: one outbox consumer per consumed event type, durable bean names `notifications.<EventType>`.
@@ -703,6 +718,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T29: one S08 value, P9 from the api, and the demo seed.
+  - `BOOKING_LIMIT_REACHED.details.nextBookableAt` is the start of the next booking week, `week(now).end()`, for a NEXT class
+    as for a CURRENT one (S08 §2 row 29 amended 26-09); it was the end of the class's own week, a week too late for a NEXT
+    class. Seat hold, confirmation and waiting list alike.
+  - `POST /jobs/{name}/trigger` with an `Idempotency-Key` (the web sends one on every POST) ran the process inside the
+    request's transaction: P9's plan failed with `ClientSessionException` (`listCollections` in a transaction). Manual and
+    platform triggers now run outside any caller's transaction (`JobAdminService`, `@Transactional(NOT_SUPPORTED)`), and
+    `JobRunner` suspends a caller's transaction on the manual and scheduled paths; the JOB_TRIGGERED entry reads the
+    committed run, as without a key.
+  - `q` on a universal list without free-text search (`/bookings`, `/ring-blocks`, `/training-bookings`, `/class-sessions`,
+    `/weeks`, `/attendances`, `/followup`, `/jobs/{name}/runs`, their `filter-values`) is `400 INVALID_FILTER`; the engine
+    sent Mongo an empty `$or` and answered 500.
+  - `seed:demo` retries a transaction that fails with a `TransientTransactionError` (or a write conflict) up to 3 attempts
+    with the shared 50–150 ms backoff, instead of failing the command.
+  - `seed:demo --reanchor` without `--week-start` anchors on the later of the Monday of the current week and the recorded
+    `weekStart`, so it never moves back (E6-T04 round-2 review #1, ruling E70): a plain run on a Wednesday anchors on the
+    next Monday, and a `--reanchor` the same week changes nothing.
 - E5-T28: corrections pulled forward by the global audit of 26-09 (census, signup, scheduling, seeds).
   - SEPA → SEPA `PATCH /members/{id}/payment-method` is partial (INC-17, ruling E42): the account (`iban`, or a migrated
     member's `ibanEncrypted` + `ibanLast4`), the holder and the holder tax id the request does not send are kept, with the

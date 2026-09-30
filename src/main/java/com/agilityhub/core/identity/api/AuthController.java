@@ -31,6 +31,8 @@ public class AuthController {
     @SecurityRequirements
     @Operation(summary = "Request a login or password-reset magic link",
             description = "ANON. R-01-04: neutral 202 whether the account/membership exists or not; no email enumeration. "
+                    + "The mailed N-25 link is https://{client host}/activacio?t=… (club clients) or https://{ID host}/magic-link?t=… (the ID); "
+                    + "with purpose RESET it ends with &purpose=reset (screen 02: «Ja hi ets»), a LOGIN link carries no purpose. "
                     + "Shares the configured authentication IP quota with /oauth2/token.",
             responses = {@ApiResponse(responseCode = "202", description = "Request accepted", content = @Content),
                     @ApiResponse(responseCode = "429", description = "RATE_LIMITED; Retry-After in seconds")})

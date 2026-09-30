@@ -54,10 +54,12 @@ public class MeController {
         var gender = details.gender() == null ? null : MeResponse.Gender.valueOf(details.gender());
         var current = com.agilityhub.core.shared.application.CurrentUser.current();
         if (current != null && current.impersonation() != null) {
+            // E5-T29 (ruling E73): the banner names the member the admin opened, never the account.
+            String memberName = census.displayName(current.impersonation().memberId()).or(() -> census.displayName(membership.memberId())).orElse(account.name());
             return new MeResponse(new MeResponse.MeAccount(account.id(), account.email(), account.name(), account.locale(), java.util.Set.of(),
                     account.passwordHash() != null, account.emailVerifiedAt(), account.onboardingPending()),
                     new MeResponse.MembershipSummary(membership.clubId(), java.util.Set.of(Profile.MEMBER), Profile.MEMBER, List.of(Profile.MEMBER),
-                            membership.memberId(), null, null, false, gender, details.lastDogForClass(), details.lastDogForTraining()), new MeResponse.Impersonation(current.impersonation().actorName()),
+                            membership.memberId(), null, null, false, gender, details.lastDogForClass(), details.lastDogForTraining()), new MeResponse.Impersonation(current.impersonation().actorName(), memberName),
                     clubs.get(TenantContext.require()).modules().stream().map(Enum::name).sorted().toList());
         }
         var profiles = membership.roles().stream().map(role -> Profile.valueOf(role.name())).sorted().toList();

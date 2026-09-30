@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v1.9 · 30-09-2026** (v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v2.0 · 30-09-2026** (v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -24,16 +24,16 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-12 | 26-09 | api · proves | Detalls de la revisió d'E5-T22: còpies d'ítems de llista fetes a mà, l'ítem de `/platform/audit-entries` | Baixa | oberta — passada de correccions |
 | INC-13 | 26-09 | api · definició de club | Revisió d'E5-T23: les instruccions d'`MANUAL` en blanc passen la validació, la regla R-17-05 només es comprova quan la definició les declara, noms i abast de dos tests | Baixa | oberta — passada de correccions |
 | INC-14 | 26-09 | api · fitxers | Revisió d'E5-T24: la ruta signada es reconeix pel camí cru, P9 no neteja els fitxers `DOG_DOCUMENT` orfes de l'ADMIN, el test de T-05-07 no la cobreix sencera | Baixa | oberta — passada de correccions |
-| INC-15 | 26-09 | api · web (autenticació) | «Entra com l'abonat»: `launchUrl` sempre `null` (E17); el web obre l'origen de l'admin amb el JWT al fragment, i `apps/clubs` no té cap consumidor de `/entrar?handoff=` | **Alta** | **meitat web resolta 30-09 (E4-W16 ✅, provada al core real)**; la de l'api, E5-T27 pas 2 (ronda 3) |
-| INC-16 | 26-09 | api (autenticació) | Els comptes amb dos rols (abonat i instructor o admin) reben `403` a totes les rutes d'abonat; `E5ContractIT` ho fixa | **Alta** | oberta — E5-T27 pas 1 (E41) |
+| INC-15 | 26-09 | api · web (autenticació) | «Entra com l'abonat»: `launchUrl` sempre `null` (E17); el web obre l'origen de l'admin amb el JWT al fragment, i `apps/clubs` no té cap consumidor de `/entrar?handoff=` | **Alta** | **resolta 30-09**: web E4-W16 ✅ i api E5-T27 ✅ (`launchUrl`); l'escenari del core real d'E4-W18 la prova sense branques «pendent» |
+| INC-16 | 26-09 | api (autenticació) | Els comptes amb dos rols (abonat i instructor o admin) reben `403` a totes les rutes d'abonat; `E5ContractIT` ho fixa | **Alta** | **resolta 30-09 (E5-T27 ✅, pas 1, E41)** |
 | INC-17 | 26-09 | api (cens) | El `PATCH` SEPA→SEPA del mètode de pagament esborra l'IBAN desat quan no s'envia; T-03-13 ho fixa | **Alta** | oberta — E5-T28 pas 1 (E42) |
 | INC-18 | 26-09 | web (autenticació) | Una sessió impersonada es renova en tornar a la pestanya amb un token que no es pot renovar: cau, o passa a ser la sessió d'abonat de l'admin | **Alta** | **resolta 30-09 (E4-W16 ✅)** |
 | INC-19 | 26-09 | web (autenticació) | Una fallada transitòria de la renovació (sense xarxa, 5xx) tanca la sessió de l'abonat; la cookie es renova a cada focus | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
 | INC-20 | 26-09 | web (build) | El món de mocks (MSW) va dins dels bundles de producció i a la precàrrega del service worker | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
 | INC-21 | 26-09 | web · api (exportacions) | Les exportacions en cua (`202`) no es poden baixar des del calaix: la llista no porta l'enllaç i un `<a href>` no pot enviar el bearer | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
 | INC-22 | 26-09 | web | El diàleg «＋ DOC.» queda desactivat després de la primera pujada | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
-| INC-23 | 26-09 | api · web (contracte) | `Idempotency-Key` s'ignora a les rutes PUT i DELETE que el declaren (el filtre de l'api i el middleware del web només miren POST) | Mitjana | **meitat web resolta 30-09 (E6-W01 ✅)**; la de l'api, E5-T27 pas 4 (ronda 3) |
-| INC-24 | 26-09 | api · web (autenticació) | La recuperació de contrasenya no es pot acabar si el compte ja en té: es demana `current` després d'un enllaç `RESET` | Mitjana | **meitat web resolta 30-09 (E4-W16 ✅)**; la de l'api, E5-T27 pas 3 (ronda 3), i el `purpose` de l'enllaç, E5-T29 pas 10 |
+| INC-23 | 26-09 | api · web (contracte) | `Idempotency-Key` s'ignora a les rutes PUT i DELETE que el declaren (el filtre de l'api i el middleware del web només miren POST) | Mitjana | **resolta 30-09**: web E6-W01 ✅ i api E5-T27 ✅ (pas 4) |
+| INC-24 | 26-09 | api · web (autenticació) | La recuperació de contrasenya no es pot acabar si el compte ja en té: es demana `current` després d'un enllaç `RESET` | Mitjana | **web i api resoltes 30-09** (E4-W16 ✅, E5-T27 ✅ pas 3); queda el `purpose` de l'enllaç, api E5-T29 pas 10 i web E5-W05 pas 21 |
 | INC-25 | 26-09 | api (catàleg) | El valor per defecte de `messaging.email.fromName` és el literal «Club Agility Cànic» (marca blanca) | Mitjana | oberta — E5-T28 pas 2 (E48) |
 | INC-26 | 26-09 | web | La pantalla 13 mostra un comptador en lloc de les files de tasques (R-03-18) | Mitjana | **resolta 30-09 (E4-W16 ✅)** |
 | INC-27 | 26-09 | web | D10 sense `BILLING` perd «Bloqueja les reserves», «Inactivitat», «Baixa» i «Tota l'auditoria ›» (R-03-30) | Mitjana | **resolta 30-09 (E4-W16 ✅)** |

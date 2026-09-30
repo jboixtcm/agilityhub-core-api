@@ -42,6 +42,7 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
     @Autowired EventPublisher events;
     @Autowired OutboxDispatcher dispatcher;
     @MockitoBean CompromisedPasswords compromised;
+    @org.springframework.beans.factory.annotation.Value("${identity.issuer}") String issuer;
 
     String bearer(JsonNode token) { return "Bearer " + token.path("access_token").asText(); }
     String linkToken() throws Exception {
@@ -132,6 +133,33 @@ class IdentityCoreIT extends IdentityIntegrationSupport {
         assertThat(mongo.findAll(MagicLinkToken.class).stream().filter(t -> t.purpose() == MagicLinkToken.Purpose.WELCOME || t.purpose() == MagicLinkToken.Purpose.ACCESS_RESEND))
                 .allMatch(t -> t.expiresAt().equals(t.createdAt().plus(Duration.ofDays(7))));
         assertThat(mongo.getCollection("notifications").find(new org.bson.Document("code", "N-27")).first()).isNotNull();
+    }
+
+    /** The link of the last mail to {@code email} (N-25 renders it in the text body). */
+    String mailedLink(String email) throws Exception {
+        awaitMail();
+        var matcher = Pattern.compile("https://[^\\s\"<>)]+").matcher(((FakeEmailSender) emailSender).lastTo(email).text());
+        assertThat(matcher.find()).isTrue();
+        return matcher.group();
+    }
+    /**
+     * E5-T29 step 10 (S01 R-01-04 amended 28-09, ruling E70; web E4-W16 question 1): the N-25 link of a RESET magic link ends with
+     * `&purpose=reset`, for a club client (`/activacio`) and for the ID (`/magic-link`), so screen 02 titles «Ja hi ets»; a LOGIN
+     * link carries no `purpose`. The token is still the `t` value the exchange takes.
+     */
+    @Test void T_01_03_R_01_04_aResetLinkCarriesItsPurposeAndALoginLinkNone() throws Exception {
+        createMagic(MagicLinkToken.Purpose.RESET);
+        String reset = mailedLink("admin@example.test");
+        assertThat(reset).matches("https://" + Pattern.quote(HOST) + "/activacio\\?t=[A-Za-z0-9_-]{43}&purpose=reset");
+        createMagic(MagicLinkToken.Purpose.LOGIN);
+        assertThat(mailedLink("admin@example.test")).matches("https://" + Pattern.quote(HOST) + "/activacio\\?t=[A-Za-z0-9_-]{43}").doesNotContain("purpose");
+        magic(reset.substring(reset.indexOf("t=") + 2, reset.indexOf('&')), "clubs-app", HOST).andExpect(status().isOk());
+        // The ID: no club, the issuer's host and the `id-web` client.
+        String id = java.net.URI.create(issuer).getHost();
+        magicLinks.createAndSend("admin@example.test", MagicLinkToken.Purpose.RESET, "id-web", null, id, null, null);
+        assertThat(mailedLink("admin@example.test")).matches("https://" + Pattern.quote(id) + "/magic-link\\?t=[A-Za-z0-9_-]{43}&purpose=reset");
+        magicLinks.createAndSend("admin@example.test", MagicLinkToken.Purpose.LOGIN, "id-web", null, id, null, null);
+        assertThat(mailedLink("admin@example.test")).matches("https://" + Pattern.quote(id) + "/magic-link\\?t=[A-Za-z0-9_-]{43}");
     }
 
     @Test void T_01_08_unknownClientsUnsafeRedirectsBlockedAccountsAndAbsentMembershipNeverSend() {

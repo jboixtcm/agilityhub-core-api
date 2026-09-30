@@ -48,6 +48,13 @@ public class JobRunner {
     private final JobLockRepository locks;
     private final ClubConfigService configs;
     private final TransactionTemplate transactions;
+    /**
+     * E5-T29 (web E5-W04 question 1): an execution never joins its caller's transaction. A keyed `POST /jobs/{name}/trigger` runs
+     * inside the request's (`IdempotencyFilter`), where P9's plan cannot list collections (`ClientSessionException`) and the
+     * per-item transactions would all be one. `JobAdminService` already runs the trigger and its audit entry outside it; this
+     * suspends the transaction of any other caller, and the caller's transaction resumes afterwards.
+     */
+    private final TransactionTemplate outside;
     private final EventPublisher events;
     private final Clock clock;
     private final JobMetrics metrics;
@@ -58,6 +65,8 @@ public class JobRunner {
             EventPublisher events, Clock clock, JobMetrics metrics, ObjectProvider<Job> jobs) {
         this.runs = runs; this.locks = locks; this.configs = configs; this.transactions = transactions;
         this.events = events; this.clock = clock; this.metrics = metrics; this.jobs = jobs;
+        this.outside = new TransactionTemplate(java.util.Objects.requireNonNull(transactions.getTransactionManager()));
+        this.outside.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
 
     private record Request(String clubId, Job job, JobDefinition definition, ClubConfig config, ZoneId zone, Instant scheduledFor,
@@ -79,6 +88,9 @@ public class JobRunner {
 
     /** One tick decision for one club and one job (R-15-01/02/03/05/06). Empty = NOT_DUE or claimed elsewhere. */
     public Optional<JobRun> scheduled(String clubId, boolean clubActive, Job job, Instant now) {
+        return outside.execute(status -> tick(clubId, clubActive, job, now));
+    }
+    private Optional<JobRun> tick(String clubId, boolean clubActive, Job job, Instant now) {
         try (var scope = TenantContext.open(clubId)) {
             var definition = job.definition();
             var config = configs.get(clubId);
@@ -101,8 +113,11 @@ public class JobRunner {
         }
     }
 
-    /** R-15-09: same lock and code; runs even when the switch is off; a module that is off is 404. */
+    /** R-15-09: same lock and code; runs even when the switch is off; a module that is off is 404. Never in the caller's transaction. */
     public JobRun manual(String clubId, JobName name, boolean dryRun, String actorAccountId) {
+        return outside.execute(status -> triggered(clubId, name, dryRun, actorAccountId));
+    }
+    private JobRun triggered(String clubId, JobName name, boolean dryRun, String actorAccountId) {
         try (var scope = TenantContext.open(clubId)) {
             var job = registered(name).orElseThrow(() -> new ApiException(ErrorCode.JOB_UNKNOWN));
             var config = configs.get(clubId);

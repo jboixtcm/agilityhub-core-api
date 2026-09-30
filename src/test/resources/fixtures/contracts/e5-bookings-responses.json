@@ -45,7 +45,7 @@
   },
   "Booking": {
     "id": "b9", "state": "ACTIVE", "origin": "APP", "classSessionId": "c4", "dogId": "d1", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1",
-    "classSession": {"startsAtLocal": "2026-10-10T09:00", "endsAtLocal": "2026-10-10T10:00", "description": "C", "ringName": "Muntanya", "instructorVisibleAt": "2026-10-09T07:00:00Z"},
+    "classSession": {"startsAtLocal": "2026-10-10T09:00", "endsAtLocal": "2026-10-10T10:00", "description": "C", "ringName": "Muntanya", "ringColor": "#F2B58C", "instructorVisibleAt": "2026-10-09T07:00:00Z"},
     "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false, "self": true},
     "lateCancelThresholdMinutes": 240, "cancellableInTimeUntil": "2026-10-10T03:00:00Z",
     "swapFromBookingId": "b2", "pack": {"available": 3, "expiresOn": "2026-11-12"},
@@ -53,7 +53,7 @@
   },
   "Booking#cancelled": {
     "id": "b2", "state": "CANCELLED_LATE", "origin": "APP", "classSessionId": "c7", "dogId": "d1", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1",
-    "classSession": {"startsAtLocal": "2026-10-15T18:50", "endsAtLocal": "2026-10-15T19:50", "description": "B+C", "ringName": "Central", "instructorName": "Estel", "instructorVisibleAt": "2026-10-14T16:50:00Z"},
+    "classSession": {"startsAtLocal": "2026-10-15T18:50", "endsAtLocal": "2026-10-15T19:50", "description": "B+C", "ringName": "Central", "ringColor": "#8FCE8F", "instructorName": "Estel", "instructorVisibleAt": "2026-10-14T16:50:00Z"},
     "bookedAt": "2026-10-08T14:00:12Z", "bookedBy": {"displayName": "Laura", "viaClub": false, "self": true},
     "lateCancelThresholdMinutes": 240, "cancellableInTimeUntil": "2026-10-15T12:50:00Z",
     "calendarLinks": {"google": "https://calendar.google.com/calendar/render?action=TEMPLATE", "outlook": "https://outlook.live.com/calendar/0/deeplink/compose", "ics": "https://core.example.test/api/v1/bookings/b2/calendar.ics?token=example-token"},
@@ -61,8 +61,8 @@
     "displayState": "CANCELLED_LATE"
   },
   "WaitlistEntry": {
-    "id": "w1", "state": "NOTIFIED", "classSessionId": "c2", "dogId": "d1", "dogName": "Duna", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1", "position": 1, "joinedAt": "2026-10-06T09:00:00Z",
-    "classSession": {"startsAtLocal": "2026-10-08T20:00", "endsAtLocal": "2026-10-08T21:00", "description": "C+D", "ringName": "Carretera"},
+    "id": "w1", "state": "NOTIFIED", "classSessionId": "c2", "dogId": "d1", "dogName": "Duna", "dog": {"id": "d1", "name": "Duna", "sex": "FEMALE"}, "memberId": "m1", "memberFirstName": "Laura", "handlerName": "Marc", "position": 1, "joinedAt": "2026-10-06T09:00:00Z",
+    "classSession": {"startsAtLocal": "2026-10-08T20:00", "endsAtLocal": "2026-10-08T21:00", "description": "C+D", "ringName": "Carretera", "ringColor": "#9FC5E8"},
     "notifiedAt": "2026-10-08T13:00:00Z", "confirmBy": "2026-10-08T13:30:00Z"
   },
   "BookingLimitReachedDetails": {

@@ -154,9 +154,10 @@ public class TrainingController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ListContract(filterable = {"id", "date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},
             columns = {"date*", "startsAtLocal*", "ringName*", "memberName*", "dogName*", "state*", "origin", "createdAt"}, paged = true, exportable = true,
-            fields = {"id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt"})
+            fields = {"id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName",
+                    "state", "origin", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
-    @Operation(summary = "trainingBookings", description = "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER. Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
+    @Operation(summary = "trainingBookings", description = "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. Ring usage register, universal list (CONVENCIONS_API §4), listKey training-bookings; an undeclared filter is INVALID_FILTER, and so is q (no free-text search). Each row carries its slot's end (endsAt, endsAtLocal) and the member's number (null without one). Without fields every item property is sent; with fields an item has id and the requested keys only. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<TrainingBookingListItem>", useReturnTypeSchema = true))
     public ListPage<TrainingBookingListItem> trainingBookings(
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
@@ -167,11 +168,28 @@ public class TrainingController {
                 page.page(), page.size(), page.totalItems(), page.totalPages(), page.appliedFilters()), params, "id");
     }
 
+    @GetMapping("/api/v1/training-bookings/filter-values")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    // CONVENCIONS_API §4 (E5-T24): filter-values takes no `fields`.
+    @ListContract(filterable = {"id", "date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {}, columns = {}, paged = false, exportable = false,
+            acceptsFields = false)
+    @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED})
+    @Operation(summary = "trainingBookingFilterValues", description = "Roles: ADMIN, INSTRUCTOR (read); MEMBER → 403; impersonation → IMPERSONATION_DENIED. CONVENCIONS_API §4 for the register's universal filter (listKey training-bookings): the top 50 values of field (one of GET /training-bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the ring's, the member's and the dog's names; any other field its value. q is INVALID_FILTER (the list has no free-text search). Requires FREE_TRAINING. Tenant comes from the JWT.",
+            responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
+    public com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues trainingBookingFilterValues(@RequestParam String field,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER") @RequestParam(required = false) String q,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's filters (field:op:value, repeated); only x-filterable fields") @RequestParam(required = false) java.util.List<String> filter,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        access.tenant();
+        return queries.filterValues(lists, field, params);
+    }
+
     @GetMapping("/api/v1/training-bookings/export")
     @PreAuthorize("hasRole('ADMIN')")
     @ListContract(filterable = {"id", "date", "ringId", "memberId", "dogId", "state", "origin"}, sortable = {"startsAt"},
             columns = {"date*", "startsAtLocal*", "ringName*", "memberName*", "dogName*", "state*", "origin", "createdAt"}, paged = true, exportable = false,
-            fields = {"id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt"})
+            fields = {"id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName", "memberNumber", "dogId", "dogName",
+                    "state", "origin", "createdAt"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, MODULE_DISABLED, IMPERSONATION_DENIED, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "exportTrainingBookings", description = "Roles: ADMIN (S14 R-14-12: list exports are ADMIN only; INSTRUCTOR → 403). Same q/filter/sort and selected columns as GET /training-bookings (listKey training-bookings); 200 file or 202 ExportAccepted. Requires FREE_TRAINING. Tenant comes from the JWT.",
             responses = {@ApiResponse(responseCode = "200", description = "Export file", content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),

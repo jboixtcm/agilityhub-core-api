@@ -1,0 +1,18 @@
+surefire (unit): tests=849 failures=0 errors=0 skipped=0 (159 classes)
+  BookingQueryServiceTest: tests=1 failures=0 errors=0 skipped=0
+  BookingRulesTest: tests=16 failures=0 errors=0 skipped=0
+  ListQueryTest: tests=36 failures=0 errors=0 skipped=0
+  E5ResponseContractTest: tests=4 failures=0 errors=0 skipped=0
+  E5BackOfficeContractTest: tests=4 failures=0 errors=0 skipped=0
+failsafe (integration): tests=1211 failures=0 errors=0 skipped=0 (104 classes)
+  BackOfficeContractIT: tests=7 failures=0 errors=0 skipped=0
+  TrainingRegisterContractIT: tests=3 failures=0 errors=0 skipped=0
+  JobsApiIT: tests=6 failures=0 errors=0 skipped=0
+  IdentityCoreIT: tests=28 failures=0 errors=0 skipped=0
+  ImpersonationHandoffIT: tests=10 failures=0 errors=0 skipped=0
+  CensusIT: tests=43 failures=0 errors=0 skipped=0
+  DemoSeedRetryIT: tests=1 failures=0 errors=0 skipped=0
+  DemoPlanningSeedIT: tests=10 failures=0 errors=0 skipped=0
+  E5ContractIT: tests=40 failures=0 errors=0 skipped=0
+  E4ContractIT: tests=64 failures=0 errors=0 skipped=0
+jacoco: target/site/jacoco/index.html present

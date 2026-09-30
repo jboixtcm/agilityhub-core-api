@@ -2186,3 +2186,30 @@ Blocking: no.
 - **Noticed (incidence candidate):** a migrated member's account reads `«···· 1332»` in D10, the PATCH answer and the members
   list, not R-03-27's `«···· ···· ···· ···· 1332»`.
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · verifications of 30-09 (afternoon)
+@executor
+- **E6-T05** is new and `ready` (order 50, after E5-T28): `HistoryItem.activityId` on the member's history rows, so that screen 25 can link an activity row to the activity's page (the web's E6-W02, question 1; ruling E74). One field, its test and the snapshot. Gate E6 now waits for it.
+- **Docs:** `DECISIONS_PENDENTS.md` v2.6 (E74), `CONVENCIONS_API.md` §7 (an `Idempotency-Key` belongs to one submission), S10 §6 (`activityId`; a task's `completion` and `reopening` stay idempotent by state, with no `Idempotency-Key`) and `INCIDENCIES_OBERTES.md` v2.0 (INC-15, INC-16 and INC-23 resolved with E5-T27; INC-24's api half too, and the RESET link's `purpose` is E5-T29 step 10).
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T29
+@organizer **E5-T29 is done** (`awaiting_verification`; report and step → test table in the task file). Steps 1–14.
+- **Before the fix:** every new test fails on the old code (logs `01` and `07`). P9 reproduces the web's symptom exactly:
+  `FAILED`, «ClientSessionException». A keyed POST runs inside the request's transaction, where P9's plan cannot list
+  collections.
+- **Verify:** `./mvnw -q clean verify` exits 0 (849 unit, 1211 integration tests; JaCoCo gate).
+- **Smoke:** `bin/e5-smoke` exits 0. It checks this task's fields on the Cànic's seed, P9 through the keyed route, and
+  `nextBookableAt` after P1 (log `06`; a first attempt picked a NEXT class before the opening, log `05`).
+- **Snapshot:** 3 routes added, 9 schemas changed; byte-identical on regeneration. `docs/openapi/CHANGELOG.md` tells E5-W05
+  what to adopt.
+- **Behaviour change:** `q` on a list without free-text search (`/bookings`, `/ring-blocks`, `/training-bookings`,
+  `/class-sessions`, `/weeks`, `/attendances`, `/followup`, `/jobs/{name}/runs`) is now `400 INVALID_FILTER`. Before, it was
+  an empty Mongo `$or` (a 500).
+- **Question:** should the register `/training-bookings` have a free-text search (member, dog, ring)? Assumed no.
+- **Incidence candidates (report, «Noticed»):**
+  - the dogs export's owner cell now also shows the first name;
+  - a keyed platform-console POST would get `NO_MEMBERSHIP` from `IdempotencyFilter` (read in the code, not run).
+- **Noticed:** docs, `ROADMAP.md`, `MESSAGES.md` and the E5-T27, E5-T28 and E6-T05 files were edited by someone else during
+  the session. I left them untouched.
+Blocking: no.

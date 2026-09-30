@@ -240,6 +240,7 @@ public final class CensusResponses {
     public record OwnerSummary(
             @Schema(requiredMode = REQUIRED, format = "uuid") String id,
             @Schema(requiredMode = REQUIRED) String fullName,
+            @Schema(requiredMode = REQUIRED, description = "Member.firstName, a compound one whole («Joan Antoni»): «{guia}» of «{guia} + {gos}» when the dog has no handlerName (S10 R-10-00, E5-T29)") String firstName,
             @Schema(requiredMode = NOT_REQUIRED) Integer memberNumber,
             @Schema(requiredMode = REQUIRED) MemberStatus status) { }
     public record LevelHistoryEntry(

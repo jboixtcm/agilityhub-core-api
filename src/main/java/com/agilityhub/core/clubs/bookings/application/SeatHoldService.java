@@ -71,7 +71,7 @@ public class SeatHoldService {
         if (waitlistEntryId != null) { offer(waitlistEntryId, classSessionId, dogId, now, full); }
         var limit = checks.limit(subject, now);
         if (limit.done()) {
-            throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(subject.session().startsAt())));
+            throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(now)));
         }
         if (full) {
             if (waitlistEntryId != null) { throw new ApiException(ErrorCode.SEAT_TAKEN); }

@@ -58,7 +58,7 @@ public class WaitlistService {
                     unitEntries, context.integer("waitlist.maxPerDogPerWeek"), context.integer("waitlist.maxPerDogPerWeekIfAttended"), limit));
             if (rejection.isPresent()) {
                 if (rejection.get() == WaitlistRules.Rejection.BOOKING_LIMIT) {
-                    throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(s.startsAt())));
+                    throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(now)));
                 }
                 throw new ApiException(ErrorCode.WAITLIST_LIMIT, Map.of("scope", rejection.get() == WaitlistRules.Rejection.CLASS ? "CLASS" : "DOG_WEEK"));
             }

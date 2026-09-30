@@ -355,8 +355,11 @@ class Smoke:
             require(form["dog"]["id"] == e_dog and form["dog"]["name"] == chip["name"] and form["dog"]["sex"] in ("MALE", "FEMALE"), "Booking.dog mismatch")
             require(form["lateCancelThresholdMinutes"] == 240 and form["cancellableInTimeUntil"] == deadline, "In-time deadline mismatch")
             require(form["bookedBy"]["self"] is True and form["bookedBy"]["viaClub"] is False, "BookedBy.self mismatch")
+            # E5-T29 step 9: 07's dot, the class's ring colour, on every Booking a member reads.
+            require(form["classSession"]["ringColor"] == target["ringColor"] and re.fullmatch("#[0-9A-Fa-f]{6}", form["classSession"]["ringColor"] or ""),
+                    "Booking.classSession.ringColor mismatch")
         self.record("POST /bookings, GET /bookings/{id} (E5-T25)", "201, 200", f"dog {form['dog']['sex']}, lateCancelThresholdMinutes 240, "
-                    f"cancellableInTimeUntil {deadline} (start − 240 min), bookedBy.self true")
+                    f"cancellableInTimeUntil {deadline} (start − 240 min), bookedBy.self true; classSession.ringColor {form['classSession']['ringColor']} (E5-T29)")
         cancelled = self.call("POST", f"/api/v1/bookings/{booking['id']}/cancellation", access=self.m[5], body={})
         require(cancelled["state"] == "CANCELLED" and cancelled["cancellation"]["late"] is False, "In-time cancellation mismatch")
         require(cancelled["dog"]["id"] == e_dog and cancelled["lateCancelThresholdMinutes"] == 240 and cancelled["cancellableInTimeUntil"] == deadline,
@@ -452,6 +455,7 @@ class Smoke:
         wait(lambda: self.notifications("N-47", [self.account_of(tuesday["memberId"])]) > 0, "N-47 missing")
         self.record("POST /ring-blocks over a live training booking", "422 RING_HAS_BOOKINGS → 201 {cancelBookings}",
                     "booking CANCELLED_BY_CLUB + N-47")
+        self.back_office(full, claimed, nine, e_dog)
 
         # P2 risk review on Tuesday 07:30: dry run first, then the scheduler.
         self.set_clock(self.local("TUESDAY", "07:20"), "before P2")
@@ -516,6 +520,16 @@ class Smoke:
         n33 = wait(lambda: self.mongo('db.notifications.countDocuments({clubId:' + json.dumps(self.canic) + ',code:"N-33"})'), "N-33 rows missing")
         self.record("P1 week-opening (scheduler, " + p1["trigger"] + ")", "SUCCEEDED",
                     f"WeekOpened{{openedWeekKey={opened['openedWeekKey']}, notified={opened['notified']}}}; {n33} N-33 rows")
+        self.next_bookable()
+
+        # E5-T29 step 8 (web E5-W04 question 1): P9 from D11's [Executa ara], keyed as the web sends every POST.
+        key = str(uuid.uuid4())
+        p9 = self.call("POST", "/api/v1/jobs/cleanup/trigger", access=self.admin, body=dict(dryRun=False), key=key)
+        require(p9["status"] == "SUCCEEDED" and not p9["errors"] and "ttlPendingSeatHolds" in p9["effects"]["counters"], f"P9 from the route: {p9['status']} {p9['errors']}")
+        again = self.call("POST", "/api/v1/jobs/cleanup/trigger", access=self.admin, body=dict(dryRun=False), key=key, quiet=True)
+        require(again == p9, "The keyed trigger must replay its stored answer")
+        self.record("POST /jobs/cleanup/trigger {dryRun:false} + Idempotency-Key (x2)", "200 SUCCEEDED + identical 200",
+                    "counters " + ", ".join(f"{k}={v}" for k, v in p9["effects"]["counters"].items() if k.startswith("ttlPending") or k.endswith("Deleted")))
 
         # P9 from the CLI (its own clock), and the P6/P7 routes of the CLI on the FIFO club.
         for job, club in (("cleanup", "canic"), ("waitlist-fifo", "fifo"), ("payment-timeouts", "fifo")):
@@ -550,6 +564,92 @@ class Smoke:
         self.record("instructor.3@ [INSTRUCTOR, MEMBER]: hold → book → cancel own dog", "201 · 201 · 200",
                     f"dog {dog['name']} ({dog.get('levelName')}), class {lesson['startsAtLocal']}; byRole MEMBER, cancelReason MEMBER; "
                     "instructor.2@ [INSTRUCTOR] GET /me/home → 403 FORBIDDEN")
+
+    def back_office(self, full, claimed, cancelled_row, e_dog):
+        """E5-T29 on the Cànic's seed, the clock still on Monday of the anchor week: the back office's fields (web E5-W01…E5-W04)."""
+        # Step 1: the registrants of the class whose waiting list was claimed: derived displayState and the dog's level code.
+        rows = self.call("GET", f"/api/v1/class-sessions/{full['id']}/bookings", access=self.admin)["items"]
+        by_id = {r["id"]: r for r in rows}
+        dog_level = self.mongo('db.levels.findOne({_id:db.dogs.findOne({_id:' + json.dumps(claimed["dogId"]) + '}).levelId}).code')
+        require(by_id[claimed["id"]]["displayState"] == "CONFIRMED" and by_id[claimed["id"]]["levelCode"] == dog_level, "Registrant row of the claim mismatch")
+        require(by_id[cancelled_row["id"]]["displayState"] == "CANCELLED", "Registrant row of the cancelled booking mismatch")
+        require(all("levelCode" in r and r["displayState"] in ("CONFIRMED", "DONE", "NO_SHOW", "CANCELLED", "CANCELLED_LATE", "CANCELLED_BY_CLUB", "PAYMENT_PENDING")
+                    for r in rows), "Registrant rows lack displayState/levelCode")
+        self.record("GET /class-sessions/{id}/bookings (E5-T29 step 1)", "200", f"{len(rows)} rows, displayState {sorted({r['displayState'] for r in rows})}, "
+                    f"claimed dog levelCode {dog_level}")
+        # Step 2: the staff waiting list names «{guia} + {gos}».
+        entries = self.call("GET", f"/api/v1/class-sessions/{full['id']}/waitlist-entries", access=self.admin)["items"]
+        first_names = dict(self.mongo('db.members.find({_id:{$in:' + json.dumps([e["memberId"] for e in entries]) + '}}).toArray().map(m=>[m._id,m.firstName])'))
+        require(entries and all(e["memberFirstName"] == first_names[e["memberId"]] and "handlerName" in e for e in entries), "Staff waitlist rows lack the guide")
+        self.record("GET /class-sessions/{id}/waitlist-entries (E5-T29 step 2)", "200", f"{len(entries)} entries with memberFirstName and handlerName "
+                    f"({sum(1 for e in entries if e['handlerName'])} with a handler)")
+        # Step 4 and step 6: D10's rows carry the class's description and ring; filter-values counts the whole filtered set.
+        page = self.call("GET", f"/api/v1/bookings?filter=classSessionId:eq:{full['id']}", access=self.admin)
+        require(page["items"] and all(i["classDescription"] == full["description"] and i["ringName"] == full["ringName"] and i["ringColor"] == full["ringColor"]
+                                      and i["ringId"] for i in page["items"]), "D10 rows lack the class description and ring")
+        states = self.call("GET", f"/api/v1/bookings/filter-values?field=state&filter=classSessionId:eq:{full['id']}", access=self.admin)["values"]
+        require(sum(v["count"] for v in states) == page["totalItems"], "bookings filter-values counts mismatch")
+        self.record("GET /bookings + /bookings/filter-values?field=state (E5-T29 steps 4, 6)", "200 · 200",
+                    f"classDescription «{full['description']}», ring {full['ringName']} {full['ringColor']}; " + ", ".join(f"{v['value']} {v['count']}" for v in states))
+        # Step 3 and step 6: the register's end and member number; ring filter values with the ring names.
+        number = self.mongo('db.members.findOne({_id:db.dogs.findOne({_id:' + json.dumps(e_dog) + '}).memberId}).memberNumber')
+        trainings = self.call("GET", f"/api/v1/training-bookings?filter=dogId:eq:{e_dog}", access=self.admin)
+        require(trainings["items"] and all(re.fullmatch("[0-2][0-9]:[0-5][0-9]", t["endsAtLocal"]) and t["endsAt"] > t["startsAt"] and t["memberNumber"] == number
+                                           for t in trainings["items"]), "Register rows lack the end or the member number")
+        all_trainings = self.call("GET", "/api/v1/training-bookings?size=20", access=self.admin, quiet=True)
+        rings = self.call("GET", "/api/v1/training-bookings/filter-values?field=ringId", access=self.admin)["values"]
+        names = set(self.mongo('db.rings.find({clubId:' + json.dumps(self.canic) + '}).toArray().map(r=>r.name)'))
+        require(sum(v["count"] for v in rings) == all_trainings["totalItems"] and all(v["label"] in names for v in rings), "training filter-values mismatch")
+        self.record("GET /training-bookings + /training-bookings/filter-values?field=ringId (E5-T29 steps 3, 6)", "200 · 200",
+                    f"endsAtLocal {trainings['items'][0]['endsAtLocal']}, memberNumber {number}; " + ", ".join(f"{v['label']} {v['count']}" for v in rings))
+        # Step 5 and step 6: every ring block names its ring; reason filter values.
+        blocks = self.call("GET", "/api/v1/ring-blocks?size=200", access=self.admin)
+        require(blocks["items"] and all(b["ringName"] in names and re.fullmatch("#[0-9A-Fa-f]{6}", b["ringColor"] or "") for b in blocks["items"]), "Ring blocks lack their ring")
+        reasons = self.call("GET", "/api/v1/ring-blocks/filter-values?field=reason", access=self.admin)["values"]
+        require(sum(v["count"] for v in reasons) == blocks["totalItems"], "ring-blocks filter-values counts mismatch")
+        self.record("GET /ring-blocks + /ring-blocks/filter-values?field=reason (E5-T29 steps 5, 6)", "200 · 200",
+                    f"{blocks['totalItems']} blocks with ringName/ringColor; " + ", ".join(f"{v['value']} {v['count']}" for v in reasons))
+        self.call("GET", "/api/v1/bookings/filter-values?field=dogName", 400, access=self.admin, error="INVALID_FILTER")
+        # Step 13: the instructor's dog list names the owner's first name.
+        instructor = self.login("instructor.2@example.test", "clubs-admin")
+        dog = self.call("GET", f"/api/v1/dogs?filter=id:eq:{e_dog}", access=instructor)["items"][0]
+        owner = self.mongo('db.members.findOne({_id:db.dogs.findOne({_id:' + json.dumps(e_dog) + '}).memberId})')
+        require(dog["owner"]["firstName"] == owner["firstName"], "owner.firstName mismatch")
+        self.record("GET /dogs as INSTRUCTOR (E5-T29 step 13)", "200", f"owner.firstName «{dog['owner']['firstName']}»")
+        # Step 14: /me during an impersonation names the member the admin opened.
+        imp = self.call("POST", f"/api/v1/members/{owner['_id']}/impersonation-token", 201, access=self.admin, body=dict(reason="E5 smoke " + self.suffix), quiet=True)
+        me = self.call("GET", "/api/v1/me", access=imp["token"])
+        expected = " ".join(p for p in (owner.get("firstName"), owner.get("lastName1"), owner.get("lastName2")) if p)
+        require(me["impersonation"]["memberName"] == expected, "/me impersonation.memberName mismatch")
+        self.record("GET /me with the impersonation token (E5-T29 step 14)", "200", f"impersonation.memberName «{expected}»")
+
+    def next_bookable(self):
+        """E5-T29 step 7, right after P1's Sunday 20:00 opening: the seeded W+2 (validated) is now NEXT (W+1 holds only drafts, so
+        before the opening no NEXT class is bookable). A NEXT class refused at the limit carries the coming opening, the end of
+        the current booking week, one week later; never the end of the class's own week."""
+        chosen = None
+        for n in sorted(self.m):
+            for d in [d for d in self.call("GET", "/api/v1/me/home", access=self.m[n], quiet=True)["dogs"] if d["own"]]:
+                if self.call("GET", f"/api/v1/me/home?dogId={d['id']}", access=self.m[n], quiet=True)["limits"]["nextWeek"]["count"]:
+                    continue
+                row = next((c for c in self.call("GET", f"/api/v1/me/bookable-classes?dogId={d['id']}", access=self.m[n], quiet=True)["classes"]
+                            if c["week"] == "NEXT" and c["state"] == "BOOKABLE"), None)
+                if row:
+                    chosen = (n, d, row); break
+            if chosen:
+                break
+        require(chosen, "No dog without NEXT bookings and with a bookable NEXT class")
+        n, d, row = chosen
+        current = self.call("GET", "/api/v1/parameters/bookings.maxNextWeek", access=self.admin, quiet=True)
+        changed = self.call("PUT", "/api/v1/parameters/bookings.maxNextWeek", access=self.admin,
+                            body=dict(value=0, version=current["version"], reason="E5 smoke: nextBookableAt"), quiet=True)
+        refused = self.call("POST", "/api/v1/seat-holds", 409, access=self.m[n], body=dict(classSessionId=row["id"], dogId=d["id"]), error="BOOKING_LIMIT_REACHED")
+        self.call("PUT", "/api/v1/parameters/bookings.maxNextWeek", access=self.admin,
+                  body=dict(value=current["value"], version=changed["version"], reason="E5 smoke: restored"), quiet=True)
+        opening = self.utc(self.local("SUNDAY", "20:00", week=1))
+        require(refused["details"]["week"] == "NEXT" and refused["details"]["nextBookableAt"] == opening, f"nextBookableAt {refused['details'].get('nextBookableAt')} != {opening}")
+        self.record("POST /seat-holds (NEXT class, bookings.maxNextWeek 0) (E5-T29 step 7)", "409 BOOKING_LIMIT_REACHED",
+                    f"class {row['startsAtLocal']}; nextBookableAt {opening} (Sunday 20:00 {self.tz.key}, the end of the current booking week)")
 
     def report(self):
         width = max(len(s[0]) for s in self.summary)

@@ -49,7 +49,10 @@ class BookingRulesTest {
         clock.advance(Duration.ofMinutes(1));
         assertThat(weeks.relative(local("2026-10-12T18:50", MADRID), clock.instant())).isEqualTo(RelativeWeek.NEXT);
         assertThat(weeks.lastOpening(clock.instant())).isEqualTo(clock.instant());
-        assertThat(weeks.nextBookableAt(local("2026-10-07T18:50", MADRID))).isEqualTo(local("2026-10-11T20:00", MADRID));
+        // E5-T29 step 7: `nextBookableAt` is the end of the week of now, whatever the class (S08 §2 row 29): on Tuesday 06-10 it is Sunday 11-10 20:00.
+        assertThat(weeks.nextBookableAt(local("2026-10-06T10:00", MADRID))).isEqualTo(local("2026-10-11T20:00", MADRID));
+        assertThat(weeks.nextBookableAt(local("2026-10-11T19:59", MADRID))).isEqualTo(local("2026-10-11T20:00", MADRID));
+        assertThat(weeks.nextBookableAt(local("2026-10-11T20:00", MADRID))).isEqualTo(local("2026-10-18T20:00", MADRID));
     }
 
     @Test void T_08_02_theDaylightSavingWeekLasts169HoursWithCorrectKeysAndOpenings() {

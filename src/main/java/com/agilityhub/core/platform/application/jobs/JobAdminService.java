@@ -108,7 +108,12 @@ public class JobAdminService {
         return runs.forJob(definition.name(), runId).map(JobViews::forClub).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
 
-    /** `POST /jobs/{name}/trigger` (R-15-09): same lock and code as the calendar, also with the switch off. Club-scoped view. */
+    /**
+     * `POST /jobs/{name}/trigger` (R-15-09): same lock and code as the calendar, also with the switch off. Club-scoped view.
+     * E5-T29: never inside the request's transaction (a keyed POST opens one, `IdempotencyFilter`): the run and its JOB_TRIGGERED
+     * entry commit as they do without a key, and the entry's loader reads the committed run.
+     */
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public JobRunView trigger(String routeId, boolean dryRun) { return JobViews.forClub(triggered(routeId, dryRun)); }
     private JobRunView triggered(String routeId, boolean dryRun) {
         var definition = access.job(routeId);
@@ -123,7 +128,8 @@ public class JobAdminService {
         return new JobSwitchResponse(definition.routeId(), Boolean.TRUE.equals(saved.value()));
     }
 
-    /** `POST /platform/clubs/{clubId}/jobs/{name}/trigger`: the club route inside the addressed club's scope. */
+    /** `POST /platform/clubs/{clubId}/jobs/{name}/trigger`: the club route inside the addressed club's scope, never in a caller's transaction. */
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public JobRunView platformTrigger(String clubId, String routeId, boolean dryRun) {
         access.platformJob(clubId, routeId);
         try (var scope = TenantContext.open(clubId)) { return triggered(routeId, dryRun); }

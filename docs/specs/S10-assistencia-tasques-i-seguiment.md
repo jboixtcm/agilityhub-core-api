@@ -263,10 +263,10 @@ Sense `TASKS`: `instructorNote`, `tasks`, `observations` absents; sense `FREE_TR
     {"type":"CLASS","id":"b8","date":"2026-07-21","title":"Classe B+C","dogId":"d1","dogName":"Duna","state":"CANCELLED_LATE","counts":true,"detail":{"kind":"BY_MEMBER","at":"2026-07-21T17:10:00Z","atLocal":"19:10"}},
     {"type":"CLASS","id":"b7","date":"2026-07-17","title":"Classe D i sup.","dogId":"d2","dogName":"Rock","state":"CANCELLED_BY_CLUB","counts":false,"detail":{"kind":"BY_CLUB","message":"Pluja forta: pistes tancades"}},
     {"type":"CLASS","id":"b6","date":"2026-07-14","title":"Classe B+C","dogId":"d1","dogName":"Duna","state":"NO_SHOW","counts":true,"detail":{"kind":"NO_SHOW"}},
-    {"type":"ACTIVITY","id":"ar1","date":"2026-07-12","title":"Seminari d'obstacles","dogId":null,"state":"DONE","counts":null,"detail":null},
+    {"type":"ACTIVITY","id":"ar1","activityId":"a1","date":"2026-07-12","title":"Seminari d'obstacles","dogId":null,"state":"DONE","counts":null,"detail":null},
     {"type":"CLASS","id":"b5","date":"2026-07-08","title":"Classe C+D","dogId":"d1","dogName":"Duna","state":"CANCELLED","counts":false,"detail":{"kind":"BY_MEMBER_IN_TIME"}} ] }
 ```
-`detail.kind` ∈ `BY_MEMBER` · `BY_MEMBER_IN_TIME` · `INSTRUCTOR_NOTICE` · `INSTRUCTOR_NOTICE_IN_TIME` · `BY_CLUB_ON_BEHALF` · `SYSTEM` · `BY_CLUB` · `NO_SHOW`; el front tria la frase (R-10-14).
+`detail.kind` ∈ `BY_MEMBER` · `BY_MEMBER_IN_TIME` · `INSTRUCTOR_NOTICE` · `INSTRUCTOR_NOTICE_IN_TIME` · `BY_CLUB_ON_BEHALF` · `SYSTEM` · `BY_CLUB` · `NO_SHOW`; el front tria la frase (R-10-14). `activityId` només a les files `ACTIVITY`, on l'`id` és la inscripció: el front hi enllaça `/activitats/{activityId}`, llevat d'una activitat cancel·lada pel club, que no té pàgina (S07 §6; organitzador 30-09, decisió E74).
 
 Codis d'error propis (`ErrorCode`, missatge a `messages_{ca,es,en}.properties`, `errors:` al front): `ATTENDANCE_NOT_OPEN`, `ATTENDANCE_WINDOW_CLOSED`, `ATTENDANCE_NOTIFIED_FINAL`, `ATTENDANCE_BOOKING_NOT_ACTIVE`, `INSTRUCTOR_NOTICE_DISABLED`, `TASK_ALREADY_DONE`, `TASK_NOT_DONE`, `ATTACHMENT_LIMIT_REACHED`, `ATTACHMENT_ENTITY_MISMATCH` (nous, §13); reutilitzats: `STALE_VERSION`, `INVALID_STATE` (S06), `DOG_NOT_ACTIVE`, `DOG_NOT_ACCESSIBLE`, `FILE_TOO_LARGE`, `FILE_TYPE_NOT_ALLOWED` (S03), `MODULE_DISABLED`, `INVALID_FILTER`, `VALIDATION_ERROR`. Transaccions Mongo obligatòries: desat de la llista (R-10-04, amb la cancel·lació de S08 dins), creació de tasca amb adjunts, `read-all`.
 
@@ -413,3 +413,4 @@ Ordre: A → (B ∥ C ∥ D/E/F contra mocks) → G. Tres fils: back-B, back-C, 
 - 27-09-2026 · verificacions d'E6-T02 i E6-T03 (decisions E63 i E64): §3 `FollowupItem.authorGender` i `Dog.remarksMeta.version`; §6 `handlerName` i `memberFullName` al full d'assistència; R-10-10, el propietari actual del gos; R-10-15, el logo del PDF.
 - 27-09-2026 · ronda 2 d'E6-T03: R-10-10, el propietari de N-20 es comprova a cada intent d'enviament.
 - 28-09-2026 · verificació d'E6-T03, ronda 3 (decisió E70): §7, `MemberNoteChanged` porta l'autor de la nota, i el consumidor és idempotent per `eventId`.
+- 30-09-2026 · verificació d'E6-W02 (decisió E74): §6, `HistoryItem.activityId` a les files d'activitat de 25 (api E6-T05). `completion` i `reopening` d'una tasca continuen idempotents per estat, sense `Idempotency-Key`.

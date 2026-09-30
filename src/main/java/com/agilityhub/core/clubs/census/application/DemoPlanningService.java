@@ -30,6 +30,15 @@ public class DemoPlanningService {
         this.census = census; this.runs = runs; this.steps = steps.stream().sorted(Comparator.comparingInt(DemoSeedStep::order)).toList();
         this.mapper = mapper; this.environment = environment; this.clubClock = clubClock;
     }
+    /**
+     * The latest recorded anchor of the club's demo planning (E5-T29, E6-T04 round 2 #1): the first run's `weekStart` or a later
+     * `--reanchor`'s; empty before the first run.
+     */
+    public Optional<LocalDate> recordedWeekStart() {
+        String first = TenantContext.require() + ":planning";
+        return runs.findAll().stream().filter(run -> run.weekStart() != null && (run.id().equals(first) || run.id().startsWith(first + ":")))
+                .map(run -> LocalDate.parse(run.weekStart())).max(Comparator.naturalOrder());
+    }
     @Transactional
     public Result apply(DemoDataset.Spec spec, Map<String, Object> specification, long seed, LocalDate weekStart) {
         return apply(spec, specification, seed, weekStart, false);

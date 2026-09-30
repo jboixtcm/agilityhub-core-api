@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import static com.agilityhub.core.clubs.bookings.api.BookingContracts.*;
 import static com.agilityhub.core.clubs.bookings.api.BookingRequests.*;
 import static com.agilityhub.core.shared.application.contract.ApiContracts.ListPage;
+import static com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues;
 import static com.agilityhub.core.shared.domain.ErrorCode.*;
 
 /**
@@ -228,9 +229,10 @@ public class BookingsController {
     @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
     @ListContract(filterable = {"id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt"}, sortable = {"classStartsAt", "bookedAt"},
             columns = {"classStartsAt*", "dogName*", "memberName*", "state*", "origin*", "bookedAt", "bookingWeekKey", "late"}, paged = true, exportable = false,
-            fields = {"id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late"})
+            fields = {"id", "state", "origin", "classSessionId", "classStartsAt", "bookingWeekKey", "dogId", "dogName", "memberId", "memberName", "bookedAt", "late",
+                    "classDescription", "ringId", "ringName", "ringColor"})
     @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
-    @Operation(summary = "bookings", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12. Without fields every item property is sent; with fields an item has id and the requested keys only. Tenant comes from the JWT.",
+    @Operation(summary = "bookings", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). Universal list (CONVENCIONS_API §4) for D10/D12: each row carries its class's display description in the reader's language, its ring and the ring's colour. Without fields every item property is sent; with fields an item has id and the requested keys only. The list has no free-text search: q is INVALID_FILTER. Tenant comes from the JWT.",
             responses = @ApiResponse(responseCode = "200", description = "ListPage<BookingListItem>", useReturnTypeSchema = true))
     public ListPage<BookingListItem> bookings(@io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
         access.tenant();
@@ -238,6 +240,22 @@ public class BookingsController {
         // E5-T22: the rows are rebuilt whole from the page's bookings; `fields` then leaves out the keys that were not requested.
         return SparseItems.apply(mapper, new ListPage<>(page.items().stream().map(item -> view(item, BookingListItem.class)).toList(), page.page(), page.size(),
                 page.totalItems(), page.totalPages(), page.appliedFilters()), params, "id");
+    }
+
+    @GetMapping("/api/v1/bookings/filter-values")
+    @PreAuthorize("hasAnyRole('ADMIN','INSTRUCTOR')")
+    // CONVENCIONS_API §4 (E5-T24): filter-values takes no `fields`.
+    @ListContract(filterable = {"id", "state", "dogId", "memberId", "classSessionId", "bookingWeekKey", "origin", "classStartsAt"}, sortable = {}, columns = {},
+            paged = false, exportable = false, acceptsFields = false)
+    @ContractErrors({VALIDATION_ERROR, INVALID_FILTER, IMPERSONATION_DENIED})
+    @Operation(summary = "bookingFilterValues", description = "Roles: ADMIN, INSTRUCTOR (MEMBER → 403; impersonation → IMPERSONATION_DENIED). CONVENCIONS_API §4 for D10/D12's universal filter: the top 50 values of field (one of GET /bookings' x-filterable fields; any other is INVALID_FILTER), each with its count over the whole set that filter selects, never one page; the filters on field itself are left out. Labels: the dog's name, the member's name, the class's start and description; any other field its value. q is INVALID_FILTER (the list has no free-text search). Tenant comes from the JWT.",
+            responses = @ApiResponse(responseCode = "200", description = "FilterValues", useReturnTypeSchema = true))
+    public FilterValues bookingFilterValues(@RequestParam String field,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's q; this list has no free-text search, so a non-blank q is INVALID_FILTER") @RequestParam(required = false) String q,
+            @io.swagger.v3.oas.annotations.Parameter(description = "The list's filters (field:op:value, repeated); only x-filterable fields") @RequestParam(required = false) java.util.List<String> filter,
+            @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
+        access.tenant();
+        return queries.filterValues(lists, field, params);
     }
 
     @PostMapping("/api/v1/waitlist-entries")
@@ -320,6 +338,6 @@ public class BookingsController {
     public ClassWaitlist classWaitlist(@PathVariable String id) {
         access.tenant();
         access.classSession(id);
-        return new ClassWaitlist(waitlist.forClass(id).stream().map(e -> view(views.waitlistEntry(e, true), WaitlistEntry.class)).toList());
+        return new ClassWaitlist(views.waitlistEntries(waitlist.forClass(id), true).stream().map(e -> view(e, WaitlistEntry.class)).toList());
     }
 }

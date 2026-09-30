@@ -25,9 +25,11 @@ public class BookingViews {
     static final DateTimeFormatter LOCAL = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private final BookingContext context; private final ClassSessionBookingAccess classes; private final BookingMemberAccess census;
     private final PackBalancePort packs; private final AttendanceStatePort attendance; private final BookingCalendarTokens tokens; private final CensusClubSettings clubs;
+    private final com.agilityhub.core.clubs.census.application.AttendanceCensusAccess guides;
     public BookingViews(BookingContext context, ClassSessionBookingAccess classes, BookingMemberAccess census, PackBalancePort packs,
-            AttendanceStatePort attendance, BookingCalendarTokens tokens, CensusClubSettings clubs) {
+            AttendanceStatePort attendance, BookingCalendarTokens tokens, CensusClubSettings clubs, com.agilityhub.core.clubs.census.application.AttendanceCensusAccess guides) {
         this.context = context; this.classes = classes; this.census = census; this.packs = packs; this.attendance = attendance; this.tokens = tokens; this.clubs = clubs;
+        this.guides = guides;
     }
     public String local(Instant instant) { return LOCAL.format(instant.atZone(context.zone())); }
     public ClassSessionBookingAccess.Labels labels(ClassSessionBookingAccess.Session s) { return classes.labels(s, LocaleContext.current()); }
@@ -35,6 +37,14 @@ public class BookingViews {
     public ClassSessionBookingAccess.Labels labelsOf(Booking b) { return labelsOf(b.classSessionId()); }
     private ClassSessionBookingAccess.Labels labelsOf(String classSessionId) {
         return classes.find(classSessionId).map(this::labels).orElse(new ClassSessionBookingAccess.Labels("", null, null, List.of(), ""));
+    }
+    /** The labels of a page's classes in the reader's language, one class query (D10's rows, E5-T29); a missing class is absent. */
+    public Map<String, ClassSessionBookingAccess.Labels> classLabels(Collection<String> classSessionIds) {
+        return classSessionIds.isEmpty() ? Map.of() : classes.labels(classSessionIds, LocaleContext.current());
+    }
+    /** The `filter-values` label of a class (E5-T29): its club-local start and its description; the id if the class is gone. */
+    public String classLabel(String classSessionId) {
+        return classes.find(classSessionId).map(s -> local(s.startsAt()) + " · " + labels(s).description()).orElse(classSessionId);
     }
 
     public Map<String, Object> hold(SeatHoldService.Held held) {
@@ -103,7 +113,7 @@ public class BookingViews {
         var visibility = InstructorVisibility.of(labels.instructorNames().isBlank() ? null : labels.instructorNames(), now, startsAt,
                 context.integer("bookings.showInstructorHoursBefore"), staff);
         var cls = new LinkedHashMap<String, Object>(); cls.put("startsAtLocal", local(startsAt)); cls.put("endsAtLocal", local(endsAt));
-        cls.put("description", labels.description()); cls.put("ringName", labels.ringName());
+        cls.put("description", labels.description()); cls.put("ringName", labels.ringName()); cls.put("ringColor", labels.ringColor());
         cls.put("instructorName", visibility.instructorName()); cls.put("instructorVisibleAt", visibility.instructorVisibleAt());
         return cls;
     }
@@ -112,12 +122,21 @@ public class BookingViews {
      * `waitlist.mode = ALL_AT_ONCE`, where the queue number means nothing; lists keep the stored order), `confirmBy`
      * (FIFO), state and outcome.
      */
-    public Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff) {
+    public Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff) { return waitlistEntry(e, staff, guides.pair(e.dogId()).orElse(null)); }
+    /** A class's waiting list (D12, E5-T29): the «{guia} + {gos}» of every entry read with one census query. */
+    public List<Map<String, Object>> waitlistEntries(List<WaitlistEntry> entries, boolean staff) {
+        var pairs = guides.pairs(entries.stream().map(WaitlistEntry::dogId).distinct().toList());
+        return entries.stream().map(e -> waitlistEntry(e, staff, pairs.get(e.dogId()))).toList();
+    }
+    private Map<String, Object> waitlistEntry(WaitlistEntry e, boolean staff, com.agilityhub.core.clubs.census.application.AttendanceCensusAccess.Pair pair) {
         var session = classes.find(e.classSessionId()); var labels = labelsOf(e.classSessionId());
         var out = new LinkedHashMap<String, Object>();
         var dog = dog(e.dogId());
         out.put("id", e.id()); out.put("state", e.state()); out.put("classSessionId", e.classSessionId()); out.put("dogId", e.dogId());
         out.put("dogName", dog.get("name")); out.put("dog", dog); out.put("memberId", e.memberId());
+        // S10 R-10-00 (E5-T29): «{guia} + {gos}» = handlerName ?? memberFirstName; the handler is null when the member handles the dog.
+        out.put("memberFirstName", pair == null ? null : pair.memberFirstName());
+        out.put("handlerName", pair == null || pair.handlerName() == null || pair.handlerName().isBlank() ? null : pair.handlerName());
         out.put("position", context.waitlistMode() == WaitlistMode.FIFO ? e.position() : null); out.put("joinedAt", e.joinedAt());
         out.put("classSession", classCard(labels, e.classStartsAt(), session.map(ClassSessionBookingAccess.Session::endsAt).orElse(e.classStartsAt()), context.now(), staff));
         out.put("notifiedAt", e.notifiedAt()); out.put("confirmBy", e.confirmBy()); out.put("bookingId", e.bookingId());

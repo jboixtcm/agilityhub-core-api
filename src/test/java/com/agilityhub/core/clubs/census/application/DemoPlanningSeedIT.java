@@ -263,7 +263,39 @@ class DemoPlanningSeedIT extends AbstractIntegrationTest {
             var date = MONDAY.plusDays(day);
             assertThat(DemoSeedCommand.defaultWeekStart(date, false)).as(date.getDayOfWeek().toString()).isEqualTo(day == 0 ? MONDAY : MONDAY.plusWeeks(1));
             assertThat(DemoSeedCommand.defaultWeekStart(date, true)).as(date.getDayOfWeek() + " --reanchor").isEqualTo(MONDAY);
+            // E5-T29 step 12: a `--reanchor` never goes back before the recorded anchor, and follows the current week past it.
+            assertThat(DemoSeedCommand.reanchorWeekStart(date, Optional.empty())).isEqualTo(MONDAY);
+            assertThat(DemoSeedCommand.reanchorWeekStart(date, Optional.of(MONDAY.plusWeeks(1)))).isEqualTo(MONDAY.plusWeeks(1));
+            assertThat(DemoSeedCommand.reanchorWeekStart(date, Optional.of(MONDAY.minusWeeks(1)))).isEqualTo(MONDAY);
         }
+    }
+
+    /** The lines `seed:demo` prints (the census and the planning results). */
+    String printed(String... extra) throws Exception {
+        var out = new java.io.ByteArrayOutputStream(); var original = System.out;
+        System.setOut(new java.io.PrintStream(out, true, java.nio.charset.StandardCharsets.UTF_8));
+        try { seed(extra); } finally { System.setOut(original); }
+        return out.toString(java.nio.charset.StandardCharsets.UTF_8);
+    }
+    /**
+     * E5-T29 step 12 (E6-T04 round-2 review #1, ruling E70): the anchor of a `--reanchor` is the later of the Monday of the current
+     * week and the recorded `weekStart`, so it never moves back. A plain run on a Wednesday anchors on the next Monday; a
+     * `--reanchor` the same week keeps that anchor and changes nothing, the next week too; once the week has moved on, it follows.
+     */
+    @Test void T_06_28_reanchorNeverMovesTheAnchorBack() throws Exception {
+        command.run(new DefaultApplicationArguments("--club=canic", "--seed=42"));
+        var next = MONDAY.plusWeeks(1);
+        assertThat(one("demo_seed_runs", Criteria.where("_id").is(club + ":planning")).getString("weekStart")).isEqualTo(next.toString());
+        var saved = snapshot();
+        assertThat(printed("--reanchor")).contains("\n0 changes (demo planning, week start " + next + ")");
+        assertThat(snapshot()).as("the anchor stays: nothing is written").isEqualTo(saved);
+        assertThat(mongo.count(Query.query(Criteria.where("_id").regex("^" + club + ":planning:")), "demo_seed_runs")).isZero();
+        clock.setInstant(Instant.parse("2026-09-16T10:00:00Z")); // Wednesday of the anchor's week
+        assertThat(printed("--reanchor")).contains("\n0 changes (demo planning, week start " + next + ")");
+        assertThat(snapshot()).isEqualTo(saved);
+        clock.setInstant(Instant.parse("2026-09-23T10:00:00Z")); // a week later the Monday of the current week is later
+        assertThat(printed("--reanchor")).contains("(demo planning, week start " + next.plusWeeks(1) + ")").doesNotContain("\n0 changes (demo planning");
+        assertThat(one("demo_seed_runs", Criteria.where("_id").is(club + ":planning:" + next.plusWeeks(1)))).isNotNull();
     }
 
     @Test void T_06_28_planningNeedsTheCensusDemoFirst() throws Exception {

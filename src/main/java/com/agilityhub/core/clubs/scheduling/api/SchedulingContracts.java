@@ -114,7 +114,10 @@ public final class SchedulingContracts {
      * sparse, so only `id` is required. MEMBER rows never carry `note` or `createdByName`, as {@link RingBlockMemberView}.
      */
     @com.agilityhub.core.shared.application.contract.SparseListItem
-    public record RingBlockListItem(String id, String ringId, Instant from, Instant to, LocalDate date, String fromLocal, String toLocal,
+    public record RingBlockListItem(String id, String ringId,
+            @Schema(nullable = true, description = "The ring's name, a deactivated ring's included (the register shows history, E5-T29)") String ringName,
+            @Schema(nullable = true, description = "The ring's colour; null for a ring without one (E5-T29)") String ringColor,
+            Instant from, Instant to, LocalDate date, String fromLocal, String toLocal,
             RingBlockKind kind, RingBlockReason reason, @Schema(nullable = true, description = "Not sent to MEMBER") String note,
             @Schema(nullable = true) String activityId, @Schema(nullable = true) String activityTitle,
             @Schema(description = "Not sent to MEMBER") String createdByName, RingBlockState state, long version) { }

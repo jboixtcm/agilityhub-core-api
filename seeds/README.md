@@ -163,7 +163,10 @@ until then it was the Monday of the current week); `--week-start` is meant for t
 first completed planning run is recorded per club (`demo_seed_runs`, id
 `<clubId>:planning`); later runs report `0 changes (demo planning, week start …)`
 whatever their week start, and a changed seed/section is rejected with
-`CLUB_NOT_EMPTY` (use a fresh disposable database). Registrant choice is deterministic
+`CLUB_NOT_EMPTY` (use a fresh disposable database). A transaction of the census demo or of the
+planning that fails with a Mongo `TransientTransactionError` (or a write conflict) runs again, up to 3 attempts with the
+shared 50–150 ms backoff, and says so on stderr (E5-T29); a completed attempt is recorded, so nothing is applied twice.
+Registrant choice is deterministic
 for seed 42 (member-number order, shuffled with the seed); the 15 members linked to
 the seed login accounts (`admin@…`, `instructor@…`, `member@…` …) are never
 registered, so front tests can register them.
@@ -238,7 +241,10 @@ bin/core seed:demo --club=canic --seed=42 --reanchor
 ```
 
 - It needs the first `seed:demo` run of the club (same seed and seed file, else `CLUB_NOT_EMPTY`; without one,
-  `NOT_FOUND`). The anchor is the club-local Monday of the run date (`--week-start` overrides it, for tests).
+  `NOT_FOUND`). The anchor is the **later** of the club-local Monday of the run date and the recorded `weekStart` (the
+  first run's or a later re-anchor's), so it never moves back (E5-T29, ruling E70): after a plain run on a Wednesday
+  (anchored on the next Monday), a `--reanchor` the same week keeps that anchor and reports `0 changes`.
+  `--week-start` overrides it, for tests.
 - It applies the `planning.weeks` rows to the new anchor, reusing the D3 templates of the first run by name. A week that
   already exists (generated or validated) is **kept**: a week is never generated twice, so after a re-anchor of one
   week the old W+2 (validated) is the new W+1, not a draft. One exception (E5-T14): a kept week that is still a draft

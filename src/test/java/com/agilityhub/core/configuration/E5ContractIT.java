@@ -60,6 +60,8 @@ class E5ContractIT extends AbstractIntegrationTest {
     static final Set<String> IMPLEMENTED = Set.of("GET /api/v1/me/home", "GET /api/v1/me/bookable-classes", "POST /api/v1/seat-holds", "DELETE /api/v1/seat-holds/{id}", "POST /api/v1/bookings",
             "GET /api/v1/me/bookings", "GET /api/v1/bookings/{id}", "GET /api/v1/bookings/{id}/calendar.ics", "POST /api/v1/bookings/{id}/cancellation",
             "GET /api/v1/bookings", "GET /api/v1/class-sessions/{id}/bookings",
+            // E5-T29 (CONVENCIONS_API §4): the filter values of the S08 and S09 staff lists.
+            "GET /api/v1/bookings/filter-values", "GET /api/v1/training-bookings/filter-values",
             "POST /api/v1/waitlist-entries", "GET /api/v1/waitlist-entries/{id}", "POST /api/v1/waitlist-entries/{id}/cancellation",
             "POST /api/v1/waitlist-entries/{id}/claim", "GET /api/v1/class-sessions/{id}/waitlist-entries",
             // E5-T04 serves every S09 route.
@@ -273,10 +275,10 @@ class E5ContractIT extends AbstractIntegrationTest {
 
     @Test void T_08_47_T_09_24_T_15_29_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata() throws Exception {
         var api = mapper.readTree(mvc.perform(get("/api/v1/openapi.json")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertThat(routes().count()).isEqualTo(32);
+        assertThat(routes().count()).isEqualTo(34);
         var s15 = routes().filter(r -> r.path().startsWith("/api/v1/jobs") || r.path().startsWith("/api/v1/platform") || r.path().equals("/api/v1/risk-review")).count();
         var s09 = routes().filter(r -> "FREE_TRAINING".equals(r.module())).count();
-        assertThat(List.of(32 - s15 - s09, s09, s15)).containsExactly(16L, 8L, 8L);
+        assertThat(List.of(34 - s15 - s09, s09, s15)).containsExactly(17L, 9L, 8L);
         for (Route route : routes().toList()) {
             var op = api.path("paths").path(route.path()).path(route.method().toLowerCase());
             assertThat(op.isMissingNode()).as(route.path()).isFalse();

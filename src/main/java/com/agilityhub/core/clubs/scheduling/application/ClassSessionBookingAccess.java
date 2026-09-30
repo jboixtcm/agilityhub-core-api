@@ -20,7 +20,12 @@ public class ClassSessionBookingAccess {
             boolean riskExempt, Instant lowAlertSentAt, long version) {
         public boolean active() { return "ACTIVE".equals(state); }
     }
-    public record Labels(String description, String ringName, String ringColor, List<String> levelNames, String instructorNames) { }
+    /** @param ringId the class's ring (D10's rows, E5-T29); null only for the empty labels of a class that no longer exists */
+    public record Labels(String description, String ringName, String ringColor, List<String> levelNames, String instructorNames, String ringId) {
+        public Labels(String description, String ringName, String ringColor, List<String> levelNames, String instructorNames) {
+            this(description, ringName, ringColor, levelNames, instructorNames, null);
+        }
+    }
     /** What happens to `risk.lowAlertSentAt` with the new counters (S15 R-15-12b guard). */
     public enum LowAlert { KEEP, SET, CLEAR }
     private final ClassSessionRepository classes; private final PlanningContext context; private final SessionProjection projection;
@@ -62,7 +67,7 @@ public class ClassSessionBookingAccess {
         var levels = catalog.levels().stream().filter(l -> c.levelIds().contains(l.id())).sorted(Comparator.comparingInt(l -> l.order()))
                 .map(l -> l.name().resolve(locale).value()).toList();
         var instructors = String.join(", ", catalog.instructors().stream().filter(i -> c.instructorIds().contains(i.id())).map(i -> i.name()).toList());
-        return new Labels(projection.description(c, locale), ring.map(r -> r.name()).orElse(null), ring.map(r -> r.color()).orElse(null), levels, instructors);
+        return new Labels(projection.description(c, locale), ring.map(r -> r.name()).orElse(null), ring.map(r -> r.color()).orElse(null), levels, instructors, c.ringId());
     }
     /**
      * Writes the booked/waiting counters inside the caller's transaction; the class must be ACTIVE. Only the S08 booking

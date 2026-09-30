@@ -64,7 +64,7 @@ public class BookingConfirmationService {
             Booking swapped = null;
             if (swapBookingId != null || limit.reached()) {
                 if (swapBookingId == null && limit.done()) {
-                    throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(subject.session().startsAt())));
+                    throw new ApiException(ErrorCode.BOOKING_LIMIT_REACHED, views.limitReached(limit, subject.relative(), context.weeks().nextBookableAt(now)));
                 }
                 if (swapTarget == null || !limit.reached() || !limit.canSwap(swapBookingId)) { throw new ApiException(ErrorCode.SWAP_NOT_ALLOWED); }
                 swapped = cancellations.cancelLocked(swapTarget, actor, BookingCancelReason.SWAP, null, hold.classSessionId());

@@ -21,6 +21,8 @@ public record ListQuery(int page, int size, List<String> sort, String q, List<Fi
             if (page < 0 || !SIZES.contains(size) || size > definition.maxSize()) { throw invalid(); }
             var sort = validateSort(definition, params.getOrDefault("sort", definition.defaultSort()));
             String q = single(params, "q", "").strip();
+            // E5-T29: a list without free-text search (no searchable paths) refuses `q`; an empty `$or` would reach Mongo as a 500.
+            if (!q.isEmpty() && definition.searchable().isEmpty()) { throw invalid(); }
             var filters = new ArrayList<Filter>();
             for (String raw : params.getOrDefault("filter", List.of())) {
                 var parts = raw.split(":", 3);

@@ -24,7 +24,9 @@ import org.springframework.util.MultiValueMap;
 public class TrainingQueryService implements ListProvider {
     static final List<String> FILTERS = List.of("date", "ringId", "memberId", "dogId", "state", "origin");
     static final List<String> COLUMNS = List.of("date", "startsAtLocal", "ringName", "memberName", "dogName", "state", "origin", "createdAt");
-    static final List<String> FIELDS = List.of("id", "date", "startsAt", "startsAtLocal", "ringId", "ringName", "memberId", "memberName", "dogId", "dogName", "state", "origin", "createdAt");
+    /** The list's keys and `x-fields`; E5-T29 adds the end (`endsAt`, `endsAtLocal`) and the member's number (null without one). */
+    static final List<String> FIELDS = List.of("id", "date", "startsAt", "startsAtLocal", "endsAt", "endsAtLocal", "ringId", "ringName", "memberId", "memberName",
+            "memberNumber", "dogId", "dogName", "state", "origin", "createdAt");
     private final TrainingContext context; private final TrainingBookingRepository bookings; private final TrainingMemberAccess census;
     private final TrainingEligibilityService eligibility; private final TrainingBookingService service; private final InactivityPort inactivity;
     private final CensusIdentityService identities;
@@ -114,15 +116,34 @@ public class TrainingQueryService implements ListProvider {
                 List.of("startsAt,desc"), Set.copyOf(FIELDS));
         var stages = new ArrayList<Document>();
         stages.add(new Document("$set", new Document("date", new Document("$dateToString", new Document("date", "$startsAt").append("format", "%Y-%m-%d").append("timezone", zone)))
-                .append("startsAtLocal", new Document("$dateToString", new Document("date", "$startsAt").append("format", "%H:%M").append("timezone", zone)))));
+                .append("startsAtLocal", new Document("$dateToString", new Document("date", "$startsAt").append("format", "%H:%M").append("timezone", zone)))
+                .append("endsAtLocal", new Document("$dateToString", new Document("date", "$endsAt").append("format", "%H:%M").append("timezone", zone)))));
         stages.add(lookup("members", "memberId", "memberRows")); stages.add(lookup("dogs", "dogId", "dogRows")); stages.add(lookup("rings", "ringId", "ringRows"));
         stages.add(new Document("$set", new Document("person", new Document("$arrayElemAt", List.of("$memberRows", 0)))
                 .append("dogName", new Document("$ifNull", List.of(new Document("$arrayElemAt", List.of("$dogRows.name", 0)), "")))
                 .append("ringName", new Document("$ifNull", List.of(new Document("$arrayElemAt", List.of("$ringRows.name", 0)), "")))));
         stages.add(new Document("$set", new Document("memberName", new Document("$trim", new Document("input", new Document("$concat", List.of(
-                new Document("$ifNull", List.of("$person.firstName", "")), " ", new Document("$ifNull", List.of("$person.lastName1", "")))))))));
+                new Document("$ifNull", List.of("$person.firstName", "")), " ", new Document("$ifNull", List.of("$person.lastName1", "")))))))
+                .append("memberNumber", new Document("$ifNull", Arrays.asList("$person.memberNumber", null)))));
         var output = new LinkedHashMap<String, Object>(); FIELDS.forEach(f -> output.put(f, 1)); output.put("id", "$_id"); output.put("_id", 0);
-        return new ListDataset(definition, "training_bookings", stages, output, Set.of(), (field, value) -> Objects.toString(value, ""));
+        return new ListDataset(definition, "training_bookings", stages, output, Set.of("memberNumber"), this::label);
+    }
+    /**
+     * `GET /training-bookings/filter-values` labels (E5-T29, CONVENCIONS_API §4): the ring's name (a deactivated ring's too), the
+     * member's and the dog's names, read for the (at most 50) values listed; any other field, or a record that is gone, is its value.
+     */
+    private String label(String field, Object value) {
+        String id = Objects.toString(value, "");
+        return switch (field) {
+            case "ringId" -> Objects.toString(service.ringNames().get(id), id);
+            case "memberId" -> census.member(id).map(TrainingMemberAccess.Member::displayName).filter(name -> !name.isBlank()).orElse(id);
+            case "dogId" -> census.dog(id).map(TrainingMemberAccess.Dog::name).orElse(id);
+            default -> id;
+        };
+    }
+    /** CONVENCIONS_API §4: the values of `field` (an `x-filterable` field) with their counts over the whole set `filter` selects. */
+    public com.agilityhub.core.shared.application.contract.ApiContracts.FilterValues filterValues(ListEngine engine, String field, MultiValueMap<String, String> params) {
+        return engine.facets("training-bookings", field, params);
     }
     private static Document lookup(String collection, String field, String alias) {
         return new Document("$lookup", new Document("from", collection).append("let", new Document("ref", "$" + field).append("club", "$clubId"))

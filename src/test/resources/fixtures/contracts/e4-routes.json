@@ -452,6 +452,24 @@
   },
   {
     "method": "GET",
+    "path": "/api/v1/ring-blocks/filter-values",
+    "roles": [
+      "ADMIN",
+      "INSTRUCTOR"
+    ],
+    "body": null,
+    "params": {
+      "field": "ringId"
+    },
+    "idempotency": false,
+    "success": 200,
+    "module": null,
+    "public": false,
+    "key": false,
+    "impersonation": false
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/ring-blocks/{id}",
     "roles": [
       "ADMIN",

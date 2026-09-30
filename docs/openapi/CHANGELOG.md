@@ -2,6 +2,41 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E5-T29 · the E5 back office's contract gaps, `nextBookableAt`, P9 from the api (web E5-W05 adopts)
+
+**3 operations added, 5 changed; 9 schemas changed, 0 added or removed.** Every new field is additive; the web can adopt:
+- **`GET /bookings/filter-values`, `GET /training-bookings/filter-values`, `GET /ring-blocks/filter-values`** (new, step 6,
+  CONVENCIONS_API §4): `field` (one of the list's `x-filterable`; any other is `400 INVALID_FILTER`), `filter` (the list's
+  filters; those on `field` itself are left out) and `q`, like `/members/filter-values`; no `fields`. Answer `FilterValues`:
+  the top 50 values, each with its count over the **whole** filtered set, never one page. Labels: a dog's, member's or
+  ring's name, a class's `YYYY-MM-DDTHH:mm · {description}`; any other field its value. ADMIN and INSTRUCTOR; MEMBER →
+  403, impersonation → `IMPERSONATION_DENIED`; the training one requires FREE_TRAINING. The three lists have no free-text
+  search, so a non-blank `q` is `400 INVALID_FILTER` (before, a 500), on the list and on its filter values alike.
+- **`ClassBookingItem`** (`GET /class-sessions/{id}/bookings`, step 1): `displayState` (required; S08 §6, as
+  `GET /bookings/{id}`: a past ACTIVE booking is DONE, one marked NO_SHOW is NO_SHOW) and `levelCode` (`string | null`:
+  the dog's level code; null with `levels.enabled = false` or without a level).
+- **`WaitlistEntry`** (step 2, S10 R-10-00): `memberFirstName` and `handlerName` (`string | null`, optional in the schema;
+  `handlerName` is null when the member handles the dog). Sent on every route that answers a `WaitlistEntry`, the staff
+  `GET /class-sessions/{id}/waitlist-entries` included, so D12 writes «En espera: {handlerName ?? memberFirstName} + {dog}».
+- **`TrainingBookingListItem`** (`GET /training-bookings`, step 3): `endsAt`, `endsAtLocal` (`HH:mm`, club time) and
+  `memberNumber` (`integer | null`). All three are in `x-fields` of the list and of `GET /training-bookings/export`.
+- **`BookingListItem`** (`GET /bookings`, step 4, D10 «Classes»): `classDescription` (the class's display description in
+  the reader's language), `ringId`, `ringName`, `ringColor` (`string | null`). In `x-fields`.
+- **`RingBlockListItem`** (`GET /ring-blocks`, step 5): `ringName` and `ringColor` (`string | null`), a deactivated ring's
+  included. In `x-fields`.
+- **`BookingLimitReachedDetails.nextBookableAt`** (step 7, S08 §2 row 29 amended 26-09): now the end of the **current**
+  booking week, for a NEXT class as for a CURRENT one (Sunday 20:00 at the Cànic). It was the end of the class's own week,
+  so for a NEXT class it came a week late. Description updated; same type.
+- **`POST /jobs/{name}/trigger`** (step 8, no schema change): with an `Idempotency-Key` it no longer ends `FAILED`
+  «ClientSessionException» (P9); the run happens outside the request's transaction, and the key replays the stored `200`.
+- **`BookingClassSession.ringColor`** (step 9, 07's dot): `string | null`, on every `Booking` (and a `WaitlistEntry`'s class card).
+- **`OwnerSummary.firstName`** (step 13, S10 R-10-00): required, a compound first name whole («Joan Antoni»), on
+  `GET /dogs` rows (the instructor's projection included), its export and `GET /dogs/{id}`.
+- **`Impersonation.memberName`** (`GET /me`, step 14, ruling E73): required during an impersonation; the display name of the
+  member the admin opened (first name and last names), for the banner «Estàs veient l'app com {nom}».
+- **`POST /auth/magic-link`**, description (step 10, S01 R-01-04 amended 28-09, ruling E70): the N-25 link of a RESET
+  link ends with `&purpose=reset`, on `/activacio` (club clients) and `/magic-link` (the ID); a LOGIN link has no `purpose`.
+
 ## 2026-09-30 · E5-T28 · audit corrections (census, signup, scheduling)
 
 **0 operations added or removed, 4 changed (descriptions, and one `409` on the checkout); 1 schema changed (`SepaInput.iban`).**

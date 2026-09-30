@@ -59,6 +59,19 @@ class ListQueryTest {
         assertThat(ListQuery.validateFilter(DEFINITION, new Filter("active", FilterOperator.eq, true)).value()).isEqualTo(true);
         assertThat(ListQuery.validateFilter(DEFINITION, new Filter("n", FilterOperator.eq, 3)).value()).isEqualTo(new java.math.BigDecimal("3"));
     }
+    /**
+     * E5-T29 (CONVENCIONS_API §4): a list without free-text search (no searchable paths: `/bookings`, `/ring-blocks`,
+     * `/training-bookings` and their `filter-values`) refuses a non-blank `q` as INVALID_FILTER; before, the engine sent Mongo an
+     * empty `$or` and answered 500. A blank `q` is no search.
+     */
+    @Test void CONVENCIONS_API_4_aListWithoutSearchRefusesQ() {
+        var unsearchable = new ListDefinition("example", DEFINITION.filters(), DEFINITION.sorts(), List.of(), DEFINITION.columns(), DEFINITION.defaultColumns(),
+                DEFINITION.defaultSort(), DEFINITION.fields());
+        var params = new LinkedMultiValueMap<String, String>(); params.set("q", "Duna");
+        invalid(() -> ListQuery.parse(unsearchable, params));
+        params.set("q", "   "); assertThat(ListQuery.parse(unsearchable, params).q()).isEmpty();
+        params.set("q", "Duna"); assertThat(ListQuery.parse(DEFINITION, params).q()).isEqualTo("Duna");
+    }
     private static void invalid(org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
         assertThatThrownBy(call).isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.INVALID_FILTER));
     }

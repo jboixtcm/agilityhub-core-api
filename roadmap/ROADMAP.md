@@ -90,6 +90,8 @@ Added 27-09 (verifications of E5-T26…E7-T01 and of the web's E5-W01…E5-W03, 
 
 Added 30-09 (verification of E7-T02's round 2, ruling E72): **E7-T05** (notification engine hardening: an accepted send survives a failed settlement and a restart, bounce suppression at every e-mail attempt, a push expiry that is never lost, a monthly SMS counter that never goes back, the web's e-mail routes, and the dispatcher's failure-path table). E7-T04 now depends on it.
 
+Added 30-09, afternoon (verification of the web's E6-W02, ruling E74): **E6-T05** (`HistoryItem.activityId`, so that screen 25 links an activity row to the activity's page) runs after E5-T28; the web adopts it in E6-W04 step 0b.
+
 ### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
@@ -100,7 +102,7 @@ Added 30-09 (verification of E7-T02's round 2, ruling E72): **E7-T05** (notifica
 ### Gate E6 (back — organizer)
 - [ ] `bin/e6-smoke` green twice: the sheet from 21 and from D12 (same `PUT`, replayed with the same `Idempotency-Key`), «ha avisat» frees the seat and notifies the waitlist (N-15), a no-show → N-19 once (P3), `class-finishing` at +15 min (P8), the history states on 25.
 - [ ] Tasks with attachments readable by the member and the instructor; D14 unread per account; the week-agenda PDF.
-- [ ] E6-T01…T04 verified, CI green, snapshot staged (E6-W01…W04).
+- [ ] E6-T01…T05 verified, CI green, snapshot staged (E6-W01…W04).
 
 ### Gate E7 (back — organizer; real SMS and push on devices are release items, A31)
 - [ ] The channel × audience × preference matrix test green for every R1 code (counts in E7-T04's report).

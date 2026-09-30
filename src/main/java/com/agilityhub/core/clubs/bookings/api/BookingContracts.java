@@ -119,6 +119,7 @@ public final class BookingContracts {
             @Schema(requiredMode = NOT_REQUIRED, description = "Derived label for 07; added by GET /bookings/{id}") DisplayState displayState) { }
     public record BookingClassSession(@Schema(description = LOCAL) String startsAtLocal, @Schema(description = LOCAL) String endsAtLocal,
             String description, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The ring's colour for 07's dot before the title (E5-T29); null for a ring without one") String ringColor,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String instructorName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant instructorVisibleAt) { }
     public record BookedBy(String displayName, @Schema(description = "True when booked by the club (BACKOFFICE)") boolean viaClub,
@@ -133,17 +134,28 @@ public final class BookingContracts {
     @com.agilityhub.core.shared.application.contract.SparseListItem
     public record BookingListItem(String id, BookingState state, BookingOrigin origin, String classSessionId, Instant classStartsAt,
             String bookingWeekKey, String dogId, String dogName, String memberId, String memberName, Instant bookedAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late) { }
-    /** A row of `GET /class-sessions/{id}/bookings`: always whole, unlike the sparse {@link BookingListItem} of the list (E5-T22). */
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late,
+            @Schema(description = "The class's display description in the reader's language (D10 «Classes», E5-T29)") String classDescription,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) String ringName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The ring's colour; null for a ring without one") String ringColor) { }
+    /**
+     * A row of `GET /class-sessions/{id}/bookings` (21, D4, D12, the instructor's drawer): always whole, unlike the sparse
+     * {@link BookingListItem} of the list (E5-T22); E5-T29 adds the derived `displayState` and the dog's level code.
+     */
     public record ClassBookingItem(String id, BookingState state, BookingOrigin origin, String classSessionId, Instant classStartsAt,
             String bookingWeekKey, String dogId, String dogName, String memberId, String memberName, Instant bookedAt,
-            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late) { }
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true) Boolean late,
+            @Schema(description = "S08 §6 derived label, as GET /bookings/{id} gives it: a past ACTIVE booking reads DONE, one with a NO_SHOW mark NO_SHOW") DisplayState displayState,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The dog's level code (R-10-16); null with levels.enabled = false or for a dog without a level") String levelCode) { }
     public record ClassBookings(List<ClassBookingItem> items) { }
 
     // ---- Waitlist
     public record WaitlistEntry(String id, WaitlistState state, String classSessionId, String dogId,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName,
             @Schema(description = "The waiting dog; its sex gives the Catalan article of the waiting-list detail") HoldDog dog, String memberId,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The owner's first name: «{guia}» of D12's «En espera: {guia} + {gos}» when handlerName is null (S10 R-10-00)") String memberFirstName,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Dog.handlerName; null when the member handles the dog (S10 R-10-00)") String handlerName,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "FIFO order (R-08-14); null when waitlist.mode = ALL_AT_ONCE") Integer position, Instant joinedAt,
             BookingClassSession classSession,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant notifiedAt,
@@ -156,7 +168,9 @@ public final class BookingContracts {
     // ---- Error details (CATALEG_ERRORS §3 rule 2)
     @Schema(description = "details of 409 BOOKING_LIMIT_REACHED")
     public record BookingLimitReachedDetails(LimitUnit unit, BookingWeek week, int limit, int current, List<SwapOption> swappable,
-            List<NotSelectable> notSelectable, @Schema(description = "Start of the next booking week") Instant nextBookableAt) { }
+            List<NotSelectable> notSelectable,
+            @Schema(description = "Start of the next booking week: the end of the current one (R-08-01), for a CURRENT class and for a NEXT one alike; "
+                    + "at this instant a NEXT class becomes bookable in the current week (29)") Instant nextBookableAt) { }
     @Schema(description = "details of 409 CLASS_FULL; heldOnly = a live hold of another dog takes the last seat")
     public record ClassFullDetails(boolean heldOnly) { }
     @Schema(description = "details of 422 NOT_YET_OPEN")
