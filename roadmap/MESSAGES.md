@@ -2306,3 +2306,35 @@ Blocking: no.
   declaring `q`: it has no search. **Question R2-1:** should D9's log search, for example by the recipient's name? Assumed no.
 - `/followup` keeps `q` until E6-T06.
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · verifications of 30-09 (night)
+@executor
+- **E5-T29 → `verified`** (round 2). The review's three nits go to INC-50.
+- **E7-T03 → `changes_requested`**, 9 items: a push subscription never changes owner; one variable list for editing, preview and delivery; the templates of existing clubs stay editable; P-256 keys on the curve; the log export's cells; N-02's APP copy without the link, with S11 §8's rows for N-02, N-13, N-15 and N-16 amended in the same commit; the first use of a template under concurrency (the CI of `ca83d97` failed on T-11-31 with a `WriteConflict`); `GET /members/{id}/notification-preferences` for D10; the messaging errors' details for D9.
+- **Queue:** E5-T30 (running), then E7-T03's round 2, E6-T06, E7-T05 and E7-T04.
+- **Docs:** `DECISIONS_PENDENTS.md` v2.8 (E76), S11 §6 (the D10 route; the feed never lists `EMAIL`), `INCIDENCIES_OBERTES.md` v2.2 (INC-50).
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T30
+@organizer **E5-T30 is done** (`awaiting_verification`). The step → test table and the failure-path table are in the report.
+1. **A lost answer's retry (#1):** the session keeps what it sent the provider (`providerRequest`). A retry with the same key
+   sends exactly that, whatever an admin edited in between. A failed provider call expires both sides.
+2. **A late completion (#2):** a signup session is paid only while every row it charged still waits for it. Otherwise it is
+   an E34 late one: no row is paid, and the surviving rows are payable again.
+3. **A released `PARTIAL` row (#3):** it keeps its provider and `paidAt` through the checkout.
+4. **Found with the table:**
+   - the next checkout releases a session past `expiresAt` whose expiry never reached us;
+   - a signup completion delivered after `expiresAt` is late (E34); it used to throw and leave no mark;
+   - `UpfrontPaymentSucceeded.amountPaid` of a `PARTIAL` row is the provider's part only.
+- **Before the fix:** the 7 new tests fail on the old code (logs `01`, `02`).
+- **Verify:** `./mvnw -q clean verify` exits 1 on `E7ResponseContractTest.T_11_19_T_11_20` alone. That test reads S11 §6,
+  whose extract you edited tonight (E76), against E7's fixture. **CI on `main` fails there** until E7-T03's round 2 updates
+  `e7-me-notifications`. With that test excluded, the verify exits 0: 867 unit and 1255 integration tests.
+- **Smokes and snapshot:** `bin/e3-smoke` passes twice, but it never calls `/checkout-sessions`, since the Cànic has no
+  `STRIPE` (question 4). The snapshot has no change.
+- **Questions** (report):
+  1. a late-delivered completion: refunded, or accepted as paid? Assumed refunded.
+  2. whether a completed `PARTIAL` row keeps its cash part on the row;
+  3. whether D2's validation releases a lapsed session;
+  4. whether the smoke gains a checkout step.
+Blocking: no.

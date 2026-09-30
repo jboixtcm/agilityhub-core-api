@@ -743,6 +743,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T30: signup checkout hardening (the three findings of E5-T28's round-2 review, and the failure paths behind them).
+  - A retry with the same `Idempotency-Key` after a lost answer sends the provider exactly the first request. The session keeps
+    it (`providerRequest`) while it is open and unanswered, so an admin's edit of the e-mail or the payment method in between
+    never reaches the provider under the same `sessionId`. The stored answer and the session's end drop that copy.
+  - A provider call that fails, even after the provider opened its session, expires the session on both sides.
+  - The provider's completion of a signup session is a late one (E34) unless every row it charged still waits for it. The
+    session expires with `lateCompletionAt`, its surviving rows are payable again, and no row is paid.
+  - A `PARTIAL` row that enters a checkout keeps its provider and `paidAt`; when the checkout expires or is rejected, the row
+    is exactly what it was.
+  - A signup completion that arrives after the session's `expiresAt` is a late one (E34); it used to fail with `INVALID_STATE`
+    and leave no mark.
+  - A new checkout expires the member's signup sessions past their `expiresAt` and charges their rows again. Before, a lost
+    provider expiry kept them `CHECKOUT_PENDING` for good.
+  - `UpfrontPaymentSucceeded.amountPaid` is what the provider charged for the row: the rest of a `PARTIAL` row, not its whole
+    amount.
+  - The provider double refuses a known `sessionId` with other parameters, as Stripe does.
 - E5-T29: one S08 value, P9 from the api, and the demo seed.
   - `BOOKING_LIMIT_REACHED.details.nextBookableAt` is the start of the next booking week, `week(now).end()`, for a NEXT class
     as for a CURRENT one (S08 §2 row 29 amended 26-09); it was the end of the class's own week, a week too late for a NEXT

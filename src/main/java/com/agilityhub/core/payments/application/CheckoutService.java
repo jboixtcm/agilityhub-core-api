@@ -42,6 +42,11 @@ public class CheckoutService {
      * answer cannot be stored, the session stays open under this request's reference ({@link IdempotentOperation#reference}):
      * a retry with the same key finds it and asks the provider again for the same session, which the provider answers
      * idempotently by `sessionId`, so the same checkout comes back and no second one opens (CONVENCIONS_API §7, review #3).
+     * <p>
+     * E5-T30: the retry sends the provider exactly the request the session keeps ({@link SignupCheckoutSession#providerRequest}),
+     * never one rebuilt from the member, whom an admin may have edited in between (the provider refuses other parameters under
+     * a known `sessionId`). A failed provider call may still have opened the provider's session (a lost reply, an idempotency
+     * error): the session then expires on both sides.
      */
     public Result create(String memberId,String token,String success,String cancel,java.util.function.Function<Result,byte[]> answer) {
         members.authorize(memberId,token);
@@ -55,12 +60,13 @@ public class CheckoutService {
         catch(RuntimeException failure) {
             IdempotentOperation.release();
             abandon(memberId,request.sessionId());
+            expireAtProvider(request.sessionId(),request.clubId());
             throw failure;
         }
         var result=new Result(url,request.sessionId());byte[] body=answer.apply(result);
         boolean open=members.write(() -> {
             IdempotentOperation.lock();members.lock();
-            if(!sessions.pending(request.sessionId())) return false;
+            if(!sessions.answered(request.sessionId())) return false;
             IdempotentOperation.complete(201,body);return true;
         });
         if(!open) {
@@ -76,24 +82,33 @@ public class CheckoutService {
     private PaymentProvider.Request prepare(String memberId,String success,String cancel,String reference) {
         members.lock();var member=members.member(memberId);
         if(!Set.of("PENDING","ACTIVE").contains(member.get("status"))) throw new ApiException(ErrorCode.INVALID_STATE);
+        var retried=reference==null?Optional.<SignupCheckoutSession>empty():sessions.openFor(memberId,reference,clock.instant());
+        // Review #3 (E5-T28): the same request, whose answer was lost after this session opened: the same session, asked again
+        // with exactly what it was first asked (E5-T30), whatever the member became since.
+        if(retried.isPresent()) return retried.get().providerRequest();
+        lapsed(memberId);
         String currency=configs.get(TenantContext.require()).club().currency();
         var scope=members.submissions(memberId);
         var lines=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
-        var retried=reference==null?Optional.<SignupCheckoutSession>empty():sessions.openFor(memberId,reference,clock.instant());
-        if(retried.isPresent()) {
-            // Review #3: the same request, whose answer was lost after this session opened: the same session, asked again.
-            var open=retried.get();
-            return request(member,memberId,open.id(),open.mode(),lines.stream().filter(l -> open.upfrontPaymentIds().contains(l.id())).toList(),scope,success,cancel,open.expiresAt());
-        }
         var due=payments.due(memberId,scope,currency);var method=member.get("paymentMethod") instanceof Map<?,?> map?map:Map.of();
         boolean card="CARD".equals(method.get("type"));
         if(due.amountMinor()==0&&!card) throw new ApiException(ErrorCode.INVALID_STATE);
         if(lines.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
-        String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24));
+        // Milliseconds, as the session document keeps it: a retry replays this very request.
+        String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24)).truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
         var ids=lines.stream().map(UpfrontPayments.Line::id).toList();String mode=due.amountMinor()==0?"setup":"payment";
         var request=request(member,memberId,id,mode,lines,scope,success,cancel,expires);
-        sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires,null,null,null,reference));payments.pending(memberId,ids,id);
+        sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires,null,null,null,reference,request));payments.pending(memberId,ids,id);
         return request;
+    }
+    /**
+     * E5-T30 (step 4): an open signup session past its `expiresAt` can take no more money (the provider's session expired at the
+     * same instant), but its expiry never reached us: the provider's `expired` callback was lost, or the provider never opened
+     * it (the process stopped after {@link #prepare}). It expires here and gives its rows back, so they never stay
+     * `CHECKOUT_PENDING` for good; a completion that still arrives is a late one (E34, {@link #completed}).
+     */
+    private void lapsed(String memberId) {
+        for(var session:sessions.lapsedSignup(memberId,clock.instant())) if(sessions.finish(session.id(),"EXPIRED",null)) payments.checkout(memberId,session.id(),false);
     }
     private PaymentProvider.Request request(Map<String,Object> member,String memberId,String id,String mode,List<UpfrontPayments.Line> lines,List<UpfrontPayments.Submission> scope,
             String success,String cancel,Instant expires) {
@@ -156,10 +171,10 @@ public class CheckoutService {
     public record BookingCheckout(String sessionId,String paymentId) { }
     /**
      * The provider completed the session; `providerPaymentId` is its payment (kept on the session for S12 reconciliation).
-     * A booking session completed after its `expiresAt`, any session already EXPIRED on our side, and a signup session whose
-     * rows are no longer `CHECKOUT_PENDING` (a rejection cancelled them) are late completions (E34, A3-01): WARN + mark,
-     * never a confirmation, never a `PAID` row, never a card on the member, and never an error; a provider retry keeps the
-     * first mark.
+     * A session completed after its `expiresAt`, any session already EXPIRED on our side, and a signup session one of whose
+     * rows no longer waits for it (a rejection cancelled it) are late completions (E34, A3-01): WARN + mark, never a
+     * confirmation, never a `PAID` row, never a card on the member, and never an error; the session expires and its surviving
+     * rows are payable again. A provider retry keeps the first mark.
      */
     public void complete(String sessionId,String providerPaymentId,Map<String,Object> card) {
         transactions.run(() -> {
@@ -173,17 +188,17 @@ public class CheckoutService {
         // E34: P7, a failed provider call or a rejection expired the checkout on our side, but the provider still took the money.
         if("EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return; }
         if(!"PENDING".equals(session.status())) return;
-        if(session.bookingId()==null&&!session.upfrontPaymentIds().isEmpty()&&!payments.checkoutPending(session.memberId(),id)) {
-            if(sessions.finish(id,"EXPIRED",providerPaymentId)) lateCompletion(session,providerPaymentId,"its signup rows were closed");
+        // E5-T30 (step 2): a signup session is paid only while every row it charged still waits for it. Otherwise the money of a
+        // closed row would escape E34, so no row is paid: the surviving rows are payable again and S12 refunds the payment.
+        if(session.bookingId()==null&&!payments.checkoutPending(session.memberId(),id,session.upfrontPaymentIds())) {
+            late(session,providerPaymentId,"its signup rows were closed");
             return;
         }
+        // E34: past `bookings.paymentPendingMinutes` the booking is never confirmed. The session expires as P7 would expire it
+        // (line CANCELLED + UpfrontPaymentFailed) and keeps the mark, also when the club already cancelled the booking. A signup
+        // session past its 24 h (a delayed callback, E5-T30) likewise: its rows are payable again, and the mark is never lost.
         if(!session.expiresAt().isAfter(clock.instant())) {
-            if(session.bookingId()==null) throw new ApiException(ErrorCode.INVALID_STATE);
-            // E34: past `bookings.paymentPendingMinutes` the booking is never confirmed. The session expires as P7 would expire
-            // it (line CANCELLED + UpfrontPaymentFailed) and keeps the mark, also when the club already cancelled the booking.
-            if(!sessions.finish(id,"EXPIRED",providerPaymentId)) return;
-            payments.checkout(session.memberId(),id,false);
-            lateCompletion(session,providerPaymentId,"the checkout deadline passed");
+            late(session,providerPaymentId,session.bookingId()==null?"the signup checkout had expired":"the checkout deadline passed");
             return;
         }
         if(!sessions.finish(id,"COMPLETE",providerPaymentId)) return;
@@ -209,6 +224,15 @@ public class CheckoutService {
      */
     public void bookingCancelledBeforeCompletion(String sessionId) {
         sessions.findById(sessionId).ifPresent(session -> lateCompletion(session,session.providerPaymentId(),"the booking was cancelled"));
+    }
+    /**
+     * A late completion of a `PENDING` session (E34): it expires keeping the provider's payment, the rows still waiting for it
+     * go back (a signup row to its payable state, a booking row `CANCELLED`), and the reconciliation mark is left.
+     */
+    private void late(SignupCheckoutSession session,String providerPaymentId,String cause) {
+        if(!sessions.finish(session.id(),"EXPIRED",providerPaymentId)) return;
+        payments.checkout(session.memberId(),session.id(),false);
+        lateCompletion(session,providerPaymentId,cause);
     }
     private void lateCompletion(SignupCheckoutSession session,String providerPaymentId,String cause) {
         if(sessions.markLateCompletion(session.id(),providerPaymentId,clock.instant())) {

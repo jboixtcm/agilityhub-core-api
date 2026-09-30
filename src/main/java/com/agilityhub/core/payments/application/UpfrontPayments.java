@@ -160,21 +160,35 @@ public class UpfrontPayments {
         return new UpfrontPayment(UUID.nameUUIDFromBytes(("correction:"+p.id()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),p.clubId(),p.memberId(),p.dogId(),
                 p.concept(),p.signupConcept(),p.amountPaid(),p.amountPaid(),"PAID",p.provider(),null,clock.instant(),p.paidAt(),p.bookingId(),p.submissionId(),p.id());
     }
-    /** Whether a row of the member still waits for {@code session} (`CHECKOUT_PENDING`); a rejection cancels them (A3-01). */
-    public boolean checkoutPending(String memberId,String session) {
-        return repository.member(memberId).stream().anyMatch(p -> session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status()));
+    /**
+     * Whether every row of {@code ids} still waits for {@code session} (`CHECKOUT_PENDING` with that session). A rejection
+     * cancels them (A3-01); one closed row is enough for the provider's completion to be a late one (E5-T30, E34).
+     */
+    public boolean checkoutPending(String memberId,String session,Collection<String> ids) {
+        var waiting=repository.member(memberId).stream().filter(p -> session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status()))
+                .map(UpfrontPayment::id).collect(java.util.stream.Collectors.toSet());
+        return waiting.containsAll(ids);
     }
+    /**
+     * The rows wait for {@code session}. A row that already received money (`PARTIAL`, R-04-16) keeps what records that payment
+     * (its provider, `paidAt` and amount; E5-T30, S04 §5): the session is on `checkoutSessionId`, so {@link #released} gives the
+     * row back exactly as it was. A row with nothing received names the provider of its checkout.
+     */
     public void pending(String memberId,List<String> ids,String session) {
         for(var p:repository.member(memberId)) if(ids.contains(p.id())) {
             if(!Set.of("DUE","PARTIAL").contains(p.status())) throw new ApiException(ErrorCode.INVALID_STATE);
-            repository.update(state(p,"CHECKOUT_PENDING",p.amountPaid(),"STRIPE",session));
+            repository.update(new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),p.amountPaid(),"CHECKOUT_PENDING",
+                    received(p)?p.provider():"STRIPE",session,p.createdAt(),p.paidAt(),p.bookingId(),p.submissionId(),p.correctionOf()));
         }
     }
+    private static boolean received(UpfrontPayment p) { return p.amountPaid().amountMinor()>0; }
     /**
      * The provider finished the session: PAID + `UpfrontPaymentSucceeded`, or an expired session puts a signup line back
      * to its payable state and cancels a booking line (+ `UpfrontPaymentFailed`). Booking lines carry `bookingId` in both
      * events (S08 R-08-18). A payable signup line is `DUE`, or `PARTIAL` when it had received money before the checkout
-     * (E5-T28: a rejection then keeps that money in its `PAID` correction, E39b).
+     * (E5-T28: a rejection then keeps that money in its `PAID` correction, E39b). `amountPaid` of `UpfrontPaymentSucceeded` is
+     * what the provider charged for the line (E5-T30): the rest of a `PARTIAL` row, whose cash part its `UpfrontPaymentRecorded`
+     * already reported.
      */
     public void checkout(String memberId,String session,boolean complete) {
         for(var p:repository.member(memberId)) if(session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status())) {
@@ -183,16 +197,17 @@ public class UpfrontPayments {
             if(booking) payload.put("bookingId",p.bookingId());
             if(complete) {
                 repository.update(state(p,"PAID",p.amountDue(),"STRIPE",session));
-                payload.put("amountPaid",p.amountDue());emit("UpfrontPaymentSucceeded",p,payload);
+                payload.put("amountPaid",p.amountDue().minus(p.amountPaid()));emit("UpfrontPaymentSucceeded",p,payload);
             } else if(booking) {
                 repository.update(state(p,"CANCELLED",p.amountPaid(),"STRIPE",session));
                 emit("UpfrontPaymentFailed",p,payload);
             } else repository.update(released(p));
         }
     }
+    /** The row as it was before the checkout ({@link #pending}): `PARTIAL` with its payment's provider and `paidAt`, or `DUE` with none. */
     private UpfrontPayment released(UpfrontPayment p) {
         return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),p.amountPaid(),
-                p.amountPaid().amountMinor()>0?"PARTIAL":"DUE",null,null,p.createdAt(),p.paidAt(),p.bookingId(),p.submissionId(),p.correctionOf());
+                received(p)?"PARTIAL":"DUE",received(p)?p.provider():null,null,p.createdAt(),p.paidAt(),p.bookingId(),p.submissionId(),p.correctionOf());
     }
     private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session) {
         return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),paid,status,provider,session,p.createdAt(),

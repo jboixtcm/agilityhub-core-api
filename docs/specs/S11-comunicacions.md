@@ -176,6 +176,7 @@ Totes sota `/api/v1`; tenant pel JWT. `I` = `Idempotency-Key`.
 | POST | `/me/notifications/{id}/read` · `/me/notifications/read-all` | idem | — | — | Marca llegida | — | 200 `{unreadCount}` · 404 |
 | GET | `/me/notification-preferences` | MEMBER (IMPERSONATED) | — | — | Bloc «Avisos» de 12 | | 200 `{emailByCategory, smsFixed: true, reminderMinutesBefore, reminderOptionsMinutes[], pushClubNews, locale, availableLocales[], modules: {sms, push}}` |
 | PUT | `/me/notification-preferences` | MEMBER (IMPERSONATED) | — | — | Desa (parcial) | `{emailByCategory?, reminderMinutesBefore?, pushClubNews?}` | 200 · 400 `INVALID_REMINDER_OPTION` |
+| GET | `/members/{id}/notification-preferences` | ADMIN | — | — | Bloc de D10 (organitzador 30-09, E76) | | 200 la mateixa forma que `GET /me/notification-preferences`, de l'abonat · 404 |
 | PUT | `/members/{id}/notification-preferences` | ADMIN | — | — | D10 (auditat) | idem | 200 · 404 |
 | POST | `/push-subscriptions` | MEMBER · INSTRUCTOR · ADMIN | `PUSH` | — | Upsert per `endpoint` | `{endpoint, keys {p256dh, auth}, deviceLabel?}` | 201 `{id}` · 400 `PUSH_SUBSCRIPTION_INVALID` · 404 `MODULE_DISABLED` |
 | DELETE | `/push-subscriptions/{id}` | idem (pròpia) | `PUSH` | — | Baixa (logout) | — | 204 |
@@ -189,7 +190,7 @@ Totes sota `/api/v1`; tenant pel JWT. `I` = `Idempotency-Key`.
 { "items": [
   { "id":"n1","code":"N-08a","category":"CLUB_CHANGES","icon":"x","color":"ERROR","title":"Classe anul·lada pel club",
     "body":"Dimecres 12 · 18:50 · B+C · Central, amb Duna. «La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!» — Cànic Agility. Aquesta sessió no compta al teu còmput.",
-    "createdAt":"2026-08-10T15:58:00Z","channels":["APP","EMAIL","SMS"],"readAt":null,
+    "createdAt":"2026-08-10T15:58:00Z","channels":["APP","SMS"],"readAt":null,
     "action":{"type":"CHANGE_CLASS","params":{"dogId":"d1"},"enabled":true} },
   { "id":"n2","code":"N-15","category":"OPERATIONAL","icon":"unlock","color":"ACCENT","title":"S'ha alliberat una plaça!",
     "body":"Classe C i superiors · dijous 6 · 20:00. Estàs a la llista d'espera — la plaça és per a qui confirmi primer.",
@@ -408,3 +409,4 @@ Ordre: A → B0 (E1) → (B ∥ C ∥ D/E) → F. Tres fils: **B** (motor + prov
 - 05-09-2026 · la pantalla **30 «Info»** guanya pestanyes: **FAQ · Normes · [altres `ClubPage` actives]** (`GET /club-pages?active=true`); la pàgina `RULES` també s'enllaça des de l'alta (19: «Normes del club: consulta-les aquí», sense acceptació) i des del web del club.
 - 27-09-2026 · verificació d'E7-T01 (decisió E66): la plantilla de N-08a del §8 no fa servir `ring_name` (mana el catàleg, com a S15 §8); `club_name` és una variable general (CATALEG_NOTIFICACIONS).
 - 28-09-2026 · verificació d'E7-T02 (decisió E69): R-11-09 i T-11-09, cinc intents en total (1 · 5 · 15 · 60 min); T-11-33, N-19 amb la data de la classe sencera (S10 §8); R-11-08 i §6, la pàgina de baixa `/comunicats/baixa?t=…` i `422 UNSUBSCRIBE_TOKEN_INVALID` (CATALEG_ERRORS); l'estat `SKIPPED_NOT_ALLOWED` fora de producció (CATALEG_NOTIFICACIONS, regla 7).
+- 30-09-2026 · verificacions d'E7-T03 i E7-W01 (decisió E76): §6, `GET /members/{id}/notification-preferences` per al bloc de D10, i el feed de l'extracte de `GET /me/notifications` no llista `EMAIL` (part C). Els textos de N-02, N-13, N-15 i N-16 del §8 els esmena la ronda 2 d'E7-T03 amb el codi.

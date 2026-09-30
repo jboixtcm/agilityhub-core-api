@@ -27,7 +27,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * E3-T10: the api minors of the gate E3 audit (`roadmap/reviews/gate-E3/consolidated.md`, «Minor», api) and the three
  * narrow cases of the E3-T08 round-2 review (step 15). Same Spring context as {@link SignupIT}; one fixture club with
- * one 60 € monthly plan and every module.
+ * one 60 € monthly plan and every module. E5-T30: the mixed checkouts of two added dogs (a completion after one dog's rows
+ * were closed, a released `PARTIAL` row's payment history, the amount a completion reports for a `PARTIAL` row).
  */
 @org.springframework.boot.test.context.SpringBootTest(properties={"shared.scheduling.enabled=false","core.security.rate-limits.enabled=true"})
 @AutoConfigureMockMvc(print=MockMvcPrint.NONE)
@@ -384,6 +385,87 @@ class SignupMinorFixesIT extends AbstractIntegrationTest {
     List<String> charged(String session) { return fake.request(session).lines().stream().map(l -> l.paymentId()).toList(); }
     List<String> due(String memberId,String dogId) {
         return rows(memberId).stream().filter(p -> dogId.equals(p.getString("dogId"))&&"DUE".equals(p.getString("status"))).map(p -> p.getString("_id")).toList();
+    }
+    Document session(String id) { return mongo.getCollection("checkout_sessions").find(new Document("_id",id)).first(); }
+    Document payment(String id) { return mongo.getCollection("upfront_payments").find(new Document("_id",id)).first(); }
+    /** What a row says about its money (a field the store never wrote reads as null, as one it cleared). */
+    static Map<String,Object> history(Document row) {
+        var view=new LinkedHashMap<String,Object>();
+        for(var field:List.of("_id","status","amountDue","amountPaid","provider","checkoutSessionId","paidAt","createdAt","correctionOf")) view.put(field,row.get(field));
+        return view;
+    }
+    /**
+     * E5-T30 step 2 (review #2 of E5-T28 round 2, E34): a session that charged two dogs' rows, one dog's rows cancelled by a
+     * rejection while the other's still wait for it (what the round-1 rejection could leave). The provider's completion pays no
+     * row: the session expires with the late-completion mark (S12 refunds that payment), and the surviving rows are payable again.
+     */
+    @Test void T_04_22_T_04_19_aCompletionOfASessionWithOneDogsRowsCancelledPaysNoRowAndIsALateOne() throws Exception {
+        stripe();String id=activeMember();
+        String a=addDog(id,"941000011000001",null,"ca");String b=addDog(id,"941000011000002",null,"ca");
+        validate(id,List.of(a),0L);
+        var ofA=due(id,a);var ofB=due(id,b);assertThat(ofA).isNotEmpty();assertThat(ofB).isNotEmpty();
+        String session=checkout(id);
+        var both=new ArrayList<>(ofA);both.addAll(ofB);assertThat(charged(session)).containsExactlyInAnyOrderElementsOf(both);
+        // The round-1 rejection: b's rows CANCELLED, the session still PENDING, a's rows still CHECKOUT_PENDING for it.
+        mongo.getCollection("upfront_payments").updateMany(new Document("_id",new Document("$in",ofB)),new Document("$set",new Document("status","CANCELLED")));
+        int succeeded=events("UpfrontPaymentSucceeded").size();
+        fake.complete(session);fake.complete(session);
+        var late=session(session);
+        assertThat(late.getString("status")).isEqualTo("EXPIRED");
+        assertThat(late.getDate("lateCompletionAt").toInstant()).isEqualTo(clock.instant());
+        assertThat(late.getString("providerPaymentId")).isEqualTo("fake_payment_"+session);
+        assertThat(ofA.stream().map(this::payment)).allMatch(p -> "DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null&&p.get("paidAt")==null);
+        assertThat(ofB.stream().map(this::payment)).allMatch(p -> "CANCELLED".equals(p.getString("status")));
+        assertThat(events("UpfrontPaymentSucceeded")).hasSize(succeeded);
+        // a's rows are charged again by the next checkout.
+        assertThat(charged(checkout(id))).containsExactlyInAnyOrderElementsOf(ofA);
+    }
+    /**
+     * E5-T30 step 3 (review #3 of E5-T28 round 2, S04 R-04-16, §3 and §5): a row paid in part by hand at T1 enters a checkout at
+     * T2 together with another dog's rows. While it waits it keeps its `MANUAL` provider and T1's `paidAt` (the session is on
+     * `checkoutSessionId`), and rejecting the other dog gives it back exactly as it was before the checkout: `PARTIAL`.
+     */
+    @Test void T_04_22_T_04_19_aPartialRowReleasedByACheckoutKeepsItsPaymentHistory() throws Exception {
+        stripe();String id=activeMember();
+        String a=addDog(id,"941000012000001",null,"ca");String b=addDog(id,"941000012000002",null,"ca");
+        validate(id,List.of(a),100L);
+        Instant t1=clock.instant();
+        var before=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))).map(SignupMinorFixesIT::history).toList();
+        var partial=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))&&"PARTIAL".equals(p.getString("status"))).findFirst().orElseThrow();
+        assertThat(partial.getString("provider")).isEqualTo("MANUAL");assertThat(partial.getDate("paidAt").toInstant()).isEqualTo(t1);
+        assertThat(minor(mapper.valueToTree(partial.get("amountPaid")))).isEqualTo(100);
+        var ofB=due(id,b);assertThat(ofB).isNotEmpty();
+        clock.setInstant(clock.instant().plus(Duration.ofHours(3)));
+        String session=checkout(id);
+        assertThat(charged(session)).contains(partial.getString("_id")).containsAll(ofB);
+        var waiting=payment(partial.getString("_id"));
+        assertThat(waiting.getString("status")).isEqualTo("CHECKOUT_PENDING");assertThat(waiting.getString("checkoutSessionId")).isEqualTo(session);
+        assertThat(waiting.getString("provider")).isEqualTo("MANUAL");assertThat(waiting.getDate("paidAt").toInstant()).isEqualTo(t1);
+        reject(id,"Fictional dog not accepted");
+        assertThat(session(session).getString("status")).isEqualTo("EXPIRED");
+        var after=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))).map(SignupMinorFixesIT::history).toList();
+        assertThat(after).containsExactlyInAnyOrderElementsOf(before);
+        assertThat(payment(partial.getString("_id")).getString("status")).isEqualTo("PARTIAL");
+    }
+    /**
+     * E5-T30 step 4: the provider completes a checkout that charged the rest of a row paid in part by hand. The row is `PAID`,
+     * and its `UpfrontPaymentSucceeded` reports what the provider charged for it (the line it was sent), not the row's whole
+     * amount: with the `UpfrontPaymentRecorded` of the cash part, the row's events add up to its amount once (N-30, S12).
+     */
+    @Test void T_04_22_aCompletedCheckoutOfAPartialRowReportsOnlyWhatTheProviderCharged() throws Exception {
+        stripe();String id=activeMember();
+        String a=addDog(id,"941000013000001",null,"ca");validate(id,List.of(a),100L);
+        var partial=rows(id).stream().filter(p -> a.equals(p.getString("dogId"))&&"PARTIAL".equals(p.getString("status"))).findFirst().orElseThrow();
+        String row=partial.getString("_id");long amount=minor(mapper.valueToTree(partial.get("amountDue")));
+        String session=checkout(id);
+        var line=fake.request(session).lines().stream().filter(l -> row.equals(l.paymentId())).findFirst().orElseThrow();
+        assertThat(line.amount().amountMinor()).isEqualTo(amount-100);
+        fake.complete(session);
+        assertThat(payment(row).getString("status")).isEqualTo("PAID");assertThat(minor(mapper.valueToTree(payment(row).get("amountPaid")))).isEqualTo(amount);
+        java.util.function.Function<String,List<Long>> reported=type -> events(type).stream().map(e -> e.get("payload",Document.class))
+                .filter(p -> row.equals(p.getString("paymentId"))).map(p -> minor(mapper.valueToTree(p.get("amountPaid")))).toList();
+        assertThat(reported.apply("UpfrontPaymentRecorded")).containsExactly(100L);
+        assertThat(reported.apply("UpfrontPaymentSucceeded")).containsExactly(amount-100);
     }
     /** Round 2, point 1 (step 15.1, S03 R-03-14): the payable rows follow their debtor (`UpfrontPayment.memberId`), not the dog's owner. */
     @Test void R_03_14_T_04_22_theUnpaidRowsOfATransferredDogStayPayableByTheirDebtor() throws Exception {

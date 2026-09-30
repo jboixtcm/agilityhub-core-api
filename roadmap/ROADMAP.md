@@ -94,11 +94,13 @@ Added 30-09, afternoon (verification of the web's E6-W02, ruling E74): **E6-T05*
 
 Added 30-09, evening (verifications of E5-T28's round 2, E5-T29 and the web's E6-W03, ruling E75): **E5-T30** (signup checkout hardening: a lost answer's retry sends the provider exactly the first request, a late completion needs every row still pending, a released partial row keeps its payment history, and the checkout's failure-path table) runs after E5-T28; **E6-T06** (`GET /followup/filter-values`, a follow-up list that searches, `InstructorWeek.trainingSlotMinutes`) runs after E6-T05; the web adopts it in E6-W04 step 0c.
 
+Added 30-09, night (verifications of E5-T29's round 2, E7-T03 and the web's E7-W01, ruling E76): E7-T03's round 2 also publishes `GET /members/{id}/notification-preferences` (D10's block) and the details of the messaging errors (D9).
+
 ### Gate E5 (back — organizer 26-09, from E5-T06's verification; k6 on the real server and T-15-30 deferred to the release, A31/E28)
 - [x] `bin/e5-smoke` green twice on the local stack with P1/P6/P7/P9 running: book → cancel in time and late → waitlist join → seat released → claim → training slot booked and cancelled (E5-T06 logs, steps 1–12).
 - [x] `bin/e5-perf` within the E28 targets: peak flow p95 485 ms (target 800), holds 249 ms (target 500), `last_seat` 1×201 + 49×409 — zero overbooking; lanes-off proofs in E5-T07.
 - [x] E5-T01…T20 verified; CI green at `924303e`…`be2f4a8`.
-- [ ] E5-T21…E5-T30 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 30-09: E5-T21…E5-T28 verified; E5-T29 (round 2) and E5-T30 open.
+- [ ] E5-T21…E5-T30 verified, CI green, snapshot staged for the web (E4-W13…W18, E5-W01…W05). — organizer 30-09: E5-T21…E5-T29 verified; E5-T30 open.
 - [ ] Front: E5-W04 (T-08-40, T-09-40 on the real core with the E5 seed and the moved clock).
 
 ### Gate E6 (back — organizer)
@@ -132,7 +134,7 @@ Added 30-09, evening (verifications of E5-T28's round 2, E5-T29 and the web's E6
 ### E9–E12 per-stage task lists (organizer 30-09; from the global review of 26-09, `backlog/revisio-26-09/REVISIO_GLOBAL_26-09.md` §5; the task files are written and installed before E8 closes)
 Pattern per stage: contract → domain → endpoints and integrations → processes, seed, smoke and gate. Sizes: S ≤ ½ session · M = 1 · L = 1–2 · XL = 2–3. Web tasks are listed in the web repo's `ROADMAP.md`.
 
-**E9 · Courses and build sessions (S16).** Organizer prep first: `courses.defaultWarningThresholdM` instead of `placementMarginMeters`, the planner's `ruleId`s as warning codes, Venue, calibration, markers, join and export in the data model and CONVENCIONS §3, the S14 audit actions and the events, and A6 (is there Supabase data to import?).
+**E9 · Courses and build sessions (S16).** Organizer prep: done 30-09 (ruling E77: one placement engine, `course-core` on the client, whose `critical` warnings need an ADMIN's `force`; `courses.defaultWarningThresholdM` and `courses.buildSessionMaxHours`; the catalog rows E9-T01 adds with the code; the §14.2 model; three new routes). A6 is still open: is there real data in the planner's Supabase to import?
 - **E9-T01** · Contract S16: courses, ring geometry, marker sheets, setups, calibrations, placements, ring setups, build sessions (with export and join), obstacle inventories, `/platform/courses`, `/challenges` as 501; documents, indexes and the JSON-Schema validation of `normalizedJson` · deps: web E9-W01, E2-T03, E4-T03, E5-T04, E8-T01 · L
 - **E9-T02** · Courses library and ring geometry (R-16-01…04, 12, 14, 16, 17) · E9-T01 · L
 - **E9-T03** · Placements, ring setups and their integrations: S08's `RingSetupPort`, S06 `placementId`, S07 placements, N-31, P5f (R-16-05…09, 13, 15) · E9-T02, E8-T06 · L

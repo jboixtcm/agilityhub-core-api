@@ -1,6 +1,6 @@
 # Incidències obertes — registre de defectes
 
-**v2.1 · 30-09-2026** (v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
+**v2.2 · 30-09-2026** (v2.1 30-09 · v2.0 30-09 · v1.9 30-09 · v1.8 28-09 · v1.7 28-09 · v1.6 27-09 · v1.5 27-09 · v1.4 26-09 · v1.3 26-09 · v1.2 24-09 · v1.1 10-09 · v1.0 09-09)
 
 Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasca del roadmap ara mateix** (decisió de Jordi, 09-09: primer acabem el desenvolupament, després fem una passada de correccions). Serveix perquè cap troballa es perdi pel camí i perquè la fase de correccions tingui la llista feta.
 
@@ -59,6 +59,7 @@ Registre de defectes trobats mentre es desenvolupa i que **no s'obren com a tasc
 | INC-47 | 28-09 | api (transaccions, comú) | Una ruta amb clau que no és a la llista de rutes amb transacció pròpia d'`IdempotencyFilter` s'executa dins la transacció del filtre, i un conflicte d'escriptura de Mongo hi acaba en 500 (revisions d'E6-T03, rondes 3 i 4) | Mitjana | oberta — passada de correccions (E11-T02); les rutes d'E6-T03, **fetes a la seva ronda 5 (30-09, E6-T03 ✅)** |
 | INC-48 | 30-09 | api (seguiment) | Nits de la ronda 5 d'E6-T03: l'estat que es desa per a la resposta repetida d'una clau és una còpia escrita a mà del `@ResponseStatus` de cada ruta, i un Javadoc mal tallat | Baixa | oberta — passada de correccions |
 | INC-49 | 30-09 | api (consola, idempotència) | `IdempotencyFilter` pren el club del `clubId` del JWT i respon `NO_MEMBERSHIP` sense: una ruta de consola amb clau (`POST /platform/clubs/{clubId}/jobs/{name}/trigger`) cridada amb un token de plataforma queda refusada abans del handler (nota 2 d'E5-T29, llegida al codi) | Mitjana | oberta — per a E10 (S17, consola) |
+| INC-50 | 30-09 | api (processos, proves) | Nits de la ronda 2 d'E5-T29: un reintent d'un llançament manual pot deixar l'execució sense `JOB_TRIGGERED` si la primera escriptura de l'auditoria va fallar; la vida de 24 h de la clau és definida dues vegades; l'etiqueta T-09-30 dels tests de cerca no té cap asserció de tenant | Baixa | oberta — passada de correccions |
 
 ---
 
@@ -448,6 +449,21 @@ Solució probable:
 **S'espera**: a les rutes `/platform/clubs/{clubId}/…`, el filtre pren el club del camí, després que l'autorització de la plataforma l'accepti (E62), i la clau s'hi guarda amb aquest club.
 
 **On mirar**: `shared/api/IdempotencyFilter.java` (el club de la clau), `platform/application/jobs/JobAdminService.java` (`platformTrigger`).
+
+---
+
+## INC-50 · Nits de la ronda 2 d'E5-T29 (api, processos)
+
+**Gravetat**: baixa.
+
+**Origen**: `roadmap/reviews/E5-T29-20260930-1939-claude.md` (api), troballes #1–#3; verificació de l'organitzador del 30-09 (decisió E76).
+
+**Llista**:
+- **El `JOB_TRIGGERED` d'un reintent.** Al camí sense transacció (`NOT_SUPPORTED`), l'auditoria s'escriu després que l'execució es desi. Si aquesta escriptura falla, la resposta és un 500 i la clau s'allibera; el reintent respon l'execució, que es queda sense l'entrada. Proposta: al reintent, escriure l'entrada si no n'hi ha cap per a aquell `runId`.
+- **La vida de la clau, dues vegades.** `IdempotentOperation.KEY_LIFETIME` i les 24 h escrites a mà d'`IdempotencyRepository` (índex TTL i `claim`). Proposta: una sola constant.
+- **T-09-30 sense tenant.** Els tests de cerca del registre i dels bloquejos porten l'id T-09-30 però no comproven que no surti res d'un altre club. Proposta: una asserció amb una reserva i un bloqueig d'un altre club que coincideixin amb el `q`.
+
+**On mirar**: `JobAdminService.java:124-128`, `IdempotentOperation.java:11`, `IdempotencyRepository.java:25,32`, `TrainingRegisterContractIT`.
 
 ---
 

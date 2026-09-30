@@ -1,0 +1,9 @@
+unit (surefire, without the failsafe classes): classes=163 tests=867 failures=0 errors=0 skipped=0
+integration (failsafe): classes=111 tests=1255 failures=0 errors=0 skipped=0
+excluded by -Dtest=!E7ResponseContractTest: com.agilityhub.core.configuration.E7ResponseContractTest present=False
+com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT (changed, 4 new tests): tests=12 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.census.api.SignupMinorFixesIT (changed, 3 new tests): tests=21 failures=0 errors=0 skipped=0
+com.agilityhub.core.payments.api: lines 7/8 = 87.5%, branches 0/0 = n/a
+com.agilityhub.core.payments.application: lines 236/238 = 99.2%, branches 171/195 = 87.7%
+com.agilityhub.core.payments.domain: lines 2/2 = 100.0%, branches 0/0 = n/a
+com.agilityhub.core.payments.persistence: lines 20/20 = 100.0%, branches 9/10 = 90.0%
