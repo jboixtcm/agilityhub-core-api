@@ -36,7 +36,8 @@ class IdempotencyIT extends AbstractIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired MongoTemplate mongo;
     @Autowired TestController controller;
-    @Autowired IdempotencyRepository repository;
+    /** A spy (E5-T31): a test makes Mongo fail under the filter's failure path; every other call is the real one. */
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean IdempotencyRepository repository;
 
     @BeforeEach void prepare() {
         controller = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(controller);
@@ -244,6 +245,51 @@ class IdempotencyIT extends AbstractIntegrationTest {
             assertThat(replay.getContentAsByteArray()).isEqualTo(retried.getContentAsByteArray());
         }
         assertThat(controller.calls).hasValue(2);
+    }
+
+    /**
+     * E5-T31 (review E5-T30 #5): the answer cannot be stored because Mongo failed, and checking the claim then fails too. The
+     * original failure is the one that surfaces, with the second one as suppressed, and the claim is still released, so the
+     * retry with the same key runs at once. When releasing the claim fails as well (Mongo unreachable), the original failure
+     * still surfaces, with both; the claim then stays until its lease has passed, and the retry after it runs.
+     * CONVENCIONS_API §7 has no test id, so this class keeps its task-based names (review E5-T30 #8).
+     */
+    @Test void E5_T31_aFailingClaimCheckOrReleaseNeverHidesTheOriginalFailure() throws Exception {
+        String key = UUID.randomUUID().toString();
+        org.mockito.Mockito.doThrow(new com.mongodb.MongoException("answer store unreachable (injected)")).doCallRealMethod()
+                .when(repository).complete(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.doThrow(new com.mongodb.MongoException("claim check unreachable (injected)")).doCallRealMethod()
+                .when(repository).held(org.mockito.ArgumentMatchers.any());
+        assertThat(surfaced(key)).hasMessage("answer store unreachable (injected)").satisfies(failure ->
+                assertThat(failure.getSuppressed()).extracting(Throwable::getMessage).containsExactly("claim check unreachable (injected)"));
+        assertThat(mongo.findAll(IdempotencyRecord.class)).as("the claim was released").isEmpty();
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isZero();
+        mvc.perform(request(key, "original", "club-a", "account-a")).andExpect(status().isCreated());
+        assertThat(controller.calls).hasValue(2);
+
+        String unreachable = UUID.randomUUID().toString();
+        org.mockito.Mockito.doThrow(new com.mongodb.MongoException("answer store unreachable (injected)")).doCallRealMethod()
+                .when(repository).complete(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.doThrow(new com.mongodb.MongoException("claim check unreachable (injected)")).doCallRealMethod()
+                .when(repository).held(org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.doThrow(new com.mongodb.MongoException("claim release unreachable (injected)")).doCallRealMethod()
+                .when(repository).abandon(org.mockito.ArgumentMatchers.any());
+        assertThat(surfaced(unreachable)).hasMessage("answer store unreachable (injected)").satisfies(failure ->
+                assertThat(failure.getSuppressed()).extracting(Throwable::getMessage)
+                        .containsExactly("claim check unreachable (injected)", "claim release unreachable (injected)"));
+        mvc.perform(request(unreachable, "original", "club-a", "account-a"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.details.reason").value("IN_PROGRESS"));
+        clock.advance(IdempotencyRepository.CLAIM_LEASE.plusSeconds(1));
+        mvc.perform(request(unreachable, "original", "club-a", "account-a")).andExpect(status().isCreated());
+        assertThat(controller.calls).hasValue(4);
+        assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(2);
+    }
+    /** The failure that leaves the filter: MockMvc rethrows what no handler answered. */
+    private Throwable surfaced(String key) {
+        var thrown = catchThrowable(() -> mvc.perform(request(key, "original", "club-a", "account-a")));
+        assertThat(thrown).isNotNull();
+        while (thrown instanceof jakarta.servlet.ServletException && thrown.getCause() != null) { thrown = thrown.getCause(); }
+        return thrown;
     }
 
     @TestConfiguration(proxyBeanMethods = false) static class Config {

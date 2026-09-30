@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * (A3-02, INC-33). Round 2: the provider double and the idempotency store are spies, to hold the provider while a
  * rejection commits (review #2) and to lose the checkout's stored answer once (review #3). E5-T30: the retry of a lost
  * answer sends the provider exactly the first request, a failed provider call expires both sides, and a session past its
- * expiry neither strands its rows nor loses a late completion.
+ * expiry neither strands its rows nor loses a late completion. E5-T31: P5's step h (BILLING), not P7, releases those sessions.
  */
 @org.springframework.boot.test.context.SpringBootTest(properties={"shared.scheduling.enabled=false","core.security.rate-limits.enabled=true"})
 @AutoConfigureMockMvc(print=MockMvcPrint.NONE)
@@ -398,7 +398,7 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
      * E5-T30 round 2, item 1 (the failure-path table's row 2″): the request that held the claim was only slower than its lease.
      * Its retry took the claim over and answered the checkout; then the first request's provider call fails. Its clean-up no
      * longer holds the key, so it expires neither side: the retry's session stays open and payable, and it answers
-     * `409 IN_PROGRESS`.
+     * `409 IN_PROGRESS`. E5-T31 (review E5-T30 #6): the provider's failure is still logged, without the customer.
      */
     @Test void T_04_22_T_04_23_aProviderFailureOfARequestWhoseClaimWasTakenOverLeavesTheRetrysCheckoutOpen() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
@@ -406,7 +406,9 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         var opening=new CountDownLatch(1);var held=new CountDownLatch(1);
         doAnswer(invocation -> { opening.countDown();held.await(60,TimeUnit.SECONDS);throw new IllegalStateException("provider timeout (injected)"); })
                 .doCallRealMethod().when(fake).createCheckoutSession(any());
-        try(var pool=Executors.newSingleThreadExecutor()) {
+        var logger=(ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger(com.agilityhub.core.payments.application.CheckoutService.class);
+        var logged=new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();logged.start();logger.addAppender(logged);
+        try(var pool=Executors.newSingleThreadExecutor();AutoCloseable detach=()->logger.detachAppender(logged)) {
             var slow=pool.submit(()->mvc.perform(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip)).andReturn().getResponse());
             JsonNode again;
             try {
@@ -418,6 +420,13 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
             assertThat(failed.getStatus()).as(failed.getContentAsString()).isEqualTo(409);
             assertThat(mapper.readTree(failed.getContentAsString()).at("/details/reason").asText()).isEqualTo("IN_PROGRESS");
             String sid=again.path("checkoutSessionId").asText();
+            // E5-T31 (review E5-T30 #6): the provider's failure, dropped for the 409, is still recorded: the session and the club only.
+            assertThat(logged.list).filteredOn(line -> line.getFormattedMessage().startsWith("Provider call failed after the checkout's key was taken over"))
+                    .singleElement().satisfies(line -> {
+                        assertThat(line.getLevel()).isEqualTo(ch.qos.logback.classic.Level.WARN);
+                        assertThat(line.getFormattedMessage()).contains("checkoutSessionId="+sid,"clubId="+club,"error=java.lang.IllegalStateException")
+                                .doesNotContain("@example.test").doesNotContain("provider timeout (injected)");
+                    });
             assertThat(session(sid).getString("status")).isEqualTo("PENDING");assertThat(fake.expired(sid)).isFalse();
             assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&sid.equals(p.getString("checkoutSessionId")));
             // The retry's checkout is the live one: the applicant pays it.
@@ -467,29 +476,98 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         }
         assertThat(collection("upfront_payments")).allMatch(p->"PAID".equals(p.getString("status"))&&"MANUAL".equals(p.getString("provider")));
     }
+    /** The club keeps every module except {@code off} (none: all of them again). */
+    void modulesWithout(Module... off) {
+        var on=new ArrayList<String>();for(var module:Module.values()) if(!List.of(off).contains(module)) on.add(module.name());
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("modules",on)));
+        configs.invalidate(club);signupService.invalidateConfiguration(club);
+    }
+    static Map<String,Object> detail(com.agilityhub.core.platform.persistence.jobs.JobRun.Item item) {
+        var detail=new LinkedHashMap<String,Object>();item.detail().forEach(entry -> detail.put(entry.key(),entry.value()));return detail;
+    }
     /**
-     * E5-T30 round 2, item 2 (S04 R-04-26, S15 R-15-17, ruling E79): an open checkout whose provider expiry never reaches us.
-     * Before `expiresAt` P7 leaves it; after it, P7 expires it (`EXPIRE_CHECKOUT`, `WOULD_EXPIRE_CHECKOUT` in a dry run) and its
-     * rows are payable again, with no late-completion mark. A second run finds nothing.
+     * E5-T31 step 1 (S15 R-15-15 step h, S04 R-04-26, ruling E80; T-15-23): a club with BILLING and without SINGLE_CLASS (so with
+     * no P7), the provider switched off, and a signup checkout that never reached the provider (the process stopped after it was
+     * prepared). Before `expiresAt` P5 leaves it; after it, P5's step h expires it (`WOULD_EXPIRE_CHECKOUT {checkoutSessionId,
+     * minutesExpired}` in a dry run, `EXPIRE_CHECKOUT` and `expiredCheckouts` in a real one) and its rows are `DUE` again, with no
+     * late-completion mark. A second run finds nothing. The stopped request, when it wakes up, finds its session closed.
      */
-    @Test void T_04_22_T_15_25_P7ExpiresASignupCheckoutPastItsExpiryThatNeverHeardFromTheProvider() throws Exception {
+    @Test void T_15_23_T_04_22_P5StepHReleasesACheckoutThatNeverReachedTheProviderInAClubWithoutSingleClassWithTheProviderOff() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);
+        var opening=new CountDownLatch(1);var held=new CountDownLatch(1);
+        doAnswer(invocation -> { opening.countDown();held.await(60,TimeUnit.SECONDS);return invocation.callRealMethod(); }).when(fake).createCheckoutSession(any());
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var stopped=pool.submit(()->mvc.perform(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip())).andReturn().getResponse());
+            String sid;
+            try {
+                assertThat(opening.await(30,TimeUnit.SECONDS)).isTrue();
+                sid=collection("checkout_sessions").getFirst().getString("_id");
+                modulesWithout(Module.SINGLE_CLASS);stripeOff();
+                assertThat(runner.manual(club,JobName.EXPIRATIONS,true,"corrections-admin").items()).as("before its expiresAt").isEmpty();
+                clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plus(Duration.ofMinutes(5)));
+                assertThatThrownBy(() -> runner.manual(club,JobName.PAYMENT_TIMEOUTS,true,"corrections-admin"))
+                        .as("a club without SINGLE_CLASS has no P7").isInstanceOfSatisfying(ApiException.class,failure -> assertThat(failure.code()).isEqualTo(ErrorCode.MODULE_DISABLED));
+                var dry=runner.manual(club,JobName.EXPIRATIONS,true,"corrections-admin");
+                long minutes=Duration.between(session(sid).getDate("expiresAt").toInstant(),dry.scheduledFor()).toMinutes();
+                assertThat(minutes).isBetween(4L,5L);
+                assertThat(dry.items()).singleElement().satisfies(item -> {
+                    assertThat(item.entityType()).isEqualTo("CheckoutSession");assertThat(item.entityId()).isEqualTo(sid);
+                    assertThat(item.action()).isEqualTo("WOULD_EXPIRE_CHECKOUT");
+                    assertThat(detail(item)).containsExactlyInAnyOrderEntriesOf(Map.of("checkoutSessionId",sid,"minutesExpired",minutes));
+                });
+                assertThat(dry.counters()).contains(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("WOULD_EXPIRE_CHECKOUT",1L));
+                assertThat(session(sid).getString("status")).as("a dry run writes nothing").isEqualTo("PENDING");
+                var run=runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin");
+                assertThat(run.status()).isEqualTo(com.agilityhub.core.platform.application.jobs.JobStatus.SUCCEEDED);
+                assertThat(run.items()).singleElement().satisfies(item -> {
+                    assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("EXPIRE_CHECKOUT");
+                    assertThat(detail(item)).containsExactlyInAnyOrderEntriesOf(Map.of("checkoutSessionId",sid,"minutesExpired",minutes));
+                });
+                assertThat(run.counters()).containsExactly(new com.agilityhub.core.platform.persistence.jobs.JobRun.Entry("expiredCheckouts",1L));
+                assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");assertThat(session(sid).get("lateCompletionAt")).isNull();
+                assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
+                var again=runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin");
+                assertThat(again.items()).as("two runs, one effect").isEmpty();assertThat(again.counters()).isEmpty();
+            } finally { held.countDown(); }
+            var woke=stopped.get(60,TimeUnit.SECONDS);
+            assertThat(woke.getStatus()).as(woke.getContentAsString()).isEqualTo(409);
+            assertThat(woke.getContentAsString()).contains("\"INVALID_STATE\"").doesNotContain("checkout.test");
+            assertThat(fake.expired(sid)).as("the session the provider opened late is expired there too").isTrue();
+        }
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
+    }
+    /**
+     * E5-T31 step 1 (S15 R-15-15 step h and §9, ruling E80; T-15-23; review E5-T30 #7, AGENTS rule 4): P7 plans no signup checkout
+     * any more, even where SINGLE_CLASS is on. With BILLING off, P5 runs and skips step h: the lapsed session stays open. With
+     * BILLING on again, step h releases it, and a lapsed session of another club never enters this club's plan.
+     */
+    @Test void T_15_23_P5StepHIsSkippedWithBillingOffAndNeverPlansAnotherClubsCheckout() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
         var submitted=submit(body);
         String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
-        assertThat(runner.manual(club,JobName.PAYMENT_TIMEOUTS,true,"corrections-admin").items()).isEmpty();
-        clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plusSeconds(60));
-        var dry=runner.manual(club,JobName.PAYMENT_TIMEOUTS,true,"corrections-admin");
-        assertThat(dry.items()).singleElement().satisfies(item -> {
-            assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("WOULD_EXPIRE_CHECKOUT");
-        });
+        // Another club's open session past its expiry: this one's stored document under another club, member and rows.
+        String otherClub="fix-"+UUID.randomUUID(),otherSid=UUID.randomUUID().toString();
+        var other=new Document(session(sid));other.put("_id",otherSid);other.put("clubId",otherClub);other.put("memberId",UUID.randomUUID().toString());
+        other.put("upfrontPaymentIds",List.of(UUID.randomUUID().toString()));mongo.getCollection("checkout_sessions").insertOne(other);
+        clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plus(Duration.ofMinutes(5)));
+        assertThat(runner.manual(club,JobName.PAYMENT_TIMEOUTS,true,"corrections-admin").items()).as("P7 is bookings only").isEmpty();
+        modulesWithout(Module.BILLING,Module.PACKS,Module.SINGLE_CLASS);
+        assertThat(runner.manual(club,JobName.EXPIRATIONS,true,"corrections-admin").items()).isEmpty();
+        var skipped=runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin");
+        assertThat(skipped.status()).isEqualTo(com.agilityhub.core.platform.application.jobs.JobStatus.SUCCEEDED);
+        assertThat(skipped.items()).isEmpty();assertThat(skipped.counters()).isEmpty();
         assertThat(session(sid).getString("status")).isEqualTo("PENDING");
-        var run=runner.manual(club,JobName.PAYMENT_TIMEOUTS,false,"corrections-admin");
-        assertThat(run.items()).singleElement().satisfies(item -> {
-            assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("EXPIRE_CHECKOUT");
-        });
-        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");assertThat(session(sid).get("lateCompletionAt")).isNull();
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&sid.equals(p.getString("checkoutSessionId")));
+        modulesWithout();
+        assertThat(runner.manual(club,JobName.EXPIRATIONS,true,"corrections-admin").items()).singleElement()
+                .satisfies(item -> { assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("WOULD_EXPIRE_CHECKOUT"); });
+        var run=runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin");
+        assertThat(run.items()).singleElement().satisfies(item -> { assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("EXPIRE_CHECKOUT"); });
+        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");
         assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
-        assertThat(runner.manual(club,JobName.PAYMENT_TIMEOUTS,false,"corrections-admin").items()).isEmpty();
+        assertThat(session(otherSid)).containsEntry("status","PENDING").containsEntry("clubId",otherClub);
+        assertThat(runner.manual(club,JobName.EXPIRATIONS,false,"corrections-admin").items()).isEmpty();
     }
     /**
      * E5-T30 round 2, item 3 (S04 R-04-26, E34, ruling E79): the applicant paid before the session's `expiresAt`, but the

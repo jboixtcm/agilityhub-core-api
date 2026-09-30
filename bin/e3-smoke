@@ -2,6 +2,7 @@
 """Rehearse T-04-34/T-14-11 with curl and the real local Compose mailbox, and T-04-22's checkout with the fake provider."""
 import argparse
 import base64
+import datetime
 import json
 import os
 from pathlib import Path
@@ -16,6 +17,7 @@ import tempfile
 import time
 import urllib.parse
 import uuid
+from zoneinfo import ZoneInfo
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -273,7 +275,8 @@ class Smoke:
                 if attempt == 2:
                     require("0 changes (" in output, "Seed reapply was not idempotent")
                 print(f"PASS {' '.join(command)} run {attempt}" + (": 0 changes" if attempt == 2 else ""), flush=True)
-        # E5-T30 round 2: the fictional Stripe-enabled club of the checkout steps (BILLING, STRIPE, SINGLE_CLASS, so P7 too).
+        # E5-T30 round 2: the fictional Stripe-enabled club of the checkout steps (BILLING, STRIPE, SINGLE_CLASS, so P7 too;
+        # E5-T31: P7 leaves its signup checkouts to P5's step h).
         self.cli("club:apply", "seeds/club-fifo.yaml")
         print("PASS club:apply seeds/club-fifo.yaml (fictional club with STRIPE)", flush=True)
         # Activation is fixture setup on this named disposable database only; so is offering the fictional club's monthly plan
@@ -559,7 +562,8 @@ class Smoke:
         """E5-T30 round 2 (S04 R-04-26, T-04-22; CONVENCIONS_API §7): the signup checkout on the fictional Stripe-enabled club,
         with the fake provider. A card signup opens its checkout (its key replays it); the provider's side, played by
         `bin/core checkout:fake-provider` through the webhook's handler, completes one and expires another; and a checkout whose
-        expiry never comes is released by P7 once its `expiresAt` has passed, with no provider call."""
+        expiry never comes is released by P5's step h (E5-T31, ruling E80) at its first daily run after `expiresAt`, with no
+        provider call, while P7 (every minute) leaves it alone."""
         self.host = next(d["host"] for d in self.mongo('db.clubs.findOne({slug:"fifo"},{domains:1})')["domains"] if d["app"] == "clubs")
         config = self.call("GET", "/api/v1/signup")
         require("CARD" in [m["type"] for m in config["paymentMethods"]], "The Stripe club must offer the card")
@@ -610,18 +614,46 @@ class Smoke:
         print("PASS the provider's expiry gives every row back (DUE, no session)", flush=True)
 
         _, stranded = open_checkout(3)
-        now = self.call("POST", "/api/v1/test/clock", body=dict(advanceSeconds=24 * 3600 + 120), quiet=True)["now"]
-        print(f"POST /test/clock +24 h 2 min (server now {now[:16]}Z): the stranded checkout's expiresAt has passed", flush=True)
+        # P5's daily time and the club's zone, as the server computed them for the club's first P5 run (at the stack's start).
+        first = wait(lambda: self.mongo('db.job_runs.find({clubId:' + json.dumps(self.fifo) + ',job:"EXPIRATIONS",dryRun:false})'
+                                        '.sort({scheduledFor:1}).limit(1).toArray().map(r=>({local:r.scheduledForLocal,zone:r.timeZone}))'),
+                     "P5 expirations never ran in the fictional club", timeout=120)[0]
+        zone, daily = ZoneInfo(first["zone"]), datetime.time.fromisoformat(first["local"][11:16])
+        expires = datetime.datetime.fromisoformat(self.mongo("db.checkout_sessions.findOne({_id:" + json.dumps(stranded) + "}).expiresAt")
+                                                  .replace("Z", "+00:00"))
+        day = expires.astimezone(zone).date()
+        occurrence = datetime.datetime.combine(day, daily, tzinfo=zone)
+        if occurrence < expires:
+            occurrence = datetime.datetime.combine(day + datetime.timedelta(days=1), daily, tzinfo=zone)
+        # First past expiresAt, before P5's next daily time: P7 runs every minute and leaves the signup checkout alone.
+        between = expires + datetime.timedelta(seconds=60)
+        if between + datetime.timedelta(seconds=150) < occurrence:
+            self.call("POST", "/api/v1/test/clock", body=dict(instant=between.astimezone(datetime.timezone.utc).isoformat().replace("+00:00", "Z")), quiet=True)
+            wait(lambda: self.mongo('db.job_runs.countDocuments({clubId:' + json.dumps(self.fifo) + ',job:"PAYMENT_TIMEOUTS",dryRun:false,'
+                                    'status:"SUCCEEDED",scheduledFor:{$gte:new Date(' + str(int(expires.timestamp() * 1000)) + ')}})') > 0,
+                 "P7 did not run past the stranded checkout's expiresAt", timeout=240)
+            state = self.checkout_state(stranded)
+            require(state["status"] == "PENDING", f"P7 touched the signup checkout: {state}")
+            print(f"PASS P7 payment-timeouts ran past the stranded checkout's expiresAt and left it to P5 (still {state['status']})", flush=True)
+        else:
+            print("SKIP the P7 check: the stranded checkout expires less than 3.5 min before P5's daily time", flush=True)
+        target = occurrence + datetime.timedelta(seconds=60)
+        now = self.call("POST", "/api/v1/test/clock", quiet=True,
+                        body=dict(instant=target.astimezone(datetime.timezone.utc).isoformat().replace("+00:00", "Z")))["now"]
+        print(f"POST /test/clock to P5's daily time {occurrence.strftime('%Y-%m-%d %H:%M')} {first['zone']} + 1 min "
+              f"(server now {now[:16]}Z): the first P5 occurrence past the stranded checkout's expiresAt", flush=True)
         state = wait(lambda: (lambda s: s if s["status"] == "EXPIRED" else None)(self.checkout_state(stranded)),
-                     "P7 did not expire the stranded checkout", timeout=240)
+                     "P5 did not expire the stranded checkout", timeout=240)
         require(not state["marked"] and all(r["status"] == "DUE" and r["session"] is None for r in state["rows"]),
                 f"The stranded checkout did not give its rows back: {state}")
-        run = self.mongo('db.job_runs.find({clubId:' + json.dumps(self.fifo) + ',job:"PAYMENT_TIMEOUTS",dryRun:false,"items.entityId":'
-                         + json.dumps(stranded) + '}).limit(1).toArray().map(r=>({trigger:r.trigger,'
-                         'action:r.items.find(i=>i.entityId==' + json.dumps(stranded) + ').action}))')
-        require(run and run[0]["action"] == "EXPIRE_CHECKOUT", f"No P7 run expired the stranded checkout: {run}")
-        print(f"PASS P7 payment-timeouts ({run[0]['trigger']}) expires the checkout that never heard from the provider past its "
-              "expiresAt: EXPIRE_CHECKOUT, rows DUE, no refund mark", flush=True)
+        run = self.mongo('db.job_runs.find({clubId:' + json.dumps(self.fifo) + ',job:"EXPIRATIONS",dryRun:false,"items.entityId":'
+                         + json.dumps(stranded) + '}).limit(1).toArray().map(r=>({trigger:r.trigger,scheduledFor:r.scheduledForLocal,'
+                         'counters:Object.fromEntries((r.counters||[]).map(c=>[c.key,Number(c.value)])),action:r.items.find(i=>i.entityId==' + json.dumps(stranded) + ').action}))')
+        require(run and run[0]["action"] == "EXPIRE_CHECKOUT", f"No P5 run expired the stranded checkout: {run}")
+        require(not self.mongo('db.job_runs.countDocuments({clubId:' + json.dumps(self.fifo) + ',job:"PAYMENT_TIMEOUTS","items.entityId":'
+                               + json.dumps(stranded) + '})'), "A P7 run planned the signup checkout")
+        print(f"PASS P5 expirations step h ({run[0]['trigger']} {run[0]['scheduledFor']}) expires the checkout that never heard from "
+              f"the provider past its expiresAt: EXPIRE_CHECKOUT, counters {run[0]['counters']}, rows DUE, no refund mark", flush=True)
         print("PASS T-04-22: the signup checkout on the fake provider (create, complete, expire, stranded release)", flush=True)
 
     def cleanup(self):

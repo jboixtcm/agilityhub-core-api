@@ -31,7 +31,7 @@ public class SignupCheckoutRepository extends TenantRepository<SignupCheckoutSes
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("status").is("PENDING").and("bookingId").is(null).and("expiresAt").lte(now)),
                 SignupCheckoutSession.class);
     }
-    /** The club's open signup checkouts whose `expiresAt` has passed ({@code now} included), oldest first: P7's sweep (E5-T30 round 2). */
+    /** The club's open signup checkouts whose `expiresAt` has passed ({@code now} included), oldest first: P5's step h (E5-T31, ruling E80). */
     public java.util.List<SignupCheckoutSession> lapsedSignup(Instant now) {
         return mongo.find(tenantQuery().addCriteria(Criteria.where("status").is("PENDING").and("bookingId").is(null).and("expiresAt").lte(now))
                 .with(org.springframework.data.domain.Sort.by("expiresAt","_id")),SignupCheckoutSession.class);

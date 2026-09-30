@@ -1,0 +1,18 @@
+E5-T31 test summary, read from target/surefire-reports and target/failsafe-reports after
+`./mvnw -q clean verify` (run through heavy.sh, log 12-clean-verify.log) exited 0 on 2026-10-01.
+
+Totals
+  surefire (unit):        tests=884  failures=0 errors=0 skipped=0
+  failsafe (integration): tests=1284 failures=0 errors=0 skipped=0
+  JaCoCo check: passed (part of `verify`, exit 0)
+
+Test classes this task adds or changes
+  [new]     com.agilityhub.core.clubs.common.application.ExpirationsJobTest               Tests run: 2,  Failures: 0, Errors: 0, Skipped: 0
+  [new]     com.agilityhub.core.payments.application.PaymentProviderContractTest          Tests run: 2,  Failures: 0, Errors: 0, Skipped: 0
+  [changed] com.agilityhub.core.platform.application.jobs.JobCatalogContractTest          Tests run: 4,  Failures: 0, Errors: 0, Skipped: 0
+  [changed] com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT                Tests run: 19, Failures: 0, Errors: 0, Skipped: 0
+  [changed] com.agilityhub.core.clubs.bookings.api.SingleClassCheckoutIT                  Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
+  [changed] com.agilityhub.core.shared.persistence.IdempotencyIT                          Tests run: 12, Failures: 0, Errors: 0, Skipped: 0
+  [changed] com.agilityhub.core.clubs.bookings.api.JobsApiIT                              Tests run: 6,  Failures: 0, Errors: 0, Skipped: 0
+  [changed] com.agilityhub.core.platform.application.jobs.JobFrameworkIT                  Tests run: 16, Failures: 0, Errors: 0, Skipped: 0
+  [ran]     com.agilityhub.core.configuration.OpenApiSnapshotTest                         Tests run: 10, Failures: 0, Errors: 0, Skipped: 0

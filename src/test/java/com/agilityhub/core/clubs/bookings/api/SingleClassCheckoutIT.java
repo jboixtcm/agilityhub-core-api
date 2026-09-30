@@ -284,6 +284,43 @@ class SingleClassCheckoutIT extends BookingFixtures {
         } finally { stop(warnings); }
     }
 
+    /**
+     * E5-T31 step 2 (review E5-T30 #3; S04 R-04-26, E34, ruling E79): two PAY_TO_BOOK payments whose confirmations both arrive
+     * after `bookings.paymentPendingMinutes` (30) ran out, before P7. The payment's time decides, not the confirmation's: Laura
+     * paid at +29 min, so her booking is confirmed and her line is paid at that time, with no refund mark; Pere paid at
+     * +30 min 30 s, so his checkout expires with E34's mark, his line is cancelled, and so is his booking. P7 then finds nothing.
+     */
+    @Test void T_15_25_R_08_18_aLateConfirmationConfirmsTheBookingPaidBeforeTheDeadlineAndMarksTheOnePaidAfterIt() throws Exception {
+        payToBook();
+        mongo.remove(Query.query(Criteria.where("clubId").is(CLUB)), "job_runs"); mongo.remove(new Query(), "job_locks");
+        String early = book(as("laura"), "wed", "s08-d-duna").path("id").asText(), late = book(as("pere"), "wed", "s08-d-nit").path("id").asText();
+        String earlySession = checkoutSession(early), lateSession = checkoutSession(late);
+        dispatch();
+        var paidEarly = NOW.plus(Duration.ofMinutes(29)); var paidLate = NOW.plus(Duration.ofMinutes(30)).plusSeconds(30);
+        var warnings = checkoutWarnings();
+        try {
+            clock.setInstant(NOW.plus(Duration.ofMinutes(31)));
+            gateway.complete(earlySession, paidEarly); gateway.complete(lateSession, paidLate); dispatch();
+            assertThat(booking(early)).containsEntry("state", "ACTIVE");
+            assertThat(line(early)).containsEntry("status", "PAID"); assertThat(line(early).getDate("paidAt").toInstant()).isEqualTo(paidEarly);
+            assertThat(mongo.findById(earlySession, Document.class, "checkout_sessions")).containsEntry("status", "COMPLETE")
+                    .containsEntry("providerPaymentId", "fake_payment_" + earlySession).doesNotContainKey("lateCompletionAt");
+            assertThat(eventsOf("UpfrontPaymentSucceeded")).singleElement().satisfies(e -> assertThat(e.get("payload", Document.class)).containsEntry("bookingId", early));
+            var marked = mongo.findById(lateSession, Document.class, "checkout_sessions");
+            assertThat(marked).containsEntry("status", "EXPIRED").containsEntry("providerPaymentId", "fake_payment_" + lateSession);
+            assertThat(marked.getDate("lateCompletionAt").toInstant()).isEqualTo(NOW.plus(Duration.ofMinutes(31)));
+            assertThat(line(late)).containsEntry("status", "CANCELLED");
+            assertThat(booking(late)).containsEntry("state", "CANCELLED").containsEntry("cancelReason", "PAYMENT_TIMEOUT");
+            assertThat(warnings.list).singleElement().satisfies(w -> assertThat(w.getFormattedMessage()).contains("checkoutSessionId=" + lateSession));
+            assertThat(runner.scheduled(CLUB, true, timeouts, clock.instant()).orElseThrow().items()).isEmpty();
+            // A redelivery of both confirmations changes nothing.
+            gateway.complete(earlySession, paidEarly); gateway.complete(lateSession, paidLate); dispatch();
+            assertThat(booking(early)).containsEntry("state", "ACTIVE"); assertThat(booking(late)).containsEntry("state", "CANCELLED");
+            assertThat(mongo.findById(earlySession, Document.class, "checkout_sessions")).doesNotContainKey("lateCompletionAt");
+            assertThat(warnings.list).hasSize(1); assertThat(eventsOf("UpfrontPaymentSucceeded")).hasSize(1);
+        } finally { stop(warnings); }
+    }
+
     private static ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> checkoutWarnings() {
         var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(com.agilityhub.core.payments.application.CheckoutService.class);
         var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();

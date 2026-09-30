@@ -28,6 +28,8 @@ public class FakeCheckoutGateway implements PaymentProvider {
         if(known!=null&&!known.equals(request)) throw new IllegalStateException("Idempotency error: checkoutSessionId="+request.sessionId()+" was opened with other parameters");
         return "https://checkout.test/"+request.sessionId();
     }
+    /** The fake answers at once; it declares the contract's timeout, as the E8 provider's HTTP client will set it (ruling E80). */
+    @Override public java.time.Duration callTimeout() { return MAX_CALL_TIMEOUT; }
     /** The provider takes the payment now and confirms it at once. */
     @Override public void complete(String id) { complete(id,null); }
     /** The payment taken at {@code paidAt} (null: now), confirmed now: a delayed webhook (E5-T30 round 2, E79). */

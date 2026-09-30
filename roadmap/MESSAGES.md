@@ -2504,3 +2504,28 @@ Blocking: no.
   - Jordi decides whether to buy credits, pause this loop or switch it to Claude.
 - `check.py` now renders `STATUS.md` the same way in both api clones, so a failed session no longer commits a changed `STATUS.md` every time.
 Blocking: no.
+
+## 2026-10-01 · executor → organizer · E5-T31
+@organizer **E5-T31 is done** (`awaiting_verification`). The step → test table is in the report.
+1. **Step h of P5:** a lapsed signup checkout is released with `BILLING`, also without `SINGLE_CLASS` and with the provider
+   off. The effect, the dry run and the counter are E5-T30's. P7 is bookings only again. Step h reaches the checkouts through
+   `LapsedCheckoutsPort`. The cross-tenant test is included (review #7).
+2. **P5 had no `Job` bean.** This task registers it (`ExpirationsJob`, `clubs.common`), with independent steps and a module per
+   step; only step h has code. The catalog does not change, but `GET /jobs` (D11) now lists `expirations` for every club.
+   The web lane may need that row in its D11 fixtures.
+3. **PAY_TO_BOOK:** two payments confirmed at +31 min with real `paidAt`. Paid at +29 → the booking is confirmed with no
+   mark. Paid at +30:30 → E34's mark.
+4. **Provider timeout:** `PaymentProvider.MAX_CALL_TIMEOUT` (30 s) and `callTimeout()` are in the contract. The fake
+   declares them, and a startup check refuses a provider above the bound.
+5. **Nits:**
+   - #5: `held` and `abandon` failures go along as suppressed on the original failure.
+   - #6: a WARN with the session and the club only.
+   - #8: §7 has no test id, so the name stays.
+- **Before the fix:** the 4 new or extended ITs fail on the committed code (log `01`). Step 2 fails with E5-T30's fix reverted
+  (log `02`). Step 3's test does not compile on the old contract (log `03`).
+- **Verify:** `./mvnw -q clean verify` exits 0 on attempt 2 (884 unit, 1284 integration tests, JaCoCo gate). Attempt 1 failed
+  on a unit test that listed P5 as bean-less.
+- **Smokes and snapshot:** `bin/e3-smoke` passes twice; P5's scheduled 06:00 run releases the stranded checkout, and P7 leaves
+  it alone. The snapshot is unchanged and byte-identical twice.
+- **Question:** R-15-15 could say which "now" a late catch-up run uses for step h. I applied the occurrence, as P7 and P9 do.
+Blocking: no.

@@ -39,7 +39,7 @@ public class UpfrontPayments {
         // A null scope reads every signup row of the member (only the S08 isolation check uses it).
         // E5-T30 round 2 (S04 R-04-26, E79): a row that waits for a signup checkout past its `expiresAt` reads as payable, as
         // it was before the checkout, whether or not the provider ever had that session: D2's dry run and the reviews see what
-        // the next write will make of it (CheckoutService.releaseLapsed, which writes it, or P7).
+        // the next write will make of it (CheckoutService.releaseLapsed, which writes it, or P5's step h).
         var lapsed=sessions.lapsedSignup(memberId,clock.instant()).stream().map(SignupCheckoutSession::id).collect(java.util.stream.Collectors.toSet());
         return repository.member(memberId).stream().filter(p -> p.bookingId()==null && (scope==null || scope.contains(new Submission(p.dogId(),p.submissionId()))))
                 .map(p -> "CHECKOUT_PENDING".equals(p.status()) && lapsed.contains(p.checkoutSessionId()) ? released(p) : p)

@@ -226,8 +226,14 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         } catch (RuntimeException failure) {
             // E79 (E5-T30 round 2): a retry took this request's claim over after its lease. The answer could not be stored (the
             // record is gone, or a write conflict on it) and the effects rolled back: it answers as any attempt meanwhile.
-            boolean held = failure instanceof ApiException || records.held(record);
-            records.abandon(record);
+            // E5-T31 (review E5-T30 #5): Mongo may be what failed. Checking or releasing the claim then fails too, and that
+            // failure never replaces the original one: the record counts as held and the second failure goes along as suppressed.
+            Throwable original = failure instanceof RequestFailure wrapped ? wrapped.getCause() : failure;
+            boolean held = true;
+            try { held = failure instanceof ApiException || records.held(record); }
+            catch (RuntimeException unchecked) { original.addSuppressed(unchecked); }
+            try { records.abandon(record); }
+            catch (RuntimeException unreleased) { original.addSuppressed(unreleased); }
             if (!held) { throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")); }
             if (failure instanceof RequestFailure wrapped) {
                 if (wrapped.getCause() instanceof IOException io) { throw io; }

@@ -59,7 +59,15 @@ public class CheckoutService {
         try { url=gateway.createCheckoutSession(request); }
         catch(RuntimeException failure) {
             IdempotentOperation.release();
-            abandon(memberId,request.sessionId());
+            try { abandon(memberId,request.sessionId()); }
+            catch(RuntimeException fenced) {
+                // E5-T31 (review E5-T30 #6): a retry took the key's claim over, so it owns the session and this request answers its
+                // 409; the provider's failure (a timeout is the likely cause of the takeover) is still recorded, without the customer.
+                LOG.warn("Provider call failed after the checkout's key was taken over: checkoutSessionId={} clubId={} error={}",
+                        request.sessionId(),request.clubId(),failure.getClass().getName());
+                fenced.addSuppressed(failure);
+                throw fenced;
+            }
             expireAtProvider(request.sessionId(),request.clubId());
             throw failure;
         }
@@ -113,22 +121,23 @@ public class CheckoutService {
      * <p>
      * Round 2 (S04 R-04-26, ruling E79): whatever the provider's state, and with the provider switched off, every write that
      * needs the member's rows calls this first, in the caller's transaction and under its census lock: the next checkout
-     * ({@link #prepare}) and D2's validation (the cash allocation and the plan change). P7 does it for every member
-     * ({@link #expireLapsed}); a read shows those rows payable meanwhile ({@link UpfrontPayments}).
+     * ({@link #prepare}) and D2's validation (the cash allocation and the plan change). P5's step h does it for every member
+     * of a club with `BILLING` ({@link #expireLapsed}, E5-T31, ruling E80); a read shows those rows payable meanwhile
+     * ({@link UpfrontPayments}).
      */
     public void releaseLapsed(String memberId) {
         for(var session:sessions.lapsedSignup(memberId,clock.instant())) if(sessions.finish(session.id(),"EXPIRED",null)) payments.checkout(memberId,session.id(),false);
     }
-    /** An open signup checkout past its `expiresAt` (E5-T30 round 2): what P7 plans ({@link #lapsedSignupCheckouts}). */
+    /** An open signup checkout past its `expiresAt` (E5-T30 round 2): what P5's step h plans ({@link #lapsedSignupCheckouts}). */
     public record LapsedCheckout(String sessionId,Instant expiresAt) { }
-    /** S15 R-15-17 (ruling E79): the club's open signup checkouts whose `expiresAt` is not after {@code now}, oldest first. */
+    /** S15 R-15-15 step h (ruling E80): the club's open signup checkouts whose `expiresAt` is not after {@code now}, oldest first. */
     public List<LapsedCheckout> lapsedSignupCheckouts(Instant now) {
         return sessions.lapsedSignup(now).stream().map(s -> new LapsedCheckout(s.id(),s.expiresAt())).toList();
     }
     /**
-     * P7 (S15 R-15-17, ruling E79): the signup checkout {@code sessionId}, still open past its `expiresAt` at {@code now}, expires
-     * and gives its rows back, under the census lock and in P7's item transaction; the provider is not asked (its session
-     * expired at the same instant). False when it is no longer in scope (closed meanwhile, or not past its expiry).
+     * P5's step h (S15 R-15-15, rulings E79 and E80): the signup checkout {@code sessionId}, still open past its `expiresAt` at
+     * {@code now}, expires and gives its rows back, under the census lock and in P5's item transaction; the provider is not asked
+     * (its session expired at the same instant). False when it is no longer in scope (closed meanwhile, or not past its expiry).
      */
     public boolean expireLapsed(String sessionId,Instant now) {
         return transactions.run(() -> {
@@ -220,7 +229,7 @@ public class CheckoutService {
     }
     private void completed(SignupCheckoutSession session,String providerPaymentId,Map<String,Object> card,Instant paidAt) {
         String id=session.id();
-        // E34: P7, a failed provider call, a rejection or a write that needed its rows past `expiresAt` (E79) expired the
+        // E34: P7, P5's step h, a failed provider call, a rejection or a write that needed its rows past `expiresAt` (E79) expired the
         // checkout on our side, but the provider still took the money.
         if("EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return; }
         if(!"PENDING".equals(session.status())) return;

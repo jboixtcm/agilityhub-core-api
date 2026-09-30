@@ -1,0 +1,73 @@
+01:33:46.362 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.agilityhub.core.configuration.OpenApiSnapshotTest]: OpenApiSnapshotTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:33:46.559 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.agilityhub.core.CoreApplication for test class com.agilityhub.core.configuration.OpenApiSnapshotTest
+01:33:46.729 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+01:33:46.732 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+01:33:46.741 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.21.4
+01:33:47.021 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+01:33:47.290 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
+01:33:47.291 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+01:33:47.307 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.7.2
+  API Version: 1.55
+  Operating System: Docker Desktop
+  Total Memory: 7931 MB
+  Labels: 
+    com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
+01:33:47.789 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
+01:33:47.856 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+01:33:48.302 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 is starting: ad0545ca5e3f917d557a7b548214d3d5dd74e9b64a2f1a63f09d6264eab7248f
+01:33:48.746 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Container testcontainers/ryuk:0.12.0 started in PT0.957232S
+01:33:48.753 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+01:33:48.753 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+01:33:48.754 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+01:33:48.754 [main] INFO tc.mongo:7 -- Creating container for image: mongo:7
+01:33:48.881 [main] INFO tc.mongo:7 -- Container mongo:7 is starting: 882a39f2d8fc853bc8bbf15c7aa25da1d5b02d853d2835d6d95eb6847eef9314
+01:33:49.695 [main] INFO tc.mongo:7 -- Container mongo:7 started in PT0.941256S
+Integration JVM availableProcessors=18
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.16)
+
+2026-10-01T01:33:51.176+02:00  INFO 42857 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : Starting OpenApiSnapshotTest using Java 21.0.12.1 with PID 42857 (started by jordib in /Users/jordib/dev/agilityhub/agilityhub-core-api)
+2026-10-01T01:33:51.177+02:00  INFO 42857 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : The following 1 profile is active: "test"
+2026-10-01T01:33:53.009+02:00  INFO 42857 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-10-01T01:33:53.068+02:00  INFO 42857 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 52 ms. Found 0 MongoDB repository interfaces.
+2026-10-01T01:33:53.766+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-10-01T01:33:53.780+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-01T01:33:53.781+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-10-01T01:33:53.825+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-10-01T01:33:53.825+02:00  INFO 42857 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2627 ms
+2026-10-01T01:33:54.028+02:00  INFO 42857 --- [agilityhub-core-api] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "26.4.1"}, "platform": "Java/Homebrew/21.0.12.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@65bbabfc], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@4629b29, com.mongodb.Jep395RecordCodecProvider@614fcec5, com.mongodb.KotlinCodecProvider@8222183]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:64541], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@307e9f30], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2026-10-01T01:33:54.039+02:00  INFO 42857 --- [agilityhub-core-api] [localhost:64541] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:64541, type=REPLICA_SET_PRIMARY, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=20140375, minRoundTripTimeNanos=0, setName='docker-rs', canonicalAddress=882a39f2d8fc:27017, hosts=[882a39f2d8fc:27017], passives=[], arbiters=[], primary='882a39f2d8fc:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=6abd9c5d05fcc6571bd21e67, counter=6}, lastWriteDate=Thu Oct 01 01:33:50 CEST 2026, lastUpdateTimeNanos=417851266578833}
+2026-10-01T01:33:54.823+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.boot.web.servlet.RegistrationBean    : Filter rateLimitFilter was not registered (disabled)
+2026-10-01T01:33:59.459+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring TestDispatcherServlet ''
+2026-10-01T01:33:59.459+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-01T01:33:59.460+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-10-01T01:33:59.574+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64548 (http) with context path '/'
+2026-10-01T01:33:59.663+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-10-01T01:33:59.664+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-01T01:33:59.664+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.55]
+2026-10-01T01:33:59.678+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-10-01T01:33:59.678+02:00  INFO 42857 --- [agilityhub-core-api] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 100 ms
+2026-10-01T01:33:59.692+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-01T01:33:59.720+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 64549 (http) with context path '/'
+2026-10-01T01:33:59.737+02:00  INFO 42857 --- [agilityhub-core-api] [           main] c.a.c.configuration.OpenApiSnapshotTest  : Started OpenApiSnapshotTest in 8.897 seconds (process running for 14.321)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/jordib/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-10-01T01:34:04.449+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 3082 ms
+2026-10-01T01:34:05.272+02:00  INFO 42857 --- [agilityhub-core-api] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-01T01:34:05.272+02:00  INFO 42857 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-01T01:34:05.273+02:00  INFO 42857 --- [agilityhub-core-api] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-10-01T01:34:07.036+02:00  INFO 42857 --- [agilityhub-core-api] [           main] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 1669 ms
+2026-10-01T01:34:07.199+02:00  INFO 42857 --- [agilityhub-core-api] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+Updated docs/openapi/openapi.json

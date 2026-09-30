@@ -791,6 +791,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `/parametres#processos`, and N-31's `OPEN_SETUP` no longer opens `/training` (no button).
 - E7-T03 round 2: the first use of a template survives a concurrent first use (a `WriteConflict` is read again and
   retried, not raised to the engine; CI of `ca83d97`, T-11-31).
+- E5-T31 (ruling E80; the follow-ups of E5-T30's round-2 review):
+  - Lapsed signup checkouts are released by P5 `expirations`, step h (daily at `jobs.dailyTime`, with `BILLING`), not by
+    P7, so also in the clubs without `SINGLE_CLASS` such as the Cànic (S15 R-15-15, S04 R-04-26). Same effect as before:
+    `EXPIRE_CHECKOUT` / `WOULD_EXPIRE_CHECKOUT {checkoutSessionId, minutesExpired}`, counter `expiredCheckouts`. P7 is
+    bookings only again. P5 is registered for the first time, so `GET /jobs` and D11 now list `expirations` (no module).
+    Its steps are independent beans (`ExpirationStep`), each with its module; step h reaches the checkouts through the new
+    `LapsedCheckoutsPort`.
+  - `PaymentProvider`'s contract: every call times out within `MAX_CALL_TIMEOUT` (30 s), well below the Idempotency-Key's
+    10-minute claim lease (CONVENCIONS_API §7). The fake provider declares it, and the application refuses to start with a
+    provider whose `callTimeout()` breaks it.
+  - `IdempotencyFilter`: when checking or releasing a claim fails after a failed request (Mongo unreachable), the original
+    failure still surfaces, with the new one suppressed, and the claim is still released when possible.
+  - A signup checkout whose provider call failed after its key was taken over logs a WARN with the session and the club
+    only, and keeps the provider's failure as suppressed.
+  - `bin/e3-smoke`: the stranded checkout is released by P5's scheduled run, and P7 is checked to leave it alone.
 - E5-T30: signup checkout hardening (the three findings of E5-T28's round-2 review, and the failure paths behind them).
   - A retry with the same `Idempotency-Key` after a lost answer sends the provider exactly the first request. The session keeps
     it (`providerRequest`) while it is open and unanswered, so an admin's edit of the e-mail or the payment method in between
