@@ -1,5 +1,7 @@
 package com.agilityhub.core.clubs.followup.application;
 
+import com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed;
+import com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer;
 import com.agilityhub.core.shared.application.IcuMessageSource;
 import java.util.Locale;
 import java.util.Map;
@@ -8,18 +10,27 @@ import static org.assertj.core.api.Assertions.*;
 
 /**
  * S10 §8 (E6-T03 step 8): N-20, N-21 and N-22 render in each recipient's language (ca, es, en) from the variables the
- * consumers send, with «alumne/alumna» by the member's gender. Prints the rendered texts (the evidence of two languages).
+ * consumers send, with «alumne/alumna» by the member's gender. Since E7-T03 the member's copy (N-20) is the club template's
+ * seed and the instructors read the product staff copy (`notif.N-2x.staff.*`), both rendered as the engine renders them: the
+ * engine gives `gender` in lower case (`female`, `male`, S11 §10). Prints the rendered texts (the evidence of two languages).
  */
 class FollowupNotificationTextsTest {
     private final IcuMessageSource messages = new IcuMessageSource();
+    private final MessageTemplateSeed seed = MessageTemplateSeed.load();
+    private final TemplateRenderer renderer = new TemplateRenderer();
     FollowupNotificationTextsTest() throws java.io.IOException { }
     private static final Map<String, Object> N20 = Map.of("dog_name", "Duna", "instructor_name", "Estel", "task_excerpt", "Practiqueu el balancí amb calma");
-    private static final Map<String, Object> N21 = Map.of("member_name", "Laura Example", "dog_name", "Duna", "task_excerpt", "Practiqueu el balancí", "gender", "FEMALE");
-    private static final Map<String, Object> N22 = Map.of("member_name", "Marc Example", "dog_name", "Toby", "gender", "MALE");
+    private static final Map<String, Object> N21 = Map.of("member_name", "Laura Example", "dog_name", "Duna", "task_excerpt", "Practiqueu el balancí", "gender", "female");
+    private static final Map<String, Object> N22 = Map.of("member_name", "Marc Example", "dog_name", "Toby", "gender", "male");
 
+    /** N-20 goes to the member (the template); N-21 and N-22 to the instructors (the staff copy). */
     private String render(String code, Map<String, Object> variables, String locale) {
         var tag = Locale.forLanguageTag(locale);
-        String text = messages.format("notif." + code + ".title", variables, tag) + " | " + messages.format("notif." + code + ".body", variables, tag);
+        String title, body;
+        if (code.equals("N-20")) { var texts = seed.of(code).orElseThrow(); title = texts.title().get(locale); body = texts.body().get(locale); }
+        else { title = messages.patternIn("notif." + code + ".staff.title", tag); body = messages.patternIn("notif." + code + ".staff.body", tag); }
+        var rendered = renderer.render(code, title, body, null, variables, tag, variables.keySet(), true);
+        String text = rendered.title() + " | " + rendered.body();
         System.out.println("E6-T03 " + code + " " + locale + ": " + text);
         return text;
     }
@@ -36,7 +47,7 @@ class FollowupNotificationTextsTest {
     @Test void T_10_18_n22NamesTheStudentByGenderInEachLanguage() {
         assertThat(render("N-22", N22, "ca")).isEqualTo("Nota nova de l'alumne | Marc Example (alumne) ha escrit o canviat la nota als instructors de Toby.");
         assertThat(render("N-22", N22, "es")).isEqualTo("Nota nueva del alumno | Marc Example (alumno) ha escrito o cambiado la nota para los instructores sobre Toby.");
-        assertThat(render("N-22", Map.of("member_name", "Laura Example", "dog_name", "Duna", "gender", "FEMALE"), "ca"))
+        assertThat(render("N-22", Map.of("member_name", "Laura Example", "dog_name", "Duna", "gender", "female"), "ca"))
                 .isEqualTo("Nota nova de l'alumna | Laura Example (alumna) ha escrit o canviat la nota als instructors de Duna.");
         assertThat(render("N-22", N22, "en")).isEqualTo("New note from a student | Marc Example (student) wrote or changed the note to the instructors about Toby.");
     }

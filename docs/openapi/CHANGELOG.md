@@ -2,6 +2,24 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E7-T03 · S11 served: templates (D9), the log, feed 11, preferences (12/D10), push devices (web WP-11-D/E adopt)
+
+**0 operations added; 19 operations stop answering 501 (descriptions changed); 3 schemas changed.** Only
+`POST /message-templates/{id}/send` keeps its 501 until E7-T04. The forms are E7-T01's; what changes:
+- **`NotificationListItem.audience`, `NotificationDetail.audience`** (`GET /notifications`, `GET /notifications/{id}`):
+  `NotificationAudience | null` (the `anyOf` union), no longer required in the detail. A row written before E7-T02 that does
+  not tell its audience (E7-T01 question 4) reads `null`; every engine row has one.
+- **`PushKeys`** (`POST /push-subscriptions`): `p256dh` and `auth` at most 200 characters. The description now says what
+  `422 PUSH_SUBSCRIPTION_INVALID` checks: an `https` endpoint with a host, base64url keys of a 65-byte P-256 point and a
+  16-byte secret (what WebPush needs to encrypt).
+- **`TemplatePreviewRequest.sendTest`** (published by E7-T01, served now): «envia prova» delivers the rendered preview once
+  to the acting admin's account (APP and its e-mail, never SMS), stored in the log with `dedupKey test:{templateId}:…`.
+- Behaviour the descriptions now state: `GET /message-templates` creates the seed of every eligible code on first read,
+  lists in D9's order and leaves SMS out of `caps` with `SMS` off (its cells kept); archived templates answer 404 on
+  `/{id}`; `MeNotification.channels` lists APP, then SMS/PUSH only when SENT or DELIVERED, never EMAIL (the §6 extract's
+  `EMAIL` is not sent, part C S11); `GET /me/notifications` refuses `size` > 100 (`400 VALIDATION_ERROR`);
+  `GET /notifications/export` answers the log's rows (the xlsx/pdf of `/exports`).
+
 ## 2026-09-30 · E6-T05 · `HistoryItem.activityId` (web E6-W04 step 0b adopts)
 
 **0 operations added or changed; 1 schema changed.** Additive:

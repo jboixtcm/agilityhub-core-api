@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
  * `class_date` → relative, else «dimecres 12» (with the month beyond six days); `date` → relative, else «dt 4»;
  * `review_day` → relative, else the weekday; `class_time`, `confirm_by`, `review_time` → «18:50»; `time` → «8:00–8:30»;
  * `effective_date`, `week_start`, `requested_date`, `execute_date` → the long date; `from_month`, `to_month`, `month`,
- * `period` → the month; `pack_expiry` → the short date; money → `fmtMoney`; a `LocalizedText` → its text in the locale
+ * `period` → the month; `pack_expiry` → the short date; `gender` → lower case (`female`, `male`, `other`, the ICU keys of
+ * S11 §8/§10); money → `fmtMoney`; a `LocalizedText` → its text in the locale
  * (R-11-01 fallback); `changes` and `dogs` → their lists. Numbers stay numbers (ICU `plural`), booleans stay booleans and
  * enums become their names (ICU `select`).
  */
@@ -54,6 +55,8 @@ public final class VariableFormatter {
             case "effective_date", "week_start", "requested_date", "execute_date" -> day(value) == null ? text(value, locale) : formats.formatLongDate(day(value), locale);
             case "from_month", "to_month", "month", "period" -> month(value) == null ? text(value, locale) : formats.formatMonth(month(value), locale);
             case "pack_expiry" -> day(value) == null ? text(value, locale) : formats.formatShortDate(day(value), locale);
+            // S11 §10: the ICU `select` keys of `gender` are lower case (`female`, `male`, `other`: «OTHER → other»), as S11 §8's N-02.
+            case "gender" -> text(value, locale).toLowerCase(Locale.ROOT);
             // Numbers (ICU `plural`) and booleans (ICU `select` reads «true»/«false») keep their type.
             default -> value instanceof Number || value instanceof Boolean ? value : text(value, locale);
         };

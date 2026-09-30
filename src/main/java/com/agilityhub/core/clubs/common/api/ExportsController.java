@@ -182,19 +182,15 @@ public class ExportsController {
             fields = {"id", "createdAt", "code", "category", "audience", "recipient", "channels", "readAt"})
     @ContractErrors({INVALID_FILTER, EXPORT_TOO_LARGE, EXPORT_LIMIT, RATE_LIMITED})
     @Operation(summary = "Export notifications",
-            description = "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T01): the same q/filter/sort, fields and selected columns; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Contract only; returns 501 NOT_IMPLEMENTED after the role, tenant and query checks until E7-T03 serves the log.",
+            description = "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T03): the same filter/sort, fields and selected columns, the same rows of the club; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Export file", headers = @io.swagger.v3.oas.annotations.headers.Header(name = "Content-Disposition", schema = @Schema(type = "string")),
                             content = {@Content(mediaType = "application/pdf", schema = @Schema(type = "string", format = "binary")),
                                     @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", schema = @Schema(type = "string", format = "binary"))}),
                     @ApiResponse(responseCode = "202", description = "Queued export", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExportAccepted.class)))})
-    public org.springframework.http.ResponseEntity<byte[]> exportNotifications(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
+    public org.springframework.http.ResponseEntity<?> exportNotifications(@RequestParam @Schema(allowableValues = {"xlsx", "pdf"}) String format, @RequestParam(required = false) String columns,
             @io.swagger.v3.oas.annotations.Parameter(hidden = true) @RequestParam org.springframework.util.MultiValueMap<String, String> params) {
-        var list = com.agilityhub.core.clubs.messaging.application.MessagingContractAccess.NOTIFICATIONS;
-        var query = new org.springframework.util.LinkedMultiValueMap<>(params); query.remove("format"); query.remove("columns");
-        com.agilityhub.core.shared.application.lists.ListQuery.parse(list, query);
-        if (columns != null) { list.selectColumns(columns); }
-        throw new UnsupportedOperationException();
+        return export(com.agilityhub.core.clubs.messaging.application.NotificationLog.KEY, format, columns, params);
     }
 
 }

@@ -193,7 +193,8 @@ Totes sota `/api/v1`; tenant pel JWT. Els endpoints d'instructor **rebutgen** to
 | POST | `/attachments/upload-url` | segons `purpose` (R-10-11) | `TASKS` (S03 la usa amb `DOG_DOCUMENT`) | — | URL signada | `{purpose, fileName, mimeType, sizeBytes}` | 201 `{uploadUrl, fileKey, expiresAt}` · 400 `FILE_TOO_LARGE` `FILE_TYPE_NOT_ALLOWED` |
 | POST | `/attachments` | segons entitat | `TASKS` | sí | registra l'adjunt | `{entityType, entityId, fileKey, name}` | 201 `Attachment{url}` · 403 · 422 `ATTACHMENT_LIMIT_REACHED` · 422 `ATTACHMENT_ENTITY_MISMATCH` (fileKey d'un altre `purpose`) |
 | GET / DELETE | `/attachments` (`?entityType&entityId`) · `/attachments/{id}` | segons entitat | `TASKS` | — / sí | llista amb `url` signada · retira | — | 200 / 204 · 403 · 404 |
-| GET | `/followup` | INSTRUCTOR, ADMIN | `TASKS` | — | Llistat universal de D14 (R-10-13) | `filter=kind:eq:TASK`, `unread:eq:true`, `memberId`, `dogId`; `page`, `size` | 200 pàgina (JSON avall) |
+| GET | `/followup` | INSTRUCTOR, ADMIN | `TASKS` | — | Llistat universal de D14 (R-10-13) | `filter=kind:eq:TASK`, `unread:eq:true`, `memberId`, `dogId`, `authorAccountId`; `q` (abonat, gos, autor i text; organitzador 30-09, E75); `page`, `size` | 200 pàgina (JSON avall) |
+| GET | `/followup/filter-values` | INSTRUCTOR, ADMIN | `TASKS` | — | valors del filtre universal de D14 (`CONVENCIONS_API` §4; organitzador 30-09, E75) | `field` (`kind`, `memberId`, `dogId`, `authorAccountId`, `unread`), `q?`, `filter` | 200 valors amb el recompte de tot el conjunt filtrat (`unread`, el de qui crida) · 400 `INVALID_FILTER` |
 | GET | `/followup/unread-count` | INSTRUCTOR, ADMIN | `TASKS` | — | comptador del menú | — | 200 `{count}` |
 | POST | `/followup/{id}/read` · `/followup/read-all` | INSTRUCTOR, ADMIN | `TASKS` | sí | marca llegida una · totes | `{}` | 204 |
 | GET | `/me/history` | MEMBER (i impersonat) | — (`FREE_TRAINING`, `ACTIVITIES` → tipus) | — | Pantalla 25 (R-10-14) | `dogId?` (absent = «Tots»), `type?` `CLASS`·`TRAINING`·`ACTIVITY` | 200 (JSON avall) · 404 `DOG_NOT_ACCESSIBLE` |
@@ -226,7 +227,7 @@ Camps afegits en verificar E6-T02 (organitzador 27-09, E63): cada fila i cada en
 
 `GET /instructor/week?date=2026-08-12` (200, extracte):
 ```json
-{ "week":{"startDate":"2026-08-10","endDate":"2026-08-15","relative":"CURRENT"},
+{ "week":{"startDate":"2026-08-10","endDate":"2026-08-15","relative":"CURRENT"},"trainingSlotMinutes":30,
   "filters":{"instructorId":null,"ringId":null,"instructors":[{"id":"i1","shortName":"Estel"}],"rings":[{"id":"r1","name":"Muntanya","color":"#F2B58C"}]},
   "rows":["08:00","08:30","16:00","18:50"],
   "cells":[
@@ -266,7 +267,7 @@ Sense `TASKS`: `instructorNote`, `tasks`, `observations` absents; sense `FREE_TR
     {"type":"ACTIVITY","id":"ar1","activityId":"a1","date":"2026-07-12","title":"Seminari d'obstacles","dogId":null,"state":"DONE","counts":null,"detail":null},
     {"type":"CLASS","id":"b5","date":"2026-07-08","title":"Classe C+D","dogId":"d1","dogName":"Duna","state":"CANCELLED","counts":false,"detail":{"kind":"BY_MEMBER_IN_TIME"}} ] }
 ```
-`detail.kind` ∈ `BY_MEMBER` · `BY_MEMBER_IN_TIME` · `INSTRUCTOR_NOTICE` · `INSTRUCTOR_NOTICE_IN_TIME` · `BY_CLUB_ON_BEHALF` · `SYSTEM` · `BY_CLUB` · `NO_SHOW`; el front tria la frase (R-10-14). `activityId` només a les files `ACTIVITY`, on l'`id` és la inscripció: el front hi enllaça `/activitats/{activityId}`, llevat d'una activitat cancel·lada pel club, que no té pàgina (S07 §6; organitzador 30-09, decisió E74).
+`detail.kind` ∈ `BY_MEMBER` · `BY_MEMBER_IN_TIME` · `INSTRUCTOR_NOTICE` · `INSTRUCTOR_NOTICE_IN_TIME` · `BY_CLUB_ON_BEHALF` · `SYSTEM` · `BY_CLUB` · `NO_SHOW`; el front tria la frase (R-10-14). `activityId` només a les files `ACTIVITY` d'una activitat amb pàgina (`PUBLISHED` o `FINISHED`, S07 §6) i `null` en la resta; l'`id` d'aquestes files és la inscripció. El front enllaça `/activitats/{activityId}` quan no és `null` (organitzador 30-09, decisions E74 i E75).
 
 Codis d'error propis (`ErrorCode`, missatge a `messages_{ca,es,en}.properties`, `errors:` al front): `ATTENDANCE_NOT_OPEN`, `ATTENDANCE_WINDOW_CLOSED`, `ATTENDANCE_NOTIFIED_FINAL`, `ATTENDANCE_BOOKING_NOT_ACTIVE`, `INSTRUCTOR_NOTICE_DISABLED`, `TASK_ALREADY_DONE`, `TASK_NOT_DONE`, `ATTACHMENT_LIMIT_REACHED`, `ATTACHMENT_ENTITY_MISMATCH` (nous, §13); reutilitzats: `STALE_VERSION`, `INVALID_STATE` (S06), `DOG_NOT_ACTIVE`, `DOG_NOT_ACCESSIBLE`, `FILE_TOO_LARGE`, `FILE_TYPE_NOT_ALLOWED` (S03), `MODULE_DISABLED`, `INVALID_FILTER`, `VALIDATION_ERROR`. Transaccions Mongo obligatòries: desat de la llista (R-10-04, amb la cancel·lació de S08 dins), creació de tasca amb adjunts, `read-all`.
 
@@ -414,3 +415,4 @@ Ordre: A → (B ∥ C ∥ D/E/F contra mocks) → G. Tres fils: back-B, back-C, 
 - 27-09-2026 · ronda 2 d'E6-T03: R-10-10, el propietari de N-20 es comprova a cada intent d'enviament.
 - 28-09-2026 · verificació d'E6-T03, ronda 3 (decisió E70): §7, `MemberNoteChanged` porta l'autor de la nota, i el consumidor és idempotent per `eventId`.
 - 30-09-2026 · verificació d'E6-W02 (decisió E74): §6, `HistoryItem.activityId` a les files d'activitat de 25 (api E6-T05). `completion` i `reopening` d'una tasca continuen idempotents per estat, sense `Idempotency-Key`.
+- 30-09-2026 · verificació d'E6-W03 (decisió E75): §6, `GET /followup/filter-values`, el `q` de `GET /followup` i `InstructorWeek.trainingSlotMinutes` (`training.slotMinutes`, per a la llegenda de D12; `null` sense `FREE_TRAINING`) (api E6-T06). `HistoryItem.activityId` només d'una activitat amb pàgina (pregunta d'E6-T05).

@@ -9884,7 +9884,12 @@
       "NotificationDetail" : {
         "properties" : {
           "audience" : {
-            "$ref" : "#/components/schemas/NotificationAudience"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/NotificationAudience"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "null on a row written before E7-T02 that does not tell it"
           },
           "body" : {
             "description" : "Rendered and frozen",
@@ -9949,13 +9954,18 @@
             "type" : "string"
           }
         },
-        "required" : [ "audience", "body", "category", "channels", "code", "createdAt", "deliveries", "id", "locale", "recipient", "subject", "title" ],
+        "required" : [ "body", "category", "channels", "code", "createdAt", "deliveries", "id", "locale", "recipient", "subject", "title" ],
         "type" : "object"
       },
       "NotificationListItem" : {
         "properties" : {
           "audience" : {
-            "$ref" : "#/components/schemas/NotificationAudience"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/NotificationAudience"
+            }, {
+              "type" : "null"
+            } ],
+            "description" : "null on a row written before E7-T02 that does not tell it"
           },
           "category" : {
             "$ref" : "#/components/schemas/NotificationCategory"
@@ -11954,12 +11964,15 @@
         "type" : "object"
       },
       "PushKeys" : {
+        "description" : "The browser's PushSubscription keys, base64url: p256dh a 65-byte P-256 public key, auth a 16-byte secret",
         "properties" : {
           "auth" : {
+            "maxLength" : 200,
             "minLength" : 1,
             "type" : "string"
           },
           "p256dh" : {
+            "maxLength" : 200,
             "minLength" : 1,
             "type" : "string"
           }
@@ -40834,7 +40847,7 @@
     },
     "/api/v1/me/notification-preferences" : {
       "get" : {
-        "description" : "Roles: MEMBER, and the impersonation token (INSTRUCTOR, ADMIN without MEMBER → 403). The member's NotificationPreference, the product defaults when the block is absent (OPERATIONAL e-mail off, the rest on, no reminder, push of club news on), with the reminder options, the account's locale and the club's locales and SMS/PUSH modules. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, and the impersonation token (INSTRUCTOR, ADMIN without MEMBER → 403). The member's NotificationPreference, the product defaults when the block is absent (OPERATIONAL e-mail off, the rest on, no reminder, push of club news on), with the reminder options, the account's locale and the club's locales and SMS/PUSH modules. Tenant comes from the JWT.",
         "operationId" : "myNotificationPreferences",
         "responses" : {
           "200" : {
@@ -40971,7 +40984,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "put" : {
-        "description" : "Roles: MEMBER, and the impersonation token (audited as MEMBER_UPDATED with the impersonated member). Partial save (debounced by 12): an absent key keeps its value; reminderMinutesBefore outside messaging.reminderOptionsMinutes → INVALID_REMINDER_OPTION (422). NotificationPreferencesChanged{memberId, diff, byAccountId}; a changed reminder never resends a reminder already sent (R-11-16). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, and the impersonation token. Partial save (debounced by 12): an absent key keeps its value; reminderMinutesBefore outside messaging.reminderOptionsMinutes → INVALID_REMINDER_OPTION (422). A change is audited as MEMBER_UPDATED (with the impersonated member under impersonation) and publishes NotificationPreferencesChanged{memberId, diff, byAccountId}; a save that changes nothing writes nothing. A changed reminder never resends a reminder already sent (R-11-16). Tenant comes from the JWT.",
         "operationId" : "saveMyNotificationPreferences",
         "requestBody" : {
           "content" : {
@@ -41120,7 +41133,7 @@
     },
     "/api/v1/me/notifications" : {
       "get" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token (the member's feed). Feed 11 (R-11-10): the caller's notifications with an APP delivery, of any audience (audience filters one), createdAt desc, 20 per page; channels lists SMS only when an SMS delivery is SENT or DELIVERED («i per SMS»); action.enabled is computed on reading (CLAIM_SEAT: the entry is still NOTIFIED and, in FIFO, confirmBy > now); unreadCount = GET /me/home notifications.unreadCount. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token (the member's feed). Feed 11 (R-11-10): the caller's notifications with an APP delivery, of any audience (audience filters one), createdAt desc, 20 per page (size ≤ 100); channels lists APP, and SMS or PUSH only when one of their deliveries is SENT or DELIVERED («i per SMS»; the e-mail is never listed); action.enabled is computed on reading (CLAIM_SEAT: the entry is still NOTIFIED and, in FIFO, confirmBy > now; CHANGE_CLASS: the member may still book for the dog); unreadCount = GET /me/home notifications.unreadCount. Tenant comes from the JWT.",
         "operationId" : "meNotifications",
         "parameters" : [ {
           "in" : "query",
@@ -41285,7 +41298,7 @@
     },
     "/api/v1/me/notifications/read-all" : {
       "post" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Entering screen 11 marks every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Entering screen 11 marks every notification of the caller created until now read (DECISIONS_PENDENTS part C S11; idempotent); the bell of 03 goes out. Tenant comes from the JWT.",
         "operationId" : "readAllNotifications",
         "responses" : {
           "200" : {
@@ -41424,7 +41437,7 @@
     },
     "/api/v1/me/notifications/{id}/read" : {
       "post" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Marks one of the caller's notifications read (idempotent: readAt kept); another account's or club's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, and the impersonation token. Marks one of the caller's notifications read (idempotent: readAt kept); another account's or club's → 404. Answers the new unreadCount. Tenant comes from the JWT.",
         "operationId" : "readNotification",
         "parameters" : [ {
           "in" : "path",
@@ -46156,7 +46169,7 @@
     },
     "/api/v1/members/{id}/notification-preferences" : {
       "put" : {
-        "description" : "Roles: ADMIN (impersonation → 403). The same block from D10, audited as MEMBER_UPDATED (changes[].path = notificationPreferences, the actor's actorAccountId). Another club's member → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (impersonation → 403). The same block from D10, audited as MEMBER_UPDATED (changes[].path = notificationPreferences.…, the actor's actorAccountId) with NotificationPreferencesChanged. Another club's member → 404. Tenant comes from the JWT.",
         "operationId" : "saveMemberNotificationPreferences",
         "parameters" : [ {
           "in" : "path",
@@ -47247,7 +47260,7 @@
     },
     "/api/v1/message-templates" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). D9 list with the counts per category: every CATALOG template of the club (the seed of a code without one is created on first use, R-11-01) and its CUSTOM ones; ARCHIVED only with includeArchived. The SMS column follows the SMS module (cells kept, R-11-17). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). D9 list in D9's order (category OPERATIONAL · PERSONAL · CLUB_CHANGES · CLUB_NEWS, then the catalog's codes, then the CUSTOM ones) with the counts per category (archived ones excluded): every CATALOG template of the club (the seed of a code without one is created here, R-11-01) and its CUSTOM ones; ARCHIVED only with includeArchived. name = the title in the admin's language; variables = the code's, labelled in the admin's language (notif.variable.<key>). With SMS off, caps leave SMS out (the column is not available; the stored cells are kept, R-11-17); with PUSH off, push is empty. Tenant comes from the JWT.",
         "operationId" : "messageTemplates",
         "parameters" : [ {
           "in" : "query",
@@ -47407,7 +47420,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [＋ Nova plantilla]: a CUSTOM template of PERSONAL, CLUB_NEWS or CLUB_CHANGES (SYSTEM or OPERATIONAL → VALIDATION_ERROR) with member variables only; matrix cells outside the category's caps → CHANNEL_NOT_ALLOWED; an active SMS cell needs smsBody. MessageTemplateChanged and CATALOG_CHANGED audit. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [＋ Nova plantilla]: a CUSTOM template of PERSONAL, CLUB_NEWS or CLUB_CHANGES (SYSTEM or OPERATIONAL → VALIDATION_ERROR) with member variables only and no action, sent to members only; texts in the club's languages (the default one required; body ≤ 2000); matrix cells outside the category's MEMBER caps → CHANNEL_NOT_ALLOWED (422); an active SMS cell needs smsBody (≤ 160 GSM-7 rendered with the preview data set). MessageTemplateChanged and CATALOG_CHANGED audit. Tenant comes from the JWT.",
         "operationId" : "createMessageTemplate",
         "requestBody" : {
           "content" : {
@@ -47556,7 +47569,7 @@
     },
     "/api/v1/message-templates/{id}" : {
       "delete" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Elimina»: a CUSTOM template becomes ARCHIVED (nothing is deleted, invisible in D9 and in the send dialog); a CATALOG one → TEMPLATE_NOT_CUSTOM (422). No body. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Elimina»: a CUSTOM template becomes ARCHIVED (nothing is deleted, invisible in D9 and in the send dialog; its id answers 404 afterwards); a CATALOG one → TEMPLATE_NOT_CUSTOM (422). No body. Tenant comes from the JWT.",
         "operationId" : "archiveMessageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -47694,7 +47707,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The editor of D9: the texts per club locale, the seed texts (CATALOG) and lastChange. Another club's template → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The editor of D9: the texts per club locale, the seed texts (CATALOG) and lastChange. Another club's, an unknown or an archived template → 404. Tenant comes from the JWT.",
         "operationId" : "messageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -47839,7 +47852,7 @@
         "tags" : [ "clubs.messaging" ]
       },
       "put" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [DESA] (R-11-12): texts, icon, colour, matrix within caps, enabled (not a mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized. A missing required variable (N-02 link, N-08a admin_text) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails) until the catalog has S11's TEMPLATE_MISSING_VARIABLE. A stale version → STALE_VERSION. MessageTemplateChanged, CATALOG_CHANGED audit, club cache evicted. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [DESA] (R-11-12): texts, icon, colour, matrix within caps, enabled (not a mandatory one: TEMPLATE_MANDATORY) and, for CUSTOM, the category; version+1 and customized (the texts differ from the seed). A missing required variable (N-02 link, N-08a admin_text) is VALIDATION_ERROR with details.missingVariables (MissingVariablesDetails). With SMS off the SMS cells are kept as stored. A stale version → STALE_VERSION. MessageTemplateChanged and CATALOG_CHANGED audit in the same transaction; the next notification uses the saved text (no template cache). Tenant comes from the JWT.",
         "operationId" : "updateMessageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -47996,7 +48009,7 @@
     },
     "/api/v1/message-templates/{id}/preview" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [Vista prèvia] of the saved texts or of an unsaved draft, in one locale, with the fictional data of that locale; SMS length and segments after transliteration; an unknown variable is a warning (rendered empty). sendTest (E7-T03) delivers the rendered draft to the acting admin only. Writes nothing else. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). [Vista prèvia] of the saved texts or of an unsaved draft, in one of the club's locales, with the fictional data of that locale; SMS length and segments after transliteration; an unknown variable and an SMS over 160 characters are warnings (the variable renders empty). sendTest («envia prova») also delivers the rendering once to the acting admin's own account (APP and its e-mail, never SMS, never anybody else), stored in the log. Writes nothing else. Tenant comes from the JWT.",
         "operationId" : "previewMessageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -48153,7 +48166,7 @@
     },
     "/api/v1/message-templates/{id}/reset" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Restaura el text per defecte»: the seed texts, icon, colour and matrix back, customized = false; a CUSTOM template → TEMPLATE_NOT_CATALOG (422). MessageTemplateChanged, CATALOG_CHANGED audit. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Restaura el text per defecte»: the seed texts, icon, colour and matrix back, customized = false, enabled kept; a CUSTOM template → TEMPLATE_NOT_CATALOG (422). MessageTemplateChanged, CATALOG_CHANGED audit. Tenant comes from the JWT.",
         "operationId" : "resetMessageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -48300,7 +48313,7 @@
     },
     "/api/v1/message-templates/{id}/send" : {
       "post" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Enviar comunicat» (R-11-13, N-24): N-24 or a CUSTOM template only (TEMPLATE_NOT_SENDABLE, 422); recipients = the members of the selection or of the filters (the semantics of GET /members, any status the list shows; NO_RECIPIENTS, 422). dryRun → 200 with the count and nothing written; otherwise 202, AnnouncementSent{templateId, batchId, recipientCount, filters}, one MEMBER notification per member (dedupKey {batchId}:{memberId}) and ANNOUNCEMENT_SENT audit. The same Idempotency-Key replays the same batchId. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). «Enviar comunicat» (R-11-13, N-24): N-24 or a CUSTOM template only (TEMPLATE_NOT_SENDABLE, 422); recipients = the members of the selection or of the filters (the semantics of GET /members, any status the list shows; NO_RECIPIENTS, 422). dryRun → 200 with the count and nothing written; otherwise 202, AnnouncementSent{templateId, batchId, recipientCount, filters}, one MEMBER notification per member (dedupKey {batchId}:{memberId}) and ANNOUNCEMENT_SENT audit. The same Idempotency-Key replays the same batchId (E7-T04). Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
         "operationId" : "sendMessageTemplate",
         "parameters" : [ {
           "in" : "path",
@@ -48475,7 +48488,7 @@
     },
     "/api/v1/notifications" : {
       "get" : {
-        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (MEMBER, INSTRUCTOR → 403; impersonation → 403). The club's notification log (R-11-10, T-11-26), universal list (CONVENCIONS_API §4) createdAt desc by default: every notification, also those with no external channel sent and those without an APP delivery; never another club's. channel/status filter on any delivery; memberId on the recipient. An undeclared filter, sort or fields key is 400 INVALID_FILTER. Tenant comes from the JWT.",
         "operationId" : "notifications",
         "parameters" : [ {
           "description" : "Zero-based page index.",
@@ -48694,7 +48707,7 @@
     },
     "/api/v1/notifications/export" : {
       "get" : {
-        "description" : "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T01): the same q/filter/sort, fields and selected columns; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked. Contract only; returns 501 NOT_IMPLEMENTED after the role, tenant and query checks until E7-T03 serves the log.",
+        "description" : "Roles: ADMIN (impersonation → 403). S14 §6, R-14-12. The list contract of GET /notifications (S11 log, E7-T03): the same filter/sort, fields and selected columns, the same rows of the club; an undeclared one is 400 INVALID_FILTER. 200 binary file or 202 ExportAccepted. Sensitive values are masked.",
         "operationId" : "exportNotifications",
         "parameters" : [ {
           "in" : "query",
@@ -48953,7 +48966,7 @@
     },
     "/api/v1/notifications/filter-values" : {
       "get" : {
-        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4); another field → INVALID_FILTER. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (impersonation → 403). The values of one x-filterable field with their counts under the other filters (CONVENCIONS_API §4), labelled in the reader's language (the member's name for memberId); another field → INVALID_FILTER. Tenant comes from the JWT.",
         "operationId" : "notificationFilterValues",
         "parameters" : [ {
           "in" : "query",
@@ -49122,7 +49135,7 @@
     },
     "/api/v1/notifications/{id}" : {
       "get" : {
-        "description" : "Roles: ADMIN (impersonation → 403). The log's detail: the frozen rendered texts, every delivery with the provider's reference and last error. Another club's → 404. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN (impersonation → 403). The log's detail: the frozen rendered texts, every delivery with the provider's reference and last error. Another club's → 404. Tenant comes from the JWT.",
         "operationId" : "notification",
         "parameters" : [ {
           "in" : "path",
@@ -54096,7 +54109,7 @@
     },
     "/api/v1/push-subscriptions" : {
       "post" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Asked in context from 12 (the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (unique per club through its hash), ACTIVE again if it had expired; PushSubscribed{accountId, endpoint = its SHA-256}. An endpoint that is no https URL or keys that are no base64url → PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey. Requires PUSH. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN (impersonation → IMPERSONATION_DENIED). Asked in context from 12 (the push toggle or a reminder ≠ «Mai»), never at start-up: an upsert of the account's subscription by endpoint (unique per club through its hash), ACTIVE again if it had expired or belonged to another account on this browser; deviceLabel from the User-Agent when absent («iPhone · Safari»); PushSubscribed{accountId, endpoint = its SHA-256} when something changed. An endpoint that is no https URL, or keys that are not base64url of a 65-byte P-256 key and a 16-byte secret → PUSH_SUBSCRIPTION_INVALID (422). The VAPID public key is GET /branding.pushPublicKey. Requires PUSH. Tenant comes from the JWT.",
         "operationId" : "subscribePush",
         "requestBody" : {
           "content" : {
@@ -54245,7 +54258,7 @@
     },
     "/api/v1/push-subscriptions/{id}" : {
       "delete" : {
-        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, the caller's own subscription (impersonation → IMPERSONATION_DENIED). Logout of the device: EXPIRED + expiredAt, PushUnsubscribed; another account's or club's → 404. No body. Requires PUSH. Contract only; returns 501 NOT_IMPLEMENTED after the tenant, role and resource guards. Tenant comes from the JWT.",
+        "description" : "Roles: MEMBER, INSTRUCTOR, ADMIN, the caller's own subscription (impersonation → IMPERSONATION_DENIED). Logout of the device: EXPIRED + expiredAt, PushUnsubscribed (idempotent); another account's or club's → 404. No body. Requires PUSH. Tenant comes from the JWT.",
         "operationId" : "unsubscribePush",
         "parameters" : [ {
           "in" : "path",

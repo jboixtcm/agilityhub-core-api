@@ -108,7 +108,8 @@ public final class MessagingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "APPLICANT rows: the only recipient data") String email) { }
     public record ChannelState(NotificationChannel channel, DeliveryStatus status) { }
     @com.agilityhub.core.shared.application.contract.SparseListItem
-    public record NotificationListItem(String id, Instant createdAt, String code, NotificationCategory category, NotificationAudience audience,
+    public record NotificationListItem(String id, Instant createdAt, String code, NotificationCategory category,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on a row written before E7-T02 that does not tell it") NotificationAudience audience,
             NotificationRecipient recipient, @Schema(description = "One per delivery") List<ChannelState> channels,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt) { }
     @Schema(description = "Universal list page (CONVENCIONS_API §4) of the notification log, createdAt desc by default")
@@ -128,7 +129,8 @@ public final class MessagingContracts {
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "The provider's last error") String lastError,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant sentAt, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant deliveredAt,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant failedAt) { }
-    public record NotificationDetail(String id, Instant createdAt, String code, NotificationCategory category, NotificationAudience audience,
+    public record NotificationDetail(String id, Instant createdAt, String code, NotificationCategory category,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "null on a row written before E7-T02 that does not tell it") NotificationAudience audience,
             NotificationRecipient recipient, List<ChannelState> channels, @Schema(requiredMode = NOT_REQUIRED, nullable = true) Instant readAt,
             @Schema(description = "Rendered and frozen") String title, @Schema(description = "Rendered and frozen") String body,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String smsBody, @Schema(description = "The locale it was rendered in") String locale,
@@ -187,7 +189,8 @@ public final class MessagingContracts {
     }
 
     // ---- Push (R-11-07) and CLUB_NEWS unsubscribe (R-11-08)
-    public record PushKeys(@NotBlank String p256dh, @NotBlank String auth) { }
+    @Schema(description = "The browser's PushSubscription keys, base64url: p256dh a 65-byte P-256 public key, auth a 16-byte secret")
+    public record PushKeys(@NotBlank @Size(min = 1, max = 200) String p256dh, @NotBlank @Size(min = 1, max = 200) String auth) { }
     public record PushSubscriptionRequest(@NotBlank @Size(max = 2048) @Schema(format = "uri") String endpoint, @NotNull @Valid PushKeys keys,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Derived from the User-Agent when absent («iPhone · Safari»)") @Size(max = 120) String deviceLabel) { }
     public record PushSubscriptionCreated(String id) { }

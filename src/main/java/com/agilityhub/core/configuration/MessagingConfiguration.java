@@ -1,6 +1,7 @@
 package com.agilityhub.core.configuration;
 
 import com.agilityhub.core.clubs.messaging.application.EmailSender;
+import com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed;
 import com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcher;
 import com.agilityhub.core.clubs.messaging.application.engine.NotificationEmailRenderer;
 import com.agilityhub.core.clubs.messaging.application.engine.NotificationEngine;
@@ -127,8 +128,11 @@ public class MessagingConfiguration {
         return new NotificationEmailRenderer(messages, engine);
     }
 
-    @Bean TemplateProvider notificationTemplates(MessageTemplateRepository templates, IcuMessageSource messages, Clock clock, PlatformTransactionManager transactions) {
-        return new TemplateProvider(templates, messages, clock, transactions);
+    /** S11 §8: the product seed of the club templates (`seed/message-templates.{ca,es,en}.json`), checked against the catalog at start-up. */
+    @Bean MessageTemplateSeed messageTemplateSeed(ObjectMapper mapper) { return MessageTemplateSeed.load(mapper); }
+
+    @Bean TemplateProvider notificationTemplates(MessageTemplateRepository templates, MessageTemplateSeed seeds, Clock clock, PlatformTransactionManager transactions) {
+        return new TemplateProvider(templates, seeds, clock, transactions);
     }
 
     @Bean RecipientResolver notificationRecipients(MemberDirectoryPort members, StaffDirectoryPort staff, SignupContactPort signups) {

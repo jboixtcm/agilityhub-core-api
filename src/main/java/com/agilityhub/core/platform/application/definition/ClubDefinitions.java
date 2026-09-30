@@ -28,11 +28,13 @@ public class ClubDefinitions {
     private final com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs;
     private final ObjectMapper mapper;
     private final com.agilityhub.core.platform.application.ClubPageProvisioner pages;
+    private final com.agilityhub.core.platform.application.ClubTemplateProvisioner templates;
     public ClubDefinitions(ClubDefinitionCodec codec, ClubDefinitionWriter writer, ClubDefinitionMapper definitions,
                            ClubRepository clubs, ParameterRepository parameters, ClubAccountProvisioner accounts,
-                           ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs) {
+                           ClubConfigService configs, HostTenantResolver hosts, ObjectMapper mapper, com.agilityhub.core.platform.application.ClubPageProvisioner pages, com.agilityhub.core.platform.application.ClubCatalogProvisioner catalogs,
+                           com.agilityhub.core.platform.application.ClubTemplateProvisioner templates) {
         this.codec = codec; this.writer = writer; this.definitions = definitions; this.clubs = clubs;
-        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper; this.pages = pages; this.catalogs = catalogs;
+        this.parameters = parameters; this.accounts = accounts; this.configs = configs; this.hosts = hosts; this.mapper = mapper; this.pages = pages; this.catalogs = catalogs; this.templates = templates;
     }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun) { return apply(codec.read(file), dryRun); }
     public ClubDefinitionWriter.Result apply(Path file, boolean dryRun, boolean allowSeedPasswords) {
@@ -78,7 +80,7 @@ public class ClubDefinitions {
                 exportedAccounts.add(entry);
             }
             definition.set("catalogs", mapper.valueToTree(catalogs.export()));
-            definition.putArray("messageTemplates");
+            definition.set("messageTemplates", mapper.valueToTree(templates.export()));
             definition.set("pages", mapper.valueToTree(pages.list()));
             return definition;
         }

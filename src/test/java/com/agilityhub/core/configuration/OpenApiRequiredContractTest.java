@@ -109,8 +109,9 @@ class OpenApiRequiredContractTest {
         assertThat(required(schemas, "MeNotifications")).containsExactlyInAnyOrder("items", "page", "size", "totalItems", "unreadCount");
         assertThat(required(schemas, "NotificationPreferences")).containsExactlyInAnyOrder("emailByCategory", "smsFixed", "reminderOptionsMinutes", "pushClubNews",
                 "locale", "availableLocales", "modules");
-        assertThat(required(schemas, "NotificationDetail")).contains("id", "code", "audience", "recipient", "subject", "deliveries", "title", "body", "locale")
-                .doesNotContain("readAt", "smsBody", "templateId", "templateVersion", "eventType");
+        // E7-T03: `audience` is null on a row written before E7-T02 that does not tell it (E7-T01 question 4), so optional like the other nullable fields.
+        assertThat(required(schemas, "NotificationDetail")).contains("id", "code", "recipient", "subject", "deliveries", "title", "body", "locale")
+                .doesNotContain("readAt", "smsBody", "templateId", "templateVersion", "eventType", "audience");
         assertThat(required(schemas, "NotificationListItem")).containsExactly("id");
     }
 

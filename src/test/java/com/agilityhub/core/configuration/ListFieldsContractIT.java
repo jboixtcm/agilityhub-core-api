@@ -64,8 +64,8 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     static final Map<String, Set<String>> OWN_LISTS = Map.of("/api/v1/followup", FollowupContractAccess.FOLLOWUP.fields(),
             "/api/v1/attendances", AttendanceContractAccess.ATTENDANCES.fields(), "/api/v1/jobs/{name}/runs", JobAdminService.RUN_FIELDS,
             "/api/v1/notifications", com.agilityhub.core.clubs.messaging.application.MessagingContractAccess.NOTIFICATIONS.fields());
-    /** The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (E7-T01: the S11 log until E7-T03). */
-    static final Set<String> STUBS = Set.of("/api/v1/notifications");
+    /** The universal lists that are still stubs: they validate the query, `fields` included, and then answer 501 (none since E7-T03 served the S11 log). */
+    static final Set<String> STUBS = Set.of();
     /** The contract-only lists of the platform console: no `fields` parameter and no `x-fields` until they are implemented. */
     static final List<String> CONTRACT_ONLY = List.of("/api/v1/platform/audit-entries", "/api/v1/platform/erasure-requests", "/api/v1/platform/security-events");
     static final String CANIC_HOST = "app.agilitycanic.cat";
@@ -231,6 +231,19 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
         mongo.save(new org.bson.Document("_id", "list-fields-note-row").append("clubId", canic).append("kind", "MEMBER_NOTE").append("dogId", booking.getString("dogId"))
                 .append("memberId", booking.getString("memberId")).append("authorAccountId", "list-fields-member").append("authorRole", "MEMBER").append("authorName", "Laura")
                 .append("textExcerpt", "A veure si treballem el doble").append("createdAt", now).append("activityAt", now).append("hidden", false), "followup_items");
+        // E7-T03: `GET /notifications` is served; an S11 row of a demo member and a helper row written before E7-T02 (its audience
+        // unknown, no member: the nullable keys).
+        var delivered = new com.agilityhub.core.clubs.messaging.persistence.Notification.Delivery(com.agilityhub.core.clubs.messaging.domain.NotificationChannel.APP,
+                "list-fields-member", com.agilityhub.core.clubs.messaging.domain.DeliveryStatus.DELIVERED, 0, null, null, null, null, clock.instant(), null);
+        mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.Notification("list-fields-notice", canic, "N-04",
+                com.agilityhub.core.clubs.messaging.domain.NotificationCategory.OPERATIONAL, null, null, "list-fields-event", "BookingCreated", "list-fields-dedup",
+                com.agilityhub.core.clubs.messaging.domain.NotificationAudience.MEMBER,
+                new com.agilityhub.core.clubs.messaging.persistence.Notification.Recipient("list-fields-member", booking.getString("memberId"), null, null, "Laura Example"),
+                "ca", new com.agilityhub.core.clubs.messaging.persistence.Notification.Subject(null, null, null, null, null, null, null, null, null),
+                com.agilityhub.core.clubs.messaging.domain.TemplateIcon.check, com.agilityhub.core.clubs.messaging.domain.TemplateColor.OK, "Reserva confirmada",
+                "Classe B+C", null, null, List.of(delivered), null, clock.instant(), null, null, null, null, null, null, null, null));
+        mongo.insert(new com.agilityhub.core.clubs.messaging.persistence.Notification("list-fields-legacy-notice", canic, "list-fields-member", "N-08a", "APP",
+                com.agilityhub.core.clubs.messaging.persistence.Notification.Status.SENT, null, clock.instant(), null, null, "ca", clock.instant(), null));
         return canic;
     }
     String registeredActivity(String club) {
@@ -256,7 +269,7 @@ class ListFieldsContractIT extends AbstractIntegrationTest {
     static final Map<String, String> EXPORTS = Map.of("/api/v1/members/export", "/api/v1/members", "/api/v1/dogs/export", "/api/v1/dogs",
             "/api/v1/audit-entries/export", "/api/v1/audit-entries", "/api/v1/activities/export", "/api/v1/activities",
             "/api/v1/activity-registrations/export", "/api/v1/activities/{id}/registrations", "/api/v1/training-bookings/export", "/api/v1/training-bookings",
-            // E7-T01: wired to the S11 log's list definition (both still answer 501 after the query checks).
+            // E7-T01: wired to the S11 log's list definition; E7-T03 serves both.
             "/api/v1/notifications/export", "/api/v1/notifications");
     /** The exports of lists that are still contract only (S12): no `fields` and no `x-fields` until they are implemented. */
     static final Set<String> CONTRACT_ONLY_EXPORTS = Set.of("/api/v1/invoices/export");

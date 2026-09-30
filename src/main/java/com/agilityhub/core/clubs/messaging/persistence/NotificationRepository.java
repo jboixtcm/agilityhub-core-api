@@ -70,6 +70,34 @@ public class NotificationRepository extends TenantRepository<Notification> {
                 .and("deliveries").elemMatch(Criteria.where("channel").is("APP").and("status").in("DELIVERED", "SENT"))), Notification.class);
     }
 
+    // ---- Feed 11 (E7-T03, R-11-10): the account's notices with a delivered APP delivery, the same rows as the bell counts.
+
+    private Query feedQuery(String accountId, com.agilityhub.core.clubs.messaging.domain.NotificationAudience audience) {
+        var query = tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId)
+                .and("deliveries").elemMatch(Criteria.where("channel").is("APP").and("status").in("DELIVERED", "SENT")));
+        if (audience != null) { query.addCriteria(Criteria.where("audience").is(audience)); }
+        return query;
+    }
+    /** One page of the feed, `createdAt desc` (then id, stable across pages). */
+    public java.util.List<Notification> feed(String accountId, com.agilityhub.core.clubs.messaging.domain.NotificationAudience audience, int page, int size) {
+        var query = feedQuery(accountId, audience).with(org.springframework.data.domain.Sort.by(DESC, "createdAt").and(org.springframework.data.domain.Sort.by(DESC, "_id")))
+                .skip((long) page * size).limit(size);
+        return mongo.find(query, Notification.class);
+    }
+    public long feedCount(String accountId, com.agilityhub.core.clubs.messaging.domain.NotificationAudience audience) {
+        return mongo.count(feedQuery(accountId, audience), Notification.class);
+    }
+    /** `POST /me/notifications/{id}/read`: `readAt` once (idempotent: a read notice keeps its first `readAt`). */
+    public void markRead(String id, String accountId, Instant at) {
+        mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("recipient.accountId").is(accountId).and("readAt").is(null)),
+                new Update().set("readAt", at), Notification.class);
+    }
+    /** `POST /me/notifications/read-all`: every unread notice of the account created until `upTo`. */
+    public long markAllRead(String accountId, Instant upTo, Instant at) {
+        return mongo.updateMulti(tenantQuery().addCriteria(Criteria.where("recipient.accountId").is(accountId).and("readAt").is(null).and("createdAt").lte(upTo)),
+                new Update().set("readAt", at), Notification.class).getModifiedCount();
+    }
+
     // ---- The engine (E7-T02): upsert by dedupKey, deliveries added if absent.
 
     /** The tenant's notifications with these `dedupKey`s, by key (one `$in` read per 500 keys). */

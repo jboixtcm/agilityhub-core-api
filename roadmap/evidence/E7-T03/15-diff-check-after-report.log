@@ -1,0 +1,12 @@
+roadmap/tasks/E7-T03.md:190: trailing whitespace.
++2026-09-30T17:33:03.445+02:00  INFO 79135 --- [agilityhub-core-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning 
+roadmap/tasks/E7-T03.md:197: trailing whitespace.
++2026-09-30T17:33:04.383+02:00  INFO 79135 --- [agilityhub-core-api] [localhost:54517] org.mongodb.driver.cluster               : Monitor thread successfully connected to 
+roadmap/tasks/E7-T03.md:202: trailing whitespace.
++2026-09-30T17:33:08.624+02:00  INFO 79135 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 54523 (http) with 
+roadmap/tasks/E7-T03.md:209: trailing whitespace.
++2026-09-30T17:33:08.712+02:00  INFO 79135 --- [agilityhub-core-api] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 54524 (http) with 
+roadmap/tasks/E7-T03.md:211: trailing whitespace.
++Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build 
+roadmap/tasks/E7-T03.md:264: trailing whitespace.
++POST preview es -> title Clase cancelada por el club | body Miércoles 12 · 18:50 · B+C, con Duna. «La clase queda cancelada por la lluvia. Podéis reservar otra desde la app. ¡Disculpad las molestias!» — Club Agility Cànic. Esta sesión no cuenta en tu cómputo. 

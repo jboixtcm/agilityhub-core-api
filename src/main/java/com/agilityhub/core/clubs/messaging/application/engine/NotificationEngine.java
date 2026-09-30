@@ -105,6 +105,17 @@ public class NotificationEngine {
         try (var tenant = TenantContext.open(trigger.clubId())) { afterCommit(trigger.clubId(), process(trigger)); }
     }
 
+    /**
+     * Notifications built outside a catalog event in the current club (E7-T03, D9's test send of a template): stored like any
+     * other (the log shows them), `NotificationQueued` once per channel, and their queued deliveries sent after the commit.
+     */
+    public void deliver(List<Notification> fresh) {
+        String clubId = TenantContext.require();
+        notifications.insertAll(fresh);
+        fresh.forEach(notification -> publishQueued(notification.id(), notification.deliveries()));
+        afterCommit(clubId, fresh.stream().filter(notification -> hasQueued(notification.deliveries())).map(Notification::id).toList());
+    }
+
     /** The notifications of one event in the current club; returns the ids with deliveries to send. */
     public List<String> process(NotificationTrigger trigger) {
         ClubConfig config;
@@ -117,7 +128,7 @@ public class NotificationEngine {
             if (!conditions(spec, trigger, config)) { continue; }
             var facts = facts(trigger, spec);
             if (facts.isEmpty()) { continue; }
-            var template = templates.forCode(spec, config.club().defaultLocale());
+            var template = templates.forCode(spec, config.club().locales(), config.club().defaultLocale());
             if (template.status() != TemplateStatus.ACTIVE || !template.enabled()) { continue; }
             List<Notification> built = relevant(spec, trigger) ? build(spec, trigger, facts.get(), template, config) : stale(spec, trigger, facts.get(), template);
             var stored = store(spec, trigger, built);

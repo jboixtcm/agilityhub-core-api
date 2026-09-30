@@ -44,6 +44,22 @@ public class PushSubscriptionRepository extends TenantRepository<PushSubscriptio
                 new org.springframework.data.mongodb.core.query.Update().set("status", PushSubscription.Status.EXPIRED).set("expiredAt", at).inc("version", 1),
                 PushSubscription.class).getModifiedCount() == 1;
     }
+    /** The tenant's subscription of an endpoint, whoever holds it (R-11-07: upsert by endpoint). */
+    public Optional<PushSubscription> findByEndpointHash(String endpointHash) {
+        return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("endpointHash").is(endpointHash)), PushSubscription.class));
+    }
+    /**
+     * `POST /push-subscriptions` on a known endpoint: the caller's account, the new keys and device, `ACTIVE` again (a browser
+     * that subscribes again after an expiry or a logout); `false` when the stored version moved meanwhile.
+     */
+    public boolean resubscribe(PushSubscription current, String accountId, PushSubscription.Keys keys, String deviceLabel, String userAgent,
+            java.time.Instant at, String by) {
+        var update = new org.springframework.data.mongodb.core.query.Update().set("accountId", accountId).set("keys", keys).set("deviceLabel", deviceLabel)
+                .set("userAgent", userAgent).set("status", PushSubscription.Status.ACTIVE).set("failureCount", 0).unset("expiredAt")
+                .set("updatedAt", at).set("updatedBy", by).inc("version", 1);
+        var query = tenantQuery().addCriteria(Criteria.where("_id").is(current.id()).and("version").is(current.version()));
+        return mongo.updateFirst(query, update, PushSubscription.class).getModifiedCount() == 1;
+    }
     /** A subscription of the tenant owned by the account (`DELETE /push-subscriptions/{id}`, «pròpia»): another account's is absent. */
     public Optional<PushSubscription> findOwn(String id, String accountId) {
         return Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("accountId").is(accountId)), PushSubscription.class));

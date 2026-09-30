@@ -248,7 +248,8 @@ class FollowupIT extends AbstractIntegrationTest {
                 .containsExactly("APP s10f-estel ca", "APP s10f-marc es", "APP s10f-nuria en");
         var variables = n21.getFirst().get("variables", Document.class);
         assertThat(variables.getString("member_name")).isEqualTo("Laura Example"); assertThat(variables.getString("dog_name")).isEqualTo("Duna");
-        assertThat(variables.getString("gender")).isEqualTo("FEMALE"); assertThat(variables.getString("action")).isEqualTo("OPEN_DOG");
+        // The engine stores the formatted values: `gender` in the lower case of the ICU keys (S11 §10, E7-T03).
+        assertThat(variables.getString("gender")).isEqualTo("female"); assertThat(variables.getString("action")).isEqualTo("OPEN_DOG");
         assertThat(variables.getString("task_excerpt")).isEqualTo("Practiqueu el balancí dos cops per setmana");
 
         // Reopening: MEMBER → 403; staff → PENDING without doneAt/doneBy/completedAt, TaskReopened; again → 422 TASK_NOT_DONE.

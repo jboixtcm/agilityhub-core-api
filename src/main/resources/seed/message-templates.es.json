@@ -1,0 +1,752 @@
+{
+  "locale": "es",
+  "templates": [
+    {
+      "code": "N-01",
+      "title": "Solicitud recibida",
+      "body": "Hemos recibido tu solicitud para [[dogs]]. [[club_name]] la revisará.{has_upfront, select, true { Importe a pagar al club: [[upfront_total]]. [[payment_instructions]]} other {}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-02",
+      "title": "{gender, select, female {¡Bienvenida} other {¡Bienvenido}} a [[club_name]], [[member_first_name]]!",
+      "body": "Ya tienes acceso a la app del club. Entra con este enlace: [[link]].",
+      "icon": "mail",
+      "color": "OK",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-03",
+      "title": "Solicitud rechazada",
+      "body": "[[member_name]], tu solicitud ha sido rechazada. Motivo: [[reason]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {}
+    },
+    {
+      "code": "N-04",
+      "title": "Reserva confirmada",
+      "body": "Clase [[class_description]] · [[class_date]] · [[class_time]] · [[ring_name]] · con [[dog_name]].",
+      "icon": "check",
+      "color": "OK",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-05",
+      "title": "Reserva cancelada",
+      "body": "[[class_date]] · [[class_time]], con [[dog_name]]. {late, select, true {La has cancelado fuera de plazo: cuenta en tu cómputo de clases.} other {La has cancelado dentro del plazo.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-06",
+      "title": "Reserva confirmada",
+      "body": "Entrenamiento libre · [[date]] · [[time]] · [[ring_name]] · con [[dog_name]].",
+      "icon": "check",
+      "color": "OK",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-07",
+      "title": "Entrenamiento anulado",
+      "body": "Entrenamiento libre anulado · [[date]] · [[time]] · [[ring_name]] · con [[dog_name]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-08a",
+      "title": "Clase cancelada por el club",
+      "body": "[[class_date]] · [[class_time]] · [[class_description]], con [[dog_name]]. «[[admin_text]]» — [[club_name]]. Esta sesión no cuenta en tu cómputo.",
+      "smsBody": "[[club_name]]: la clase del [[class_date]] a las [[class_time]] ([[class_description]]) queda cancelada. [[admin_text]]",
+      "icon": "x",
+      "color": "ERROR",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": true
+        },
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        },
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-08b",
+      "title": "Clase modificada por el club",
+      "body": "[[class_date]] · {class_description}, con [[dog_name]]: la clase ha cambiado. [[changes]]. Consulta la app.",
+      "smsBody": "[[club_name]]: clase [[class_date]] con [[dog_name]] modificada. [[changes]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": true
+        },
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-09",
+      "title": "¡[[dog_name_article]] sube de nivel!",
+      "body": "Gracias a vuestra evolución, [[dog_name_article]] ya ha subido al nivel [[level_name]]. Ya podéis reservar clases de este nuevo nivel; las clases que ya teníais reservadas, aunque no sean de este nivel, siguen siendo válidas.",
+      "icon": "up",
+      "color": "OK",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-10",
+      "title": "Recibo impagado",
+      "body": "El recibo [[invoice_number]] de [[member_name]] ([[amount]]) no se ha podido cobrar: [[reason]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-11a",
+      "title": "El bono se está acabando",
+      "body": "Al bono de [[dog_name]] le quedan [[pack_remaining]] sesiones.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-11b",
+      "title": "Caducidad del bono",
+      "body": "El bono de [[dog_name]] caduca el [[pack_expiry]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-13",
+      "title": "{kind, select, TRAINING {Recordatorio de entrenamiento} other {Recordatorio de clase}}",
+      "body": "[[date]] a las [[time]] · {kind, select, TRAINING {Entrenamiento libre} other {[[class_description]]}} · [[ring_name]] · con [[dog_name]].",
+      "icon": "clock",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-14",
+      "title": "Solicitud de baja recibida",
+      "body": "[[member_name]] ha pedido la baja con fecha [[requested_date]]. Motivo: [[reason]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-15",
+      "title": "¡Se ha liberado una plaza!",
+      "body": "Clase [[class_description]] · [[class_date]] · [[class_time]]. {mode, select, FIFO {Tienes hasta las [[confirm_by]] para confirmarla.} other {Estás en la lista de espera: la plaza es para quien la confirme primero.}}",
+      "smsBody": "[[club_name]]: se ha liberado una plaza en la clase del [[class_date]] a las [[class_time]] ([[class_description]]). {mode, select, FIFO {Tienes hasta las [[confirm_by]] para confirmarla en la app.} other {Entra en la app para cogerla.}}",
+      "icon": "unlock",
+      "color": "ACCENT",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": true
+        }
+      }
+    },
+    {
+      "code": "N-16",
+      "title": "Posible cancelación de clase",
+      "body": "[[class_date]] · [[class_time]] · [[class_description]], con [[dog_name]]: la clase todavía no tiene suficientes alumnos. {auto_cancel, select, true {Si nadie más se apunta antes de las [[review_time]] de [[review_day]], la clase se cancelará. Te proponemos reservar otra.} other {[[review_day]] a las [[review_time]] el club decidirá si se hace.}}",
+      "smsBody": "[[club_name]]: la clase [[class_date]] [[class_time]] todavía no tiene suficientes alumnos y se puede cancelar.",
+      "icon": "warn",
+      "color": "WARNING",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        },
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-17",
+      "title": "Clase cancelada por falta de alumnos",
+      "body": "[[club_name]]: [[class_date]] · [[class_time]] · [[class_description]] — clase cancelada automáticamente porque no ha llegado al mínimo ({dogs_count, plural, =0 {ningún perro inscrito} one {# perro inscrito} other {# perros inscritos}}).",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        },
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-18a",
+      "title": "Solicitud de inactividad recibida",
+      "body": "[[member_name]] ha pedido un periodo de inactividad de [[from_month]] a [[to_month]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-18b",
+      "title": "{decision, select, APPROVED {Inactividad aprobada} other {Inactividad denegada}}",
+      "body": "{decision, select, APPROVED {El club ha aprobado el periodo de inactividad de [[from_month]] a [[to_month]].} other {El club no ha aprobado el periodo de inactividad de [[from_month]] a [[to_month]].}} [[admin_text]]",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-18c",
+      "title": "Vuelves a estar en activo",
+      "body": "Tu periodo de inactividad ha terminado: ya puedes volver a reservar clases.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-19",
+      "title": "Te hemos echado de menos",
+      "body": "[[class_date]] no pudiste venir a la clase de [[class_description]]. Recuerda que puedes anular desde la app hasta última hora: así otra persona puede aprovechar la clase. La sesión cuenta en tu cómputo.",
+      "icon": "heart",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-20",
+      "title": "Nueva tarea para [[dog_name]]",
+      "body": "[[instructor_name]] te ha puesto una tarea para [[dog_name]]: «[[task_excerpt]]»",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-21",
+      "title": "Tarea completada",
+      "body": "La tarea de [[dog_name]] ([[member_name]], {gender, select, female {alumna} other {alumno}}) ya está hecha: «[[task_excerpt]]»",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-22",
+      "title": "{gender, select, female {Nota nueva de la alumna} other {Nota nueva del alumno}}",
+      "body": "[[member_name]] ({gender, select, female {alumna} other {alumno}}) ha escrito o cambiado la nota para los instructores sobre [[dog_name]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-23",
+      "title": "Documentación pendiente",
+      "body": "Falta la documentación «[[document_type]]» de [[dog_name]]. Puedes subirla desde la ficha del perro en la app.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-24",
+      "title": "Comunicado del club",
+      "body": "[[club_name]] te ha enviado un comunicado.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-28",
+      "title": "Comunicación de baja como asociado",
+      "body": "Hola [[member_first_name]], te comunicamos que el [[effective_date]] se ha hecho efectiva tu baja como asociado de [[club_name]]. Te agradecemos el tiempo que hemos compartido: las puertas siempre estarán abiertas para ti y para [[dog_name]]. ¡Hasta pronto!",
+      "icon": "doc",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-29",
+      "title": "{active, select, false {Reservas desbloqueadas} other {Reservas bloqueadas}}",
+      "body": "{active, select, false {Ya puedes volver a reservar clases.} other {El club ha bloqueado tus reservas. Motivo: [[reason]].}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-30",
+      "title": "Pago recibido",
+      "body": "Hemos recibido el pago de [[amount]] ([[concept]]).",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": false,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-31",
+      "title": "Recorrido nuevo en la pista",
+      "body": "Hay un recorrido nuevo en la pista [[ring_name]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-32a",
+      "title": "Actividad publicada",
+      "body": "[[activity_title]] · [[date]]",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-32b",
+      "title": "Inscripción a una actividad",
+      "body": "{state, select, ACTIVE {Inscripción confirmada a [[activity_title]] · [[date]]} WAITLISTED {Estás en la lista de espera de [[activity_title]] · [[date]]} CANCELLED {Inscripción anulada a [[activity_title]] · [[date]]} other {[[activity_title]] · [[date]]}}",
+      "smsBody": "[[club_name]]: {state, select, ACTIVE {Inscripción confirmada a [[activity_title]] · [[date]]} WAITLISTED {Estás en la lista de espera de [[activity_title]] · [[date]]} CANCELLED {Inscripción anulada a [[activity_title]] · [[date]]} other {[[activity_title]] · [[date]]}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-32c",
+      "title": "Actividad cancelada por el club",
+      "body": "[[activity_title]]: [[admin_text]]",
+      "smsBody": "[[club_name]]: la actividad [[activity_title]] ({date}) queda cancelada. [[admin_text]]",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": true
+        }
+      }
+    },
+    {
+      "code": "N-33",
+      "title": "Ya puedes reservar la semana que viene",
+      "body": "[[club_name]]: ya puedes reservar las clases de la semana del [[week_start]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-34",
+      "title": "Solicitudes de alta pendientes",
+      "body": "{count, plural, one {Hay # solicitud de alta pendiente} other {Hay # solicitudes de alta pendientes}}; la más antigua lleva [[oldest_days]] días esperando.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-35",
+      "title": "No se ha podido cobrar la tarjeta",
+      "body": "No hemos podido cobrar [[amount]]: [[reason]]. Revisa la tarjeta desde la app.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-36",
+      "title": "Reserva gestionada por el club",
+      "body": "{change, select, BOOKED {[[actor]] te ha reservado una clase: [[class_date]] · [[class_time]], con [[dog_name]].} other {[[actor]] te ha cancelado una clase: [[class_date]] · [[class_time]], con [[dog_name]].}}",
+      "smsBody": "[[club_name]]: {change, select, BOOKED {[[actor]] te ha reservado la clase [[class_date]] [[class_time]] con [[dog_name]].} other {[[actor]] te ha cancelado la clase [[class_date]] [[class_time]] con [[dog_name]].}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": true
+        }
+      }
+    },
+    {
+      "code": "N-37",
+      "title": "{change, select, DogDeactivated {Perro dado de baja} other {Perro nuevo añadido}}",
+      "body": "{change, select, DogDeactivated {[[dog_name]] se ha dado de baja del club.} other {[[dog_name]] ya forma parte del club.}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-38",
+      "title": "Método de pago cambiado",
+      "body": "Se ha cambiado el método de pago de tu abono. Cuenta: [[masked_account]].",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": false,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-18d",
+      "title": "Cambio en un periodo de inactividad",
+      "body": "El periodo de inactividad de [[member_name]] ([[from_month]] – [[to_month]]) ha cambiado.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-32d",
+      "title": "Actividad modificada por el club",
+      "body": "[[activity_title]]: [[changes]]",
+      "smsBody": "[[club_name]]: [[activity_title]]: [[changes]]",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": true
+        }
+      }
+    },
+    {
+      "code": "N-40",
+      "title": "Reserva no completada",
+      "body": "[[class_date]] · [[class_time]], con [[dog_name]]: el pago no se ha completado a tiempo y la reserva se ha cancelado.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-41",
+      "title": "Remesa del mes pendiente",
+      "body": "La remesa de [[period]] tiene [[pending_count]] recibos pendientes de generar.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-42",
+      "title": "Proceso automático con errores",
+      "body": "El proceso «[[job_name]]» ha terminado con {error_count, plural, =0 {una incidencia} one {# error} other {# errores}}. Revisa su ejecución en Parámetros › Procesos automáticos.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-46",
+      "title": "La plaza ya se ha ocupado",
+      "body": "[[class_date]] · [[class_time]], con [[dog_name]]: otra persona ha cogido la plaza. Sigues en la lista de espera: te avisaremos si se libera otra.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-47",
+      "title": "Entrenamiento gestionado por el club",
+      "body": "{change, select, BOOKED {El club te ha reservado un entrenamiento: [[date]] · [[time]] · [[ring_name]], con [[dog_name]].} other {El club te ha anulado un entrenamiento: [[date]] · [[time]] · [[ring_name]], con [[dog_name]].}}{has_admin_text, select, true { [[admin_text]]} other {}}",
+      "smsBody": "[[club_name]]: {change, select, BOOKED {entrenamiento reservado por el club: [[date]] [[time]] ([[ring_name]]), con [[dog_name]].} other {entrenamiento anulado por el club: [[date]] [[time]] ([[ring_name]]), con [[dog_name]].}}",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": true
+        }
+      }
+    },
+    {
+      "code": "N-49",
+      "title": "Límite mensual de SMS alcanzado",
+      "body": "Se ha alcanzado el límite de [[cap]] SMS de [[month]]. Hasta el mes que viene, los avisos que iban por SMS se envían por correo.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-50",
+      "title": "Tus datos están listos",
+      "body": "Puedes descargar tus datos desde la app durante [[expires_days]] días.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "MEMBER": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-51",
+      "title": "Correo rebotado",
+      "body": "El correo [[email]] de [[member_name]] ha rebotado: no le llegarán más correos a esta dirección hasta que se corrija.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": false,
+          "SMS": false
+        }
+      }
+    },
+    {
+      "code": "N-54",
+      "title": "Clase con pocos alumnos",
+      "body": "[[club_name]]: [[class_date]] · [[class_time]] · [[class_description]] ([[ring_name]]) ha quedado por debajo del mínimo: {dogs_count, plural, =0 {ningún perro inscrito} one {# perro inscrito} other {# perros inscritos}}.",
+      "icon": "bell",
+      "color": "NEUTRAL",
+      "matrix": {
+        "INSTRUCTORS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        },
+        "ADMINS": {
+          "APP": true,
+          "EMAIL": true,
+          "SMS": false
+        }
+      }
+    }
+  ]
+}

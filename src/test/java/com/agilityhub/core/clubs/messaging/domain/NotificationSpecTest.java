@@ -91,7 +91,8 @@ class NotificationSpecTest {
         var written = read.changedBy("account-b", at.plusSeconds(1)).toDocument(stored);
         assertThat(written).containsEntry("essentialOnly", true).containsEntry("reminderMinutesBefore", 120).containsEntry("pushClubNews", false)
                 .containsEntry("updatedByAccountId", "account-b").containsEntry("updatedAt", at.plusSeconds(1));
-        assertThat(written.get("emailByCategory")).isEqualTo(Map.of("OPERATIONAL", false, "PERSONAL", true, "CLUB_CHANGES", false, "CLUB_NEWS", true));
+        // E66 (E7-T03): `essentialOnly` reads as CLUB_NEWS without e-mail (the block names no CLUB_NEWS of its own).
+        assertThat(written.get("emailByCategory")).isEqualTo(Map.of("OPERATIONAL", false, "PERSONAL", true, "CLUB_CHANGES", false, "CLUB_NEWS", false));
         assertThat(NotificationPreference.of(written)).isEqualTo(read.changedBy("account-b", at.plusSeconds(1)));
         assertThatThrownBy(() -> read.changedBy("account-b", null)).isInstanceOf(NullPointerException.class);
     }

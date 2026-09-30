@@ -160,11 +160,16 @@ class NoShowNoticesJobIT extends BookingFixtures {
         assertThat(crowd.getString("class_description")).isEqualTo("Classe tue");
         var mail = (FakeEmailSender) email;
         assertThat(mail.lastTo("s08-laura@example.test").subject()).isEqualTo("T'hem trobat a faltar");
-        assertThat(mail.lastTo("s08-laura@example.test").text()).contains("No vas poder venir amb Duna a la classe de " + fullDate(LocalDate.of(2026, 10, 8), "ca")).doesNotContain("ahir");
+        // E7-T03: S11 §8's N-19 text, «[[class_date]] no vas poder venir a la classe de [[class_description]]», the date in full.
+        var capital = (java.util.function.UnaryOperator<String>) com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer::capitalize;
+        assertThat(mail.lastTo("s08-laura@example.test").text()).contains(capital.apply(fullDate(LocalDate.of(2026, 10, 8), "ca")) + " no vas poder venir a la classe de Classe thu")
+                .doesNotContain("ahir");
         assertThat(mail.lastTo("s08-joan@example.test").subject()).isEqualTo("Te hemos echado de menos");
-        assertThat(mail.lastTo("s08-joan@example.test").text()).contains("a la clase del " + fullDate(LocalDate.of(2026, 10, 8), "es")).doesNotContain("ayer");
+        assertThat(mail.lastTo("s08-joan@example.test").text()).contains(capital.apply(fullDate(LocalDate.of(2026, 10, 8), "es")) + " no pudiste venir a la clase de Classe thu")
+                .doesNotContain("ayer");
         assertThat(mail.lastTo("s08-pere@example.test").subject()).isEqualTo("We missed you");
-        assertThat(mail.lastTo("s08-pere@example.test").text()).contains("to the class on " + fullDate(LocalDate.of(2026, 10, 8), "en")).doesNotContain("yesterday");
+        assertThat(mail.lastTo("s08-pere@example.test").text()).contains("On " + fullDate(LocalDate.of(2026, 10, 8), "en") + " you couldn't make it to the Classe thu class")
+                .doesNotContain("yesterday");
         System.out.println("E6-T04 N-19 rows " + rows.stream().map(n -> n.getString("channel") + " " + n.getString("accountId") + " " + n.getString("locale")).sorted().toList());
         // S10 §7 «avís ja enviat»: the four rows carry sentAt, and the sheet shows it.
         for (String booking : List.of(tue, duna, toby, nit)) { assertThat(attendance(booking).get("noShowNotice", Document.class).get("sentAt")).isNotNull(); }
@@ -290,7 +295,9 @@ class NoShowNoticesJobIT extends BookingFixtures {
         assertThat(notices).allSatisfy(n -> {
             assertThat(n.getString("title")).isEqualTo("T'hem trobat a faltar");
             assertThat(n.get("variables", Document.class).getString("class_date")).isEqualTo(yesterday);
-            assertThat(n.getString("body")).contains("a la classe de " + yesterday).doesNotContain("ahir");
+            // E7-T03: S11 §8's text opens with the class's own date in full, never «ahir».
+            assertThat(n.getString("body")).startsWith(com.agilityhub.core.clubs.messaging.application.engine.TemplateRenderer.capitalize(yesterday) + " no vas poder venir")
+                    .doesNotContain("ahir");
         });
         // A second delivery of the batch (the outbox's retry) adds nothing.
         NotificationRows.deliver(engine, notificationTransactions, batch.getString("_id"), new AttendanceEvent(AttendanceEvent.Kind.NoShowNoticeDue, CLUB, CLUB, clock.instant(),

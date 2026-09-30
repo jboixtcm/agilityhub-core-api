@@ -692,7 +692,61 @@ catalogs: {
     }
   ]
 }
-messageTemplates: []
+# S11 §8 «Seed del Cànic» (E7-T03): every notification code that has a template (SYSTEM codes have none) gets the product seed
+# of seed/message-templates.{ca,es,en}.json in the club's languages, with the catalog's default channels; the CANIC preset has
+# SMS and PUSH on. A code already seeded keeps what the club edited at D9.
+messageTemplates:
+  - {code: "N-01"}
+  - {code: "N-02"}
+  - {code: "N-03"}
+  - {code: "N-04"}
+  - {code: "N-05"}
+  - {code: "N-06"}
+  - {code: "N-07"}
+  - {code: "N-08a"}
+  - {code: "N-08b"}
+  - {code: "N-09"}
+  - {code: "N-10"}
+  - {code: "N-11a"}
+  - {code: "N-11b"}
+  - {code: "N-13"}
+  - {code: "N-14"}
+  - {code: "N-15"}
+  - {code: "N-16"}
+  - {code: "N-17"}
+  - {code: "N-18a"}
+  - {code: "N-18b"}
+  - {code: "N-18c"}
+  - {code: "N-19"}
+  - {code: "N-20"}
+  - {code: "N-21"}
+  - {code: "N-22"}
+  - {code: "N-23"}
+  - {code: "N-24"}
+  - {code: "N-28"}
+  - {code: "N-29"}
+  - {code: "N-30"}
+  - {code: "N-31"}
+  - {code: "N-32a"}
+  - {code: "N-32b"}
+  - {code: "N-32c"}
+  - {code: "N-33"}
+  - {code: "N-34"}
+  - {code: "N-35"}
+  - {code: "N-36"}
+  - {code: "N-37"}
+  - {code: "N-38"}
+  - {code: "N-18d"}
+  - {code: "N-32d"}
+  - {code: "N-40"}
+  - {code: "N-41"}
+  - {code: "N-42"}
+  - {code: "N-46"}
+  - {code: "N-47"}
+  - {code: "N-49"}
+  - {code: "N-50"}
+  - {code: "N-51"}
+  - {code: "N-54"}
 legal:
   privacyPolicyUrl: "https://agilitycanic.cat/ca/politica-de-privacidad/"
   imageConsentText:

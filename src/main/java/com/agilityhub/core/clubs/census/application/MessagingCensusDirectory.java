@@ -30,8 +30,8 @@ import static com.agilityhub.core.clubs.census.application.CensusValues.*;
  */
 @Service
 public class MessagingCensusDirectory implements MemberDirectoryPort, MemberContactsWriterPort, SignupContactPort {
-    private final CensusAccess access;
-    public MessagingCensusDirectory(CensusAccess access) { this.access = access; }
+    private final CensusAccess access; private final BookingMemberAccess bookingMembers;
+    public MessagingCensusDirectory(CensusAccess access, BookingMemberAccess bookingMembers) { this.access = access; this.bookingMembers = bookingMembers; }
 
     @Override public Optional<MemberContact> find(String memberId) {
         if (memberId == null) { return Optional.empty(); }
@@ -76,6 +76,19 @@ public class MessagingCensusDirectory implements MemberDirectoryPort, MemberCont
         if (member == null || member.erasedAt != null || !NotificationPreferences.clubNewsEmail(member.notificationPreferences)) { return false; }
         return access.members.updateFirst(Criteria.where("_id").is(memberId),
                 new Update().set("notificationPreferences", NotificationPreferences.clubNewsOff(member.notificationPreferences, at)));
+    }
+
+    /** E7-T03 (R-11-04): the whole preference block of 12/D10; the entity-class update bumps the member's `@Version`. */
+    @Override public boolean savePreferences(String memberId, java.util.Map<String, Object> block) {
+        var member = access.members.findById(memberId).orElse(null);
+        if (member == null || member.erasedAt != null) { return false; }
+        return access.members.updateFirst(Criteria.where("_id").is(memberId), new Update().set("notificationPreferences", block));
+    }
+    /** E7-T03 (R-11-11 `CHANGE_CLASS`): an `ACTIVE` dog the account's member may book for (S08 R-08-02, family group included). */
+    @Override public boolean dogAccessible(String accountId, String dogId) {
+        var member = bookingMembers.memberByAccount(accountId).orElse(null);
+        var dog = bookingMembers.dog(dogId).orElse(null);
+        return member != null && dog != null && dog.active() && bookingMembers.canAccess(member.id(), dog);
     }
 
     @Override public Optional<ApplicantContact> applicant(String memberId) {

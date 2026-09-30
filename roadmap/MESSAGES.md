@@ -2249,3 +2249,41 @@ Blocking: no.
     row stays `CANCELLED`, with `activityId`, and `GET /me/activities/{activityId}` answers `404`.
   - Assumed meanwhile: the web's `/activitats/{id}` shows its not-found state. The api is unchanged («on every ACTIVITY row»).
 Blocking: no.
+
+## 2026-09-30 · organizer → executor · verifications of 30-09 (evening)
+@executor
+- **E5-T28 → `verified`** (round 2). The three new failure paths of the checkout that its round-2 review found go to **E5-T30** (`ready`, after E5-T28), which ends with the checkout's failure-path table (ruling E72).
+- **E6-T05 → `verified`**. Your question (a row that links to a 404): E6-T06 step 4 sends `activityId` only when the activity's page answers, and the web links a row when it is not `null`.
+- **E5-T29 → `changes_requested`**, 4 items: a keyed trigger answers its own run, the register export's columns, the dogs export's owner cell, and which lists search (the register and the blocks search; the lists without search stop declaring `q`).
+- **E6-T06** is new and `ready` (after E6-T05): `GET /followup/filter-values`, a follow-up list that searches, `InstructorWeek.trainingSlotMinutes` (for the web's D14 and D12), and `activityId` only for an activity with a page.
+- **Docs:** `DECISIONS_PENDENTS.md` v2.7 (E75), `CONVENCIONS_API.md` §4, S09 §2, S10 §6 and `INCIDENCIES_OBERTES.md` v2.1 (INC-17, INC-25, INC-30 and INC-32…INC-35 resolved; INC-49, the console's keyed routes, for E10).
+Blocking: no.
+
+## 2026-09-30 · executor → organizer · E7-T03
+@organizer **E7-T03 is done** (`awaiting_verification`; the report is in the task file). Every S11 route of E7-T01 is served,
+except `POST /message-templates/{id}/send` (E7-T04).
+- **Served:**
+  - D9 templates: list, detail, `CUSTOM` creation, save, preview and «envia prova», reset, archive;
+  - the log and its export, feed 11, the preferences of 12/D10, and the push devices.
+- **Seed:** `seed/message-templates.{ca,es,en}.json` has 51 templates per locale.
+  - The codes without a template are the 7 SYSTEM ones and the 3 later-stage ones (N-44, N-45, N-48).
+  - `club:apply` seeds the `messageTemplates` of a definition; the Cànic lists all 51.
+- **Verify:** `./mvnw -q clean verify` exits 0 (870 unit, 1241 integration tests, JaCoCo gate). The snapshot is
+  byte-identical on regeneration; 3 schemas changed (`docs/openapi/CHANGELOG.md`).
+- **Local stack:** `club:apply` seeded the 51 templates in `ca`/`es`. The edit, preview (ca, es) and reset of N-08a and a D10
+  change are shown with their audit entries (log `10`).
+- **Questions** (report, «Questions»):
+  1. N-02's APP copy renders «…amb aquest enllaç: .». Its `[[link]]` is a credential the engine never gets.
+  2. N-16: S15's `auto_cancel` and dog wording kept, around §8's sentence.
+  3. N-15 FIFO and N-13 training readings of §8.
+  4. The feed never lists EMAIL, but the §6 extract does.
+  5. The event `diff` holds top-level fields: Mongo cannot store `e7-events.json`'s dotted keys.
+- **Applied:**
+  - ruling E66: Playoff's `essentialOnly` reads as `CLUB_NEWS` without e-mail nor push;
+  - `gender` reaches ICU in lower case (S11 §8/§10);
+  - the member copy moved from `messages_*` to the seed.
+- **Noticed:** during the session someone else edited these, and I left them untouched:
+  - `docs/DECISIONS_PENDENTS.md`, `INCIDENCIES_OBERTES.md`, `CONVENCIONS_API.md`, S09, S10;
+  - `roadmap/ROADMAP.md`, `MESSAGES.md`;
+  - the E5-T28, E5-T29 and E6-T05 files, and the new E5-T30 and E6-T06.
+Blocking: no.

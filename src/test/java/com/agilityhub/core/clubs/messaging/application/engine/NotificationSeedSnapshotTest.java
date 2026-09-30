@@ -40,10 +40,11 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * T-11-05 (R-11-05, CONVENCIONS_I18N §5): every seeded code (the templated R1 codes of the catalog) rendered in `ca`, `es` and
- * `en` with the fictional data set of R-11-12's preview («Laura», «Duna» level «C», «dimecres 12 · 18:50 · B+C · Central»,
- * the admin's rain text) — title, body, SMS, e-mail subject and plain text, and the SHA-256 of the e-mail HTML — plus the
- * staff texts (`notif.N-xx.staff.*`) of every code with an `INSTRUCTORS` or `ADMINS` audience, against the committed
+ * T-11-05 (R-11-05, CONVENCIONS_I18N §5): every seeded code (the templated R1 codes of the catalog, their texts from
+ * `seed/message-templates.{ca,es,en}.json` since E7-T03) rendered in `ca`, `es` and `en` with the fictional data set of
+ * R-11-12's preview («Laura», «Duna» level «C», «dimecres 12 · 18:50 · B+C · Central», the admin's rain text) — title, body,
+ * SMS, e-mail subject and plain text, and the SHA-256 of the e-mail HTML — plus the staff texts (`notif.N-xx.staff.*`) of
+ * every code with an `INSTRUCTORS` or `ADMINS` audience, against the committed
  * snapshot `src/test/resources/snapshots/notifications/seed-{locale}.txt`. Every text must render without a missing value,
  * a raw placeholder or the forbidden vocabulary. `-Dsnapshots.update=true` rewrites the snapshot (review its diff); the HTML
  * of every mail is written to `target/notification-snapshots/` for inspection.
@@ -61,6 +62,7 @@ class NotificationSeedSnapshotTest {
             "bookingId", "booking-exemple", "waitlistEntryId", "entry-exemple", "activityId", "activity-exemple", "taskId", "task-exemple",
             "invoiceId", "invoice-exemple"));
     private final IcuMessageSource messages;
+    private final MessageTemplateSeed seeds = MessageTemplateSeed.load();
     private final NotificationEmailRenderer emails;
     private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
 
@@ -133,10 +135,13 @@ class NotificationSeedSnapshotTest {
                 var raw = fictional(locale); raw.put("audience", isStaff ? "STAFF" : "MEMBER");
                 if (!spec.variables().contains("calendar_links")) { raw.remove("calendar_links"); } // only N-04's owner gives it (an e-mail link)
                 var variables = formatter.format(raw, locale);
+                // E7-T03: the member (and applicant) copy is the club template's seed; the staff copy is product copy in messages_*.
                 String prefix = "notif." + spec.code() + (isStaff ? ".staff" : "");
-                String title = messages.patternIn(prefix + ".title", locale), body = messages.patternIn(prefix + ".body", locale);
+                var seeded = seeds.of(spec.code()).orElseThrow();
+                String title = isStaff ? messages.patternIn(prefix + ".title", locale) : seeded.title().get(language);
+                String body = isStaff ? messages.patternIn(prefix + ".body", locale) : seeded.body().get(language);
                 assertThat(title).as("%s.title in %s", prefix, language).isNotBlank(); assertThat(body).as("%s.body in %s", prefix, language).isNotBlank();
-                String sms = isStaff ? null : messages.patternIn(prefix + ".sms", locale);
+                String sms = isStaff ? null : seeded.smsBody().get(language);
                 var rendered = renderer.render(spec.code(), title, body, sms, variables, locale, known, true);
                 String label = spec.code() + " " + audience;
                 if (isStaff) { staff++; }

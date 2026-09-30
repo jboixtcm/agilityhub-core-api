@@ -76,6 +76,7 @@ GET /members?page=0&size=50&sort=lastName,asc&sort=firstName,asc
 - `page` ≥ 0 i `size` ∈ {20, 50, 200, 1000} (per defecte 50); qualsevol altre valor → `400 INVALID_FILTER` (organitzador 25-09, informe d'E3-W08).
 - `fields=…`: una clau que no s'ha demanat s'omet de la resposta (mai `null` ni `false` en lloc d'un valor); l'identificador de la fila hi és sempre; cada llistat publica les claus que accepta a l'OpenAPI (`x-fields`), i la resta → `400 INVALID_FILTER` (organitzador 26-09, informe d'E4-W05).
 - `GET /{recurs}/filter-values?field=planId` → valors possibles amb recompte (per al botó de filtre universal).
+- `q` (text lliure) només en els llistats que declaren camps de cerca. Els llistats universals del backoffice cerquen (per exemple `/members`, `/training-bookings`, `/ring-blocks`, `/followup`); un llistat sense cerca no declara `q`, i un `q` no buit hi respon `400 INVALID_FILTER` (organitzador 30-09, decisió E75).
 - Resposta: `{ items: [...], page, size, totalItems, totalPages, appliedFilters: [...] }`.
 - Vistes desades: `/saved-views` (`listKey`, `name`, `columns[]`, `filters[]`, `sort`, `shared`).
 - Exports: `GET /{recurs}/export?format=xlsx|pdf&…mateixos paràmetres` → fitxer (job síncron fins a 5.000 files; per sobre, `202` + `/exports/{jobId}`). `fields` hi tria les columnes, i l'export publica el mateix `x-fields` que el seu llistat; `filter-values` no accepta `fields` (organitzador 26-09, revisió d'E5-T22).

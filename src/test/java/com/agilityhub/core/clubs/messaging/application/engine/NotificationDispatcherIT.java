@@ -300,7 +300,9 @@ class NotificationDispatcherIT extends EngineFixtures {
         assertThat(usage(CLUB).get("smsSentMonth")).isEqualTo(1L);
         // The SMS is cut at 160 in GSM-7; the app and the e-mail carry the whole text.
         var text = sms.lastTo("+34600000001").body();
-        assertThat(text).hasSize(160).endsWith("...").doesNotContain("·", "’").startsWith("Club Agility Exemple: classe anul.lada demà 18:50 (B+C). La pista");
+        // S11 §8's N-08a SMS (E7-T03); cut at 160 at most (the space before the «...» is dropped).
+        assertThat(text).hasSizeBetween(157, 160).endsWith("...").doesNotContain("·", "’")
+                .startsWith("Club Agility Exemple: la classe de demà a les 18:50 (B+C) queda anul.lada. La pista");
         assertThat(com.agilityhub.core.support.NotificationRows.gsm7(text)).isTrue();
         assertThat(sms.lastTo("+34600000001").senderId()).isEqualTo(configs.get(CLUB).get("messaging.sms.senderId", String.class));
         assertThat(laura.body()).contains(longText); assertThat(mail.to("laura@example.test").getFirst().text()).contains(longText);

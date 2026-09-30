@@ -81,7 +81,21 @@ include current catalogs and all price history. Editing an existing price obeys 
 normal immutable-history rules. Only the first price of an unused plan can bootstrap
 historical validity (the seed uses 2026-01-01); subsequent prices use ordinary date
 and overlap validation. Team rows require census members and belong to `seed:demo`;
-`catalogs.instructors` must be empty. Message templates remain deferred to E7.
+`catalogs.instructors` must be empty.
+
+### Message templates (`messageTemplates`, E7-T03)
+
+Each entry `{code: "N-xx"}` names a notification code whose **product seed** the club gets as its `CATALOG` template
+(D9): `src/main/resources/seed/message-templates.{ca,es,en}.json`, one template per catalog code of stage R1 that is not
+`SYSTEM` (51 codes; N-25, N-26, N-27, N-39, N-43, N-52, N-53 are account e-mails without a template, and N-44, N-45, N-48
+are not R1), with the catalog's icon, colour and default channels. Only the club's languages are stored. A code the club
+already has a template of is **kept as it is** (D9 is the source of truth once seeded; «Restaura el text per defecte»
+brings the seed back), so re-applying changes nothing. A code the definition leaves out is seeded on its first use, or
+when D9 lists the templates. An unknown, `SYSTEM` or later-stage code is `VALIDATION_ERROR`. The export lists the club's
+catalog templates. The Cànic lists all 51 (its CANIC preset has `SMS` and `PUSH` on); the other definitions list none.
+The `ca` texts of N-02, N-04, N-06, N-08a, N-09, N-13, N-15, N-16, N-19 and N-28 are S11 §8's; the rest are product copy.
+**The `es` and `en` texts are translations of the same content and are reviewed before go-live** (S11 §8). Staff copy
+(`notif.N-xx.staff.*`) is product copy in `messages_*` and never part of the seed.
 
 The Cànic has nine levels (including TER), five rings, five plans/current prices,
 and seven active FAQ entries. All FAQ answers retain the provisional marker. D8

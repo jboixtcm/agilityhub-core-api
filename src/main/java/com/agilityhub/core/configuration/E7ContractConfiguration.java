@@ -26,7 +26,7 @@ public class E7ContractConfiguration implements WebMvcConfigurer {
             "com.agilityhub.core.clubs.messaging.api.NotificationsController", "com.agilityhub.core.clubs.messaging.api.NotificationPreferencesController",
             "com.agilityhub.core.clubs.messaging.api.PushSubscriptionsController", "com.agilityhub.core.clubs.messaging.api.EmailUnsubscribesController");
     static final List<String> NULLABLE_REFERENCES = List.of("MessageTemplateDetail", "TemplatePreview", "MeNotification", "MessageTemplateUpdateRequest",
-            "TemplatePreviewRequest", "NotificationPreferencesRequest");
+            "TemplatePreviewRequest", "NotificationPreferencesRequest", "NotificationListItem", "NotificationDetail");
     static final List<Class<?>> DETAILS = List.of(MessagingContracts.MissingVariablesDetails.class);
 
     static boolean e7(HandlerMethod method) { return CONTROLLERS.contains(method.getMethod().getDeclaringClass().getName()); }

@@ -55,6 +55,27 @@ public final class NotificationCatalog {
     private NotificationCatalog() { }
 
     public static Optional<NotificationSpec> byCode(String code) { return Optional.ofNullable(code == null ? null : BY_CODE.get(code)); }
+
+    /**
+     * The `[[var]]` a club template of the code may use (D9 «Variables:», R-11-12, validated on saving): the row's variables,
+     * then — for a code with a `MEMBER` audience — the member variables of R-11-12 (`member_*`, `gender`, `dog_name`), the
+     * derived forms whose base is there (`member_last_names`, `dog_name_article`) and the general `club_name`.
+     */
+    public static List<String> templateVariables(NotificationSpec spec) {
+        var keys = new java.util.LinkedHashSet<String>(spec.variables());
+        if (spec.audiences().contains(MEMBER)) {
+            for (String key : List.of("member_first_name", "member_last_names", "member_name", "gender", "dog_name")) { keys.add(key); }
+        }
+        DERIVED_VARIABLES.forEach((derived, base) -> { if (keys.contains(base)) { keys.add(derived); } });
+        keys.addAll(GENERAL_VARIABLES);
+        return List.copyOf(keys);
+    }
+    /** R-11-12 `CUSTOM` templates: the member variables only. */
+    public static List<String> customTemplateVariables() { return CUSTOM_VARIABLES; }
+    /** R-11-12 caps of a `CUSTOM` template (sent to members only, S11 §13-6): the category's `MEMBER` caps; none for staff. */
+    public static Set<NotificationChannel> customCaps(NotificationCategory category, NotificationAudience audience) {
+        return audience == MEMBER ? caps(category, audience) : Set.of();
+    }
     /** Every registered code, in the document's order (main table, then Annex A). */
     public static List<String> codes() { return List.copyOf(BY_CODE.keySet()); }
     public static List<NotificationSpec> specs() { return List.copyOf(BY_CODE.values()); }

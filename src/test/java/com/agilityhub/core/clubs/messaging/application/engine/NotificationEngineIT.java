@@ -64,7 +64,8 @@ class NotificationEngineIT extends EngineFixtures {
         // Rendered in each member's language with the club's formats: Laura ca, Marc es.
         assertThat(duna.locale()).isEqualTo("ca"); assertThat(duna.title()).isEqualTo("Classe anul·lada pel club");
         assertThat(duna.body()).isEqualTo("Demà · 18:50 · B+C, amb Duna. «" + RAIN + "» — Club Agility Exemple. Aquesta sessió no compta al teu còmput.");
-        assertThat(duna.smsBody()).hasSizeLessThanOrEqualTo(160).startsWith("Club Agility Exemple: classe anul.lada demà 18:50 (B+C).").doesNotContain("http", "·");
+        assertThat(duna.smsBody()).hasSizeLessThanOrEqualTo(160).startsWith("Club Agility Exemple: la classe de demà a les 18:50 (B+C) queda anul.lada.") // S11 §8 (E7-T03)
+                .doesNotContain("http", "·");
         var marc = members.stream().filter(n -> "member-marc".equals(n.recipient().memberId())).findFirst().orElseThrow();
         assertThat(marc.locale()).isEqualTo("es"); assertThat(marc.body()).startsWith("Mañana · 18:50 · B+C, con Ares.");
         assertThat(sms.lastTo("+34600000003").body()).isEqualTo(marc.smsBody());
@@ -147,7 +148,7 @@ class NotificationEngineIT extends EngineFixtures {
         deliver(CLUB, "ReminderDue", reminder);
         var n13 = only(CLUB, "N-13");
         assertThat(n13.dedupKey()).isEqualTo("N-13:booking-1"); assertThat(n13.title()).isEqualTo("Recordatori de classe");
-        assertThat(n13.body()).isEqualTo("Classe · avui · 18:50 · Central · amb Duna.");
+        assertThat(n13.body()).isEqualTo("Avui a les 18:50 · B+C · Central · amb Duna."); // S11 §8's N-13 text (E7-T03 seed)
         // APP + PUSH; EMAIL only with emailByCategory.OPERATIONAL (off by default).
         assertThat(channels(n13)).containsExactly("APP:DELIVERED", "EMAIL:SKIPPED_BY_PREFERENCE", "PUSH:SENT");
         assertThat(push.sent()).singleElement().satisfies(p -> { assertThat(p.subscriptionId()).isEqualTo("subscription-laura"); assertThat(p.payload().tag()).isEqualTo("N-13");
@@ -174,7 +175,7 @@ class NotificationEngineIT extends EngineFixtures {
         ports.activeBookings.put("training-1", Instant.parse("2026-10-08T06:00:00Z"));
         deliver(CLUB, "ReminderDue", Map.of("trainingBookingId", "training-1", "memberId", "member-marc", "dogId", "dog-ares", "startsAt", "2026-10-08T06:00:00Z"));
         var training = stored(CLUB, "N-13").stream().filter(n -> "N-13:training-1".equals(n.dedupKey())).findFirst().orElseThrow();
-        assertThat(training.title()).isEqualTo("Recordatorio de entrenamiento"); assertThat(training.body()).isEqualTo("Entrenamiento libre · mañana · 8:00–8:30 · Central · con Ares.");
+        assertThat(training.title()).isEqualTo("Recordatorio de entrenamiento"); assertThat(training.body()).isEqualTo("Mañana a las 8:00–8:30 · Entrenamiento libre · Central · con Ares.");
         assertThat(training.action().params()).containsEntry("trainingBookingId", "training-1").containsEntry("dogId", "dog-ares");
         assertThat(channels(training)).containsExactly("APP:DELIVERED", "EMAIL:SKIPPED_BY_PREFERENCE", "PUSH:SKIPPED_NO_CONTACT");
     }

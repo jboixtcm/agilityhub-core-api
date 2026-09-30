@@ -33,11 +33,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * E7-T01 contract (S11 WP-11-A): every S11 §6 route is published with typed forms and answers 501 NOT_IMPLEMENTED behind its
- * role, tenant, impersonation, module and resource guards (T-11-28 role matrix, T-11-29 cross-tenant 404); the notification
- * log validates its universal-list query first (T-11-26), PUSH off hides the devices and FAQ off the FAQ (T-11-21, R-11-17),
- * and no stub writes anything. E7-T02 implements `POST /email-unsubscribes`: behind the same guards it rejects the fixture's
- * token with 422 (its behaviour is T-11-23, `EmailUnsubscribeIT`).
+ * E7-T01 contract (S11 WP-11-A), E7-T03 served: every S11 §6 route is published with typed forms and answers behind its role,
+ * tenant, impersonation, module and resource guards (T-11-28 role matrix, T-11-29 cross-tenant 404); the notification log
+ * validates its universal-list query (T-11-26), PUSH off hides the devices and FAQ off the FAQ (T-11-21, R-11-17). Since E7-T03
+ * every route answers its success status to its allowed roles except `POST /message-templates/{id}/send` (E7-T04), which
+ * still answers 501 and writes nothing. E7-T02 implements `POST /email-unsubscribes`: behind the same guards it rejects the
+ * fixture's token with 422 (its behaviour is T-11-23, `EmailUnsubscribeIT`). The behaviours are the E7-T03 ITs
+ * (`MessageTemplatesIT`, `NotificationLogIT`, `NotificationFeedIT`, `NotificationPreferencesIT`, `PushSubscriptionsIT`).
  */
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class E7ContractIT extends AbstractIntegrationTest {
@@ -56,10 +58,12 @@ class E7ContractIT extends AbstractIntegrationTest {
     record Route(String method, String path, List<String> roles, JsonNode body, Map<String, String> params, boolean idempotency, int success,
                  String module, String scope, boolean resource, boolean impersonation) {
         boolean club() { return scope.equals("CLUB"); }
-        /** E7-T02 implements the unsubscribe link: the fixture's token is not valid → 422, never the stub's 501. */
-        boolean implemented() { return label().equals("POST /api/v1/email-unsubscribes"); }
-        int allowedStatus() { return implemented() ? 422 : 501; }
-        String allowedCode() { return implemented() ? "UNSUBSCRIBE_TOKEN_INVALID" : "NOT_IMPLEMENTED"; }
+        /** E7-T02 implements the unsubscribe link (the fixture's token is not valid → 422), E7-T03 the rest but the send (E7-T04). */
+        boolean implemented() { return !label().equals("POST /api/v1/message-templates/{id}/send"); }
+        boolean unsubscribe() { return label().equals("POST /api/v1/email-unsubscribes"); }
+        int allowedStatus() { return unsubscribe() ? 422 : implemented() ? success : 501; }
+        /** The error code of the allowed call, `null` when it succeeds. */
+        String allowedCode() { return unsubscribe() ? "UNSUBSCRIBE_TOKEN_INVALID" : implemented() ? null : "NOT_IMPLEMENTED"; }
         String label() { return method + " " + path; }
     }
     static Stream<Route> routes() throws Exception {
@@ -79,6 +83,9 @@ class E7ContractIT extends AbstractIntegrationTest {
         var title = new LocalizedText(Map.of("ca", "Reserva confirmada"), "ca");
         mongo.insert(new MessageTemplate("e7-template-a", CLUB, "N-04", TemplateKind.CATALOG, NotificationCategory.OPERATIONAL, title, title, null, TemplateIcon.check,
                 TemplateColor.OK, NotificationCatalog.byCode("N-04").orElseThrow().defaultMatrix(), true, false, false, TemplateStatus.ACTIVE, 0L, now, "seed", now, "seed"));
+        var news = new LocalizedText(Map.of("ca", "Festa del club"), "ca");
+        mongo.insert(new MessageTemplate("e7-template-custom", CLUB, null, TemplateKind.CUSTOM, NotificationCategory.CLUB_NEWS, news, news, null, TemplateIcon.flag,
+                TemplateColor.ACCENT, Map.of(NotificationAudience.MEMBER, Map.of(NotificationChannel.APP, true)), true, false, false, TemplateStatus.ACTIVE, 0L, now, "seed", now, "seed"));
         mongo.insert(new Notification("e7-notification-a", CLUB, "e7-MEMBER", "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
         for (String owner : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) {
             mongo.insert(new Notification("e7-own-" + owner, CLUB, "e7-" + owner, "N-04", "APP", Notification.Status.SENT, null, now, null, null, "ca", now, null));
@@ -96,7 +103,8 @@ class E7ContractIT extends AbstractIntegrationTest {
 
     /** `owner` picks the caller's own notification or device (`e7-own-{owner}`, `e7-sub-{owner}`); `imp` is the impersonated member's. */
     private String path(Route r, String owner) {
-        String id = r.path().startsWith("/api/v1/message-templates") ? "e7-template-a" : r.path().startsWith("/api/v1/notifications/") ? "e7-notification-a"
+        String id = r.label().equals("DELETE /api/v1/message-templates/{id}") ? "e7-template-custom" : r.path().startsWith("/api/v1/message-templates") ? "e7-template-a"
+                : r.path().startsWith("/api/v1/notifications/") ? "e7-notification-a"
                 : r.path().startsWith("/api/v1/me/notifications/") ? "e7-own-" + owner : r.path().startsWith("/api/v1/members/") ? "e7-member-a" : "e7-sub-" + owner;
         return r.path().replace("{id}", id);
     }
@@ -116,6 +124,12 @@ class E7ContractIT extends AbstractIntegrationTest {
         return request.header("Host", HOST).with(jwt().jwt(j -> j.subject("e7-" + role).claim("clubId", CLUB).claim("memberId", "e7-member-a"))
                 .authorities(new SimpleGrantedAuthority("ROLE_" + role)));
     }
+    /** The allowed call: its success status, or the error of a stub (501) or of the unsubscribe fixture (422). */
+    private void allowed(Route route, MockHttpServletRequestBuilder request) throws Exception {
+        if (route.allowedCode() != null) { error(request, route.allowedStatus(), route.allowedCode()); return; }
+        var result = mvc.perform(request).andReturn();
+        assertThat(result.getResponse().getStatus()).as(route.label() + " " + result.getResponse().getContentAsString()).isEqualTo(route.allowedStatus());
+    }
     private ResultActions error(MockHttpServletRequestBuilder request, int status, String... codes) throws Exception {
         var result = mvc.perform(request);
         String label = result.andReturn().getRequest().getMethod() + " " + result.andReturn().getRequest().getRequestURI();
@@ -127,9 +141,8 @@ class E7ContractIT extends AbstractIntegrationTest {
     @ParameterizedTest @MethodSource("routes")
     void T_11_28_T_11_29_everyRouteEnforcesRolesTenantAndResourceIsolationBefore501(Route route) throws Exception {
         for (String role : ROLES) {
-            boolean allowed = route.roles().contains(role);
-            error(call(route, CLUB, role), allowed ? route.allowedStatus() : role.equals("ANON") ? 401 : 403,
-                    allowed ? route.allowedCode() : role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
+            if (route.roles().contains(role)) { allowed(route, call(route, CLUB, role)); continue; }
+            error(call(route, CLUB, role), role.equals("ANON") ? 401 : 403, role.equals("ANON") ? "UNAUTHENTICATED" : "FORBIDDEN");
         }
         if (route.club()) {
             String role = route.roles().getFirst();
@@ -147,7 +160,7 @@ class E7ContractIT extends AbstractIntegrationTest {
         var issued = impersonate();
         for (Route route : routes().toList()) {
             var request = call(route, CLUB, "MEMBER", "imp").with(jwt().jwt(issued.token()).authorities(() -> "ROLE_MEMBER"));
-            if (route.impersonation()) { error(request, 501, "NOT_IMPLEMENTED"); }
+            if (route.impersonation()) { allowed(route, request); }
             else { error(request, 403, "IMPERSONATION_DENIED", "FORBIDDEN"); }
         }
         assertThat(routes().filter(Route::impersonation).map(Route::label).toList()).containsExactly("GET /api/v1/me/notifications",
@@ -172,9 +185,10 @@ class E7ContractIT extends AbstractIntegrationTest {
     @Test void T_11_19_T_11_21_T_11_29_anotherAccountsNotificationOrDeviceIsNotFound() throws Exception {
         error(as(post("/api/v1/me/notifications/e7-own-ADMIN/read"), "MEMBER"), 404, "NOT_FOUND");
         error(as(post("/api/v1/me/notifications/e7-own-MEMBER/read"), "INSTRUCTOR"), 404, "NOT_FOUND");
-        error(as(post("/api/v1/me/notifications/e7-own-MEMBER/read"), "MEMBER"), 501, "NOT_IMPLEMENTED");
+        // e7-notification-a is the member's too: one unread left.
+        mvc.perform(as(post("/api/v1/me/notifications/e7-own-MEMBER/read"), "MEMBER")).andExpect(status().isOk()).andExpect(jsonPath("$.unreadCount").value(1));
         error(as(delete("/api/v1/push-subscriptions/e7-sub-ADMIN"), "MEMBER"), 404, "NOT_FOUND");
-        error(as(delete("/api/v1/push-subscriptions/e7-sub-MEMBER"), "MEMBER"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(delete("/api/v1/push-subscriptions/e7-sub-MEMBER"), "MEMBER")).andExpect(status().isNoContent());
         error(as(get("/api/v1/message-templates/e7-missing"), "ADMIN"), 404, "NOT_FOUND");
         error(as(get("/api/v1/notifications/e7-missing"), "ADMIN"), 404, "NOT_FOUND");
         error(as(put("/api/v1/members/e7-missing/notification-preferences").contentType("application/json").content("{}"), "ADMIN"), 404, "NOT_FOUND");
@@ -188,22 +202,23 @@ class E7ContractIT extends AbstractIntegrationTest {
         error(post("/api/v1/email-unsubscribes").header("Host", HOST).contentType("application/json").content("{\"token\":\"\"}"), 400, "VALIDATION_ERROR");
     }
 
-    @Test void T_11_26_theLogAndItsExportValidateTheUniversalListQueryBeforeTheStub() throws Exception {
+    @Test void T_11_26_theLogAndItsExportValidateTheUniversalListQuery() throws Exception {
         for (String path : List.of("/api/v1/notifications", "/api/v1/notifications/export")) {
             for (var entry : List.of(Map.entry("filter", "title:eq:x"), Map.entry("filter", "code"), Map.entry("sort", "code,asc"), Map.entry("size", "7"),
                     Map.entry("fields", "body"))) {
                 error(as(get(path).param("format", "xlsx").param(entry.getKey(), entry.getValue()), "ADMIN"), 400, "INVALID_FILTER");
             }
-            error(as(get(path).param("format", "xlsx").param("filter", "code:eq:N-08a").param("filter", "channel:in:SMS,EMAIL").param("filter", "status:eq:FAILED")
+            mvc.perform(as(get(path).param("format", "xlsx").param("filter", "code:eq:N-08a").param("filter", "channel:in:SMS,EMAIL").param("filter", "status:eq:FAILED")
                     .param("filter", "memberId:eq:e7-member-a").param("filter", "category:eq:CLUB_CHANGES")
                     .param("filter", "createdAt:between:2026-09-01T00:00:00Z,2026-09-30T23:59:59Z").param("sort", "createdAt,desc")
-                    .param("fields", "id,code,channels").param("size", "200"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+                    .param("fields", "id,code,channels").param("size", "200"), "ADMIN")).andExpect(status().isOk());
         }
         error(as(get("/api/v1/notifications/export").param("format", "xlsx").param("columns", "body"), "ADMIN"), 400, "INVALID_FILTER");
-        error(as(get("/api/v1/notifications/export").param("format", "xlsx").param("columns", "code,readAt"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(get("/api/v1/notifications/export").param("format", "xlsx").param("columns", "code,readAt"), "ADMIN")).andExpect(status().isOk());
         error(as(get("/api/v1/notifications/filter-values").param("field", "title"), "ADMIN"), 400, "INVALID_FILTER");
         error(as(get("/api/v1/notifications/filter-values").param("field", "channel").param("filter", "body:eq:x"), "ADMIN"), 400, "INVALID_FILTER");
-        error(as(get("/api/v1/notifications/filter-values").param("field", "channel").param("filter", "code:eq:N-15"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(get("/api/v1/notifications/filter-values").param("field", "channel").param("filter", "code:eq:N-15"), "ADMIN")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.field").value("channel"));
     }
 
     @Test void T_11_21_T_11_27_pushOffHidesTheDevicesAndFaqOffHidesTheFaq() throws Exception {
@@ -215,9 +230,9 @@ class E7ContractIT extends AbstractIntegrationTest {
         assertThat(routes().filter(r -> "PUSH".equals(r.module())).map(Route::label)).containsExactly("POST /api/v1/push-subscriptions", "DELETE /api/v1/push-subscriptions/{id}");
         for (String role : List.of("MEMBER", "INSTRUCTOR", "ADMIN")) { error(as(get("/api/v1/faq-entries"), role), 404, "MODULE_DISABLED"); }
         // The feed, the preferences and the templates have no module.
-        error(as(get("/api/v1/me/notifications"), "MEMBER"), 501, "NOT_IMPLEMENTED");
-        error(as(get("/api/v1/me/notification-preferences"), "MEMBER"), 501, "NOT_IMPLEMENTED");
-        error(as(get("/api/v1/message-templates"), "ADMIN"), 501, "NOT_IMPLEMENTED");
+        mvc.perform(as(get("/api/v1/me/notifications"), "MEMBER")).andExpect(status().isOk());
+        mvc.perform(as(get("/api/v1/me/notification-preferences"), "MEMBER")).andExpect(status().isOk()).andExpect(jsonPath("$.modules.push").value(false));
+        mvc.perform(as(get("/api/v1/message-templates"), "ADMIN")).andExpect(status().isOk());
         club(CLUB, List.of(Module.values()));
         mvc.perform(as(get("/api/v1/faq-entries"), "MEMBER")).andExpect(status().isOk()).andExpect(jsonPath("$.items").isArray());
     }
@@ -231,10 +246,10 @@ class E7ContractIT extends AbstractIntegrationTest {
         }
         return result;
     }
-    @Test void WP_11_A_theStubsWriteNothing() throws Exception {
+    @Test void WP_11_A_theRemainingStubWritesNothing() throws Exception {
         var before = database();
-        for (Route route : routes().toList()) {
-            // The implemented unsubscribe route rejects the fixture's token without writing either.
+        for (Route route : routes().filter(r -> !r.implemented() || r.unsubscribe()).toList()) {
+            // The send (E7-T04) and the unsubscribe route, which rejects the fixture's token, write nothing.
             for (String role : route.roles()) { mvc.perform(call(route, CLUB, role)).andExpect(status().is(route.allowedStatus())); }
         }
         assertThat(database()).isEqualTo(before);

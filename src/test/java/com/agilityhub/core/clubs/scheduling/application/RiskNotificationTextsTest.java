@@ -22,8 +22,12 @@ class RiskNotificationTextsTest {
         if (member) { values.put("dog_name", "Nit"); }
         return values;
     }
+    /** E7-T03: the member's copy is the club template's seed (`seed/message-templates.{locale}.json`); the staff copy stays in `messages_*`. */
+    private final com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed seed =
+            com.agilityhub.core.clubs.messaging.application.engine.MessageTemplateSeed.load();
     String render(String key, Map<String, Object> variables, Locale locale) {
-        return renderer.text("N-16", messages.patternIn(key, locale), variables, locale, variables.keySet());
+        String pattern = key.equals("notif.N-16.body") ? seed.of("N-16").orElseThrow().body().get(locale.getLanguage()) : messages.patternIn(key, locale);
+        return renderer.text("N-16", pattern, variables, locale, variables.keySet());
     }
 
     @Test void T_15_13_n16StaffAndMemberTextsInTheThreeLocales() {

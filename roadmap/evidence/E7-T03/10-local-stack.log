@@ -1,0 +1,53 @@
+heavy.sh: 18:09 waiting for the host lock, held by: 18:08 agilityhub-core-web: pnpm e2e:docker E7-W01
+heavy.sh: 18:14 got the host lock after 5 min 1 s
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+  + catalogs: 34 catalog changes
+  + pages: 3 page changes
+  16 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 1
+  = catalogs: 0 catalog changes
+  = pages: 0 page changes
+  0 changes (applied)
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  452 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  376 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 1
+  {activeMembers=184, pendingMembers=3, inactiveMembers=4, leftMembers=3, members=194, dogs=246, familyGroups=12, activeDogs=242, pendingDogs=3, inactiveDogs=1, instructors=3, administrators=2, receivedDocuments=7, pendingDocuments=239}
+  0 changes (demo seed)
+  {templateClasses=39, templates=3, weeks=3, generatedClasses=114, validatedWeeks=2, looseClasses=1, ringBlocks=1, scenarioRingBlocks=1, attendanceHistoryClasses=10, riskCancellations=1, classBookings=23, classWaitlist=3, activities=4, publishedActivities=3, activityRegistrations=44, activityWaitlist=2, activityFiles=2, scenarioActivityRegistrations=1, scenarioClassBookings=18, scenarioCancellations=3, scenarioWaitlist=5, scenarioOffers=0, scenarioRiskExempt=1, scenarioBookingBlocks=1, attendanceRenamed=6, attendanceLevelChanges=1, followupNotes=1, attendanceBookings=34, attendanceWaitlist=1, attendanceMarks=26, attendanceCancellations=2, attendanceNoShowBatches=1, followupTasks=2, followupTaskAttachments=1, followupObservations=1, scenarioTrainingOverrides=1, scenarioTrainingBookings=3, trainingHistoryOverrides=1, trainingHistoryBookings=10}
+  0 changes (demo planning, week start 2026-10-12)
+PASS seed:demo --club=canic --seed=42 --week-start=2026-10-12 run 2: 0 changes
+PASS club:apply + seed:demo --seed=42 --week-start (Cànic; x2): second runs 0 changes · week start 2026-10-12 (8+ days ahead)
+curl GET /api/v1/health -> 200
+PASS API up (scheduler on); fixture clubs activated: canic
+after club:apply: 51 message_templates (51 codes); N-08a title languages ['ca', 'es']
+curl GET /api/v1/message-templates -> 200
+GET /message-templates -> 51 templates (51 CATALOG, 51 distinct codes); countsByCategory {"OPERATIONAL": 24, "PERSONAL": 17, "CLUB_CHANGES": 8, "CLUB_NEWS": 2}
+codes: N-01 N-04 N-05 N-06 N-07 N-10 N-13 N-14 N-15 N-18a N-21 N-22 N-31 N-32b N-33 N-34 N-18d N-40 N-41 N-42 N-46 N-49 N-51 N-54 N-02 N-03 N-09 N-11a N-11b N-18b N-18c N-19 N-20 N-23 N-28 N-29 N-30 N-35 N-37 N-38 N-50 N-08a N-08b N-16 N-17 N-32c N-36 N-32d N-47 N-24 N-32a
+curl GET /api/v1/message-templates/6abd3563b1d46dd16a89430c -> 200
+N-08a before: version 0, customized False, body.ca [[class_date]] · [[class_time]] · [[class_description]], amb [[dog_name]]. «[[admin_text]]» — [[club_name]]. Aquesta sessió no compta al teu còmput.
+curl PUT /api/v1/message-templates/6abd3563b1d46dd16a89430c -> 200
+PUT N-08a -> version 1, customized True, lastChange {"at": "2026-09-30T16:15:10.369Z", "actorName": "Aleix Example", "action": "CATALOG_CHANGED"}, body.ca [[class_date]] · [[class_time]] · [[class_description]]: la classe queda anul·lada. «[[admin_text]]» Pots reservar-ne una altra des de l'app.
+curl POST /api/v1/message-templates/6abd3563b1d46dd16a89430c/preview -> 200
+POST preview ca -> title Classe anul·lada pel club | body Dimecres 12 · 18:50 · B+C: la classe queda anul·lada. «La classe queda anul·lada per la pluja. Podeu reservar-ne una altra des de l'app. Disculpeu les molèsties!» Pots reservar-ne una altra des de l'app. | emailSubject Classe anul·lada pel club | sms {"text": "Club Agility Cànic: la classe de dimecres 12 a les 18:50 (B+C) queda anul.lada. La classe queda anul.lada per la pluja. Podeu reservar-ne una altra des de l'...", "length": 160, "segments": 1, "truncated": true} | warnings [{"code": "SMS_BODY_TOO_LONG", "variable": null}] | emailHtml 1324 chars
+curl POST /api/v1/message-templates/6abd3563b1d46dd16a89430c/preview -> 200
+POST preview es -> title Clase cancelada por el club | body Miércoles 12 · 18:50 · B+C, con Duna. «La clase queda cancelada por la lluvia. Podéis reservar otra desde la app. ¡Disculpad las molestias!» — Club Agility Cànic. Esta sesión no cuenta en tu cómputo. | emailSubject Clase cancelada por el club | sms {"text": "Club Agility Cànic: la clase del miércoles 12 a las 18:50 (B+C) queda cancelada. La clase queda cancelada por la lluvia. Podéis reservar otra desde la app. ¡...", "length": 160, "segments": 1, "truncated": true} | warnings [{"code": "SMS_BODY_TOO_LONG", "variable": null}] | emailHtml 1318 chars
+curl POST /api/v1/message-templates/6abd3563b1d46dd16a89430c/reset -> 200
+POST reset -> version 2, customized False, body.ca equals the seed: True, body.ca [[class_date]] · [[class_time]] · [[class_description]], amb [[dog_name]]. «[[admin_text]]» — [[club_name]]. Aquesta sessió no compta al teu còmput.
+curl PUT /api/v1/members/<id>/notification-preferences -> 200
+PUT /members/<id>/notification-preferences -> {"emailByCategory": {"OPERATIONAL": true, "PERSONAL": true, "CLUB_CHANGES": true, "CLUB_NEWS": true}, "smsFixed": true, "reminderMinutesBefore": 120, "reminderOptionsMinutes": [60, 120, 240, 360, 720, 1440], "pushClubNews": true, "locale": "ca", "availableLocales": ["ca", "es"], "modules": {"sms": true, "push": true}}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "43f7d459…", "actorName": "d1870203-52e3-47ff-b719-6b2b6658935c", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["firstName: \"Ona\" -> \"Berta\""]}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "44e87fa2…", "actorName": "d1870203-52e3-47ff-b719-6b2b6658935c", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["firstName: \"Jana\" -> \"Rita\""]}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "dbf3fa1b…", "actorName": "d1870203-52e3-47ff-b719-6b2b6658935c", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["firstName: \"Queralt\" -> \"Martí\""]}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "b35e548d…", "actorName": "d1870203-52e3-47ff-b719-6b2b6658935c", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["firstName: \"Guillem\" -> \"Alba\""]}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "d4132ec3…", "actorName": "d1870203-52e3-47ff-b719-6b2b6658935c", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["firstName: \"Guillem\" -> \"Nil\""]}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "341d53fe…", "actorName": "d1870203-52e3-47ff-b719-6b2b6658935c", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["firstName: \"Bruna\" -> \"Iu\""]}
+audit {"action": "CATALOG_CHANGED", "entityType": "MessageTemplate", "entityId": "6abd3563…", "actorName": "Aleix Example", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["body.ca: \"[[class_date]] · [[class_time]] · [[class_description]], amb [[dog_name]]. «[[admin_text]]» — [[club_name]]. Aquesta sessió no compta al teu còmput.\" …[truncated]", "customized: false -> true"]}
+audit {"action": "CATALOG_CHANGED", "entityType": "MessageTemplate", "entityId": "6abd3563…", "actorName": "Aleix Example", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["body.ca: \"[[class_date]] · [[class_time]] · [[class_description]]: la classe queda anul·lada. «[[admin_text]]» Pots reservar-ne una altra des de l'app.\" -> \"[[c…[truncated]", "customized: true -> false"]}
+audit {"action": "MEMBER_UPDATED", "entityType": "Member", "entityId": "af22a6d3…", "actorName": "Aleix Example", "actorRole": "ADMIN", "origin": "BACKOFFICE", "changes": ["notificationPreferences.emailByCategory.OPERATIONAL: false -> true", "notificationPreferences.reminderMinutesBefore: undefined -> 120"]}
+PASS E7-T03 local stack
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

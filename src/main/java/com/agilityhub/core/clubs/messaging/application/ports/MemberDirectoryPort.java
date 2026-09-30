@@ -28,4 +28,9 @@ public interface MemberDirectoryPort {
      * who is not its owner, e.g. the family-group member who booked it, A20b). The null object knows none.
      */
     default Optional<MemberContact.DogContact> dog(String dogId) { return Optional.empty(); }
+    /**
+     * R-11-11 `CHANGE_CLASS.enabled` on reading the feed: the dog is `ACTIVE` and the account's member may book for it (its own,
+     * or a dog of its family group, S08 R-08-02). The null object answers `false`.
+     */
+    default boolean dogAccessible(String accountId, String dogId) { return false; }
 }

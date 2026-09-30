@@ -370,8 +370,9 @@
     },
     "messageTemplates": {
       "type": "array",
+      "description": "S11 §8 / R-11-01 (E7-T03): the notification codes whose product-seed template the club gets in its own languages; a code the club already has a template of is kept as edited at D9.",
       "items": {
-        "$ref": "#/$defs/catalogEntry"
+        "$ref": "#/$defs/messageTemplate"
       }
     },
     "pwa": {
@@ -983,6 +984,19 @@
         "amount",
         "taxPercent",
         "validFrom"
+      ],
+      "additionalProperties": false
+    },
+    "messageTemplate": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^N-[0-9]{2}[a-d]?$"
+        }
+      },
+      "required": [
+        "code"
       ],
       "additionalProperties": false
     },

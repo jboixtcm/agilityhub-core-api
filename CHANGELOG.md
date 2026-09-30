@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E7-T03 (S11 WP-11-C): the S11 routes of E7-T01 are served, except `POST /message-templates/{id}/send` (E7-T04).
+  - D9 templates: the list in D9's order with the counts per category, the code's variables labelled in the admin's
+    language and `lastChange`; `CUSTOM` creation; the save with `version`, the R-11-12 validations and the statuses of
+    CATALEG_ERRORS rule 0; the preview of an unsaved draft per language with the SMS counters and warnings; «envia prova»
+    to the acting admin (APP and e-mail); «Restaura el text per defecte»; «Elimina» (`CUSTOM` → `ARCHIVED`). Each change
+    publishes `MessageTemplateChanged` and writes `CATALOG_CHANGED`.
+  - The product seed of the templates: `seed/message-templates.{ca,es,en}.json`, one per R1 catalog code that is not SYSTEM
+    (51), S11 §8's `ca` texts; `club:apply` seeds the codes of the definition's `messageTemplates` (the Cànic lists all 51)
+    and a club created before a code gets it on first use. The member copy left `messages_*`; the staff copy stays there.
+  - The notification log (`GET /notifications`, `/{id}`, `/filter-values`, the export), feed 11 (`GET /me/notifications`,
+    `read`, `read-all`, the same `unreadCount` as `GET /me/home`), the «Avisos» block of 12/D10 (audited as
+    `MEMBER_UPDATED`, `NotificationPreferencesChanged`) and the push devices (upsert by endpoint, `PushSubscribed`,
+    `PushUnsubscribed`).
 - E6-T05 (ruling E74, S10 §6 amended 30-09): `GET /me/history` rows carry `activityId`, the activity's id on every
   `ACTIVITY` row (the row's `id` stays the registration's) and `null` on the `CLASS` and `TRAINING` rows, so screen 25 links
   an activity row to `/activitats/{activityId}` (web E6-W04 step 0b). Nothing else of 25 changes.
@@ -627,6 +640,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- E7-T03: the member texts of N-02, N-06, N-08a (SMS), N-13, N-15, N-16 and N-19 follow S11 §8 (the report lists the three
+  readings: N-15's FIFO line, N-13's training line, N-16's S15 branches); the engine gives `gender` in lower case
+  (`female`/`male`/`other`, S11 §10), so the staff copy of N-21/N-22 selects on `female`; a template is seeded in the club's
+  languages only (R-11-01); `NotificationListItem.audience`/`NotificationDetail.audience` are nullable (rows written before
+  E7-T02). The T-11-05 snapshots were regenerated.
 - E6-T04 round 2 (organizer review, ruling E65):
   - P8 `class-finishing` step (a) decides by the class's own start in S06, never by `WaitlistEntry.classStartsAt` (a copy
     the `ClassSessionUpdated` consumer refreshes later): the plan (`WaitlistService.startedBy`) reads the classes' starts
