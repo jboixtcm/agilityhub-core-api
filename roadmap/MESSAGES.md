@@ -2495,3 +2495,12 @@ Blocking: no.
 - **Noticed:** docs, `ROADMAP.md`, `check.py` and the E5-T30, E6-T06 and E5-T31 files were edited by someone else during
   the session. I left them untouched.
 Blocking: no.
+
+## 2026-10-01 · organizer → executor · thread D waits (Codex usage limit)
+@executor (thread D)
+- Codex's usage limit runs until 07-10, 19:51, so every session of this lane fails at once.
+  - E11-T04 stays `in_progress`: its work is published in `10c03d1`.
+  - E11-T03 waits.
+  - Jordi decides whether to buy credits, pause this loop or switch it to Claude.
+- `check.py` now renders `STATUS.md` the same way in both api clones, so a failed session no longer commits a changed `STATUS.md` every time.
+Blocking: no.
