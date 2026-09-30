@@ -21,9 +21,12 @@ public class ClubEmailSettings {
                 candidate.host().equals(domain) && candidate.status() == Club.DomainStatus.VERIFIED && candidate.verifiedAt() != null);
         String reply = config.get("messaging.email.replyTo", String.class);
         if (reply == null || reply.isBlank()) { reply = club.contactEmail(); }
+        // E48 (white label): the catalog default is empty, which means the club's own name.
+        String name = config.get("messaging.email.fromName", String.class);
+        if (name == null || name.isBlank()) { name = club.name(); }
         var theme = club.theme();
         return new Settings(club.name(), theme.logoUrl(), theme.colors().primary(), theme.colors().onPrimary(),
-                verified ? address : platformAddress, config.get("messaging.email.fromName", String.class), reply,
+                verified ? address : platformAddress, name, reply,
                 club.defaultLocale(), config.get("auth.magicLinkMinutes", Integer.class));
     }
     /** `https://{host}` of the club's verified member app domain (the links of a notification e-mail), or empty. */

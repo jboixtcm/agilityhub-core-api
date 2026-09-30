@@ -410,6 +410,62 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         assertThat(events("ClassCancelledByClub")).isEqualTo(1);
     }
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean com.agilityhub.core.clubs.catalogs.application.PlanningCatalogAccess catalogLocks;
+    Instant startsAt(String date,String time) { return LocalDateTime.of(LocalDate.parse(date),LocalTime.parse(time)).atZone(ZoneId.of(configs.get(CLUB).club().timeZone())).toInstant(); }
+    java.util.List<String> draftsOfValidatedWeeks() {
+        var validated=mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("state").is("VALIDATED")),Document.class,"weeks").stream().map(w -> w.getString("_id")).toList();
+        return mongo.find(Query.query(Criteria.where("clubId").is(CLUB).and("state").is("DRAFT").and("weekId").in(validated)),Document.class,"class_sessions").stream().map(c -> c.getString("_id")).toList();
+    }
+    /**
+     * T-06-23 (E5-T28 step 5, A4-01): a class created while its week is validated, in both orders. The scheduling writes also
+     * meet on the catalogs' write locks (`PlanningContext.lockReferences`); this test switches those off, so the week's own
+     * guard is the only one: a DRAFT class writes its week, so the create and the validation conflict and one runs again.
+     */
+    @Test void T_06_23_aClassCreatedWhileItsWeekIsValidatedIsNeverALooseDraft() throws Exception {
+        org.mockito.Mockito.doNothing().when(catalogLocks).lockReferences();
+        // (1) The create has read the PENDING week when the validation commits: its retry sees the VALIDATED week.
+        String first=session("2026-08-25","18:00","plan-ring"),week=session(first).path("weekId").asText();
+        doubles.hold(startsAt("2026-08-25","20:00"));
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var body=new LinkedHashMap<String,Object>(Map.of("date","2026-08-25","startTime","20:00","endTime","21:00","ringId","plan-ring","instructorIds",List.of("plan-instructor"),"levelIds",List.of("plan-level-D")));
+            var created=pool.submit(() -> mvc.perform(call("POST","/class-sessions",body)).andReturn().getResponse());
+            doubles.awaitHeld();
+            assertThat(ok("POST","/weeks/"+week+"/validation",Map.of()).path("validatedClassIds")).extracting(JsonNode::asText).containsExactly(first);
+            doubles.release();
+            var response=created.get(30,TimeUnit.SECONDS);assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(201);
+            assertThat(session(mapper.readTree(response.getContentAsString()).path("id").asText()).path("state").asText()).isEqualTo("ACTIVE");
+        }
+        assertThat(draftsOfValidatedWeeks()).isEmpty();
+        // (2) The validation has read the week's drafts when the create commits: its retry validates the new draft too.
+        String early=session("2026-09-01","18:00","plan-ring"),next=session(early).path("weekId").asText();
+        doubles.hold(startsAt("2026-09-01","18:00"));
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var validation=pool.submit(() -> mvc.perform(call("POST","/weeks/"+next+"/validation",Map.of())).andReturn().getResponse());
+            doubles.awaitHeld();
+            String late=session("2026-09-01","20:00","plan-ring");
+            doubles.release();
+            var response=validation.get(30,TimeUnit.SECONDS);assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(200);
+            assertThat(mapper.readTree(response.getContentAsString()).path("validatedClassIds")).extracting(JsonNode::asText).containsExactlyInAnyOrder(early,late);
+            assertThat(session(late).path("state").asText()).isEqualTo("ACTIVE");
+        }
+        assertThat(draftsOfValidatedWeeks()).isEmpty();
+    }
+    /** T-06-23 (E5-T28 step 5): a VALIDATED week that still holds a DRAFT class (written before step 5) validates it again. */
+    @Test void T_06_23_aValidatedWeekWithALooseDraftIsValidatedAgainKeepingItsValidatedAt() throws Exception {
+        String id=session("2026-08-25","18:00","plan-ring"),week=session(id).path("weekId").asText();validate(id);
+        var validatedAt=mongo.findById(week,Document.class,"weeks").get("validatedAt");long events=events("WeekValidated"),audits=mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("WEEK_VALIDATED")),"audit_entries");
+        clock.setInstant(clock.instant().plusSeconds(600));
+        String loose=session("2026-08-25","20:00","plan-ring");
+        mongo.updateFirst(Query.query(Criteria.where("_id").is(loose)),new Update().set("state","DRAFT"),"class_sessions");
+        assertThat(draftsOfValidatedWeeks()).containsExactly(loose);
+        assertThat(ok("POST","/weeks/"+week+"/validation",Map.of()).path("validatedClassIds")).extracting(JsonNode::asText).containsExactly(loose);
+        assertThat(session(loose).path("state").asText()).isEqualTo("ACTIVE");assertThat(draftsOfValidatedWeeks()).isEmpty();
+        var stored=mongo.findById(week,Document.class,"weeks");
+        assertThat(stored.getString("state")).isEqualTo("VALIDATED");assertThat(stored.get("validatedAt")).isEqualTo(validatedAt);
+        assertThat(events("WeekValidated")).isEqualTo(events+1);
+        assertThat(mongo.count(Query.query(Criteria.where("clubId").is(CLUB).and("action").is("WEEK_VALIDATED")),"audit_entries")).as("no state change to audit").isEqualTo(audits);
+        error("POST","/weeks/"+week+"/validation",Map.of(),ErrorCode.NOTHING_TO_VALIDATE);
+    }
     @Test void T_06_25_T_11_24_finishingGraceIsIdempotentAndRiskReviewReusesCancellationWithN08aToMembersOnly() throws Exception {
         String id=session("2026-08-25","18:00","plan-ring");validate(id);
         try(var tenant=TenantContext.open(CLUB)) {
@@ -481,7 +537,12 @@ class CalendarIT extends AbstractIntegrationTest {
         final Map<String,List<BookingRef>> bookings=new HashMap<>();final Map<String,List<WaitlistRef>> waiting=new HashMap<>();final Map<String,Set<String>> holds=new HashMap<>();final Set<String> cancelled=new HashSet<>();final List<TrainingConflictPort.Booking> training=new ArrayList<>();boolean fail;
         private final EventPublisher events;private final ClubConfigService configs;private final java.time.Clock clock;
         Doubles(EventPublisher events,ClubConfigService configs,java.time.Clock clock) {this.events=events;this.configs=configs;this.clock=clock;}
-        void clear() {bookings.clear();waiting.clear();holds.clear();cancelled.clear();training.clear();fail=false;}
+        void clear() {bookings.clear();waiting.clear();holds.clear();cancelled.clear();training.clear();fail=false;gateAt=null;gateRelease.countDown();}
+        /** E5-T28: the next {@link #lockSlots} of a slot starting at {@code at} waits, inside its transaction, until {@link #release()}. */
+        volatile Instant gateAt; volatile CountDownLatch gateEntered=new CountDownLatch(0),gateRelease=new CountDownLatch(0);
+        void hold(Instant at) {gateEntered=new CountDownLatch(1);gateRelease=new CountDownLatch(1);gateAt=at;}
+        void awaitHeld() throws InterruptedException {assertThat(gateEntered.await(30,TimeUnit.SECONDS)).as("the held transaction reached lockSlots").isTrue();}
+        void release() {gateRelease.countDown();}
         public List<BookingRef> activeBookings(String id) {return cancelled.contains(id)?List.of():List.copyOf(bookings.getOrDefault(id,List.of()));}
         public List<WaitlistRef> liveWaitlist(String id) {return cancelled.contains(id)?List.of():List.copyOf(waiting.getOrDefault(id,List.of()));}
         public List<WaitlistRef> waitlistEntries(List<String> ids) {return waiting.values().stream().flatMap(List::stream).filter(w -> ids.contains(w.entryId())).toList();}
@@ -496,7 +557,11 @@ class CalendarIT extends AbstractIntegrationTest {
         }
         public List<TrainingConflictPort.Booking> findActiveBookings(String ring,Instant from,Instant to) {return training.stream().filter(b -> b.ringId().equals(ring) && b.from().isBefore(to) && from.isBefore(b.to())).toList();}
         public void cancelByClub(List<String> ids,String reason) {var removed=training.stream().filter(b -> ids.contains(b.id())).toList();training.removeAll(removed);undo(() -> training.addAll(removed));if(fail) throw new IllegalStateException("Forced training failure");}
-        public void lockSlots(String ring,Instant from,Instant to) {}
+        public void lockSlots(String ring,Instant from,Instant to) {
+            if(!from.equals(gateAt)) return;
+            gateAt=null;gateEntered.countDown();
+            try {gateRelease.await(30,TimeUnit.SECONDS);} catch(InterruptedException interrupted) {Thread.currentThread().interrupt();}
+        }
         public List<Interval> occupancy(Instant from,Instant to,Collection<String> rings,String role) {return training.stream().filter(b -> b.from().isBefore(to) && from.isBefore(b.to())).map(b -> new Interval(b.ringId(),b.from(),b.to(),Type.TRAINING,"TRAINING",b.memberName(),b.dogName(),null,b.id())).toList();}
         public Map<String,String> titles(Collection<String> ids,Locale locale) {var titles=new HashMap<String,String>();ids.forEach(id -> titles.put(id,"Example activity"));return titles;}
         private void undo(Runnable action) {assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isTrue();TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {public void afterCompletion(int status) {if(status!=STATUS_COMMITTED) action.run();}});}

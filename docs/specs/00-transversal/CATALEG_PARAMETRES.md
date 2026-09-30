@@ -108,7 +108,7 @@ Tipus: `int` · `bool` · `enum` · `time` (HH:mm local) · `duration` (minuts) 
 |---|---|---|---|
 | `messaging.noShowNoticeTime` | time | 08:00 | lot de l'endemà |
 | `messaging.reminderOptionsMinutes` | list | 60,120,240,360,720,1440 | opcions de 12; «mai» sempre disponible |
-| `messaging.email.fromName` | string | Club Agility Cànic | remitent per club (domini verificat al proveïdor) |
+| `messaging.email.fromName` | string | `""` | remitent per club (domini verificat al proveïdor); buit = el nom del club (`Club.name`) (organitzador 26-09, decisió E48: el valor per defecte no pot ser el nom d'un club) |
 | `messaging.email.fromAddress` | string | `"no-reply@agilitydoghub.com"` | domini verificat al proveïdor (E1-T03) |
 | `messaging.email.replyTo` | string | `""` | buit = correu de contacte del club en enviar |
 | `messaging.sms.senderId` | string | `"AgilityHub"` | Twilio (pendent §3) |

@@ -135,7 +135,7 @@ class ParameterCatalogContractTest {
         if (kind.equals("decimal") || type.equals("json decimal")) { return Double.valueOf(text); }
         if (kind.equals("enum") || kind.equals("time")) { return text.split(" ")[0]; }
         if (kind.equals("money")) { return Map.of("amountMinor", new java.math.BigDecimal(text.replace(" €", "").replace(',', '.')).movePointRight(2).intValueExact(), "currency", "EUR"); }
-        if (kind.equals("string")) { return key.equals("messaging.email.fromName") ? text.split(" / ")[0] : text; }
+        if (kind.equals("string")) { return text; }
         if (kind.equals("localizedText")) { return Map.of("ca", text.substring(1, text.length() - 1)); }
         return switch (key) {
             case "bookings.weekOpensAt" -> {

@@ -65,8 +65,8 @@ class CensusIT extends AbstractIntegrationTest {
         member(CLUB, "admin", "ACTIVE", 3, "00000000T", Set.of(Role.MEMBER, Role.ADMIN));
         member(OTHER, "foreign", "ACTIVE", 1, "12345678Z", Set.of(Role.MEMBER, Role.ADMIN));
         level(CLUB, "level-c", false); level(CLUB, "level-d", true); level(OTHER, "foreign-level", true);
-        dog(CLUB, "dog-one", "one", "level-c", "100001"); dog(CLUB, "dog-two", "one", "level-d", "100002");
-        dog(CLUB, "dog-family", "two", "level-c", "100003"); dog(OTHER, "dog-foreign", "foreign", "foreign-level", "100001");
+        dog(CLUB, "dog-one", "one", "level-c", "941000000100001"); dog(CLUB, "dog-two", "one", "level-d", "941000000100002");
+        dog(CLUB, "dog-family", "two", "level-c", "941000000100003"); dog(OTHER, "dog-foreign", "foreign", "foreign-level", "941000000100001");
     }
     void club(String id, Set<Module> modules) {
         var node = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.valueToTree(clubs.findById(id).orElseGet(() -> PlatformFixtures.club(id, id + ".example.test")));
@@ -182,11 +182,41 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(json(admin(get("/api/v1/members/one")), 200).toString()).doesNotContain(IBAN, "\"iban\"");
         assertThat(mapper.writeValueAsString(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED))).doesNotContain(IBAN).contains("1332");
         assertThat(events("MemberPaymentMethodChanged")).singleElement().satisfies(event -> assertThat(event.payload()).containsEntry("masked", "···· ···· ···· ···· 1332"));
-        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example")));
+        // E42: a SEPA → SEPA PATCH without `iban` keeps the stored account; only an explicit `"iban": null` clears it.
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example Holder")));
+        assertThat(member("one").paymentMethod).containsEntry("iban", IBAN).containsEntry("holderName", "Example Holder");
+        assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isFalse();
+        var cleared = new HashMap<String,Object>(); cleared.put("iban", null);
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", cleared));
+        assertThat(member("one").paymentMethod).doesNotContainKey("iban").containsEntry("holderName", "Example Holder");
         assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isTrue();
         change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer")));
         var count = events("MemberPaymentMethodChanged").size(); change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "transfer")));
         assertThat(events("MemberPaymentMethodChanged")).hasSize(count);
+    }
+    /** E42 (INC-17): the encrypted account of a migrated member survives a SEPA → SEPA PATCH that does not send `iban`. */
+    @Test void T_03_13_sepaPatchKeepsTheMigratedEncryptedAccount() throws Exception {
+        field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", "v1:example-ciphertext").append("ibanLast4", "1332")
+                .append("holderName", "Example Holder").append("holderTaxId", "12345678Z").append("mandateRef", "census-a-1-1").append("mandateSignedAt", Date.from(Instant.parse("2020-01-01T00:00:00Z"))));
+        var payment = change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("holderName", "Example Renamed")));
+        assertThat(payment.path("maskedAccount").asText()).endsWith("1332");
+        assertThat(member("one").paymentMethod).containsEntry("ibanEncrypted", "v1:example-ciphertext").containsEntry("ibanLast4", "1332")
+                .containsEntry("holderName", "Example Renamed").containsEntry("holderTaxId", "12345678Z").containsEntry("mandateRef", "census-a-1-1")
+                .containsKey("mandateSignedAt").doesNotContainKey("iban");
+        assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isFalse();
+        assertThat(events("MemberPaymentMethodChanged")).singleElement().satisfies(event -> assertThat(event.payload()).containsEntry("masked", "···· ···· ···· ···· 1332"));
+        // A new IBAN replaces the encrypted one; an explicit null clears the account.
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", Map.of("iban", IBAN)));
+        assertThat(member("one").paymentMethod).containsEntry("iban", IBAN).doesNotContainKeys("ibanEncrypted", "ibanLast4").containsEntry("holderName", "Example Renamed");
+        field("members", "one", "paymentMethod", new Document("type", "SEPA_DD").append("ibanEncrypted", "v1:example-ciphertext").append("ibanLast4", "1332").append("holderName", "Example Holder"));
+        var cleared = new HashMap<String,Object>(); cleared.put("iban", null);
+        change("members/one/payment-method", Map.of("type", "SEPA_DD", "sepa", cleared));
+        assertThat(member("one").paymentMethod).doesNotContainKeys("iban", "ibanEncrypted", "ibanLast4").containsEntry("holderName", "Example Holder");
+        assertThat(json(admin(get("/api/v1/members/one/overview")), 200).path("member").path("accountMissing").asBoolean()).isTrue();
+        assertThat(mapper.writeValueAsString(audit(AuditAction.MEMBER_PAYMENT_METHOD_CHANGED))).doesNotContain("example-ciphertext", IBAN);
+        // A change of type replaces the method: nothing of the SEPA account is kept.
+        change("members/one/payment-method", Map.of("type", "MANUAL", "manual", Map.of("channel", "cash")));
+        assertThat(member("one").paymentMethod).containsOnlyKeys("type", "channel");
     }
     @Test @AuditCovers({AuditAction.BOOKING_BLOCK_SET, AuditAction.BOOKING_BLOCK_CLEARED})
     void T_03_14_bookingBlocksAreReversibleAndRejectDuplicateChanges() throws Exception {
@@ -446,7 +476,9 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(member("one").memberNumber).isEqualTo(1); assertThat(dog("dog-one").status).isEqualTo("INACTIVE"); assertThat(audit(AuditAction.MEMBER_STATUS_CHANGED)).hasSize(2);
     }
     @Test void T_03_32_dogPatchSupportsHandlerAndCompleteLicenseFields() throws Exception {
-        error(admin(body(patch("/api/v1/dogs/dog-one"), Map.of("version", 0, "chip", "100002"))), ErrorCode.CHIP_ALREADY_EXISTS);
+        // A2-08: the chip is normalised before the unique index compares it (dog-two's chip, typed with spaces and dashes).
+        error(admin(body(patch("/api/v1/dogs/dog-one"), Map.of("version", 0, "chip", "941 000-000 100 002"))), ErrorCode.CHIP_ALREADY_EXISTS);
+        error(admin(body(patch("/api/v1/dogs/dog-one"), Map.of("version", 0, "chip", "100002"))), ErrorCode.VALIDATION_ERROR);
         error(admin(body(patch("/api/v1/dogs/dog-one"), Map.of("version", 0, "licenses", List.of(Map.of("organisation", "EXAMPLE", "number", "1"), Map.of("organisation", "EXAMPLE", "number", "2"))))), ErrorCode.VALIDATION_ERROR);
         change("dogs/dog-one", Map.of("version", 0, "handlerName", "Example Handler", "licenses", List.of(object("organisation", "EXAMPLE", "number", "1", "category", "S", "grade", "2", "division", "2D"))));
         assertThat(dog("dog-one").handlerName).isEqualTo("Example Handler");
@@ -461,7 +493,7 @@ class CensusIT extends AbstractIntegrationTest {
         assertThat(response.toString()).doesNotContain("paymentMethod", "nextInvoiceDate", "consents", "internalNotes", "Private", "reason", IBAN);
         assertThat(response.has("contactEmails")).isTrue(); assertThat(response.path("bookingBlocked").asBoolean()).isTrue();
         error(call(body(patch("/api/v1/members/one"), Map.of("version", 0, "firstName", "No")), CLUB, "one", "INSTRUCTOR"), ErrorCode.FORBIDDEN);
-        assertThat(json(call(get("/api/v1/dogs/dog-one"), CLUB, "one", "INSTRUCTOR"), 200).path("dog").path("chip").asText()).isEqualTo("100001");
+        assertThat(json(call(get("/api/v1/dogs/dog-one"), CLUB, "one", "INSTRUCTOR"), 200).path("dog").path("chip").asText()).isEqualTo("941000000100001");
     }
     @Test void T_03_34_moduleBranchesAndDerivedPlanBillingMode() throws Exception {
         mongo.insert(new Document("_id", "plan").append("clubId", CLUB).append("name", new Document("en", "Example Plan")).append("type", "MONTHLY").append("billingMode", "MAINTENANCE"), "plans");

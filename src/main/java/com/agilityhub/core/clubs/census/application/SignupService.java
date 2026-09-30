@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.census.application;
 
+import com.agilityhub.core.clubs.census.domain.CensusRules;
 import com.agilityhub.core.clubs.census.persistence.*;
 import com.agilityhub.core.clubs.followup.application.AttachmentService;
 import com.agilityhub.core.clubs.signup.application.SignupPolicy;
@@ -31,6 +32,8 @@ public class SignupService implements SignupPaymentAccess {
     private final com.agilityhub.core.identity.application.CensusIdentityService accounts; private final AuditWriter audits;
     private static final LocalDate EARLIEST_BIRTH_DATE=LocalDate.of(1900,1,1); // S04 §3 `Member.birthDate`
     @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<DogService> dogService;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<SignupTransactions> transactions;
+    @org.springframework.beans.factory.annotation.Autowired private org.springframework.beans.factory.ObjectProvider<CheckoutService> checkouts;
     /**
      * The anonymous `GET /signup` configuration per club and locale, for 60 s (R-04-27). E3-T12: generation-aware
      * ({@link CacheLoads}), so a load that overlapped an eviction (a parameter, plan or club write) never stores what it read.
@@ -142,8 +145,11 @@ public class SignupService implements SignupPaymentAccess {
         else if(!access.role("ADMIN") && !access.me().id.equals(id)) { throw new ApiException(ErrorCode.FORBIDDEN); }
         access.mutableMember(id);
     }
+    public <T> T write(java.util.function.Supplier<T> work) { return transactions.getObject().write(work); }
     public void card(String id,Map<String,Object> card) {
         var member=access.mutableMember(id);
+        // A3-01: a rejected signup's record (LEFT, or a readmission restored to LEFT) never takes a card.
+        if(!Set.of("PENDING","ACTIVE").contains(member.status)) return;
         if(readmissionPending(member)) {
             // E38: the card of a readmission belongs to the submitted method until validation applies it.
             if("CARD".equals(map(submitted(member).get("paymentMethod")).get("type"))) { putSubmitted(member,"paymentMethod",object("type","CARD","card",card));access.members.save(member); }
@@ -254,7 +260,7 @@ public class SignupService implements SignupPaymentAccess {
         member.consents=new ConsentLedgerConverter().read(ledger,null);
     }
     // ---- R-04-06 (E38): a readmission waits in `readmissionRequest` and never overwrites the LEFT record before validation ----
-    public boolean readmissionPending(Member member) { return member.readmissionRequest!=null&&"PENDING".equals(member.status); }
+    public boolean readmissionPending(Member member) { return member.readmissionPending(); }
     private Map<String,Object> submitted(Member member) { return map(map(member.readmissionRequest).get("submitted")); }
     private void putSubmitted(Member member,String key,Object value) {
         var request=new LinkedHashMap<>(member.readmissionRequest);var values=new LinkedHashMap<>(submitted(member));
@@ -977,6 +983,7 @@ public class SignupService implements SignupPaymentAccess {
             if(!billing()) throw invalid("upfrontAmountPaid","MODULE_DISABLED");
             payments.allocate(id,scope,mapper.convertValue(request.get("upfrontAmountPaid"),Money.class));
         }
+        String previousMandate=string(map(member.paymentMethod).get("mandateRef"));
         if(!addDog&&readmissionPending(member)) applyReadmission(member);
         if(access.enabled(Module.FAMILY_GROUP)) joinFamily(member,request);
         member.planId=selectedId;member.priceId=plan==null||plan.billedPrice()==null?null:plan.billedPrice().id();
@@ -989,7 +996,12 @@ public class SignupService implements SignupPaymentAccess {
             if(member.memberNumber==null) member.memberNumber=settings.nextMemberNumber(access.members.matching(new Criteria()).stream().map(m -> m.memberNumber).filter(Objects::nonNull).max(Integer::compareTo).orElse(0)+1);
             member.status="ACTIVE";member.joinedAt=clock.instant();member.leftAt=null;member.leftReason=null;member.leaveDate=null;
         }
-        if("SEPA_DD".equals(map(member.paymentMethod).get("type"))&&member.paymentMethod.get("mandateRef")==null) { member.paymentMethod=new LinkedHashMap<>(member.paymentMethod);member.paymentMethod.put("mandateRef","AH-"+member.id); }
+        // E43 (S12 §7): the migrated format `{clubSlug}-{memberNumber}-1` (≤ 35, pain.008 `MndtId`); `mandateSignedAt` stays the
+        // submission's (S04 R-04-10 wins over S12). A readmission's new mandate takes the next sequence of the LEFT record's one.
+        if("SEPA_DD".equals(map(member.paymentMethod).get("type"))&&member.paymentMethod.get("mandateRef")==null&&member.memberNumber!=null) {
+            member.paymentMethod=new LinkedHashMap<>(member.paymentMethod);
+            member.paymentMethod.put("mandateRef",CensusRules.mandateRef(access.config().club().slug(),member.memberNumber,previousMandate));
+        }
         // S04 §3 (E3-T10): the decision is stamped on the public signup and on each validated dog's own submission block.
         var decision=object("validatedAt",clock.instant(),"validatedByAccountId",CurrentUser.current()==null?null:CurrentUser.current().accountId());
         if(!addDog) member.signup=stamped(map(member.signup),decision);
@@ -1043,6 +1055,8 @@ public class SignupService implements SignupPaymentAccess {
             else { dog.status="INACTIVE";dog.deactivationReason="SIGNUP_REJECTED";dog.deactivatedAt=clock.instant(); }
             access.dogs.save(dog);
         }
+        // S04 §5 (A3-01): an open checkout of the rejected rows (or any of a record that leaves the signup) expires with them.
+        checkouts.getObject().rejected(id,payments.lines(id,scope).stream().map(UpfrontPayments.Line::id).toList(),!active);
         boolean paid=payments.reject(id,scope);
         events.emit("SignupRejected","Member",id,object("memberId",id,"dogIds",dogIds(dogs),"reason",reason,"memberWasActive",active,"applicant",applicant,"locale",locale));
         refreshDashboard();

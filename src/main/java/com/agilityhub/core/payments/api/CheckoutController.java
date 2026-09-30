@@ -17,16 +17,24 @@ import static com.agilityhub.core.shared.domain.ErrorCode.*;
 @RestController
 public class CheckoutController {
     private final com.agilityhub.core.payments.application.CheckoutService checkout;
-    public CheckoutController(com.agilityhub.core.payments.application.CheckoutService checkout) { this.checkout=checkout; }
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+    public CheckoutController(com.agilityhub.core.payments.application.CheckoutService checkout, com.fasterxml.jackson.databind.ObjectMapper mapper) { this.checkout=checkout;this.mapper=mapper; }
     @PostMapping("/api/v1/checkout-sessions")
     @RequiresModule(Module.BILLING)
     @PreAuthorize("isAnonymous() or hasRole('MEMBER') or (hasRole('ADMIN') and principal.claims['imp'] != true)")
     @SecurityRequirements
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, UNAUTHENTICATED, NOT_FOUND, MEMBER_ERASED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, MODULE_DISABLED,
-            PAYMENT_PROVIDER_NOT_ENABLED, RATE_LIMITED})
-    @Operation(summary = "Create signup checkout session", description = "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits.",
+            PAYMENT_PROVIDER_NOT_ENABLED, RATE_LIMITED, STALE_VERSION})
+    @Operation(summary = "Create signup checkout session", description = "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01).",
             responses = @ApiResponse(responseCode = "201", description = "Checkout session", useReturnTypeSchema = true))
     public CheckoutSession create(@io.swagger.v3.oas.annotations.Parameter(schema = @Schema(format = "uuid")) @RequestHeader("Idempotency-Key") String key,
-            @Valid @RequestBody CheckoutSessionRequest request) { var result=checkout.create(request.memberId(),request.signupToken(),request.successUrl(),request.cancelUrl());return new CheckoutSession(result.checkoutUrl(),result.checkoutSessionId()); }
+            @Valid @RequestBody CheckoutSessionRequest request) {
+        var result=checkout.create(request.memberId(),request.signupToken(),request.successUrl(),request.cancelUrl());
+        var session=new CheckoutSession(result.checkoutUrl(),result.checkoutSessionId());
+        // A3-06: the route retries inside its own transactions (IdempotencyFilter), so the 201 is stored here, after the provider call.
+        try { checkout.answered(mapper.writeValueAsBytes(session)); }
+        catch(com.fasterxml.jackson.core.JsonProcessingException invalid) { throw new IllegalStateException(invalid); }
+        return session;
+    }
 }

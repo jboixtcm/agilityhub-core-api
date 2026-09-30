@@ -104,6 +104,16 @@ new `@example.test` accounts are passwordless. IBANs use fictional bank/branch 0
 and valid domestic/mod-97 check digits. No real data is read and no welcome mail is sent.
 Member numbers are reserved for later signups.
 
+SEPA mandates (E5-T28, decision E43): every seeded SEPA member that is not PENDING
+carries `paymentMethod.mandateRef = {clubSlug}-{memberNumber}-1` (the migrated format,
+at most 35 characters, pain.008 `MndtId`) and `mandateSignedAt` = its `joinedAt`, so
+the E8 remittance runs on the fictional census (T-12-14). The 3 PENDING signups have
+none: the validation assigns it, like a real signup (S04 R-04-10: `mandateSignedAt`
+stays the submission's). A readmission signs a new mandate with the next sequence
+(`…-2`). A long slug is cut so the reference still fits 35 characters. Development
+data seeded before E5-T28 has no demo mandates (and `AH-{memberId}` references on
+validated signups): re-seed it on a fresh database.
+
 A readmission can reuse a seed dog (E5-T24, web E4-W13; S04 R-04-06/R-04-07). `leftDogs` gives the
 first LEFT member (number 192) the fictional DNI `99000001C` and one INACTIVE dog, «Demo Boira»
 (chip `941000000000805`, level B, `deactivationReason = MEMBER_LEFT` at the member's `leftAt`), whose

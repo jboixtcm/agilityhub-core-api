@@ -4,6 +4,7 @@ import com.agilityhub.core.payments.persistence.*;
 import com.agilityhub.core.platform.application.CensusClubSettings;
 import com.agilityhub.core.platform.application.ClubConfigService;
 import com.agilityhub.core.identity.application.IdentityTransactions;
+import com.agilityhub.core.shared.application.IdempotentOperation;
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.*;
 import java.net.URI;
@@ -11,6 +12,9 @@ import java.time.*;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.*;
 
 @Service
 public class CheckoutService {
@@ -19,34 +23,86 @@ public class CheckoutService {
     private final SignupPaymentAccess members;private final UpfrontPayments payments;private final CensusClubSettings clubs;
     private final ClubConfigService configs;private final SignupCheckoutRepository sessions;private final ObjectProvider<PaymentProvider> gateways;
     private final IdentityTransactions transactions;private final Clock clock;private final com.agilityhub.core.shared.application.IcuMessageSource messages;
+    private final TransactionTemplate outside;
     public CheckoutService(SignupPaymentAccess members,UpfrontPayments payments,CensusClubSettings clubs,ClubConfigService configs,
-            SignupCheckoutRepository sessions,ObjectProvider<PaymentProvider> gateways,IdentityTransactions transactions,Clock clock,com.agilityhub.core.shared.application.IcuMessageSource messages) {
+            SignupCheckoutRepository sessions,ObjectProvider<PaymentProvider> gateways,IdentityTransactions transactions,Clock clock,com.agilityhub.core.shared.application.IcuMessageSource messages,
+            PlatformTransactionManager manager) {
         this.members=members;this.payments=payments;this.clubs=clubs;this.configs=configs;this.sessions=sessions;this.gateways=gateways;this.transactions=transactions;this.clock=clock;this.messages=messages;
+        this.outside=new TransactionTemplate(manager);this.outside.setPropagationBehavior(TransactionDefinition.PROPAGATION_NOT_SUPPORTED);
     }
+    /**
+     * `POST /checkout-sessions` (A3-06): the session and its `CHECKOUT_PENDING` rows commit in the signup's retried transaction
+     * (a concurrent census write never gives a 500), then the provider is asked for the session outside that unit, as
+     * {@link #prepareBooking} does. A provider failure expires the session again on our side and releases the key. The
+     * caller stores the 201 with {@link #answered}.
+     */
     public Result create(String memberId,String token,String success,String cancel) {
         members.authorize(memberId,token);
         if(!clubs.providerEnabled("STRIPE")) throw new ApiException(ErrorCode.PAYMENT_PROVIDER_NOT_ENABLED);
         PaymentProvider gateway=gateways.getIfAvailable();if(gateway==null) throw new ApiException(ErrorCode.NOT_IMPLEMENTED);
         redirect(success);redirect(cancel);
-        return transactions.run(() -> {
-            members.lock();var member=members.member(memberId);
-            if(!Set.of("PENDING","ACTIVE").contains(member.get("status"))) throw new ApiException(ErrorCode.INVALID_STATE);
-            String currency=configs.get(TenantContext.require()).club().currency();
-            var scope=members.submissions(memberId);
-            var due=payments.due(memberId,scope,currency);var method=member.get("paymentMethod") instanceof Map<?,?> map?map:Map.of();
-            boolean card="CARD".equals(method.get("type"));
-            if(due.amountMinor()==0&&!card) throw new ApiException(ErrorCode.INVALID_STATE);
-            var lines=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
-            if(lines.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
-            String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24));
-            var ids=lines.stream().map(UpfrontPayments.Line::id).toList();String mode=due.amountMinor()==0?"setup":"payment";
-            // R-04-26 (E3-T13): each line in the language of the submission it belongs to, never one language for the member.
-            var locales=members.locales(memberId,scope);
-            var request=new PaymentProvider.Request(id,TenantContext.require(),memberId,mode,lines.stream().map(l -> new PaymentProvider.Item(l.id(),messages.format("signup:payment.concept."+l.concept(),Map.of(),Locale.forLanguageTag(locales.get(l.submission()))),l.amount().minus(l.paidAmount()))).toList(),
-                    (String)member.get("email"),memberId,Map.of("clubId",TenantContext.require(),"memberId",memberId,"upfrontPaymentIds",ids),card?"off_session":null,success,cancel,expires);
-            String url=gateway.createCheckoutSession(request);
-            sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires,null));payments.pending(memberId,ids,id);
-            return new Result(url,id);
+        var request=members.write(() -> { IdempotentOperation.lock();return prepare(memberId,success,cancel); });
+        String url;
+        try { url=gateway.createCheckoutSession(request); }
+        catch(RuntimeException failure) {
+            IdempotentOperation.release();
+            abandon(memberId,request.sessionId());
+            throw failure;
+        }
+        return new Result(url,request.sessionId());
+    }
+    /** The provider could not open the session: it expires on our side and its rows are DUE again (a new checkout may open). */
+    private void abandon(String memberId,String id) {
+        members.write(() -> { members.lock();if(sessions.finish(id,"EXPIRED",null)) payments.checkout(memberId,id,false);return null; });
+    }
+    /** The 201 of `POST /checkout-sessions`, stored with its Idempotency-Key in a short retried transaction. */
+    public void answered(byte[] response) { members.write(() -> { IdempotentOperation.lock();IdempotentOperation.complete(201,response);return null; }); }
+    private PaymentProvider.Request prepare(String memberId,String success,String cancel) {
+        members.lock();var member=members.member(memberId);
+        if(!Set.of("PENDING","ACTIVE").contains(member.get("status"))) throw new ApiException(ErrorCode.INVALID_STATE);
+        String currency=configs.get(TenantContext.require()).club().currency();
+        var scope=members.submissions(memberId);
+        var due=payments.due(memberId,scope,currency);var method=member.get("paymentMethod") instanceof Map<?,?> map?map:Map.of();
+        boolean card="CARD".equals(method.get("type"));
+        if(due.amountMinor()==0&&!card) throw new ApiException(ErrorCode.INVALID_STATE);
+        var lines=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
+        if(lines.stream().anyMatch(l -> l.status().equals("CHECKOUT_PENDING"))) throw new ApiException(ErrorCode.INVALID_STATE);
+        String id=UUID.randomUUID().toString();Instant expires=clock.instant().plus(Duration.ofHours(24));
+        var ids=lines.stream().map(UpfrontPayments.Line::id).toList();String mode=due.amountMinor()==0?"setup":"payment";
+        // R-04-26 (E3-T13): each line in the language of the submission it belongs to, never one language for the member.
+        var locales=members.locales(memberId,scope);
+        var request=new PaymentProvider.Request(id,TenantContext.require(),memberId,mode,lines.stream().map(l -> new PaymentProvider.Item(l.id(),messages.format("signup:payment.concept."+l.concept(),Map.of(),Locale.forLanguageTag(locales.get(l.submission()))),l.amount().minus(l.paidAmount()))).toList(),
+                (String)member.get("email"),memberId,Map.of("clubId",TenantContext.require(),"memberId",memberId,"upfrontPaymentIds",ids),card?"off_session":null,success,cancel,expires);
+        sessions.insert(new SignupCheckoutSession(id,TenantContext.require(),memberId,"PENDING",mode,ids,expires,null));payments.pending(memberId,ids,id);
+        return request;
+    }
+    /**
+     * S04 R-04-23 and §5 (A3-01): a rejection closes the signup checkouts it leaves without purpose, inside the rejection's
+     * transaction: those that charge a row of {@code paymentIds} (the rejected submissions' rows, which the rejection
+     * cancels), and every open one when the member stops being a signup ({@code memberLeft}: a card setup included).
+     * Each goes to `EXPIRED`; the provider is asked to expire it after the commit, outside any transaction. A provider
+     * completion that still arrives takes the E34 path ({@link #complete}).
+     */
+    public void rejected(String memberId,Collection<String> paymentIds,boolean memberLeft) {
+        for(var session:sessions.openSignup(memberId)) {
+            if((memberLeft||session.upfrontPaymentIds().stream().anyMatch(paymentIds::contains))&&sessions.finish(session.id(),"EXPIRED",null)) {
+                afterCommit(() -> expireAtProvider(session));
+            }
+        }
+    }
+    private void expireAtProvider(SignupCheckoutSession session) {
+        var gateway=gateways.getIfAvailable();if(gateway==null) return;
+        try { gateway.expire(session.id()); }
+        catch(RuntimeException failure) {
+            // The session is EXPIRED on our side whatever the provider answers; a later completion is a late one (E34).
+            LOG.warn("Provider expiry failed: checkoutSessionId={} clubId={} error={}",session.id(),session.clubId(),failure.toString());
+        }
+    }
+    /** Runs {@code action} once the caller's transaction committed, outside it (never inside a retried unit of work). */
+    private void afterCommit(Runnable action) {
+        if(!TransactionSynchronizationManager.isSynchronizationActive()) { action.run();return; }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { outside.executeWithoutResult(status -> action.run()); }
         });
     }
     private void redirect(String value) {
@@ -69,17 +125,23 @@ public class CheckoutService {
     public record BookingCheckout(String sessionId,String paymentId) { }
     /**
      * The provider completed the session; `providerPaymentId` is its payment (kept on the session for S12 reconciliation).
-     * A booking session completed after its `expiresAt` (or already EXPIRED) is a late completion (E34): WARN + mark, never
-     * a confirmation and never an error; a provider retry keeps the first mark.
+     * A booking session completed after its `expiresAt`, any session already EXPIRED on our side, and a signup session whose
+     * rows are no longer `CHECKOUT_PENDING` (a rejection cancelled them) are late completions (E34, A3-01): WARN + mark,
+     * never a confirmation, never a `PAID` row, never a card on the member, and never an error; a provider retry keeps the
+     * first mark.
      */
     public void complete(String sessionId,String providerPaymentId,Map<String,Object> card) { finish(sessionId,true,providerPaymentId,card); }
     public void expire(String sessionId) { finish(sessionId,false,null,Map.of()); }
     private void finish(String id,boolean complete,String providerPaymentId,Map<String,Object> card) {
         transactions.run(() -> {
             members.lock();var session=sessions.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-            // E34: P7 (or a failed provider call) expired the booking checkout on our side, but the provider still took the money.
-            if(complete&&session.bookingId()!=null&&"EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return null; }
+            // E34: P7, a failed provider call or a rejection expired the checkout on our side, but the provider still took the money.
+            if(complete&&"EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return null; }
             if(!"PENDING".equals(session.status())) return null;
+            if(complete&&session.bookingId()==null&&!session.upfrontPaymentIds().isEmpty()&&!payments.checkoutPending(session.memberId(),id)) {
+                if(sessions.finish(id,"EXPIRED",providerPaymentId)) lateCompletion(session,providerPaymentId,"its signup rows were closed");
+                return null;
+            }
             if(complete&&!session.expiresAt().isAfter(clock.instant())) {
                 if(session.bookingId()==null) throw new ApiException(ErrorCode.INVALID_STATE);
                 // E34: past `bookings.paymentPendingMinutes` the booking is never confirmed. The session expires as P7 would expire

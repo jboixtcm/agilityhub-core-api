@@ -51,7 +51,8 @@ public final class CensusRequests {
             @Schema(requiredMode = NOT_REQUIRED) @Valid ManualInput manual) { }
     public record SepaInput(
             @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
-            @Schema(requiredMode = NOT_REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY) String iban,
+            @Schema(requiredMode = NOT_REQUIRED, accessMode = Schema.AccessMode.WRITE_ONLY, types = {"string", "null"},
+                    description = "SEPA_DD → SEPA_DD (E42): absent keeps the stored account, null clears it.") String iban,
             @Schema(requiredMode = NOT_REQUIRED) String holderName,
             @Schema(requiredMode = NOT_REQUIRED) String holderTaxId) { }
     public record CardInput(

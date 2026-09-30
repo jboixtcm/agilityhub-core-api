@@ -1,5 +1,6 @@
 package com.agilityhub.core.clubs.census.application;
 
+import com.agilityhub.core.clubs.census.domain.CensusRules;
 import com.agilityhub.core.clubs.census.domain.DemoDataset;
 import com.agilityhub.core.clubs.census.persistence.*;
 import com.agilityhub.core.clubs.catalogs.application.*;
@@ -78,8 +79,11 @@ public class DemoSeedService {
             member.planId = plan.get("_id").toString();
             member.priceId = prices.stream().filter(p -> member.planId.equals(p.get("planId")) && p.get("validTo") == null)
                     .map(p -> p.get("_id").toString()).findFirst().orElse(null);
+            // E43: a SEPA member carries the api's mandate (`{clubSlug}-{memberNumber}-1`, signed when it joined), so the E8
+            // remittance runs on the fictional census. A PENDING row gets its mandate at validation (DemoSignupSeeder).
             member.paymentMethod = row.number() % 3 == 0 ? Map.of("type", "MANUAL", "channel", "cash")
-                    : Map.of("type", "SEPA_DD", "iban", row.iban(), "holderName", row.firstName() + " " + row.surname());
+                    : Map.of("type", "SEPA_DD", "iban", row.iban(), "holderName", row.firstName() + " " + row.surname(),
+                            "mandateRef", CensusRules.mandateRef(config.club().slug(), row.number(), null), "mandateSignedAt", member.joinedAt);
             member.consents = Map.of("imageRights", Map.of("accepted", row.number() % 2 == 0, "at", reference));
             member.bookingBlock = Map.of("active", false); member.notificationPreferences = Map.of();
             if ("LEFT".equals(row.status())) { member.leftAt = reference.minusSeconds(86400L * 10); member.leftReason = "Fictional demo leave"; }

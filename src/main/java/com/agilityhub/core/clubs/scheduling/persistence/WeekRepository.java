@@ -21,6 +21,18 @@ public class WeekRepository extends TenantRepository<Week> {
         if (result == null) { throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION); }
         return result;
     }
+    /**
+     * S06 T-06-23 (E5-T28, A4-01): a class written into a week that is not VALIDATED writes the week too (`version + 1`), so it
+     * conflicts with a concurrent validation of that week and one of them runs again: the validation then sees the new
+     * DRAFT, or the class sees the VALIDATED week and is born ACTIVE. It is a real write: an identical replacement is a
+     * no-op for MongoDB and conflicts with nothing.
+     */
+    public void touch(Week week) {
+        var query = tenantQuery(week.clubId()).addCriteria(Criteria.where("_id").is(week.id()).and("version").is(week.version()));
+        if (mongo.updateFirst(query, new Update().inc("version", 1L), Week.class).getModifiedCount() != 1) {
+            throw new com.agilityhub.core.shared.domain.ApiException(com.agilityhub.core.shared.domain.ErrorCode.STALE_VERSION);
+        }
+    }
     public java.util.Optional<Week> forStart(java.time.LocalDate start) {
         return java.util.Optional.ofNullable(mongo.findOne(tenantQuery().addCriteria(Criteria.where("startDate").is(start)), Week.class));
     }

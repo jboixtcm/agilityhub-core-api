@@ -27,6 +27,26 @@ class CensusRulesTest {
         assertThat(CensusRules.maskedId("381234561P")).isEqualTo("38······1P");
         assertThat(CensusRules.maskedId(null)).isEqualTo("······"); assertThat(CensusRules.maskedId("123")).isEqualTo("······");
     }
+    /** E43 (INC-30, S12 §7): every mandate reference the api writes fits pain.008 `MndtId` (Max35Text) and is unique per club. */
+    @Test void E43_mandateReferencesFitPain008AndAreUniquePerClub() {
+        assertThat(CensusRules.mandateRef("canic", 87, null)).isEqualTo("canic-87-1");
+        String longest = "a-very-long-club-slug-of-forty-character"; assertThat(longest).hasSize(40);
+        var seen = new java.util.HashSet<String>();
+        for (int number : java.util.stream.IntStream.concat(java.util.stream.IntStream.rangeClosed(1, 2000), java.util.stream.IntStream.of(99_999, 1_000_000, Integer.MAX_VALUE)).toArray()) {
+            for (String slug : java.util.List.of("canic", longest, "club-with-trailing-hyphens-at-cut------x")) {
+                String reference = CensusRules.mandateRef(slug, number, null);
+                assertThat(reference).as(reference).hasSizeLessThanOrEqualTo(CensusRules.MANDATE_REF_MAX).matches("[a-z0-9-]+-" + number + "-1").doesNotContain("--" + number);
+                assertThat(seen.add(slug + "|" + reference)).as("unique in its club: " + reference).isTrue();
+            }
+        }
+        // A readmission signs a new mandate: the next sequence of the member's own previous one, never the same reference.
+        assertThat(CensusRules.mandateRef("canic", 87, "canic-87-1")).isEqualTo("canic-87-2");
+        assertThat(CensusRules.mandateRef("canic", 87, "canic-87-2")).isEqualTo("canic-87-3");
+        assertThat(CensusRules.mandateRef("canic", 87, "canic-870-1")).isEqualTo("canic-87-1");
+        assertThat(CensusRules.mandateRef("canic", 87, "AH-legacy")).isEqualTo("canic-87-1");
+        assertThat(CensusRules.mandateRef("canic", 87, "canic-87-x")).isEqualTo("canic-87-1");
+        assertThat(CensusRules.mandateRef(longest, Integer.MAX_VALUE, CensusRules.mandateRef(longest, Integer.MAX_VALUE, null))).hasSizeLessThanOrEqualTo(35).endsWith("-2");
+    }
     @Test void T_03_04_completeYearsAtEachClubLocalDate() {
         var time = Instant.parse("2026-09-03T00:30:00Z"); var birth = LocalDate.parse("2022-03-12");
         assertThat(CensusRules.age(birth, time.atZone(ZoneId.of("Europe/Madrid")).toLocalDate())).isEqualTo(4);

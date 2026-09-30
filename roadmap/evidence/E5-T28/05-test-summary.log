@@ -1,0 +1,17 @@
+./mvnw -q clean verify (via heavy.sh) -> exit 0; totals read from target/*-reports/TEST-*.xml
+surefire-reports: classes=158 tests=844 failures=0 errors=0 skipped=0
+  arch.ArchitectureTest: tests=14 failures=0 errors=0 skipped=0
+  clubs.census.domain.CensusRulesTest: tests=6 failures=0 errors=0 skipped=0
+  configuration.S04ErrorContractTest: tests=2 failures=0 errors=0 skipped=0
+  platform.application.ParameterCatalogContractTest: tests=2 failures=0 errors=0 skipped=0
+failsafe-reports: classes=101 tests=1192 failures=0 errors=0 skipped=0
+  clubs.bookings.api.SingleClassCheckoutIT: tests=11 failures=0 errors=0 skipped=0
+  clubs.census.api.CensusIT: tests=42 failures=0 errors=0 skipped=0
+  clubs.census.api.SignupCensusCorrectionsIT: tests=6 failures=0 errors=0 skipped=0
+  clubs.census.api.SignupIT: tests=33 failures=0 errors=0 skipped=0
+  clubs.census.api.SignupSecurityFixesIT: tests=50 failures=0 errors=0 skipped=0
+  clubs.census.application.DemoSeedsIT: tests=11 failures=0 errors=0 skipped=0
+  clubs.dashboard.api.DashboardIT: tests=11 failures=0 errors=0 skipped=0
+  clubs.messaging.application.SystemNotificationServiceIT: tests=16 failures=0 errors=0 skipped=0
+  clubs.scheduling.application.CalendarIT: tests=19 failures=0 errors=0 skipped=0
+  configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0

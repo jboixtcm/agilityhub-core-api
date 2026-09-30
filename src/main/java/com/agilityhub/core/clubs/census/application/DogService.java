@@ -55,7 +55,12 @@ public class DogService {
             // cannot change while it is pending; a wrong one is resolved by rejecting it. Sending the chip it has is no edit.
             if (readmission && !chip.equals(dog.chip)) { throw CensusAccess.readmissionFrozen(); }
             dog.chip = chip;
-        } else if (request.containsKey("chip")) { dog.chip = text(request.get("chip"), "chip", 20, false); if (dog.chip != null && dog.chip.isEmpty()) { dog.chip = null; } }
+        } else if (request.containsKey("chip")) {
+            // R-04-07 (E5-T28, A2-08): an ACTIVE dog's chip is normalised and checked per country profile like the signup's, so
+            // the `dog_chip` index compares it with the signups' chips; an empty one still clears it.
+            String chip = text(request.get("chip"), "chip", 40, false);
+            dog.chip = chip == null || chip.isEmpty() ? null : signups.getObject().chip(chip, "chip");
+        }
         if (request.containsKey("birthMonth")) {
             try { target.birthDate=YearMonth.parse(string(request.get("birthMonth"))).atDay(1); }
             catch(RuntimeException invalidMonth) { throw invalid("birthMonth","INVALID_VALUE"); }

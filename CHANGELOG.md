@@ -703,6 +703,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- E5-T28: corrections pulled forward by the global audit of 26-09 (census, signup, scheduling, seeds).
+  - SEPA → SEPA `PATCH /members/{id}/payment-method` is partial (INC-17, ruling E42): the account (`iban`, or a migrated
+    member's `ibanEncrypted` + `ibanLast4`), the holder and the holder tax id the request does not send are kept, with the
+    mandate; `sepa.iban: null` clears the account; another type replaces the method. The audit's bank view carries
+    `ibanLast4`, and `MemberPaymentMethodChanged.masked` reads it for a migrated account.
+  - White-label sender name (INC-25, ruling E48): `messaging.email.fromName` defaults to `""`, which `ClubEmailSettings`
+    resolves to `Club.name`; `seeds/club-minim.yaml` no longer overrides it; the row of `CATALEG_PARAMETRES.md` in `docs/`
+    changes with `catalog.yaml`.
+  - Mandate reference of new SEPA members (INC-30, ruling E43): the validation writes `{clubSlug}-{memberNumber}-1`
+    (≤ 35 characters, a long slug is cut; a readmission takes the next sequence) instead of `AH-{memberId}` (39);
+    `mandateSignedAt` stays the submission's (S04 R-04-10). `seed:demo` gives its SEPA members the same references.
+  - Rejection with an open checkout (INC-32, A3-01): the rejection expires the signup's open session (rows `CANCELLED`) and
+    asks the provider to expire it after the commit; a later provider completion of an `EXPIRED` signup session, or of
+    one whose rows were closed, takes the E34 path (`lateCompletionAt`, WARN, no `PAID` row, no card on a LEFT record).
+    `POST /checkout-sessions` runs in the signup's retried transaction (A3-06), with the provider call outside it.
+  - A week is never validated around a loose DRAFT class (INC-34, A4-01): a DRAFT class writes its week (`version + 1`),
+    so a concurrent validation conflicts and runs again; a VALIDATED week with DRAFT classes is validated again, keeping
+    its `validatedAt`.
+  - The ACTIVE dog's chip is normalised and checked per country profile on `PATCH /dogs/{id}` (INC-35, A2-08).
+  - D1 and the members list read a pending readmission's submitted name, payment method, image consent and reused dog
+    name (INC-33, A3-02); `Member.readmissionPending()` is the one accessor (A3 I-07).
 - E5-T27: corrections pulled forward by the global audit of 26-09 (identity, security, shared).
   - Member routes for dual-role accounts (INC-16, ruling E41): the S07, S08 and S09 member routes authorise
     `hasRole('MEMBER')` alone; MEMBER + INSTRUCTOR or MEMBER + ADMIN is served, a token without MEMBER stays 403. The account's own

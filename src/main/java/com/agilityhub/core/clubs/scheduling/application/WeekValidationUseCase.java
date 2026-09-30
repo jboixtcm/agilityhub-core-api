@@ -33,7 +33,10 @@ public class WeekValidationUseCase {
         return transactions.write(() -> {
             var before=planning.require(id); var drafts=classes.forWeek(id).stream().filter(c -> c.state()==ClassState.DRAFT).toList();
             if(drafts.isEmpty()) throw new ApiException(ErrorCode.NOTHING_TO_VALIDATE);
-            ClassSessionRules.transition(before.state(),WeekState.VALIDATED);
+            // T-06-23 (E5-T28, A4-01): a VALIDATED week that still holds DRAFT classes (written before a class create touched its
+            // week) validates them again: they become ACTIVE, and the week keeps its own `validatedAt`.
+            boolean again=before.state()==WeekState.VALIDATED;
+            if(!again) ClassSessionRules.transition(before.state(),WeekState.VALIDATED);
             if(context.config().modules().contains(Module.FREE_TRAINING)) {
                 var now=clock.instant();
                 drafts.stream().filter(c -> c.ringId()!=null && c.endsAt().isAfter(now)).forEach(c -> training.lockSlots(c.ringId(),c.startsAt(),c.endsAt()));
@@ -43,9 +46,10 @@ public class WeekValidationUseCase {
             var now=clock.instant(); var actor=events.actor();
             for(var draft:drafts) { var edit=new SessionEdit(draft); edit.state=ClassState.ACTIVE; classes.update(edit.snapshot(now,actor),draft.version()); }
             var after=new Week(before.id(),before.clubId(),before.isoYear(),before.isoWeek(),before.startDate(),before.endDate(),WeekState.VALIDATED,
-                    before.generatedAt(),before.generatedByAccountId(),before.weekdayTemplateId(),before.saturdayTemplateId(),now,actor,before.version()+1,
-                    before.createdAt(),before.createdByAccountId(),now,actor,before.openedAt(),before.openingNotifiedAt());
-            weeks.update(after,before.version()); audit.validated(before,after);
+                    before.generatedAt(),before.generatedByAccountId(),before.weekdayTemplateId(),before.saturdayTemplateId(),again?before.validatedAt():now,
+                    again?before.validatedByAccountId():actor,before.version()+1,before.createdAt(),before.createdByAccountId(),now,actor,before.openedAt(),before.openingNotifiedAt());
+            weeks.update(after,before.version());
+            if(!again) audit.validated(before,after);
             var ids=drafts.stream().map(ClassSession::id).toList();
             events.publish(SchedulingEvent.Kind.WeekValidated,id,Map.of("weekId",id,"classIds",ids));
             return Map.of("validatedClassIds",ids);

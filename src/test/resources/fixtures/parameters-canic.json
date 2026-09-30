@@ -197,7 +197,7 @@
     720,
     1440
   ],
-  "messaging.email.fromName": "Club Agility Cànic",
+  "messaging.email.fromName": "",
   "messaging.email.fromAddress": "no-reply@agilitydoghub.com",
   "messaging.email.replyTo": "",
   "messaging.sms.senderId": "AgilityHub",

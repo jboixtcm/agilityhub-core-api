@@ -13206,7 +13206,8 @@
             "type" : "string"
           },
           "iban" : {
-            "type" : "string",
+            "description" : "SEPA_DD → SEPA_DD (E42): absent keeps the stored account, null clears it.",
+            "type" : [ "string", "null" ],
             "writeOnly" : true
           }
         },
@@ -24549,7 +24550,7 @@
     },
     "/api/v1/checkout-sessions" : {
       "post" : {
-        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits.",
+        "description" : "S04 §6, R-04-20/26. BILLING required. ANON by host with signupToken, MEMBER for self, ADMIN for tenant member. Idempotency-Key is a UUID. Anonymous limit 10/hour per club and IP from proxy-injected X-Forwarded-For. No cookies or CSRF. E3-T03 enforces capability/ownership/redirect checks, encrypted anonymous replay protection and limits. E5-T28 (A3-06): the session and its rows commit in the signup's retried transaction (a concurrent census write never gives a 500), and the provider session opens after that commit; a provider failure expires the session again. A rejection of the signup expires its open session (A3-01).",
         "operationId" : "create_1",
         "parameters" : [ {
           "in" : "header",
@@ -24629,7 +24630,7 @@
                 }
               }
             },
-            "description" : "MEMBER_ERASED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED"
+            "description" : "MEMBER_ERASED, INVALID_STATE, IDEMPOTENCY_KEY_REUSED, STALE_VERSION"
           },
           "422" : {
             "content" : {
@@ -24912,7 +24913,7 @@
         "x-sortable" : [ "startsAt", "date" ]
       },
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent validation of the week runs again and validates it too (T-06-23, E5-T28).",
         "operationId" : "createClass",
         "requestBody" : {
           "content" : {
@@ -46218,7 +46219,7 @@
     },
     "/api/v1/members/{id}/payment-method" : {
       "patch" : {
-        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+        "description" : "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account («Compte no informat»). Another `type` replaces the method.",
         "operationId" : "updatePaymentMethod",
         "parameters" : [ {
           "in" : "path",
@@ -63363,7 +63364,7 @@
     },
     "/api/v1/weeks/{id}/validation" : {
       "post" : {
-        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.",
+        "description" : "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. A VALIDATED week that still holds DRAFT classes validates them again and keeps its `validatedAt` (T-06-23, E5-T28).",
         "operationId" : "validateWeek",
         "parameters" : [ {
           "in" : "path",

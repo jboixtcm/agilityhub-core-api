@@ -13,6 +13,10 @@ public class SignupCheckoutRepository extends TenantRepository<SignupCheckoutSes
         var update=new Update().set("status",status);if(providerPaymentId!=null) update.set("providerPaymentId",providerPaymentId);
         return mongo.updateFirst(tenantQuery().addCriteria(Criteria.where("_id").is(id).and("status").is("PENDING")),update,SignupCheckoutSession.class).getModifiedCount()==1;
     }
+    /** The member's open signup checkouts (`PENDING`, no `bookingId`). */
+    public java.util.List<SignupCheckoutSession> openSignup(String memberId) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("status").is("PENDING").and("bookingId").is(null)),SignupCheckoutSession.class);
+    }
     /** E34: the first late completion keeps its mark, so a provider retry of the same completion changes nothing. */
     public boolean markLateCompletion(String id,String providerPaymentId,Instant at) {
         var update=new Update().set("lateCompletionAt",at);if(providerPaymentId!=null) update.set("providerPaymentId",providerPaymentId);

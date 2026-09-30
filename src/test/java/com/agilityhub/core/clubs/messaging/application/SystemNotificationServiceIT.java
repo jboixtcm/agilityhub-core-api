@@ -97,6 +97,21 @@ class SystemNotificationServiceIT extends AbstractIntegrationTest {
         try (var tenant = TenantContext.open("club-b")) { assertThat(notifications.findById(id)).isEmpty(); }
         assertThat(notifications.findSystem(id)).isEmpty();
     }
+    /** E48 (INC-25, white label): without `messaging.email.fromName` the catalog default is empty, which means the club's name. */
+    @Test void T_11_25_senderNameWithoutTheParameterIsTheClubName() {
+        account("en");
+        mongo.remove(Query.query(Criteria.where("_id").is("club-a")), Club.class);
+        mongo.insert(fixtures.read("fixtures/platform/club.json", Club.class));
+        mongo.remove(Query.query(Criteria.where("clubId").is("club-a")), Parameter.class); configs.invalidate("club-a");
+        try (var tenant = TenantContext.open("club-a")) {
+            assertThat(configs.get("club-a").get("messaging.email.fromName", String.class)).isEmpty();
+            service.send("N-25", "email-account", Map.of("link", "https://id.example.test/sign-in/example"));
+        }
+        assertThat(mailbox().lastTo("mailbox@example.test").from().name()).isEqualTo("Example Agility Club");
+        parameter("messaging.email.fromName", "  ", "string"); configs.invalidate("club-a");
+        try (var tenant = TenantContext.open("club-a")) { service.send("N-25", "email-account", Map.of("link", "https://id.example.test/sign-in/example")); }
+        assertThat(mailbox().lastTo("mailbox@example.test").from().name()).isEqualTo("Example Agility Club");
+    }
     private void parameter(String key, Object value, String type) {
         mongo.insert(new Parameter("email-" + key, "club-a", key, value, type, "club", null, List.of(), null, clock.instant()));
     }

@@ -46,6 +46,8 @@ public class ClassSessionService {
                     week.state() == WeekState.VALIDATED ? ClassState.ACTIVE : ClassState.DRAFT, new ClassSession.Counters(0, 0),
                     new ClassSession.Risk(false, List.of(), null, null), null, null, null, null, -1L, now, actor, now, actor);
             var edit = new SessionEdit(draft); validate(edit, cancelBookings, true);
+            // T-06-23 (A4-01): never a DRAFT class in a VALIDATED week. A DRAFT writes its week, so a concurrent validation conflicts.
+            if (week.state() != WeekState.VALIDATED) { weeks.touch(week); }
             var saved = classes.insert(edit.snapshot(now, actor));
             events.publish(SchedulingEvent.Kind.ClassSessionCreated, saved.id(), Map.of("classId", saved.id())); return saved;
         });

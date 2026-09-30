@@ -34,6 +34,23 @@ public final class CensusRules {
         if (value == null || value.length() <= 4) { return "······"; }
         return value.substring(0, 2) + "······" + value.substring(value.length() - 2);
     }
+    /** pain.008 `MndtId` is `Max35Text`. */
+    public static final int MANDATE_REF_MAX = 35;
+    /**
+     * E43 (S12 §7, S18 R-18-08): the mandate of a member is `{clubSlug}-{memberNumber}-{n}`, the migrated format, never above
+     * 35 characters: a long slug is cut. The last two segments are the member number and {@code n}, so two members of a club
+     * never share a reference. {@code n} is 1, or the next one after {@code previous} when that was this member's own mandate
+     * (a readmission signs a new mandate, and a creditor never reuses a reference).
+     */
+    public static String mandateRef(String clubSlug, int memberNumber, String previous) {
+        String suffix = "-" + memberNumber + "-";
+        String slug = clubSlug.substring(0, Math.min(clubSlug.length(), MANDATE_REF_MAX - suffix.length() - 4)).replaceAll("-+$", "");
+        int sequence = 1;
+        if (previous != null && previous.startsWith(slug + suffix) && previous.substring((slug + suffix).length()).matches("[0-9]{1,3}")) {
+            sequence = Integer.parseInt(previous.substring((slug + suffix).length())) + 1;
+        }
+        return slug + suffix + sequence;
+    }
     public static int age(LocalDate birth, LocalDate today) { return birth == null ? 0 : Period.between(birth, today).getYears(); }
     public static void mutable(Instant erasedAt) { if (erasedAt != null) { throw new ApiException(ErrorCode.MEMBER_ERASED); } }
 }

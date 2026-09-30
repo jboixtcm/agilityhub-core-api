@@ -15,4 +15,9 @@ public interface SignupPaymentAccess {
     java.util.List<UpfrontPayments.Submission> submissions(String memberId);
     /** R-04-26 (E3-T13): the language each submission of the scope describes its payment lines in. */
     Map<UpfrontPayments.Submission,String> locales(String memberId, java.util.List<UpfrontPayments.Submission> scope);
+    /**
+     * R-04-27 (A3-06): the signup submissions' retried transaction (`SignupTransactions`): a write conflict with a concurrent
+     * census write runs {@code work} again, and exhausted attempts answer `409 STALE_VERSION`, never a 500.
+     */
+    <T> T write(java.util.function.Supplier<T> work);
 }

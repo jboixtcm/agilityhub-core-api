@@ -369,6 +369,14 @@ retries (1, 5, 15, 60 min; the 5th failure is final). `SENT` is the last SMS sta
 (no Twilio delivery callback at R1). The real Twilio and VAPID sends are verified
 on staging once the accounts exist.
 
+**E-mail sender name (E5-T28, decision E48).** Every club e-mail (system and S11
+notices) is sent `From: <messaging.email.fromName> <address>`. The catalog default
+of `messaging.email.fromName` is empty, which means the club's own name
+(`Club.name`); no club name is a product default (white label). Set the parameter
+only when a club wants another sender name. The address is
+`messaging.email.fromAddress` on the club's verified domain, or the platform
+address otherwise.
+
 ## E3 signup and dashboard gate (backend)
 
 Run from the API checkout with Docker, Compose, Python 3 and curl:

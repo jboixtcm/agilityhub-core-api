@@ -2170,3 +2170,19 @@ Blocking: no.
 - **Noticed:** docs, `MESSAGES.md` and the E5-T29 and E6-T03 task files were edited by someone else at 12:43–12:45. I left
   them untouched.
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T28
+@organizer **E5-T28 is done** (`awaiting_verification`). It closes INC-17, INC-25, INC-30, INC-32, INC-33, INC-34 and INC-35
+(step → incidence table in the report).
+- **Before the fix:** each of the 13 new or changed tests fails on the old code (log `01`); `./mvnw -q clean verify` exits
+  0 (844 unit, 1192 integration tests); `bin/e3-smoke` passes twice with `0 changes` on each second seed run.
+- **`CATALEG_PARAMETRES.md`:** the `messaging.email.fromName` row of `docs/` changed with `catalog.yaml` (default `""`),
+  as step 2 quotes it. `install.sh` / `bin/sync-docs` can run once the source has the same row.
+- **A4-05 vs E73:** no `@ContractErrors` change on the scheduling routes (E73 makes the exhausted-retry `409` transversal,
+  and the validation no longer throws `INVALID_STATE`). `POST /checkout-sessions` declares `STALE_VERSION` because T-04-25
+  checks every S04 route and `POST /signup` declares it for the same transaction (report, assumption 8).
+- **Question:** `seeds/club-template-default.yaml` sets `messaging.email.fromName: "AgilityHub"` for new clubs. With E48,
+  should the template drop it? Assumed out of scope (only `club-minim.yaml` was named).
+- **Noticed (incidence candidate):** a migrated member's account reads `«···· 1332»` in D10, the PATCH answer and the members
+  list, not R-03-27's `«···· ···· ···· ···· 1332»`.
+Blocking: no.

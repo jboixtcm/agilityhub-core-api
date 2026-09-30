@@ -835,7 +835,7 @@ parameters:
     documentDefault: "60,120,240,360,720,1440"
   - key: "messaging.email.fromName"
     type: "string"
-    default: "Club Agility Cànic"
+    default: ""
     block: "messaging"
     labelKey: "admin-settings:param.messaging.email.fromName.label"
     helpKey: "admin-settings:param.messaging.email.fromName.help"
@@ -845,7 +845,7 @@ parameters:
     editableBy: "CLUB"
     restartRequired: false
     documentType: "string"
-    documentDefault: "Club Agility Cànic"
+    documentDefault: "`\"\"`"
   - key: "messaging.email.fromAddress"
     type: "string"
     default: "no-reply@agilitydoghub.com"

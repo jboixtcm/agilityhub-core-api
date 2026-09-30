@@ -28,13 +28,26 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private List<Document> memberStages() {
         var stages = new ArrayList<Document>();
         stages.add(dateFields("birthDate", "leaveDate", "nextInvoiceDate"));
+        // R-04-06 (E38, INC-33): a pending readmission is listed with what it submitted, as D2 and N-01 show it: the name, the
+        // payment method («Compte no informat») and an image consent entry it brings; the LEFT record's values otherwise.
+        Object readmission = expr("$and", expr("$eq", "$status", "PENDING"), expr("$ne", fallback("$readmissionRequest", null), null));
+        stages.add(new Document("$set", new Document("firstName", condition(readmission, "$readmissionRequest.submitted.firstName", "$firstName"))
+                .append("lastName1", condition(readmission, "$readmissionRequest.submitted.lastName1", "$lastName1"))
+                .append("lastName2", condition(readmission, "$readmissionRequest.submitted.lastName2", "$lastName2"))
+                .append("paymentMethod", condition(readmission, "$readmissionRequest.submitted.paymentMethod", "$paymentMethod"))
+                .append("submittedImage", condition(readmission, expr("$arrayElemAt", new Document("$filter", new Document("input", fallback("$readmissionRequest.submitted.consents", List.of()))
+                        .append("as", "entry").append("cond", expr("$eq", "$$entry.type", "IMAGE_USE"))), -1), "$$REMOVE"))));
         if (configs.get(TenantContext.require()).modules().contains(com.agilityhub.core.platform.application.Module.INACTIVITY)) {
             String today = clock.today(TenantContext.require()).toString();
             stages.add(join("inactivity_periods", "$_id", "memberId", "inactivity", List.of(dateFields("from", "to"),
                     new Document("$match", new Document("from", new Document("$lte", today)).append("to", new Document("$gte", today))
                             .append("status", new Document("$nin", List.of("CANCELLED", "REJECTED", "DENIED")))))));
         }
-        stages.add(join("dogs", "$_id", "memberId", "dogs", dogStages(false)));
+        var dogs = dogStages(false);
+        // E38 (E3-T17): the reused dog of a pending readmission shows its submitted name.
+        dogs.add(new Document("$set", new Document("name", condition(expr("$and", expr("$eq", "$status", "PENDING"), expr("$ne", fallback("$readmissionRequest", null), null)),
+                fallback("$readmissionRequest.submitted.name", "$name"), "$name"))));
+        stages.add(join("dogs", "$_id", "memberId", "dogs", dogs));
         stages.add(join("plans", "$planId", "_id", "plan", List.of()));
         stages.add(join("family_groups", "$familyGroupId", "_id", "familyGroup", List.of()));
         stages.add(join("memberships", "$_id", "memberId", "membership", List.of()));
@@ -48,6 +61,7 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
         Object latestImage=expr("$arrayElemAt",new Document("$filter",new Document("input","$consents").append("as","consent").append("cond",expr("$eq","$$consent.type","IMAGE_USE"))),-1);
         stages.add(new Document("$set",new Document("consents",new Document("$cond",List.of(ledger,new Document("imageRights",latestImage),fallback("$consents",new Document()))))
                 .append("pendingDogs",new Document("$filter",new Document("input","$dogs").append("as","dog").append("cond",expr("$eq","$$dog.status","PENDING"))))));
+        stages.add(new Document("$set",new Document("consents.imageRights",new Document("$cond",java.util.Arrays.asList(expr("$ne",fallback("$submittedImage",null),null),"$submittedImage","$consents.imageRights")))));
         // S04 §3 (E3-T10): an add-dog submission keeps its block on its dog. For an ACTIVE member the signup of the list (its
         // `submittedAt`, its READMISSION warning) is the oldest pending dog's block; the public signup otherwise.
         Object oldestPending=expr("$arrayElemAt",new Document("$sortArray",new Document("input",fallback("$pendingDogs.signup",List.of())).append("sortBy",new Document("submittedAt",1))),0);
@@ -215,4 +229,5 @@ public class CensusListProjection extends TenantRepository<CensusListProjection.
     private static Document map(Object input, String as, Object in) { return new Document("$map", new Document("input", input).append("as", as).append("in", in)); }
     private static Document expr(String op, Object... values) { return new Document(op, Arrays.asList(values)); }
     private static Document fallback(Object value, Object fallback) { return expr("$ifNull", value, fallback); }
+    private static Document condition(Object test, Object yes, Object no) { return expr("$cond", test, yes, no); }
 }

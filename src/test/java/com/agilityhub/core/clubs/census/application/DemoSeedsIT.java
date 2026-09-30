@@ -191,6 +191,27 @@ class DemoSeedsIT extends AbstractIntegrationTest {
         mvc.perform(get("/api/v1/members").header("Host", "minim.example.test")
                 .with(jwt().jwt(j -> j.subject("demo-admin").claim("clubId", club)).authorities(() -> "ROLE_ADMIN"))).andExpect(status().isForbidden());
     }
+    /**
+     * E43 (INC-30, S12 §7, T-12-14's fictional census): every SEPA member the demo seeds carries its mandate in the migrated
+     * format, `{clubSlug}-{memberNumber}-1`, within pain.008's 35 characters, unique in the club, signed when it joined. A
+     * PENDING signup has none: its mandate comes with the validation (S04 R-04-10).
+     */
+    @Test void E43_T_12_14_theDemoSepaMembersCarryUniqueMandatesWithinPain008() throws Exception {
+        String club = club();
+        command.run(new DefaultApplicationArguments("--club=canic"));
+        var sepa = mongo.find(Query.query(Criteria.where("clubId").is(club).and("paymentMethod.type").is("SEPA_DD")), Document.class, "members");
+        assertThat(sepa).isNotEmpty();
+        var references = new HashSet<String>();
+        for (var member : sepa) {
+            var payment = member.get("paymentMethod", Document.class);
+            if ("PENDING".equals(member.getString("status"))) { assertThat(payment.get("mandateRef")).as(member.getString("_id")).isNull(); continue; }
+            String reference = payment.getString("mandateRef");
+            assertThat(reference).as(member.getString("_id")).isEqualTo("canic-" + member.getInteger("memberNumber") + "-1").hasSizeLessThanOrEqualTo(35);
+            assertThat(payment.get("mandateSignedAt")).isEqualTo(member.get("joinedAt"));
+            assertThat(references.add(reference)).as("unique " + reference).isTrue();
+        }
+        assertThat(references).isNotEmpty();
+    }
     @Test void T_05_21_configurationAndCatalogsUseTheSameTransactionWithoutCachingRolledBackValues() throws Exception {
         String club = club(); var original = configs.get(club); var input = seed();
         ((com.fasterxml.jackson.databind.node.ArrayNode) input.path("modules")).add("SINGLE_CLASS");

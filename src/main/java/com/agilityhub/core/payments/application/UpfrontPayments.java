@@ -160,6 +160,10 @@ public class UpfrontPayments {
         return new UpfrontPayment(UUID.nameUUIDFromBytes(("correction:"+p.id()).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString(),p.clubId(),p.memberId(),p.dogId(),
                 p.concept(),p.signupConcept(),p.amountPaid(),p.amountPaid(),"PAID",p.provider(),null,clock.instant(),p.paidAt(),p.bookingId(),p.submissionId(),p.id());
     }
+    /** Whether a row of the member still waits for {@code session} (`CHECKOUT_PENDING`); a rejection cancels them (A3-01). */
+    public boolean checkoutPending(String memberId,String session) {
+        return repository.member(memberId).stream().anyMatch(p -> session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status()));
+    }
     public void pending(String memberId,List<String> ids,String session) {
         for(var p:repository.member(memberId)) if(ids.contains(p.id())) {
             if(!Set.of("DUE","PARTIAL").contains(p.status())) throw new ApiException(ErrorCode.INVALID_STATE);

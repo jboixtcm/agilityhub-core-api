@@ -41,7 +41,7 @@ public class MemberService {
         version(member.version(), request.get("version"));
         // R-04-06 (E38): during a pending readmission, a D2 edit of the person fields edits the submitted values; the LEFT
         // record keeps its own until validation applies them.
-        boolean readmission = pending && signups.getObject().readmissionPending(member);
+        boolean readmission = member.readmissionPending();
         var target = readmission ? signups.getObject().submittedView(member) : member;
         var before = snapshot(member, target);
         var paymentBefore=target.paymentMethod;
@@ -133,15 +133,21 @@ public class MemberService {
         Map<String,Object> payment = object("type", type);
         if ("SEPA_DD".equals(type)) {
             var sepa = map(request.get("sepa")); allow(sepa, Set.of("iban", "holderName", "holderTaxId"));
-            String iban = string(sepa.get("iban")); if (iban != null) { iban = iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT); }
-            if (iban != null && !countries.iban(iban)) { throw new ApiException(ErrorCode.INVALID_IBAN); }
-            String tax = text(sepa.get("holderTaxId"), "sepa.holderTaxId", 80, false);
-            if (tax != null && "ES".equals(countries.countryCode())
+            // R-03-07 (E42): a SEPA_DD → SEPA_DD PATCH is partial. The account (`iban`, or the `ibanEncrypted` + `ibanLast4` of a
+            // migrated member), the holder and the holder tax id the request does not send are kept; an explicit `"iban": null`
+            // clears the account («Compte no informat»). A change of type replaces the method.
+            var current = map(member.paymentMethod); boolean kept = "SEPA_DD".equals(current.get("type"));
+            if (sepa.containsKey("iban") || !kept) {
+                String iban = string(sepa.get("iban")); if (iban != null) { iban = iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT); }
+                if (iban != null && !countries.iban(iban)) { throw new ApiException(ErrorCode.INVALID_IBAN); }
+                payment.putAll(object("iban", iban));
+            } else { payment.putAll(select(current, "iban", "ibanEncrypted", "ibanLast4")); }
+            String tax = sepa.containsKey("holderTaxId") || !kept ? text(sepa.get("holderTaxId"), "sepa.holderTaxId", 80, false) : string(current.get("holderTaxId"));
+            if (sepa.containsKey("holderTaxId") && tax != null && "ES".equals(countries.countryCode())
                     && !countries.document(tax.startsWith("X") || tax.startsWith("Y") || tax.startsWith("Z") ? "NIE" : "DNI", tax)) { throw invalid("sepa.holderTaxId", "INVALID_VALUE"); }
-            payment.putAll(object("iban", iban, "holderName", text(sepa.get("holderName"), "sepa.holderName", 120, true), "holderTaxId", tax));
-            if ("SEPA_DD".equals(map(member.paymentMethod).get("type"))) {
-                payment.putAll(select(map(member.paymentMethod), "mandateRef", "mandateSignedAt"));
-            }
+            Object holder = sepa.containsKey("holderName") || !kept ? sepa.get("holderName") : current.get("holderName");
+            payment.putAll(object("holderName", text(holder, "sepa.holderName", 120, true), "holderTaxId", tax));
+            if (kept) { payment.putAll(select(current, "mandateRef", "mandateSignedAt")); }
         } else {
             var manual = map(request.get("manual")); allow(manual, Set.of("channel"));
             String channel = text(manual.get("channel"), "manual.channel", 30, true);
@@ -150,8 +156,9 @@ public class MemberService {
         }
         if (payment.equals(member.paymentMethod)) { return; }
         member.paymentMethod = payment; access.members.save(member);
+        String last4 = string(payment.get("ibanLast4"));
         events.emit("MemberPaymentMethodChanged", "Member", id, object("memberId", id, "type", type,
-                "masked", com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(string(payment.get("iban")))));
+                "masked", com.agilityhub.core.clubs.census.domain.CensusRules.maskedIban(last4 != null ? last4 : string(payment.get("iban")))));
     }
     @Transactional
     @Audited(action = AuditAction.BOOKING_BLOCK_SET, entityType = "'Member'", entity = "#id", member = "#id", reason = "#reason")

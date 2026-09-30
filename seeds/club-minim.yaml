@@ -42,7 +42,6 @@ paymentProviders:
   MANUAL:
     enabled: true
 parameters:
-  messaging.email.fromName: "Club Mínim"
   signup.enabled: true
   signup.requireDogDocumentAtSignup: false
   signup.allowFamilyGroupPending: false

@@ -34,6 +34,8 @@ public class Member extends CensusEntity {
      * `leftAt`, `leftReason`, `leaveDate`, claim and signup block of the LEFT record). Absent otherwise.
      */
     public Map<String,Object> readmissionRequest;
+    /** R-04-06 (E38): a readmission waits for its decision; its submitted values are in `readmissionRequest.submitted`. */
+    public boolean readmissionPending() { return readmissionRequest != null && "PENDING".equals(status); }
     public Map<String,Object> familyGroupClaim;
     public String remarks;
     public String internalNotes;

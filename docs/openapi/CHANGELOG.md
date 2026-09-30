@@ -2,6 +2,30 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E5-T28 · audit corrections (census, signup, scheduling)
+
+**0 operations added or removed, 4 changed (descriptions, and one `409` on the checkout); 1 schema changed (`SepaInput.iban`).**
+- **`PATCH /members/{id}/payment-method`** (step 1, S03 R-03-07, ruling E42, INC-17): SEPA_DD → SEPA_DD is partial. The
+  account the request does not send is kept (`iban`, or a migrated member's `ibanEncrypted` + `ibanLast4`), and so are
+  `holderName`, `holderTaxId` and the mandate; `sepa.iban: null` clears the account («Compte no informat»); another
+  `type` replaces the method. Behaviour change: `{type: SEPA_DD, sepa: {holderName}}` used to erase the IBAN.
+- **`SepaInput.iban`**: `["string", "null"]` with the E42 description (absent keeps, `null` clears). It is also the
+  `paymentMethod.sepa` of the D2 `PATCH /members/{id}`, which already had these semantics (R-04-19).
+- **`POST /weeks/{id}/validation`** (step 5, T-06-23, A4-01): a VALIDATED week that still holds DRAFT classes validates
+  them again (`200 {validatedClassIds}`, `WeekValidated` with those ids) and keeps its `validatedAt`; it was
+  `409 INVALID_STATE`. No `@ContractErrors` change: the route no longer throws `INVALID_STATE`, and a `409
+  STALE_VERSION` after the retries is transversal (CONVENCIONS_API §7, ruling E73 of 30-09, which supersedes A4-05).
+- **`POST /class-sessions`** (step 5): a class created in a week that is not VALIDATED writes its week (`Week.version`
+  + 1), so it conflicts with a concurrent validation and one of them runs again; never a DRAFT class in a VALIDATED week.
+- **`POST /checkout-sessions`** (step 4, A3-06): the session and its `CHECKOUT_PENDING` rows commit in the signup's
+  retried transaction (a concurrent census write never gives a `500`); the provider session opens after that commit,
+  and a provider failure expires it again and releases the key. It now declares `409 STALE_VERSION` (the retries ran
+  out), as `POST /signup` and `POST /me/dogs/signup` do for the same transaction (T-04-25 checks every S04 route).
+- Not in the document (step 4, A3-01, INC-32): `POST /members/{id}/rejection` expires the signup's open checkout
+  (session `EXPIRED`, rows `CANCELLED`) and asks the provider to expire it after the commit. A provider completion of an
+  `EXPIRED` signup session, or of one whose rows are no longer `CHECKOUT_PENDING`, is a late completion (E34):
+  `lateCompletionAt` + `providerPaymentId` on the session and a WARN, no `PAID` row, no card on the member.
+
 ## 2026-09-30 · E5-T27 round 3 · the health never reads a bearer
 
 **0 operations added or removed, 1 changed (description only); 0 schemas changed.**

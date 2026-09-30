@@ -38,7 +38,8 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
                 lookup("dogs", "$_id", "memberId", "pendingDogs", List.of(
                         new Document("$match", new Document("status", "PENDING")),
                         new Document("$sort", new Document("signup.submittedAt", 1).append("_id", 1)),
-                        new Document("$project", new Document("name", 1).append("breed", 1).append("signup", 1).append("createdAt", 1)))),
+                        // R-04-06 (E38, INC-33): the reused dog of a pending readmission shows what was submitted, as D2 does.
+                        new Document("$project", new Document("name", submitted("name")).append("breed", submitted("breed")).append("signup", 1).append("createdAt", 1)))),
                 new Document("$match", new Document("$or", List.of(new Document("status", "PENDING"), new Document("pendingDogs.0", new Document("$exists", true)))))));
     }
     public int pendingCount() {
@@ -66,6 +67,16 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
         stages.add(new Document("$set", new Document("imageConsent", condition(new Document("$isArray", "$consents"),
                 new Document("$let", new Document("vars", new Document("latest", expr("$arrayElemAt", imageEntries, -1)))
                         .append("in", fallback("$$latest.granted", false))), fallback("$consents.imageRights.granted", false)))));
+        // R-04-06 (E38, INC-33): a pending readmission is judged on what it submitted, as D2 (`SignupService.warnings`) and N-01
+        // do: the name, the payment method («Compte no informat») and an image consent entry it brings; the LEFT record otherwise.
+        Object readmission = expr("$and", expr("$eq", "$status", "PENDING"), expr("$ne", fallback("$readmissionRequest", null), null));
+        Object submittedImage = expr("$arrayElemAt", new Document("$filter", new Document("input", fallback("$readmissionRequest.submitted.consents", List.of()))
+                .append("as", "entry").append("cond", expr("$eq", "$$entry.type", "IMAGE_USE"))), -1);
+        stages.add(new Document("$set", new Document("firstName", condition(readmission, "$readmissionRequest.submitted.firstName", "$firstName"))
+                .append("lastName1", condition(readmission, "$readmissionRequest.submitted.lastName1", "$lastName1"))
+                .append("paymentMethod", condition(readmission, "$readmissionRequest.submitted.paymentMethod", "$paymentMethod"))
+                .append("imageConsent", condition(readmission, new Document("$let", new Document("vars", new Document("latest", submittedImage))
+                        .append("in", condition(expr("$ne", fallback("$$latest", null), null), fallback("$$latest.granted", false), "$imageConsent"))), "$imageConsent"))));
         stages.add(new Document("$project", new Document("firstName", 1).append("lastName1", 1).append("status", 1)
                 .append("pendingDogs.name", 1).append("pendingDogs.breed", 1).append("requestedPlan.name", 1)
                 .append("paymentMethodType", "$paymentMethod.type").append("imageConsent", 1)
@@ -116,6 +127,10 @@ public class DashboardRepository extends TenantRepository<DashboardRepository.Pr
                 .append("pipeline", stages).append("as", alias));
     }
     private static Document expr(String op, Object... values) { return new Document(op, Arrays.asList(values)); }
+    /** A pending dog's {@code field}: the submitted value when it is a readmission's reused dog (E38), its own otherwise. */
+    private static Object submitted(String field) {
+        return condition(expr("$ne", fallback("$readmissionRequest", null), null), fallback("$readmissionRequest.submitted." + field, "$" + field), "$" + field);
+    }
     private static Object condition(Object test, Object yes, Object no) { return expr("$cond", test, yes, no); }
     private static Object fallback(Object value, Object other) { return expr("$ifNull", value, other); }
     private static Object date(Object value) { return new Document("$convert", new Document("input", value).append("to", "date").append("onError", null).append("onNull", null)); }

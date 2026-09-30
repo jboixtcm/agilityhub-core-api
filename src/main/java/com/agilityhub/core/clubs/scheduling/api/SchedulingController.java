@@ -201,7 +201,8 @@ public class SchedulingController {
     @PostMapping("/api/v1/weeks/{id}/validation")
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, WEEK_INCONSISTENT, NOTHING_TO_VALIDATE})
-    @Operation(summary = "validateWeek", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "200", description = "ValidationResult", useReturnTypeSchema = true))
+    @Operation(summary = "validateWeek", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. "
+            + "A VALIDATED week that still holds DRAFT classes validates them again and keeps its `validatedAt` (T-06-23, E5-T28).", responses = @ApiResponse(responseCode = "200", description = "ValidationResult", useReturnTypeSchema = true))
     public ValidationResult validateWeek(@PathVariable String id, @Valid @RequestBody EmptyRequest request) {
         access.tenant();
         access.week(id);
@@ -234,7 +235,9 @@ public class SchedulingController {
     @PreAuthorize("hasAnyRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @ContractErrors({VALIDATION_ERROR, NOT_FOUND, IMPERSONATION_DENIED, INVALID_TIME_RANGE, INVALID_SLOT_GRANULARITY, OUTSIDE_OPENING_HOURS, TOO_MANY_INSTRUCTORS, LEVEL_REQUIRED, DESCRIPTION_REQUIRED, RING_HAS_BOOKINGS, RING_BLOCKED})
-    @Operation(summary = "createClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT.", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
+    @Operation(summary = "createClass", description = "Roles: ADMIN. Tenant and role guards apply.  Tenant comes from the JWT. "
+            + "In a VALIDATED week the class is ACTIVE; otherwise it is a DRAFT and its week's `version` goes up by one, so a concurrent "
+            + "validation of the week runs again and validates it too (T-06-23, E5-T28).", responses = @ApiResponse(responseCode = "201", description = "ClassSession", useReturnTypeSchema = true))
     public ClassSession createClass(@Valid @RequestBody ClassSessionCreateRequest request) {
         access.tenant();
         return view(projections.session(sessions.create(request.date(),request.startTime(),request.endTime(),request.ringId(),request.levelIds(),request.instructorIds(),request.capacity(),request.description(),Boolean.TRUE.equals(request.cancelBookings())),false,java.util.List.of()),ClassSession.class);

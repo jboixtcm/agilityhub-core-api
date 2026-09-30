@@ -162,8 +162,9 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 || path.equals("/api/v1/training-bookings") || path.matches("/api/v1/training-bookings/[^/]+/cancellation")
                 || "PUT".equals(request.getMethod()) && ATTENDANCE.matcher(path).matches();
         // E3-T09 (R-04-27): the signup submissions retry a write conflict inside their own transaction (SignupTransactions),
-        // so two concurrent submissions give one 201 and one 422, never a 500.
-        boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup");
+        // so two concurrent submissions give one 201 and one 422, never a 500. E5-T28 (A3-06): the signup checkout too; its
+        // provider call runs between its two transactions.
+        boolean signup = publicSignup || path.equals("/api/v1/me/dogs/signup") || checkout;
         // S10 (E6-T03 rounds 4 and 5, INC-47): two keyed follow-up writes that meet on one document answer the spec's conflict
         // code (STALE_VERSION, TASK_ALREADY_DONE, NOT_FOUND, …) or both succeed, never a 500; like the signup, an error releases the key.
         boolean followup = FOLLOWUP.matcher(request.getMethod() + " " + path).matches();

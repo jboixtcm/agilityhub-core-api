@@ -95,7 +95,10 @@ public class MembersController {
     @RequiresModule(Module.BILLING)
     @ContractErrors({INVALID_IBAN, PAYMENT_PROVIDER_NOT_ENABLED, MEMBER_ERASED})
     @Operation(summary = "Update payment method",
-            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations.",
+            description = "Tenant comes from the JWT. ADMIN endpoints reject impersonation; erased members reject mutations. "
+                    + "SEPA_DD → SEPA_DD is partial (S03 R-03-07, E42): the account (`iban`, or a migrated member's encrypted one), `holderName` "
+                    + "and `holderTaxId` the request does not send are kept, and so is the mandate; `sepa.iban: null` clears the account "
+                    + "(«Compte no informat»). Another `type` replaces the method.",
             responses = @ApiResponse(responseCode = "200", description = "PaymentMethodView", content = @Content(schema = @Schema(implementation = PaymentMethodView.class))))
     public Object updatePaymentMethod(@PathVariable String id, @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(schema = @Schema(implementation = PaymentMethodPatch.class))) @RequestBody java.util.Map<String,Object> request) { return transactions.run(() -> { members.payment(id, request); return queries.member(id, true).get("paymentMethod"); }); }
 
