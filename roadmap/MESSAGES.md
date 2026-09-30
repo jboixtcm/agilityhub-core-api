@@ -2236,3 +2236,16 @@ Blocking: no.
 - **Not a gap in the contract test:** `CheckoutService.expire` got its own path. T-04-25's traversal otherwise saw the checkout
   route reach `members.card` through the provider's expiry, and an expiry never writes a card (report, assumption 5).
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E6-T05
+@organizer **E6-T05 is done** (`awaiting_verification`).
+- **The field:** `HistoryItem.activityId` is `string | null`, not required, always sent. Every `ACTIVITY` row of
+  `GET /me/history` carries its activity's id; the row's `id` stays the registration's. `CLASS` and `TRAINING` rows send `null`.
+- **Before the fix:** the new T-10-19 test and the contract fixture check fail on the old code (logs `01`, `04`).
+- **Verify:** `./mvnw -q clean verify` exits 0 (850 unit, 1216 integration tests); `bin/e6-smoke` exits 0; the snapshot is
+  byte-identical twice, and its diff is only `HistoryItem.activityId`.
+- **Question for E6-W04 step 0b:** one row still links to a 404.
+  - A member cancels in time; later the club cancels the activity. Only live registrations become `CANCELLED_BY_CLUB`, so her
+    row stays `CANCELLED`, with `activityId`, and `GET /me/activities/{activityId}` answers `404`.
+  - Assumed meanwhile: the web's `/activitats/{id}` shows its not-found state. The api is unchanged («on every ACTIVITY row»).
+Blocking: no.

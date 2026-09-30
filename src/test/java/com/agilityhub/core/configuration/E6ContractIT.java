@@ -406,6 +406,9 @@ class E6ContractIT extends AbstractIntegrationTest {
                 "AttachmentLimitReachedDetails", "WaitlistLimitDetails")) {
             assertThat(schemas.path(name).path("properties").isEmpty()).as(name).isFalse();
         }
+        // E6-T05 (ruling E74): 25's rows carry the activity's id, a nullable string (null on CLASS and TRAINING rows), never required.
+        assertThat(strings(schemas.at("/HistoryItem/properties/activityId/type"))).containsExactly("string", "null");
+        assertThat(strings(schemas.at("/HistoryItem/required"))).containsExactlyInAnyOrder("type", "id", "date", "title", "state");
         for (String nullable : List.of("InstructorDayClass/ring", "AttendanceRow/notice", "AttendanceRow/noShowNotice", "InstructorCard/level", "TasksBlock/latest",
                 "HistoryItem/detail", "Task/doneBy")) {
             String[] parts = nullable.split("/");

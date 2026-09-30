@@ -15,7 +15,7 @@ public class ActivityHistory implements ActivityHistoryQuery {
     private final ActivityQueryService queries;
     public ActivityHistory(ActivityQueryService queries) { this.queries = queries; }
     @Override public List<Item> itemsFor(String memberId, Instant from) {
-        return queries.historyRowsFor(memberId, from, Instant.MAX).stream().map(r -> new Item(r.get("id").toString(), Objects.toString(r.get("title"), ""),
+        return queries.historyRowsFor(memberId, from, Instant.MAX).stream().map(r -> new Item(r.get("id").toString(), r.get("activityId").toString(), Objects.toString(r.get("title"), ""),
                 (Instant) r.get("startsAt"), (String) r.get("startsAtLocal"), r.get("state").toString(), (String) r.get("adminText"))).toList();
     }
 }

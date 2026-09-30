@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- E6-T05 (ruling E74, S10 §6 amended 30-09): `GET /me/history` rows carry `activityId`, the activity's id on every
+  `ACTIVITY` row (the row's `id` stays the registration's) and `null` on the `CLASS` and `TRAINING` rows, so screen 25 links
+  an activity row to `/activitats/{activityId}` (web E6-W04 step 0b). Nothing else of 25 changes.
 - E5-T29: the contract gaps of the E5 back office found by the web's E5-W01…E5-W04 (details in `docs/openapi/CHANGELOG.md`).
   - `GET /class-sessions/{id}/bookings` rows carry `displayState` (as `GET /bookings/{id}` derives it: DONE, NO_SHOW…) and
     the dog's `levelCode` (null with `levels.enabled = false` or without a level).

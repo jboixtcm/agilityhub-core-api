@@ -6092,6 +6092,10 @@
       },
       "HistoryItem" : {
         "properties" : {
+          "activityId" : {
+            "description" : "ACTIVITY rows: the activity's id (the row's id is the registration's), for its page GET /me/activities/{activityId}, which answers 404 once the activity is neither PUBLISHED nor FINISHED, as after the club cancels it. Null on CLASS and TRAINING rows",
+            "type" : [ "string", "null" ]
+          },
           "counts" : {
             "description" : "Classes only: counts as done",
             "type" : [ "boolean", "null" ]

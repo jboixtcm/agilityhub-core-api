@@ -1,0 +1,11 @@
+Read from target/surefire-reports and target/failsafe-reports after `./mvnw -q clean verify` (exit 0, log 08).
+surefire: tests=850 failures=0 errors=0 skipped=0
+failsafe: tests=1216 failures=0 errors=0 skipped=0
+Changed test classes:
+  com.agilityhub.core.clubs.bookings.api.InstructorAggregatesIT: tests=8 failures=0 errors=0 skipped=0
+      T_10_19_theHistoryListsOwnAndGroupDogsWithTheR1014StatesAndTheModuleTypes PASS
+      T_10_19_activityRowsCarryTheActivityIdThatOpensTheMembersActivityPageAndTheOtherRowsCarryNull PASS
+  com.agilityhub.core.configuration.E6ContractIT: tests=30 failures=0 errors=0 skipped=0
+      T_10_21_snapshotPublishesEveryOperationWithTypedResponsesAndListMetadata PASS
+      T_10_15_T_10_19_T_10_22_memberRoutesServeTheMemberRoleRefuseStaffOnlyTokensAndOtherMembersSeeNothingOfTheirs PASS
+  com.agilityhub.core.configuration.OpenApiSnapshotTest: tests=10 failures=0 errors=0 skipped=0

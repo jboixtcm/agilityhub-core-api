@@ -183,7 +183,11 @@ public final class InstructorContracts {
             @Schema(description = "startsAt desc; no paging (at most 500)") List<HistoryItem> items) { }
     public record HistoryDog(String id, String name, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String levelCode, boolean own,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Owner of a family-group dog") String ownerFirstName) { }
-    public record HistoryItem(HistoryType type, String id, LocalDate date,
+    public record HistoryItem(HistoryType type, String id,
+            @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "ACTIVITY rows: the activity's id (the row's id is the registration's), for its page "
+                    + "GET /me/activities/{activityId}, which answers 404 once the activity is neither PUBLISHED nor FINISHED, as after the club cancels it. "
+                    + "Null on CLASS and TRAINING rows") String activityId,
+            LocalDate date,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Club-local YYYY-MM-DDTHH:mm") String startsAtLocal, String title,
             @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogId, @Schema(requiredMode = NOT_REQUIRED, nullable = true) String dogName,
             HistoryState state, @Schema(requiredMode = NOT_REQUIRED, nullable = true, description = "Classes only: counts as done") Boolean counts,

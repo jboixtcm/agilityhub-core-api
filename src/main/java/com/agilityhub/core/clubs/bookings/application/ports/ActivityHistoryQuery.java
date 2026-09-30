@@ -9,7 +9,10 @@ import java.util.List;
  * ACTIVITIES is off. The live ones (03) are {@link MemberActivityRowsPort}.
  */
 public interface ActivityHistoryQuery {
-    /** @param state DONE · CANCELLED · CANCELLED_BY_CLUB (S07); @param adminText the club's text of a cancelled activity */
-    record Item(String id, String title, Instant startsAt, String startsAtLocal, String state, String adminText) { }
+    /**
+     * @param id the registration's id; @param activityId its activity's (25 links the row to the activity's page, ruling E74)
+     * @param state DONE · CANCELLED · CANCELLED_BY_CLUB (S07); @param adminText the club's text of a cancelled activity
+     */
+    record Item(String id, String activityId, String title, Instant startsAt, String startsAtLocal, String state, String adminText) { }
     List<Item> itemsFor(String memberId, Instant from);
 }

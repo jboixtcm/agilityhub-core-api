@@ -65,13 +65,13 @@ public class HistoryQuery {
             for (var t : trainings.itemsFor(selected, from)) {
                 String state = switch (t.state()) { case "ACTIVE" -> t.endsAt().isAfter(now) ? null : "DONE"; case "CANCELLED", "CANCELLED_BY_CLUB" -> t.state(); default -> null; };
                 if (state == null) { continue; } // live: on 03
-                items.add(item("TRAINING", t.id(), t.startsAt(), zone, title, t.dogId(), names.get(t.dogId()), state, null,
+                items.add(item("TRAINING", t.id(), null, t.startsAt(), zone, title, t.dogId(), names.get(t.dogId()), state, null,
                         "CANCELLED".equals(state) ? map("kind", "BY_MEMBER", "at", null, "atLocal", null, "message", null) : null));
             }
         }
         if (types.contains(Type.ACTIVITY) && dogId == null && (type == null || type == Type.ACTIVITY)) {
             for (var a : activities.itemsFor(memberId, from)) {
-                items.add(item("ACTIVITY", a.id(), a.startsAt(), zone, a.title(), null, null, a.state(), null, null));
+                items.add(item("ACTIVITY", a.id(), a.activityId(), a.startsAt(), zone, a.title(), null, null, a.state(), null, null));
             }
         }
         items.sort(Comparator.comparing((Map<String, Object> m) -> (Instant) m.get("startsAt")).reversed().thenComparing(m -> m.get("id").toString()));
@@ -104,13 +104,14 @@ public class HistoryQuery {
             Map<String, Object> detail = entry.kind() == null ? null : map("kind", entry.kind(), "at", entry.at(),
                     "atLocal", entry.at() == null ? null : InstructorDayQuery.hhmm(entry.at(), zone),
                     "message", entry.kind() == HistoryRules.DetailKind.BY_CLUB ? b.cancelMessage() : null);
-            return item("CLASS", b.id(), b.classStartsAt(), zone, title, b.dogId(), names.get(b.dogId()), entry.state().name(), entry.counts(), detail);
+            return item("CLASS", b.id(), null, b.classStartsAt(), zone, title, b.dogId(), names.get(b.dogId()), entry.state().name(), entry.counts(), detail);
         }).toList();
     }
-    private static Map<String, Object> item(String type, String id, Instant startsAt, ZoneId zone, String title, String dogId, String dogName, String state,
-            Boolean counts, Map<String, Object> detail) {
+    /** `id` is the booking's or the registration's; `activityId` only on ACTIVITY rows (S10 §6, ruling E74), null otherwise. */
+    private static Map<String, Object> item(String type, String id, String activityId, Instant startsAt, ZoneId zone, String title, String dogId, String dogName,
+            String state, Boolean counts, Map<String, Object> detail) {
         var local = startsAt.atZone(zone).toLocalDateTime().withSecond(0).withNano(0);
-        return map("type", type, "id", id, "date", local.toLocalDate(), "startsAtLocal", local.toString(), "title", title, "dogId", dogId, "dogName", dogName,
-                "state", state, "counts", counts, "detail", detail, "startsAt", startsAt);
+        return map("type", type, "id", id, "activityId", activityId, "date", local.toLocalDate(), "startsAtLocal", local.toString(), "title", title, "dogId", dogId,
+                "dogName", dogName, "state", state, "counts", counts, "detail", detail, "startsAt", startsAt);
     }
 }

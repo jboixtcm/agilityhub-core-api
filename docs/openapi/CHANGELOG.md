@@ -2,6 +2,15 @@
 
 Add one dated line per endpoint change whenever the API changes; regenerate and review `openapi.json` with `bin/openapi-snapshot` (Java 21 and Docker required).
 
+## 2026-09-30 · E6-T05 · `HistoryItem.activityId` (web E6-W04 step 0b adopts)
+
+**0 operations added or changed; 1 schema changed.** Additive:
+- **`HistoryItem.activityId`** (`GET /me/history`, screen 25; S10 §6 amended 30-09, ruling E74): `string | null`, not
+  required, always sent. On an `ACTIVITY` row it is the activity's id (the row's `id` stays the registration's), so the row
+  links to `/activitats/{activityId}`; on `CLASS` and `TRAINING` rows it is `null`. `GET /me/activities/{activityId}` answers
+  `200` while the activity is `PUBLISHED` or `FINISHED` and `404 NOT_FOUND` otherwise: always for a `CANCELLED_BY_CLUB`
+  row, and for a `CANCELLED` row whose activity the club cancelled after the member had left it.
+
 ## 2026-09-30 · E5-T29 · the E5 back office's contract gaps, `nextBookableAt`, P9 from the api (web E5-W05 adopts)
 
 **3 operations added, 5 changed; 9 schemas changed, 0 added or removed.** Every new field is additive; the web can adopt:

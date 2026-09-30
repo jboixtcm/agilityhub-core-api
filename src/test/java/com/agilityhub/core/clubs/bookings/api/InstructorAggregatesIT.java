@@ -332,6 +332,77 @@ class InstructorAggregatesIT extends BookingFixtures {
         assertThat(texts(minimal.path("dogs"), "name")).containsExactly("Duna", "Rock");
     }
 
+    /** An S07 activity at the club on {@code date} 10:00–13:00, open to every level, registration from 01-09 to the day before. */
+    void activity(String id, String title, String date, String state) {
+        var activity = new Document("_id", id).append("clubId", CLUB).append("title", new Document("values", new Document("ca", title)).append("defaultLocale", "ca"))
+                .append("type", "SEMINAR").append("location", new Document("atClub", true)).append("ringIds", List.of()).append("documents", List.of())
+                .append("date", date).append("startTime", "10:00").append("endTime", "13:00").append("registrationFrom", "2026-09-01")
+                .append("registrationTo", LocalDate.parse(date).minusDays(1).toString()).append("levelIds", List.of()).append("waitlistEnabled", false)
+                .append("slug", id).append("state", state).append("counters", new Document("active", state.equals("FINISHED") ? 1 : 0).append("waiting", 0)).append("version", 0);
+        if (state.equals("CANCELLED")) {
+            activity.append("cancellation", new Document("reason", "CLUB_MANUAL").append("adminText", "Pluja forta").append("at", local(date + "T08:00"))
+                    .append("byAccountId", "s08-admin").append("affectedCount", 1));
+        }
+        mongo.save(activity, "activities");
+    }
+    /** Laura's registration as `ActivityRegistrationService.register` writes it (from the app, registered by herself). */
+    Document registration(String id, String activityId, String activityStartsAt, String registeredAt) {
+        return new Document("_id", id).append("clubId", CLUB).append("activityId", activityId).append("memberId", "s08-m-laura").append("state", "ACTIVE")
+                .append("origin", "APP").append("registeredAt", local(registeredAt)).append("registeredBy", new Document("accountId", "s08-laura").append("displayName", "Laura Example"))
+                .append("activityStartsAt", local(activityStartsAt)).append("version", 0).append("createdAt", local(registeredAt)).append("createdByAccountId", "s08-laura")
+                .append("updatedAt", local(registeredAt)).append("updatedByAccountId", "s08-laura");
+    }
+
+    /**
+     * E6-T05 (ruling E74, S10 §6 amended 30-09): every ACTIVITY row of 25 carries its activity's id next to the registration's
+     * `id`, so the web links it to `/activitats/{activityId}` (S07 §6); CLASS and TRAINING rows send `activityId: null`.
+     */
+    @Test void T_10_19_activityRowsCarryTheActivityIdThatOpensTheMembersActivityPageAndTheOtherRowsCarryNull() throws Exception {
+        session("h1", "2026-09-28T18:50", 5, List.of());
+        var done = past("h1", "s08-d-duna", "s08-m-laura", "ACTIVE", "PRESENT", null, false);
+        training("s08-th1", "s08-d-rock", "s08-m-laura", "s08-ring", "2026-09-25T08:00", "ACTIVE");
+        // A done activity: her registration stayed ACTIVE and the activity FINISHED.
+        activity("s08-act-done", "Seminari d'obstacles", "2026-09-27", "FINISHED");
+        mongo.save(registration("s08-reg-done", "s08-act-done", "2026-09-27T10:00", "2026-09-02T10:00"), "activity_registrations");
+        // A registration she cancels in time, through the S07 routes, on a PUBLISHED activity of 17-10.
+        activity("s08-act-open", "Taller de salts", "2026-10-17", "PUBLISHED");
+        var registered = call(HttpMethod.POST, "/activity-registrations", Map.of("activityId", "s08-act-open"), as("laura"), 201, UUID.randomUUID().toString());
+        String inTime = registered.path("id").asText();
+        assertThat(call(HttpMethod.POST, "/activity-registrations/" + inTime + "/cancellation", Map.of(), as("laura"), 200).path("state").asText()).isEqualTo("CANCELLED");
+        // An activity the club cancelled: the row keeps its activity's id, but the activity has no page (S07 §6: 404).
+        activity("s08-act-cancelled", "Sortida a la platja", "2026-09-30", "CANCELLED");
+        mongo.save(registration("s08-reg-club", "s08-act-cancelled", "2026-09-30T10:00", "2026-09-03T10:00").append("state", "CANCELLED")
+                .append("cancelledAt", local("2026-09-29T08:00")).append("cancelledBy", new Document("accountId", "s08-admin").append("role", "SYSTEM"))
+                .append("cancelReason", "ACTIVITY_CANCELLED").append("version", 1), "activity_registrations");
+
+        var items = new HashMap<String, JsonNode>();
+        fetch("/me/history", as("laura"), 200).path("items").forEach(i -> items.put(i.path("id").asText(), i));
+        assertThat(items).containsOnlyKeys(inTime, "s08-reg-club", done, "s08-reg-done", "s08-th1");
+        assertThat(items.get("s08-reg-done").path("state").asText()).isEqualTo("DONE");
+        assertThat(items.get(inTime).path("state").asText()).isEqualTo("CANCELLED");
+        assertThat(items.get("s08-reg-club").path("state").asText()).isEqualTo("CANCELLED_BY_CLUB");
+        // The row's `id` stays the registration's; `activityId` opens the member's activity page (200) for the done and the cancelled-in-time rows.
+        for (var row : Map.of("s08-reg-done", "s08-act-done", inTime, "s08-act-open").entrySet()) {
+            var item = items.get(row.getKey());
+            assertThat(item.path("type").asText()).isEqualTo("ACTIVITY");
+            assertThat(item.path("activityId").asText()).as(row.getKey()).isEqualTo(row.getValue());
+            var page = fetch("/me/activities/" + item.path("activityId").asText(), as("laura"), 200);
+            assertThat(page.path("id").asText()).isEqualTo(row.getValue());
+            assertThat(page.path("myRegistration").isNull()).as("a cancelled registration is not hers any more").isEqualTo(row.getKey().equals(inTime));
+        }
+        assertThat(items.get("s08-reg-club").path("activityId").asText()).isEqualTo("s08-act-cancelled");
+        assertThat(code(fetch("/me/activities/s08-act-cancelled", as("laura"), 404))).isEqualTo("NOT_FOUND");
+        // CLASS and TRAINING rows send the key with null.
+        for (String id : List.of(done, "s08-th1")) {
+            assertThat(items.get(id).has("activityId")).as(id).isTrue(); assertThat(items.get(id).path("activityId").isNull()).as(id).isTrue();
+        }
+        // The impersonated admin reads the same ids; ACTIVITIES off → no ACTIVITY row at all.
+        assertThat(texts(fetch("/me/history", impersonating("admin", "s08-m-laura"), 200, "type", "ACTIVITY").path("items"), "activityId"))
+                .containsExactly("s08-act-open", "s08-act-cancelled", "s08-act-done");
+        modules(Arrays.stream(Module.values()).filter(m -> m != Module.ACTIVITIES).toArray(Module[]::new));
+        assertThat(texts(fetch("/me/history", as("laura"), 200).path("items"), "type")).containsOnly("CLASS", "TRAINING");
+    }
+
     @Test void T_10_33_clubVariantsLevelsOffFifoSharedClassesAndTheMinimalClub() throws Exception {
         var duna = book(as("laura"), "wed", "s08-d-duna").path("id").asText();
         book(as("joan"), "wed", "s08-d-toby"); book(as("pere"), "wed", "s08-d-nit");

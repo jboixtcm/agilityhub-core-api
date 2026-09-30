@@ -76,7 +76,7 @@
       {"type": "CLASS", "id": "b8", "date": "2026-07-21", "title": "Classe B+C", "dogId": "d1", "dogName": "Duna", "state": "CANCELLED_LATE", "counts": true, "detail": {"kind": "BY_MEMBER", "at": "2026-07-21T17:10:00Z", "atLocal": "19:10"}},
       {"type": "CLASS", "id": "b7", "date": "2026-07-17", "title": "Classe D i sup.", "dogId": "d2", "dogName": "Rock", "state": "CANCELLED_BY_CLUB", "counts": false, "detail": {"kind": "BY_CLUB", "message": "Pluja forta: pistes tancades"}},
       {"type": "CLASS", "id": "b6", "date": "2026-07-14", "title": "Classe B+C", "dogId": "d1", "dogName": "Duna", "state": "NO_SHOW", "counts": true, "detail": {"kind": "NO_SHOW"}},
-      {"type": "ACTIVITY", "id": "ar1", "date": "2026-07-12", "title": "Seminari d'obstacles", "state": "DONE"},
+      {"type": "ACTIVITY", "id": "ar1", "activityId": "a1", "date": "2026-07-12", "title": "Seminari d'obstacles", "state": "DONE"},
       {"type": "CLASS", "id": "b5", "date": "2026-07-08", "title": "Classe C+D", "dogId": "d1", "dogName": "Duna", "state": "CANCELLED", "counts": false, "detail": {"kind": "BY_MEMBER_IN_TIME"}}]},
   "MemberHistory#oneDog": {"monthsVisible": 2, "from": "2026-06-03", "showDog": false, "dogs": [{"id": "d1", "name": "Duna", "own": true}], "types": ["CLASS"], "items": []}
 }
