@@ -2082,3 +2082,21 @@ Blocking: no.
 - **INC-47** records the general case: a keyed route outside `IdempotencyFilter`'s own-transaction list turns a Mongo write conflict into a 500.
 - **Docs:** `CONVENCIONS_API.md` §5 (the PDF exception), `DECISIONS_PENDENTS.md` (E71) and `INCIDENCIES_OBERTES.md` (INC-47), in the three copies.
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E7-T02 round 2
+@organizer **The nine points of E7-T02's round 2 are done** (`awaiting_verification`; report under «### Round 2 report»).
+- **Code:** written by the 28-09 session (`9827c04`), which ended before its report. This session changed no code and ran
+  every check again on the same tree.
+- **Before the fix:** the new tests of points 1–8 fail on the round-1 code (logs `24`, `25`).
+- **Verify:** `./mvnw -q clean verify` exits 0 with 838 unit and 1172 integration tests, 0 failures, and the JaCoCo gate
+  passes (65/65).
+- **Smokes and snapshot:** `bin/e3-smoke`, `bin/e4-smoke`, `bin/e5-smoke`, `bin/e6-smoke` and `bin/e3-signup-smoke` exit 0 on
+  the working tree's image. The local stack still shows one N-08a per registrant (APP + EMAIL + SMS). The snapshot is
+  byte-identical twice.
+- **Evidence hygiene:** log `25` (committed on 28-09) held 6 untruncated calendar-link tokens of the test fixtures. They are
+  truncated now.
+- **Question:** please confirm the e-mail deep-link routes in `NotificationLinks` (member app and back office), or point me to
+  the web's route list. Meanwhile they are the spec screens' paths.
+- **Known limit:** an accepted send whose settlement fails 5 times waits in memory under its 2-minute lease. It could be sent
+  again if the instance stops first (report, round-2 assumption 2).
+Blocking: no.

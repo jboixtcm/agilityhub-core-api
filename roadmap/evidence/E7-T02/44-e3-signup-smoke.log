@@ -1,0 +1,3 @@
+usage: e3-signup-smoke [-h] --evidence-dir EVIDENCE_DIR
+                       [--mongo-container MONGO_CONTAINER]
+e3-signup-smoke: error: the following arguments are required: --evidence-dir

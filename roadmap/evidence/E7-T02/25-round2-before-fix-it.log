@@ -6,12 +6,12 @@
 15:46:55.053 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
 15:46:55.518 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
 15:46:55.519 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-15:46:55.551 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+15:46:55.551 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
   Server Version: 29.7.2
   API Version: 1.55
   Operating System: Docker Desktop
   Total Memory: 7931 MB
-  Labels: 
+  Labels:
     com.docker.desktop.address=unix:///Users/jordib/Library/Containers/com.docker.docker/Data/docker-cli.sock
 15:46:56.441 [main] INFO tc.testcontainers/ryuk:0.12.0 -- Creating container for image: testcontainers/ryuk:0.12.0
 15:46:56.558 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
@@ -59,15 +59,15 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 2026-09-28T15:47:54.244+02:00  WARN 68523 --- [agilityhub-core-api] [           main] c.a.c.c.b.application.BookingConsumers   : Class s08-wed cancelled by the club still has 1 live bookings
 [ERROR] Tests run: 20, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 70.53 s <<< FAILURE! -- in com.agilityhub.core.clubs.bookings.api.BookingsIT
 [ERROR] com.agilityhub.core.clubs.bookings.api.BookingsIT.R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName -- Time elapsed: 0.714 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting all elements of:
-  [{"_id"="474f5656-bc8a-4d2d-bf21-8bdf5b23c3bf", "accountId"="s08-joan", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb Toby.", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-joan:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-joan", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-joan"}, "target"="s08-joan", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791481800.0CSllmNBXN8_UpuECZQ-xi_-TgYWwPKd789aZY3GAuo", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "dog_name"="Toby", "dog_name_article"="en Toby", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Joan", "member_last_names"="Example", "member_name"="Joan Example", "ring_name"="Central"}},
-    {"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791481800.0CSllmNBXN8_UpuECZQ-xi_-TgYWwPKd789aZY3GAuo", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}]
+  [{"_id"="474f5656-bc8a-4d2d-bf21-8bdf5b23c3bf", "accountId"="s08-joan", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb Toby.", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-joan:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-joan", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-joan"}, "target"="s08-joan", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791…[truncated]", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "dog_name"="Toby", "dog_name_article"="en Toby", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Joan", "member_last_names"="Example", "member_name"="Joan Example", "ring_name"="Central"}},
+    {"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791…[truncated]", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}]
 to satisfy given requirements, but these elements did not:
 
-{"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791481800.0CSllmNBXN8_UpuECZQ-xi_-TgYWwPKd789aZY3GAuo", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}
-error: org.opentest4j.AssertionFailedError: 
+{"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791…[truncated]", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}
+error: org.opentest4j.AssertionFailedError:
 expected: "Toby"
  but was: null
 	at com.agilityhub.core.clubs.bookings.api.BookingsIT.lambda$R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName$27(BookingsIT.java:465)
@@ -147,7 +147,7 @@ expected: "Toby"
 2026-09-28T15:48:12.212+02:00  WARN 68523 --- [agilityhub-core-api] [           main] c.a.c.c.m.a.e.NotificationDispatcher     : Notification delivery failed notificationId=dc1d4329-3271-499b-bf09-9e9ab0fd9ee5 channel=EMAIL error=IllegalStateException
 [ERROR] Tests run: 13, Failures: 6, Errors: 0, Skipped: 0, Time elapsed: 8.037 s <<< FAILURE! -- in com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT
 [ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_06_twoPhonesAtTheCapDispatchedAtOnceForceOneEmail -- Time elapsed: 0.187 s <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
+org.opentest4j.AssertionFailedError:
 
 Expecting actual:
   ["SKIPPED_BY_PREFERENCE:null",
@@ -164,7 +164,7 @@ but some elements were not expected:
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_09_aSettlementThatFailsAfterTheProviderAcceptedIsRetriedWithThatAnswerAndNeverSentAgain -- Time elapsed: 0.111 s <<< FAILURE!
-org.assertj.core.error.AssertJMultipleFailuresError: 
+org.assertj.core.error.AssertJMultipleFailuresError:
 
 Multiple Failures (1 failure)
 -- failure 1 --
@@ -177,7 +177,7 @@ at NotificationDispatcherIT.lambda$R_11_09_aSettlementThatFailsAfterTheProviderA
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_08_theForcedEmailOfTheCapSkipsAnAddressOnlyTheAccountMarkedAsBounced -- Time elapsed: 0.228 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting actual:
   ["APP:DELIVERED", "EMAIL:SKIPPED_NO_CONTACT", "SMS:SKIPPED_CAP", "EMAIL:SENT"]
@@ -192,7 +192,7 @@ but the following elements were unexpected:
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_06_theCapsSkippedSmsForcedEmailMonthlyMarkerAndEventCommitTogether -- Time elapsed: 0.197 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting actual:
   1
@@ -205,7 +205,7 @@ to be greater than:
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_06_theIntentsWrittenBeforeTheEngineAreClosedByTheMigrationAndNeverSent -- Time elapsed: 0.108 s <<< FAILURE!
-java.lang.AssertionError: 
+java.lang.AssertionError:
 
 Expecting actual:
   "WOULD_CONVERT e7t02-old-push club=e7t02-engine code=N-13 channel=PUSH status=QUEUED
@@ -218,14 +218,14 @@ to contain:
     "WOULD_CLOSE e7t02-converted-sms"]
 but could not find:
   ["WOULD_CLOSE e7t02-converted-sms"]
- 
+
 	at com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_06_theIntentsWrittenBeforeTheEngineAreClosedByTheMigrationAndNeverSent(NotificationDispatcherIT.java:539)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
 [ERROR] com.agilityhub.core.clubs.messaging.application.engine.NotificationDispatcherIT.R_11_08_aWebhookThatArrivesBeforeTheSendsAnswerKeepsItsFinalStateAndTheSendItsReference -- Time elapsed: 0.301 s <<< FAILURE!
-org.assertj.core.error.AssertJMultipleFailuresError: 
+org.assertj.core.error.AssertJMultipleFailuresError:
 
 Multiple Failures (1 failure)
 -- failure 1 --
@@ -237,28 +237,28 @@ at NotificationDispatcherIT.lambda$R_11_08_aWebhookThatArrivesBeforeTheSendsAnsw
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-[ERROR] Failures: 
-[ERROR]   BookingsIT.R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName:464 
+[ERROR] Failures:
+[ERROR]   BookingsIT.R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName:464
 Expecting all elements of:
-  [{"_id"="474f5656-bc8a-4d2d-bf21-8bdf5b23c3bf", "accountId"="s08-joan", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb Toby.", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-joan:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-joan", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-joan"}, "target"="s08-joan", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791481800.0CSllmNBXN8_UpuECZQ-xi_-TgYWwPKd789aZY3GAuo", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "dog_name"="Toby", "dog_name_article"="en Toby", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Joan", "member_last_names"="Example", "member_name"="Joan Example", "ring_name"="Central"}},
-    {"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791481800.0CSllmNBXN8_UpuECZQ-xi_-TgYWwPKd789aZY3GAuo", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}]
+  [{"_id"="474f5656-bc8a-4d2d-bf21-8bdf5b23c3bf", "accountId"="s08-joan", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb Toby.", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-joan:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-joan", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-joan"}, "target"="s08-joan", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791…[truncated]", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "dog_name"="Toby", "dog_name_article"="en Toby", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Joan", "member_last_names"="Example", "member_name"="Joan Example", "ring_name"="Central"}},
+    {"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791…[truncated]", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}]
 to satisfy given requirements, but these elements did not:
 
-{"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791481800.0CSllmNBXN8_UpuECZQ-xi_-TgYWwPKd789aZY3GAuo", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}
-error: org.opentest4j.AssertionFailedError: 
+{"_id"="10098380-4d9e-47f5-8175-53175a232a9c", "accountId"="s08-laura", "action"={"params"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby"}, "type"="OPEN_BOOKING"}, "attempts"=0, "audience"="MEMBER", "body"="Classe Classe thu · dijous 8 · 18:50 · Central · amb .", "category"="OPERATIONAL", "channel"="APP", "clubId"="s08-a", "code"="N-04", "createdAt"=2026-10-06T10:00:00.000 (java.util.Date), "dedupKey"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d:N-04:MEMBER:s08-laura:s08-d-toby", "eventId"="73c7151b-4989-44b8-bd1c-2953d9a5ff8d", "eventType"="BookingCreated", "locale"="ca", "memberId"="s08-m-laura", "status"="DELIVERED", "subject"={"bookingId"="3e986701-6f43-4078-9363-c826313ff3ea", "classSessionId"="s08-thu", "dogId"="s08-d-toby", "memberId"="s08-m-laura"}, "target"="s08-laura", "title"="Reserva confirmada", "variables"={"action"="OPEN_BOOKING", "audience"="MEMBER", "calendar_links"="https://s08-a.example.test/api/v1/bookings/3e986701-6f43-4078-9363-c826313ff3ea/calendar.ics?token=1791…[truncated]", "class_date"="dijous 8", "class_description"="Classe thu", "class_time"="18:50", "club_name"="Example Agility Club", "entityId"="3e986701-6f43-4078-9363-c826313ff3ea", "gender"="OTHER", "member_first_name"="Laura", "member_last_names"="Example", "member_name"="Laura Example", "ring_name"="Central"}}
+error: org.opentest4j.AssertionFailedError:
 expected: "Toby"
  but was: null
 	at com.agilityhub.core.clubs.bookings.api.BookingsIT.lambda$R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName$27(BookingsIT.java:465)
 	at com.agilityhub.core.clubs.bookings.api.BookingsIT.R_11_05_theOwnerAndTheFamilyMemberWhoBookedReadTheBookedDogsName(BookingsIT.java:464)
 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
 	...(74 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
-[ERROR]   NotificationDispatcherIT.R_11_06_theCapsSkippedSmsForcedEmailMonthlyMarkerAndEventCommitTogether:441 
+[ERROR]   NotificationDispatcherIT.R_11_06_theCapsSkippedSmsForcedEmailMonthlyMarkerAndEventCommitTogether:441
 Expecting actual:
   1
 to be greater than:
   1
 
-[ERROR]   NotificationDispatcherIT.R_11_06_theIntentsWrittenBeforeTheEngineAreClosedByTheMigrationAndNeverSent:539 
+[ERROR]   NotificationDispatcherIT.R_11_06_theIntentsWrittenBeforeTheEngineAreClosedByTheMigrationAndNeverSent:539
 Expecting actual:
   "WOULD_CONVERT e7t02-old-push club=e7t02-engine code=N-13 channel=PUSH status=QUEUED
 WOULD_CONVERT e7t02-old-sms club=e7t02-engine code=N-15 channel=SMS status=QUEUED
@@ -270,8 +270,8 @@ to contain:
     "WOULD_CLOSE e7t02-converted-sms"]
 but could not find:
   ["WOULD_CLOSE e7t02-converted-sms"]
- 
-[ERROR]   NotificationDispatcherIT.R_11_06_twoPhonesAtTheCapDispatchedAtOnceForceOneEmail:495 
+
+[ERROR]   NotificationDispatcherIT.R_11_06_twoPhonesAtTheCapDispatchedAtOnceForceOneEmail:495
 Expecting actual:
   ["SKIPPED_BY_PREFERENCE:null",
     "QUEUED:marc@example.test",
@@ -281,13 +281,13 @@ to contain exactly (and in same order):
 but some elements were not expected:
   ["QUEUED:marc@example.test"]
 
-[ERROR]   NotificationDispatcherIT.R_11_08_aWebhookThatArrivesBeforeTheSendsAnswerKeepsItsFinalStateAndTheSendItsReference:379 
+[ERROR]   NotificationDispatcherIT.R_11_08_aWebhookThatArrivesBeforeTheSendsAnswerKeepsItsFinalStateAndTheSendItsReference:379
 Multiple Failures (1 failure)
 -- failure 1 --
 expected: DELIVERED
  but was: SENT
 at NotificationDispatcherIT.lambda$R_11_08_aWebhookThatArrivesBeforeTheSendsAnswerKeepsItsFinalStateAndTheSendItsReference$55(NotificationDispatcherIT.java:380)
-[ERROR]   NotificationDispatcherIT.R_11_08_theForcedEmailOfTheCapSkipsAnAddressOnlyTheAccountMarkedAsBounced:515 
+[ERROR]   NotificationDispatcherIT.R_11_08_theForcedEmailOfTheCapSkipsAnAddressOnlyTheAccountMarkedAsBounced:515
 Expecting actual:
   ["APP:DELIVERED", "EMAIL:SKIPPED_NO_CONTACT", "SMS:SKIPPED_CAP", "EMAIL:SENT"]
 to contain exactly in any order:
@@ -295,7 +295,7 @@ to contain exactly in any order:
 but the following elements were unexpected:
   ["EMAIL:SENT"]
 
-[ERROR]   NotificationDispatcherIT.R_11_09_aSettlementThatFailsAfterTheProviderAcceptedIsRetriedWithThatAnswerAndNeverSentAgain:413 
+[ERROR]   NotificationDispatcherIT.R_11_09_aSettlementThatFailsAfterTheProviderAcceptedIsRetriedWithThatAnswerAndNeverSentAgain:413
 Multiple Failures (1 failure)
 -- failure 1 --
 expected: SENT
