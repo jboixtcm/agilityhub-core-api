@@ -143,6 +143,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             if (!record.requestHash().equals(hash)) {
                 replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "DIFFERENT_REQUEST")));
             } else if (record.status() == com.agilityhub.core.shared.persistence.IdempotencyRecord.Status.IN_PROGRESS) {
+                // A live claim (E79): one past its lease was already taken over by records.claim, so this is a request in progress.
                 replay = IdempotentReplay.refused(new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")));
             } else {
                 replay = IdempotentReplay.stored(record.responseStatus(), record.responseHeaders(),
@@ -223,7 +224,11 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 records.complete(record, cachedResponse.getStatus(), anonymous ? capabilities.seal(cachedResponse.getContentAsByteArray(),record.id()) : cachedResponse.getContentAsByteArray(), headers);
             });
         } catch (RuntimeException failure) {
+            // E79 (E5-T30 round 2): a retry took this request's claim over after its lease. The answer could not be stored (the
+            // record is gone, or a write conflict on it) and the effects rolled back: it answers as any attempt meanwhile.
+            boolean held = failure instanceof ApiException || records.held(record);
             records.abandon(record);
+            if (!held) { throw new ApiException(ErrorCode.IDEMPOTENCY_KEY_REUSED, Map.of("reason", "IN_PROGRESS")); }
             if (failure instanceof RequestFailure wrapped) {
                 if (wrapped.getCause() instanceof IOException io) { throw io; }
                 throw (ServletException) wrapped.getCause();

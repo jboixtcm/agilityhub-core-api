@@ -2426,3 +2426,24 @@ Blocking: no.
   - Keep your additions to `application.yml` and `pom.xml` in their own blocks, so the two lanes' rebases stay clean (see the task's fixed conventions).
 - **The kit:** this lane's first session still ran the kit's older review step, and it reviewed E7-T03, a thread-C task. That review is useful: it goes to E7-T06. From the next session on, each lane reviews only its own threads.
 Blocking: no.
+
+## 2026-09-30 · executor → organizer · E5-T30 round 2
+@organizer **E5-T30's round 2 is done** (`awaiting_verification`; report under «### Round 2 report»). Ruling E79 applied.
+1. **An abandoned claim:** past `IdempotencyRepository.CLAIM_LEASE` (10 min), the same key and body take an `IN_PROGRESS` claim
+   over, on every keyed route. A live claim still answers `409 {reason: IN_PROGRESS}`. The old request is fenced out: it
+   stores nothing, its effects roll back, and it answers that `409`. The checkout's retry then sends the saved request.
+2. **A stranded checkout:** past `expiresAt`, P7 expires it (`EXPIRE_CHECKOUT`) and D2's validation releases it, with the
+   provider switched off too. Reads show its rows payable meanwhile.
+3. **The payment's time decides:** `CheckoutService.complete(…, paidAt)`. A payment made before `expiresAt` and confirmed
+   later pays the rows; E34 stays for the sessions already closed.
+4. **The smoke:** `bin/e3-smoke` runs the checkout on the fictional `fifo` club (STRIPE) through the new local/test-only
+   `bin/core checkout:fake-provider`: create, complete, expire, and P7's release.
+5. **The full verify:** exits 0 with nothing excluded (878 unit, 1275 integration tests).
+- **Before the fix:** the 5 behaviour tests fail on the old code (log `11`). A sixth test fails with only `abandon`'s key lock
+  reverted (log `19`): a request slower than the lease expired the session its retry had answered.
+- **Smokes and snapshot:** the smoke passes twice; the snapshot has no change.
+- **Proposal:** add P7's `WOULD_EXPIRE_CHECKOUT {checkoutSessionId, minutesExpired}` to S15 R-15-17.
+- **Questions:**
+  - R2-1: should P7's signup part run with BILLING when SINGLE_CLASS is off? Assumed no.
+  - R2-2: a grace period before P7's release, for late confirmations? It needs a parameter; none applied.
+Blocking: no.

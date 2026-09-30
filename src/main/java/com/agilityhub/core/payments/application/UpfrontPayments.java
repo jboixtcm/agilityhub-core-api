@@ -25,16 +25,24 @@ public class UpfrontPayments {
      */
     public record Submission(String dogId,String submissionId) { }
     private final UpfrontPaymentRepository repository;
+    private final SignupCheckoutRepository sessions;
     private final EventPublisher events;
     private final Clock clock;
-    public UpfrontPayments(UpfrontPaymentRepository repository,EventPublisher events,Clock clock) { this.repository=repository;this.events=events;this.clock=clock; }
+    public UpfrontPayments(UpfrontPaymentRepository repository,SignupCheckoutRepository sessions,EventPublisher events,Clock clock) {
+        this.repository=repository;this.sessions=sessions;this.events=events;this.clock=clock;
+    }
     public List<Line> lines(String memberId,List<Submission> scope) {
         return selected(memberId,scope).stream().filter(p -> !Set.of("CANCELLED","REFUNDED").contains(p.status())).map(this::line).toList();
     }
     private List<UpfrontPayment> selected(String memberId,List<Submission> scope) {
         // S08 PAY_TO_BOOK lines belong to their booking: the signup flows never list, charge, replace or cancel them.
         // A null scope reads every signup row of the member (only the S08 isolation check uses it).
+        // E5-T30 round 2 (S04 R-04-26, E79): a row that waits for a signup checkout past its `expiresAt` reads as payable, as
+        // it was before the checkout, whether or not the provider ever had that session: D2's dry run and the reviews see what
+        // the next write will make of it (CheckoutService.releaseLapsed, which writes it, or P7).
+        var lapsed=sessions.lapsedSignup(memberId,clock.instant()).stream().map(SignupCheckoutSession::id).collect(java.util.stream.Collectors.toSet());
         return repository.member(memberId).stream().filter(p -> p.bookingId()==null && (scope==null || scope.contains(new Submission(p.dogId(),p.submissionId()))))
+                .map(p -> "CHECKOUT_PENDING".equals(p.status()) && lapsed.contains(p.checkoutSessionId()) ? released(p) : p)
                 .sorted(Comparator.comparing(UpfrontPayment::createdAt).thenComparing(p -> "ENTRY_FEE".equals(p.concept()) ? 0 : 1).thenComparing(UpfrontPayment::id)).toList();
     }
     private Line line(UpfrontPayment p) { return new Line(p.id(),p.signupConcept()==null?p.concept():p.signupConcept(),p.dogId(),p.amountDue(),p.amountPaid(),p.status(),p.provider(),p.submissionId()); }
@@ -190,13 +198,15 @@ public class UpfrontPayments {
      * what the provider charged for the line (E5-T30): the rest of a `PARTIAL` row, whose cash part its `UpfrontPaymentRecorded`
      * already reported.
      */
-    public void checkout(String memberId,String session,boolean complete) {
+    public void checkout(String memberId,String session,boolean complete) { checkout(memberId,session,complete,clock.instant()); }
+    /** {@code paidAt}: when the provider took a completed session's payment (E5-T30 round 2, E79), the paid rows' `paidAt`. */
+    public void checkout(String memberId,String session,boolean complete,Instant paidAt) {
         for(var p:repository.member(memberId)) if(session.equals(p.checkoutSessionId()) && "CHECKOUT_PENDING".equals(p.status())) {
             boolean booking=p.bookingId()!=null;
             var payload=new LinkedHashMap<String,Object>();payload.put("paymentId",p.id());payload.put("memberId",memberId);payload.put("concept",p.concept());payload.put("provider","STRIPE");
             if(booking) payload.put("bookingId",p.bookingId());
             if(complete) {
-                repository.update(state(p,"PAID",p.amountDue(),"STRIPE",session));
+                repository.update(state(p,"PAID",p.amountDue(),"STRIPE",session,paidAt));
                 payload.put("amountPaid",p.amountDue().minus(p.amountPaid()));emit("UpfrontPaymentSucceeded",p,payload);
             } else if(booking) {
                 repository.update(state(p,"CANCELLED",p.amountPaid(),"STRIPE",session));
@@ -209,9 +219,10 @@ public class UpfrontPayments {
         return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),p.amountPaid(),
                 received(p)?"PARTIAL":"DUE",received(p)?p.provider():null,null,p.createdAt(),p.paidAt(),p.bookingId(),p.submissionId(),p.correctionOf());
     }
-    private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session) {
+    private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session) { return state(p,status,paid,provider,session,clock.instant()); }
+    private UpfrontPayment state(UpfrontPayment p,String status,Money paid,String provider,String session,Instant paidAt) {
         return new UpfrontPayment(p.id(),p.clubId(),p.memberId(),p.dogId(),p.concept(),p.signupConcept(),p.amountDue(),paid,status,provider,session,p.createdAt(),
-                paid.amountMinor()>0?clock.instant():null,p.bookingId(),p.submissionId(),p.correctionOf());
+                paid.amountMinor()>0?paidAt:null,p.bookingId(),p.submissionId(),p.correctionOf());
     }
     private void emit(String type,UpfrontPayment p,Map<String,Object> payload) {
         var user=CurrentUser.current();

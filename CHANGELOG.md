@@ -791,6 +791,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `UpfrontPaymentSucceeded.amountPaid` is what the provider charged for the row: the rest of a `PARTIAL` row, not its whole
     amount.
   - The provider double refuses a known `sessionId` with other parameters, as Stripe does.
+- E5-T30 round 2 (CONVENCIONS_API §7, S04 R-04-26, ruling E79):
+  - An `Idempotency-Key` whose request stopped (the process died) no longer blocks for 24 h. Past the claim's lease
+    (`IdempotencyRepository.CLAIM_LEASE`, 10 min) the first retry with the same key and body takes the claim over, on every
+    keyed route; a live claim still answers `409 IDEMPOTENCY_KEY_REUSED {reason: IN_PROGRESS}`. A request whose claim was
+    taken over stores nothing, rolls its effects back and answers that same `409`.
+  - A signup checkout past its `expiresAt` gives its rows back without a new checkout, with or without a provider session
+    and with the provider switched off: P7 `payment-timeouts` expires it (`EXPIRE_CHECKOUT`), D2's validation releases it
+    before the plan change or the cash allocation, and every read shows its rows payable.
+  - The payment's time decides, not the callback's: a payment made before `expiresAt` whose confirmation arrives later
+    settles the rows (paid at that time) while the session and every row still wait for it. E34's refund mark stays for the
+    sessions already closed.
+  - `bin/e3-smoke` covers the checkout on the fictional `fifo` club (STRIPE): create and replay, completion, expiry, and P7's
+    release of a stranded checkout, with the new local/test-only `bin/core checkout:fake-provider`.
 - E5-T29: one S08 value, P9 from the api, and the demo seed.
   - `BOOKING_LIMIT_REACHED.details.nextBookableAt` is the start of the next booking week, `week(now).end()`, for a NEXT class
     as for a CURRENT one (S08 §2 row 29 amended 26-09); it was the end of the class's own week, a week too late for a NEXT

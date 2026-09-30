@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rehearse T-04-34/T-14-11 with curl and the real local Compose mailbox."""
+"""Rehearse T-04-34/T-14-11 with curl and the real local Compose mailbox, and T-04-22's checkout with the fake provider."""
 import argparse
 import base64
 import json
@@ -42,6 +42,10 @@ def wait(action, message, timeout=60):
             return value
         time.sleep(0.5)
     raise AssertionError(message)
+
+
+def short(value):
+    return (value or "")[:8] + "…"
 
 
 def fictional_pdf():
@@ -269,8 +273,15 @@ class Smoke:
                 if attempt == 2:
                     require("0 changes (" in output, "Seed reapply was not idempotent")
                 print(f"PASS {' '.join(command)} run {attempt}" + (": 0 changes" if attempt == 2 else ""), flush=True)
-        # Activation is fixture setup on this named disposable database only.
+        # E5-T30 round 2: the fictional Stripe-enabled club of the checkout steps (BILLING, STRIPE, SINGLE_CLASS, so P7 too).
+        self.cli("club:apply", "seeds/club-fifo.yaml")
+        print("PASS club:apply seeds/club-fifo.yaml (fictional club with STRIPE)", flush=True)
+        # Activation is fixture setup on this named disposable database only; so is offering the fictional club's monthly plan
+        # on its public signup form (its seed offers none), before the API reads the configuration.
         self.mongo('db.clubs.updateOne({slug:"canic"},{$set:{status:"ACTIVE"}}).modifiedCount')
+        self.fifo = self.mongo('db.clubs.findOneAndUpdate({slug:"fifo"},{$set:{status:"ACTIVE"}})._id')
+        require(self.mongo('db.plans.updateOne({clubId:' + json.dumps(self.fifo) + ',code:"MENSUAL"},{$set:{showOnSignup:true}}).modifiedCount') == 1,
+                "The fictional club's monthly plan is missing")
         club = self.mongo('db.clubs.findOne({slug:"canic"},{domains:1})')
         self.club_id = club["_id"]
         self.host = next(d["host"] for d in club["domains"] if d["app"] == "clubs")
@@ -537,6 +548,82 @@ class Smoke:
         print("PASS the member's add-dog claims the file; its download from the web's origin is image/png, inline, "
               "with the stored name", flush=True)
 
+    def checkout_state(self, sid):
+        """The checkout session and its member's signup rows, as stored."""
+        return self.mongo("(()=>{const s=db.checkout_sessions.findOne({_id:" + json.dumps(sid) + "});"
+                          "const r=db.upfront_payments.find({clubId:s.clubId,memberId:s.memberId,bookingId:null}).toArray();"
+                          "return {status:s.status,marked:s.lateCompletionAt!=null,"
+                          "rows:r.map(p=>({status:p.status,provider:p.provider||null,session:p.checkoutSessionId||null}))};})()")
+
+    def checkout(self):
+        """E5-T30 round 2 (S04 R-04-26, T-04-22; CONVENCIONS_API §7): the signup checkout on the fictional Stripe-enabled club,
+        with the fake provider. A card signup opens its checkout (its key replays it); the provider's side, played by
+        `bin/core checkout:fake-provider` through the webhook's handler, completes one and expires another; and a checkout whose
+        expiry never comes is released by P7 once its `expiresAt` has passed, with no provider call."""
+        self.host = next(d["host"] for d in self.mongo('db.clubs.findOne({slug:"fifo"},{domains:1})')["domains"] if d["app"] == "clubs")
+        config = self.call("GET", "/api/v1/signup")
+        require("CARD" in [m["type"] for m in config["paymentMethods"]], "The Stripe club must offer the card")
+        plan = next(p for p in config["plans"] if p.get("billingMode") == "MONTHLY_FEE" and p.get("price"))
+        version = config["legal"]["legalTextsVersion"]
+
+        def open_checkout(index):
+            number = 22345678 + index
+            body = dict(locale="ca", website="", planId=plan["id"], payment=dict(type="CARD", firstMonthOption="TODAY"),
+                        consents=dict(privacyPolicy=dict(accepted=True, version=version), imageUse=dict(granted=False, version=version)),
+                        person=dict(firstName="Example", lastName1="Card Applicant " + str(index), birthDate="1990-01-01", gender="FEMALE",
+                                    idDocument=dict(type="DNI", value=str(number) + "TRWAGMYFPDXBNJZSQVHLCKE"[number % 23]),
+                                    emails=[f"e3.card.{index}@example.test"], phones=[dict(prefix="+34", number="600000002")],
+                                    address=dict(street="2 Example Street", postalCode="99999", town="Example Town")),
+                        dog=dict(name="Card Example Dog " + str(index), sex="MALE", breed="Fictional mixed breed", birthMonth="2023-05",
+                                 chip=str(941000000000971 + index)))
+            submitted = self.call("POST", "/api/v1/signup", 201, body=body, key=str(uuid.uuid4()))
+            require(submitted["checkout"]["required"], "A card signup on the Stripe club must require the checkout")
+            request = dict(memberId=submitted["memberId"], signupToken=submitted["signupToken"],
+                           successUrl=f"https://{self.host}/alta/ok", cancelUrl=f"https://{self.host}/alta/cancel")
+            key = str(uuid.uuid4())
+            opened = self.call("POST", "/api/v1/checkout-sessions", 201, body=request, key=key)
+            require(self.call("POST", "/api/v1/checkout-sessions", 201, body=request, key=key, quiet=True) == opened,
+                    "The checkout's key must replay its answer")
+            sid = opened["checkoutSessionId"]
+            state = self.checkout_state(sid)
+            require(opened["checkoutUrl"] == "https://checkout.test/" + sid and state["status"] == "PENDING" and state["rows"]
+                    and all(r["status"] == "CHECKOUT_PENDING" and r["session"] == sid for r in state["rows"]),
+                    f"The opened checkout is not waiting: {state['status']} {[r['status'] for r in state['rows']]}")
+            return submitted["memberId"], sid
+
+        paying, paid = open_checkout(1)
+        print(f"PASS a card signup on the Stripe club opens its checkout ({len(self.checkout_state(paid)['rows'])} rows CHECKOUT_PENDING); "
+              "the key replays the same checkoutUrl", flush=True)
+        print(self.cli("checkout:fake-provider", "completion", paid, "--club=fifo").strip().splitlines()[-1].replace(paid, short(paid)), flush=True)
+        state = self.checkout_state(paid)
+        card = self.mongo("db.members.findOne({_id:" + json.dumps(paying) + "}).paymentMethod.card.last4")
+        require(state["status"] == "COMPLETE" and not state["marked"] and card == "4242"
+                and all(r["status"] == "PAID" and r["provider"] == "STRIPE" for r in state["rows"]),
+                f"The completed checkout did not pay its rows: {state}")
+        print("PASS the provider's completion pays every row (PAID, STRIPE) and keeps the card on the member", flush=True)
+
+        _, lapsing = open_checkout(2)
+        print(self.cli("checkout:fake-provider", "expiry", lapsing, "--club=fifo").strip().splitlines()[-1].replace(lapsing, short(lapsing)), flush=True)
+        state = self.checkout_state(lapsing)
+        require(state["status"] == "EXPIRED" and not state["marked"] and all(r["status"] == "DUE" and r["session"] is None for r in state["rows"]),
+                f"The expired checkout did not give its rows back: {state}")
+        print("PASS the provider's expiry gives every row back (DUE, no session)", flush=True)
+
+        _, stranded = open_checkout(3)
+        now = self.call("POST", "/api/v1/test/clock", body=dict(advanceSeconds=24 * 3600 + 120), quiet=True)["now"]
+        print(f"POST /test/clock +24 h 2 min (server now {now[:16]}Z): the stranded checkout's expiresAt has passed", flush=True)
+        state = wait(lambda: (lambda s: s if s["status"] == "EXPIRED" else None)(self.checkout_state(stranded)),
+                     "P7 did not expire the stranded checkout", timeout=240)
+        require(not state["marked"] and all(r["status"] == "DUE" and r["session"] is None for r in state["rows"]),
+                f"The stranded checkout did not give its rows back: {state}")
+        run = self.mongo('db.job_runs.find({clubId:' + json.dumps(self.fifo) + ',job:"PAYMENT_TIMEOUTS",dryRun:false,"items.entityId":'
+                         + json.dumps(stranded) + '}).limit(1).toArray().map(r=>({trigger:r.trigger,'
+                         'action:r.items.find(i=>i.entityId==' + json.dumps(stranded) + ').action}))')
+        require(run and run[0]["action"] == "EXPIRE_CHECKOUT", f"No P7 run expired the stranded checkout: {run}")
+        print(f"PASS P7 payment-timeouts ({run[0]['trigger']}) expires the checkout that never heard from the provider past its "
+              "expiresAt: EXPIRE_CHECKOUT, rows DUE, no refund mark", flush=True)
+        print("PASS T-04-22: the signup checkout on the fake provider (create, complete, expire, stranded release)", flush=True)
+
     def cleanup(self):
         if self.started:
             self.compose("down", "--volumes", "--remove-orphans", "--timeout", "15")
@@ -555,6 +642,7 @@ def main():
         try:
             smoke.start()
             smoke.scenario()
+            smoke.checkout()
         finally:
             smoke.cleanup()
 

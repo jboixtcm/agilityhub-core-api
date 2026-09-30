@@ -75,9 +75,13 @@ public class CheckoutService {
         }
         return result;
     }
-    /** The provider could not open the session: it expires on our side and its rows are DUE again (a new checkout may open). */
+    /**
+     * The provider could not open the session: it expires on our side and its rows are DUE again (a new checkout may open).
+     * E5-T30 round 2 (E79): only while this request still holds its key's claim. A retry that took the claim over after its
+     * lease owns the session now: the key's lock fails here ({@code IDEMPOTENCY_KEY_REUSED}), so neither side is expired.
+     */
     private void abandon(String memberId,String id) {
-        members.write(() -> { members.lock();if(sessions.finish(id,"EXPIRED",null)) payments.checkout(memberId,id,false);return null; });
+        members.write(() -> { IdempotentOperation.lock();members.lock();if(sessions.finish(id,"EXPIRED",null)) payments.checkout(memberId,id,false);return null; });
     }
     private PaymentProvider.Request prepare(String memberId,String success,String cancel,String reference) {
         members.lock();var member=members.member(memberId);
@@ -86,7 +90,7 @@ public class CheckoutService {
         // Review #3 (E5-T28): the same request, whose answer was lost after this session opened: the same session, asked again
         // with exactly what it was first asked (E5-T30), whatever the member became since.
         if(retried.isPresent()) return retried.get().providerRequest();
-        lapsed(memberId);
+        releaseLapsed(memberId);
         String currency=configs.get(TenantContext.require()).club().currency();
         var scope=members.submissions(memberId);
         var lines=payments.lines(memberId,scope).stream().filter(l -> l.amount().amountMinor()>l.paidAmount().amountMinor()).toList();
@@ -106,9 +110,34 @@ public class CheckoutService {
      * same instant), but its expiry never reached us: the provider's `expired` callback was lost, or the provider never opened
      * it (the process stopped after {@link #prepare}). It expires here and gives its rows back, so they never stay
      * `CHECKOUT_PENDING` for good; a completion that still arrives is a late one (E34, {@link #completed}).
+     * <p>
+     * Round 2 (S04 R-04-26, ruling E79): whatever the provider's state, and with the provider switched off, every write that
+     * needs the member's rows calls this first, in the caller's transaction and under its census lock: the next checkout
+     * ({@link #prepare}) and D2's validation (the cash allocation and the plan change). P7 does it for every member
+     * ({@link #expireLapsed}); a read shows those rows payable meanwhile ({@link UpfrontPayments}).
      */
-    private void lapsed(String memberId) {
+    public void releaseLapsed(String memberId) {
         for(var session:sessions.lapsedSignup(memberId,clock.instant())) if(sessions.finish(session.id(),"EXPIRED",null)) payments.checkout(memberId,session.id(),false);
+    }
+    /** An open signup checkout past its `expiresAt` (E5-T30 round 2): what P7 plans ({@link #lapsedSignupCheckouts}). */
+    public record LapsedCheckout(String sessionId,Instant expiresAt) { }
+    /** S15 R-15-17 (ruling E79): the club's open signup checkouts whose `expiresAt` is not after {@code now}, oldest first. */
+    public List<LapsedCheckout> lapsedSignupCheckouts(Instant now) {
+        return sessions.lapsedSignup(now).stream().map(s -> new LapsedCheckout(s.id(),s.expiresAt())).toList();
+    }
+    /**
+     * P7 (S15 R-15-17, ruling E79): the signup checkout {@code sessionId}, still open past its `expiresAt` at {@code now}, expires
+     * and gives its rows back, under the census lock and in P7's item transaction; the provider is not asked (its session
+     * expired at the same instant). False when it is no longer in scope (closed meanwhile, or not past its expiry).
+     */
+    public boolean expireLapsed(String sessionId,Instant now) {
+        return transactions.run(() -> {
+            members.lock();var session=sessions.findById(sessionId).orElse(null);
+            if(session==null||session.bookingId()!=null||!"PENDING".equals(session.status())||session.expiresAt().isAfter(now)) return false;
+            if(!sessions.finish(sessionId,"EXPIRED",null)) return false;
+            payments.checkout(session.memberId(),sessionId,false);
+            return true;
+        });
     }
     private PaymentProvider.Request request(Map<String,Object> member,String memberId,String id,String mode,List<UpfrontPayments.Line> lines,List<UpfrontPayments.Submission> scope,
             String success,String cancel,Instant expires) {
@@ -171,21 +200,28 @@ public class CheckoutService {
     public record BookingCheckout(String sessionId,String paymentId) { }
     /**
      * The provider completed the session; `providerPaymentId` is its payment (kept on the session for S12 reconciliation).
-     * A session completed after its `expiresAt`, any session already EXPIRED on our side, and a signup session one of whose
+     * A session paid after its `expiresAt`, any session already EXPIRED on our side, and a signup session one of whose
      * rows no longer waits for it (a rejection cancelled it) are late completions (E34, A3-01): WARN + mark, never a
      * confirmation, never a `PAID` row, never a card on the member, and never an error; the session expires and its surviving
      * rows are payable again. A provider retry keeps the first mark.
+     * <p>
+     * E5-T30 round 2 (S04 R-04-26, ruling E79): {@code paidAt} is when the provider took the payment (Stripe: the completed
+     * event's time), and it decides, not the callback's arrival: a payment made before `expiresAt` settles the rows, paid at that
+     * time, although its confirmation arrives later, as long as the session and every row still wait for it. E34's
+     * reconciliation stays for the sessions already closed. {@code null}, or a time after now, reads as now.
      */
-    public void complete(String sessionId,String providerPaymentId,Map<String,Object> card) {
+    public void complete(String sessionId,String providerPaymentId,Map<String,Object> card,Instant paidAt) {
         transactions.run(() -> {
             members.lock();var session=sessions.findById(sessionId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-            completed(session,providerPaymentId,card);
+            var now=clock.instant();
+            completed(session,providerPaymentId,card,paidAt==null||paidAt.isAfter(now)?now:paidAt);
             return null;
         });
     }
-    private void completed(SignupCheckoutSession session,String providerPaymentId,Map<String,Object> card) {
+    private void completed(SignupCheckoutSession session,String providerPaymentId,Map<String,Object> card,Instant paidAt) {
         String id=session.id();
-        // E34: P7, a failed provider call or a rejection expired the checkout on our side, but the provider still took the money.
+        // E34: P7, a failed provider call, a rejection or a write that needed its rows past `expiresAt` (E79) expired the
+        // checkout on our side, but the provider still took the money.
         if("EXPIRED".equals(session.status())) { lateCompletion(session,providerPaymentId,"the checkout expired");return; }
         if(!"PENDING".equals(session.status())) return;
         // E5-T30 (step 2): a signup session is paid only while every row it charged still waits for it. Otherwise the money of a
@@ -194,15 +230,16 @@ public class CheckoutService {
             late(session,providerPaymentId,"its signup rows were closed");
             return;
         }
-        // E34: past `bookings.paymentPendingMinutes` the booking is never confirmed. The session expires as P7 would expire it
+        // E34: paid past `bookings.paymentPendingMinutes`, the booking is never confirmed. The session expires as P7 would expire it
         // (line CANCELLED + UpfrontPaymentFailed) and keeps the mark, also when the club already cancelled the booking. A signup
-        // session past its 24 h (a delayed callback, E5-T30) likewise: its rows are payable again, and the mark is never lost.
-        if(!session.expiresAt().isAfter(clock.instant())) {
+        // session paid past its 24 h likewise (E5-T30): its rows are payable again, and the mark is never lost. The payment's
+        // time decides (round 2, E79): paid before `expiresAt`, a callback that arrives after it still settles the rows.
+        if(!session.expiresAt().isAfter(paidAt)) {
             late(session,providerPaymentId,session.bookingId()==null?"the signup checkout had expired":"the checkout deadline passed");
             return;
         }
         if(!sessions.finish(id,"COMPLETE",providerPaymentId)) return;
-        payments.checkout(session.memberId(),id,true);
+        payments.checkout(session.memberId(),id,true,paidAt);
         if(session.bookingId()==null) members.card(session.memberId(),card); // a booking payment never changes the payment method
     }
     /**

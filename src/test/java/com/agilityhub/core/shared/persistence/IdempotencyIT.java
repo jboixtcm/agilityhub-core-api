@@ -208,6 +208,44 @@ class IdempotencyIT extends AbstractIntegrationTest {
         assertThat(mongo.findAll(IdempotencyRecord.class)).hasSize(2);
     }
 
+    /**
+     * E5-T30 round 2 (CONVENCIONS_API §7, ruling E79): the first request holds its claim and stops (its process died: nothing
+     * cleans it up). Inside the claim's lease a retry still gets `409 {reason: IN_PROGRESS}`; once the lease has passed, the
+     * first retry with the same key and body takes the claim over and runs, while another body is never let in. If the first
+     * request wakes up after all, its claim is gone: its answer is not stored and its effects roll back.
+     */
+    @Test void E5_T30_aStoppedRequestsClaimIsTakenOverOnceItsLeasePassedAndItsLateAnswerChangesNothing() throws Exception {
+        String key = UUID.randomUUID().toString();
+        controller.entered = new CountDownLatch(1); controller.release = new CountDownLatch(1);
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            var stopped = executor.submit(() -> mvc.perform(request(key, "original", "club-a", "account-a")).andReturn().getResponse());
+            org.springframework.mock.web.MockHttpServletResponse retried;
+            try {
+                assertThat(controller.entered.await(10, TimeUnit.SECONDS)).isTrue();
+                // Retries are no longer held by the controller; the stopped request still waits for its release.
+                controller.entered = null;
+                clock.advance(IdempotencyRepository.CLAIM_LEASE.minusSeconds(1));
+                mvc.perform(request(key, "original", "club-a", "account-a"))
+                        .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"))
+                        .andExpect(jsonPath("$.details.reason").value("IN_PROGRESS"));
+                clock.advance(Duration.ofSeconds(2));
+                mvc.perform(request(key, "changed", "club-a", "account-a"))
+                        .andExpect(status().isConflict()).andExpect(jsonPath("$.details.reason").value("DIFFERENT_REQUEST"));
+                retried = mvc.perform(request(key, "original", "club-a", "account-a")).andExpect(status().isCreated()).andReturn().getResponse();
+                assertThat(mongo.getCollection("idempotency_effects").countDocuments()).isEqualTo(1);
+            } finally { controller.release.countDown(); }
+            var late = stopped.get(20, TimeUnit.SECONDS);
+            assertThat(late.getStatus()).as(late.getContentAsString()).isEqualTo(409);
+            assertThat(late.getContentAsString()).contains("\"IDEMPOTENCY_KEY_REUSED\"", "\"IN_PROGRESS\"");
+            assertThat(controller.calls).hasValue(2);
+            assertThat(mongo.getCollection("idempotency_effects").countDocuments()).as("the stopped request's effect rolled back").isEqualTo(1);
+            assertThat(mongo.findAll(IdempotencyRecord.class)).singleElement().satisfies(record -> assertThat(record.status()).isEqualTo(IdempotencyRecord.Status.DONE));
+            var replay = mvc.perform(request(key, "original", "club-a", "account-a")).andExpect(status().isCreated()).andReturn().getResponse();
+            assertThat(replay.getContentAsByteArray()).isEqualTo(retried.getContentAsByteArray());
+        }
+        assertThat(controller.calls).hasValue(2);
+    }
+
     @TestConfiguration(proxyBeanMethods = false) static class Config {
         @Bean @Order(0) SecurityFilterChain testSecurity(HttpSecurity http) throws Exception {
             return http.securityMatcher("/api/v1/test/**").authorizeHttpRequests(auth -> auth.anyRequest()

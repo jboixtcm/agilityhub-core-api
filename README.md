@@ -501,6 +501,23 @@ real clock. To drive a process at a moved instant, move the API clock and let th
 scheduler run it, or use `POST /api/v1/jobs/{name}/trigger`, which runs in the API
 process.
 
+Under the same two profiles, the fake payment provider's side of a signup checkout
+(E5-T30) is a CLI command: it delivers the provider's completion or expiry through the
+webhook's handler, as `FakeCheckoutGateway` does in the tests. `bin/e3-smoke` uses it on
+the fictional `fifo` club, which enables `STRIPE`:
+
+```sh
+bin/core checkout:fake-provider completion <checkoutSessionId> --club=fifo [--paid-at=2026-10-11T18:00:00Z]
+bin/core checkout:fake-provider expiry <checkoutSessionId> --club=fifo
+```
+
+`--paid-at` is when the provider took the payment (default: now, on the CLI's real
+clock): a payment made before the session's `expiresAt` settles its rows even when the
+confirmation arrives later (S04 R-04-26, ruling E79). A signup checkout past its
+`expiresAt` that never heard from the provider is released by P7 `payment-timeouts`
+(`EXPIRE_CHECKOUT`) or by the next write that needs its rows (D2's validation, a new
+checkout).
+
 ## E5 bookings, waiting lists and free training (aggregates, demo scenario and gate)
 
 `GET /api/v1/me/home` (screen 03) and `GET /api/v1/me/bookable-classes` (screen 04)

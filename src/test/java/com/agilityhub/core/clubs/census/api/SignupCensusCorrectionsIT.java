@@ -4,6 +4,7 @@ import com.agilityhub.core.clubs.catalogs.persistence.*;
 import com.agilityhub.core.clubs.census.domain.CensusRules;
 import com.agilityhub.core.platform.application.*;
 import com.agilityhub.core.platform.application.Module;
+import com.agilityhub.core.platform.application.jobs.JobName;
 import com.agilityhub.core.platform.persistence.*;
 import com.agilityhub.core.platform.support.PlatformFixtures;
 import com.agilityhub.core.shared.domain.*;
@@ -58,6 +59,8 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     @MockitoSpyBean com.agilityhub.core.shared.persistence.IdempotencyRepository records;
     @Autowired com.agilityhub.core.shared.application.TransactionRetries retries;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @Autowired com.agilityhub.core.platform.application.jobs.JobRunner runner;
+    @Autowired com.agilityhub.core.payments.application.FakeProviderCommand provider;
     String club,host,plan,level;
     int sequence;
     @BeforeEach void fixtureClub() {
@@ -115,6 +118,12 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
     void stripe() {
         mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders",new Document("MANUAL",new Document("enabled",true))
                 .append("SEPA_XML",new Document("enabled",true)).append("STRIPE",new Document("enabled",true)))));
+        configs.invalidate(club);signupService.invalidateConfiguration(club);
+    }
+    /** The club switches Stripe off again (E5-T30 round 2): a stranded checkout must not need it to give its rows back. */
+    void stripeOff() {
+        mongo.getCollection("clubs").updateOne(new Document("_id",club),new Document("$set",new Document("paymentProviders",new Document("MANUAL",new Document("enabled",true))
+                .append("SEPA_XML",new Document("enabled",true)))));
         configs.invalidate(club);signupService.invalidateConfiguration(club);
     }
     Map<String,Object> checkout(JsonNode submitted) {
@@ -322,11 +331,12 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(collection("upfront_payments")).allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&next.equals(p.getString("checkoutSessionId")));
     }
     /**
-     * E5-T30 step 4 (E34): the provider's completion reaches us after the session's `expiresAt` (a delayed webhook). It is a
-     * late completion: the session expires with the reconciliation mark, its rows are payable again, and nothing throws, so the
+     * E5-T30 step 4 (E34): the provider's completion, paid and delivered after the session's `expiresAt`. It is a late
+     * completion: the session expires with the reconciliation mark, its rows are payable again, and nothing throws, so the
      * provider's money is never left without a record. Before, the completion failed with `INVALID_STATE` and left no mark.
+     * Round 2 (E79): the payment's time decides, so a payment made before `expiresAt` is not late (the test below).
      */
-    @Test void T_04_22_aCompletionDeliveredAfterTheSessionsExpiryIsALateOneNeverAnError() throws Exception {
+    @Test void T_04_22_aCompletionPaidAfterTheSessionsExpiryIsALateOneNeverAnError() throws Exception {
         stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
         var submitted=submit(body);String id=submitted.path("memberId").asText();
         String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
@@ -339,6 +349,198 @@ class SignupCensusCorrectionsIT extends AbstractIntegrationTest {
         assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
         assertThat(member(id).get("paymentMethod",Document.class).get("card")).isNull();
         assertThat(collection("domain_events").stream().map(e->e.getString("type"))).doesNotContain("UpfrontPaymentSucceeded");
+    }
+    /**
+     * E5-T30 round 2, item 1 (CONVENCIONS_API §7, ruling E79): the process stops right after `prepare` committed, before the
+     * provider has its session. Nothing cleans up: the session waits, and the key's claim stays `IN_PROGRESS`. Inside the
+     * claim's lease a retry gets `409 {reason: IN_PROGRESS}`; once it has passed, the retry with the same key takes the claim
+     * over, sends the provider the saved request and answers the checkout: one session on each side. The stopped request,
+     * should it wake up, no longer holds the claim: it changes nothing and answers `409 IN_PROGRESS`.
+     */
+    @Test void T_04_22_T_04_23_aCheckoutStoppedAfterPrepareIsTakenOverByItsRetryOnceTheClaimsLeasePassed() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);var request=checkout(submitted);String key=UUID.randomUUID().toString(),ip=ip();
+        var opening=new CountDownLatch(1);var held=new CountDownLatch(1);
+        doAnswer(invocation -> { opening.countDown();held.await(60,TimeUnit.SECONDS);return invocation.callRealMethod(); }).doCallRealMethod().when(fake).createCheckoutSession(any());
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var stopped=pool.submit(()->mvc.perform(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip)).andReturn().getResponse());
+            JsonNode again;String sid;
+            try {
+                assertThat(opening.await(30,TimeUnit.SECONDS)).as("prepare committed and the provider is being asked").isTrue();
+                sid=collection("checkout_sessions").getFirst().getString("_id");
+                assertThat(session(sid).getString("status")).isEqualTo("PENDING");
+                assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status")));
+                var busy=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),409);
+                assertThat(busy.path("code").asText()).isEqualTo("IDEMPOTENCY_KEY_REUSED");assertThat(busy.at("/details/reason").asText()).isEqualTo("IN_PROGRESS");
+                clock.setInstant(clock.instant().plus(com.agilityhub.core.shared.persistence.IdempotencyRepository.CLAIM_LEASE).plusSeconds(1));
+                again=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201);
+                assertThat(again.path("checkoutSessionId").asText()).isEqualTo(sid);
+                assertThat(again.path("checkoutUrl").asText()).isEqualTo("https://checkout.test/"+sid);
+                assertThat(collection("checkout_sessions")).singleElement().satisfies(s -> assertThat(s.getString("status")).isEqualTo("PENDING"));
+                assertThat(fake.request(sid).sessionId()).isEqualTo(sid);
+                assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201)).as("the stored answer").isEqualTo(again);
+            } finally { held.countDown(); }
+            var woke=stopped.get(60,TimeUnit.SECONDS);var answer=mapper.readTree(woke.getContentAsString());
+            assertThat(woke.getStatus()).as(woke.getContentAsString()).isEqualTo(409);
+            assertThat(answer.path("code").asText()).isEqualTo("IDEMPOTENCY_KEY_REUSED");assertThat(answer.at("/details/reason").asText()).isEqualTo("IN_PROGRESS");
+            // The late provider call asked for the same session with the same request: still one on each side, and it is open.
+            var asked=ArgumentCaptor.forClass(PaymentProvider.Request.class);
+            verify(fake,times(2)).createCheckoutSession(asked.capture());
+            assertThat(asked.getAllValues()).extracting(PaymentProvider.Request::sessionId).containsOnly(sid);
+            assertThat(asked.getAllValues().get(1)).isEqualTo(asked.getAllValues().get(0));
+            assertThat(collection("checkout_sessions")).singleElement().satisfies(s -> assertThat(s.getString("status")).isEqualTo("PENDING"));
+            assertThat(collection("upfront_payments")).allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&sid.equals(p.getString("checkoutSessionId")));
+            assertThat(fake.expired(sid)).isFalse();
+            assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201)).isEqualTo(again);
+        }
+    }
+    /**
+     * E5-T30 round 2, item 1 (the failure-path table's row 2″): the request that held the claim was only slower than its lease.
+     * Its retry took the claim over and answered the checkout; then the first request's provider call fails. Its clean-up no
+     * longer holds the key, so it expires neither side: the retry's session stays open and payable, and it answers
+     * `409 IN_PROGRESS`.
+     */
+    @Test void T_04_22_T_04_23_aProviderFailureOfARequestWhoseClaimWasTakenOverLeavesTheRetrysCheckoutOpen() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);var request=checkout(submitted);String key=UUID.randomUUID().toString(),ip=ip();
+        var opening=new CountDownLatch(1);var held=new CountDownLatch(1);
+        doAnswer(invocation -> { opening.countDown();held.await(60,TimeUnit.SECONDS);throw new IllegalStateException("provider timeout (injected)"); })
+                .doCallRealMethod().when(fake).createCheckoutSession(any());
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var slow=pool.submit(()->mvc.perform(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip)).andReturn().getResponse());
+            JsonNode again;
+            try {
+                assertThat(opening.await(30,TimeUnit.SECONDS)).isTrue();
+                clock.setInstant(clock.instant().plus(com.agilityhub.core.shared.persistence.IdempotencyRepository.CLAIM_LEASE).plusSeconds(1));
+                again=result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201);
+            } finally { held.countDown(); }
+            var failed=slow.get(60,TimeUnit.SECONDS);
+            assertThat(failed.getStatus()).as(failed.getContentAsString()).isEqualTo(409);
+            assertThat(mapper.readTree(failed.getContentAsString()).at("/details/reason").asText()).isEqualTo("IN_PROGRESS");
+            String sid=again.path("checkoutSessionId").asText();
+            assertThat(session(sid).getString("status")).isEqualTo("PENDING");assertThat(fake.expired(sid)).isFalse();
+            assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status"))&&sid.equals(p.getString("checkoutSessionId")));
+            // The retry's checkout is the live one: the applicant pays it.
+            fake.complete(sid);
+            assertThat(session(sid).getString("status")).isEqualTo("COMPLETE");
+            assertThat(collection("upfront_payments")).allMatch(p->"PAID".equals(p.getString("status")));
+            assertThat(result(from(postJson("/checkout-sessions",request).header("Idempotency-Key",key),ip),201)).isEqualTo(again);
+        }
+    }
+    /**
+     * E5-T30 round 2, item 2 (S04 R-04-26, ruling E79): the process stops after `prepare`, before the provider has its session,
+     * so no expiry will ever come. Once `expiresAt` has passed, and with Stripe switched off meanwhile, D2's validation needs the
+     * rows: its dry run shows them payable (no `CHECKOUT_PENDING` warning), and the validation expires the session and allocates
+     * the cash. The stopped request, should it wake up, finds its session closed: the provider's session is expired, no URL.
+     */
+    @Test void T_04_22_T_04_07_aCheckoutStrandedBeforeTheProviderIsReleasedByD2sCashValidationOnceExpiredWithStripeOff() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);String id=submitted.path("memberId").asText();
+        var opening=new CountDownLatch(1);var held=new CountDownLatch(1);
+        doAnswer(invocation -> { opening.countDown();held.await(60,TimeUnit.SECONDS);return invocation.callRealMethod(); }).when(fake).createCheckoutSession(any());
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var stopped=pool.submit(()->mvc.perform(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip())).andReturn().getResponse());
+            String sid;
+            try {
+                assertThat(opening.await(30,TimeUnit.SECONDS)).isTrue();
+                sid=collection("checkout_sessions").getFirst().getString("_id");
+                assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"CHECKOUT_PENDING".equals(p.getString("status")));
+                clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plusSeconds(60));
+                stripeOff();
+                var review=review(id);var validation=new LinkedHashMap<String,Object>();validation.put("version",review.path("version").asLong());
+                var dogs=new ArrayList<Map<String,Object>>();for(var dog:review.path("dogs")) dogs.add(Map.of("dogId",dog.path("id").asText(),"levelId",level));validation.put("dogs",dogs);
+                if(!review.at("/proposals/nextInvoiceDate").isMissingNode()) validation.put("nextInvoiceDate",review.at("/proposals/nextInvoiceDate").asText());
+                var dry=result(admin(postJson("/members/"+id+"/validation",validation).param("dryRun","true")),200);
+                assertThat(dry.path("warnings").toString()).doesNotContain("CHECKOUT_PENDING");
+                assertThat(dry.at("/upfront/lines")).isNotEmpty().allSatisfy(line -> assertThat(line.path("status").asText()).isEqualTo("DUE"));
+                assertThat(session(sid).getString("status")).as("a dry run writes nothing").isEqualTo("PENDING");
+                validation.put("upfrontAmountPaid",mapper.convertValue(dry.at("/upfront/totalDue"),Map.class));
+                result(admin(postJson("/members/"+id+"/validation",validation)),200);
+                assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");assertThat(session(sid).get("lateCompletionAt")).isNull();
+                assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"PAID".equals(p.getString("status"))&&"MANUAL".equals(p.getString("provider"))&&p.get("checkoutSessionId")==null);
+                assertThat(member(id).getString("status")).isEqualTo("ACTIVE");
+            } finally { held.countDown(); }
+            var woke=stopped.get(60,TimeUnit.SECONDS);
+            assertThat(woke.getStatus()).as(woke.getContentAsString()).isEqualTo(409);
+            assertThat(woke.getContentAsString()).contains("\"INVALID_STATE\"").doesNotContain("checkout.test");
+            assertThat(fake.expired(sid)).as("the session the provider opened late is expired there too").isTrue();
+        }
+        assertThat(collection("upfront_payments")).allMatch(p->"PAID".equals(p.getString("status"))&&"MANUAL".equals(p.getString("provider")));
+    }
+    /**
+     * E5-T30 round 2, item 2 (S04 R-04-26, S15 R-15-17, ruling E79): an open checkout whose provider expiry never reaches us.
+     * Before `expiresAt` P7 leaves it; after it, P7 expires it (`EXPIRE_CHECKOUT`, `WOULD_EXPIRE_CHECKOUT` in a dry run) and its
+     * rows are payable again, with no late-completion mark. A second run finds nothing.
+     */
+    @Test void T_04_22_T_15_25_P7ExpiresASignupCheckoutPastItsExpiryThatNeverHeardFromTheProvider() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);
+        String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
+        assertThat(runner.manual(club,JobName.PAYMENT_TIMEOUTS,true,"corrections-admin").items()).isEmpty();
+        clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plusSeconds(60));
+        var dry=runner.manual(club,JobName.PAYMENT_TIMEOUTS,true,"corrections-admin");
+        assertThat(dry.items()).singleElement().satisfies(item -> {
+            assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("WOULD_EXPIRE_CHECKOUT");
+        });
+        assertThat(session(sid).getString("status")).isEqualTo("PENDING");
+        var run=runner.manual(club,JobName.PAYMENT_TIMEOUTS,false,"corrections-admin");
+        assertThat(run.items()).singleElement().satisfies(item -> {
+            assertThat(item.entityId()).isEqualTo(sid);assertThat(item.action()).isEqualTo("EXPIRE_CHECKOUT");
+        });
+        assertThat(session(sid).getString("status")).isEqualTo("EXPIRED");assertThat(session(sid).get("lateCompletionAt")).isNull();
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
+        assertThat(runner.manual(club,JobName.PAYMENT_TIMEOUTS,false,"corrections-admin").items()).isEmpty();
+    }
+    /**
+     * E5-T30 round 2, item 3 (S04 R-04-26, E34, ruling E79): the applicant paid before the session's `expiresAt`, but the
+     * provider's confirmation reaches us after it (a delayed webhook, redelivered once). The session and every row still wait
+     * for it, so the payment's time decides: the rows are paid at that time, the card is kept, and there is no refund mark.
+     */
+    @Test void T_04_22_aPaymentMadeBeforeTheSessionsExpiryButConfirmedAfterItPaysTheRows() throws Exception {
+        stripe();var body=request();body.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var submitted=submit(body);String id=submitted.path("memberId").asText();
+        String sid=result(from(postJson("/checkout-sessions",checkout(submitted)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
+        Instant paid=clock.instant().plus(Duration.ofHours(23)).truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+        clock.setInstant(clock.instant().plus(Duration.ofHours(24)).plusSeconds(60));
+        fake.complete(sid,paid);fake.complete(sid,paid);
+        var completed=session(sid);
+        assertThat(completed.getString("status")).isEqualTo("COMPLETE");assertThat(completed.get("lateCompletionAt")).isNull();
+        assertThat(completed.getString("providerPaymentId")).isEqualTo("fake_payment_"+sid);
+        assertThat(collection("upfront_payments")).isNotEmpty().allMatch(p->"PAID".equals(p.getString("status"))&&"STRIPE".equals(p.getString("provider"))
+                &&sid.equals(p.getString("checkoutSessionId"))&&paid.equals(p.getDate("paidAt").toInstant()));
+        assertThat(member(id).get("paymentMethod",Document.class).get("card",Document.class).getString("last4")).isEqualTo("4242");
+        assertThat(collection("domain_events").stream().filter(e->"UpfrontPaymentSucceeded".equals(e.getString("type")))).hasSize(collection("upfront_payments").size());
+    }
+    /**
+     * E5-T30 round 2, item 4: `bin/core checkout:fake-provider`, which the checkout steps of `bin/e3-smoke` run against a live
+     * stack, completes (at the given payment time) and expires checkouts that another process opened, through the webhook's
+     * handler. A wrong call is refused before anything is written.
+     */
+    @Test void T_04_22_theFakeProvidersCommandCompletesAndExpiresACheckoutOpenedByAnotherProcess() throws Exception {
+        stripe();var paying=request();paying.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var expiring=request();expiring.set("payment",mapper.valueToTree(Map.of("type","CARD","firstMonthOption","TODAY")));
+        var first=submit(paying);var second=submit(expiring);
+        String paid=result(from(postJson("/checkout-sessions",checkout(first)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
+        String lapsed=result(from(postJson("/checkout-sessions",checkout(second)).header("Idempotency-Key",UUID.randomUUID()),ip()),201).path("checkoutSessionId").asText();
+        java.util.function.Function<String[],org.springframework.boot.ApplicationArguments> args=values -> {
+            var all=new ArrayList<String>(List.of("--core.command=checkout:fake-provider"));all.addAll(List.of(values));
+            return new org.springframework.boot.DefaultApplicationArguments(all.toArray(String[]::new));
+        };
+        for(var wrong:List.of(new String[]{"refund",paid,"--club="+club},new String[]{"expiry",paid,"--club="+club,"--paid-at="+clock.instant()},
+                new String[]{"completion",paid},new String[]{"completion",paid,"--club="+club,"--paid-at=yesterday"},new String[]{"completion",paid,"--club="+club,"--other=1"}))
+            assertThatThrownBy(() -> provider.run(args.apply(wrong))).isInstanceOf(IllegalArgumentException.class).hasMessageStartingWith("Usage: checkout:fake-provider");
+        assertThatThrownBy(() -> provider.run(args.apply(new String[]{"completion",paid,"--club=no-such-club"})))
+                .isInstanceOfSatisfying(ApiException.class,failure -> assertThat(failure.code()).isEqualTo(ErrorCode.CLUB_NOT_FOUND));
+        assertThat(session(paid).getString("status")).isEqualTo("PENDING");assertThat(session(lapsed).getString("status")).isEqualTo("PENDING");
+        Instant at=clock.instant().minusSeconds(5).truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+        provider.run(args.apply(new String[]{"completion",paid,"--club="+club,"--paid-at="+at}));
+        provider.run(args.apply(new String[]{"expiry",lapsed,"--club="+club}));
+        assertThat(session(paid).getString("status")).isEqualTo("COMPLETE");assertThat(session(lapsed).getString("status")).isEqualTo("EXPIRED");
+        assertThat(collection("upfront_payments")).filteredOn(p->first.path("memberId").asText().equals(p.getString("memberId"))).isNotEmpty()
+                .allMatch(p->"PAID".equals(p.getString("status"))&&at.equals(p.getDate("paidAt").toInstant()));
+        assertThat(collection("upfront_payments")).filteredOn(p->second.path("memberId").asText().equals(p.getString("memberId"))).isNotEmpty()
+                .allMatch(p->"DUE".equals(p.getString("status"))&&p.get("checkoutSessionId")==null);
+        assertThat(fake.expired(lapsed)).isTrue();
     }
     /** A3-06 (R-04-27): the checkout meets a concurrent census write, retries in the signup's transaction, and answers 201. */
     @Test void T_04_23_aCheckoutMeetingAConcurrentCensusWriteIsRetriedNeverA500() throws Exception {

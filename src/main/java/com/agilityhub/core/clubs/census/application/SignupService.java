@@ -966,6 +966,9 @@ public class SignupService implements SignupPaymentAccess {
     public Map<String,Object> validateDogs(String id,Map<String,Object> request) { return validate(id,request,true); }
     private Map<String,Object> validate(String id,Map<String,Object> request,boolean addDog) {
         lock();var member=access.mutableMember(id);var dogs=selection(member,request);
+        // S04 R-04-26 (E5-T30 round 2, E79): a checkout past its expiry gives its rows back before the plan change or the cash
+        // allocation reads them, whether or not the provider ever had it and with the provider switched off.
+        checkouts.getObject().releaseLapsed(id);
         if(addDog!= "ACTIVE".equals(member.status)) throw new ApiException(ErrorCode.INVALID_STATE);
         var plan=proposedPlan(member,request,dogs);var quote=validationQuote(member,plan,dogs);nextInvoiceDate(request,firstMonth(member,plan,dogs,quote));
         var levels=new LinkedHashMap<String,String>();

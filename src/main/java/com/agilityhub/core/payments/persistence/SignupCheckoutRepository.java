@@ -31,6 +31,11 @@ public class SignupCheckoutRepository extends TenantRepository<SignupCheckoutSes
         return mongo.find(tenantQuery().addCriteria(Criteria.where("memberId").is(memberId).and("status").is("PENDING").and("bookingId").is(null).and("expiresAt").lte(now)),
                 SignupCheckoutSession.class);
     }
+    /** The club's open signup checkouts whose `expiresAt` has passed ({@code now} included), oldest first: P7's sweep (E5-T30 round 2). */
+    public java.util.List<SignupCheckoutSession> lapsedSignup(Instant now) {
+        return mongo.find(tenantQuery().addCriteria(Criteria.where("status").is("PENDING").and("bookingId").is(null).and("expiresAt").lte(now))
+                .with(org.springframework.data.domain.Sort.by("expiresAt","_id")),SignupCheckoutSession.class);
+    }
     /**
      * The answer of the session's request is stored in the caller's transaction: whether the session is still `PENDING`. Its
      * provider request is dropped (E5-T30): from now on the key replays the stored answer, and no retry needs it.

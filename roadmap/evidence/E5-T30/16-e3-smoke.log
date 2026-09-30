@@ -1,0 +1,99 @@
+Starting disposable development build Compose stack
+Building the current working tree image
+PASS working tree image built
+PASS club:apply seeds/club-canic.yaml run 1
+PASS club:apply seeds/club-canic.yaml run 2: 0 changes
+PASS seed:demo --club=canic --seed=42 run 1
+PASS seed:demo --club=canic --seed=42 run 2: 0 changes
+PASS club:apply seeds/club-fifo.yaml (fictional club with STRIPE)
+curl GET /api/v1/health -> 200
+PASS private local mailbox and attachment volumes ready; fixture club activated
+curl GET /api/v1/signup -> 200
+PASS GET /signup: texts resolved, one quote per offered plan
+curl POST /oauth2/token -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=184
+PASS D1 dogs by level: 8 progression columns, others=0
+PASS D1 class occupancy follows R-14-03 for the seeded week: 2 classes, booked=6, capacity=10, percent=60
+curl GET /api/v1/members/10e9c47d-8215-3cff-90e1-c0d65843d896/signup -> 200
+curl GET /api/v1/members/ce9d2ea7-4bf0-3091-b34b-2d0ac7dc154d/signup -> 200
+curl GET /api/v1/members/d4675941-3590-3ecf-a030-1331c04b215d/signup -> 200
+PASS D1 demo: 184 ACTIVE members, 242 ACTIVE dogs, three reviewable pending public signups
+curl POST /api/v1/signup/family-group-lookups -> 200
+curl POST /api/v1/signup/identity-checks -> 200
+curl POST /api/v1/signup/upload-urls -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=184
+curl GET /api/v1/members/c8400f9d-18b6-45fd-9ad7-bfad9c959a9e/signup -> 200
+curl GET /api/v1/club -> 200
+PASS cash payment instructions: the seed's, in ca, under MANUAL
+PASS payment methods: GET /club, GET /signup and D2 offer SEPA_DD and MANUAL
+PASS mailbox N-01 correlated by notificationId; locale=ca
+curl POST /api/v1/members/c8400f9d-18b6-45fd-9ad7-bfad9c959a9e/validation -> 200
+curl POST /api/v1/members/c8400f9d-18b6-45fd-9ad7-bfad9c959a9e/validation -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS mailbox N-02 correlated by notificationId; locale=ca; token=[truncated]
+curl POST /oauth2/token -> 200
+curl GET /api/v1/me -> 200
+PASS public family signup -> dry run -> validation/number increment -> N-02 -> welcome session
+curl POST /api/v1/me/dogs/signup -> 201
+PASS N-01 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/c8400f9d-18b6-45fd-9ad7-bfad9c959a9e/signup -> 200
+PASS add-dog D2: only the member's current payment method, not assignable
+curl POST /api/v1/members/c8400f9d-18b6-45fd-9ad7-bfad9c959a9e/validation -> 200
+PASS N-37 in the member APP inbox, scoped to account and entity
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/d210adea-341a-4daa-b724-716593d4e334/signup -> 200
+curl POST /api/v1/members/d210adea-341a-4daa-b724-716593d4e334/rejection -> 200
+PASS mailbox N-03 correlated by notificationId; locale=ca
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS signup without family -> rejection -> N-03; D1 counters restored
+curl POST /api/v1/signup -> 201
+PASS D1 dashboard + counters: pending=4, olderThanWarn=1, activeMembers=185
+curl GET /api/v1/members/e719c876-8070-3b10-b4c8-98bb8224516b/signup -> 200
+PASS readmission of the demo's LEFT member reuses its INACTIVE seed dog and its received card
+curl POST /api/v1/attachments/upload-url -> 201
+curl PUT /api/v1/attachments/uploads/76bda207-1622-4b20-8ff4-5e21bba9d157 -> 204
+curl PATCH /api/v1/dogs/a921a82f-b34b-3b5a-8f59-b9bf7a6d9525 -> 200
+curl GET /api/v1/members/e719c876-8070-3b10-b4c8-98bb8224516b/signup -> 200
+curl GET /api/v1/attachments/files/76bda207-1622-4b20-8ff4-5e21bba9d157 -> 200
+curl GET /api/v1/attachments/files/76bda207-1622-4b20-8ff4-5e21bba9d157 -> 200
+PASS D2 adds a file with the ADMIN's DOG_DOCUMENT upload; the signed upload and download URLs need no bearer; the download is application/pdf, attachment, with the stored name
+curl POST /api/v1/members/e719c876-8070-3b10-b4c8-98bb8224516b/rejection -> 200
+PASS D1 dashboard + counters: pending=3, olderThanWarn=1, activeMembers=185
+PASS rejected readmission restores the LEFT member and its INACTIVE dog; D1 counters restored
+curl POST /api/v1/signup/upload-urls -> 200
+curl GET /api/v1/parameters/signup.enabled -> 200
+curl PUT /api/v1/parameters/signup.enabled -> 200
+curl POST /api/v1/signup -> 422 SIGNUP_CLOSED
+PASS signup.enabled=false closes the form; canonical catalog status is 422 SIGNUP_CLOSED
+curl POST /api/v1/signup/upload-urls -> 200
+curl OPTIONS /api/v1/signup/uploads -> 200
+curl PUT /api/v1/signup/uploads -> 204
+curl PUT /api/v1/signup/uploads -> 422
+PASS signup closed: the member's signed upload passes the CORS preflight and the PUT with its headers only, without a bearer or the club's host; an anonymous one answers 422 SIGNUP_CLOSED
+curl POST /api/v1/me/dogs/signup -> 201
+curl GET /api/v1/members/c8400f9d-18b6-45fd-9ad7-bfad9c959a9e/signup -> 200
+curl GET /api/v1/signup/files -> 200
+PASS the member's add-dog claims the file; its download from the web's origin is image/png, inline, with the stored name
+PASS T-04-34 / T-14-11: E3 backend gate completed; credentials and capabilities withheld
+curl GET /api/v1/signup -> 200
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/checkout-sessions -> 201
+PASS a card signup on the Stripe club opens its checkout (1 rows CHECKOUT_PENDING); the key replays the same checkoutUrl
+Fake provider completion delivered: checkoutSessionId=04581a4c…
+PASS the provider's completion pays every row (PAID, STRIPE) and keeps the card on the member
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/checkout-sessions -> 201
+Fake provider expiry delivered: checkoutSessionId=1b85f9c6…
+PASS the provider's expiry gives every row back (DUE, no session)
+curl POST /api/v1/signup -> 201
+curl POST /api/v1/checkout-sessions -> 201
+POST /test/clock +24 h 2 min (server now 2026-10-01T21:19Z): the stranded checkout's expiresAt has passed
+PASS P7 payment-timeouts (SCHEDULE) expires the checkout that never heard from the provider past its expiresAt: EXPIRE_CHECKOUT, rows DUE, no refund mark
+PASS T-04-22: the signup checkout on the fake provider (create, complete, expire, stranded release)
+Removed disposable Compose services, volumes and private mailbox; existing stacks preserved

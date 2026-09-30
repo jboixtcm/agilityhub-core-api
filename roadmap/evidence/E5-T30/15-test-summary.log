@@ -1,0 +1,10 @@
+unit (surefire, without the failsafe classes): classes=165 tests=878 failures=0 errors=0 skipped=0
+integration (failsafe): classes=111 tests=1274 failures=0 errors=0 skipped=0
+com.agilityhub.core.clubs.census.api.SignupCensusCorrectionsIT (changed, 5 new tests, 1 renamed): tests=17 failures=0 errors=0 skipped=0
+com.agilityhub.core.shared.persistence.IdempotencyIT (changed, 1 new test): tests=11 failures=0 errors=0 skipped=0
+com.agilityhub.core.payments.api: lines 7/8 = 87.5%, branches n/a
+com.agilityhub.core.payments.application: lines 268/271 = 98.9%, branches 200/233 = 85.8%
+com.agilityhub.core.payments.domain: lines 2/2 = 100.0%, branches n/a
+com.agilityhub.core.payments.persistence: lines 22/22 = 100.0%, branches 9/10 = 90.0%
+com.agilityhub.core.shared.api: lines 430/447 = 96.2%, branches 430/468 = 91.9%
+com.agilityhub.core.shared.persistence: lines 260/270 = 96.3%, branches 96/104 = 92.3%

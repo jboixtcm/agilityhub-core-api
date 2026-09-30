@@ -2,6 +2,7 @@ package com.agilityhub.core.payments.application;
 
 import com.agilityhub.core.shared.application.TenantContext;
 import com.agilityhub.core.shared.domain.*;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.ObjectProvider;
@@ -27,6 +28,18 @@ public class FakeCheckoutGateway implements PaymentProvider {
         if(known!=null&&!known.equals(request)) throw new IllegalStateException("Idempotency error: checkoutSessionId="+request.sessionId()+" was opened with other parameters");
         return "https://checkout.test/"+request.sessionId();
     }
-    @Override public void complete(String id) { try(var tenant=TenantContext.open(request(id).clubId())) { checkout.getObject().complete(id,"fake_payment_"+id,Map.of("stripeCustomerId","fake_customer_"+id,"stripePaymentMethodId","fake_method_"+id,"last4","4242","brand","visa")); } }
-    @Override public void expire(String id) { var clubId=request(id).clubId();expired.add(id);try(var tenant=TenantContext.open(clubId)) { checkout.getObject().expire(id); } }
+    /** The provider takes the payment now and confirms it at once. */
+    @Override public void complete(String id) { complete(id,null); }
+    /** The payment taken at {@code paidAt} (null: now), confirmed now: a delayed webhook (E5-T30 round 2, E79). */
+    public void complete(String id,Instant paidAt) { completion(request(id).clubId(),id,paidAt); }
+    /**
+     * The confirmation of {@code id}, in club {@code clubId}, from a process that did not open the session (the CLI's
+     * {@code checkout:fake-provider}, which a smoke runs against a live stack), so without this instance's requests.
+     */
+    public void completion(String clubId,String id,Instant paidAt) {
+        try(var tenant=TenantContext.open(clubId)) { checkout.getObject().complete(id,"fake_payment_"+id,Map.of("stripeCustomerId","fake_customer_"+id,"stripePaymentMethodId","fake_method_"+id,"last4","4242","brand","visa"),paidAt); }
+    }
+    @Override public void expire(String id) { expiry(request(id).clubId(),id); }
+    /** The provider's expiry of {@code id} in club {@code clubId}, from any process (as {@link #completion}). */
+    public void expiry(String clubId,String id) { expired.add(id);try(var tenant=TenantContext.open(clubId)) { checkout.getObject().expire(id); } }
 }
