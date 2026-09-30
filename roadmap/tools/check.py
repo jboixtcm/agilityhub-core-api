@@ -143,8 +143,25 @@ def validate(tasks):
     return errors, warnings
 
 
+def lane_threads():
+    """30-09 (A35): the threads this clone's loop may take, from the untracked `.roadmap-threads` file at the
+    repository root (for example `D`, or `A,B,C`). No file (or an empty one) = every thread."""
+    path = os.path.join(os.path.dirname(ROOT), ".roadmap-threads")
+    try:
+        raw = open(path, encoding="utf-8").read()
+    except OSError:
+        return None
+    threads = {x.strip() for x in raw.replace("\n", ",").split(",") if x.strip()}
+    return threads or None
+
+
 def next_for_executor(tasks):
     ordered = sorted(tasks.values(), key=lambda t: (stage_key(t["stage"]), t["order"]))
+    # 30-09 (A35): a lane takes only its own threads (two api clones push to one repo and never pick the same task);
+    # dependencies are still checked against every task
+    threads = lane_threads()
+    if threads is not None:
+        ordered = [t for t in ordered if str(t.get("thread", "")).strip() in threads]
     # 27-09 (organizer): a session that did not finish has already published its work on main (the publish commits the
     # whole tree), so the next session resumes it before any changes_requested round; then the first ready task.
     for t in ordered:          # a previous session that did not finish: resume it
